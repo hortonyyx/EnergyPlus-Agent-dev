@@ -1,5 +1,19 @@
 # 派工单 · **F-156**：边界环的角点改成「相邻支撑线求交」（**授权重做基线**）
 
+> # ⛔⛔⛔ 本单 v1 已作废（2026-09-01，题错 #59 + #61）
+> **⛔ 不要照本单施工。** 施工席按本单开工后**停报**，主控复量后判**停报成立**：
+> - **§一 结论 1 是错的**（`valid`+面积是代理量；`source_symdiff_m2=0.000000` ⇒ 重建与源腔恒等，
+>   没修也没坏那个 0.1 mm 错位；而**源腔跨两个答案 zone**）
+> - **§四 验收 1 会给一个错答案发绿灯**（同上）
+> - **写面比任务小**：任务必然要动 `src/agent/judge/answer_compiler.py:1185` 的边数硬门，而 §十 没给
+> - **§二 漏了一整项**：墙端头边在现有事实模型里**没有诚实的证据可填**，这条设计决定没派给任何人
+>
+> ⇒ **裁定** → [`../verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md`](../verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md)
+> ⇒ **现行单** → [`2026-09-01b_f156v2_ring_from_intersection.md`](2026-09-01b_f156v2_ring_from_intersection.md)
+> ⇒ **停报件（含全部实测附录，v2 建在它上面）** → [`../execution/2026-09-01_f156_ring_intersection_execution.md`](../execution/2026-09-01_f156_ring_intersection_execution.md)
+
+---
+
 - **日期**：2026-09-01 · **派工方**：orchestrator · **施工方**：**Claude 家族施工席**（2026-09-01 用户拍板派出）· **审**：**GLM 或 GPT 家族**（跨家族，⛔ 不得 Claude）
 - **基线**：**`636ce56`** · **权威全量**：**3601 passed / 13 xfailed / 0 failed**（2026-09-01 主控跑，11m13s、`-n auto`、exit 0；`.pth` 哨兵前后同为 `58f547fa…` 且指向主树）<br>⚠️ **原单写的 `58bb59f` / 3519 已过期**（模块 5/6 返工 + ②-1d 返工 + NF-1 已落树）
 - **前置**：[F-155 判别实验](2026-09-01_f155_ring_from_supportline_intersection_probe.md) 已跑通并经

@@ -375,10 +375,17 @@ TARGET plan-F2 valid=True vertices=16 area=70.339200 delta=-0.000800 interval_mi
 HEALTHY count=25 all_rebuilt_vertices_4=True all_valid=True all_interval_misses_0=True
 MISALIGNED_0P1MM cavity:04e1293098b1a95a alive=True vertices=8 valid=True
 ```
-⭐⭐⭐ **两条结论**：① **28.68 那个也活了** ⇒ **F-153「这是两个病、别当一个修」的结论被推翻**
-（它只在**旧表示下**成立）—— [[representation-collapse-manufactures-unrelated-errors]] 再次兑现；
-② **`interval_misses=0` + 对称差 0.000000 ⇒ 腔多边形一直是对的**，
-`derive_boundary_edges` 是**从正确源头造出了自交的环** ⇒ 不是补数据，是换角点算法 ⇒ **修法轻得多**。
+⛔⛔ **本段的结论 ① 已于同日被推翻（题错 #59，派工方）** ——
+~~① **28.68 那个也活了** ⇒ **F-153「这是两个病、别当一个修」的结论被推翻**（它只在旧表示下成立）~~
+**⛔ 不成立**：`valid` 与面积**都是代理量**。实测 `source_symdiff_m2=0.000000` ⇒
+**重建与源腔逐点等价，它没修也没坏那个 0.1 mm 错位**；而**源腔本身跨了两个答案 zone**
+（`F1-z4` / `F1-z5`，从已落库 `review/conversion_report.json` 直读）⇒ 配不上任何一个。
+⇒ **F-153「两个病别当一个修」依然成立。** [裁定](logs/reviews/verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md)
+⭐ **仍然成立的一半**：② `interval_misses=0` + symdiff 0 ⇒ **自交环**那个病
+（形态 A，两个走廊腔）**答案本来就在事实层**，`derive_boundary_edges` 是从一份与源腔等价的表示里
+造出了自交的环 ⇒ 不是补数据，是换角点算法 ⇒ **那一半修法轻得多**。
+⚠️ ⛔ 原文写的「腔多边形**一直**是对的」**说宽了**：symdiff=0 只证明「重建==源腔」，
+⛔ **不证明「源腔==答案」** —— 28.68 那个的源腔本身就是错的。
 ⇒ [主控核验裁定](logs/reviews/verdict/2026-09-01_f155_ring_probe_orchestrator_verification.md) ·
 [F-156 实现单](logs/reviews/request/2026-09-01_f156_ring_from_intersection_implementation.md)（**授权重做基线**）。
 
@@ -405,10 +412,63 @@ MISALIGNED_0P1MM cavity:04e1293098b1a95a alive=True vertices=8 valid=True
 拆成**规则**（任何过阈值的 exclusion 必须登记并引用台账，与是哪几个无关）+ **读数**（台账条数）两半。
 ⛔ **施工方无过** —— F-155 的结论是在它开工之后才出来的。
 
+### ⭐⭐⭐ 第三程（本日续）：三席**一交付两停报**，⛔ **两次停报都是我的题错**
+
+| 席位 | 结果 |
+|---|---|
+| **GLM 模块 4 返工** | ✅ **交付**：生产代码**零改动**，只加测试（`tests/test_o22m4_wall_compiler.py` **+264 行**，22→27 个 `def`）。补上 `_compile_single_face` 的夹具存货（此前 43 条测试**一次没跑到**）。⏳ 未复审（⛔ GLM 不能审自己）|
+| **Claude 席 F-156** | ⛔ **停报**，`src/` 与 `case_tests/` **零改动**。三条阻断 → [主控裁定](logs/reviews/verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md) |
+| **GPT 模块 5/6 复审** | ⛔ **停审**，只写了停审报告。三格第①格**结构上不可执行** |
+
+### ⛔⛔ 昨天那条 ⭐⭐⭐ 结论作废：**题错 #59**（累计 **61，仍 61/61**）
+
+作废原话：「**28.68 那个也活了 ⇒ 一次换表示治好两个病，F-153「两个病别当一个修」被推翻**」。
+**主控独立复量**（读只、命令直出）：
+```
+REBUILT plan-F1 cavity:04e1293098b1a95a supports=8 vertices=8 valid=True
+        area_m2=28.683212 source_symdiff_m2=0.000000 interval_misses=0
+```
+⭐ **`source_symdiff_m2=0.000000` ⇒ 重建与源腔逐点等价 —— 它没修也没坏那个 0.1 mm 错位**；
+而**源腔本身跨了两个答案 zone**（`F1-z4` / `F1-z5`，从已落库 `review/conversion_report.json` 直读；
+`tests/test_o21d_exclusion_gap.py:55` 注释亦写明 `hosts z4 AND z5`）⇒ **配不上任何一个**。
+⇒ **F-153「形态 A 与形态 B 是两个病」依然成立。**
+⭐ **仍成立的一半**：换表示确实修好了**自交环**（两个走廊腔 valid + symdiff 0 + `interval_misses=0`）。
+
+⚠️⚠️ **一小时里同一个病栽了两头**（⛔ 两头都要记）：
+- **施工席**读了 `vertices=8` 就断言「把两间房焊成一间」，**没读同一行的 `source_symdiff_m2=0.000000`**
+  ⇒ **挑着读一份输出的子集 = 自己造了一个代理量**。
+- **主控**读到「源腔 16 点 / 重建 8 点」第一反应是「缺口丢了」，**差点写进裁决承重位置**
+  —— 我把「外环坐标数」当成了「角点数」，中间隔着一次**共线合并**。
+  **拦住我的是自己把探针跑了一遍**，于是读到了紧挨着的那一行。
+⇒ ⭐⭐⭐ **自查话术升级为两句**：①「这个数达标了，那件事就一定成立吗？」
+②「**这个数是对着【谁】达标的？**」（对着源腔达标 ≠ 对着答案达标）
+⇒ [[citing-someone-elses-fact-does-not-transfer-responsibility]] **两头兑现：转引不免责，自己的推断同样不免责。**
+
+### ⚠️ 另两条题错
+
+- **#60**（GPT 停审）：复核单要求第①格「在旧 commit `3cdbaf1` 复现」，
+  而模块 5/6 的**交付与返工在同一个 commit `faf071c`**，`3cdbaf1` 树上**根本没有那三份文件**。
+  ⚠️ **我在同一份单子的 §一 里就写明了「同一个 commit」** ⇒ **单内自相矛盾**，正是我自己写的 A 层必停条件。
+  ⇒ ⭐ **修法不是换个旧 commit，是换判据形式**：第①格改成**逆向变异**
+  （在当前树上把返工那一处改回去，看上一轮的复现命令是否复现得出）——
+  **比「旧 commit 复现」更硬**，因为它精确隔离了「就是这一处在修这条缺陷」。
+- **#61**（F-156 单）：**写面比任务小** —— 任务要三个腔走通，必然要动
+  `src/agent/judge/answer_compiler.py:1185` 的「边数必须相等」硬门（实测 24 vs 16、16 vs 12），
+  而 §十 的写面没给。**同源第二表现**：墙端头边的**证据形态**是一条模型层设计决定，§二**没派给任何人**。
+
+### ✅ 三份单已重出（v1 全部盖作废章 + 指针）
+
+| 件 | v2 |
+|---|---|
+| F-156 | [`2026-09-01b_f156v2_ring_from_intersection.md`](logs/reviews/request/2026-09-01b_f156v2_ring_from_intersection.md) —— 判据换成**对着答案的**（腔 ↔ zone 几何等价 + 一腔配多 zone 必须响亮失败）· 写面放开到 `answer_compiler.py` · **28.68 那个明确移出范围**（归 F-153 形态 B）· 端头边作为**待签字设计决定**随件送审 |
+| 模块 5/6 复审 | [`2026-09-01b_o22m56v2_rework_crossreview_gpt.md`](logs/reviews/request/2026-09-01b_o22m56v2_rework_crossreview_gpt.md) —— 第①格改**逆向变异**，并要求「逆向变异后仍不复现 ⇒ 写进裁决，⛔ 别为凑三格糊过去」|
+| NF-1 复审 | [`2026-09-01b_nf1_crossreview_glm.md`](logs/reviews/request/2026-09-01b_nf1_crossreview_glm.md) —— ⭐ 要求**两个方向都变异**（逆向 + 改过头），因为 NF-1 是「缺键拒 / 空列表放」**两半互为对撞**的判据 |
+
 ### ⏭ 下轮从这里接
-① 模块 5/6 落地后送 GPT 审 · ② **拆旧腿单**（含模块 7 那一行）· ③ **模块 4 补锁返工** ·
-④ NF-1 送跨家族审（⛔ Claude 写的，须换家族）· ⑤ `absent` 却带着载荷 · ⑥ **②-1d 第二轮返工**（等 F-154 落地）·
-⑦ ⭐ **产出新格式产物**（用户已拍「提到前面，下一批就做」）· ⑧ 首次建 sm24 事实层。
+① **模块 4 返工件复审**（⛔ 非 GLM：GPT 或 Claude）· ② **拆旧腿单**（等模块 5/6 过审）·
+③ **②-1d 送跨家族审**（含 #58 的规则化改法）· ④ `absent` 却带着载荷 ·
+⑤ ⭐ **产出新格式产物**（用户已拍「提到前面，下一批就做」；⚠️ 需先拍配置）· ⑥ 首次建 sm24 事实层 ·
+⑦ ⭐ **F-153 形态 B（0.1 mm 错位）单独立单** —— 它已被证明**不在 F-156 范围内**。
 
 ---
 

@@ -1,5 +1,18 @@
 # 复核单 · **②-2 模块 5+6 返工件**（第一轮返工 · 跨家族复核）
 
+> # ⛔⛔⛔ 本单 v1 已作废（2026-09-01，题错 #60）
+> **⛔ 不要照本单复核。** 复核方按本单开工后**停审**，主控核实后判**停审成立**：
+> **§二 的第①格「在旧 commit `3cdbaf1` 上复现上一轮命令」结构上不可执行** ——
+> 模块 5/6 的**交付与第一轮返工在同一个 commit `faf071c`**，`3cdbaf1` 的树上
+> 根本没有 `decision_schema.py` / `decision_executor.py` / `test_o22m56_decision_loop.py`。
+> ⚠️ **而我在同一份单子的 §一 里就写明了「同一个 commit」** ⇒ **单内自相矛盾**，
+> 正是我自己写的 A 层必停条件。**复核方停得对。**
+>
+> ⇒ **停审报告** → [`../verdict/2026-09-01_o22m56_rework_crossreview_gpt.md`](../verdict/2026-09-01_o22m56_rework_crossreview_gpt.md)
+> ⇒ **现行单** → [`2026-09-01b_o22m56v2_rework_crossreview_gpt.md`](2026-09-01b_o22m56v2_rework_crossreview_gpt.md)
+
+---
+
 - **日期**：2026-09-01 · **派工方**：orchestrator · **复核方**：**GPT 家族**（本模块原审方）· **施工方**：GLM 家族
 - **冻结 commit**：**`636ce56`** ⇐ ⛔ **只审这个 commit，别的席位正在同机写树**
 - **权威全量**：**3601 passed / 13 xfailed / 0 failed**（2026-09-01 主控跑，11m13s、`-n auto`、exit 0；
