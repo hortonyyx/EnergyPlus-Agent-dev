@@ -1787,3 +1787,327 @@ def test_legacy_non_unknown_basis_requires_structured_evidence():
     art2 = art.model_copy(deep=True)
     art2.bundle.wall_claims = [upgraded]
     validate_evidence_bundle(_refinalize(art2))
+
+
+# =========================================================================== #
+# Rework-3 (2026-09-01) -- ``absent`` while the payload rides along
+# (dispatch: ../request/2026-09-01_o22m2_absent_with_payload_dispatch.md)
+#
+# ⭐ Every fixture below builds the TARGET QUANTITY directly and then WITNESSES
+#   it before asserting any behaviour: "this row says absent" and "this bundle
+#   really carries N positive claims for that channel" are both measured off
+#   the bundle, by this file's own arithmetic, ⛔ never by asking the module
+#   under test whether it thinks there is payload.  A fixture that only sets up
+#   a condition which USUALLY produces the target quantity is what let 27 locks
+#   go green over a live defect elsewhere this week.
+# =========================================================================== #
+def _row(bundle, channel: str):
+    """The declared row for ``channel``, or None -- read off the bundle."""
+    return next((c for c in bundle.channel_status if c.channel == channel), None)
+
+
+def _measured_walls_payload(bundle) -> int:
+    """This file's OWN count of positive walls payload in the bundle.
+
+    ⛔ Does not call ``evidence_contract``: a fixture that measures with the
+    instrument under test cannot witness anything.  A wall claim is a
+    positive walls product by definition; a ``claimed_wall`` ledger row is
+    the ledger asserting the walls leg consumed that face."""
+    return len(bundle.wall_claims) + len(
+        [d for d in bundle.face_dispositions if d.status == "claimed_wall"]
+    )
+
+
+def _measured_openings_payload(bundle) -> int:
+    return len(bundle.opening_claims)
+
+
+_R3_MEASURE = {
+    "walls": _measured_walls_payload,
+    "plan_openings": _measured_openings_payload,
+}
+
+
+def _declare_absent(art, channel: str, debt_id: str | None = None):
+    """Flip ONE channel's declaration to ``absent`` + a ``missing_channel``
+    debt, changing nothing else -- the payload stays exactly where it was."""
+    debt_id = debt_id or f"debt_r3_{channel}"
+    out = art.model_copy(deep=True)
+    out.bundle.evidence_debts = sorted(
+        [*out.bundle.evidence_debts, EvidenceDebtV1(
+            debt_id=debt_id, kind="missing_channel", channel=channel,
+            description="declared absent by this fixture",
+        )],
+        key=lambda d: d.debt_id,
+    )
+    out.bundle.channel_status = [
+        (
+            ChannelStatusV1(channel=channel, state="absent",
+                            covered_by_debt_ids=(debt_id,))
+            if c.channel == channel else c
+        )
+        for c in out.bundle.channel_status
+    ]
+    return _refinalize(out)
+
+
+def _all_non_wall_doc() -> dict:
+    """A LEGAL as-drawn product whose every face line is declared non-wall.
+
+    ⭐ This is not a hypothetical: it is the shape module 3's approved
+    adapter emits (it declares walls ``present`` only when a positive claim
+    exists) and module 4's compiler consumes.  Its ledger is FULL -- one
+    disposition per face line, as invariant 2 demands -- while the walls leg
+    produced nothing at all."""
+    doc = _tiny_doc()
+    hyp = doc["hypotheses"]
+    hyp["pairs"] = []
+    hyp["pairs_status"] = "SELECTED"
+    hyp["unpaired_wall_faces"] = {}
+    hyp["non_wall_face_lines"] = {
+        f["id"]: "furniture edge on this dialect"
+        for f in doc["observations"]["face_lines"]
+    }
+    AsDrawnPlanV2.model_validate(doc)  # premise: this IS a legal product
+    return doc
+
+
+def _all_non_wall_artifact():
+    doc = _all_non_wall_doc()
+    raw = json.dumps(doc, indent=1).encode("utf-8")
+    art = _bundle_from_as_drawn(json.loads(raw), raw, "all_non_wall", "7f")
+    # the factory hard-codes walls=present; module 3's adapter would declare
+    # absent here, which is what this fixture needs.
+    return _declare_absent(art, "walls", "debt_missing_walls_all_non_wall")
+
+
+def test_r3_absent_channel_may_not_carry_its_payload(monkeypatch):
+    """Rework-3, the dispatch's §一.  Declaring a channel ``absent`` used to
+    make BOTH earlier closures step aside (each opened with
+    ``if status.state != "present": continue``), so two wall claims / four
+    dispositions / an opening claim travelled in a bundle that said the
+    channel carried nothing.
+
+    BEFORE (reconciliation neutered): the tree-of-record waves it through --
+    the hole is reproduced HERE, ⛔ not transcribed from the dispatch.
+    AFTER: loud, naming the channel and which members carried the payload.
+    """
+    for channel in ("walls", "plan_openings"):
+        art = _declare_absent(_tiny_artifact(), channel)
+        bundle = art.bundle
+
+        # ── witness the target quantity, both halves, before asserting ──
+        row = _row(bundle, channel)
+        assert row is not None and row.state == "absent", (
+            f"fixture failed to declare {channel} absent: {row}"
+        )
+        carried = _R3_MEASURE[channel](bundle)
+        assert carried > 0, (
+            f"fixture carries no {channel} payload -- it would be testing "
+            f"nothing (measured {carried})"
+        )
+
+        # BEFORE
+        monkeypatch.setattr(
+            evidence_contract, "_assert_channel_payload_closure", lambda b: None
+        )
+        validate_evidence_bundle(art)
+        monkeypatch.undo()
+
+        # AFTER
+        err = _expect_error(art, "CHANNEL_DECLARED_ABSENT_WITH_PAYLOAD")
+        assert err.context["channel"] == channel
+        assert err.context["state"] == "absent"
+        assert err.context["payload_row_count"] == carried
+
+    # the two §一 readings, pinned as numbers so a fixture that quietly
+    # empties itself cannot make this test pass by carrying nothing
+    tiny = _tiny_artifact().bundle
+    assert (len(tiny.wall_claims), len(tiny.face_dispositions),
+            len(tiny.opening_claims)) == (2, 4, 1)
+
+
+def test_r3_honest_absent_channels_are_not_killed():
+    """The other direction (dispatch acceptance 2): every genuinely empty
+    ``absent`` channel must STILL pass.  Only doing the half above would
+    turn every honest absence red.
+
+    ⭐ The load-bearing case is the last one: a full disposition ledger with
+    zero wall claims.  The ledger is a function of the SOURCE PRODUCT
+    (invariant 2 mandates a row per face line), ⛔ not of the walls leg, so
+    reading "the ledger is non-empty" as "the walls channel produced" would
+    kill module 3's honest output and module 4's fixture.
+    """
+    # the three channels with no payload member at all, on the tiny fixture
+    tiny = _tiny_artifact()
+    for channel in ("dimensions", "room_roles", "elevation_openings"):
+        row = _row(tiny.bundle, channel)
+        assert row is not None and row.state == "absent", row
+    validate_evidence_bundle(tiny)          # whole artifact
+    evidence_contract._assert_channel_payload_closure(tiny.bundle)  # this gate
+
+    # walls truly empty: the reviewer's F-1 product, declared absent
+    empty = _declare_absent(_empty_artifact(), "walls", "debt_walls_zero_run")
+    assert _row(empty.bundle, "walls").state == "absent"
+    assert _measured_walls_payload(empty.bundle) == 0
+    validate_evidence_bundle(empty)
+    evidence_contract._assert_channel_payload_closure(empty.bundle)
+
+    # ⭐ walls absent + a FULL non-wall ledger (module 3's real output shape)
+    ledger = _all_non_wall_artifact()
+    assert _row(ledger.bundle, "walls").state == "absent"
+    assert _measured_walls_payload(ledger.bundle) == 0
+    assert len(ledger.bundle.wall_claims) == 0
+    assert len(ledger.bundle.face_dispositions) == 4, (
+        "the ledger must be FULL -- that is the whole point of this case"
+    )
+    validate_evidence_bundle(ledger)
+    evidence_contract._assert_channel_payload_closure(ledger.bundle)
+
+
+def test_r3_zero_payload_channel_exit_survives():
+    """Dispatch acceptance 3: ``walls=present`` + an explicit
+    ``zero_payload_channel`` debt -- the honest "wired, produced nothing this
+    run" -- must still pass after the reconciliation became two-directional.
+    """
+    art = _empty_artifact()
+    art.bundle.evidence_debts.append(EvidenceDebtV1(
+        debt_id="debt_zero_walls", kind="zero_payload_channel",
+        channel="walls", description="walls wired, produced nothing",
+    ))
+    art = _refinalize(art)
+    assert _row(art.bundle, "walls").state == "present"
+    assert _measured_walls_payload(art.bundle) == 0
+    assert any(d.kind == "zero_payload_channel" and d.channel == "walls"
+               for d in art.bundle.evidence_debts)
+    validate_evidence_bundle(art)
+    evidence_contract._assert_channel_payload_closure(art.bundle)
+
+
+def test_r3_a_deleted_channel_row_is_not_a_third_state(monkeypatch):
+    """⭐ Dispatch acceptance 5, same-shape input #1 -- ⛔ not one of §一's.
+
+    If the reconciliation walked the DECLARED ROWS, the identical payload
+    would leave by deleting the row instead of flipping its value: the
+    carrier swaps from the VALUE of ``state`` to the EXISTENCE of ``state``
+    ([[gate-measures-right-but-carrier-gets-swapped]]).  So the loop walks
+    the channel domain and an undeclared channel is loud."""
+    art = _tiny_artifact().model_copy(deep=True)
+    art.bundle.channel_status = [
+        c for c in art.bundle.channel_status if c.channel != "walls"
+    ]
+    art = _refinalize(art)
+
+    # witness: the row is really gone AND the payload is really still here
+    assert _row(art.bundle, "walls") is None
+    carried = _measured_walls_payload(art.bundle)
+    assert carried > 0, "no walls payload left -- the fixture proves nothing"
+
+    monkeypatch.setattr(
+        evidence_contract, "_assert_channel_payload_closure", lambda b: None
+    )
+    validate_evidence_bundle(art)  # BEFORE: an undeclared channel was free
+    monkeypatch.undo()
+
+    err = _expect_error(art, "CHANNEL_STATUS_MISSING")
+    assert err.context["channel"] == "walls"
+
+    # green anchor for THIS gate: declaring the row again (truthfully) passes
+    restored = _tiny_artifact()
+    assert _row(restored.bundle, "walls").state == "present"
+    evidence_contract._assert_channel_payload_closure(restored.bundle)
+
+
+def test_r3_a_claimed_wall_ledger_row_alone_is_walls_payload(monkeypatch):
+    """⭐ Dispatch acceptance 5, same-shape input #2 -- ⛔ not one of §一's.
+
+    A third carrier: WHICH ROWS COUNT.  On a non-as-drawn source the
+    claim<->disposition closure cannot see a ``claimed_wall`` ledger row
+    (its ``face_index`` is empty), so a bundle can declare walls ``absent``,
+    carry ZERO wall claims, and still assert through the ledger that a face
+    was consumed by a wall.  Reading walls payload as "wall_claims only"
+    would let exactly this through.
+    """
+    art = _legacy_artifact().model_copy(deep=True)
+    bundle = art.bundle
+    claim = bundle.wall_claims[0]
+    trace = claim.trace_ref
+    bundle.wall_claims = []
+    bundle.face_dispositions = [FaceDispositionV1(
+        face_ref=trace, status="claimed_wall",
+        consuming_claim_id=claim.claim_id,
+    )]
+    art = _declare_absent(_refinalize(art), "walls", "debt_walls_legacy_absent")
+    bundle = art.bundle
+
+    # witness both halves of the target quantity
+    assert _row(bundle, "walls").state == "absent"
+    assert len(bundle.wall_claims) == 0, "the claim list must be empty here"
+    assert _measured_walls_payload(bundle) == 1, (
+        "the ledger must carry exactly the one claimed_wall row under test"
+    )
+
+    monkeypatch.setattr(
+        evidence_contract, "_assert_channel_payload_closure", lambda b: None
+    )
+    validate_evidence_bundle(art)  # BEFORE: this shape was accepted
+    monkeypatch.undo()
+
+    err = _expect_error(art, "CHANNEL_DECLARED_ABSENT_WITH_PAYLOAD")
+    assert err.context["channel"] == "walls"
+    assert err.context["payload_rows"] == ["face_dispositions"]
+
+
+def test_r3_every_payload_bearing_bundle_field_is_declared():
+    """The map is a DECLARATION, so it must be reconciled against the bundle
+    type -- otherwise a future payload member is silently unwatched and
+    ``absent`` becomes free again for it
+    ([[declare-the-dialect-plus-consumption-ledger]]).
+
+    ⛔ This is a rule, not a snapshot of today's names: every list-valued
+    field of the bundle must be EITHER mapped to a channel OR listed as
+    bookkeeping with a reason.  Adding a field to either side is a
+    deliberate act; adding one to neither is red."""
+    not_payload = {
+        "source_artifacts": "the frozen-source identity table, not a channel product",
+        "channel_status": "the routing table being reconciled -- not its own payload",
+        "evidence_debts": "the known-missing ledger; a debt is the excuse, not the payload",
+    }
+    list_fields = {
+        name for name, f in CorrectionEvidenceBundleV1.model_fields.items()
+        if typing.get_origin(f.annotation) is list
+    }
+    assert list_fields, "no list-valued bundle fields found -- introspection broke"
+    mapped = {
+        member
+        for members in evidence_contract.CHANNEL_PAYLOAD_MEMBERS.values()
+        for member in members
+    }
+    assert mapped <= list_fields, (
+        f"the map names fields the bundle does not have: {sorted(mapped - list_fields)}"
+    )
+    unaccounted = list_fields - mapped - set(not_payload)
+    assert not unaccounted, (
+        "bundle field(s) neither mapped to a channel nor declared "
+        f"bookkeeping: {sorted(unaccounted)}"
+    )
+    assert not (mapped & set(not_payload)), "a field cannot be both"
+    # every declared channel key is a real channel
+    assert set(evidence_contract.CHANNEL_PAYLOAD_MEMBERS) <= set(
+        evidence_contract.CHANNELS
+    )
+
+
+def test_r3_a_mapped_member_without_a_source_rule_is_loud(monkeypatch):
+    """Extending the map without teaching the source closure where that
+    member's identity lives must be LOUD, ⛔ not a silently empty source set
+    (a silently empty set would make B-1's forward check vacuous for it)."""
+    monkeypatch.setattr(
+        evidence_contract,
+        "CHANNEL_PAYLOAD_MEMBERS",
+        {**evidence_contract.CHANNEL_PAYLOAD_MEMBERS,
+         "walls": ("wall_claims", "face_dispositions", "source_artifacts")},
+    )
+    art = _tiny_artifact()
+    assert art.bundle.source_artifacts, "fixture must carry the new member"
+    _expect_error(art, "PAYLOAD_MEMBER_WITHOUT_SOURCE_RULE")

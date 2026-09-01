@@ -92,6 +92,37 @@ B-2: ``dimensions`` / ``room_roles`` / ``elevation_openings`` have NO
 payload member on this bundle, so no debt can make a ``present`` true for
 them -- their only legal shape is ``absent`` + ``missing_channel``, and a
 ``zero_payload_channel`` debt naming one of them is refused outright.
+
+Rework-3 (2026-09-01) -- ``absent`` while the payload rides along
+-----------------------------------------------------------------
+Rounds 1 and 2 both asked their question only of a ``present`` channel:
+each opened with ``if status.state != "present": continue``, so declaring
+``absent`` made both of them step aside while two wall claims, four
+dispositions and an opening claim stayed in the bundle.  The gates were
+never wrong about what they computed -- ``state`` was simply one more
+carrier that could be swapped
+([[gate-measures-right-but-carrier-gets-swapped]]).
+
+The fix is ⛔ not a mirrored ``if state == "absent"`` branch (that is round
+four waiting for the next carrier).  ``CHANNEL_PAYLOAD_MEMBERS`` makes
+"channel -> payload member" one explicit table;
+``_assert_channel_payload_closure`` walks the CHANNEL DOMAIN, measures what
+the bundle carries for each channel, and requires the declaration to be
+that measurement's name in BOTH directions.  ``state`` is therefore a
+reconciliation result, not an independent field, and the row's very
+existence is pinned too (``CHANNEL_STATUS_MISSING``) -- otherwise the same
+payload leaves through a deleted row instead of a flipped value.
+
+⭐ One judgement call is load-bearing and is stated here so it can be
+attacked: a ``face_disposition`` row is the SOURCE PRODUCT's face-line
+ledger, mandated for every as-drawn face line by invariant 2 whatever the
+walls leg produced, so only its ``claimed_wall`` rows witness a walls
+``present``.  A product whose every face line is ``non_wall`` is an honest
+walls-``absent`` run with a full ledger -- that is what module 3's adapter
+emits (it declares walls present only when a positive claim exists) and
+what module 4's compiler consumes.  The SOURCE closure (B-1) keeps its
+wider reach over every ledger row: a ``non_wall`` row from an undeclared
+product is still payload from the wrong place.
 """
 from __future__ import annotations
 
@@ -691,12 +722,63 @@ def as_drawn_face_index(doc: dict) -> dict[str, tuple[int, dict]]:
 
 
 # ── cross-review rework (2026-08-31): F-1 / F-2 structural invariants ─────── #
-#: The channels whose payload this bundle type can actually witness (design
-#: §3.3).  ⭐ The OTHER three channels have no payload member at all, so a
-#: ``zero_payload_channel`` debt for them is a pass for a state that can never
-#: be true -- rework-2 B-2 retired that exit for them (only ``absent`` +
-#: ``missing_channel`` is legal there until they grow real payload members).
-_CHANNELS_WITH_PAYLOAD_MEMBERS = ("walls", "plan_openings")
+#: ⭐⭐ The ONE explicit ``channel -> payload member`` table (design §3.3).
+#: Every direction of the declaration/payload reconciliation below reads THIS
+#: table, so ``state`` is a reconciliation RESULT and ⛔ never a field that can
+#: be set independently of what the bundle actually carries.  A channel that
+#: is not a key here has no payload member on this bundle type at all --
+#: ``dimensions`` / ``room_roles`` / ``elevation_openings`` today (rework-2
+#: B-2: no debt can make a ``present`` true for them).
+CHANNEL_PAYLOAD_MEMBERS: dict[str, tuple[str, ...]] = {
+    "walls": ("wall_claims", "face_dispositions"),
+    "plan_openings": ("opening_claims",),
+}
+
+
+def _channel_payload_rows(
+    bundle: CorrectionEvidenceBundleV1, channel: str
+) -> list[tuple[str, object]]:
+    """EVERY row of every payload member mapped to ``channel``.
+
+    This is the reach of the SOURCE closure (B-1): "which frozen products did
+    anything in this channel's payload come from".  ⛔ Not the same question
+    as "did this channel produce" -- see :func:`_payload_row_witnesses`."""
+    rows: list[tuple[str, object]] = []
+    for member in CHANNEL_PAYLOAD_MEMBERS.get(channel, ()):
+        rows.extend((member, row) for row in getattr(bundle, member))
+    return rows
+
+
+def _payload_row_witnesses(member: str, row: object) -> bool:
+    """Does THIS row assert that its channel PRODUCED something?
+
+    ⭐ Not every row of a payload member does, and the difference is not
+    cosmetic.  Invariant 2 mandates one disposition for EVERY as-drawn face
+    line whatever the walls leg produced, so a ledger whose rows are all
+    ``non_wall`` / ``ambiguous`` is an honest walls-ABSENT run with a FULL
+    ledger -- exactly the shape module 3's adapter emits (it declares walls
+    present only when a positive claim exists) and module 4's compiler
+    consumes.  Only a ``claimed_wall`` row is the walls channel speaking,
+    and it is a witness in its own right: on a non-as-drawn source the
+    claim<->disposition closure above cannot see it.
+
+    Every other payload member exists only when its channel produced, so
+    every one of its rows witnesses.
+    """
+    if member == "face_dispositions":
+        return row.status == "claimed_wall"
+    return True
+
+
+def _channel_witness_rows(
+    bundle: CorrectionEvidenceBundleV1, channel: str
+) -> list[tuple[str, object]]:
+    """The rows that make ``channel``'s ``state`` say ``present``."""
+    return [
+        (member, row)
+        for member, row in _channel_payload_rows(bundle, channel)
+        if _payload_row_witnesses(member, row)
+    ]
 
 
 def _channel_has_payload(
@@ -704,30 +786,49 @@ def _channel_has_payload(
 ) -> bool:
     """Does this bundle actually carry ``channel``'s payload?
 
-    Only ``walls`` and ``plan_openings`` have payload members here (design
-    §3.3); the remaining three channels have NO member to witness a
-    ``present`` with, so for them this is always False."""
-    if channel == "walls":
-        return bool(bundle.wall_claims or bundle.face_dispositions)
-    if channel == "plan_openings":
-        return bool(bundle.opening_claims)
-    return False
+    Derived from :data:`CHANNEL_PAYLOAD_MEMBERS` -- a channel with no payload
+    member has nothing to witness a ``present`` with, so this is False for it
+    by construction rather than by a hand-written branch."""
+    return bool(_channel_witness_rows(bundle, channel))
 
 
 def _assert_channel_payload_closure(
     bundle: CorrectionEvidenceBundleV1,
 ) -> None:
-    """F-1: a PRESENT channel must actually carry payload, or say so.
+    """The declaration/payload reconciliation, over the whole CHANNEL DOMAIN.
 
-    A present-but-empty channel is only legal with an explicit
-    ``zero_payload_channel`` debt -- ⛔ never a silent empty run (that is
-    exactly the shape design §3.3 raised ``channel_status`` against: "walls
-    wired" quietly meaning the walls leg produced nothing).
+    ⭐⭐⭐ ``state`` is not read as permission to skip anything.  For every
+    channel in :data:`CHANNELS` this MEASURES what the bundle carries (via
+    the one :data:`CHANNEL_PAYLOAD_MEMBERS` table) and then requires the
+    declaration to be that measurement's name:
 
-    Rework-2 B-2: that debt exit exists ONLY for the channels whose payload
-    this layer can see.  A channel with no payload member can never witness
-    a ``present`` -- no debt can make "present" true for it, so the debt
-    itself is refused, not just ignored.
+    ==================  =====================================================
+    measured payload    the only legal declaration
+    ==================  =====================================================
+    non-empty           ``present``
+    empty               ``absent``, or ``present`` + an explicit
+                        ``zero_payload_channel`` debt ("wired, produced
+                        nothing this run" -- F-1's honest exit, and only for
+                        a channel that HAS a payload member, rework-2 B-2)
+    ==================  =====================================================
+
+    Three carriers are pinned here on purpose, because the first two rounds
+    of this same defect family were never "the gate computed the wrong
+    number" -- the thing it measured got swapped
+    ([[gate-measures-right-but-carrier-gets-swapped]]):
+
+    * the VALUE of ``state`` -- round 3's swap was declaring ``absent`` while
+      the payload rode along, and both earlier gates opened with
+      ``if status.state != "present": continue``.  There is ⛔ no such
+      early-continue in here;
+    * the EXISTENCE of the row -- iterating the DECLARED rows would let the
+      same payload through by simply deleting the row, so this iterates the
+      channel domain and a channel with no row at all is
+      ``CHANNEL_STATUS_MISSING``;
+    * WHICH ROWS COUNT as payload -- the disposition ledger is a function of
+      the source product, not of the walls leg, so the witness predicate is
+      explicit and per member (:func:`_payload_row_witnesses`) instead of
+      "the member list is non-empty".
     """
     zero_payload: set[str] = set()
     for debt in bundle.evidence_debts:
@@ -737,21 +838,43 @@ def _assert_channel_payload_closure(
                     "ZERO_PAYLOAD_DEBT_WITHOUT_CHANNEL",
                     {"debt_id": debt.debt_id},
                 )
-            if debt.channel not in _CHANNELS_WITH_PAYLOAD_MEMBERS:
+            if debt.channel not in CHANNEL_PAYLOAD_MEMBERS:
                 raise EvidenceContractError(
                     "ZERO_PAYLOAD_DEBT_WITHOUT_PAYLOAD_CARRIER",
                     {"debt_id": debt.debt_id, "channel": debt.channel},
                 )
             zero_payload.add(debt.channel)
-    for status in bundle.channel_status:
-        if status.state != "present":
+
+    rows_by_channel = {s.channel: s for s in bundle.channel_status}
+    for channel in CHANNELS:
+        status = rows_by_channel.get(channel)
+        witnesses = _channel_witness_rows(bundle, channel)
+        if status is None:
+            # ⛔ Undeclared is not a third state: the routing table has to
+            # cover the domain, or "absent" can be swapped for "unsaid".
+            raise EvidenceContractError(
+                "CHANNEL_STATUS_MISSING",
+                {
+                    "channel": channel,
+                    "payload_rows": sorted({m for m, _ in witnesses}),
+                },
+            )
+        if witnesses:
+            if status.state != "present":
+                raise EvidenceContractError(
+                    "CHANNEL_DECLARED_ABSENT_WITH_PAYLOAD",
+                    {
+                        "channel": channel,
+                        "state": status.state,
+                        "payload_rows": sorted({m for m, _ in witnesses}),
+                        "payload_row_count": len(witnesses),
+                    },
+                )
             continue
-        if _channel_has_payload(bundle, status.channel):
-            continue
-        if status.channel not in zero_payload:
+        if status.state == "present" and channel not in zero_payload:
             raise EvidenceContractError(
                 "PRESENT_CHANNEL_WITHOUT_PAYLOAD",
-                {"channel": status.channel},
+                {"channel": channel},
             )
 
 
@@ -796,28 +919,41 @@ def _assert_claim_refs_single_sourced(claim: WallClaimV1) -> None:
 
 
 # ── rework-2 (2026-08-31) B-1: payload must come from the DECLARED source ─── #
+def _payload_row_source_ids(member: str, row: object) -> set[str]:
+    """Every ``input_id`` ONE payload row points into.
+
+    ⭐ Adding a member to :data:`CHANNEL_PAYLOAD_MEMBERS` without teaching
+    this function where its identity lives is loud, ⛔ not a silently empty
+    source set ([[declare-the-dialect-plus-consumption-ledger]])."""
+    if member == "wall_claims":
+        return _claim_source_input_ids(row)
+    if member == "face_dispositions":
+        ids = {row.face_ref.input_id}
+        if row.reason_ref is not None:
+            ids.add(row.reason_ref.input_id)
+        return ids
+    if member == "opening_claims":
+        return {row.source_ref.input_id}
+    raise EvidenceContractError(
+        "PAYLOAD_MEMBER_WITHOUT_SOURCE_RULE", {"member": member}
+    )
+
+
 def _channel_payload_source_ids(
     bundle: CorrectionEvidenceBundleV1, channel: str
 ) -> set[str]:
     """B-1: every ``input_id`` ``channel``'s payload actually lives in.
 
-    The walls channel's payload is its wall claims (all of each claim's refs)
-    plus its disposition ledger; the openings channel's is its opening claims.
-    A channel with no payload member here carries nothing by definition."""
-    if channel == "walls":
-        ids: set[str] = set()
-        for claim in bundle.wall_claims:
-            ids |= _claim_source_input_ids(claim)
-        for disposition in bundle.face_dispositions:
-            ids.add(disposition.face_ref.input_id)
-            if disposition.reason_ref is not None:
-                ids.add(disposition.reason_ref.input_id)
-        return ids
-    if channel == "plan_openings":
-        return {
-            opening.source_ref.input_id for opening in bundle.opening_claims
-        }
-    return set()
+    ⭐ The reach here is EVERY row of every mapped member (the whole
+    disposition ledger included), ⛔ not only the rows that witness a
+    ``present``: a ``non_wall`` row smuggled in from an undeclared product is
+    still payload arriving from the wrong place.  Derived from the one
+    :data:`CHANNEL_PAYLOAD_MEMBERS` table, so a channel with no payload
+    member carries nothing by construction."""
+    ids: set[str] = set()
+    for member, row in _channel_payload_rows(bundle, channel):
+        ids |= _payload_row_source_ids(member, row)
+    return ids
 
 
 def _assert_channel_source_closure(
@@ -861,7 +997,7 @@ def _assert_channel_source_closure(
                 r.input_id for r in debt.affected_refs
             )
     for status in bundle.channel_status:
-        if status.channel not in _CHANNELS_WITH_PAYLOAD_MEMBERS:
+        if status.channel not in CHANNEL_PAYLOAD_MEMBERS:
             continue  # payloadless channels: B-2's business, not ours
         if status.state != "present":
             continue
@@ -1453,6 +1589,7 @@ def _assert_canonical_order(bundle: CorrectionEvidenceBundleV1) -> None:
 __all__ = [
     "BUNDLE_SCHEMA_VERSION",
     "CHANNELS",
+    "CHANNEL_PAYLOAD_MEMBERS",
     "SOURCE_CONTRACT_AS_DRAWN",
     "SOURCE_CONTRACT_LEGACY",
     "ArtifactPointerV1",

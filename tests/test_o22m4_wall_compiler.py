@@ -51,6 +51,17 @@ that survives filtering unique needs an explicit decision / re-perception),
 a source with NO scale opens with an empty candidate set, and the two
 non-default ``counterface_state`` values compile through the same channel
 with the same no-silent-axis behaviour.
+
+Rework 2 (2026-09-01, cross-review F-1 + N-1): the unique-SCALE fixture
+above measured a PROXY, not the target.  One thickness value still
+enumerates both signs (``candidate count == 2``), so the reviewer's real
+``len(candidates) == 1 => silent auto-execute`` mutation survived all 27
+tests green.  Locked here now: a fixture whose product fact IS
+``len(candidates) == 1`` (the REAL enumerator narrowed to one surviving
+candidate -- the shape side-evidence / stricter filtering will produce),
+asserting its own premise first and the item's openness second, plus one
+lock per branch of ``why_not_auto_resolved`` so the decision packet can
+never carry a story opposite to its own candidate set.
 """
 from __future__ import annotations
 
@@ -1307,3 +1318,115 @@ def test_single_face_ink_present_unpromoted_witness_still_no_silent_axis():
     wall = next(w for w in comp.walls if w.claim_kind == "single_face")
     item = _assert_axis_item_open_not_silent(comp, wall)
     assert item.candidates == ()
+
+
+# =========================================================================== #
+# Rework 2 (2026-09-01, F-1): the TARGET quantity -- genuinely ONE candidate
+# =========================================================================== #
+def test_single_face_genuinely_single_candidate_stays_open(monkeypatch):
+    """F-1 (rework 2): the target quantity is ``len(candidates) == 1``,
+    ⛔ NOT "one thickness value" -- one value still enumerates both signs,
+    which is 2 candidates; the unique-scale lock above pinned that proxy and
+    the reviewer's real ``len(candidates) == 1 => silent auto-execute``
+    mutation survived it green.
+
+    A legal as-drawn product cannot reach one candidate today (nothing in
+    the evidence names the wall's side, so both signs are always
+    enumerated) -- but the channel must stay safe for the day something
+    upstream CAN filter to one (side evidence, a stricter enumerator).  This
+    fixture narrows the REAL enumerator to one surviving candidate and
+    compiles through the REAL entry point; the item must STILL be open --
+    "filtered unique ⇒ execute" is module 5/6's adjudication, never a
+    silent leg of this compiler (design §5.2 / §6.1).
+    """
+    real_enumerator = wc._offset_candidates
+
+    def one_survivor(wall_id, anchor_pos_m, sources):
+        # evidence degenerate to ONE enumerable offset: keep the real
+        # enumerator's own first candidate verbatim (ids, preview, source
+        # record all real) and drop its sibling
+        return real_enumerator(wall_id, anchor_pos_m, sources)[:1]
+
+    monkeypatch.setattr(wc, "_offset_candidates", one_survivor)
+
+    art = _adapt_doc(_unpaired_face_doc([200]),
+                     "single_face_one_survivor", "9f")
+    comp = wc.compile_wall_ir(art, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+
+    # ⭐ the premise FIRST, measured on the product -- the target quantity
+    # itself.  If this ever goes red the fixture has degenerated back into
+    # a proxy (that is F-1's whole lesson), and the lock below it would be
+    # measuring something else.
+    opened = [i for i in comp.open_items
+              if i.scope_entity_ids == (wall.wall_id,)]
+    assert len(opened) == 1, (
+        "the axis item vanished from open_items -- a silent auto-execute "
+        "path closed it (F-1's mutation does exactly this)"
+    )
+    assert len(opened[0].candidates) == 1, (
+        "fixture premise broke: candidate count != 1 -- one thickness "
+        "value still enumerates both signs; this lock must measure the "
+        "TARGET, not that proxy"
+    )
+
+    # THEN the invariant: filtered-unique does NOT converge.  No axis, no
+    # thickness, no output basis, identity excluded, no auto action, and
+    # the open item is a real state boundary.
+    item = _assert_axis_item_open_not_silent(comp, wall)
+    assert len(item.candidates) == 1
+    sole = item.candidates[0]
+    assert sole.symbolic_operation in ("OFFSET_POSITIVE", "OFFSET_NEGATIVE")
+    assert sole.thickness_source is not None  # one REAL candidate, not a stub
+    assert comp.completion == "degraded"
+
+    # and the door is not welded shut: an explicit decision on that sole
+    # candidate is still the one legal closer
+    decided = wc.compile_wall_ir(
+        art, profile="strict",
+        decisions=(wc.FixedDecisionV1(
+            item_id=item.item_id, candidate_id=sole.candidate_id
+        ),),
+    )
+    wall_decided = next(
+        w for w in decided.walls if w.wall_id == wall.wall_id
+    )
+    assert wall_decided.resolved_centerline is not None
+    assert wall_decided.resolved_centerline.constant_pos_m == \
+        sole.preview_constant_pos_m
+    assert wall_decided.output_basis == "wall_axis"
+    assert wall_decided.resolved_thickness_m == sole.thickness_source.value_m
+    assert not any(i.item_id == item.item_id for i in decided.open_items)
+
+
+# =========================================================================== #
+# Rework 2 (2026-09-01, N-1): why_not_auto_resolved matches its OWN item
+# =========================================================================== #
+def test_single_face_why_not_names_enumerable_offsets_when_candidates_exist():
+    """N-1 branch 1: with candidates enumerated, the item's explanation must
+    say offsets ARE enumerable and must NOT claim an empty candidate set --
+    the cross-review flipped the two branches and every test stayed green,
+    i.e. the decision packet could carry a story opposite to its own facts."""
+    art = _adapt_doc(_unpaired_face_doc([200]), "why_with_cands", "9f")
+    comp = wc.compile_wall_ir(art, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    item = _assert_axis_item_open_not_silent(comp, wall)
+
+    assert len(item.candidates) > 0  # premise: THIS is the with-candidates branch
+    assert "enumerable" in item.why_not_auto_resolved
+    assert "candidate set is empty" not in item.why_not_auto_resolved
+
+
+def test_single_face_why_not_names_the_empty_set_when_no_scale_exists():
+    """N-1 branch 2: the empty-candidate item's explanation must claim the
+    empty set and name the legal exits (decision / re-perception /
+    degraded profile) -- the same flipped-branch mutation hands this item
+    the enumerable-offsets story, which its own candidate set contradicts."""
+    art = _adapt_doc(_unpaired_face_doc(None), "why_no_scale", "9f")
+    comp = wc.compile_wall_ir(art, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    item = _assert_axis_item_open_not_silent(comp, wall)
+
+    assert item.candidates == ()  # premise: THIS is the empty branch
+    assert "candidate set is empty" in item.why_not_auto_resolved
+    assert "re-perception" in item.why_not_auto_resolved
