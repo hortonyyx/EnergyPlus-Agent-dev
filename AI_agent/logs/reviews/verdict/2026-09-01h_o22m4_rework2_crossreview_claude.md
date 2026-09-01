@@ -80,7 +80,20 @@ FAILED ... ::test_single_face_why_not_names_enumerable_offsets_when_candidates_e
 | 3 | **反向变异**（把门焊死）⇒ 必须有锁红 | 让显式裁决一律不生效（`for decision in ()`）⇒ **9 failed, 21 passed，含新夹具本身** | ✅ 它不是「一律开项」蒙混 |
 | 4 | `why_not_auto_resolved` 两支各一条锁，各自变异必须红 | 把两支说明**对调** ⇒ **2 failed, 28 passed**，两条锁**各自**红 | ✅ |
 | 5 | M7 不许退 · `single_face` 存货 **> 0**（⛔ 不钉 302/16/8/35） | M7 变异（摘掉 open item）⇒ **8 failed, 22 passed**；`single_face` 测试项 **9** > 0 | ✅ |
-| 6 | 定向子集全绿 | 未变异基线 `30 passed in 5.26s`；`git status --porcelain` 空 | ✅ |
+| 6 | 定向子集全绿 | 未变异基线 `30 passed`；`git status --porcelain` 空 | ✅ |
+
+⭐⭐ **验收 4 / 5 已按本程新立的纪律【补跑一次带自证的】**（⛔ 不给自己开例外）——
+把「导入的是哪个文件 + 变异有没有生效」与 `pytest` 放**同一条命令**里：
+```
+验收4  IMPORTS FROM: /tmp/o22m4_review_orch/src/agent/correction/wall_compiler.py
+       FLIP TOOK EFFECT: True        （按两段说明在源码里的【先后次序】判，⛔ 不是子串存在性）
+       2 failed, 28 passed
+验收5  IMPORTS FROM: /tmp/o22m4_review_orch/src/agent/correction/wall_compiler.py
+       M7 TOOK EFFECT: True
+       8 failed, 22 passed
+```
+⭐ **补跑时 `.pth` 正指向另一个席位的 worktree，而导入仍解析到本 worktree**
+⇒ 这是「**cwd 胜过 `.pth`**」的又一个直接读数（见 §三）。
 
 ---
 

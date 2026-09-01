@@ -276,6 +276,154 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 ---
 
+## 2026-09-01（**本程 · 进行中**）· 清送审积压 · ⭐⭐⭐ 撞出「席位一启动就改掉共享启动器」
+
+> **本程口径（用户开工时拍板，两问）**：
+> ① **先不碰接线，我改去清送审积压**（⇒ 接线单本程不写，仍挂在下轮第 ⓪ 位）
+> ② **收工前跑一次权威全量**。
+
+### 一、送审积压三件的结果
+
+| 件 | 被审 commit | 复核方 | 结果 |
+|---|---|---|---|
+| **模块 4 二轮返工** | `ba3303c`（tests +123；⭐ **复审范围是两轮 +387**，返工一轮 `a13120d` +264 从未过审）| **Claude / orchestrator**（跨家族，恒升一档）| ✅ **APPROVE / 阻断 0 / 不阻断 2** → [裁决](logs/reviews/verdict/2026-09-01h_o22m4_rework2_crossreview_claude.md) |
+| **模块 2 第三方向** | `ba3303c`（`evidence_contract.py` +187/−50）| **GLM** | ✅ **APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 4** → [裁决](logs/reviews/verdict/2026-09-01g_o22m2_absent_crossreview_glm.md) |
+| **②-1d 规则化** | `5ac0885`（tests +466/−128，零生产代码）| GPT → **改派 GLM** | ⛔ **REWORK / 阻断 1 / 不阻断 4** → [裁决](logs/reviews/verdict/2026-09-01f_o21d_ruleify_crossreview_glm.md)（GPT 两轮均未交件，见 §六）|
+
+### 二、⭐⭐⭐ 模块 4 复审：第三格用的是**真实产物本来的形状**
+
+三格全过，⭐ 关键在第三格 —— 我**没有**重复复核方的触发器（`len(candidates)==1`），
+而是换成「**厚度值唯一、正负两个候选**」（**正是原 B 锁量的那个代理量**）：仍红 3 条，
+**其中一条正是原 B 锁**。⇒ 证明「这一类静默收敛」堵住了，⛔ 不只是 F-1 那一个例子。
+
+| 格/验收 | 变异 | 读数 |
+|---|---|---|
+| ① 缺陷当时真在 | 父提交 `a6990be` + F-1 变异 | `27 passed`（逐字复现 GPT 读数）|
+| ② 返工后变红 | `ba3303c` + 同一变异 | `1 failed, 29 passed`（**只红新夹具**）|
+| ③ ⭐ 换同形输入 | 触发器换成「厚度唯一」 | `3 failed, 27 passed`（含原 B 锁）|
+| 验收3 反向 | 显式裁决一律不生效（焊死门）| `9 failed`（含新夹具 ⇒ 不是「一律开项」蒙混）|
+| 验收4 N-1 | 两支说明对调 | `2 failed`（两条各自红）|
+| 验收5 M7 | 摘掉 open item | `8 failed`；`single_face` 存货 9 > 0 |
+
+### 二之二、⛔ ②-1d = **REWORK**：⭐ **主控的假说被证实，而复核方给的定性比假说更深**
+
+**我在复核单里把攻击面 1 写成一条【假说】要它实测**（⛔ 没代判）：
+GPT 在 F-156 v3 裁决里打穿的那个「均衡丢 25 个腔仍 `passed=True`」的攻击，
+**可能能整条穿过 ②-1d 这 11 条规则锁**。
+
+**实测：穿过了。** GLM **从零自研**攻击底料（⛔ 未读孤儿件；且它不复刻 GPT 的生产变异，
+而是构造**文档层等价终态** —— 更强：不依赖生产代码的哪个具体 bug）：
+```
+dropped 25 {'plan-F1': 11, 'plan-F2': 14}
+AUDIT passed True paired_edges 8 exclusions 27 accounted 29 / 29 structural []
+evidence breakdown Counter({'registered_ring_loss': 27})
+$ pytest tests/test_o21d_exclusion_gap.py   →  11 passed      ← 11 条锁无一变红
+```
+⇒ 丢掉 **25/29（86%）** 本应成环的腔、答案区 **27/29** 走 exclusion，**审计仍满分**。
+而被审文件第一行 docstring 声称 *"the exclusion branch is no longer an unbounded hole"* ⇒ **声称与实测矛盾**。
+三条缺口（复核单点名三选）**三条全缺**：① reason 准入表 ② 数量/占比上限 ③ ring/paired 覆盖率下限。
+
+⭐⭐⭐ **它给的结构定性比缺口清单值钱得多**：
+> **11 条锁的牙【全部朝向「撤证」方向】**（撤掉 loss ⇒ 必须红），
+> **而攻击来自镜像方向「灌证」**（producer 大量写 loss，每条都真、reason/area 都对)。
+> ②-1d 把锚从「**producer 重导**」（同因）换到「**producer 写的台账**」（**同作者**）——
+> 挡住了「门自己编造 licence」，**没挡住「producer 编造 licence」**。
+> **哈希覆盖只防篡改，不防作者自己写。**
+
+⇒ ⭐ **换锚时要问的不是「新锚是不是另一个东西」，而是「新锚是不是另一个【作者】」** ——
+同族 [[self-report-more-compliant-than-artifact]] + [[gate-measures-right-but-carrier-gets-swapped]]。
+⇒ **归属**：根因在消费端 `reconcile_boundary_basis`（`answer_compiler.py`），
+与 **F-156 v3 阻断 1 是同一个洞的两个面** ⇒ ⭐ **应与 F-156 第四轮返工同修**（下程 ①）。
+
+**不阻断 4**（均已实测）：绿锚**零处正向 `assert audit.passed`**（挪对了，⛔ 但留着的 4 处
+`assert not X.passed` 在整份审计当前恒 False 下**零分辨力** —— docstring 已如实声明，F-157 落地后自动恢复）·
+「4/5 条死于 `assert audit.passed`」**自报数核实准确**（92/111/138/219 四行 + 241 行是命名断言）·
+`test_deregistering_each_live_...` 真实存货 **2（非空转）** · 那条自认「CANNOT GO RED」的锁**理由成立**。
+
+### 三、⛔⛔⛔ 本日头号发现：**席位【启动】就把共享启动器改掉了，而且不是谁违纪**
+
+**现象**：我给三方各建 worktree 派活。审阅中途共享 venv 的 `.pth` 从主树变成
+`/tmp/o22m2_review_glm`，GPT 席位据哨兵不符 **A 层停报 —— 停得对**（**题错 #69，累计 69/69**）。
+
+⛔ **我的第一判定「GLM 席位违纪跑了 `pip install -e .`」是错的。**
+去读它的会话记录（`~/.claude/projects/-tmp-*/<uuid>.jsonl` 逐条 `tool_use`）⇒
+**20 条 Bash 调用全部只读、零 install** —— 差点冤枉席位。
+
+**真因（判别实验，⛔ 不是推理）**：
+```
+.mcp.json → {"EnergyPlus-Agent":{"command":"uv","args":["run","python","main.py",…]}}
+env       → UV_PROJECT_ENVIRONMENT=/opt/venv
+--- 前 --- /tmp/o22m2_review_glm
+$ cd /tmp/o22m4_review_orch && uv run python -c "pass"
+      Built energyplus-agent @ file:///tmp/o22m4_review_orch      ← 一句就改掉
+--- 后 --- /tmp/o22m4_review_orch
+```
+⇒ **本项目 `.mcp.json` 用 `uv run` 起 MCP server + `UV_PROJECT_ENVIRONMENT` 全局指向共享 venv
+⇒ 任何以 worktree 为工作目录启动的【claude 家族】席位，光是【启动】就把共享 editable 安装改指过去。**
+（`codex` 席位不吃 `.mcp.json` ⇒ **不触发**，本轮 GPT 席位全程未动它，已实测两次。）
+
+⭐⭐⭐ **两条推论（比这次事故本身值钱）**：
+1. **「禁止席位跑 `pip install -e .`」这条纪律【必要但不充分】** —— 这次没有任何人打过那条命令。
+   ⚠️ **08-27 那次「某席位跑了 `pip install -e .` 之类」的归因很可能也是这个机制**，⛔ 别再当已证事实引用。
+2. ⭐⭐⭐ **`.pth` 哨兵哈希是【代理量】**。承重不变量是
+   **「我这次导入的，是不是我该测的那份代码」**（`m.__file__` 落在自己工作目录里）。
+   **cwd 胜过 `.pth`**（实测：`.pth` 指别处时，从 worktree 跑 pytest 仍解析到本 worktree）
+   ⇒ 哈希不符**不一定**脏，`__file__` 不对**一定**脏。
+   ⭐ 且**变异实测必须把 `__file__` 与 pytest 放同一条命令里跑** ——
+   否则「变异没生效」与「锁没牙」在读数上**长得一模一样**。
+   ⇒ 复核单模板已改（`2026-09-01f` §一「环境判据」节），哈希降级为「只记不停」。
+
+### 四、⚠️ GLM 把我抓了三条，其中一条是**实质纠正**
+
+它在裁决 §7 点名：我写「被删的 50 行**语义恰好与那一刀相反**」——**过强**。
+精确事实是 **旧外延只在 `present` 方向生效过**（旧代码在 `absent` 方向根本没有门，本轮实测），
+所以「旧代码把台账算作 walls 载荷」作为**契约陈述**不成立；
+且它 present 方向的唯一效果（让零产出的 walls 腿借非墙台账免登记）**与 F-1 自身 docstring 的初衷相反**。
+⇒ ⭐ **我把一个【句法观察】（diff 里有 `or face_dispositions`）写成了【语义结论】** ——
+同族 [[proxy-mistaken-for-the-thing]]：**代码里写了这一行 ≠ 它作为契约在那个方向上生效过**。
+另两条 B 层：**单里写死了会漂的 `.pth` 哈希**（§6.5⑤-bis 违例，与 #69 同根）· 读数里带了秒数。
+
+### 四之二、⚠️ 本程我的单子被抓 **7 条 B 层**，其中**三条是同一个形状**
+
+| # | 抓的是什么 | 谁抓的 |
+|---|---|---|
+| 1 | 单里写死了会漂的 `.pth` 哈希（§6.5⑤-bis 违例）⇒ GPT **A 层停报，停得对** = **题错 #69** | GPT |
+| 2 | 「被删 50 行**语义恰好相反**」**过强** —— 把**句法观察**写成**语义结论** | GLM |
+| 3 | 读数里带了秒数（也是会漂的字段） | GLM |
+| 4 | ⭐ **改派席位时改了抬头与交件路径、却没扫正文** ⇒ 正文仍写「**你自己**在 F-156 v3 裁决里打穿的攻击」，而那是 **GPT** 的裁决 | GLM |
+| 5 | ⭐ **§一 已把哨兵降级为「只记不停」，§五.5 却漏改**（同一份单里自相矛盾） | GLM |
+| 6 | ⭐ 我引「派工单 §九 说『这 5 条红的根源是判据写法错了』」—— **§九 无此原文**，那是**执行档的转述** | GLM |
+| 7 | 被审 commit 还含实验档/执行档（合理，仅记） | GLM |
+
+⭐⭐ **#4 / #5 / #6 是同一个病**：**我改了一处，没有扫【这处改动的外延】** ——
+改收件人要扫全文的「你」· 改判据要扫全文引用它的每一节 · 引别人的话要回**原文件** `grep` 而不是引**转述**。
+⇒ 同族 [[gate-measures-right-but-carrier-gets-swapped]]（②「它量的那个东西能不能被换掉」）
+与 [[line-numbers-from-diff-output-are-not-file-lines]]（引用位置一律回文件核）。
+⇒ ⭐ **可机械执行的自查**：**单子发出前，对本轮改过的每个名词/字段，`grep` 一遍它在本单里的全部出现处。**
+
+### 五、⭐ 新登记的缺口（来自本轮两份裁决，⛔ 都不阻断）
+
+| # | 内容 | 归属 |
+|---|---|---|
+| **N-1（GLM 提）** | 「**`ambiguous` 台账行不算 walls witness**」这个判断**零锁** —— witness 谓词改成 `!= "non_wall"` ⇒ m2 40 条 + m2/m3/m4 91 条**全绿**，全链存货 0 | ⏭ 挂进**下一个动 `evidence_contract.py` 的单**：补「absent + 满 ambiguous 台账必须放行」+「ambiguous 不入 witness 集」两条规则锁 |
+| **N-2（GLM 提）** | `_channel_has_payload` 已成**无调用者的死函数** | ⏭ 同上，顺带删或给调用者 |
+| **N-3 / N-4（GLM 提）** | `_assert_channel_source_closure` 仍以 `state != "present": continue` 开头（施工方**故意没堵**，堵了会红掉 m4 夹具）· `covered_by_debt_ids` 不与债的 `channel` 对账（既有缺口）| ⏭ 登记 |
+| **N-1（模块4，我提）** | N-1 两条锁是**字面子串**断言 prose（`"enumerable" in …`），而提交说明自称「不钉实现文本」⇒ **自述与实件不符**；有牙，失败模式是假红非假绿 | ⏭ 登记，⛔ 不阻断 |
+| **N-2（模块4，我提）** | `_compile_legacy_trace:999` 有第二处同形候选生成点。⭐ 我实测它**并非零存货**（收窄候选红 1 条），⛔ **但我没在那条腿上打完整的静默执行形状** | ⇒ **随拆旧腿单一并消失**，⛔ 不要求现在补 |
+
+### 六、⚠️ GPT 席位两轮都没交成件（⛔ 与被审件无关）
+
+- **第一轮**：据旧哨兵 **A 层停报 —— 停得对**（= 题错 #69）。
+- **第二轮**（换成 `__file__` 判据后）：做到攻击面 2/3、烧掉 **66,513 token**，
+  被 **provider 内容过滤**打断（`flagged for possible cybersecurity risk`）⇒ **未交裁决**。
+  ⚠️ 同族坑规约早记过（2026-08-16「审隔离壳的活被 GPT provider 过滤拦死 6 次，改派 GLM」）。
+- 孤儿件已隔离 → [`logs/experiments/2026-09-01_gpt_filter_orphan_o21d_review/`](logs/experiments/2026-09-01_gpt_filter_orphan_o21d_review/README.md)，
+  README 写死「**线索非证据**」；`git checkout --` **只点名它动过的那一个文件**。
+- ⭐ 顺带一条运维实测：`.gitignore` 的 `*.log`（:81）与 `*.txt`（:258）**都会静默吞掉席位日志**
+  ⇒ ⛔ 我**没有** `git add -f` 绕过仓库约定，README 已写明原始日志换会话即失。
+
+---
+
 ## 2026-09-01（**上一程**，2026-09-01 本程逐字归档）
 
 > 用户拍板**旧格式整条拆** · F-155 换表示治好自交环 · 模块 5/6 与 F-156 v3 的裁决 ·
