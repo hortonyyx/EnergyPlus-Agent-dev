@@ -2,6 +2,7 @@
 
 - **日期**：2026-09-01 · **派工方**：orchestrator · **施工方**：**GLM 家族**（模块 4 原施工方，返工归原席位）· **审**：**GPT 家族**
 - **来源**：模块 4 跨家族审 → [裁决](../verdict/2026-09-01_o22m4_crossreview_claude.md)（**REWORK / 阻断 1 / 不阻断 2**）
+- **基线**：**`636ce56`** · **权威全量**：**3601 passed / 13 xfailed / 0 failed**（2026-09-01 主控跑，11m13s、`-n auto`、exit 0；`.pth` 哨兵前后同为 `58f547fa…` 且指向主树）
 - ⛔ **排程**：排在模块 5/6 落地之后（同一家族不并行；且模块 5/6 正 import 编译器）
 - ⚠️⚠️ **这条阻断的责任在派工方，不在你** —— 见 §三，已记 **题错 #55**。**代码我没找到错误**，缺的是「没人要求它被量到」。
 
@@ -96,3 +97,28 @@ _compile_legacy_trace   35 次
 ## 七、交付
 代码（⛔ 不提交）+ 执行档 `AI_agent/logs/reviews/execution/<日期>_o22m4_rework_execution.md`，
 逐条给命令+读数、**你自己认为最薄弱的一处**、希望复核方重点打哪里。
+
+---
+
+## ⛔⛔ 本轮三席同飞 —— 并发条款（2026-09-01 补，⛔ 开工前必读）
+
+**同时在飞的另两席**（写面与你**不相交**，已由主控核过）：
+- **Claude 席** = F-156（边界环角点改求交），写面 = `src/agent/judge/as_measured.py` + sm25 staging 基线 + 其四份测试
+- **GPT 席** = 模块 5/6 返工件复审（**只读** + 只写自己那份裁决 md）
+
+⇒ **四条硬纪律**：
+
+1. ⛔⛔ **不许跑全量**（`pytest` 不带路径）—— 别的席位正在写树，全量必假红。**只跑受影响子集**，路径显式列出。
+2. ⛔ **并行时一律 `-n 6`**，⛔ 不用 `-n auto`（同机三路 `-n auto` 实测把全量跑崩，无 summary 行 = 同机竞争假红）。
+3. ⭐⭐⭐ **撞到不属于你写面的红 ⇒ 先 `git status --porcelain` 看是不是别的席位在飞，然后【停下上报】** ——
+   ⛔ 不许自行修、⛔ 不许写进你的 RESULTS 当作回归。
+4. ⛔ **绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令** —— venv 全机器共享。
+   **交件前重读一次哨兵**：`sha256sum /opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_agent.pth`
+   应为 `58f547fa9433af6eca0e8f362652b78916b13a21fbeab4ef06f1e07e46744e43`，**变了即停下上报**。
+
+**你的写面（⛔ 越界即违规）**：`src/agent/correction/wall_compiler.py` ·
+`tests/test_o22m4_wall_compiler.py` · 你自己的执行档 `AI_agent/logs/reviews/execution/`。
+⛔ **不许碰** `src/agent/judge/as_measured.py`、`decision_schema.py`、`decision_executor.py`、sm25 staging 基线。
+
+⚠️ **关于「排在模块 5/6 落地之后」那条**：模块 5/6 的返工件**已落树**（`faf071c`，锁 30→73），
+本单据此解冻。它的**复审**同时在飞，但复审方只读、且读的是冻结 commit `636ce56`，与你的写面不相交。

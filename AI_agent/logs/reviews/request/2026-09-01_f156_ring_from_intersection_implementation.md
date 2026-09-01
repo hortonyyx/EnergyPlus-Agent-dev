@@ -1,7 +1,7 @@
 # 派工单 · **F-156**：边界环的角点改成「相邻支撑线求交」（**授权重做基线**）
 
-- **日期**：2026-09-01 · **派工方**：orchestrator · **施工方**：⏳ **待排** · **审**：与施工方不同家族
-- **基线**：**`58bb59f`** · **权威全量**：**3519 passed / 13 xfailed / 0 failed**
+- **日期**：2026-09-01 · **派工方**：orchestrator · **施工方**：**Claude 家族施工席**（2026-09-01 用户拍板派出）· **审**：**GLM 或 GPT 家族**（跨家族，⛔ 不得 Claude）
+- **基线**：**`636ce56`** · **权威全量**：**3601 passed / 13 xfailed / 0 failed**（2026-09-01 主控跑，11m13s、`-n auto`、exit 0；`.pth` 哨兵前后同为 `58f547fa…` 且指向主树）<br>⚠️ **原单写的 `58bb59f` / 3519 已过期**（模块 5/6 返工 + ②-1d 返工 + NF-1 已落树）
 - **前置**：[F-155 判别实验](2026-09-01_f155_ring_from_supportline_intersection_probe.md) 已跑通并经
   [主控独立核验](../verdict/2026-09-01_f155_ring_probe_orchestrator_verification.md)。
 - ⭐ **本单是实现单，⛔ 不要再做一遍实验。**
@@ -95,3 +95,30 @@ MISALIGNED_0P1MM plan-F1 cavity:04e1293098b1a95a  alive=True  vertices=8  valid=
 ## 七、交付
 代码（⛔ 不提交）+ 执行档 `AI_agent/logs/reviews/execution/<日期>_f156_ring_intersection_execution.md`，
 逐条给命令+读数、**你自己认为最薄弱的一处**、希望复核方重点打哪里。
+
+---
+
+## 十、⛔⛔ 本轮三席同飞 —— 并发条款（2026-09-01 补，⛔ 开工前必读）
+
+**同时在飞的另两席**（写面与你**不相交**，已由主控核过）：
+- **GLM 席** = 模块 4 返工，写面 = `src/agent/correction/wall_compiler.py` + `tests/test_o22m4_wall_compiler.py`
+- **GPT 席** = 模块 5/6 返工件复审（**只读** + 只写自己那份裁决 md）
+
+⇒ **四条硬纪律**：
+
+1. ⛔⛔ **不许跑全量**（`pytest` 不带路径）—— 别的席位正在写树，全量必假红，
+   而且你自己的写树也会让它们假红。**只跑受影响子集**，路径显式列出。
+2. ⛔ **并行时一律 `-n 6`**，⛔ 不用 `-n auto`（同机三路 `-n auto` 实测把全量跑崩：
+   `load average 17.44 / 16 核`、worker `OSError: cannot send`、**无 summary 行**）。
+3. ⭐⭐⭐ **撞到不属于你写面的红 ⇒ 先 `git status --porcelain` 看是不是别的席位在飞，
+   然后【停下上报】** —— ⛔ 不许自行修、⛔ 不许写进你的 RESULTS 当作回归。
+   （已实犯过三次：纯 md 提交造出的假红被记成回归。）
+4. ⛔ **绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令** —— venv 全机器共享。
+   import 有问题一律走 `python -m` / pytest 入口。
+   **交件前重读一次哨兵**：`sha256sum /opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_agent.pth`
+   应为 `58f547fa9433af6eca0e8f362652b78916b13a21fbeab4ef06f1e07e46744e43`，**变了即停下上报**。
+
+**你的写面（⛔ 越界即违规）**：`src/agent/judge/as_measured.py` · sm25 staging 基线三件套 ·
+`tests/test_as_measured_facts_layer.py` / `test_gt_facts_staging_sm25.py` / `test_boundary_condition_facts.py` /
+`test_denominator_from_facts.py` · 你自己的执行档 `AI_agent/logs/reviews/execution/`。
+⛔ **不许碰** `src/agent/correction/wall_compiler.py`、`decision_schema.py`、`decision_executor.py` 及其测试。
