@@ -2,7 +2,10 @@
 
 - **日期**：2026-09-01 · **派工方**：orchestrator · **复核方**：**GPT 家族** · **施工方**：GLM 家族
 - **⛔ 为什么是你**：模块 4 与本次返工**都是 GLM 写的** ⇒ 谁写谁不批；Claude 家族在施工席上有活 ⇒ 本轮只能你审。
-- **被审 commit**：**`a13120d`**（`09.01f`）· **当前 HEAD**：`01371e3`（其后只有 md 与探针，⛔ 请自己核）
+- **被审 commit**：**`a13120d`**（`09.01f`）
+- ⚠️ **当前 HEAD 会比它新**（本单之后主控仍在提交 md）—— ⛔ **本单不写死当前 HEAD**（那个字段会漂）。
+  **以启动 prompt 给的那个为准**，并自己跑 `git diff --stat a13120d..HEAD` 确认
+  **`src/` 与 `tests/` 零 diff**；若非零 ⇒ 那才是停下上报的理由。
 - **权威全量**：**3601 passed / 13 xfailed / 0 failed**（`636ce56`、`-n auto`、exit 0，`.pth` 哨兵前后一致）
 - **返工单**：[2026-09-01_o22m4_rework_single_face_channel.md](2026-09-01_o22m4_rework_single_face_channel.md)
 - **上一轮裁决**（Claude 家族出的，判 **REWORK / 阻断 1 / 不阻断 2**）：[../verdict/2026-09-01_o22m4_crossreview_claude.md](../verdict/2026-09-01_o22m4_crossreview_claude.md)
@@ -90,26 +93,32 @@
 
 **B 层 —— 外围数值/措辞错 ⇒ 记一条，继续审**。
 
-⭐ **停报至今 62 次，62 次全部是派工方（我）的题错；今天一天四次**（#59/#60/#61/#62），
-**其中一次就是你昨天停下来救的**。看着不对就报，不用替我圆。
+⭐ **停报至今 64 次，64 次全部是派工方（我）的题错；今天一天六次**（#59–#64）。
+⚠️ **本单 v1 就是被你停下来的（题错 #64）** —— 我在单里写死了会漂的「当前 HEAD」，
+写完之后自己又提交了两次 md，于是单子和启动 prompt 对不上。**你停得对。**
+⇒ **修法是结构性的：单里从此不写「当前 HEAD」**，只写不漂的**被审 commit**。
+看着不对就报，不用替我圆。
 
 ---
 
 ## 六、⛔⛔ 并发条款（三席同飞）
 
-**同时在飞**：Claude 席 = F-156 v3（写 `src/agent/judge/` + sm25 staging 基线）·
-GLM 席 = 模块 2 第三方向（写 `src/agent/correction/evidence_contract.py`）。
+⚠️ **2026-09-01 重发时更新**：GLM 席**已撞 5 小时额度上限退场**（额度 17:41 复位），
+它留下的半成品已被主控**移出 `src/`**、`src/agent/correction/` 与 `tests/` 已还原干净
+（[隔离档](../../experiments/2026-09-01_glm_quota_orphan_o22m2_absent/README.md)）。
+**同时在飞**：Claude 席 = ②-1d 规则化（写 `tests/test_o21d_exclusion_gap.py`，与你不相交）。
 
 1. ⛔⛔ **你是只读席位** —— 唯一允许写的文件 =
    `AI_agent/logs/reviews/verdict/2026-09-01c_o22m4_rework_crossreview_gpt.md`。
    ⚠️ **例外**：§二/§三 的变异必然要临时改文件 ⇒ **每次变异后立刻 `git checkout -- <文件>` 还原**
    （或在 `/tmp` 副本里做），**交件前跑一次 `git status --porcelain` 贴进裁决**。
    ⛔ **绝对不许把变异留在树上。**
-   ⚠️⚠️ **GLM 席同时在写 `src/agent/correction/evidence_contract.py`** ——
-   ⛔ **`git checkout` 还原时只点名你自己动过的文件，⛔ 绝对不许 `git checkout -- .`**。
+   ⛔⛔ **`git checkout` 还原时只点名你自己动过的文件，⛔ 绝对不许 `git checkout -- .`**
+   （另有席位在飞）。
 2. ⛔⛔ **不许跑全量**；只跑定向文件。⛔ **一律 `-n 6`**，不用 `-n auto`。
 3. ⭐ **撞到红先 `git status --porcelain`** —— 若红的文件在 `src/agent/judge/`、
-   `evidence_contract.py` 或 `gt_staging/`，那是另两席正在改的，⛔ 不许记成本件的回归，**报出来即可**。
+   `gt_staging/` 或 `tests/test_o21d_exclusion_gap.py`，那是别的席位改的或刚落的 F-156 v3，
+   ⛔ 不许记成本件的回归，**报出来即可**。
 4. ⛔ **绝对不许** `pip install -e .` / 任何写 `site-packages` 的命令。
    **开工前 + 交件前各读一次哨兵**，应为 `58f547fa9433af6eca0e8f362652b78916b13a21fbeab4ef06f1e07e46744e43`。
 

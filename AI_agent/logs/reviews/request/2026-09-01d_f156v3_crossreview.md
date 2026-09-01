@@ -2,6 +2,8 @@
 
 - **日期**：2026-09-01 · **派工方**：orchestrator · **复核方**：**GLM 或 GPT 家族**（⛔ **绝对不得 Claude** —— 施工方与主控都是 Claude）
 - **被审 commit**：**`85b96d6`**（`09.01j`）
+- ⚠️ **当前 HEAD 会比它新**（本单之后主控仍在提交 md）—— ⛔ **本单不写死当前 HEAD**（那个字段会漂）。
+  **以启动 prompt 给的那个为准**，并自己跑 `git diff --stat 85b96d6..HEAD` 确认改了什么。
 - **权威全量**：**3601 passed / 13 xfailed / 0 failed**（`636ce56`、`-n auto`、exit 0，`.pth` 哨兵前后一致）
 - **派工单**：[2026-09-01c_f156v3_ring_from_intersection.md](2026-09-01c_f156v3_ring_from_intersection.md)
 - **施工方执行档**：[../execution/2026-09-01c_f156v3_execution.md](../execution/2026-09-01c_f156v3_execution.md)

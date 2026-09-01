@@ -1,0 +1,317 @@
+diff --git a/src/agent/correction/evidence_contract.py b/src/agent/correction/evidence_contract.py
+index 681f125..0564822 100644
+--- a/src/agent/correction/evidence_contract.py
++++ b/src/agent/correction/evidence_contract.py
+@@ -92,6 +92,19 @@ B-2: ``dimensions`` / ``room_roles`` / ``elevation_openings`` have NO
+ payload member on this bundle, so no debt can make a ``present`` true for
+ them -- their only legal shape is ``absent`` + ``missing_channel``, and a
+ ``zero_payload_channel`` debt naming one of them is refused outright.
++
++Rework-3 (2026-09-01) -- the declaration itself was the swapped carrier
++----------------------------------------------------------------------
++Both rework gates opened with ``if status.state != "present": continue``,
++so flipping ONE declaration to ``absent`` made both look away while the
++channel's payload rode along in the bundle (and so did dropping the status
++row outright).  Payload membership therefore moved to ONE explicit mapping
++(:func:`_channel_payload`) that never reads ``state``; the payload gate now
++computes EVERY channel's actual payload first and reconciles the
++declaration against it in BOTH directions plus the missing-row direction
++(``ABSENT_CHANNEL_WITH_PAYLOAD`` / ``CHANNEL_PAYLOAD_WITHOUT_STATUS_ROW``).
++``state`` is a reconciliation RESULT now, not a switch that decides what
++gets measured.
+ """
+ from __future__ import annotations
+ 
+@@ -699,35 +712,57 @@ def as_drawn_face_index(doc: dict) -> dict[str, tuple[int, dict]]:
+ _CHANNELS_WITH_PAYLOAD_MEMBERS = ("walls", "plan_openings")
+ 
+ 
+-def _channel_has_payload(
++def _channel_payload(
+     bundle: CorrectionEvidenceBundleV1, channel: str
+-) -> bool:
+-    """Does this bundle actually carry ``channel``'s payload?
+-
+-    Only ``walls`` and ``plan_openings`` have payload members here (design
+-    §3.3); the remaining three channels have NO member to witness a
+-    ``present`` with, so for them this is always False."""
++) -> tuple[WallClaimV1 | FaceDispositionV1 | OpeningClaimV1, ...]:
++    """The bundle members that ARE ``channel``'s payload (design §3.3).
++
++    ONE explicit channel -> members mapping, computed without ever looking
++    at ``state``.  F-1 (present side), the absent side rework-3 added, and
++    B-1's source closure all read payload from HERE, so ``state`` is a
++    declaration the payload is reconciled against -- never the switch that
++    decides whether the payload gets looked at.  (That switch was exactly
++    rework-3's carrier: declare ``absent`` and both gates looked away while
++    the payload stayed in the bundle.)  Only ``walls`` and ``plan_openings``
++    have payload members here; the remaining three channels have NO member
++    to witness a ``present`` with, so for them this is always empty."""
+     if channel == "walls":
+-        return bool(bundle.wall_claims or bundle.face_dispositions)
++        return (*bundle.wall_claims, *bundle.face_dispositions)
+     if channel == "plan_openings":
+-        return bool(bundle.opening_claims)
+-    return False
++        return tuple(bundle.opening_claims)
++    return ()
+ 
+ 
+ def _assert_channel_payload_closure(
+     bundle: CorrectionEvidenceBundleV1,
+ ) -> None:
+-    """F-1: a PRESENT channel must actually carry payload, or say so.
+-
+-    A present-but-empty channel is only legal with an explicit
+-    ``zero_payload_channel`` debt -- ⛔ never a silent empty run (that is
+-    exactly the shape design §3.3 raised ``channel_status`` against: "walls
+-    wired" quietly meaning the walls leg produced nothing).
++    """F-1 + rework-3: ``state`` must agree with the ACTUAL payload of
++    every channel, in BOTH directions, driven from the channel side.
++
++    Both earlier gates opened with ``if state != "present": continue`` --
++    so one flipped declaration made them look away while the payload stayed
++    in the bundle.  This gate therefore never reads ``state`` to decide
++    what to measure: it walks every channel, asks :func:`_channel_payload`
++    what the bundle actually carries, and reconciles:
++
++    * payload present -> the only truthful declaration is ``present``: an
++      ``absent`` row is ``ABSENT_CHANNEL_WITHOUT_PAYLOAD`` and a MISSING row
++      is ``CHANNEL_PAYLOAD_WITHOUT_STATUS_ROW`` (dropping the row must not
++      be a quieter way to say absent);
++    * payload empty -> ``present`` is legal only with an explicit
++      ``zero_payload_channel`` debt -- ⛔ never a silent empty run (that is
++      exactly the shape design §3.3 raised ``channel_status`` against:
++      "walls wired" quietly meaning the walls leg produced nothing).
+ 
+     Rework-2 B-2: that debt exit exists ONLY for the channels whose payload
+     this layer can see.  A channel with no payload member can never witness
+     a ``present`` -- no debt can make "present" true for it, so the debt
+     itself is refused, not just ignored.
++
++    ⚠️ Must run BEFORE ``_assert_channel_source_closure``: that gate's
++    ``state != "present"`` skip is sound only once absent-with-payload has
++    already been made impossible here.  (Duplicate rows were rejected
++    before this call, so building the row index is safe.)
+     """
+     zero_payload: set[str] = set()
+     for debt in bundle.evidence_debts:
+@@ -743,15 +778,29 @@ def _assert_channel_payload_closure(
+                     {"debt_id": debt.debt_id, "channel": debt.channel},
+                 )
+             zero_payload.add(debt.channel)
+-    for status in bundle.channel_status:
+-        if status.state != "present":
+-            continue
+-        if _channel_has_payload(bundle, status.channel):
+-            continue
+-        if status.channel not in zero_payload:
++    rows = {status.channel: status for status in bundle.channel_status}
++    for channel in CHANNELS:
++        payload = _channel_payload(bundle, channel)
++        status = rows.get(channel)
++        if payload:
++            if status is None:
++                raise EvidenceContractError(
++                    "CHANNEL_PAYLOAD_WITHOUT_STATUS_ROW",
++                    {"channel": channel, "payload_members": len(payload)},
++                )
++            if status.state != "present":
++                raise EvidenceContractError(
++                    "ABSENT_CHANNEL_WITH_PAYLOAD",
++                    {"channel": channel, "payload_members": len(payload)},
++                )
++        elif (
++            status is not None
++            and status.state == "present"
++            and channel not in zero_payload
++        ):
+             raise EvidenceContractError(
+                 "PRESENT_CHANNEL_WITHOUT_PAYLOAD",
+-                {"channel": status.channel},
++                {"channel": channel},
+             )
+ 
+ 
+@@ -801,23 +850,24 @@ def _channel_payload_source_ids(
+ ) -> set[str]:
+     """B-1: every ``input_id`` ``channel``'s payload actually lives in.
+ 
+-    The walls channel's payload is its wall claims (all of each claim's refs)
+-    plus its disposition ledger; the openings channel's is its opening claims.
+-    A channel with no payload member here carries nothing by definition."""
+-    if channel == "walls":
+-        ids: set[str] = set()
+-        for claim in bundle.wall_claims:
+-            ids |= _claim_source_input_ids(claim)
+-        for disposition in bundle.face_dispositions:
+-            ids.add(disposition.face_ref.input_id)
+-            if disposition.reason_ref is not None:
+-                ids.add(disposition.reason_ref.input_id)
+-        return ids
+-    if channel == "plan_openings":
+-        return {
+-            opening.source_ref.input_id for opening in bundle.opening_claims
+-        }
+-    return set()
++    Payload membership comes from :func:`_channel_payload` -- ONE mapping,
++    so "which members are this channel's payload" can never disagree with
++    the gate that reconciles ``state`` against that same payload.  The
++    walls channel's payload is its wall claims (all of each claim's refs)
++    plus its disposition ledger; the openings channel's is its opening
++    claims.  A channel with no payload member here carries nothing by
++    definition."""
++    ids: set[str] = set()
++    for member in _channel_payload(bundle, channel):
++        if isinstance(member, FaceDispositionV1):
++            ids.add(member.face_ref.input_id)
++            if member.reason_ref is not None:
++                ids.add(member.reason_ref.input_id)
++        elif isinstance(member, OpeningClaimV1):
++            ids.add(member.source_ref.input_id)
++        else:
++            ids |= _claim_source_input_ids(member)
++    return ids
+ 
+ 
+ def _assert_channel_source_closure(
+@@ -1375,7 +1425,9 @@ def validate_evidence_bundle(
+                     "CHANNEL_SOURCE_UNKNOWN",
+                     {"channel": status.channel, "input_id": input_id},
+                 )
+-    # F-1: present must mean payload (or an explicit zero-payload debt)
++    # F-1 + rework-3: state must mean payload in BOTH directions (and a
++    # payload-bearing channel must have a row at all) -- BEFORE B-1, whose
++    # present-only skip is sound only after this gate has run.
+     _assert_channel_payload_closure(bundle)
+     # B-1 (rework-2): that payload must come from the channel's declared
+     # sources, and a declared source with no payload needs a source-scoped
+diff --git a/tests/test_o22m2_evidence_contract.py b/tests/test_o22m2_evidence_contract.py
+index 3cf4e6f..d6fd394 100644
+--- a/tests/test_o22m2_evidence_contract.py
++++ b/tests/test_o22m2_evidence_contract.py
+@@ -1716,6 +1716,124 @@ def test_b2_a_channel_without_payload_carrier_can_never_be_present(monkeypatch):
+     validate_evidence_bundle(_refinalize(honest))
+ 
+ 
++# =========================================================================== #
++# Rework-3 (2026-09-01) -- absent declared, payload riding along
++# (dispatch: ../request/2026-09-01_o22m2_absent_with_payload_dispatch.md.
++#  The rework-2 gates both opened with `if state != "present": continue`,
++#  so the declaration itself was the swapped carrier: flipping it to absent
++#  -- or dropping the row outright -- made every payload gate look away.)
++# =========================================================================== #
++def _declare_channel_absent(
++    art: CorrectionEvidenceBundleArtifactV1, channel: str,
++) -> CorrectionEvidenceBundleArtifactV1:
++    """The dispatch's §一 mutation: flip ONE channel row to ``absent`` with
++    a ``missing_channel`` debt, leave the payload exactly where it was.
++    Everything else (refs, hashes, other rows) stays coherent, so any red
++    can only come from the declaration-vs-payload disagreement."""
++    art = art.model_copy(deep=True)
++    debt_id = f"debt_{channel}_absent_probe"
++    art.bundle.evidence_debts.append(EvidenceDebtV1(
++        debt_id=debt_id, kind="missing_channel", channel=channel,
++        description="channel declared absent for the rework-3 probe",
++    ))
++    art.bundle.channel_status = [
++        (
++            s.model_copy(update={
++                "state": "absent",
++                "source_input_ids": (),
++                "covered_by_debt_ids": (debt_id,),
++            })
++            if s.channel == channel
++            else s
++        )
++        for s in art.bundle.channel_status
++    ]
++    return _refinalize(art)
++
++
++def test_absent_declaration_with_payload_is_loud(monkeypatch):
++    """Rework-3, the dispatch's §一① / §一②.  BEFORE (payload gate
++    neutered): declaring walls -- or plan_openings -- absent while its
++    claims/dispositions/openings ride along in the bundle VALIDATES on this
++    tree (the orchestrator reproduced it independently; this re-runs that
++    reproduction as the green premise).  AFTER: loud, with the channel and
++    the payload member count named."""
++    for channel, members in (("walls", 6), ("plan_openings", 1)):
++        art = _declare_channel_absent(_tiny_artifact(), channel)
++        assert len(art.bundle.wall_claims) == 2
++        assert len(art.bundle.face_dispositions) == 4
++        assert len(art.bundle.opening_claims) == 1  # payload untouched
++        # BEFORE: neuter the payload gate and the tree-of-record waves the
++        # shape through -- the red can only come from the gate under test
++        monkeypatch.setattr(
++            evidence_contract, "_assert_channel_payload_closure", lambda b: None
++        )
++        validate_evidence_bundle(art.model_copy(deep=True))
++        monkeypatch.undo()
++
++        # AFTER: loud
++        err = _expect_error(
++            art.model_copy(deep=True), "ABSENT_CHANNEL_WITH_PAYLOAD"
++        )
++        assert err.context == {"channel": channel, "payload_members": members}
++
++    # the other direction: the honest fixtures with genuinely absent,
++    # genuinely empty channels stay green (tiny's three absent channels,
++    # the legacy fixture's four, the empty product's four)
++    validate_evidence_bundle(_tiny_artifact())
++    validate_evidence_bundle(_legacy_artifact())
++    validate_evidence_bundle(_empty_artifact_with_zero_payload_debt())
++
++
++def _empty_artifact_with_zero_payload_debt(
++) -> CorrectionEvidenceBundleArtifactV1:
++    """Acceptance #3's legal exit, spelled out: a walls=present row on a
++    genuine whole-channel zero run plus its explicit ``zero_payload_channel``
++    debt -- the shape F-1 kept alive on purpose."""
++    honest = _empty_artifact()
++    honest.bundle.evidence_debts.append(_zero_payload_debt(
++        "debt_zero_walls", "walls"
++    ))
++    return _refinalize(honest)
++
++
++def test_payload_with_no_status_row_is_loud(monkeypatch):
++    """Rework-3, the third same-shape input the dispatch asked for (⛔ not
++    §一's two): the declaration is not false but GONE -- the walls row is
++    dropped entirely while its payload rides along.  BEFORE (payload gate
++    neutered): validates (B-1 iterates rows, so a channel with no row is
++    never asked where its payload came from either).  AFTER: loud -- a
++    missing row must not be a quieter way to say absent."""
++    art = _tiny_artifact().model_copy(deep=True)
++    art.bundle.channel_status = [
++        s for s in art.bundle.channel_status if s.channel != "walls"
++    ]
++    art = _refinalize(art)
++    assert len(art.bundle.wall_claims) == 2  # payload still in the bundle
++
++    # BEFORE
++    monkeypatch.setattr(
++        evidence_contract, "_assert_channel_payload_closure", lambda b: None
++    )
++    validate_evidence_bundle(art.model_copy(deep=True))
++    monkeypatch.undo()
++
++    # AFTER
++    err = _expect_error(
++        art.model_copy(deep=True), "CHANNEL_PAYLOAD_WITHOUT_STATUS_ROW"
++    )
++    assert err.context == {"channel": "walls", "payload_members": 6}
++
++    # boundary this gate deliberately does NOT draw: an EMPTY channel with
++    # no row at all makes no false claim, so it stays green (a "every
++    # channel must have a row" completeness rule is nowhere in the contract)
++    rowless = _empty_artifact().model_copy(deep=True)
++    rowless.bundle.channel_status = [
++        s for s in rowless.bundle.channel_status if s.channel != "walls"
++    ]
++    validate_evidence_bundle(_refinalize(rowless))
++
++
+ # =========================================================================== #
+ # Acceptance 6/7 -- this dispatch wires nothing (behavioural face of it)
+ # =========================================================================== #
