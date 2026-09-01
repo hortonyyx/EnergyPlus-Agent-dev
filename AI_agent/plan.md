@@ -282,6 +282,17 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 > ① **先不碰接线，我改去清送审积压**（⇒ 接线单本程不写，仍挂在下轮第 ⓪ 位）
 > ② **收工前跑一次权威全量**。
 
+### 〇、权威全量
+
+```
+$ python -m pytest -q -n auto -p no:cacheprovider          # 主树，无席位在飞
+3632 passed, 13 xfailed, 212 warnings in 711.83s (0:11:51)     exit 0
+跑前/跑后哨兵  58f547fa…4e43  →  /workspaces/EnergyPlus-Agent-dev   （两次相同）
+跑前/跑后工作树  均为空
+跑前 src 自证   /workspaces/EnergyPlus-Agent-dev/src/agent/pipeline.py
+```
+⭐ 与上一程同读数 —— **预期之中：本程零生产代码改动**（产出 = 三份裁决 + 判据形态 + 一条环境机制）。
+
 ### 一、送审积压三件的结果
 
 | 件 | 被审 commit | 复核方 | 结果 |
