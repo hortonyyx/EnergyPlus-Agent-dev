@@ -444,7 +444,7 @@ def test_r2_projection_fields_are_absent_but_boundary_condition_is_first_class(
                       '"outer_skin"', '"zone_edges"'):
         assert forbidden not in text, forbidden
     assert '"boundary_condition"' in text
-    assert sum(len(view.boundary_edges) for view in as_received_doc.views) == 100
+    assert sum(len(view.boundary_edges) for view in as_received_doc.views) == 171
 
 
 def test_r2_no_s7_dependency_in_the_module_source():

@@ -990,6 +990,67 @@ def _undirected_segment_residual(
     return min(direct, reversed_)
 
 
+#: The answer side's own per-edge offset rule, mirrored (⛔ not re-invented):
+#: ``tarch_normalize._offset_for`` expands an ``outer_skin`` edge by the full
+#: measured thickness and a ``wall_axis`` edge by half of it.
+_PROJECTED_BASIS_OFFSET_UNITS = {
+    "exterior": lambda thickness: thickness,
+    "interzone": lambda thickness: thickness // 2,
+}
+
+
+def _projected_facts_ring(
+        facts_edges: list[AsMeasuredBoundaryEdgeV1],
+        ) -> tuple[Polygon | None, str | None]:
+    """Carry the stored facts ring out to the basis the answer declares.
+
+    ⛔ The facts ring is CLEAR SPAN and a converter zone is outer-skin /
+    wall-axis.  Comparing those two directly measures the basis gap, not
+    correctness -- every healthy sm25 room differs by 1.0-3.5 m² that way, so
+    no threshold can separate a right answer from a wrong one and any threshold
+    that appears to would have been read off the current data.  So each stored
+    edge is walked out along its OWN measured evidence to the basis its
+    ``boundary_condition`` declares, and only then compared.  The comparison
+    that follows needs no threshold at all.
+
+    Consecutive edges that propagate one support line collapse first (a support
+    line may carry more than one record because the classifier declines to
+    judge junction fragments); the ring is then the intersections of adjacent
+    projected support lines, exactly as ``_support_vertices`` builds a compiled
+    zone ring.
+    """
+    supports: list[tuple[str, int]] = []
+    for edge in facts_edges:
+        offset = _PROJECTED_BASIS_OFFSET_UNITS.get(edge.boundary_condition)
+        if offset is None:
+            return None, ("boundary_condition_has_no_declared_basis:"
+                          f"{edge.boundary_condition}")
+        thickness = edge.evidence.thickness_units
+        if thickness <= 0:
+            return None, "measured_thickness_is_not_positive"
+        outward = (edge.evidence.outward_normal[0] if edge.axis == "y"
+                   else edge.evidence.outward_normal[1])
+        support = (edge.axis,
+                   edge.evidence.raw_face_const + outward * offset(thickness))
+        if not supports or supports[-1] != support:
+            supports.append(support)
+    if len(supports) > 1 and supports[0] == supports[-1]:
+        supports.pop()
+    if len(supports) < 3:
+        return None, "fewer_than_three_projected_support_lines"
+    vertices: list[tuple[int, int]] = []
+    for index, support in enumerate(supports):
+        previous = supports[index - 1]
+        if previous[0] == support[0]:
+            return None, "adjacent_projected_support_lines_are_parallel"
+        vertices.append((previous[1], support[1]) if previous[0] == "y"
+                        else (support[1], previous[1]))
+    polygon = Polygon(vertices)
+    if polygon.is_empty or not polygon.is_valid or polygon.area <= 0:
+        return None, "projected_support_ring_is_invalid"
+    return polygon, None
+
+
 def reconcile_boundary_basis(
         as_signed: AsSignedV1,
         conversion_report: ConversionReportV1,
@@ -1159,19 +1220,32 @@ def reconcile_boundary_basis(
                     f"facts_boundary_ring_invalid:{view.view_id}:{cavity_id}")
                 continue
             representative = facts_polygon.representative_point()
-            zone_matches = []
-            for zone in converter_by_floor.get(view.floor_id, []):
-                polygon = Polygon([
-                    _world_point_to_units(point)
-                    for point in zone.polygon_m.exterior.vertices])
-                if polygon.covers(representative):
-                    zone_matches.append(zone)
+            zone_polygons = [
+                (zone, Polygon([_world_point_to_units(point)
+                                for point in zone.polygon_m.exterior.vertices]))
+                for zone in converter_by_floor.get(view.floor_id, [])]
+            # ⭐ A cavity that spans MORE than one answer zone is not a room
+            # this layer may pair: whichever zone happens to contain the
+            # representative point would silently absorb the other one.  ⛔ The
+            # point test alone cannot see that -- it always names exactly one.
+            occupied = sorted(
+                zone.zone_id for zone, polygon in zone_polygons
+                if polygon.intersection(facts_polygon).area > 0)
+            if len(occupied) != 1:
+                structural.append(
+                    f"facts_cavity_occupies_multiple_converter_zones:"
+                    f"{view.view_id}:{cavity_id}:{occupied}")
+                continue
+            zone_matches = [zone for zone, polygon in zone_polygons
+                            if polygon.covers(representative)]
             if len(zone_matches) != 1:
                 structural.append(
                     f"converter_zone_pairing_not_unique:{view.view_id}:{cavity_id}:"
                     f"{[zone.zone_id for zone in zone_matches]}")
                 continue
             zone = zone_matches[0]
+            zone_polygon = next(polygon for candidate, polygon in zone_polygons
+                                if candidate is zone)
             zone_key = (zone.floor_id, zone.zone_id)
             accounted_converter_zones.add(zone_key)
             previous = claimed_converter_zones.get(zone_key)
@@ -1182,6 +1256,28 @@ def reconcile_boundary_basis(
                     f"{previous[0]}:{previous[1]}:{view.view_id}:{cavity_id}")
                 continue
             claimed_converter_zones[zone_key] = (view.view_id, cavity_id)
+            # ⭐⭐⭐ Zero-threshold identity: carry the facts ring out to the
+            # basis the answer declares for each edge, then require the two to
+            # be the SAME polygon.  ⛔ No tolerance is read off the data.
+            projected, projection_failure = _projected_facts_ring(facts_edges)
+            if projected is None:
+                structural.append(
+                    f"facts_projected_ring_unavailable:{view.view_id}:"
+                    f"{cavity_id}:{projection_failure}")
+                continue
+            projected_symmetric_difference = projected.symmetric_difference(
+                zone_polygon).area
+            if projected_symmetric_difference != 0:
+                structural.append(
+                    f"facts_projected_ring_is_not_the_converter_zone:"
+                    f"{view.view_id}:{cavity_id}:{zone.zone_id}:"
+                    f"symmetric_difference_units2="
+                    f"{projected_symmetric_difference:.0f}")
+            # ⛔ No early exit: the per-edge pairing below keeps its own
+            # resolution (a single wrong ``boundary_condition`` must still
+            # redden exactly its own row, not be swallowed by a whole-cavity
+            # verdict), so the identity failure is NAMED and the comparison
+            # still runs.
             if len(zone.edges) != len(facts_edges):
                 structural.append(
                     f"boundary_edge_count_mismatch:{view.view_id}:{cavity_id}:"

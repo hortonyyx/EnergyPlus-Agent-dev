@@ -426,7 +426,10 @@ class AsMeasuredBoundaryRingLossV1(_StrictModel):
     area_units2: StrictNonNegativeInt
     span: AsMeasuredBoundaryFailureSpanV1
     reason: Literal[
-        "non_axis_segment", "owner_count", "classify_illogical", "merged_lt_3"]
+        "non_axis_segment", "owner_count", "classify_illogical", "merged_lt_3",
+        "endcap_const_not_a_measured_parallel_face",
+        "adjacent_support_lines_parallel", "intersection_ring_invalid",
+        "merged_span_has_no_supporting_witness"]
     owner_count: StrictNonNegativeInt | None = None
 
     @model_validator(mode="after")
@@ -1166,6 +1169,12 @@ class _BoundaryWallGroup:
                                       else wall.face_line_ids_hi)})
 
 
+#: Placeholder condition carried by an end-cap span.  An end-cap never becomes
+#: an edge record, so it never needs -- and must never invent -- one of the four
+#: real ``boundary_condition`` values.
+_ENDCAP_NON_CONDITION = "not_an_edge"
+
+
 @dataclass
 class _BoundarySpan:
     axis: Literal["x", "y"]
@@ -1177,6 +1186,13 @@ class _BoundarySpan:
     p2: tuple[int, int]
     group: _BoundaryWallGroup
     boundary_condition: str
+    kind: Literal["faced", "endcap"] = "faced"
+    #: True when this span is a cell produced by partitioning an illogical
+    #: parent at measured geometry transitions.  Such a cell owns a witness
+    #: that is valid only inside itself, so re-merging it would hand the
+    #: merged record a NEW single witness -- the exact thing the partition
+    #: exists to prevent.  ⇒ a subdivided cell never merges.
+    subdivided: bool = False
 
 
 @dataclass
@@ -1273,6 +1289,45 @@ def _boundary_owners(groups: dict[tuple[str, int, int], _BoundaryWallGroup],
     return sorted(found, key=lambda group: (group.key, group.wall_ids))
 
 
+def _boundary_endcap_groups(
+        groups: dict[tuple[str, int, int], _BoundaryWallGroup],
+        axis: str, const: int, lo: int, hi: int) -> list[_BoundaryWallGroup]:
+    """Bands carried on their *run end line* rather than on one of their faces.
+
+    A cavity ring segment that crosses a perpendicular band's full thickness at
+    that band's ``along_min``/``along_max`` is the band's END CAP.  Both of the
+    band's face lines bound it, so it is measured geometry -- but it is not a
+    wall FACE, which is why ``_boundary_owners`` correctly reports nobody for
+    it.  Naming it here is what lets an end-capped cavity keep its ring instead
+    of being written off wholesale as ``owner_count=0``.
+    """
+    found = []
+    for group in groups.values():
+        if group.axis == axis:
+            continue
+        if min(hi, group.face_hi) - max(lo, group.face_lo) <= 0:
+            continue
+        if any(const in (wall.along_min, wall.along_max) for wall in group.runs):
+            found.append(group)
+    return sorted(found, key=lambda group: (group.key, group.wall_ids))
+
+
+def _boundary_parallel_measured_faces(
+        groups: dict[tuple[str, int, int], _BoundaryWallGroup],
+        axis: str, const: int) -> list[tuple[str, int, int]]:
+    """Bands PARALLEL to this segment that measured a face at exactly ``const``.
+
+    Admissibility rule for an end cap: the wall really has to stop *on* another
+    wall's measured face.  ⛔ No tolerance and no snapping -- ``const`` either is
+    one of the measured face constants or it is not.  A wall whose end lands one
+    integer unit away from the face it appears to touch has not been measured as
+    touching it, and the cavity it half-bounds is not a room this layer can
+    honestly close.
+    """
+    return sorted(group.key for group in groups.values()
+                  if group.axis == axis and const in (group.face_lo, group.face_hi))
+
+
 def _boundary_nearest_same_axis_face(
         groups: dict[tuple[str, int, int], _BoundaryWallGroup], axis: str,
         const: int, lo: int, hi: int) -> int | None:
@@ -1361,7 +1416,7 @@ def _boundary_subspan(span: _BoundarySpan, lo: int, hi: int) -> _BoundarySpan:
     return _BoundarySpan(
         axis=span.axis, cavity_const=span.cavity_const, lo=lo, hi=hi,
         side=span.side, p1=p1, p2=p2, group=span.group,
-        boundary_condition=span.boundary_condition)
+        boundary_condition=span.boundary_condition, kind=span.kind)
 
 
 def _boundary_failure_span(
@@ -1465,9 +1520,12 @@ def _classify_boundary_fact(
 
 def _boundary_spans_mergeable(left: _BoundarySpan,
                               right: _BoundarySpan) -> bool:
+    if left.subdivided or right.subdivided:
+        return False
     return (left.axis == right.axis
             and left.cavity_const == right.cavity_const
             and left.side == right.side
+            and left.kind == right.kind
             and left.group.key == right.group.key
             and left.boundary_condition == right.boundary_condition
             and left.p2 == right.p1)
@@ -1491,10 +1549,72 @@ def _merge_boundary_spans(spans: list[_BoundarySpan]) -> list[_BoundarySpan]:
                 lo=min(previous.lo, span.lo), hi=max(previous.hi, span.hi),
                 side=previous.side, p1=previous.p1, p2=span.p2,
                 group=previous.group,
-                boundary_condition=previous.boundary_condition)
+                boundary_condition=previous.boundary_condition,
+                kind=previous.kind)
         else:
             merged.append(span)
     return merged
+
+
+def _boundary_support_lines(
+        merged: list[_BoundarySpan]) -> list[list[_BoundarySpan]]:
+    """Group the edge-bearing spans into the SUPPORT LINES the ring turns on.
+
+    One support line legitimately carries more than one edge record: the
+    classifier refuses to judge a junction fragment (a stretch whose exit ray
+    is still inside wall material) and the record is cut there rather than
+    claiming a condition it could not see.  Such a cut does not turn the ring,
+    so it must never become a corner.
+
+    End caps carry no record at all and are dropped here.  What closes the ring
+    across an end cap is that the two faced lines it separates meet at their own
+    intersection -- which is exactly why an end cap has to be recognised (so the
+    cavity is not written off) without ever becoming an edge.
+    """
+    faced = [span for span in merged if span.kind == "faced"]
+    if not faced:
+        return []
+    start = 0
+    for index, span in enumerate(faced):
+        previous = faced[index - 1]
+        if (previous.axis, previous.cavity_const) != (span.axis,
+                                                      span.cavity_const):
+            start = index
+            break
+    rotated = faced[start:] + faced[:start]
+    lines: list[list[_BoundarySpan]] = []
+    for span in rotated:
+        if lines and (lines[-1][0].axis, lines[-1][0].cavity_const) == (
+                span.axis, span.cavity_const):
+            lines[-1].append(span)
+        else:
+            lines.append([span])
+    return lines
+
+
+def _boundary_ring_corners(
+        lines: list[list[_BoundarySpan]]
+        ) -> tuple[list[tuple[int, int]], int | None]:
+    """Corner ``i`` = the one intersection of support lines ``i-1`` and ``i``.
+
+    This mirrors the answer side's own junction rule (``_support_vertices`` in
+    the answer compiler): two adjacent support lines meet in exactly one point
+    when -- and only when -- they run on different axes.  Chaining the measured
+    span END POINTS instead is what manufactured self-crossing rings: a span's
+    end point is where THIS wall's face stops being measurable, which is not
+    where the ring turns.  Returns ``(corners, bad_index)``, where ``bad_index``
+    names the first junction whose two support lines are parallel.
+    """
+    corners: list[tuple[int, int]] = []
+    for index, line in enumerate(lines):
+        previous = lines[index - 1]
+        if previous[0].axis == line[0].axis:
+            return [], index
+        if previous[0].axis == "y":
+            corners.append((previous[0].cavity_const, line[0].cavity_const))
+        else:
+            corners.append((line[0].cavity_const, previous[0].cavity_const))
+    return corners, None
 
 
 def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
@@ -1522,7 +1642,14 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
         cavity_id = cavity_ids[id(cavity)]
         ring = [(int(round(x)), int(round(y)))
                 for x, y in list(cavity.exterior.coords)[:-1]]
-        representative = cavity.representative_point()
+        # ⭐ Which side of a ring segment the cavity lies on is a LOCAL fact and
+        # is read from the ring's own winding.  ⛔ Comparing against one global
+        # representative point only works for a convex cavity: on the L-shaped
+        # sm25 corridor it put 7 of 38 segments on the wrong side, which swapped
+        # near/far face readings, inverted the outward normal, and made the exit
+        # ray land back inside the cavity -- producing edges that named THEIR
+        # OWN cavity as the room next door.
+        counter_clockwise = cavity.exterior.is_ccw
         spans: list[_BoundarySpan] = []
         local_failures: list[AsMeasuredBoundaryFailureSpanV1] = []
         fatal_loss: AsMeasuredBoundaryRingLossV1 | None = None
@@ -1530,11 +1657,12 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
             if a[0] == b[0] and a[1] != b[1]:
                 axis: Literal["x", "y"] = "y"
                 cavity_const, lo, hi = a[0], min(a[1], b[1]), max(a[1], b[1])
-                side: Literal[-1, 1] = -1 if representative.x < cavity_const else 1
+                side: Literal[-1, 1] = (
+                    -1 if (b[1] > a[1]) == counter_clockwise else 1)
             elif a[1] == b[1] and a[0] != b[0]:
                 axis = "x"
                 cavity_const, lo, hi = a[1], min(a[0], b[0]), max(a[0], b[0])
-                side = -1 if representative.y < cavity_const else 1
+                side = 1 if (b[0] > a[0]) == counter_clockwise else -1
             else:
                 fatal_loss = AsMeasuredBoundaryRingLossV1(
                     cavity_id=cavity_id, area_units2=int(round(cavity.area)),
@@ -1542,7 +1670,10 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
                     reason="non_axis_segment")
                 break
             owners = _boundary_owners(groups, axis, cavity_const, lo, hi)
-            if len(owners) != 1:
+            end_caps = ([] if len(owners) == 1
+                        else _boundary_endcap_groups(
+                            groups, axis, cavity_const, lo, hi))
+            if len(owners) != 1 and not (not owners and len(end_caps) == 1):
                 nearest_face = _boundary_nearest_same_axis_face(
                     groups, axis, cavity_const, lo, hi)
                 failure_span = _boundary_failure_span(
@@ -1554,6 +1685,32 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
                     span=failure_span, reason="owner_count",
                     owner_count=len(owners))
                 break
+            if not owners:
+                # An end cap constructs a corner and nothing else.  ⛔ It never
+                # becomes an edge record: the three things a
+                # ``BoundaryConditionEvidenceV1`` needs -- a paired parallel
+                # face, a positive ``thickness_units``, and face lines on both
+                # sides -- do not exist for it, so any edge record here would
+                # have to invent them.  Admissible only when the wall really
+                # stops ON a measured face of a wall parallel to the segment.
+                if not _boundary_parallel_measured_faces(
+                        groups, axis, cavity_const):
+                    nearest_face = _boundary_nearest_same_axis_face(
+                        groups, axis, cavity_const, lo, hi)
+                    fatal_loss = AsMeasuredBoundaryRingLossV1(
+                        cavity_id=cavity_id,
+                        area_units2=int(round(cavity.area)),
+                        span=_boundary_failure_span(
+                            p1=a, p2=b, axis=axis, const=cavity_const,
+                            lo=lo, hi=hi, side=side,
+                            nearest_same_axis_wall_face_const=nearest_face),
+                        reason="endcap_const_not_a_measured_parallel_face")
+                    break
+                spans.append(_BoundarySpan(
+                    axis=axis, cavity_const=cavity_const, lo=lo, hi=hi,
+                    side=side, p1=a, p2=b, group=end_caps[0],
+                    boundary_condition=_ENDCAP_NON_CONDITION, kind="endcap"))
+                continue
             group = owners[0]
             near_side: Literal["lo", "hi"] = "lo" if side < 0 else "hi"
             far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
@@ -1581,8 +1738,16 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
             # established identity and classification granularity.
             cuts = _boundary_transition_points(
                 candidate, raw_far, footprint, wall_region, cavities)
-            for child_lo, child_hi in zip(cuts, cuts[1:]):
+            cells = list(zip(cuts, cuts[1:]))
+            # ⭐ The cut coordinates are sorted ascending, but the ring may
+            # traverse this span descending.  Emitting cells in coordinate
+            # order would scramble the ring sequence for every subdivided span.
+            along = 1 if candidate.axis == "y" else 0
+            if candidate.p1[along] > candidate.p2[along]:
+                cells.reverse()
+            for child_lo, child_hi in cells:
                 child = _boundary_subspan(candidate, child_lo, child_hi)
+                child.subdivided = True
                 condition, _evidence, logical = _classify_boundary_fact(
                     child, raw_near, raw_far, footprint, ring_records,
                     wall_region, cavities, cavity_ids)
@@ -1599,7 +1764,9 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
             continue
 
         merged = _merge_boundary_spans(spans)
-        if len(merged) < 3:
+        lines = _boundary_support_lines(merged)
+        supports = [span for line in lines for span in line]
+        if len(lines) < 3:
             if local_failures:
                 losses.append(AsMeasuredBoundaryRingLossV1(
                     cavity_id=cavity_id, area_units2=int(round(cavity.area)),
@@ -1617,7 +1784,40 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
                 raise ValueError(
                     f"as_measured_boundary_empty_without_failure:{cavity_id}")
             continue
-        for sequence, span in enumerate(merged):
+        corners, parallel_index = _boundary_ring_corners(lines)
+        if parallel_index is not None:
+            witness = lines[parallel_index][0]
+            losses.append(AsMeasuredBoundaryRingLossV1(
+                cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                span=_boundary_failure_span(
+                    p1=witness.p1, p2=witness.p2, axis=witness.axis,
+                    const=witness.cavity_const, lo=witness.lo, hi=witness.hi,
+                    side=witness.side),
+                reason="adjacent_support_lines_parallel"))
+            continue
+        placed: list[tuple[tuple[int, int], tuple[int, int]]] = []
+        for line_index, line in enumerate(lines):
+            for position, span in enumerate(line):
+                placed.append((
+                    corners[line_index] if position == 0 else span.p1,
+                    corners[(line_index + 1) % len(corners)]
+                    if position == len(line) - 1 else span.p2))
+        corner_ring = Polygon(corners)
+        if (len(set(corners)) != len(corners) or corner_ring.is_empty
+                or not corner_ring.is_valid or corner_ring.area <= 0
+                or any(p1 == p2 for p1, p2 in placed)):
+            witness = supports[0]
+            losses.append(AsMeasuredBoundaryRingLossV1(
+                cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                span=_boundary_failure_span(
+                    p1=witness.p1, p2=witness.p2, axis=witness.axis,
+                    const=witness.cavity_const, lo=witness.lo, hi=witness.hi,
+                    side=witness.side),
+                reason="intersection_ring_invalid"))
+            continue
+        cavity_records: list[AsMeasuredBoundaryEdgeV1] = []
+        merge_witness: _BoundarySpan | None = None
+        for sequence, span in enumerate(supports):
             near_side = "lo" if span.side < 0 else "hi"
             far_side = "hi" if near_side == "lo" else "lo"
             near_handles = span.group.handles(near_side)
@@ -1630,19 +1830,37 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
                 span, raw_near, raw_far, footprint, ring_records,
                 wall_region, cavities, cavity_ids)
             if not logical:
-                raise ValueError(
-                    f"as_measured_boundary_merge_changed_logical_status:{cavity_id}")
-            records.append(AsMeasuredBoundaryEdgeV1(
+                # ⭐ Two contiguous spans that each classified logically can
+                # merge into one whose own witness lands on the junction
+                # between them.  The merged record then has no witness that
+                # supports it, so it must not be written.  ⛔ This is a
+                # property of THIS cavity: it is named here and the cavity is
+                # dropped, rather than aborting the whole document.
+                merge_witness = span
+                break
+            cavity_records.append(AsMeasuredBoundaryEdgeV1(
                 id=_boundary_opaque_id(
                     "boundary-edge", cavity_id, sequence, span.axis,
                     span.cavity_const, span.lo, span.hi, span.side,
                     *span.group.wall_ids),
                 cavity_id=cavity_id, sequence=sequence, axis=span.axis,
                 cavity_const=span.cavity_const, span_lo=span.lo, span_hi=span.hi,
-                side=span.side, p1=list(span.p1), p2=list(span.p2),
+                side=span.side,
+                p1=list(placed[sequence][0]), p2=list(placed[sequence][1]),
                 wall_ids=span.group.wall_ids,
                 face_line_handles=span.group.face_line_handles,
                 boundary_condition=condition, evidence=evidence))
+        if merge_witness is not None:
+            losses.append(AsMeasuredBoundaryRingLossV1(
+                cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                span=_boundary_failure_span(
+                    p1=merge_witness.p1, p2=merge_witness.p2,
+                    axis=merge_witness.axis, const=merge_witness.cavity_const,
+                    lo=merge_witness.lo, hi=merge_witness.hi,
+                    side=merge_witness.side),
+                reason="merged_span_has_no_supporting_witness"))
+            continue
+        records.extend(cavity_records)
     return _BoundaryDerivation(edges=records, losses=losses)
 
 
