@@ -115,12 +115,13 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     deferred = _deferred_cavities(audit)
     assert len(deferred) == 2
     assert _failures_not_from_deferred_cavities(audit) == []
-    assert not audit.passed  # F-157 owes the two named residuals
-    assert [(row.view_id, row.converter_zone_id, row.reason)
-            for row in audit.exclusions] == [
-        ("plan-F1", "F1-z4", "facts_cavity_has_no_logical_boundary_ring"),
-        ("plan-F1", "F1-z5", "facts_cavity_has_no_logical_boundary_ring"),
-    ]
+    assert not audit.passed  # F-157 owes two residuals; F-153 form B owes the endcap
+    # ⭐ ②-1d rework3: the producer-written endcap loss (F-153 form B) is now
+    # fail-loud, ⛔ no longer a silent exclusion.  No exclusion survives on the
+    # honest substrate; the endcap surfaces as a NAMED red owned by the F-153
+    # form B lock in ``tests/test_o21d_exclusion_gap.py``, ⛔ not asserted here
+    # ([[invalidation-blast-radius-must-be-scoped]]).
+    assert audit.exclusions == []
     assert Counter((row.facts_boundary_condition, row.converter_basis)
                    for row in audit.rows) == {
         ("exterior", "outer_skin"): 32,
@@ -158,8 +159,12 @@ def test_r2_mutating_one_boundary_condition_reddens_only_that_edge():
                for item in audit.structural_failures)
     allowed = {cavity for _view, cavity in _deferred_cavities(baseline)}
     allowed.add(mutated_cavity)
+    # ⛔ skip the F-153 form B fail-loud reds (owned by another lock); every
+    # OTHER structural failure must come only from F-157's cavities or the
+    # mutated one.
     assert all(f"cavity:{item.split(':')[3]}" in allowed
-               for item in audit.structural_failures), audit.structural_failures
+               for item in audit.structural_failures
+               if not item.startswith(KNOWN_DEFECT_CODES)), audit.structural_failures
     with pytest.raises(BoundaryBasisMismatchError) as exc_info:
         audit.assert_consistent()
     assert target_id in str(exc_info.value)
@@ -206,6 +211,17 @@ def test_r2_pairing_exhausts_both_directions_and_all_rotations_with_hard_limit()
 DEFERRED_PROJECTION_CODES = ("facts_projected_ring_is_not_the_converter_zone",
                              "facts_projected_ring_unavailable")
 
+#: ⛔ Owned by another lock, ⛔ not an amnesty.  ②-1d rework3 made a
+#: producer-written ``registered_ring_loss`` fail-loud, so the honest sm25
+#: substrate now always carries one such red per converter zone parked in an
+#: endcap-loss cavity (F-153 form B, a known-unfixed defect).  Those reds belong
+#: to the F-153 form B lock in ``tests/test_o21d_exclusion_gap.py``, ⛔ not to the
+#: E2c/E3/E4/basis-mutation locks below, which must not be held hostage by a
+#: defect they do not own ([[invalidation-blast-radius-must-be-scoped]]).  When
+#: the F-153 fix lands the ledger empties and these stop occurring; nothing here
+#: changes.
+KNOWN_DEFECT_CODES = ("converter_zone_excluded_by_producer_written_ring_loss",)
+
 
 def _deferred_cavities(audit) -> set[tuple[str, str]]:
     return {(item.split(":")[1], f"cavity:{item.split(':')[3]}")
@@ -217,6 +233,8 @@ def _failures_not_from_deferred_cavities(audit) -> list[str]:
     deferred = _deferred_cavities(audit)
     kept = []
     for item in audit.structural_failures:
+        if item.startswith(KNOWN_DEFECT_CODES):
+            continue
         parts = item.split(":")
         named = ((parts[1], f"cavity:{parts[3]}")
                  if len(parts) >= 4 and parts[2] == "cavity" else None)
