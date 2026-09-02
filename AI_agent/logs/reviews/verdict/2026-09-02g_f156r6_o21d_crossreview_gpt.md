@@ -3,7 +3,8 @@
 - 日期：2026-09-02
 - 被审 commit：`2a5aec4`（当前 HEAD `e57ba1d` 已含被审四笔落地提交）
 - 复核方：GPT 家族
-- 裁决与计数：见文末汇总（本文件按复核段落分段提交）
+- 裁决：**REWORK**
+- 计数：**阻断 3 / 不阻断 1**
 
 ## 一、核心机制：1:1 阈值确实被拿掉；类型分离本身成立
 
@@ -351,3 +352,92 @@ reason=endcap_const_not_a_measured_parallel_face
 | 5 | **不通过** | 施工方自造 seam 攻击会红；复核方不同形状“无 zone 消费的 producer loss”成功骗过判据 |
 | 6 | 通过 | 全量 3659 passed / 13 xfailed；真实 sm25 四红、29/29 accounted，四红均有归属 |
 
+## 七、不阻断 1：旧注释仍把 producer ledger 写成 exclusion licence
+
+`answer_compiler.py:1158-1164` 仍写“ONLY boundary_ring_losses ledger ... licenses that
+exclusion”，与本轮类型分离及紧接着的 fail-loud 实现相反。运行行为不受影响，因此不阻断；
+但它会把下一位维护者重新引回旧语义，应随返工修正。
+
+命令原文：
+
+```bash
+nl -ba src/agent/judge/answer_compiler.py | sed -n '1156,1166p'
+```
+
+输出原文：
+
+```text
+  1156              by_cavity.setdefault(edge.cavity_id, []).append(edge)
+  1157
+  1158          # Account for the complete converter-zone population before doing the
+  1159          # edge-level comparison.  A raw facts cavity may genuinely have no
+  1160          # logical ring, but ONLY the ``boundary_ring_losses`` ledger (an
+  1161          # above-threshold known defect) or a below-threshold by-design drop
+  1162          # licenses that exclusion -- ⛔ never the producer re-deriving its own
+  1163          # ring, whose co-cause failure would silently absorb real rooms and
+  1164          # hallucinated zones alike ([[gate-measures-right-but-carrier-gets-swapped]]).
+  1165          try:
+  1166              footprint, _ring_records = _footprint_polygon(view)
+```
+
+## 八、对我上一轮 either/or 的复看与修正
+
+上一轮原句是：“对 `registered_ring_loss` 建立逐条独立 applicability 证明或 fail-loud”。
+作为**消费端即时安全动作**，未获证明就 fail-loud 没错；但把它写成返工边界的完整二选一，
+确实不完整，因为它默认每条 live loss 都是“可能合法的豁免候选”，没有先核这条 loss 本身
+是否合法、是否其实对应未闭合上游缺陷。请求方题错 #71 的裁定成立，我上一轮的边界也应修正。
+
+修正后的边界是：
+
+1. 先将每条 live loss 与原始几何及未闭合缺陷登记对账，判它是合法例外、已知上游缺陷，
+   还是未证真伪；不得从“ledger 里存在”反推合法。
+2. 合法且能由不同作者的证据独立证明，才进入具名 typed exclusion。
+3. 已知上游缺陷在消费端 fail-loud 作当前围栏，同时归属到上游修复；未能证明合法的其余 loss
+   也 fail-closed。任何有限配额都不能替代这次分类。
+
+命令原文：
+
+```bash
+nl -ba AI_agent/logs/reviews/verdict/2026-09-02b_f156r4_o21d_crossreview_gpt.md | sed -n '81,86p;402,409p'
+```
+
+输出原文：
+
+```text
+    81  ```
+    82
+    83  修复不能只是继续调比例。对 producer 自写的 `registered_ring_loss`，需要能逐条证明其 applicability
+    84  的独立证据，或对未获独立证明的 loss fail-loud；否则任何有限配额内的灌证仍然合法。
+    85
+    86  ## 二、重点疑点 2：reason 准入表
+   402  ## 六、返工验收边界
+   403
+   404  1. 不把 `below_request_area_threshold` 计入 producer-loss flooding 配额；它已有 raw area + request
+   405     threshold 的独立证明。
+   406  2. 对 `registered_ring_loss` 建立逐条独立 applicability 证明或 fail-loud，不能再用任意比例代替真伪。
+   407  3. 新锁至少覆盖本裁决两种相反形态：诚实 `excluded > paired` 必须绿；`excluded == paired` 的
+   408     true-looking ledger flood 必须红。
+   409  4. 保留 odd-thickness 响亮 NA、原 11 条撤证锁和全量绿。
+```
+
+这项自我修正与被审 diff 无关，**不计入**阻断/不阻断数字。
+
+## 九、最终裁决与最小返工边界
+
+**REWORK · 阻断 3 / 不阻断 1。** 主修法“类型分离 + 去掉 1:1 aggregate + 对被消费到的
+producer loss fail-loud”方向成立，全量也绿；但验收 2、3、4、5 尚未同时成立。
+
+最小返工边界：
+
+1. 为 ledger 增加反向耗尽/逐条 fail-loud：每个 `boundary_ring_losses` entry 都必须被观察，
+   即使没有 converter zone 命中它，也要以 cavity + reason + area 指纹具名红；补我方
+   “unrepresented raw cavity 上的 loss”回归锁。
+2. 删除两条 source 锁对 live ledger 非空的依赖；以构造一个 live paired cavity → strip ring +
+   write loss 的夹具维持 fail-loud 方向库存，同时实测 ledger=0 时来源锁绿。
+3. 把 ring+loss 互斥锁改成真正构造同 cavity 同时有 edge 与 loss，并断言
+   `AsSignedV1.model_validate` 抛精确错误；再摘 validator，锁必须红。
+4. 修正 §七的陈旧注释；保留现有 16 条定向绿、fail-loud neuter 红集、odd NA、全量与真实
+   sm25 四红归属。
+
+H1 的演进代价是有意闭集，不要求本轮预留第二个 Literal 值，也不要求修改 `as_measured.py`
+生产逻辑或顺手修 F-153/F-157。
