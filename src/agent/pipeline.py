@@ -174,6 +174,36 @@ def _section(stage: str) -> dict:
     return load_llm_section("intake_correction")
 
 
+def _load_decision_beat_section(section_name: str) -> tuple[dict, str]:
+    """Load the decision beat's llm.yaml section BY ITS REAL NAME (v3, B-1).
+
+    ⭐ This is deliberately NOT ``_section``: that helper serves the staged-
+    intake legs and prefixes ``intake_`` onto its argument, so asking it for
+    ``correction_decision`` silently resolved to ``intake_correction`` — the
+    v2 cross-review's B-1: the configured model seat was never loaded, and
+    the route record only echoed the REQUESTED name, so nothing on disk
+    could prove which model actually adjudicated.  This loader resolves the
+    name verbatim; an absent section is a LOUD config error, because falling
+    back to ``default`` would seat the ReAct downstream config (thinking
+    disabled, temperature 0.7) in the adjudication beat, and falling back to
+    ``intake_correction`` would collapse two config points that exist so
+    they can be pointed at different models.
+
+    Returns ``(section, loaded_name)`` so every downstream record (route /
+    ``response_source``) can carry what was RESOLVED — with the model name
+    read out of the loaded dict — never the request's echo.
+    """
+    raw_keys = set(OmegaConf.load(resolve_llm_config_path()).keys())
+    if section_name not in raw_keys:
+        raise RuntimeError(
+            f"llm.yaml has no '{section_name}' section (the decision beat's "
+            f"model seat); refusing to silently fall back to 'default' or "
+            f"'intake_correction'. Add that section to the active config, "
+            f"or pass llm_section_name explicitly."
+        )
+    return load_llm_section(section_name), section_name
+
+
 def _call_json_llm(
     section: dict,
     system_prompt: str,
@@ -774,8 +804,11 @@ _UNSET_VALIDATOR = object()
 _EVIDENCE_CHAIN_ROUTE_NAME = "evidence_chain_route.json"
 _EVIDENCE_CHAIN_FAILURE_NAME = "evidence_chain_failure.json"
 _EVIDENCE_CHAIN_OUTCOME_NAME = "decision_loop_outcome.json"
-#: The llm.yaml section the model beat reads.  Absent sections fall back to
-#: `default` (llm.py resolution rule) — the beat never hardcodes a provider.
+#: The llm.yaml section the model beat reads, BY ITS REAL NAME (v3, B-1 —
+#: ⛔ never through the `intake_`-prefixing `_section()`, which silently
+#: resolved this to `intake_correction`).  An absent section is a LOUD
+#: config error (`_load_decision_beat_section`), never a fallback to
+#: `default` or `intake_correction`; the beat never hardcodes a provider.
 DECISION_BEAT_LLM_SECTION = "correction_decision"
 
 
@@ -884,10 +917,16 @@ def _decision_beat_messages(packet_json: str, response_schema: str) -> tuple[str
 
 def _make_decision_response_provider(
     *,
-    section_name: str,
+    section: dict,
     out_dir: Path | None,
 ) -> "Callable[[CorrectionDecisionPacketV1], CorrectionDecisionResponseV1]":
     """Build the packet→response callable that seats the MODEL in the loop.
+
+    ``section`` is the ALREADY-RESOLVED llm.yaml section dict (v3, B-1):
+    the chain resolves it once via ``_load_decision_beat_section`` so the
+    route record can carry what was actually loaded — the provider holds
+    that one dict for its whole life, so a run cannot change models
+    mid-loop.
 
     Every response is checked TWICE before the executor sees it: the
     no-coordinate payload guard (numbers / coordinate pairs in strings,
@@ -935,7 +974,7 @@ def _make_decision_response_provider(
             ),
         )
         parsed = _call_json_llm(
-            _section(section_name),
+            section,
             system_prompt,
             human,
             out_dir=out_dir,
@@ -1051,11 +1090,28 @@ def run_correction_evidence_chain(
         provider = None
         response_source = f"fixed_responses({len(fixed_responses)}; model NOT called)"
         responses = tuple(fixed_responses)
+        llm_section_requested = None
+        llm_section_resolved = None
+        llm_model_resolved = None
     else:
+        # v3, B-1: resolve the seat EAGERLY and BY ITS REAL NAME, before the
+        # loop seats the model — a missing/misnamed section is a config
+        # failure of the MODEL link (recorded as such), and everything the
+        # route later records is read from THIS resolution result (the model
+        # name out of the loaded dict), never echoed from the request string.
+        try:
+            section, llm_section_resolved = _load_decision_beat_section(
+                llm_section_name
+            )
+        except Exception as exc:
+            _record_evidence_chain_failure(out_dir, "model", exc)
+            raise
+        llm_section_requested = llm_section_name
+        llm_model_resolved = section.get("model_name")
         provider = _make_decision_response_provider(
-            section_name=llm_section_name, out_dir=out_dir
+            section=section, out_dir=out_dir
         )
-        response_source = f"model:{llm_section_name}"
+        response_source = f"model:{llm_section_resolved}"
         responses = ()
     try:
         outcome = run_decision_loop(
@@ -1098,6 +1154,12 @@ def run_correction_evidence_chain(
         "profile": profile,
         "round_budget": round_budget,
         "response_source": response_source,
+        # v3, B-1: the RESOLVED model seat, read from the section dict the
+        # provider actually holds — ⛔ never an echo of the requested name
+        # (None in fixed_responses mode: no model was seated at all).
+        "llm_section_requested": llm_section_requested,
+        "llm_section_resolved": llm_section_resolved,
+        "llm_model_resolved": llm_model_resolved,
         "outcome_success": outcome.success,
         "exit_reason": outcome.exit_reason,
         "outcome_path": (

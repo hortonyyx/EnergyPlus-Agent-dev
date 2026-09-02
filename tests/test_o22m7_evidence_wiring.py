@@ -513,6 +513,15 @@ def _fake_openai_returning(payloads: list[dict]):
     return _Client
 
 
+#: The already-resolved section dict handed to the provider in provider-mode
+#: tests: the chain resolves the real config once (_load_decision_beat_section)
+#: and the provider holds THAT dict, so tests inject the dict directly.
+_TEST_SECTION = {
+    "api_key": "test-key", "base_url": "http://unused",
+    "model_name": "fake", "temperature": 0.0,
+}
+
+
 def _smuggled_payload(packet) -> dict:
     """A response payload that is LEGAL at the type layer (a plain string
     reason_code) but carries a coordinate PAIR inside that string -- the
@@ -563,14 +572,8 @@ def test_5_the_beat_rejects_smuggled_coordinates_end_to_end(
         pipeline, "OpenAI",
         lambda **kwargs: _fake_openai_returning([_smuggled_payload(packet)]),
     )
-    monkeypatch.setattr(
-        pipeline, "_section", lambda name: {
-            "api_key": "test-key", "base_url": "http://unused",
-            "model_name": "fake", "temperature": 0.0,
-        },
-    )
     provider = pipeline._make_decision_response_provider(
-        section_name="correction_decision", out_dir=out_dir
+        section=_TEST_SECTION, out_dir=out_dir
     )
     with pytest.raises(RuntimeError, match="failed after") as exc_info:
         provider(packet)
@@ -595,21 +598,143 @@ def test_5_neuter_the_guard_and_the_rejection_disappears(
         lambda **kwargs: _fake_openai_returning([_smuggled_payload(packet)]),
     )
     monkeypatch.setattr(
-        pipeline, "_section", lambda name: {
-            "api_key": "test-key", "base_url": "http://unused",
-            "model_name": "fake", "temperature": 0.0,
-        },
-    )
-    monkeypatch.setattr(
         ds,
         "assert_response_payload_carries_no_coordinates",
         lambda payload: None,
     )
     provider = pipeline._make_decision_response_provider(
-        section_name="correction_decision", out_dir=out_dir
+        section=_TEST_SECTION, out_dir=out_dir
     )
     response = provider(packet)  # disarmed: no raise
     assert "12.34, 56.78" in response.item_decisions[0].reason_code
+
+
+# =========================================================================== #
+# v3 rework B-1 -- the configured model seat is actually loaded, and the
+# route records the RESOLVED section/model, never the request's echo
+# =========================================================================== #
+def _sentinel_config(tmp_path: Path, *, include_decision: bool = True) -> Path:
+    """An active llm.yaml whose two sections point at DIFFERENT model
+    sentinels, so "which section was loaded" is measurable in the dict the
+    beat's LLM call actually receives."""
+    lines = [
+        "intake_correction:",
+        "  provider: openai",
+        "  model_name: sentinel-intake-model",
+        "  api_key: literal-key",
+    ]
+    if include_decision:
+        lines += [
+            "correction_decision:",
+            "  provider: openai",
+            "  model_name: sentinel-decision-model",
+            "  api_key: literal-key",
+        ]
+    cfg = tmp_path / "llm.yaml"
+    cfg.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return cfg
+
+
+def _route_record(tmp_path: Path) -> dict:
+    return json.loads(
+        (tmp_path / "_run" / "evidence_chain_route.json").read_text(encoding="utf-8")
+    )
+
+
+def test_b1_the_provider_actually_gets_the_named_section(tmp_path, monkeypatch):
+    """Acceptance 1: two DIFFERENT model sentinels -- the section dict the
+    beat's LLM call actually receives must be correction_decision's.  ⛔
+    "no error" would not count: the v2 run silently loaded
+    intake_correction and still succeeded, which is exactly why the sentinels
+    must differ."""
+    vector_dir, out_dir = _stage(tmp_path)
+    packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
+    monkeypatch.setenv("EP_AGENT_LLM_CONFIG", str(_sentinel_config(tmp_path)))
+    captured: dict = {}
+
+    def _capture(section, *args, **kwargs):
+        captured.update(section)
+        return {
+            "packet_hash": packet.packet_hash,
+            "item_decisions": [],
+            "whole_building_review": {"verdict": "accept"},
+        }
+
+    monkeypatch.setattr(pipeline, "_call_json_llm", _capture)
+    pipeline.run_correction_evidence_chain(
+        vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=1
+    )
+    assert captured["model_name"] == "sentinel-decision-model"
+    assert captured["model_name"] != "sentinel-intake-model"
+    route = _route_record(tmp_path)
+    assert route["llm_section_requested"] == "correction_decision"
+    assert route["llm_section_resolved"] == "correction_decision"
+    assert route["llm_model_resolved"] == "sentinel-decision-model"
+    assert route["response_source"] == "model:correction_decision"
+
+
+def test_b1_route_reports_the_resolved_model_not_the_request_echo(
+    tmp_path, monkeypatch
+):
+    """Acceptance 2: make requested and actually-loaded DIFFER (the exact
+    shape of the v2 bug -- a resolution handing back a section the request
+    name does not imply, here simulated at the loader boundary) and prove
+    the route follows the ACTUAL dict, not the name.  An echo -- of the
+    request name, or of the repo config's deepseek-v4-pro -- fails here."""
+    vector_dir, out_dir = _stage(tmp_path)
+    packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
+    monkeypatch.setattr(
+        pipeline, "load_llm_section",
+        lambda name: {
+            "api_key": "k", "base_url": "http://unused",
+            "model_name": "whoami-diverged-model", "temperature": 0.0,
+        },
+    )
+    monkeypatch.setattr(
+        pipeline, "_call_json_llm",
+        lambda section, *a, **k: {
+            "packet_hash": packet.packet_hash,
+            "item_decisions": [],
+            "whole_building_review": {"verdict": "accept"},
+        },
+    )
+    pipeline.run_correction_evidence_chain(
+        vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=1
+    )
+    route = _route_record(tmp_path)
+    assert route["llm_model_resolved"] == "whoami-diverged-model"
+
+
+def test_b1_a_missing_section_is_a_loud_config_error(tmp_path, monkeypatch):
+    """No silent fallback: a config without a correction_decision section
+    refuses to seat a model at all (v2 silently loaded intake_correction
+    here), and the refusal is filed as a MODEL-link failure with no success
+    product.  The OpenAI fake keeps the old code's red honest: without it,
+    the v2 fallback would die on a real network call instead of plainly
+    succeeding, and a transport error could masquerade as the refusal."""
+    vector_dir, out_dir = _stage(tmp_path)
+    packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
+    monkeypatch.setenv(
+        "EP_AGENT_LLM_CONFIG",
+        str(_sentinel_config(tmp_path, include_decision=False)),
+    )
+    monkeypatch.setattr(
+        pipeline, "OpenAI",
+        lambda **kwargs: _fake_openai_returning([{
+            "packet_hash": packet.packet_hash,
+            "item_decisions": [],
+            "whole_building_review": {"verdict": "accept"},
+        }]),
+    )
+    # match the loader's OWN wording: a loose match on the section name
+    # would also catch the beat's transport RuntimeError (whose prefix is
+    # the same name) and read a network failure as a config refusal.
+    with pytest.raises(RuntimeError, match="has no 'correction_decision' section"):
+        pipeline.run_correction_evidence_chain(
+            vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=1
+        )
+    assert _failure_record(tmp_path)["failed_stage"] == "model"
+    assert not (out_dir / "decision_loop_outcome.json").exists()
 
 
 def test_provider_seats_the_model_in_the_loop(tmp_path):

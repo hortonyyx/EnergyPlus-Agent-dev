@@ -69,12 +69,15 @@ intake_correction:
     thinking:
       type: enabled
 
-# correction_decision (module 7 wiring, 2026-09-02): the model beat of the
-# 1_correction EVIDENCE CHAIN (decision packet → model → CorrectionDecision-
-# ResponseV1). Distinct from intake_correction on purpose: that section drives
-# the pasted-JSON leg; this one drives the adjudication beat, so it can be
-# pointed at a different model / temperature without touching the old leg.
-# Delete this section to fall back to `default` (llm.py resolution rule).
+# correction_decision (module 7 wiring, 2026-09-02; v3 rework B-1): the model
+# beat of the 1_correction EVIDENCE CHAIN (decision packet → model →
+# CorrectionDecision-ResponseV1). Distinct from intake_correction on purpose:
+# that section drives the pasted-JSON leg; this one drives the adjudication
+# beat, so it can be pointed at a different model / temperature without
+# touching the old leg. ⛔ Deleting this section does NOT fall back: the beat
+# loads it BY ITS REAL NAME (pipeline._load_decision_beat_section) and a
+# missing section is a loud config error — never a silent fallback to
+# `default` or `intake_correction` (the v2 cross-review's B-1).
 correction_decision:
   provider: openai
   base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
