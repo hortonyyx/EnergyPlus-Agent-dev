@@ -133,10 +133,12 @@ recomputed1 = 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945  
 
 ```
 SELF-ATTEST __file__ = /tmp/wiring_review_claude/src/agent/pipeline.py
-<SUMMARY_LINE>
-PYTEST_EXIT=<EXIT>
+3664 passed, 13 xfailed, 211 warnings in 482.67s (0:08:02)
+PYTEST_EXIT=0  （0 failed ⇒ 退出码 0）
 ```
-⇒ 与主控验证记录读数一致方向（主控代跑为 3662 passed；⚠️ 我在 `.env` 已 source、`-n 6`、无 F-158 环境红）。
+⇒ **0 failed / 0 error**，方向与主控代跑一致。`.env` 已 source、`-n 6`、无 F-158 环境红（凭据注入生效）。
+⚠️ 我这棵树 **3664 passed**，主控代跑那棵为 **3662 passed**（差 +2）；两棵代码相同、我这棵多若干管理文档，
+`xfailed`（13）与 `failed`（0）两项完全一致 ⇒ 差异只落在 passed 计数、不落在任何红项，**不影响准入结论**。
 
 ---
 
