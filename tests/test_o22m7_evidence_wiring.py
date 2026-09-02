@@ -48,6 +48,7 @@ from src.agent.correction.decision_executor import (
     DecisionLoopError,
     build_decision_packet,
     compile_wall_ir,
+    decision_hash,
     run_decision_loop,
 )
 from src.agent.correction.decision_schema import (
@@ -880,6 +881,77 @@ def test_b1_a_missing_section_is_a_loud_config_error(tmp_path, monkeypatch):
         )
     assert _failure_record(tmp_path)["failed_stage"] == "model"
     assert not (out_dir / "decision_loop_outcome.json").exists()
+
+
+# =========================================================================== #
+# v3 rework NF-1 -- per-round archives: every round's decision hash is
+# recomputable from the archive by a third party
+# =========================================================================== #
+def test_nf1_every_rounds_raw_is_archived_and_its_decision_hash_recomputes(
+    tmp_path, monkeypatch
+):
+    """v2 kept ONE shared raw filename, so round 1 overwrote round 0 and
+    the 22 first-round decisions became unrecomputable from the archive
+    ("the model really ran" travels through the archive -- the v2
+    cross-review had to RE-RUN the model to establish it).  With per-round
+    filenames both rounds' raw responses land on disk -- driven through
+    the REAL chain entry with the REAL _call_json_llm file-writing path
+    (only the transport is fake) -- and each round's decision hash
+    recomputes from its own file."""
+    vector_dir, out_dir = _stage(tmp_path)
+    monkeypatch.setenv("EP_AGENT_LLM_CONFIG", str(_sentinel_config(tmp_path)))
+    raw = (vector_dir / "sm25_2f_v2.json").read_bytes()
+    artifact = adapt_as_drawn_plan(
+        raw, input_id="sm25_2f_v2", floor_ref="2f"
+    )
+    packet0 = build_decision_packet(
+        compile_wall_ir(artifact, profile="exploratory"),
+        bundle=artifact, round_index=0,
+    )
+    round0 = {
+        "packet_hash": packet0.packet_hash,
+        "item_decisions": [{
+            "item_id": packet0.open_items[0].item_id,
+            "action": "reject_all",
+            "reason_code": "NO_TRUSTED_EVIDENCE",
+        }],
+        "whole_building_review": {"verdict": "accept"},
+    }
+    round0_response = CorrectionDecisionResponseV1.model_validate_json(
+        json.dumps(round0)
+    )
+    # round 1 sees the SAME compilation (a reject executes nothing) with
+    # round_index=1 and round 0's decision hash in its history -- built
+    # exactly the way the loop builds it, so the fixture can bind it.
+    packet1 = build_decision_packet(
+        compile_wall_ir(artifact, profile="exploratory"),
+        bundle=artifact, round_index=1,
+        previous_decision_hashes=(decision_hash(round0_response),),
+    )
+    round1 = {
+        "packet_hash": packet1.packet_hash,
+        "item_decisions": [],
+        "whole_building_review": {"verdict": "accept"},
+    }
+    monkeypatch.setattr(
+        pipeline, "OpenAI",
+        lambda **kwargs: _fake_openai_returning([round0, round1]),
+    )
+    outcome = pipeline.run_correction_evidence_chain(
+        vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=2
+    )
+    assert len(outcome.rounds) == 2
+    raw0 = (out_dir / "correction_decision_r0_raw.txt").read_text(encoding="utf-8")
+    raw1 = (out_dir / "correction_decision_r1_raw.txt").read_text(encoding="utf-8")
+    assert raw0 != raw1
+    recomputed0 = decision_hash(
+        CorrectionDecisionResponseV1.model_validate_json(raw0)
+    )
+    recomputed1 = decision_hash(
+        CorrectionDecisionResponseV1.model_validate_json(raw1)
+    )
+    assert recomputed0 == outcome.rounds[0].decision_hash
+    assert recomputed1 == outcome.rounds[1].decision_hash
 
 
 def test_provider_seats_the_model_in_the_loop(tmp_path):

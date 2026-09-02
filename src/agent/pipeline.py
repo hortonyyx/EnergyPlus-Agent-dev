@@ -982,7 +982,13 @@ def _make_decision_response_provider(
             system_prompt,
             human,
             out_dir=out_dir,
-            prefix="correction_decision",
+            # ⭐ v3 NF-1: PER-ROUND raw/thinking filenames.  One shared name
+            # meant each round overwrote the last, so round 0's decision
+            # hash could not be recomputed from the archive by a third
+            # party -- "the model really ran" travels through the archive,
+            # and an overwritten archive forces the next reviewer to either
+            # re-run (costly) or trust the report.
+            prefix=f"correction_decision_r{packet.round_index}",
             attempts=2,
             validate=lambda p, _packet=packet: _validate_against(_packet, p),
             retry_guidance=_retry_guidance,
