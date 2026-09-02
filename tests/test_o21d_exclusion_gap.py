@@ -61,6 +61,7 @@ from __future__ import annotations
 import inspect
 
 import pytest
+from shapely.geometry import Polygon
 
 from src.agent.judge import answer_compiler as ac
 from src.agent.judge.answer_compiler import (
@@ -68,6 +69,7 @@ from src.agent.judge.answer_compiler import (
     _cavity_id,
     _footprint_polygon,
     _wall_region,
+    _world_point_to_units,
     read_facts_for_compilation,
     reconcile_boundary_basis,
 )
@@ -86,8 +88,14 @@ CASE = "sm25-L_anchor"
 SM25_GT = REPO_ROOT / "case_tests/test_baseline/gt" / CASE
 SM25_SOURCE = REPO_ROOT / "case_tests/test_baseline/gt_sources" / CASE
 
-#: The named producer-written-ring-loss fail-loud code (task ②).
+#: The named producer-written-ring-loss fail-loud code (task ②): a loss a
+#: converter zone CONSUMES (forward pass).
 PRODUCER_LOSS_CODE = "converter_zone_excluded_by_producer_written_ring_loss"
+
+#: rework4 T1 (阻断 2): the OUTPUT-side reverse-sweep code -- a producer loss NO
+#: converter zone consumes, caught by sweeping the ledger itself rather than only
+#: looking it up while walking zones.
+UNCONSUMED_LOSS_CODE = "producer_ring_loss_unrepresented_by_any_converter_zone"
 
 #: The structural-failure codes this file's branch emits: everything the audit
 #: says about a converter zone whose facts cavity holds no stored ring.  This is
@@ -100,6 +108,7 @@ PRODUCER_LOSS_CODE = "converter_zone_excluded_by_producer_written_ring_loss"
 #: flood per-loss (fail-loud), not per-view, so there is no aggregate quota.
 EXCLUSION_BRANCH_CODES = (
     PRODUCER_LOSS_CODE,
+    UNCONSUMED_LOSS_CODE,
     "facts_boundary_ring_missing",
     "converter_zones_overlap_in_shared_exclusion_cavity",
     "converter_zone_facts_cavity_pairing_not_unique",
@@ -257,6 +266,47 @@ def _tiny_subthreshold_cavity(signed):
     return tiny, _cavity_id(view.view_id, tiny), view
 
 
+def _unconsumed_raw_cavities(signed, report):
+    """Raw cavities BY RULE that the FORWARD zone pass never consumes: no stored
+    ring, no ledger loss, and no converter zone whose representative point lands
+    in them.
+
+    ⭐ This is the exact '无 ring、无既有 loss、无 zone 命中' cavity the cross-family
+    verdict (§三) forged its silent loss onto -- the one the forward pass is
+    structurally blind to, so ONLY the reverse ledger sweep can catch a loss aimed
+    at it.  Returns ``[(view_id, cavity_id, area_units2_float), ...]``.  ⛔ No
+    cavity hash baked in: chosen from whatever the substrate currently holds.
+    """
+    converter_by_floor: dict = {}
+    for zone in report.zones:
+        converter_by_floor.setdefault(zone.floor_id, []).append(zone)
+    out = []
+    for view in signed.views:
+        ringed = {edge.cavity_id for edge in view.boundary_edges}
+        registered = {loss.cavity_id for loss in view.boundary_ring_losses}
+        footprint, _ = _footprint_polygon(view)
+        geometry = footprint.difference(_wall_region(view))
+        raw_by_id = {
+            _cavity_id(view.view_id, part): part
+            for part in getattr(geometry, "geoms", [geometry])
+            if (part.geom_type == "Polygon" and not part.is_empty and part.area > 0)}
+        consumed = set()
+        for zone in converter_by_floor.get(view.floor_id, []):
+            zone_polygon = Polygon([_world_point_to_units(pt)
+                                    for pt in zone.polygon_m.exterior.vertices])
+            if (zone_polygon.is_empty or not zone_polygon.is_valid
+                    or zone_polygon.area <= 0):
+                continue
+            rep = zone_polygon.representative_point()
+            matches = [cid for cid, cav in raw_by_id.items() if cav.covers(rep)]
+            if len(matches) == 1:
+                consumed.add(matches[0])
+        for cid, part in sorted(raw_by_id.items(), key=lambda kv: kv[1].area):
+            if cid not in ringed and cid not in registered and cid not in consumed:
+                out.append((view.view_id, cid, part.area))
+    return out
+
+
 def _zone_over(cavity, zone_id, floor_id, *, y_lo=0.0, y_hi=1.0):
     """A converter zone parked inside ``cavity``'s bounds, covering the vertical
     band ``[y_lo, y_hi]`` (fractions of the cavity height) so several zones can
@@ -313,62 +363,100 @@ def test_reconcile_never_re_derives_the_ring_it_judges():
 # surviving entry (F-153 form B) is correctly red.
 # --------------------------------------------------------------------------
 def test_a_producer_written_ring_loss_is_fail_loud_never_an_exclusion(real_inputs):
-    """The producer's own ledger can no longer license a silent waiver.  On the
-    real substrate every ``boundary_ring_losses`` entry surfaces as a NAMED
-    fail-loud red carrying that entry's OWN cavity, reason and area, and NO
-    exclusion in the audit is a registered one (the schema no longer even models
-    that evidence value).
+    """The producer's own ledger can no longer license a silent waiver.  A
+    producer-written ``boundary_ring_losses`` entry surfaces as a NAMED fail-loud
+    red carrying that entry's OWN cavity, reason and area, and NO exclusion in the
+    audit is a registered one (the schema no longer even models that value).
 
-    ⛔ Not vacuous: the honest substrate really holds a live ledger entry today
-    (asserted), so this reddens on real data -- it is not a rule that only bites
-    a hand-built world.
+    ⭐ Two halves (rework4 T2, [[acceptance-bar-must-not-be-written-from-the-result]]):
+    the fail-loud RULE is proven on a CONSTRUCTED fixture that always has stock, so
+    the teeth survive the real ring producer improving the live ledger to 0; the
+    real-substrate part is a READING that ⛔ does NOT pin the ledger non-empty (an
+    empty ledger is honestly empty and ⛔ must not redden).
     """
     signed, _request, report = real_inputs
     audit = reconcile_boundary_basis(signed, report)
 
-    # every audit exclusion is a by-design sub-threshold drop, ⛔ never a
+    # RULE: every audit exclusion is a by-design sub-threshold drop, ⛔ never a
     # producer licence.  (0 of them on the honest substrate -- correctly.)
     for exclusion in audit.exclusions:
         assert exclusion.evidence == "below_request_area_threshold"
 
-    # the schema itself no longer offers the producer-licence evidence value.
+    # RULE: the schema itself no longer offers the producer-licence evidence value.
     assert set(ac.BoundaryBasisExclusionV1.model_fields["evidence"].annotation.__args__) == {
         "below_request_area_threshold"}
 
-    # every ledger entry is fail-loud, named with its own fingerprint.  ⛔ Reads
-    # the ledger, not a literal -- stays true as the ledger shrinks toward 0.
-    assert _ledger_pairs(signed), "no live ledger entry -- this lock has no stock"
-    reds = _producer_loss_reds(audit)
+    # RULE + guaranteed stock: CONSTRUCT a producer loss (strip a real ring, write
+    # a loss for that same cavity) -> a named fail-loud red carrying its own
+    # fingerprint, ⛔ never an exclusion.  Independent of the live ledger, so this
+    # half keeps its teeth even when the real ledger has reached 0.
+    proof, area = _biggest_paired_cavity(signed, report)
+    constructed = reconcile_boundary_basis(
+        _strip_ring(signed, proof, area, licensed=True), report)
+    assert (f"{PRODUCER_LOSS_CODE}:{proof.view_id}:{proof.cavity_id}:"
+            f"{proof.converter_zone_id}:reason=merged_lt_3:area_units2={int(area)}"
+            ) in constructed.structural_failures
+    assert not [item for item in constructed.exclusions
+                if item.facts_cavity_id == proof.cavity_id]
+
+    # READING (⛔ NOT a rule, ⛔ no non-empty assertion): whatever the live ledger
+    # holds today surfaces as a named fail-loud red -- either a converter-consumed
+    # red (forward) or an unrepresented-loss red (reverse sweep).  Vacuous, and
+    # correctly green, once the producer has improved the ledger to 0.
+    reds = [item for item in audit.structural_failures
+            if item.startswith((PRODUCER_LOSS_CODE, UNCONSUMED_LOSS_CODE))]
     for view in signed.views:
         for loss in view.boundary_ring_losses:
             assert any(
-                item.startswith(f"{PRODUCER_LOSS_CODE}:{view.view_id}:"
-                                f"{loss.cavity_id}:")
+                (item.startswith(f"{PRODUCER_LOSS_CODE}:{view.view_id}:"
+                                 f"{loss.cavity_id}:")
+                 or item.startswith(f"{UNCONSUMED_LOSS_CODE}:{view.view_id}:"
+                                    f"{loss.cavity_id}:"))
                 and item.endswith(f":reason={loss.reason}:"
                                   f"area_units2={loss.area_units2}")
                 for item in reds), (view.view_id, loss.cavity_id, reds)
 
-    # and every converter zone still has a home -- ⛔ a rule, not the number 29.
+    # RULE: every converter zone still has a home -- ⛔ a rule, not the number 29.
     assert audit.accounted_converter_zones == audit.converter_zones
 
 
 def test_a_cavity_is_never_both_ringed_and_registered_as_a_loss(real_inputs):
-    """RULE, and ⚠️ read the caveat: THIS ONE CANNOT CURRENTLY GO RED.
+    """RULE with real teeth (rework4 T3, verdict §九#3).
 
-    The claim is that a cavity cannot both carry a stored ring and a loss entry.
-    ⚠️ Measured, ⛔ not assumed: ``AsMeasuredViewV1._ledger_identity`` raises
-    ``as_measured_boundary_cavity_has_edges_and_loss`` when a document tries it,
-    so the teeth here are the SCHEMA's, not this test's, and through the real
-    entry point this assertion is structurally always green
-    ([[gate-with-only-negative-assertions-is-unobservable]]).  Kept only as a
-    cheap tripwire for that validator being relaxed later; ⛔ not counted as
-    coverage of the exclusion branch.
+    The claim: a cavity may not carry BOTH a stored ring edge AND a producer loss
+    -- admitted and lost are mutually exclusive outcomes for one cavity.  ⛔ On the
+    honest substrate this is structurally always true and so cannot go red
+    ([[gate-with-only-negative-assertions-is-unobservable]]); the old version
+    asserted exactly that and had NO teeth (摘掉校验器仍绿).  Instead CONSTRUCT the
+    forbidden object through an UNVALIDATED payload -- an object that ⛔ should not
+    pass validation -- and require ``AsSignedV1.model_validate`` to raise the
+    precise ``as_measured_boundary_cavity_has_edges_and_loss`` error naming that
+    cavity.  Neuter that raise in ``AsMeasuredViewV1._ledger_identity`` and this
+    lock reds (mutation verified in the execution log).
     """
     signed, _request, _report = real_inputs
-    for view in signed.views:
-        ringed = {edge.cavity_id for edge in view.boundary_edges}
-        registered = {loss.cavity_id for loss in view.boundary_ring_losses}
-        assert not (ringed & registered)
+    raw = signed.model_dump(mode="json")
+    # RULE: pick any cavity that today carries a stored ring (guaranteed stock),
+    # ⛔ no cavity id baked in.
+    target = None
+    for view in raw["views"]:
+        if view["boundary_edges"]:
+            target = (view, view["boundary_edges"][0]["cavity_id"])
+            break
+    assert target is not None, "no stored ring anywhere -- this lock has no stock"
+    view, cavity_id = target
+
+    # write a loss for the SAME cavity -> the forbidden both-outcomes object.  The
+    # cavity already has an edge, so this is exactly what the schema must reject.
+    view["boundary_ring_losses"] = view["boundary_ring_losses"] + [{
+        "cavity_id": cavity_id, "area_units2": 1, "span": SYNTHETIC_SPAN,
+        "reason": "merged_lt_3", "owner_count": None}]
+
+    with pytest.raises(ValueError) as excinfo:
+        AsSignedV1.model_validate(raw)
+    message = str(excinfo.value)
+    assert "as_measured_boundary_cavity_has_edges_and_loss" in message
+    assert cavity_id in message
 
 
 # --------------------------------------------------------------------------
@@ -484,13 +572,16 @@ def test_deregistering_each_live_loss_clears_exactly_its_own_red(real_inputs):
     ring and write no loss) makes THAT entry's fail-loud red disappear and leaves
     the others.
 
-    ⭐ Iterates the ledger, so it neither reddens nor needs editing when the
-    stock reaches 0 (F-157 or the F-153 fix may take it there).  ⛔ No cavity id
-    or area literal anywhere.
+    ⭐ READING (⛔ NOT a rule): iterates the live ledger, so it neither reddens nor
+    needs editing when the stock reaches 0 (F-157 or the F-153 fix may take it
+    there) -- the loop is simply vacuous then, ⛔ no non-empty assertion pins the
+    ledger (rework4 T2, [[acceptance-bar-must-not-be-written-from-the-result]]).
+    The fail-loud teeth of this direction live on the CONSTRUCTED fixtures
+    (``test_stripping_a_ring_with_a_producer_loss_is_fail_loud_not_a_green_exclusion``),
+    which have guaranteed stock.  ⛔ No cavity id or area literal anywhere.
     """
     signed, _request, report = real_inputs
     live = sorted(_ledger_pairs(signed))
-    assert live, "no registered loss on the substrate -- this lock has no stock"
 
     for view_id, cavity_id in live:
         raw = signed.model_dump(mode="json")
@@ -515,6 +606,105 @@ def test_deregistering_each_live_loss_clears_exactly_its_own_red(real_inputs):
                 continue
             assert any(f":{other_view}:{other_cavity}:" in item
                        for item in _producer_loss_reds(audit))
+
+
+# --------------------------------------------------------------------------
+# RULE + guaranteed stock.  Acceptance #1 (rework4 T1 / verdict §三): OUTPUT-side
+# exhaustiveness.  A producer loss NO converter zone consumes used to be silent;
+# the reverse ledger sweep now catches it.
+# --------------------------------------------------------------------------
+def test_a_producer_loss_no_converter_zone_consumes_is_still_fail_loud(real_inputs):
+    """The forward zone pass only looked up ``loss_by_id`` while walking converter
+    zones, so a producer loss on a cavity NO zone consumes was completely silent
+    (the cross-family attack: ``structural_failures`` identical before and after).
+    The producer-authored ledger is the authority on what failed to ring, so it is
+    now the traversal START: every entry is swept and a loss aimed at an unconsumed
+    cavity reddens with its OWN cavity + reason + area fingerprint, ⛔ no zone and
+    no ring required ([[gate-measures-right-but-carrier-gets-swapped]]: the swapped
+    carrier is the traversal start).
+
+    ⛔ Guaranteed stock, chosen BY RULE; ⛔ no ``cavity:1bf74ff8...`` literal.
+    """
+    signed, _request, report = real_inputs
+    unconsumed = _unconsumed_raw_cavities(signed, report)
+    assert unconsumed, "no forward-unconsumed raw cavity -- this lock has no stock"
+    view_id, cavity_id, area = unconsumed[0]
+
+    # premise: today, with no loss, this cavity is completely silent -- the
+    # forward pass is structurally blind to it (⛔ the exact silent gap attacked).
+    baseline = reconcile_boundary_basis(signed, report)
+    assert not any(cavity_id in item for item in baseline.structural_failures)
+
+    raw = signed.model_dump(mode="json")
+    for view in raw["views"]:
+        if view["view_id"] == view_id:
+            view["boundary_ring_losses"] = view["boundary_ring_losses"] + [{
+                "cavity_id": cavity_id, "area_units2": int(area),
+                "span": SYNTHETIC_SPAN,
+                "reason": "merged_span_has_no_supporting_witness",
+                "owner_count": None}]
+    attacked = reconcile_boundary_basis(AsSignedV1.model_validate(raw), report)
+
+    # the forged loss reds from the ledger side, fingerprinted, ⛔ though NO
+    # converter zone touches it.
+    assert (f"{UNCONSUMED_LOSS_CODE}:{view_id}:{cavity_id}:"
+            f"reason=merged_span_has_no_supporting_witness:area_units2={int(area)}"
+            ) in attacked.structural_failures
+    assert not attacked.passed
+    # ⛔ and it did not sneak in as a silent exclusion.
+    assert not [item for item in attacked.exclusions
+                if item.facts_cavity_id == cavity_id]
+
+
+# --------------------------------------------------------------------------
+# RULE + guaranteed stock.  Acceptance #6 -- MY OWN different-shape attack (⛔ not
+# the same shape as #1): the reverse sweep must not inherit the below-threshold
+# amnesty, and it must be EXHAUSTIVE, not first-one-only.
+# --------------------------------------------------------------------------
+def test_own_attack_unconsumed_losses_do_not_ride_the_below_threshold_amnesty(
+        real_inputs):
+    """A different shape from #1.  Every forward-unconsumed cavity here is
+    genuinely SUB-THRESHOLD, and the production threshold IS supplied.  A narrow
+    fix that swept the ledger but skipped below-threshold cavities -- betting they
+    inherit the silent ``below_request_area_threshold`` amnesty -- would leak here.
+    It must not: that amnesty lives ONLY in the forward zone path (it needs a zone
+    and a recomputed area); a bare ledger entry is fail-loud on its own author,
+    threshold or no threshold.  Floods EVERY unconsumed cavity in one view at once,
+    so it also proves the sweep is exhaustive, ⛔ not first-one-only.
+    """
+    signed, request, report = real_inputs
+    unconsumed = _unconsumed_raw_cavities(signed, report)
+    assert unconsumed, "no forward-unconsumed raw cavity -- this lock has no stock"
+    first_view = unconsumed[0][0]
+    batch = [(v, c, a) for (v, c, a) in unconsumed if v == first_view]
+    assert len(batch) >= 2, "need >=2 unconsumed cavities to prove exhaustiveness"
+    # premise: every one is genuinely below the production threshold, so the
+    # amnesty really is the tempting leak being closed.
+    for _v, _c, a in batch:
+        assert a / (UNITS_PER_METRE ** 2) < request.min_room_area_m2
+
+    raw = signed.model_dump(mode="json")
+    for view in raw["views"]:
+        if view["view_id"] == first_view:
+            view["boundary_ring_losses"] = view["boundary_ring_losses"] + [{
+                "cavity_id": c, "area_units2": int(a), "span": SYNTHETIC_SPAN,
+                "reason": "merged_lt_3", "owner_count": None}
+                for (_v, c, a) in batch]
+    attacked = reconcile_boundary_basis(
+        AsSignedV1.model_validate(raw), report,
+        min_room_area_m2=request.min_room_area_m2)
+
+    reds = [item for item in attacked.structural_failures
+            if item.startswith(UNCONSUMED_LOSS_CODE)]
+    for _v, c, a in batch:
+        assert any(item.startswith(f"{UNCONSUMED_LOSS_CODE}:{first_view}:{c}:")
+                   and item.endswith(f":reason=merged_lt_3:area_units2={int(a)}")
+                   for item in reds), (c, reds)
+    assert not attacked.passed
+    # ⛔ none was laundered into a silent below_request exclusion.
+    forged_ids = {c for (_v, c, a) in batch}
+    assert not [item for item in attacked.exclusions
+                if item.facts_cavity_id in forged_ids]
 
 
 # --------------------------------------------------------------------------
