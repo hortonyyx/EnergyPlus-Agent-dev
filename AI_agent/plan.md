@@ -663,6 +663,16 @@ tests/test_zone_agent.py（无 mock，直接 zone_agent(...)）
 - **C3 退台 / 挑空**（墙配对 by_floor → z 区间重叠驱动、切配扩到切墙）
 - **C4 斜交墙**
 
+⭐⭐⭐ **新登记（2026-09-02 用户令）：常规建筑尺寸【模数】进 harness** —— 属 **harness 迭代事项**，⛔ 不在本批。
+- **归属**：模数吸附归 **`1_correction`**，gt 只声明分辨率（2026-08-29 用户定，未变）。
+- **对当下唯一的要求 = 留缝**：几何派生里的尺寸来源必须**可替换**（今天 = 数据自报的厚度，将来 = 模数策略），
+  ⛔ 现在不实现模数、⛔ 也不许预先假设任何模数。
+- **配套硬纪律已落指南** → [guides/reading_correction_split_guide.md §十三](guides/reading_correction_split_guide.md)：
+  ⛔ 几何派生代码里不得出现长度/厚度常数 · ⛔ 验收夹具不许只用现有 case 的墙厚
+  （要用 90/150/300/370 这类**现有 case 都没有的**混排厚度）· ⛔ 不许把正交烤死。
+- ⚠️ **最容易溜回特化的那道缝 = 容差**：探针喂的是已吸附的整数事实层（零容差判定），
+  生产侧带噪声 ⇒ 到时必然想加容差，而它会随墙厚变松紧 ⇒ **要么零、要么数据派生、要么用户签字**。
+
 并行支线：识图→建模质量主线见 [capability/recognition_modeling_capability.md](capability/recognition_modeling_capability.md)；再拓扑 leg（休眠）见 [proposals/geometry_first_zonification.md](proposals/geometry_first_zonification.md)。
 
 ---
