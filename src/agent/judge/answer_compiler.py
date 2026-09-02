@@ -1157,11 +1157,15 @@ def reconcile_boundary_basis(
 
         # Account for the complete converter-zone population before doing the
         # edge-level comparison.  A raw facts cavity may genuinely have no
-        # logical ring, but ONLY the ``boundary_ring_losses`` ledger (an
-        # above-threshold known defect) or a below-threshold by-design drop
-        # licenses that exclusion -- ⛔ never the producer re-deriving its own
-        # ring, whose co-cause failure would silently absorb real rooms and
-        # hallucinated zones alike ([[gate-measures-right-but-carrier-gets-swapped]]).
+        # logical ring.  ⛔ The producer-written ``boundary_ring_losses`` ledger is
+        # NO LONGER a licence: every entry is FAIL-LOUD -- the forward pass below
+        # names the ones a converter zone consumes, and the reverse sweep above
+        # names every remaining ledger entry, so no producer loss silences a zone.
+        # The ONLY silent exit is a below-threshold by-design drop, whose area the
+        # gate recomputes against a different author's request threshold -- ⛔ never
+        # the producer re-deriving its own ring, whose co-cause failure would
+        # silently absorb real rooms and hallucinated zones alike
+        # ([[gate-measures-right-but-carrier-gets-swapped]]).
         try:
             footprint, _ring_records = _footprint_polygon(view)
         except AnswerCompilerInputError as exc:
@@ -1180,6 +1184,11 @@ def reconcile_boundary_basis(
             _cavity_id(view.view_id, cavity): cavity for cavity in raw_cavities}
         # ②-1d rework2: the independent exclusion anchor -- consumed, not derived.
         loss_by_id = {loss.cavity_id: loss for loss in view.boundary_ring_losses}
+        # ⭐ rework4 T1 (阻断 2): the cavities whose producer loss the FORWARD zone
+        # pass below observes and names.  Everything the ledger holds that this set
+        # does not cover is swept fail-loud FROM THE LEDGER SIDE (reverse sweep at
+        # the end of this view body).
+        losses_reddened_via_zone: set[str] = set()
         excluded_zone_polys: dict[str, list[tuple[str, Polygon]]] = {}
         for zone in sorted(
                 converter_by_floor.get(view.floor_id, []),
@@ -1227,6 +1236,7 @@ def reconcile_boundary_basis(
                     f"converter_zone_excluded_by_producer_written_ring_loss:"
                     f"{view.view_id}:{cavity_id}:{zone.zone_id}:"
                     f"reason={loss.reason}:area_units2={loss.area_units2}")
+                losses_reddened_via_zone.add(cavity_id)
             elif (area_threshold_units2 is not None
                     and raw_by_id[cavity_id].area <= area_threshold_units2):
                 exclusions.append(BoundaryBasisExclusionV1(
@@ -1255,6 +1265,25 @@ def reconcile_boundary_basis(
                             "converter_zones_overlap_in_shared_exclusion_cavity:"
                             f"{view.view_id}:{shared_cavity_id}:"
                             f"{members[i][0]}:{members[j][0]}")
+
+        # ⭐⭐⭐ rework4 T1 (阻断 2): OUTPUT-side exhaustive sweep.  The forward zone
+        # pass above only observes a loss when a converter zone happens to land on
+        # its ringless cavity, so a producer loss on a cavity NO zone consumes was
+        # completely silent -- the ledger was never the traversal START, only the
+        # zone was ([[gate-measures-right-but-carrier-gets-swapped]]: the swapped
+        # carrier here is the traversal start).  The producer-authored ledger is
+        # the authority on what failed to ring, so it must be swept in full: every
+        # ``boundary_ring_losses`` entry the forward pass did not already name is
+        # a fail-loud red carrying its OWN cavity + reason + area fingerprint, even
+        # with no converter zone and no stored ring.  ⛔ No cavity id is baked in;
+        # the red clears itself the moment the producer stops writing the loss.
+        for loss in view.boundary_ring_losses:
+            if loss.cavity_id in losses_reddened_via_zone:
+                continue
+            structural.append(
+                f"producer_ring_loss_unrepresented_by_any_converter_zone:"
+                f"{view.view_id}:{loss.cavity_id}:"
+                f"reason={loss.reason}:area_units2={loss.area_units2}")
 
         for cavity_id, unordered in sorted(by_cavity.items()):
             facts_edges = sorted(unordered, key=lambda edge: edge.sequence)
