@@ -1,6 +1,6 @@
 # 跨家族**架构对抗审**请求 · 投影桥设计稿（墙 → 房间 → `CorrectedGeometry`）
 
-- **日期**：2026-09-02 · **请审方**：orchestrator（主控）· **复核方**：**GPT 家族**（⛔ 不得 Claude —— 稿子是我写的）
+- **日期**：2026-09-02 · **请审方**：orchestrator（主控）· **复核方**：**GLM 家族**（协议 §1.1 用户 08-24 令：跨家族审默认 GLM；⛔ 不得 Claude —— 稿子是我写的）
 - **被审 commit**：`600ebbf`（分支 `08.23_AsDrawnReading`）
 - **被审对象（两份）**：
   1. [`AI_agent/proposals/correction_projection_bridge.md`](../../proposals/correction_projection_bridge.md) —— 设计稿 v3
@@ -44,7 +44,7 @@
 
 ## 五、交件
 
-`AI_agent/logs/reviews/verdict/2026-09-02o_projection_bridge_design_crossreview_gpt.md`
+`AI_agent/logs/reviews/verdict/2026-09-02o_projection_bridge_design_crossreview_glm.md`
 
 要求：**裁决（APPROVE / APPROVE-WITH-FINDINGS / REWORK / REJECT）+ 阻断数 / 不阻断数**，
 逐条对 §二 六项报；凡下结论处**贴命令原文 + 输出原文**。
