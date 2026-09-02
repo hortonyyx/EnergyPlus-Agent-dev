@@ -933,10 +933,21 @@ def test_nf1_every_rounds_raw_is_archived_and_its_decision_hash_recomputes(
         "item_decisions": [],
         "whole_building_review": {"verdict": "accept"},
     }
-    monkeypatch.setattr(
-        pipeline, "OpenAI",
-        lambda **kwargs: _fake_openai_returning([round0, round1]),
-    )
+    # ⭐ ONE GLOBAL payload stream: _call_json_llm builds a fresh OpenAI
+    # client every round, so a per-client stream would hand round 1 the
+    # round-0 payload again and only the mismatch retry would rescue it.
+    # A shared iterator makes each round's FIRST draw bind its own packet.
+    responses_stream = iter((round0, round1))
+
+    class _StreamCompletions:
+        def create(self, **kwargs):
+            payload = next(responses_stream, round1)
+            return _FakeCompletion(json.dumps(payload))
+
+    class _StreamClient:
+        chat = type("Chat", (), {"completions": _StreamCompletions()})()
+
+    monkeypatch.setattr(pipeline, "OpenAI", lambda **kwargs: _StreamClient())
     outcome = pipeline.run_correction_evidence_chain(
         vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=2
     )
@@ -944,6 +955,11 @@ def test_nf1_every_rounds_raw_is_archived_and_its_decision_hash_recomputes(
     raw0 = (out_dir / "correction_decision_r0_raw.txt").read_text(encoding="utf-8")
     raw1 = (out_dir / "correction_decision_r1_raw.txt").read_text(encoding="utf-8")
     assert raw0 != raw1
+    # each round's raw is THAT round's first successful draw: no format
+    # retry happened on the way (a cross-round stream mix-up would leave
+    # a parse_error sidecar behind and pass only through the retry).
+    assert not (out_dir / "correction_decision_r0_parse_error.txt").exists()
+    assert not (out_dir / "correction_decision_r1_parse_error.txt").exists()
     recomputed0 = decision_hash(
         CorrectionDecisionResponseV1.model_validate_json(raw0)
     )
