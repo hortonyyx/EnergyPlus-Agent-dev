@@ -166,26 +166,28 @@ class BoundaryBasisRowV1(_StrictModel):
 class BoundaryBasisExclusionV1(_StrictModel):
     """A converter zone accounted for without pretending edges were paired.
 
-    ②-1d rework2: an exclusion is only licensed by INDEPENDENT evidence that the
-    cavity genuinely yields no logical ring -- either a matching entry in the
-    hash-covered ``boundary_ring_losses`` ledger (a named, above-threshold
-    known defect) or the cavity being below the production area threshold (a
-    by-design drop).  The gate no longer asks the producer to re-derive the
-    ring to decide this, so a co-cause failure can no longer manufacture a
-    silent NA container ([[gate-measures-right-but-carrier-gets-swapped]]).
+    ②-1d rework3: an exclusion is only ever licensed by
+    ``below_request_area_threshold`` -- an INDEPENDENTLY provable, by-design drop
+    (the gate recomputes the raw cavity area itself and the threshold comes from
+    the request, a different author, so a producer cannot forge it).  A
+    producer-authored ``registered_ring_loss`` is ⛔ no longer a licence: it is
+    fail-loud in ``reconcile_boundary_basis`` (a named structural failure),
+    because the hash only stops a third party tampering with the ledger, not the
+    producer itself writing a loss for every cavity it failed to ring
+    ([[gate-measures-right-but-carrier-gets-swapped]]).  The gate still never
+    re-derives the ring, so a co-cause failure cannot manufacture a silent NA
+    container either.
     """
 
     view_id: str
     facts_cavity_id: str
     converter_zone_id: str
     reason: Literal["facts_cavity_has_no_logical_boundary_ring"]
-    #: Which independent artifact licenses this exclusion.  ``registered_ring_loss``
-    #: points at a ``boundary_ring_losses`` entry (the 3 sm25 known defects);
-    #: ``below_request_area_threshold`` is a by-design sub-threshold drop.
-    evidence: Literal["registered_ring_loss", "below_request_area_threshold"]
-    #: Populated from the ledger loss when ``evidence == "registered_ring_loss"``.
-    registered_loss_reason: str | None = None
-    registered_loss_area_units2: int | None = None
+    #: The only licence an exclusion may carry: a by-design sub-threshold drop,
+    #: independently provable and by design unlimited.  ⛔ ``registered_ring_loss``
+    #: is deliberately absent -- a producer-written loss is fail-loud, never an
+    #: exclusion.
+    evidence: Literal["below_request_area_threshold"]
 
 
 class BoundaryBasisAuditV1(_StrictModel):
@@ -1079,22 +1081,42 @@ def reconcile_boundary_basis(
     A changed classification therefore reddens exactly its row instead of
     perturbing the pairing radius.
 
-    ②-1d rework2: a converter zone whose facts cavity holds no stored ring is a
-    legitimate exclusion ONLY with independent evidence -- a matching
-    ``boundary_ring_losses`` ledger entry, or (when ``min_room_area_m2`` is the
-    production threshold) a below-threshold by-design drop.  Anything else is a
-    silent gap and reddens.  The gate no longer re-derives the ring itself, so
-    the exclusion decision is not co-caused with the producer.  ``min_room_area_m2``
-    is optional and defaults to ``None`` (fail-loud: no ring + not in the ledger
-    reddens regardless of area), which is the aligned replacement for the old
-    ``derive(0.0)`` re-derivation that raised false ``ring_missing`` alarms on
-    below-threshold cavities the producer dropped by design (N3').
+    ②-1d rework3: a converter zone whose facts cavity holds no stored ring is
+    accounted for by WHO authored the licence:
 
-    F-156 v4: the exclusion licence is written by the producer, so a producer
-    that floods the loss ledger could waive almost every converter zone while
-    every per-cavity check stayed green.  The teeth for that mirror ('灌证')
-    direction are aggregate and per-view: within a view, exclusions may not
-    outnumber edge-pairings (the exception may not become the rule).
+    * ``registered_ring_loss`` (``view.boundary_ring_losses``) is
+      PRODUCER-authored.  The hash covering the ledger only stops a third party
+      tampering with it; it does not stop the producer itself writing a loss for
+      every cavity it failed to ring.  So a registered loss can no longer
+      silently waive a converter zone -- it is FAIL-LOUD, a named structural
+      failure carrying the cavity and the loss's own fingerprint (reason +
+      area).  On real sm25 the sole surviving entry is F-153 form B (a wall
+      coordinate 0.1 mm off its three siblings that keeps a fully enclosed real
+      room from ringing); reddening it is CORRECT, and the red clears itself the
+      moment that upstream defect is fixed -- the producer then emits a ring and
+      writes no loss, so no code fires and ⛔ no cavity id is baked in
+      ([[gate-measures-right-but-carrier-gets-swapped]]: the '哪个方向没有锁'
+      answer here is '加了就会红', which is the defect itself blocking the lock).
+    * ``below_request_area_threshold`` (when ``min_room_area_m2`` is the
+      production threshold) is INDEPENDENTLY provable: the gate recomputes the
+      raw cavity area itself and the threshold comes from the request (a
+      different author).  A producer cannot forge it, so it silently licenses an
+      exclusion and ⛔ never counts toward any flood quota -- honest sub-threshold
+      drops, no matter how many, do not redden (rework3 blocker 1).
+
+    Anything else (no ring, no loss, above threshold) is a silent gap and
+    reddens.  The gate never re-derives the ring itself, so the exclusion
+    decision is not co-caused with the producer.  ``min_room_area_m2`` is
+    optional and defaults to ``None`` (no below-threshold amnesty), which is the
+    aligned replacement for the old ``derive(0.0)`` re-derivation that raised
+    false ``ring_missing`` alarms on below-threshold cavities dropped by design
+    (N3').
+
+    The old F-156 v4 per-view ``excluded > paired`` aggregate quota is GONE: the
+    flood ('灌证') direction is now caught per-loss (every producer-written loss
+    is its own fail-loud red), so there is no aggregate cut left to tune, and an
+    aggregate cut would false-red an honest building with many sub-threshold
+    shafts (rework3 blocker 1).
     """
     area_threshold_units2 = (
         None if min_room_area_m2 is None
@@ -1186,19 +1208,25 @@ def reconcile_boundary_basis(
                 # pass below (which also enforces zone/cavity uniqueness).
                 accounted_converter_zones.add(zone_key)
                 continue
-            # No stored ring.  Grant an exclusion only on independent evidence;
-            # ⛔ the producer's re-derivation is never consulted.
+            # No stored ring.  How the zone is accounted for depends on WHO
+            # authored the licence (see the function docstring):
+            #
+            # * a PRODUCER-written ``registered_ring_loss`` is FAIL-LOUD -- a
+            #   named structural failure carrying the cavity and the loss's own
+            #   fingerprint (reason + area).  ⛔ It may not silently waive the
+            #   zone: the hash only stops a third party, not the producer itself,
+            #   from writing a loss for every cavity it failed to ring.  On real
+            #   sm25 the sole entry is F-153 form B and reddening it is correct;
+            #   ⛔ no cavity id is baked in, so the red clears itself when that
+            #   upstream defect is fixed and the producer stops writing the loss.
+            # * a ``below_request_area_threshold`` drop is INDEPENDENTLY provable
+            #   and silently licenses an exclusion (handled below).
             loss = loss_by_id.get(cavity_id)
             if loss is not None:
-                exclusions.append(BoundaryBasisExclusionV1(
-                    view_id=view.view_id, facts_cavity_id=cavity_id,
-                    converter_zone_id=zone.zone_id,
-                    reason="facts_cavity_has_no_logical_boundary_ring",
-                    evidence="registered_ring_loss",
-                    registered_loss_reason=loss.reason,
-                    registered_loss_area_units2=loss.area_units2))
-                excluded_zone_polys.setdefault(cavity_id, []).append(
-                    (zone.zone_id, zone_polygon))
+                structural.append(
+                    f"converter_zone_excluded_by_producer_written_ring_loss:"
+                    f"{view.view_id}:{cavity_id}:{zone.zone_id}:"
+                    f"reason={loss.reason}:area_units2={loss.area_units2}")
             elif (area_threshold_units2 is not None
                     and raw_by_id[cavity_id].area <= area_threshold_units2):
                 exclusions.append(BoundaryBasisExclusionV1(
@@ -1400,36 +1428,19 @@ def reconcile_boundary_basis(
                 structural.append(
                     f"converter_zone_unclaimed_by_facts:{floor_id}:{zone.zone_id}")
 
-    # ⭐ F-156 v4 / ②-1d rework: grow teeth in the FLOODING ('灌证') direction.
-    # Every exclusion lock above points the other way -- withdraw a licence and
-    # it reddens -- so the mirror attack sails through: a producer that WRITES
-    # many true-looking losses (each reason drawn from the schema's closed
-    # vocabulary, each area equal to its own cavity) can license excluding
-    # nearly every converter zone.  Per cavity a flooded exclusion is
-    # indistinguishable from a legitimate one (same raw cavity, same missing
-    # stored ring, same ledger entry), so the only signal is aggregate.  This
-    # audit is a VALIDATION instrument: a converter zone earns trust either by
-    # being edge-paired against a stored facts ring (validated) or by being
-    # excluded (waived).  When a view WAIVES more zones than it VALIDATES the
-    # instrument has stopped instrumenting.  ⛔ Not a data-read percentage --
-    # the cut is the instrument's own definition, the exception may not become
-    # the rule; and PER-VIEW, because a flood concentrated in one view keeps a
-    # global count green ([[gate-teeth-direction-follows-fixture-inventory]]).
-    paired_per_view: dict[str, int] = {}
-    excluded_per_view: dict[str, int] = {}
-    for proof in pairings:
-        paired_per_view[proof.view_id] = paired_per_view.get(proof.view_id, 0) + 1
-    for exclusion in exclusions:
-        excluded_per_view[exclusion.view_id] = (
-            excluded_per_view.get(exclusion.view_id, 0) + 1)
-    for view_id in sorted(set(paired_per_view) | set(excluded_per_view)):
-        paired = paired_per_view.get(view_id, 0)
-        excluded = excluded_per_view.get(view_id, 0)
-        if excluded > paired:
-            structural.append(
-                f"boundary_exclusions_exceed_pairings_in_view:{view_id}:"
-                f"paired={paired}:excluded={excluded}")
-
+    # ⭐ ②-1d rework3: the FLOODING ('灌证') direction is now caught PER-LOSS,
+    # not per-view.  A producer-written ``registered_ring_loss`` is fail-loud
+    # above -- every one is its own named structural failure -- so a flood of
+    # true-looking losses reddens loss-by-loss and there is no aggregate quota
+    # left to tune.  ⛔ We deliberately do NOT count exclusions against pairings:
+    # the only exclusions that survive are ``below_request_area_threshold`` ones,
+    # which are INDEPENDENTLY provable (the gate recomputes the area, the
+    # threshold comes from a different author) and by design unlimited, so an
+    # aggregate ``excluded > paired`` cut would false-red an honest building with
+    # many sub-threshold shafts (rework3 blocker 1;
+    # [[gate-teeth-direction-follows-fixture-inventory]]: teeth belong in the
+    # direction the fixture actually has stock, and here the flood stock is
+    # per-loss, not aggregate).
     mismatches = [row for row in rows if not row.matches]
     return BoundaryBasisAuditV1(
         passed=not structural and not mismatches,
