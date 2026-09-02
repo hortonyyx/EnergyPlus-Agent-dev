@@ -1,0 +1,1035 @@
+diff --git a/src/agent/correction/decision_schema.py b/src/agent/correction/decision_schema.py
+index 5ed66ad..f8b9451 100644
+--- a/src/agent/correction/decision_schema.py
++++ b/src/agent/correction/decision_schema.py
+@@ -39,6 +39,46 @@ called.  ``extra="forbid"`` everywhere closes the last gap -- an ``x``
+ the schema never listed is rejected before any executor code runs, not
+ by a lexical scan for suspicious names.
+ 
++The STRING half of that proof (module 7 v3 rework, B-2)
++-------------------------------------------------------
++The v2 cross-review pushed an integer coordinate -- ``"wall endpoint is
++at (12, 34)"`` -- through ``reason_code``: the type had no numeric field,
++but free text is a numeric CHANNEL, and the runtime regex guarding it
++only knew decimal pairs and lowercase ``x=/y=``.  The rework ruling:
++⛔ do NOT complete the regex (lexical guards against unbounded input are
++never completable -- the same seam six times in this repo); move the
++defence to the TYPE.  So every string field the model may MINT itself is
++now a ``CodeToken`` (SCREAMING_SNAKE_CASE over ``[A-Z0-9_]`` only):
++
++* ``ItemDecisionV1.reason_code`` and the reperception effect's
++  ``reason_code`` (the B-2 channel itself),
++* ``FindingV1.finding_id`` / ``kind`` / ``rationale`` (``finding_id`` is
++  model-minted -- no packet closure exists to bound it -- and prose
++  ``rationale``/``kind`` were free channels riding into the outcome's
++  ``pending_findings``).
++
++The grammar is a WHITELIST of legal form, complete by construction: no
++lowercase letter (kills ``x=``/``y=``), no whitespace, comma, semicolon,
++parenthesis, bracket, ``=`` or decimal point (kills every pair/axis/
++tuple notation -- including notations nobody has tried yet, which is the
++whole point), and a token cannot even start with a digit.  No free-text
++field remains on the response side, so there is nothing left for a
++coordinate to ride in.
++
++The strings the model ECHOES (``item_id``, ``candidate_id``, entity ids,
++``source_refs``) stay plain ``str`` on purpose: their value domain is the
++PACKET's own index, minted by code, and membership is enforced by the
++executor (``UNKNOWN_RESPONSE_ITEM`` / ``FINDING_ENTITY_NOT_IN_PACKET`` /
++``FINDING_REF_NOT_IN_PACKET``) -- a typed vocabulary supplied by the
++packet, which is a different author than the response.  A coordinate
++string is not a packet id and dies there.
++
++``assert_response_payload_carries_no_coordinates`` (below) keeps its
++walk but is DEMOTED to the beat's pre-construction diagnostic: it names
++the offending JSON path so the model seat's format-retry gets a pointed
++message instead of a bare schema error.  The DEFENCE is the closed type;
++the walk is advisory and is not asked to be complete.
++
+ The entity/reference closure ("all entities and refs must already be in
+ the packet", §6.2) is cross-object, so it cannot live in a schema: the
+ executor owns it.  Acceptance 3's fabricated-candidate fixture proves it
+@@ -49,7 +89,7 @@ from __future__ import annotations
+ import re
+ from typing import Annotated, Any, Literal, Union
+ 
+-from pydantic import BaseModel, ConfigDict, Field, model_validator
++from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+ 
+ from src.agent.correction.evidence_contract import ArtifactPointerV1
+ from src.agent.correction.wall_compiler import (
+@@ -62,6 +102,27 @@ from src.agent.correction.window_sources import Hex64
+ _CFG = ConfigDict(extra="forbid", strict=True)
+ 
+ 
++# ── module 7 v3 (rework B-2): the code-token channel ------------------------- #
++#: The ONLY string shape the model may MINT itself on the response side.
++#: SCREAMING_SNAKE_CASE over [A-Z0-9_], 1..96 chars.  ⭐ This is a whitelist
++#: of legal FORM, not a detector of coordinate forms -- see the module
++#: docstring: the charset has no lowercase letter, no whitespace, no comma,
++#: semicolon, parenthesis, bracket, "=" or decimal point, so every coordinate
++#: notation (pair, axis assignment, bracketed tuple -- including ones nobody
++#: has written yet) is unrepresentable, and a token cannot start with a digit.
++#: The defence is therefore complete by construction and cannot fall behind
++#: the way the v2 runtime regex did (lexical guards against unbounded free
++#: text are never completable; this is not free text).
++CodeToken = Annotated[
++    str,
++    StringConstraints(
++        pattern=r"^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$",
++        min_length=1,
++        max_length=96,
++    ),
++]
++
++
+ # ── packet sub-structures §6.1 names without fields ------------------------- #
+ class EntitySourceRefsV1(BaseModel):
+     """One packet entity, its kind and the frozen references that ground it.
+@@ -146,7 +207,7 @@ class ItemDecisionV1(BaseModel):
+     item_id: str
+     action: Literal["select_candidate", "reject_all", "request_reperception"]
+     candidate_id: str | None = None
+-    reason_code: str
++    reason_code: CodeToken
+ 
+     @model_validator(mode="after")
+     def _candidate_only_with_select(self) -> "ItemDecisionV1":
+@@ -222,7 +283,7 @@ class RequestWallReperceptionEffectV1(BaseModel):
+     kind: Literal["request_wall_reperception"]
+     wall_item_entity_ids: tuple[str, ...]
+     source_refs: tuple[ArtifactPointerV1, ...] = ()
+-    reason_code: str
++    reason_code: CodeToken
+ 
+ 
+ RequestedEffectV1 = Annotated[
+@@ -246,12 +307,12 @@ class FindingV1(BaseModel):
+ 
+     model_config = _CFG
+ 
+-    finding_id: str
+-    kind: str
++    finding_id: CodeToken
++    kind: CodeToken
+     affected_entity_ids: tuple[str, ...] = ()
+     source_refs: tuple[ArtifactPointerV1, ...] = ()
+     requested_effect: RequestedEffectV1
+-    rationale: str
++    rationale: CodeToken
+ 
+ 
+ class WholeBuildingReviewV1(BaseModel):
+@@ -288,12 +349,16 @@ class CorrectionDecisionResponseV1(BaseModel):
+     whole_building_review: WholeBuildingReviewV1
+ 
+ 
+-# ── module 7: the runtime twin of the no-coordinate type proof ------------- #
++# ── module 7: the beat's pre-construction diagnostic (v3: DEMOTED) --------- #
+ #: A decimal coordinate PAIR (or an x=/y= axis assignment) inside ONE string
+-#: leaf.  ⭐ This is a coordinate-pair detector, ⛔ NOT a general number ban:
+-#: a rationale may legitimately cite one dimension ("spacing exceeds 0.24"),
+-#: but two decimals separated by a comma/semicolon — or an axis assignment —
+-#: is a coordinate smuggled through a channel the TYPE cannot see.
++#: leaf.  ⭐ v3 DEMOTION (rework B-2): since every model-minted string field
++#: became a ``CodeToken``, this walk is NOT the defence any more — the closed
++#: type is.  It stays as the beat's DIAGNOSTIC: a hit names the JSON path so
++#: the model seat's format-retry gets a pointed message instead of a bare
++#: pattern error.  ⛔ It is deliberately NOT being "completed" to catch more
++#: coordinate forms (integer pairs, brackets, uppercase axes all pass it and
++#: die at construction instead) — completing it is the road the rework
++#: ruling closed.
+ _COORDINATE_PAIR_IN_STRING_RE = re.compile(
+     r"[xy]=\s*-?\d"                    # an axis assignment, e.g. x=12.3
+     r"|-?\d+\.\d+\s*[,;]\s*-?\d+\.\d+"  # two decimals: 12.34, 56.78
+@@ -308,25 +373,27 @@ class CoordinateSmuggledInResponse(ValueError):
+ 
+ 
+ def assert_response_payload_carries_no_coordinates(payload: Any) -> None:
+-    """Runtime twin of the type-level no-coordinate proof (module 7).
++    """Pre-construction diagnostic for the beat (module 7; v3 demoted).
+ 
+-    The type proof (``extra="forbid"`` + no numeric field anywhere on the
+-    response tree) cannot see numbers hidden INSIDE strings, and a bare
+-    schema error does not tell the model seat WHICH channel smuggled.  This
+-    walks the RAW parsed payload (pre-construction) and refuses, naming the
+-    JSON path:
++    The DEFENCE against coordinates in the response is the closed type:
++    no numeric field anywhere on the tree, ``extra="forbid"`` everywhere,
++    and — since the v3 rework — every model-minted string field is a
++    ``CodeToken``, so no free-text channel exists at all.  This walk runs
++    on the RAW parsed payload (pre-construction) purely to give the model
++    seat's format-retry a POINTED message instead of a bare schema error:
+ 
+     * any numeric leaf (``int``/``float``/``bool`` — the response type has
+       no numeric or boolean field at all, so a number here is an extra
+-      channel or a mis-placed field; failing here gives the model seat a
+-      retry with a pointed message instead of a bare schema error);
++      channel or a mis-placed field);
+     * any string leaf matching a decimal coordinate PAIR or an x=/y= axis
+       assignment (see the regex above — one dimension in prose is fine).
+ 
+     ⭐ Keep this a pure payload check: it never constructs, never reads the
+-    packet, and never decides anything about the geometry — its whole job
+-    is to make "the response has no coordinates" hold on the RAW bytes
+-    channel too, not only on the constructed type.
++    packet, and never decides anything about the geometry.  ⛔ Do not grow
++    the regex: forms it misses (integer pairs, brackets, uppercase axes)
++    are already unrepresentable at the type layer, and enumerating them
++    here would rebuild the never-completable lexical guard the rework
++    moved away from.
+     """
+     def _walk(node: Any, path: str) -> None:
+         if isinstance(node, bool) or isinstance(node, (int, float)):
+@@ -358,6 +425,7 @@ def assert_response_payload_carries_no_coordinates(payload: Any) -> None:
+ 
+ 
+ __all__ = [
++    "CodeToken",
+     "ConsistencyResultV1",
+     "CoordinateSmuggledInResponse",
+     "CorrectionDecisionPacketV1",
+diff --git a/src/agent/pipeline.py b/src/agent/pipeline.py
+index e2aba08..058b7ba 100644
+--- a/src/agent/pipeline.py
++++ b/src/agent/pipeline.py
+@@ -174,6 +174,35 @@ def _section(stage: str) -> dict:
+     return load_llm_section("intake_correction")
+ 
+ 
++def _load_decision_beat_section(section_name: str) -> tuple[dict, str]:
++    """Load the decision beat's llm.yaml section BY ITS REAL NAME (v3, B-1).
++
++    ⭐ This is deliberately NOT ``_section``: that helper serves the staged-
++    intake legs and prefixes ``intake_`` onto its argument, so asking it for
++    ``correction_decision`` silently resolved to ``intake_correction`` — the
++    v2 cross-review's B-1: the configured model seat was never loaded, and
++    the route record only echoed the REQUESTED name, so nothing on disk
++    could prove which model actually adjudicated.  This loader resolves the
++    name verbatim and an absent section is a LOUD config error: falling back
++    to ``default`` would seat the ReAct downstream config (thinking
++    disabled, temperature 0.7) in the adjudication beat, and falling back to
++    ``intake_correction`` would collapse two config points that exist so
++    they can be pointed at different models.
++
++    Returns ``(section, loaded_name)`` so every downstream record (route /
++    ``response_source``) carries what was RESOLVED, never the request's echo.
++    """
++    raw_keys = set(OmegaConf.load(resolve_llm_config_path()).keys())
++    if section_name not in raw_keys:
++        raise RuntimeError(
++            f"llm.yaml has no '{section_name}' section (the decision beat's "
++            f"model seat); refusing to silently fall back to 'default' or "
++            f"'intake_correction'. Add that section to the active config "
++            f"(or pass llm_section_name explicitly)."
++        )
++    return load_llm_section(section_name), section_name
++
++
+ def _call_json_llm(
+     section: dict,
+     system_prompt: str,
+@@ -774,8 +803,11 @@ _UNSET_VALIDATOR = object()
+ _EVIDENCE_CHAIN_ROUTE_NAME = "evidence_chain_route.json"
+ _EVIDENCE_CHAIN_FAILURE_NAME = "evidence_chain_failure.json"
+ _EVIDENCE_CHAIN_OUTCOME_NAME = "decision_loop_outcome.json"
+-#: The llm.yaml section the model beat reads.  Absent sections fall back to
+-#: `default` (llm.py resolution rule) — the beat never hardcodes a provider.
++#: The llm.yaml section the model beat reads, BY ITS REAL NAME (v3, B-1 —
++#: ⛔ never through the `intake_`-prefixing `_section()`, which silently
++#: resolved this to `intake_correction`).  An absent section is a LOUD
++#: config error (`_load_decision_beat_section`), never a fallback to
++#: `default` or `intake_correction`; the beat never hardcodes a provider.
+ DECISION_BEAT_LLM_SECTION = "correction_decision"
+ 
+ 
+@@ -856,9 +888,12 @@ def _decision_beat_messages(packet_json: str, response_schema: str) -> tuple[str
+         "3. `action` is one of select_candidate / reject_all / "
+         "request_reperception; `candidate_id` rides ONLY with "
+         "select_candidate.\n"
+-        "4. `reason_code` is a short code-style string (e.g. "
+-        "DECLARED_THICKNESS_MATCH). Findings must cite entities the packet "
+-        "actually indexes.\n"
++        "4. `reason_code`, `finding_id`, `kind` and `rationale` are CODE "
++        "TOKENS: SCREAMING_SNAKE_CASE over the characters [A-Z0-9_] only, "
++        "1 to 96 characters, starting with a letter (e.g. "
++        "DECLARED_THICKNESS_MATCH). Prose, spaces, lowercase, punctuation "
++        "and digits-in-isolation are rejected at the type layer. Findings "
++        "must cite entities the packet actually indexes.\n"
+         "5. ⛔ Your response carries NO coordinates anywhere — no numbers at "
+         "all, and no coordinate pairs inside strings. Coordinates are computed "
+         "by code from the frozen evidence; a response containing them is "
+@@ -884,16 +919,23 @@ def _decision_beat_messages(packet_json: str, response_schema: str) -> tuple[str
+ 
+ def _make_decision_response_provider(
+     *,
+-    section_name: str,
++    section: dict,
+     out_dir: Path | None,
+ ) -> "Callable[[CorrectionDecisionPacketV1], CorrectionDecisionResponseV1]":
+     """Build the packet→response callable that seats the MODEL in the loop.
+ 
++    ``section`` is the ALREADY-RESOLVED llm.yaml section dict (v3, B-1): the
++    chain resolves it once via ``_load_decision_beat_section`` so the route
++    record can carry what was actually loaded — the provider holds that one
++    dict for its whole life, so a run cannot change models mid-loop.
++
+     Every response is checked TWICE before the executor sees it: the
+-    no-coordinate payload guard (numbers / coordinate pairs in strings,
+-    naming the JSON path) and the strict type construction — both feed the
+-    call's own format-retry, so a fixable draw is retried with guidance
+-    instead of dying as a bare schema error.
++    no-coordinate payload diagnostic (numbers / coordinate pairs in strings,
++    naming the JSON path) and the strict type construction — the type layer
++    is the DEFENCE (every model-minted string is a CodeToken, so no
++    coordinate notation is representable); both feed the call's own
++    format-retry, so a fixable draw is retried with guidance instead of
++    dying as a bare schema error.
+     """
+     from src.agent.correction.decision_schema import (
+         CorrectionDecisionResponseV1,
+@@ -935,11 +977,17 @@ def _make_decision_response_provider(
+             ),
+         )
+         parsed = _call_json_llm(
+-            _section(section_name),
++            section,
+             system_prompt,
+             human,
+             out_dir=out_dir,
+-            prefix="correction_decision",
++            # ⭐ v3 NF-1: PER-ROUND raw/thinking filenames. One shared name
++            # meant each round overwrote the last, so round 0's decision
++            # hash could not be recomputed from the archive by a third
++            # party — "the model really ran" travels through the archive,
++            # and an overwritten archive forces the next reviewer to either
++            # re-run (costly) or trust the report.
++            prefix=f"correction_decision_r{packet.round_index}",
+             attempts=2,
+             validate=lambda p, _packet=packet: _validate_against(_packet, p),
+             retry_guidance=_retry_guidance,
+@@ -1051,11 +1099,28 @@ def run_correction_evidence_chain(
+         provider = None
+         response_source = f"fixed_responses({len(fixed_responses)}; model NOT called)"
+         responses = tuple(fixed_responses)
++        llm_section_requested = None
++        llm_section_resolved = None
++        llm_model_resolved = None
+     else:
++        # v3, B-1: resolve the section EAGERLY and BY ITS REAL NAME, before
++        # the loop seats the model — a missing/misnamed section is a config
++        # failure of the MODEL link (recorded as such), and everything the
++        # route later records is read from THIS resolution result, never
++        # echoed from the request string.
++        try:
++            section, llm_section_resolved = _load_decision_beat_section(
++                llm_section_name
++            )
++        except Exception as exc:
++            _record_evidence_chain_failure(out_dir, "model", exc)
++            raise
++        llm_section_requested = llm_section_name
++        llm_model_resolved = section.get("model_name")
+         provider = _make_decision_response_provider(
+-            section_name=llm_section_name, out_dir=out_dir
++            section=section, out_dir=out_dir
+         )
+-        response_source = f"model:{llm_section_name}"
++        response_source = f"model:{llm_section_resolved}"
+         responses = ()
+     try:
+         outcome = run_decision_loop(
+@@ -1098,6 +1163,12 @@ def run_correction_evidence_chain(
+         "profile": profile,
+         "round_budget": round_budget,
+         "response_source": response_source,
++        # v3, B-1: the RESOLVED model seat, read from the section dict the
++        # provider actually holds — ⛔ never an echo of the requested name.
++        # (None in fixed_responses mode: no model was seated.)
++        "llm_section_requested": llm_section_requested,
++        "llm_section_resolved": llm_section_resolved,
++        "llm_model_resolved": llm_model_resolved,
+         "outcome_success": outcome.success,
+         "exit_reason": outcome.exit_reason,
+         "outcome_path": (
+diff --git a/src/configs/llm.yaml b/src/configs/llm.yaml
+index d68e637..f3df741 100644
+--- a/src/configs/llm.yaml
++++ b/src/configs/llm.yaml
+@@ -69,12 +69,15 @@ intake_correction:
+     thinking:
+       type: enabled
+ 
+-# correction_decision (module 7 wiring, 2026-09-02): the model beat of the
+-# 1_correction EVIDENCE CHAIN (decision packet → model → CorrectionDecision-
+-# ResponseV1). Distinct from intake_correction on purpose: that section drives
+-# the pasted-JSON leg; this one drives the adjudication beat, so it can be
+-# pointed at a different model / temperature without touching the old leg.
+-# Delete this section to fall back to `default` (llm.py resolution rule).
++# correction_decision (module 7 wiring, 2026-09-02; v3 rework B-1): the model
++# beat of the 1_correction EVIDENCE CHAIN (decision packet → model →
++# CorrectionDecisionResponseV1). Distinct from intake_correction on purpose:
++# that section drives the pasted-JSON leg; this one drives the adjudication
++# beat, so it can be pointed at a different model / temperature without
++# touching the old leg. ⛔ Deleting this section does NOT fall back: the beat
++# loads it BY ITS REAL NAME (pipeline._load_decision_beat_section) and a
++# missing section is a loud config error — never a silent fallback to
++# `default` or `intake_correction` (the v2 cross-review's B-1).
+ correction_decision:
+   provider: openai
+   base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+diff --git a/tests/test_o22m56_decision_loop.py b/tests/test_o22m56_decision_loop.py
+index 9f7900b..415248a 100644
+--- a/tests/test_o22m56_decision_loop.py
++++ b/tests/test_o22m56_decision_loop.py
+@@ -222,7 +222,7 @@ def _packet_round0(artifact, profile="strict"):
+     return compilation, packet
+ 
+ 
+-def _select(item_id: str, packet, reason="observed_matches_declaration"):
++def _select(item_id: str, packet, reason="OBSERVED_MATCHES_DECLARATION"):
+     item = next(i for i in packet.open_items if i.item_id == item_id)
+     candidate = item.candidates[0].candidate_id
+     return CorrectionDecisionResponseV1(
+@@ -235,7 +235,7 @@ def _select(item_id: str, packet, reason="observed_matches_declaration"):
+     )
+ 
+ 
+-def _reject(item_id: str, packet, reason="no_trusted_evidence"):
++def _reject(item_id: str, packet, reason="NO_TRUSTED_EVIDENCE"):
+     return CorrectionDecisionResponseV1(
+         packet_hash=packet.packet_hash,
+         item_decisions=(ItemDecisionV1(
+@@ -292,7 +292,7 @@ def test_model_decision_schema_rejects_coordinate_fields():
+             ("top", lambda d: d.update({field: 1.0})),
+             ("item", lambda d: d.update(item_decisions=[{
+                 "item_id": "i", "action": "reject_all",
+-                "reason_code": "r", field: 1.0}])),
++                "reason_code": "R", field: 1.0}])),
+             ("review", lambda d: d["whole_building_review"].update(
+                 {field: 1.0})),
+         ):
+@@ -384,7 +384,7 @@ def test_unknown_candidate_is_rejected_loudly():
+         item_decisions=(ItemDecisionV1(
+             item_id=item.item_id, action="select_candidate",
+             candidate_id="cand_" + "b" * 40,  # legal shape, wrong world
+-            reason_code="looks_plausible",
++            reason_code="LOOKS_PLAUSIBLE",
+         ),),
+         whole_building_review={"verdict": "accept"},
+     )
+@@ -407,7 +407,7 @@ def test_unknown_and_duplicate_items_are_rejected_loudly():
+         packet_hash=packet.packet_hash,
+         item_decisions=(ItemDecisionV1(
+             item_id="item_" + "9" * 40, action="reject_all",
+-            reason_code="ghost_item",
++            reason_code="GHOST_ITEM",
+         ),),
+         whole_building_review={"verdict": "accept"},
+     )
+@@ -419,9 +419,9 @@ def test_unknown_and_duplicate_items_are_rejected_loudly():
+         packet_hash=packet.packet_hash,
+         item_decisions=(
+             ItemDecisionV1(item_id=item.item_id, action="reject_all",
+-                           reason_code="first"),
++                           reason_code="FIRST"),
+             ItemDecisionV1(item_id=item.item_id, action="reject_all",
+-                           reason_code="second"),
++                           reason_code="SECOND"),
+         ),
+         whole_building_review={"verdict": "accept"},
+     )
+@@ -436,10 +436,10 @@ def test_candidate_id_rides_only_on_select_candidate():
+     one are both malformed responses."""
+     with pytest.raises(ValidationError):
+         ItemDecisionV1(item_id="i", action="select_candidate",
+-                       reason_code="r")
++                       reason_code="R")
+     with pytest.raises(ValidationError):
+         ItemDecisionV1(item_id="i", action="reject_all",
+-                       candidate_id="cand_x", reason_code="r")
++                       candidate_id="cand_x", reason_code="R")
+ 
+ 
+ # =========================================================================== #
+@@ -452,9 +452,9 @@ def test_exit_no_progress_after_a_streak_of_empty_rounds():
+     artifact = _two_pair_artifact()
+     _, packet0 = _packet_round0(artifact)
+     items = sorted(i.item_id for i in packet0.open_items)
+-    first = _reject(items[1], packet0, reason="first")
++    first = _reject(items[1], packet0, reason="FIRST")
+     packet1 = _round1_packet(artifact, first)
+-    second = _reject(items[0], packet1, reason="second")  # fresh decision
++    second = _reject(items[0], packet1, reason="SECOND")  # fresh decision
+     outcome = dx.run_decision_loop(
+         artifact, profile="strict", responses=(first, second)
+     )
+@@ -471,9 +471,9 @@ def test_exit_decision_hash_cycle_on_repeated_decision_set():
+     artifact = _two_pair_artifact()
+     _, packet0 = _packet_round0(artifact)
+     items = sorted(i.item_id for i in packet0.open_items)
+-    first = _reject(items[1], packet0, reason="stuck")
++    first = _reject(items[1], packet0, reason="STUCK")
+     packet1 = _round1_packet(artifact, first)
+-    second = _reject(items[1], packet1, reason="stuck")  # verbatim repeat
++    second = _reject(items[1], packet1, reason="STUCK")  # verbatim repeat
+     outcome = dx.run_decision_loop(
+         artifact, profile="strict", responses=(first, second)
+     )
+@@ -572,8 +572,8 @@ def test_success_conjunct_accept_falsified():
+         whole_building_review=WholeBuildingReviewV1(
+             verdict="findings",
+             findings=(FindingV1(
+-                finding_id="find_1",
+-                kind="whole_building_shape",
++                finding_id="FIND_1",
++                kind="WHOLE_BUILDING_SHAPE",
+                 affected_entity_ids=(item.scope_entity_ids[0],),
+                 requested_effect=ReviewAlignmentEffectV1(
+                     kind="review_alignment",
+@@ -581,13 +581,13 @@ def test_success_conjunct_accept_falsified():
+                     reference_entity_ids=(item.scope_entity_ids[0],),
+                     relation="collinear",
+                 ),
+-                rationale="wall looks misaligned with its neighbour",
++                rationale="WALL_MISALIGNED_WITH_NEIGHBOUR",
+             ),),
+         ),
+     )
+     outcome = dx.run_decision_loop(artifact, responses=(findings,))
+     assert outcome.success is False
+-    assert [f.finding_id for f in outcome.pending_findings] == ["find_1"]
++    assert [f.finding_id for f in outcome.pending_findings] == ["FIND_1"]
+ 
+ 
+ def test_success_conjunct_debt_falsified_under_exploratory():
+@@ -907,14 +907,14 @@ def _opening_host_response(packet, *, opening_id, candidate_ids):
+         whole_building_review=WholeBuildingReviewV1(
+             verdict="findings",
+             findings=(FindingV1(
+-                finding_id="f_opening_probe", kind="opening_host",
++                finding_id="F_OPENING_PROBE", kind="OPENING_HOST",
+                 affected_entity_ids=(opening_id,),
+                 requested_effect=ReviewOpeningHostEffectV1(
+                     kind="review_opening_host",
+                     opening_entity_id=opening_id,
+                     candidate_wall_entity_ids=tuple(candidate_ids),
+                 ),
+-                rationale="probe",
++                rationale="PROBE",
+             ),),
+         ),
+     )
+@@ -978,7 +978,7 @@ def test_legal_opening_host_finding_rides_the_outcome():
+     outcome = dx.run_decision_loop(artifact, responses=(response,))
+     assert [
+         f.finding_id for f in outcome.pending_findings
+-    ] == ["f_opening_probe"]
++    ] == ["F_OPENING_PROBE"]
+     effect = outcome.pending_findings[0].requested_effect
+     assert effect.opening_entity_id == "op01"
+ 
+@@ -1042,7 +1042,7 @@ _EFFECT_KINDS = {
+         candidate_wall_entity_ids=("w1", "w2")),
+     "request_wall_reperception": lambda: RequestWallReperceptionEffectV1(
+         kind="request_wall_reperception",
+-        wall_item_entity_ids=("w1",), reason_code="cannot_read_band"),
++        wall_item_entity_ids=("w1",), reason_code="CANNOT_READ_BAND"),
+ }
+ 
+ 
+@@ -1066,7 +1066,7 @@ def test_sixth_effect_kind_is_rejected_by_the_discriminator():
+         "subject_entity_ids": ("w1",), "relation": "collinear",
+     }
+     with pytest.raises(ValidationError) as exc:
+-        FindingV1(finding_id="f", kind="k", rationale="r",
++        FindingV1(finding_id="F", kind="K", rationale="R",
+                   requested_effect=payload)
+     messages = " ".join(e["msg"] for e in exc.value.errors())
+     assert "review_magic" in messages  # the union refused to match
+@@ -1096,13 +1096,13 @@ def test_finding_citations_must_resolve_inside_the_packet():
+             whole_building_review=WholeBuildingReviewV1(
+                 verdict="findings",
+                 findings=(FindingV1(
+-                    finding_id="find_1", kind="shape",
++                    finding_id="FIND_1", kind="SHAPE",
+                     affected_entity_ids=(effect_subject,),
+                     requested_effect=RequestWallReperceptionEffectV1(
+                         kind="request_wall_reperception",
+                         wall_item_entity_ids=(effect_subject,),
+-                        reason_code="cannot_read"),
+-                    rationale="band unreadable",
++                        reason_code="CANNOT_READ"),
++                    rationale="BAND_UNREADABLE",
+                 ),),
+             ),
+         )
+@@ -1116,7 +1116,7 @@ def test_finding_citations_must_resolve_inside_the_packet():
+     outcome = dx.run_decision_loop(
+         artifact, responses=(response_for(wall_id),)
+     )
+-    assert [f.finding_id for f in outcome.pending_findings] == ["find_1"]
++    assert [f.finding_id for f in outcome.pending_findings] == ["FIND_1"]
+ 
+ 
+ # =========================================================================== #
+@@ -1341,7 +1341,7 @@ def test_model_response_json_entry_accepts_arrays():
+     payload = json.dumps({
+         "packet_hash": "a" * 64,
+         "item_decisions": [
+-            {"item_id": "i1", "action": "reject_all", "reason_code": "r"}],
++            {"item_id": "i1", "action": "reject_all", "reason_code": "R"}],
+         "whole_building_review": {"verdict": "accept"},
+     })
+     parsed = CorrectionDecisionResponseV1.model_validate_json(payload)
+diff --git a/tests/test_o22m7_evidence_wiring.py b/tests/test_o22m7_evidence_wiring.py
+index a5eb1ab..338abaf 100644
+--- a/tests/test_o22m7_evidence_wiring.py
++++ b/tests/test_o22m7_evidence_wiring.py
+@@ -19,7 +19,18 @@ The chain under test (run_correction_evidence_chain):
+ No lock in this file calls a real model: the model beat is driven either by
+ ``fixed_responses`` (the dispatch's sanctioned escape hatch) or by a fake
+ OpenAI client -- what IS locked is that the beat's payloads pass through the
+-no-coordinate guard and the strict type on their way into the executor.
++no-coordinate diagnostic and the strict type on their way into the executor.
++
++v3 rework (2026-09-02, GPT cross-review B-1/B-2/NF-1) adds three families:
++
++* B-1: the beat loads its llm.yaml section BY ITS REAL NAME (no silent
++  intake_correction fallback), and the route records the RESOLVED
++  section/model read from the loaded dict -- never the request's echo;
++* B-2: the coordinate defence moved from the lexical regex to the TYPE
++  layer -- every model-minted string is a CodeToken, so the five measured
++  coordinate notations are unrepresentable, not detected;
++* NF-1: per-round raw archives, so each round's decision hash recomputes
++  from the archive without trusting the report.
+ """
+ from __future__ import annotations
+ 
+@@ -28,6 +39,7 @@ import json
+ from pathlib import Path
+ 
+ import pytest
++from pydantic import ValidationError
+ 
+ import src.agent.pipeline as pipeline
+ import src.agent.reading.vector_contract as vc
+@@ -35,6 +47,7 @@ from src.agent.correction.decision_executor import (
+     DecisionLoopError,
+     build_decision_packet,
+     compile_wall_ir,
++    decision_hash,
+     run_decision_loop,
+ )
+ from src.agent.correction.decision_schema import (
+@@ -514,30 +527,42 @@ def _fake_openai_returning(payloads: list[dict]):
+ 
+ 
+ def _smuggled_payload(packet) -> dict:
+-    """A response payload that is LEGAL at the type layer (a plain string
+-    reason_code) but carries a coordinate PAIR inside that string -- the
+-    channel only the runtime guard can see."""
++    """The v2 cross-review's B-2 probe, verbatim in shape: an INTEGER
++    coordinate pair inside reason_code.  This exact form passed BOTH the
++    runtime guard (decimal-pairs only) and the then-free string field; the
++    v3 type layer (CodeToken) must be what kills it now."""
+     return {
+         "packet_hash": packet.packet_hash,
+         "item_decisions": [{
+             "item_id": packet.open_items[0].item_id,
+             "action": "reject_all",
+-            "reason_code": "wall sits at 12.34, 56.78 per the drawing",
++            "reason_code": "wall endpoint is at (12, 34)",
+         }],
+         "whole_building_review": {"verdict": "accept"},
+     }
+ 
+ 
++_TEST_SECTION = {
++    "api_key": "test-key", "base_url": "http://unused",
++    "model_name": "fake", "temperature": 0.0,
++}
++
++
+ def test_5_guard_passes_legal_and_rejects_every_smuggle_channel():
++    """The beat's pre-construction DIAGNOSTIC keeps its own semantics
++    (v3: the guard is advisory, the closed type is the defence -- see
++    decision_schema).  One dimension in prose passes; a numeric leaf, a
++    decimal pair and a lowercase axis assignment are named-and-refused."""
+     legal = {
+         "packet_hash": "a" * 64,
+         "item_decisions": [{
+             "item_id": "i1", "action": "reject_all",
+-            "reason_code": "spacing 0.24 exceeds the band",
++            "reason_code": "SPACING_EXCEEDS_DECLARED_BAND",
+         }],
+-        "whole_building_review": {"verdict": "accept"},
++        # a prose string anywhere (the guard walks ANY payload shape)
++        "note": "one dimension in prose, spacing 0.24, is fine",
+     }
+-    assert_response_payload_carries_no_coordinates(legal)  # one dimension in prose is fine
++    assert_response_payload_carries_no_coordinates(legal)
+     smuggles = [
+         {"whole_building_review": {"verdict": "accept", "x": 1.5}},
+         {"item_decisions": [{"item_id": "i", "action": "reject_all",
+@@ -553,41 +578,47 @@ def test_5_guard_passes_legal_and_rejects_every_smuggle_channel():
+ def test_5_the_beat_rejects_smuggled_coordinates_end_to_end(
+     tmp_path, monkeypatch
+ ):
+-    """The wiring lock: a draw that passes the TYPE layer but smuggles a
+-    coordinate pair inside a string dies at the beat's own validation --
+-    measured through the provider with a fake transport, so the real
++    """The wiring lock (v3): the cross-review's integer-pair draw -- the
++    form the old regex MISSED -- still dies inside the beat, now at the
++    type layer (CodeToken construction) instead of the lexical guard,
++    measured through the provider with a fake transport so the real
+     _call_json_llm retry + validate path is what runs."""
++    from pydantic import ValidationError
++
+     vector_dir, out_dir = _stage(tmp_path)
+     packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
+     monkeypatch.setattr(
+         pipeline, "OpenAI",
+         lambda **kwargs: _fake_openai_returning([_smuggled_payload(packet)]),
+     )
+-    monkeypatch.setattr(
+-        pipeline, "_section", lambda name: {
+-            "api_key": "test-key", "base_url": "http://unused",
+-            "model_name": "fake", "temperature": 0.0,
+-        },
+-    )
+     provider = pipeline._make_decision_response_provider(
+-        section_name="correction_decision", out_dir=out_dir
++        section=_TEST_SECTION, out_dir=out_dir
+     )
+     with pytest.raises(RuntimeError, match="failed after") as exc_info:
+         provider(packet)
+-    assert isinstance(exc_info.value.__cause__, CoordinateSmuggledInResponse)
++    assert isinstance(exc_info.value.__cause__, ValidationError)
++    assert "string_pattern_mismatch" in {
++        e["type"] for e in exc_info.value.__cause__.errors()
++    }
+ 
+ 
+-def test_5_neuter_the_guard_and_the_rejection_disappears(
++def test_5_neuter_the_type_layer_and_the_smuggle_sails_through(
+     tmp_path, monkeypatch
+ ):
+-    """⭐ The dispatch's "摘掉相应实现会变红" half: with the guard neutered to
+-    a no-op, the SAME type-legal smuggled payload sails through the beat.
+-    The previous lock's green is therefore carried by the guard
+-    implementation -- not by the type layer (which cannot see it) and not by
+-    tautology.  (This test asserts the DISARMING, which is exactly why the
+-    previous test must exist and stay green.)"""
++    """⭐ v3 successor of the guard-neuter lock: the load-bearing wall is
++    now the TYPE.  Widen reason_code back to free text (the disarm) and
++    the SAME integer-pair payload -- which the lexical guard never saw --
++    sails through the beat untouched.  This is exactly why the previous
++    lock must exist and stay green: its green is carried by the CodeToken
++    constraint, not by the guard and not by tautology."""
+     import src.agent.correction.decision_schema as ds
+ 
++    class _FreeTextItemDecision(ds.ItemDecisionV1):
++        reason_code: str  # the disarm: the v2 shape, verbatim
++
++    class _FreeTextResponse(ds.CorrectionDecisionResponseV1):
++        item_decisions: tuple[_FreeTextItemDecision, ...] = ()
++
+     vector_dir, out_dir = _stage(tmp_path)
+     packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
+     monkeypatch.setattr(
+@@ -595,21 +626,285 @@ def test_5_neuter_the_guard_and_the_rejection_disappears(
+         lambda **kwargs: _fake_openai_returning([_smuggled_payload(packet)]),
+     )
+     monkeypatch.setattr(
+-        pipeline, "_section", lambda name: {
+-            "api_key": "test-key", "base_url": "http://unused",
+-            "model_name": "fake", "temperature": 0.0,
++        ds, "CorrectionDecisionResponseV1", _FreeTextResponse
++    )
++    provider = pipeline._make_decision_response_provider(
++        section=_TEST_SECTION, out_dir=out_dir
++    )
++    response = provider(packet)  # disarmed: no raise
++    assert "wall endpoint is at (12, 34)" in response.item_decisions[0].reason_code
++
++
++# =========================================================================== #
++# v3 rework B-2 -- the TYPE layer is the defence (no free-text channel exists)
++# =========================================================================== #
++#: The dispatcher's three measured misses plus two forms they did NOT list
++#: ('x:12;y:34' colon/semicolon axes; '12 34' space-separated bare pair).
++#: All five are transparent to the demoted lexical guard -- asserted below,
++#: so the lock demonstrably bites on guard-missed forms, not on ones the
++#: old regex already caught.
++_COORDINATE_NOTATIONS = [
++    "(12, 34)",          # integer pair in parens (the B-2 probe itself)
++    "X = 12, Y = 34",    # uppercase + spaces axis assignment
++    "[12, 34]",          # bracketed pair
++    "x:12;y:34",         # colon/semicolon axis pair (v3 addition)
++    "12 34",             # space-separated bare pair (v3 addition)
++]
++
++
++def _payload_with(channel: str, value: str) -> dict:
++    payload = {
++        "packet_hash": "a" * 64,
++        "item_decisions": [],
++        "whole_building_review": {"verdict": "accept"},
++    }
++    if channel == "item.reason_code":
++        payload["item_decisions"].append({
++            "item_id": "i1", "action": "reject_all", "reason_code": value,
++        })
++    else:
++        finding = {
++            "requested_effect": {
++                "kind": "review_alignment",
++                "subject_entity_ids": ["w1"],
++                "reference_entity_ids": ["w1"],
++                "relation": "collinear",
++            },
++        }
++        if channel == "finding.finding_id":
++            finding["finding_id"] = value
++            finding["kind"] = "K"
++            finding["rationale"] = "R"
++        elif channel == "finding.kind":
++            finding["finding_id"] = "F1"
++            finding["kind"] = value
++            finding["rationale"] = "R"
++        elif channel == "finding.rationale":
++            finding["finding_id"] = "F1"
++            finding["kind"] = "K"
++            finding["rationale"] = value
++        elif channel == "reperception.reason_code":
++            finding["finding_id"] = "F1"
++            finding["kind"] = "K"
++            finding["rationale"] = "R"
++            finding["requested_effect"] = {
++                "kind": "request_wall_reperception",
++                "wall_item_entity_ids": ["w1"],
++                "reason_code": value,
++            }
++        else:  # pragma: no cover - channel list is closed above
++            raise AssertionError(channel)
++        payload["whole_building_review"] = {
++            "verdict": "findings", "findings": [finding],
++        }
++    return payload
++
++
++def test_b2_every_coordinate_notation_is_unrepresentable_in_every_minted_field():
++    """The general rule, not the five examples: EVERY string field the
++    model may mint itself is a CodeToken, so no coordinate notation is
++    CONSTRUCTIBLE into the response.  Each form goes into each minted
++    channel and must die at construction (string_pattern_mismatch) while
++    staying transparent to the lexical guard -- i.e. it is genuinely the
++    type that rejects, not the demoted regex."""
++    for form in _COORDINATE_NOTATIONS:
++        for channel in (
++            "item.reason_code", "finding.finding_id", "finding.kind",
++            "finding.rationale", "reperception.reason_code",
++        ):
++            payload = _payload_with(channel, form)
++            # guard-transparent: the diagnostic does NOT see these forms
++            assert_response_payload_carries_no_coordinates(payload)
++            with pytest.raises(ValidationError) as exc:
++                CorrectionDecisionResponseV1.model_validate_json(
++                    json.dumps(payload)
++                )
++            assert "string_pattern_mismatch" in {
++                e["type"] for e in exc.value.errors()
++            }, (form, channel)
++
++
++# =========================================================================== #
++# v3 rework B-1 -- the configured model seat is actually loaded, and the
++# route records the RESOLVED section/model, never the request's echo
++# =========================================================================== #
++def _sentinel_config(tmp_path: Path, *, include_decision: bool = True) -> Path:
++    """An active llm.yaml whose two sections point at DIFFERENT models."""
++    lines = [
++        "intake_correction:",
++        "  provider: openai",
++        "  model_name: sentinel-intake-model",
++        "  api_key: literal-key",
++    ]
++    if include_decision:
++        lines += [
++            "correction_decision:",
++            "  provider: openai",
++            "  model_name: sentinel-decision-model",
++            "  api_key: literal-key",
++        ]
++    cfg = tmp_path / "llm.yaml"
++    cfg.write_text("\n".join(lines) + "\n", encoding="utf-8")
++    return cfg
++
++
++def test_b1_the_provider_actually_gets_the_named_section(tmp_path, monkeypatch):
++    """Acceptance 1: two DIFFERENT model sentinels -- the section dict the
++    beat's LLM call actually receives must be correction_decision's.  ⛔
++    "no error" would not count: the v2 run silently loaded
++    intake_correction and still succeeded."""
++    vector_dir, out_dir = _stage(tmp_path)
++    packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
++    monkeypatch.setenv("EP_AGENT_LLM_CONFIG", str(_sentinel_config(tmp_path)))
++    captured: dict = {}
++
++    def _capture(section, *args, **kwargs):
++        captured.update(section)
++        return {
++            "packet_hash": packet.packet_hash,
++            "item_decisions": [],
++            "whole_building_review": {"verdict": "accept"},
++        }
++
++    monkeypatch.setattr(pipeline, "_call_json_llm", _capture)
++    pipeline.run_correction_evidence_chain(
++        vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=1
++    )
++    assert captured["model_name"] == "sentinel-decision-model"
++    assert captured["model_name"] != "sentinel-intake-model"
++    route = json.loads(
++        (tmp_path / "_run" / "evidence_chain_route.json").read_text(encoding="utf-8")
++    )
++    assert route["llm_section_requested"] == "correction_decision"
++    assert route["llm_section_resolved"] == "correction_decision"
++    assert route["llm_model_resolved"] == "sentinel-decision-model"
++    assert route["response_source"] == "model:correction_decision"
++
++
++def test_b1_route_reports_the_resolved_model_not_the_request_echo(
++    tmp_path, monkeypatch
++):
++    """Acceptance 2: make requested and actually-loaded DIFFER (the exact
++    shape of the v2 bug -- a resolution handing back a section the request
++    name does not imply) and prove the route follows the ACTUAL dict, not
++    the name.  An echo (of the request name, or of the repo config's
++    deepseek-v4-pro) fails here."""
++    vector_dir, out_dir = _stage(tmp_path)
++    packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
++    monkeypatch.setattr(
++        pipeline, "load_llm_section",
++        lambda name: {
++            "api_key": "k", "base_url": "http://unused",
++            "model_name": "whoami-diverged-model", "temperature": 0.0,
+         },
+     )
+     monkeypatch.setattr(
+-        ds,
+-        "assert_response_payload_carries_no_coordinates",
+-        lambda payload: None,
++        pipeline, "_call_json_llm",
++        lambda section, *a, **k: {
++            "packet_hash": packet.packet_hash,
++            "item_decisions": [],
++            "whole_building_review": {"verdict": "accept"},
++        },
++    )
++    pipeline.run_correction_evidence_chain(
++        vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=1
++    )
++    route = json.loads(
++        (tmp_path / "_run" / "evidence_chain_route.json").read_text(encoding="utf-8")
++    )
++    assert route["llm_model_resolved"] == "whoami-diverged-model"
++
++
++def test_b1_a_missing_section_is_a_loud_config_error(tmp_path, monkeypatch):
++    """No silent fallback: a config without a correction_decision section
++    refuses to seat a model at all (v2 silently loaded intake_correction
++    here), and the refusal is filed as a MODEL-link failure with no
++    success product."""
++    vector_dir, out_dir = _stage(tmp_path)
++    monkeypatch.setenv(
++        "EP_AGENT_LLM_CONFIG",
++        str(_sentinel_config(tmp_path, include_decision=False)),
++    )
++    # match the loader's OWN wording: a loose match on the section name
++    # would also catch the beat's transport RuntimeError (whose prefix is
++    # the same name) and read a network failure as a config refusal.
++    with pytest.raises(RuntimeError, match="has no 'correction_decision' section"):
++        pipeline.run_correction_evidence_chain(
++            vector_dir, "sm25_2f_v2.json", out_dir=out_dir, round_budget=1
++        )
++    assert _failure_record(tmp_path)["failed_stage"] == "model"
++    assert not (out_dir / "decision_loop_outcome.json").exists()
++
++
++# =========================================================================== #
++# v3 rework NF-1 -- per-round archives: every round's decision hash is
++# recomputable from the archive by a third party
++# =========================================================================== #
++def test_nf1_every_rounds_raw_is_archived_and_its_decision_hash_recomputes(
++    tmp_path, monkeypatch
++):
++    """v2 kept ONE shared raw filename, so round 1 overwrote round 0 and
++    the 22 first-round decisions became unrecomputable from the archive.
++    With per-round filenames both rounds' raw responses land on disk (the
++    real _call_json_llm file-writing path runs; only the transport is
++    fake) and each round's decision hash recomputes from its own file."""
++    vector_dir, out_dir = _stage(tmp_path)
++    raw = (vector_dir / "sm25_2f_v2.json").read_bytes()
++    artifact = adapt_as_drawn_plan(
++        raw, input_id="sm25_2f_v2", floor_ref="2f"
++    )
++    packet0 = build_decision_packet(
++        compile_wall_ir(artifact, profile="exploratory"),
++        bundle=artifact, round_index=0,
++    )
++    round0 = {
++        "packet_hash": packet0.packet_hash,
++        "item_decisions": [{
++            "item_id": packet0.open_items[0].item_id,
++            "action": "reject_all",
++            "reason_code": "NO_TRUSTED_EVIDENCE",
++        }],
++        "whole_building_review": {"verdict": "accept"},
++    }
++    round0_response = CorrectionDecisionResponseV1.model_validate_json(
++        json.dumps(round0)
++    )
++    # round 1 sees the SAME compilation (a reject executes nothing) with
++    # round_index=1 and round 0's decision hash in its history -- built
++    # exactly the way the loop builds it, so the fixture can bind it.
++    packet1 = build_decision_packet(
++        compile_wall_ir(artifact, profile="exploratory"),
++        bundle=artifact, round_index=1,
++        previous_decision_hashes=(decision_hash(round0_response),),
++    )
++    round1 = {
++        "packet_hash": packet1.packet_hash,
++        "item_decisions": [],
++        "whole_building_review": {"verdict": "accept"},
++    }
++    monkeypatch.setattr(
++        pipeline, "OpenAI",
++        lambda **kwargs: _fake_openai_returning([round0, round1]),
+     )
+     provider = pipeline._make_decision_response_provider(
+-        section_name="correction_decision", out_dir=out_dir
++        section=_TEST_SECTION, out_dir=out_dir
+     )
+-    response = provider(packet)  # disarmed: no raise
+-    assert "12.34, 56.78" in response.item_decisions[0].reason_code
++    outcome = run_decision_loop(
++        artifact, profile="exploratory",
++        response_provider=provider, round_budget=2,
++    )
++    assert len(outcome.rounds) == 2
++    raw0 = (out_dir / "correction_decision_r0_raw.txt").read_text(encoding="utf-8")
++    raw1 = (out_dir / "correction_decision_r1_raw.txt").read_text(encoding="utf-8")
++    assert raw0 != raw1
++    recomputed0 = decision_hash(
++        CorrectionDecisionResponseV1.model_validate_json(raw0)
++    )
++    recomputed1 = decision_hash(
++        CorrectionDecisionResponseV1.model_validate_json(raw1)
++    )
++    assert recomputed0 == outcome.rounds[0].decision_hash
++    assert recomputed1 == outcome.rounds[1].decision_hash
+ 
+ 
+ def test_provider_seats_the_model_in_the_loop(tmp_path):
