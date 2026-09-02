@@ -32,9 +32,20 @@ K∈[2,10] judged identically on the measured attacks — red distances
 
 
 def centroid(ring: list[list[float]] | tuple[tuple[float, float], ...]):
-    xs = [float(p[0]) for p in ring]
-    ys = [float(p[1]) for p in ring]
-    return sum(xs) / len(xs), sum(ys) / len(ys)
+    """The GEOMETRIC centroid (area-weighted), not the vertex mean.
+
+    Measured on real F1 the two differ by up to 1.28 m on the L-shaped
+    99.93 m² zone — the vertex mean is not a centroid on non-convex rings,
+    and a bound derived from it (5 × 1.28 = 6.4 m) would swallow every
+    attack this reconciliation exists to catch (the S3-A2 attacks sit at
+    1.08–2.31 m).  The cross-review's probe measured the clean baseline at
+    max 0.107 m on the same data — that reading is only reproducible with
+    the area-weighted centroid.
+    """
+    from shapely.geometry import Polygon
+
+    c = Polygon(ring).centroid
+    return c.x, c.y
 
 
 def _ring_area(ring) -> float:
