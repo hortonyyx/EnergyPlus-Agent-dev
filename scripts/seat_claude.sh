@@ -36,9 +36,23 @@ LOG_FILE="${3:-${WORKTREE}/.seat/seat.log}"
 [[ -f "$PROMPT_FILE" ]] || { echo "no such prompt file: $PROMPT_FILE" >&2; exit 2; }
 mkdir -p "$(dirname "$LOG_FILE")"
 
+# ⛔ NOT --dangerously-skip-permissions: this dev container runs as root and the
+# CLI refuses that flag under root ("cannot be used with root/sudo privileges").
+# Measured 2026-09-02: the seat dies at startup after writing exactly that one
+# line — i.e. a DEAD seat and a WORKING seat both leave a near-empty log, so
+# ⛔ never infer liveness from log size (hence the kill -0 check below).
+# A seat therefore runs on an EXPLICIT tool allowlist instead of a blanket
+# bypass. Tools a seat legitimately needs: shell, file edits, search, notes.
 cd "$WORKTREE"
 nohup claude -p "$(cat "$PROMPT_FILE")" \
-    --dangerously-skip-permissions \
+    --permission-mode acceptEdits \
+    --allowedTools Bash Edit Write Read Grep Glob TodoWrite \
     > "$LOG_FILE" 2>&1 &
 PID=$!
+sleep 3
+if ! kill -0 "$PID" 2>/dev/null; then
+    echo "⛔ seat died within 3s — log says:" >&2
+    cat "$LOG_FILE" >&2
+    exit 1
+fi
 echo "seat launched: pid=${PID}  cwd=${WORKTREE}  log=${LOG_FILE}"
