@@ -340,6 +340,49 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 ⭐ **`CONSUME` 的存活期 = 旧贴 JSON 路的存活期，两者在【拆旧腿单】里一起死**
 ⇒ ⛔ **拆旧腿单必须同时删掉 `CONSUME`**（本条即为登记）。
 
+### 二之三、✅ 乙单（同修）已交件 ⇒ 送 GPT 跨家族审
+
+**被审 `bbeab77`**（施工方原件 `e35cc1d`，`cherry-pick -x` 落分支）·
+diff = `answer_compiler.py` **+52/−1** + 两份测试 **+170** ·
+[复核请求](logs/reviews/request/2026-09-02b_f156r4_o21d_joint_crossreview.md)
+
+**施工方做法**：灌证方向的牙 = **按 view 的聚合判据**「一个 view 里 exclusion 不得多于 pairing」；
+阻断丙**判了 NA 那一边**（奇数 interzone 厚度响亮 NA），⛔ 没采 GPT 裁决建议的 `/ 2.0`
+——理由是生产者的**编译器**本来就对奇数响亮 NA，mirror 生产者定义 = mirror 这道纪律，
+而 `/ 2.0` 会对整数存储的正确奇数答案**假红**。⭐ 单子本来就写了「二选一并说明理由」。
+
+**⭐ 主控自查出两条不阻断，已写进复核请求**（⛔ 让复核方别当新发现重复记）：
+① **`_the_compiler` 是假锚点** —— 只出现在施工方自己新写的两条注释里，全仓无此定义，
+真锚是 `_project_span`（`answer_compiler.py:667`）⇒ [[grep-zero-hits-conflates-unused-with-nonexistent]] 同族；
+② 源码注释里写了记忆库的 `[[wiki 链接]]` 语法。
+
+**⭐⭐ 主控给复核方点名的两处疑点**（⛔ 写成**假说**要它实测，未代判）：
+① **1:1 那条切分是不是一个没人签字的领域参数** —— 施工方辩「是仪器自身定义、不是照数据设的百分比」，
+我判**有力但不充分**：它等价于把一个数设成 **1.0**，而「合法豁免最多能占验证数几倍」是**领域问题**。
+⇒ 要它构造「诚实但 `excluded > paired`」的 view 实测会不会**真假红**（[[silent-default-threshold-behind-otherwise-conclusions]]）；
+② **reason 准入表被判「不必加」是不是偷换了问题** —— 复核方原话要的是「**8 个值里每一个都有资格豁免房间吗**」，
+施工方答的是「reason 是不是闭集」。
+
+### 二之四、⛔⛔ **F-158（新）：权威全量里有一条测试会真的打一次【计费的】LLM 调用**
+
+**起因**：施工方报 1 条红并判「环境红」。**方向对，机制说错了**；我独立追到真机制：
+
+```
+tests/test_zone_agent.py（无 mock，直接 zone_agent(...)）
+  → src/configs/llm.yaml:104   zone: provider=openai, api_key=${oc.env:DEEPSEEK_API_KEY,null}
+  → .env 在主树有、被 .gitignore:173 忽略 ⇒ /tmp 的 worktree 里【没有】
+  ⇒ DEEPSEEK_API_KEY 未设 ⇒ langchain_openai 报 "OPENAI_API_KEY not set"
+```
+
+⭐⭐⭐ **两条后果，都比那一条红本身重要**：
+1. **这是主控的布置错误** —— 我建 worktree 时没处理凭据 ⇒ **任何放在 `/tmp` worktree 的席位都会看到这条红**。
+   ⛔ 且它会**常态化**：常态化的假红掩护真正的静默（F-153 条目已警告过这个形状）。
+   ⇒ **修法不是把 `.env` 拷进 /tmp**（凭据落进全局可读目录）；⭐ 按仓库自己的纪律
+   「**凭据只注入子进程**」（`glm_code.sh` 就是这么做的）⇒ **派工时把所需变量注入席位子进程**。
+2. ⭐⭐ **`EP 0 Severe` 家族的新一例**：**「全仓绿」原来还是【网络 + 余额】的属性** ——
+   那条测试**没有 mock**，每跑一次权威全量就真打一次 **DeepSeek（按量计费、与管线共用余额）**。
+   ⇒ ⛔ 「3632 passed」这个读数一直隐含一个没人声明的前提。**待办：给它加 mock 或标记。**
+
 ### 三、⭐⭐ 发单前自查抓出**我自己 3 条题错**（⛔ 都在发单前改掉了，未流出）
 
 | # | 抓到什么 | 病族 |
