@@ -222,7 +222,7 @@ def _packet_round0(artifact, profile="strict"):
     return compilation, packet
 
 
-def _select(item_id: str, packet, reason="observed_matches_declaration"):
+def _select(item_id: str, packet, reason="OBSERVED_MATCHES_DECLARATION"):
     item = next(i for i in packet.open_items if i.item_id == item_id)
     candidate = item.candidates[0].candidate_id
     return CorrectionDecisionResponseV1(
@@ -235,7 +235,7 @@ def _select(item_id: str, packet, reason="observed_matches_declaration"):
     )
 
 
-def _reject(item_id: str, packet, reason="no_trusted_evidence"):
+def _reject(item_id: str, packet, reason="NO_TRUSTED_EVIDENCE"):
     return CorrectionDecisionResponseV1(
         packet_hash=packet.packet_hash,
         item_decisions=(ItemDecisionV1(
@@ -292,7 +292,7 @@ def test_model_decision_schema_rejects_coordinate_fields():
             ("top", lambda d: d.update({field: 1.0})),
             ("item", lambda d: d.update(item_decisions=[{
                 "item_id": "i", "action": "reject_all",
-                "reason_code": "r", field: 1.0}])),
+                "reason_code": "R", field: 1.0}])),
             ("review", lambda d: d["whole_building_review"].update(
                 {field: 1.0})),
         ):
@@ -384,7 +384,7 @@ def test_unknown_candidate_is_rejected_loudly():
         item_decisions=(ItemDecisionV1(
             item_id=item.item_id, action="select_candidate",
             candidate_id="cand_" + "b" * 40,  # legal shape, wrong world
-            reason_code="looks_plausible",
+            reason_code="LOOKS_PLAUSIBLE",
         ),),
         whole_building_review={"verdict": "accept"},
     )
@@ -407,7 +407,7 @@ def test_unknown_and_duplicate_items_are_rejected_loudly():
         packet_hash=packet.packet_hash,
         item_decisions=(ItemDecisionV1(
             item_id="item_" + "9" * 40, action="reject_all",
-            reason_code="ghost_item",
+            reason_code="GHOST_ITEM",
         ),),
         whole_building_review={"verdict": "accept"},
     )
@@ -419,9 +419,9 @@ def test_unknown_and_duplicate_items_are_rejected_loudly():
         packet_hash=packet.packet_hash,
         item_decisions=(
             ItemDecisionV1(item_id=item.item_id, action="reject_all",
-                           reason_code="first"),
+                           reason_code="FIRST"),
             ItemDecisionV1(item_id=item.item_id, action="reject_all",
-                           reason_code="second"),
+                           reason_code="SECOND"),
         ),
         whole_building_review={"verdict": "accept"},
     )
@@ -436,10 +436,10 @@ def test_candidate_id_rides_only_on_select_candidate():
     one are both malformed responses."""
     with pytest.raises(ValidationError):
         ItemDecisionV1(item_id="i", action="select_candidate",
-                       reason_code="r")
+                       reason_code="R")
     with pytest.raises(ValidationError):
         ItemDecisionV1(item_id="i", action="reject_all",
-                       candidate_id="cand_x", reason_code="r")
+                       candidate_id="cand_x", reason_code="R")
 
 
 # =========================================================================== #
@@ -452,9 +452,9 @@ def test_exit_no_progress_after_a_streak_of_empty_rounds():
     artifact = _two_pair_artifact()
     _, packet0 = _packet_round0(artifact)
     items = sorted(i.item_id for i in packet0.open_items)
-    first = _reject(items[1], packet0, reason="first")
+    first = _reject(items[1], packet0, reason="FIRST")
     packet1 = _round1_packet(artifact, first)
-    second = _reject(items[0], packet1, reason="second")  # fresh decision
+    second = _reject(items[0], packet1, reason="SECOND")  # fresh decision
     outcome = dx.run_decision_loop(
         artifact, profile="strict", responses=(first, second)
     )
@@ -471,9 +471,9 @@ def test_exit_decision_hash_cycle_on_repeated_decision_set():
     artifact = _two_pair_artifact()
     _, packet0 = _packet_round0(artifact)
     items = sorted(i.item_id for i in packet0.open_items)
-    first = _reject(items[1], packet0, reason="stuck")
+    first = _reject(items[1], packet0, reason="STUCK")
     packet1 = _round1_packet(artifact, first)
-    second = _reject(items[1], packet1, reason="stuck")  # verbatim repeat
+    second = _reject(items[1], packet1, reason="STUCK")  # verbatim repeat
     outcome = dx.run_decision_loop(
         artifact, profile="strict", responses=(first, second)
     )
@@ -572,8 +572,8 @@ def test_success_conjunct_accept_falsified():
         whole_building_review=WholeBuildingReviewV1(
             verdict="findings",
             findings=(FindingV1(
-                finding_id="find_1",
-                kind="whole_building_shape",
+                finding_id="FIND_ONE",
+                kind="WHOLE_BUILDING_SHAPE",
                 affected_entity_ids=(item.scope_entity_ids[0],),
                 requested_effect=ReviewAlignmentEffectV1(
                     kind="review_alignment",
@@ -581,13 +581,13 @@ def test_success_conjunct_accept_falsified():
                     reference_entity_ids=(item.scope_entity_ids[0],),
                     relation="collinear",
                 ),
-                rationale="wall looks misaligned with its neighbour",
+                rationale="WALL_MISALIGNED_WITH_NEIGHBOUR",
             ),),
         ),
     )
     outcome = dx.run_decision_loop(artifact, responses=(findings,))
     assert outcome.success is False
-    assert [f.finding_id for f in outcome.pending_findings] == ["find_1"]
+    assert [f.finding_id for f in outcome.pending_findings] == ["FIND_ONE"]
 
 
 def test_success_conjunct_debt_falsified_under_exploratory():
@@ -907,14 +907,14 @@ def _opening_host_response(packet, *, opening_id, candidate_ids):
         whole_building_review=WholeBuildingReviewV1(
             verdict="findings",
             findings=(FindingV1(
-                finding_id="f_opening_probe", kind="opening_host",
+                finding_id="F_OPENING_PROBE", kind="OPENING_HOST",
                 affected_entity_ids=(opening_id,),
                 requested_effect=ReviewOpeningHostEffectV1(
                     kind="review_opening_host",
                     opening_entity_id=opening_id,
                     candidate_wall_entity_ids=tuple(candidate_ids),
                 ),
-                rationale="probe",
+                rationale="PROBE",
             ),),
         ),
     )
@@ -978,7 +978,7 @@ def test_legal_opening_host_finding_rides_the_outcome():
     outcome = dx.run_decision_loop(artifact, responses=(response,))
     assert [
         f.finding_id for f in outcome.pending_findings
-    ] == ["f_opening_probe"]
+    ] == ["F_OPENING_PROBE"]
     effect = outcome.pending_findings[0].requested_effect
     assert effect.opening_entity_id == "op01"
 
@@ -1042,7 +1042,7 @@ _EFFECT_KINDS = {
         candidate_wall_entity_ids=("w1", "w2")),
     "request_wall_reperception": lambda: RequestWallReperceptionEffectV1(
         kind="request_wall_reperception",
-        wall_item_entity_ids=("w1",), reason_code="cannot_read_band"),
+        wall_item_entity_ids=("w1",), reason_code="CANNOT_READ_BAND"),
 }
 
 
@@ -1066,7 +1066,7 @@ def test_sixth_effect_kind_is_rejected_by_the_discriminator():
         "subject_entity_ids": ("w1",), "relation": "collinear",
     }
     with pytest.raises(ValidationError) as exc:
-        FindingV1(finding_id="f", kind="k", rationale="r",
+        FindingV1(finding_id="F", kind="K", rationale="R",
                   requested_effect=payload)
     messages = " ".join(e["msg"] for e in exc.value.errors())
     assert "review_magic" in messages  # the union refused to match
@@ -1096,13 +1096,13 @@ def test_finding_citations_must_resolve_inside_the_packet():
             whole_building_review=WholeBuildingReviewV1(
                 verdict="findings",
                 findings=(FindingV1(
-                    finding_id="find_1", kind="shape",
+                    finding_id="FIND_ONE", kind="SHAPE",
                     affected_entity_ids=(effect_subject,),
                     requested_effect=RequestWallReperceptionEffectV1(
                         kind="request_wall_reperception",
                         wall_item_entity_ids=(effect_subject,),
-                        reason_code="cannot_read"),
-                    rationale="band unreadable",
+                        reason_code="CANNOT_READ"),
+                    rationale="BAND_UNREADABLE",
                 ),),
             ),
         )
@@ -1116,7 +1116,7 @@ def test_finding_citations_must_resolve_inside_the_packet():
     outcome = dx.run_decision_loop(
         artifact, responses=(response_for(wall_id),)
     )
-    assert [f.finding_id for f in outcome.pending_findings] == ["find_1"]
+    assert [f.finding_id for f in outcome.pending_findings] == ["FIND_ONE"]
 
 
 # =========================================================================== #
@@ -1341,7 +1341,7 @@ def test_model_response_json_entry_accepts_arrays():
     payload = json.dumps({
         "packet_hash": "a" * 64,
         "item_decisions": [
-            {"item_id": "i1", "action": "reject_all", "reason_code": "r"}],
+            {"item_id": "i1", "action": "reject_all", "reason_code": "R"}],
         "whole_building_review": {"verdict": "accept"},
     })
     parsed = CorrectionDecisionResponseV1.model_validate_json(payload)

@@ -19,7 +19,19 @@ The chain under test (run_correction_evidence_chain):
 No lock in this file calls a real model: the model beat is driven either by
 ``fixed_responses`` (the dispatch's sanctioned escape hatch) or by a fake
 OpenAI client -- what IS locked is that the beat's payloads pass through the
-no-coordinate guard and the strict type on their way into the executor.
+no-coordinate diagnostic and the strict type on their way into the executor.
+
+v3 rework (2026-09-02, GPT cross-review B-1/B-2/NF-1) adds three families:
+
+* B-1: the beat loads its llm.yaml section BY ITS REAL NAME (no silent
+  intake_correction fallback), and the route records the RESOLVED
+  section/model read from the loaded dict -- never the request's echo;
+* B-2: the coordinate defence moved from the lexical regex to the TYPE
+  layer -- every model-minted string is a CodeToken over [A-Z_] with no
+  digit at all, so the measured coordinate notations (and any other) are
+  UNREPRESENTABLE, not detected;
+* NF-1: per-round raw archives, so each round's decision hash recomputes
+  from the archive without trusting the report.
 """
 from __future__ import annotations
 
@@ -28,6 +40,7 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 import src.agent.pipeline as pipeline
 import src.agent.reading.vector_contract as vc
@@ -523,30 +536,39 @@ _TEST_SECTION = {
 
 
 def _smuggled_payload(packet) -> dict:
-    """A response payload that is LEGAL at the type layer (a plain string
-    reason_code) but carries a coordinate PAIR inside that string -- the
-    channel only the runtime guard can see."""
+    """The v2 cross-review's B-2 probe, verbatim in shape: an INTEGER
+    coordinate pair inside reason_code.  This exact form passed BOTH the
+    runtime guard (decimal-pairs only) and the then-free string field; the
+    v3 type layer (CodeToken) must be what kills it now."""
     return {
         "packet_hash": packet.packet_hash,
         "item_decisions": [{
             "item_id": packet.open_items[0].item_id,
             "action": "reject_all",
-            "reason_code": "wall sits at 12.34, 56.78 per the drawing",
+            "reason_code": "wall endpoint is at (12, 34)",
         }],
         "whole_building_review": {"verdict": "accept"},
     }
 
 
 def test_5_guard_passes_legal_and_rejects_every_smuggle_channel():
+    """The beat's pre-construction DIAGNOSTIC keeps its own semantics
+    (v3: the guard is advisory, the closed type is the defence -- see
+    decision_schema).  One dimension in prose passes; a numeric leaf, a
+    decimal pair and a lowercase axis assignment are named-and-refused."""
     legal = {
         "packet_hash": "a" * 64,
         "item_decisions": [{
             "item_id": "i1", "action": "reject_all",
-            "reason_code": "spacing 0.24 exceeds the band",
+            "reason_code": "SPACING_EXCEEDS_DECLARED_BAND",
         }],
         "whole_building_review": {"verdict": "accept"},
+        # a prose string on an unconstrained key: the guard is a payload
+        # walk that runs BEFORE construction, so it still documents its
+        # own "one dimension in prose is fine" semantics here.
+        "note": "one dimension in prose, spacing 0.24, is fine",
     }
-    assert_response_payload_carries_no_coordinates(legal)  # one dimension in prose is fine
+    assert_response_payload_carries_no_coordinates(legal)
     smuggles = [
         {"whole_building_review": {"verdict": "accept", "x": 1.5}},
         {"item_decisions": [{"item_id": "i", "action": "reject_all",
@@ -562,9 +584,10 @@ def test_5_guard_passes_legal_and_rejects_every_smuggle_channel():
 def test_5_the_beat_rejects_smuggled_coordinates_end_to_end(
     tmp_path, monkeypatch
 ):
-    """The wiring lock: a draw that passes the TYPE layer but smuggles a
-    coordinate pair inside a string dies at the beat's own validation --
-    measured through the provider with a fake transport, so the real
+    """The wiring lock (v3): the cross-review's integer-pair draw -- the
+    form the old regex MISSED -- still dies inside the beat, now at the
+    type layer (CodeToken construction) instead of the lexical guard,
+    measured through the provider with a fake transport so the real
     _call_json_llm retry + validate path is what runs."""
     vector_dir, out_dir = _stage(tmp_path)
     packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
@@ -577,19 +600,29 @@ def test_5_the_beat_rejects_smuggled_coordinates_end_to_end(
     )
     with pytest.raises(RuntimeError, match="failed after") as exc_info:
         provider(packet)
-    assert isinstance(exc_info.value.__cause__, CoordinateSmuggledInResponse)
+    assert isinstance(exc_info.value.__cause__, ValidationError)
+    assert "string_pattern_mismatch" in {
+        e["type"] for e in exc_info.value.__cause__.errors()
+    }
 
 
-def test_5_neuter_the_guard_and_the_rejection_disappears(
+def test_5_neuter_the_type_layer_and_the_smuggle_sails_through(
     tmp_path, monkeypatch
 ):
-    """⭐ The dispatch's "摘掉相应实现会变红" half: with the guard neutered to
-    a no-op, the SAME type-legal smuggled payload sails through the beat.
-    The previous lock's green is therefore carried by the guard
-    implementation -- not by the type layer (which cannot see it) and not by
-    tautology.  (This test asserts the DISARMING, which is exactly why the
-    previous test must exist and stay green.)"""
+    """⭐ v3 successor of the guard-neuter lock: the load-bearing wall is
+    now the TYPE.  Widen reason_code back to free text (the disarm) and
+    the SAME integer-pair payload -- which the lexical guard never saw --
+    sails through the beat untouched.  This is exactly why the previous
+    lock must exist and stay green: its green is carried by the CodeToken
+    constraint, not by the (demoted, guard-transparent) regex and not by
+    tautology."""
     import src.agent.correction.decision_schema as ds
+
+    class _FreeTextItemDecision(ds.ItemDecisionV1):
+        reason_code: str  # the disarm: the v2 shape, verbatim
+
+    class _FreeTextResponse(ds.CorrectionDecisionResponseV1):
+        item_decisions: tuple[_FreeTextItemDecision, ...] = ()
 
     vector_dir, out_dir = _stage(tmp_path)
     packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
@@ -598,15 +631,127 @@ def test_5_neuter_the_guard_and_the_rejection_disappears(
         lambda **kwargs: _fake_openai_returning([_smuggled_payload(packet)]),
     )
     monkeypatch.setattr(
-        ds,
-        "assert_response_payload_carries_no_coordinates",
-        lambda payload: None,
+        ds, "CorrectionDecisionResponseV1", _FreeTextResponse
     )
     provider = pipeline._make_decision_response_provider(
         section=_TEST_SECTION, out_dir=out_dir
     )
     response = provider(packet)  # disarmed: no raise
-    assert "12.34, 56.78" in response.item_decisions[0].reason_code
+    assert "wall endpoint is at (12, 34)" in response.item_decisions[0].reason_code
+
+
+# =========================================================================== #
+# v3 rework B-2 -- the TYPE layer is the defence (no free-text channel exists)
+# =========================================================================== #
+#: The dispatcher's three measured misses plus two forms they did NOT list
+#: ('x:12;y:34' colon/semicolon axes; '12 34' space-separated bare pair).
+#: All five are transparent to the demoted lexical guard -- asserted below,
+#: so the lock demonstrably bites on guard-missed forms, not on ones the
+#: old regex already caught.
+_COORDINATE_NOTATIONS = [
+    "(12, 34)",          # integer pair in parens (the B-2 probe itself)
+    "X = 12, Y = 34",    # uppercase + spaces axis assignment
+    "[12, 34]",          # bracketed pair
+    "x:12;y:34",         # colon/semicolon axis pair (v3 addition)
+    "12 34",             # space-separated bare pair (v3 addition)
+]
+
+#: Every string field the model may MINT itself (v3, B-2).  The echoed
+#: ids (item_id / candidate_id / entity ids) are deliberately absent:
+#: their closure is the executor's packet-membership check, a different
+#: lock's business.
+_MINTED_CHANNELS = (
+    "item.reason_code",
+    "finding.finding_id",
+    "finding.kind",
+    "finding.rationale",
+    "reperception.reason_code",
+)
+
+
+def _payload_with(channel: str, value: str) -> dict:
+    """A response payload carrying `value` in ONE minted string channel,
+    with every other minted field holding a legal token -- so a rejection
+    can only be about the channel under test."""
+    payload = {
+        "packet_hash": "a" * 64,
+        "item_decisions": [],
+        "whole_building_review": {"verdict": "accept"},
+    }
+    if channel == "item.reason_code":
+        payload["item_decisions"].append({
+            "item_id": "i1", "action": "reject_all", "reason_code": value,
+        })
+        return payload
+    finding = {
+        "finding_id": "FIND_ONE",
+        "kind": "WHOLE_BUILDING_SHAPE",
+        "rationale": "PROBE",
+        "affected_entity_ids": ["w1"],
+        "requested_effect": {
+            "kind": "review_alignment",
+            "subject_entity_ids": ["w1"],
+            "reference_entity_ids": ["w1"],
+            "relation": "collinear",
+        },
+    }
+    if channel == "finding.finding_id":
+        finding["finding_id"] = value
+    elif channel == "finding.kind":
+        finding["kind"] = value
+    elif channel == "finding.rationale":
+        finding["rationale"] = value
+    elif channel == "reperception.reason_code":
+        finding["requested_effect"] = {
+            "kind": "request_wall_reperception",
+            "wall_item_entity_ids": ["w1"],
+            "reason_code": value,
+        }
+    else:  # pragma: no cover - channel list is closed above
+        raise AssertionError(channel)
+    payload["whole_building_review"] = {
+        "verdict": "findings", "findings": [finding],
+    }
+    return payload
+
+
+#: one LEGAL token per minted channel -- the positive control that the
+#: matrix below is discriminating (legal constructs, illegal dies), not
+#: a blanket rejection of everything.
+_LEGAL_TOKENS = {
+    "item.reason_code": "SPACING_EXCEEDS_DECLARED_BAND",
+    "finding.finding_id": "FIND_ALIGNMENT_REVIEW",
+    "finding.kind": "WHOLE_BUILDING_SHAPE",
+    "finding.rationale": "WALL_MISALIGNED_WITH_NEIGHBOUR",
+    "reperception.reason_code": "CANNOT_READ_BAND",
+}
+
+
+def test_b2_every_coordinate_notation_is_unrepresentable_in_every_minted_field():
+    """The general rule, not the five examples: EVERY string field the
+    model may mint itself is a CodeToken, so no coordinate notation is
+    CONSTRUCTIBLE into the response.  Positive control first (legal tokens
+    construct in every channel), then each measured form goes into each
+    minted channel and must die at construction (string_pattern_mismatch)
+    while staying transparent to the lexical guard -- i.e. it is genuinely
+    the type that rejects, not the demoted regex."""
+    for channel, token in _LEGAL_TOKENS.items():
+        parsed = CorrectionDecisionResponseV1.model_validate_json(
+            json.dumps(_payload_with(channel, token))
+        )
+        assert parsed.packet_hash == "a" * 64  # constructed, not just no-error
+    for form in _COORDINATE_NOTATIONS:
+        for channel in _MINTED_CHANNELS:
+            payload = _payload_with(channel, form)
+            # guard-transparent: the diagnostic does NOT see these forms
+            assert_response_payload_carries_no_coordinates(payload)
+            with pytest.raises(ValidationError) as exc:
+                CorrectionDecisionResponseV1.model_validate_json(
+                    json.dumps(payload)
+                )
+            assert "string_pattern_mismatch" in {
+                e["type"] for e in exc.value.errors()
+            }, (form, channel)
 
 
 # =========================================================================== #

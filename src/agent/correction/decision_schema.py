@@ -39,6 +39,58 @@ called.  ``extra="forbid"`` everywhere closes the last gap -- an ``x``
 the schema never listed is rejected before any executor code runs, not
 by a lexical scan for suspicious names.
 
+The STRING half of that proof (module 7 v3 rework, B-2)
+-------------------------------------------------------
+The v2 cross-review pushed an integer coordinate -- ``"wall endpoint is
+at (12, 34)"`` -- through ``reason_code``: the type had no numeric field,
+but free text is itself a numeric CHANNEL, and the runtime regex guarding
+it only knew decimal pairs and lowercase ``x=/y=``.  The rework ruling:
+⛔ do NOT complete the regex (a lexical guard over unbounded free text is
+never completable -- the same seam six times in this repo); move the
+defence to the TYPE.  So every string field the model may MINT itself is
+now a ``CodeToken`` (SCREAMING_SNAKE_CASE over ``[A-Z_]`` ONLY -- letters
+and underscores, ⛔ no digits at all):
+
+* ``ItemDecisionV1.reason_code`` and the reperception effect's
+  ``reason_code`` (the B-2 channel itself),
+* ``FindingV1.finding_id`` / ``kind`` / ``rationale`` (``finding_id`` is
+  model-minted -- no packet closure exists to bound it -- and prose
+  ``rationale`` / free ``kind`` were unchecked channels riding into the
+  outcome's ``pending_findings``).
+
+The grammar is a WHITELIST of legal form, so it is complete by
+construction: the charset has no digit (kills every numeral, any base,
+any notation -- including notations nobody has tried yet, which is the
+whole point), no lowercase letter (kills ``x=``/``y=``), and no
+whitespace, comma, semicolon, parenthesis, bracket, equals sign or
+decimal point (kills every pair / axis / tuple notation); a token must
+start with a letter.  Digits are banned outright rather than
+pattern-matched because a token grammar that admits numerals
+(``X_12_Y_34``) reopens the pair-in-disguise channel the rework exists
+to close -- and nothing downstream parses a numeral out of these five
+fields (entity references ride their own id channels), so the ban costs
+no consumer anything.  With all five minted fields closed, NO free-text
+field remains on the response side: there is nothing left for a
+coordinate to ride in.
+
+The strings the model ECHOES (``item_id``, ``candidate_id``, entity id
+tuples, ``source_refs``) stay plain ``str`` on purpose: their value
+domain is the PACKET's own index, minted by code, and membership is
+enforced by the executor (``UNKNOWN_RESPONSE_ITEM`` /
+``UNKNOWN_RESPONSE_CANDIDATE`` / ``FINDING_ENTITY_NOT_IN_PACKET`` /
+``FINDING_REF_NOT_IN_PACKET``) -- a typed vocabulary supplied by the
+packet, which is a different author than the response.  A coordinate
+string is not a packet id and dies there; ``packet_hash`` is a ``Hex64``
+pattern.  So EVERY string channel on the response side is now either a
+``CodeToken``, an executor-checked packet echo, or a hex pattern -- none
+is "the rest, as before".
+
+``assert_response_payload_carries_no_coordinates`` (below) keeps its
+walk but is DEMOTED to the beat's pre-construction diagnostic: a hit
+names the offending JSON path so the model seat's format-retry gets a
+pointed message instead of a bare schema error.  The DEFENCE is the
+closed type; the walk is advisory and is not asked to be complete.
+
 The entity/reference closure ("all entities and refs must already be in
 the packet", §6.2) is cross-object, so it cannot live in a schema: the
 executor owns it.  Acceptance 3's fabricated-candidate fixture proves it
@@ -49,7 +101,7 @@ from __future__ import annotations
 import re
 from typing import Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from src.agent.correction.evidence_contract import ArtifactPointerV1
 from src.agent.correction.wall_compiler import (
@@ -60,6 +112,24 @@ from src.agent.correction.wall_compiler import (
 from src.agent.correction.window_sources import Hex64
 
 _CFG = ConfigDict(extra="forbid", strict=True)
+
+
+# ── module 7 v3 (rework B-2): the code-token channel ------------------------- #
+#: The ONLY string shape the model may MINT itself on the response side.
+#: SCREAMING_SNAKE_CASE over [A-Z_] — letters and underscores ONLY, 1..96
+#: chars, starting with a letter.  ⭐ This is a whitelist of legal FORM,
+#: not a detector of coordinate forms (see the module docstring): the
+#: charset carries no digit, no lowercase letter, no whitespace and no
+#: separator, so every coordinate notation — pair, axis assignment,
+#: bracketed tuple, pair-in-underscores disguise, in any base — is
+#: UNREPRESENTABLE here, including notations nobody has tried yet.  The
+#: defence is complete by construction and cannot fall behind the way
+#: the v2 runtime regex did (lexical guards over unbounded free text are
+#: never completable; this is not free text).
+CodeToken = Annotated[
+    str,
+    StringConstraints(pattern=r"^[A-Z][A-Z_]*$", min_length=1, max_length=96),
+]
 
 
 # ── packet sub-structures §6.1 names without fields ------------------------- #
@@ -139,14 +209,17 @@ class ItemDecisionV1(BaseModel):
     """One decision on one packet item.  ``candidate_id`` rides along
     ONLY on ``select_candidate`` -- the other two actions decide WITHOUT
     a candidate (reject every listed one / hand the item back to reading),
-    and a candidate id arriving with them is a malformed response."""
+    and a candidate id arriving with them is a malformed response.
+    ``reason_code`` is a ``CodeToken`` (v3, B-2): the model MINTS it, so
+    it is the one field on this object whose shape the type itself must
+    bound -- ids are echoed (executor-checked against the packet)."""
 
     model_config = _CFG
 
     item_id: str
     action: Literal["select_candidate", "reject_all", "request_reperception"]
     candidate_id: str | None = None
-    reason_code: str
+    reason_code: CodeToken
 
     @model_validator(mode="after")
     def _candidate_only_with_select(self) -> "ItemDecisionV1":
@@ -222,7 +295,7 @@ class RequestWallReperceptionEffectV1(BaseModel):
     kind: Literal["request_wall_reperception"]
     wall_item_entity_ids: tuple[str, ...]
     source_refs: tuple[ArtifactPointerV1, ...] = ()
-    reason_code: str
+    reason_code: CodeToken
 
 
 RequestedEffectV1 = Annotated[
@@ -242,16 +315,21 @@ class FindingV1(BaseModel):
     candidate generation, ⛔ not an executable instruction: the executor
     verifies it against the packet's entity/ref index and carries it to
     the next round; the bounded candidates it asks for are generated by
-    code (compiler / opening resolver), never described here (§6.2)."""
+    code (compiler / opening resolver), never described here (§6.2).
+    ``finding_id`` / ``kind`` / ``rationale`` are ``CodeToken`` (v3, B-2):
+    all three are model-MINTED with no packet closure to bound them, and
+    they ride into the outcome's ``pending_findings`` -- so their shape
+    is bounded by the TYPE (no digit, no separator, no lowercase), which
+    is what makes a coordinate unrepresentable in prose channels too."""
 
     model_config = _CFG
 
-    finding_id: str
-    kind: str
+    finding_id: CodeToken
+    kind: CodeToken
     affected_entity_ids: tuple[str, ...] = ()
     source_refs: tuple[ArtifactPointerV1, ...] = ()
     requested_effect: RequestedEffectV1
-    rationale: str
+    rationale: CodeToken
 
 
 class WholeBuildingReviewV1(BaseModel):
@@ -288,12 +366,16 @@ class CorrectionDecisionResponseV1(BaseModel):
     whole_building_review: WholeBuildingReviewV1
 
 
-# ── module 7: the runtime twin of the no-coordinate type proof ------------- #
+# ── module 7: the beat's pre-construction diagnostic (v3: DEMOTED) --------- #
 #: A decimal coordinate PAIR (or an x=/y= axis assignment) inside ONE string
-#: leaf.  ⭐ This is a coordinate-pair detector, ⛔ NOT a general number ban:
-#: a rationale may legitimately cite one dimension ("spacing exceeds 0.24"),
-#: but two decimals separated by a comma/semicolon — or an axis assignment —
-#: is a coordinate smuggled through a channel the TYPE cannot see.
+#: leaf.  ⭐ v3 DEMOTION (rework B-2): since every model-minted string field
+#: became a ``CodeToken``, this walk is NOT the defence any more — the closed
+#: type is.  It stays as the beat's DIAGNOSTIC: a hit names the JSON path so
+#: the model seat's format-retry gets a pointed message instead of a bare
+#: pattern error.  ⛔ It is deliberately NOT being "completed" to catch more
+#: coordinate forms (integer pairs, brackets, uppercase axes all pass it and
+#: die at construction instead) — completing it is the road the rework
+#: ruling closed.
 _COORDINATE_PAIR_IN_STRING_RE = re.compile(
     r"[xy]=\s*-?\d"                    # an axis assignment, e.g. x=12.3
     r"|-?\d+\.\d+\s*[,;]\s*-?\d+\.\d+"  # two decimals: 12.34, 56.78
@@ -308,25 +390,27 @@ class CoordinateSmuggledInResponse(ValueError):
 
 
 def assert_response_payload_carries_no_coordinates(payload: Any) -> None:
-    """Runtime twin of the type-level no-coordinate proof (module 7).
+    """Pre-construction diagnostic for the beat (module 7; v3 demoted).
 
-    The type proof (``extra="forbid"`` + no numeric field anywhere on the
-    response tree) cannot see numbers hidden INSIDE strings, and a bare
-    schema error does not tell the model seat WHICH channel smuggled.  This
-    walks the RAW parsed payload (pre-construction) and refuses, naming the
-    JSON path:
+    The DEFENCE against coordinates in the response is the closed type:
+    no numeric field anywhere on the tree, ``extra="forbid"`` everywhere,
+    and — since the v3 rework — every model-minted string field is a
+    ``CodeToken``, so no free-text channel exists at all.  This walk runs
+    on the RAW parsed payload (pre-construction) purely to give the model
+    seat's format-retry a POINTED message instead of a bare schema error:
 
     * any numeric leaf (``int``/``float``/``bool`` — the response type has
       no numeric or boolean field at all, so a number here is an extra
-      channel or a mis-placed field; failing here gives the model seat a
-      retry with a pointed message instead of a bare schema error);
+      channel or a mis-placed field);
     * any string leaf matching a decimal coordinate PAIR or an x=/y= axis
       assignment (see the regex above — one dimension in prose is fine).
 
     ⭐ Keep this a pure payload check: it never constructs, never reads the
-    packet, and never decides anything about the geometry — its whole job
-    is to make "the response has no coordinates" hold on the RAW bytes
-    channel too, not only on the constructed type.
+    packet, and never decides anything about the geometry.  ⛔ Do not grow
+    the regex: forms it misses (integer pairs, brackets, uppercase axes)
+    are already unrepresentable at the type layer, and enumerating them
+    here would rebuild the never-completable lexical guard the rework
+    moved away from.
     """
     def _walk(node: Any, path: str) -> None:
         if isinstance(node, bool) or isinstance(node, (int, float)):
@@ -358,6 +442,7 @@ def assert_response_payload_carries_no_coordinates(payload: Any) -> None:
 
 
 __all__ = [
+    "CodeToken",
     "ConsistencyResultV1",
     "CoordinateSmuggledInResponse",
     "CorrectionDecisionPacketV1",
