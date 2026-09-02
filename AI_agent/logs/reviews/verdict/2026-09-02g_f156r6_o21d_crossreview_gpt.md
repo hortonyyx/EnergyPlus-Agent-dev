@@ -136,3 +136,218 @@ tests/test_crossreview_gpt_probe.py::test_unconsumed_producer_loss_is_silently_i
 2 passed, 2 warnings in 3.86s
 ```
 
+## 四、H3 与定向验收：常态全绿，但原锁中仍有一条恒绿
+
+### 4.1 当前实现下的规则锁
+
+重写后的 exclusion 文件 15 条与 odd-thickness NA 合跑，`16 passed`。这覆盖：大量诚实
+below-threshold exclusion、单个/大量 producer loss、`excluded == paired` 点、施工方自造的
+sub-threshold 洗白攻击、原撤证方向，以及 odd storage-unit NA。
+
+命令原文：
+
+```bash
+set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a && python -c "import src.agent.judge.answer_compiler as m; print(m.__file__)" && python -m pytest -q -n 6 -p no:cacheprovider tests/test_o21d_exclusion_gap.py tests/test_f156_ring_from_intersection.py::test_odd_interzone_thickness_is_declined_loudly_not_silently_truncated
+```
+
+输出原文：
+
+```text
+/tmp/joint_review_gpt/src/agent/judge/answer_compiler.py
+bringing up nodes...
+bringing up nodes...
+
+................                                                         [100%]
+16 passed in 4.16s
+```
+
+### 4.2 fail-loud 定向 neuter：6 条相关锁会红
+
+临时把 `loss is not None` 分支的 structural append 替换为 `pass`，其余实现不动；
+`test_o21d_exclusion_gap.py` 有 6 条精确转红，说明 fail-loud、来源对账、flood、balanced 点和
+施工方自造 seam 攻击的接线都是真牙。变异后已逐字还原并核净工作树。
+
+命令原文：
+
+```bash
+set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a && python -c "import src.agent.judge.answer_compiler as m; print(m.__file__)" && python -m pytest -q -n 6 -p no:cacheprovider tests/test_o21d_exclusion_gap.py
+```
+
+输出原文（pytest 的 failure 汇总原文）：
+
+```text
+/tmp/joint_review_gpt/src/agent/judge/answer_compiler.py
+bringing up nodes...
+bringing up nodes...
+
+......FF...FFFF                                                          [100%]
+=========================== short test summary info ============================
+FAILED tests/test_o21d_exclusion_gap.py::test_a_producer_written_ring_loss_is_fail_loud_never_an_exclusion
+FAILED tests/test_o21d_exclusion_gap.py::test_honest_substrate_branch_reds_are_exactly_the_known_defect
+FAILED tests/test_o21d_exclusion_gap.py::test_flooding_the_loss_ledger_is_fail_loud_per_loss
+FAILED tests/test_o21d_exclusion_gap.py::test_stripping_a_ring_with_a_producer_loss_is_fail_loud_not_a_green_exclusion
+FAILED tests/test_o21d_exclusion_gap.py::test_a_single_balanced_producer_loss_still_reddens
+FAILED tests/test_o21d_exclusion_gap.py::test_own_attack_a_producer_loss_cannot_masquerade_as_a_below_threshold_drop
+6 failed, 9 passed in 3.62s
+```
+
+### 4.3 阻断 3：原 11 条中的 ring+loss 锁在保护机制被摘掉后仍绿
+
+`test_a_cavity_is_never_both_ringed_and_registered_as_a_loss` 自己承认
+“THIS ONE CANNOT CURRENTLY GO RED”，全仓也没有第二条测试覆盖
+`as_measured_boundary_cavity_has_edges_and_loss`。我临时把
+`AsMeasuredViewV1._ledger_identity` 中对应 raise 摘成 `pass`，只跑该锁，结果仍是
+`1 passed`；恢复后工作树净。
+
+所以 H3 不能报“原 11 条每条都活着”：10 条仍有可观察的红/绿或 source mismatch，
+这一条没有违规夹具，连它声称的“validator relaxed later”也抓不到。授权重写夹具的验收未完成，
+属阻断。
+
+命令原文：
+
+```bash
+set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a && python -c "import src.agent.judge.answer_compiler as m; print(m.__file__)" && python -m pytest -q -n 6 -p no:cacheprovider tests/test_o21d_exclusion_gap.py::test_a_cavity_is_never_both_ringed_and_registered_as_a_loss
+```
+
+输出原文：
+
+```text
+/tmp/joint_review_gpt/src/agent/judge/answer_compiler.py
+bringing up nodes...
+bringing up nodes...
+
+.                                                                        [100%]
+1 passed in 3.36s
+```
+
+## 五、全量与真实 sm25
+
+### 5.1 权威全量
+
+按要求加载主树 `.env`，同一 shell 做模块落点自证，固定 `-n 6` 和
+`-p no:cacheprovider`。结果 `3659 passed, 13 xfailed`，F-158 环境红未出现。
+
+命令原文：
+
+```bash
+set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a && python -c "import src.agent.judge.answer_compiler as m; print(m.__file__)" && python -m pytest -q -n 6 -p no:cacheprovider
+```
+
+输出原文（首行与 pytest 最终汇总；中间 211 条 warnings 正文不影响结果，未重抄）：
+
+```text
+/tmp/joint_review_gpt/src/agent/judge/answer_compiler.py
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  1%]
+...
+......................................... [100%]
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+3659 passed, 13 xfailed, 211 warnings in 570.85s (0:09:30)
+```
+
+### 5.2 真实 sm25 审计读数
+
+真实调用给 `passed=False`、29/29 accounted、四条 red。两条本锁 red 都指向同一个
+live ledger loss，分别对应同 cavity 内的 `F1-z4` / `F1-z5`；另两条是 F-157 的
+`facts_projected_ring_unavailable`。没有第五条无出处常态红。
+
+命令原文：
+
+```bash
+set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a && python -c "import src.agent.judge.answer_compiler as m; print(m.__file__)" && python - <<'PY'
+from collections import Counter
+from src.agent.judge.answer_compiler import read_facts_for_compilation, reconcile_boundary_basis
+from src.agent.judge.gt_schema import REPO_ROOT
+from src.agent.judge.tarch_converter_schema import ConversionReportV1, TarchConversionRequestV1
+case = 'sm25-L_anchor'
+_measured, _ledger, signed = read_facts_for_compilation(case)
+source = REPO_ROOT / 'case_tests/test_baseline/gt_sources' / case
+review = REPO_ROOT / 'case_tests/test_baseline/gt' / case / 'review'
+request = TarchConversionRequestV1.model_validate_json((source / 'request_as_measured.json').read_bytes())
+report = ConversionReportV1.model_validate_json((review / 'conversion_report.json').read_bytes())
+audit = reconcile_boundary_basis(signed, report, min_room_area_m2=request.min_room_area_m2)
+print(f'passed={audit.passed}')
+print(f'accounted={audit.accounted_converter_zones}/{audit.converter_zones}')
+print(f'paired_edges={audit.paired_edges} exclusions={len(audit.exclusions)} reds={len(audit.structural_failures)}')
+print('codes=' + repr(Counter(item.split(':', 1)[0] for item in audit.structural_failures)))
+for item in audit.structural_failures:
+    print(item)
+PY
+```
+
+输出原文：
+
+```text
+/tmp/joint_review_gpt/src/agent/judge/answer_compiler.py
+passed=False
+accounted=29/29
+paired_edges=100 exclusions=0 reds=4
+codes=Counter({'converter_zone_excluded_by_producer_written_ring_loss': 2, 'facts_projected_ring_unavailable': 2})
+converter_zone_excluded_by_producer_written_ring_loss:plan-F1:cavity:04e1293098b1a95a:F1-z4:reason=endcap_const_not_a_measured_parallel_face:area_units2=2868321200
+converter_zone_excluded_by_producer_written_ring_loss:plan-F1:cavity:04e1293098b1a95a:F1-z5:reason=endcap_const_not_a_measured_parallel_face:area_units2=2868321200
+facts_projected_ring_unavailable:plan-F1:cavity:8bd127719198fd63:adjacent_projected_support_lines_are_parallel
+facts_projected_ring_unavailable:plan-F2:cavity:495501ce9b36f0f3:adjacent_projected_support_lines_are_parallel
+```
+
+### 5.3 F-153 形态 B 三路对账
+
+我没有沿用执行档数字：从 live signed ledger 读 loss；从 live face lines 选取同轴且完整覆盖
+loss span 的最近面；再与 `plan.md` 的未闭合登记比。结果为 28.683212 m²、loss
+`const=52401/lo=99430/hi=100630`、最近覆盖面 `const=52400`、delta 1，逐项吻合形态 B。
+
+命令原文：
+
+```bash
+python - <<'PY'
+from src.agent.judge.answer_compiler import read_facts_for_compilation
+_m, _l, signed = read_facts_for_compilation('sm25-L_anchor')
+for view in signed.views:
+    for loss in view.boundary_ring_losses:
+        span = loss.span
+        candidates = [f for f in view.face_lines
+                      if f.axis == span.axis
+                      and f.along_min <= span.lo and f.along_max >= span.hi]
+        nearest = min(candidates, key=lambda f: abs(f.const - span.const))
+        print(f'view={view.view_id} cavity={loss.cavity_id}')
+        print(f'area_units2={loss.area_units2} area_m2={loss.area_units2 / 100_000_000:.6f}')
+        print(f'loss_span=axis:{span.axis},const:{span.const},lo:{span.lo},hi:{span.hi}')
+        print(f'nearest_covering_face=id:{nearest.id},const:{nearest.const},lo:{nearest.along_min},hi:{nearest.along_max},delta:{abs(nearest.const-span.const)}')
+        print(f'reason={loss.reason}')
+PY
+sed -n '392,402p' AI_agent/plan.md
+```
+
+输出原文：
+
+```text
+view=plan-F1 cavity=cavity:04e1293098b1a95a
+area_units2=2868321200 area_m2=28.683212
+loss_span=axis:y,const:52401,lo:99430,hi:100630
+nearest_covering_face=id:1377,const:52400,lo:96399,hi:103599,delta:1
+reason=endcap_const_not_a_measured_parallel_face
+**⛔ 主控把那条台账的数字对了一遍 —— 它不合法，它是 F-153 形态 B（已登记未修）**：
+
+| 对的是什么 | 台账 | F-153 形态 B 登记 |
+|---|---|---|
+| 面积 | `2868321200` units（0.1mm）⇒ **28.683212 m²** | **28.68 m²** |
+| 坐标 | `const=52401 lo=99430 hi=100630` | 墙 `w_x_99430_100630_52401_88800` |
+| 机制 | `nearest…=52400`，**`delta=1`** | 「`along_min` 比同侧三兄弟大 **1 个单位**」 |
+
+⭐ 数量也对：F-153 原三个腔，F-156 v3 修掉**形态 A** 那两个 ⇒ 台账 3→1，剩的正是形态 B。
+而 F-153 登记的实测是它 **贴墙 401/401、最远采样点距墙 0.000 m** = **被墙完全围合的真实房间**。
+⇒ **fail-loud 只会判红这一样东西，而它本来就该红。A③ 的前提倒了 ⇒ C/D/E 岔口不存在。**
+```
+
+## 六、派工单 §五六条验收汇总
+
+| # | 结论 | 证据 |
+|---|---|---|
+| 1 | 通过 | 多个诚实 below-threshold exclusions 不红；旧 aggregate 代码已删除；16 条定向绿 |
+| 2 | **未完全通过** | zone 命中的单个、balanced、大量 producer loss 均红；但阻断 2 证明未被 zone 命中的 ledger entry 可静默 |
+| 3 | **不通过** | 真实红能指名 live ledger；但 H2 的两条锁用非空库存断言钉住缺陷存在 |
+| 4 | **不通过** | 常态 11 + odd 均绿，但 H3 neuter 证明其中 ring+loss 锁恒绿 |
+| 5 | **不通过** | 施工方自造 seam 攻击会红；复核方不同形状“无 zone 消费的 producer loss”成功骗过判据 |
+| 6 | 通过 | 全量 3659 passed / 13 xfailed；真实 sm25 四红、29/29 accounted，四红均有归属 |
+
