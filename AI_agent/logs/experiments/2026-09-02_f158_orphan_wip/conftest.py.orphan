@@ -1,0 +1,119 @@
+"""F-158 — make a real, *billed* provider call structurally impossible in the
+test suite.
+
+Seam choice (why this layer): the gate intercepts **the network egress point**
+(`socket.socket.connect` / `connect_ex`), not "constructing an LLM client".
+Constructing a client costs nothing and some tests legitimately build one
+(schema round-trips, tool wiring); only *emitting a request to a remote host*
+bills the shared DeepSeek balance. `socket.connect` is also provider- and
+HTTP-library-agnostic: the openai / anthropic SDKs, langchain, httpx, requests
+and urllib all funnel outbound traffic through it, so the thing being measured
+cannot be swapped out from under the gate by changing the HTTP client.
+
+Behaviour: any test that opens a socket to a **non-loopback** host fails loudly
+with `ProviderCallBlocked`, and the error names the offending test. Loopback
+(127.0.0.0/8, ::1, AF_UNIX) is allowed — local IPC is never billed. A test that
+genuinely needs to talk to a real provider must opt in explicitly with
+`@pytest.mark.live`; live tests are excluded from the default suite (run them
+with `-m live`). That explicit, human-written marker is the only exit — there is
+no silent "skip because no API key" path.
+
+Enumeration hook: set env `EP_NO_BILLED_LOG=<path outside the repo>` and every
+blocked call appends `<test>\t<destination>` there, so the gate itself measures
+the scope (T2) instead of a grep name-list.
+"""
+
+from __future__ import annotations
+
+import os
+import socket
+
+import pytest
+
+_real_connect = socket.socket.connect
+_real_connect_ex = socket.socket.connect_ex
+
+# Hosts that never bill: loopback + unspecified. Real providers resolve to a
+# routable IP before connect(), so they never match here.
+_LOOPBACK_NAMES = {"localhost", "::1", "0.0.0.0", ""}
+
+
+class ProviderCallBlocked(RuntimeError):
+    """Raised when a test tries to emit a real (billable) network request."""
+
+
+def _is_local(address: object) -> bool:
+    # AF_UNIX endpoints are a plain str/bytes path — always local IPC.
+    if not isinstance(address, tuple) or not address:
+        return True
+    host = str(address[0])
+    return host in _LOOPBACK_NAMES or host.startswith("127.")
+
+
+def _current_test() -> str:
+    # pytest maintains this env var for the whole life of each test item.
+    raw = os.environ.get("PYTEST_CURRENT_TEST", "<unknown test>")
+    return raw.split(" (")[0]
+
+
+def _record(test: str, dest: object) -> None:
+    log = os.environ.get("EP_NO_BILLED_LOG")
+    if not log:
+        return
+    try:
+        with open(log, "a", encoding="utf-8") as fh:
+            fh.write(f"{test}\t{dest!r}\n")
+    except OSError:
+        pass
+
+
+def _guarded(orig):
+    def wrapper(self, address, *args, **kwargs):
+        if _is_local(address):
+            return orig(self, address, *args, **kwargs)
+        test = _current_test()
+        _record(test, address)
+        raise ProviderCallBlocked(
+            f"F-158 no-billed-calls gate: test '{test}' tried to open a real "
+            f"network connection to {address!r}. This would emit a real, billed "
+            f"provider request. Give it a fake/stub, or — only if it is meant to "
+            f"hit a live provider — mark it @pytest.mark.live (excluded from the "
+            f"default suite; run with -m live)."
+        )
+
+    return wrapper
+
+
+@pytest.fixture(autouse=True)
+def _block_billed_provider_calls(request):
+    """Install the egress gate around every test unless it is @pytest.mark.live."""
+    if request.node.get_closest_marker("live"):
+        yield
+        return
+    socket.socket.connect = _guarded(_real_connect)
+    socket.socket.connect_ex = _guarded(_real_connect_ex)
+    try:
+        yield
+    finally:
+        socket.socket.connect = _real_connect
+        socket.socket.connect_ex = _real_connect_ex
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "live: test may make a real, billed provider call; excluded from the "
+        "default suite (select with -m live).",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Keep `live` tests out of the default suite. When the run explicitly asks
+    for them (`-m live`), leave collection alone."""
+    markexpr = getattr(config.option, "markexpr", "") or ""
+    if "live" in markexpr:
+        return
+    skip_live = pytest.mark.skip(reason="live provider test; select with -m live")
+    for item in items:
+        if item.get_closest_marker("live"):
+            item.add_marker(skip_live)
