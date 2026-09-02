@@ -32,6 +32,7 @@ from shapely.geometry import Polygon
 
 import src.agent.judge.as_measured as am
 from src.agent.judge.answer_compiler import (UNITS_PER_METRE,
+                                             _projected_facts_ring,
                                              read_facts_for_compilation,
                                              reconcile_boundary_basis)
 from src.agent.judge.as_measured import AsMeasuredViewV1
@@ -397,6 +398,72 @@ def test_every_ring_turns_exactly_on_its_support_line_intersections(facts):
         for cavity, edges in rings.items():
             polygon = Polygon([edge.p1 for edge in edges])
             assert polygon.is_valid and polygon.area > 0, cavity
+
+
+# =========================================================================== #
+# F-156 v3 阻断 2 -- the projection门 MIRRORS the producer's storage-unit
+# definition of a wall-axis offset, ⛔ not its ``/ 2.0`` float helper.
+# =========================================================================== #
+def _first_ringed_cavity_with_an_interzone_edge(signed):
+    """BY RULE: the first cavity that yields a projected ring AND carries at
+    least one interzone edge.  ⛔ No cavity id -- picked from whatever the
+    substrate currently holds."""
+    for view in signed.views:
+        by_cavity: dict[str, list] = {}
+        for edge in view.boundary_edges:
+            by_cavity.setdefault(edge.cavity_id, []).append(edge)
+        for _cavity_id, edges in by_cavity.items():
+            ordered = sorted(edges, key=lambda edge: edge.sequence)
+            polygon, _failure = _projected_facts_ring(ordered)
+            interzone = [edge for edge in ordered
+                         if edge.boundary_condition == "interzone"]
+            if polygon is not None and interzone:
+                return ordered, interzone[0]
+    raise AssertionError("no ringed cavity carries an interzone edge")
+
+
+def test_odd_interzone_thickness_is_declined_loudly_not_silently_truncated(facts):
+    """F-156 v3 阻断 2 (``recompute-gate-must-mirror-producer-definition``).
+
+    A wall-axis support line sits half the measured thickness inside the raw
+    face.  When that thickness is ODD the axis lands at a half-unit -- BETWEEN
+    the 0.1 mm integer storage grid -- and the producer's own compiler declines
+    it (``wall_axis_falls_between_storage_units``) rather than emitting a
+    fractional axis.  Mirroring the producer therefore means declining it the
+    same way, ⛔ not ``thickness // 2`` (off by half a unit) and ⛔ not
+    ``thickness / 2.0`` (a fractional axis the integer-rounded converter zone
+    can never equal -- a false red).
+
+    sm25 carries no live odd stock (every wall thickness is even), so the
+    fixture CREATES the quantity and proves it created it.
+    """
+    ordered, interzone_edge = _first_ringed_cavity_with_an_interzone_edge(facts)
+
+    # green control: the real (even) ring projects to a polygon.
+    even_thickness = interzone_edge.evidence.thickness_units
+    assert even_thickness % 2 == 0, even_thickness          # self-proof: even stock
+    polygon, failure = _projected_facts_ring(ordered)
+    assert polygon is not None and failure is None
+
+    # CREATE the odd quantity on exactly this interzone edge (+1 unit = +0.1 mm)
+    # and prove the bump landed (even -> odd).
+    raw = interzone_edge.model_dump(mode="json")
+    raw["evidence"]["thickness_units"] = even_thickness + 1
+    odd_edge = type(interzone_edge).model_validate(raw)
+    odd = odd_edge.evidence.thickness_units
+    assert odd % 2 == 1                                     # the量 now exists
+    # and prove WHY no integer support exists: the honest half-offset is a
+    # half-integer, so ``// 2`` truncates away exactly the lost 0.5 the old gate
+    # silently swallowed (verdict: 1201 -> producer 600.5, old gate 600).
+    assert odd / 2 - odd // 2 == 0.5
+
+    mutated = [odd_edge if edge is interzone_edge else edge for edge in ordered]
+    polygon, failure = _projected_facts_ring(mutated)
+    # ⭐ loud NA, ⛔ not a silently truncated ring.  Delete the guard and this
+    # returns ``(<polygon>, None)`` -- so the assertion reddens: the gate has
+    # teeth ([[gate-with-only-negative-assertions-is-unobservable]]).
+    assert polygon is None
+    assert failure == "wall_axis_falls_between_storage_units"
 
 
 @pytest.mark.parametrize("view_index", (0, 1))

@@ -103,6 +103,7 @@ EXCLUSION_BRANCH_CODES = (
     "converter_zone_polygon_invalid",
     "converter_zone_unclaimed_by_facts",
     "facts_boundary_footprint_unusable",
+    "boundary_exclusions_exceed_pairings_in_view",
 )
 
 #: Codes another lock owns and has explicitly deferred.  ⛔ This is a POINTER,
@@ -578,3 +579,105 @@ def test_above_threshold_unlicensed_cavity_still_reddens_even_with_the_threshold
     assert (f"facts_boundary_ring_missing:{proof.view_id}:{proof.cavity_id}:"
             f"converter={proof.converter_zone_id}") in audit.structural_failures
     assert not audit.passed
+
+
+# --------------------------------------------------------------------------
+# RULE + guaranteed stock.  F-156 v4 -- the FLOODING ('灌证') direction.
+# Every lock above withdraws a licence to force a red, so the mirror attack
+# sails through: a producer that WRITES many true-looking losses can license
+# excluding nearly every converter zone (F-156 v3 阻断 1 / ②-1d B1: 27/29 zones
+# waived, ``passed=True``).  Per cavity a flooded exclusion is indistinguishable
+# from a legitimate one, so the tooth is aggregate: within a view, exclusions
+# may not outnumber edge-pairings -- the exception may not become the rule.
+# --------------------------------------------------------------------------
+def _flood(signed, report, drop_pairs):
+    """Drop the stored ring of each named ``(view_id, cavity_id)`` and license
+    it with a schema-legal loss whose area is the cavity's own -- exactly the
+    entry a producer that just failed to ring it would write.  ⛔ No count is
+    baked in; the caller picks ``drop_pairs`` BY RULE from the live pairings."""
+    areas = _raw_cavity_areas(signed)
+    raw = signed.model_dump(mode="json")
+    for view in raw["views"]:
+        drop = {cavity_id for (view_id, cavity_id) in drop_pairs
+                if view_id == view["view_id"]}
+        if not drop:
+            continue
+        view["boundary_edges"] = [edge for edge in view["boundary_edges"]
+                                  if edge["cavity_id"] not in drop]
+        view["boundary_ring_losses"] = view["boundary_ring_losses"] + [
+            {"cavity_id": cavity_id,
+             "area_units2": int(areas[(view["view_id"], cavity_id)]),
+             "span": SYNTHETIC_SPAN,
+             "reason": "merged_span_has_no_supporting_witness",
+             "owner_count": None}
+            for cavity_id in sorted(drop)]
+    return AsSignedV1.model_validate(raw)
+
+
+def _paired_by_view(audit) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for proof in audit.pairings:
+        out.setdefault(proof.view_id, []).append(proof.cavity_id)
+    return out
+
+
+def _flood_code_views(audit) -> set[str]:
+    return {item.split(":")[1] for item in audit.structural_failures
+            if item.startswith("boundary_exclusions_exceed_pairings_in_view")}
+
+
+def test_flooding_the_loss_ledger_cannot_waive_the_majority_of_a_view(real_inputs):
+    """§五#1 -- the balanced flood the cross-family verdict drove straight
+    through.  Keep exactly ONE paired cavity in each view and license every
+    other one out as a loss.  Before this tooth the audit passed with almost
+    every zone waived; now every view whose exclusions outnumber its pairings is
+    NAMED.  ⛔ The dropped cavities are not pinned -- chosen by the rule 'all but
+    one paired cavity per view', so the lock keeps its teeth as upstream moves.
+    """
+    signed, _request, report = real_inputs
+    baseline = reconcile_boundary_basis(signed, report)
+    paired = _paired_by_view(baseline)
+    assert paired and all(len(cavities) >= 2 for cavities in paired.values()), (
+        "a view has <2 live pairs -- 'keep one, drop the rest' has no stock")
+
+    # green anchor: the honest substrate validates far more than it waives, so
+    # the tooth does ⛔ NOT fire there (it is not a fire-always assertion).
+    assert _flood_code_views(baseline) == set()
+
+    drop = [(view_id, cavity_id)
+            for view_id, cavities in paired.items()
+            for cavity_id in cavities[1:]]
+    flooded = reconcile_boundary_basis(_flood(signed, report, drop), report)
+
+    # every view is now majority-waived -> every view is named (⛔ a rule, not a
+    # count: whichever views exist must all appear).
+    assert _flood_code_views(flooded) == set(paired), flooded.structural_failures
+    assert not flooded.passed
+
+
+def test_a_flood_in_one_view_reddens_where_a_global_count_would_stay_green(real_inputs):
+    """§五#1b -- a DIFFERENT shape, chosen to defeat the obvious weaker fix.
+
+    Flood only the view with FEWER pairings (keep one so it does not go
+    trivially empty) and leave the other whole.  A GLOBAL exclusion<=pairing
+    count stays green -- the untouched view's pairings outnumber the flooded
+    view's exclusions -- yet the flooded view has plainly stopped being
+    validated.  The per-view rule names it; a global count would miss it, which
+    is why the tooth is per-view ([[gate-teeth-direction-follows-fixture-inventory]]).
+    """
+    signed, _request, report = real_inputs
+    baseline = reconcile_boundary_basis(signed, report)
+    paired = _paired_by_view(baseline)
+    assert len(paired) >= 2, "need two views to concentrate a flood in one"
+    victim = min(paired, key=lambda view_id: len(paired[view_id]))
+    assert len(paired[victim]) >= 2, "victim view has no stock to flood"
+
+    drop = [(victim, cavity_id) for cavity_id in paired[victim][1:]]
+    flooded = reconcile_boundary_basis(_flood(signed, report, drop), report)
+
+    # a global count really would stay green: total exclusions <= total pairings.
+    assert len(flooded.exclusions) <= len(flooded.pairings), (
+        len(flooded.exclusions), len(flooded.pairings))
+    # the per-view rule names exactly the flooded view, ⛔ not the healthy one.
+    assert _flood_code_views(flooded) == {victim}, flooded.structural_failures
+    assert not flooded.passed

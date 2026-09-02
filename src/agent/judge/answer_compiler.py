@@ -992,7 +992,12 @@ def _undirected_segment_residual(
 
 #: The answer side's own per-edge offset rule, mirrored (⛔ not re-invented):
 #: ``tarch_normalize._offset_for`` expands an ``outer_skin`` edge by the full
-#: measured thickness and a ``wall_axis`` edge by half of it.
+#: measured thickness and a ``wall_axis`` edge by half of it.  The ``// 2`` is
+#: EXACT here because odd interzone thickness is declined loudly upstream (see
+#: ``_projected_facts_ring``), exactly as the compiler's wall-axis path does at
+#: ``_the_compiler`` (``wall_axis_falls_between_storage_units``); mirroring the
+#: producer's definition means mirroring that storage-unit discipline, ⛔ not
+#: the raw ``/ 2.0`` float helper (F-156 v3 阻断 2).
 _PROJECTED_BASIS_OFFSET_UNITS = {
     "exterior": lambda thickness: thickness,
     "interzone": lambda thickness: thickness // 2,
@@ -1028,6 +1033,16 @@ def _projected_facts_ring(
         thickness = edge.evidence.thickness_units
         if thickness <= 0:
             return None, "measured_thickness_is_not_positive"
+        # ⭐ F-156 v3 阻断 2: mirror the producer's storage-unit definition, ⛔ not
+        # its ``/ 2.0`` float helper.  An odd interzone thickness puts the wall
+        # axis at a half-unit -- BETWEEN storage units -- so no integer support
+        # line can be recomputed and the zero-threshold identity below cannot
+        # run.  Decline loudly with the SAME code the compiler's own wall-axis
+        # path raises (``_the_compiler``), rather than silently truncating (the
+        # old ``// 2``, off by half a unit) or projecting a fractional axis the
+        # integer-rounded converter zone could never equal (a false red).
+        if edge.boundary_condition == "interzone" and thickness % 2:
+            return None, "wall_axis_falls_between_storage_units"
         outward = (edge.evidence.outward_normal[0] if edge.axis == "y"
                    else edge.evidence.outward_normal[1])
         support = (edge.axis,
@@ -1074,6 +1089,12 @@ def reconcile_boundary_basis(
     reddens regardless of area), which is the aligned replacement for the old
     ``derive(0.0)`` re-derivation that raised false ``ring_missing`` alarms on
     below-threshold cavities the producer dropped by design (N3').
+
+    F-156 v4: the exclusion licence is written by the producer, so a producer
+    that floods the loss ledger could waive almost every converter zone while
+    every per-cavity check stayed green.  The teeth for that mirror ('灌证')
+    direction are aggregate and per-view: within a view, exclusions may not
+    outnumber edge-pairings (the exception may not become the rule).
     """
     area_threshold_units2 = (
         None if min_room_area_m2 is None
@@ -1378,6 +1399,36 @@ def reconcile_boundary_basis(
             if (floor_id, zone.zone_id) not in accounted_converter_zones:
                 structural.append(
                     f"converter_zone_unclaimed_by_facts:{floor_id}:{zone.zone_id}")
+
+    # ⭐ F-156 v4 / ②-1d rework: grow teeth in the FLOODING ('灌证') direction.
+    # Every exclusion lock above points the other way -- withdraw a licence and
+    # it reddens -- so the mirror attack sails through: a producer that WRITES
+    # many true-looking losses (each reason drawn from the schema's closed
+    # vocabulary, each area equal to its own cavity) can license excluding
+    # nearly every converter zone.  Per cavity a flooded exclusion is
+    # indistinguishable from a legitimate one (same raw cavity, same missing
+    # stored ring, same ledger entry), so the only signal is aggregate.  This
+    # audit is a VALIDATION instrument: a converter zone earns trust either by
+    # being edge-paired against a stored facts ring (validated) or by being
+    # excluded (waived).  When a view WAIVES more zones than it VALIDATES the
+    # instrument has stopped instrumenting.  ⛔ Not a data-read percentage --
+    # the cut is the instrument's own definition, the exception may not become
+    # the rule; and PER-VIEW, because a flood concentrated in one view keeps a
+    # global count green ([[gate-teeth-direction-follows-fixture-inventory]]).
+    paired_per_view: dict[str, int] = {}
+    excluded_per_view: dict[str, int] = {}
+    for proof in pairings:
+        paired_per_view[proof.view_id] = paired_per_view.get(proof.view_id, 0) + 1
+    for exclusion in exclusions:
+        excluded_per_view[exclusion.view_id] = (
+            excluded_per_view.get(exclusion.view_id, 0) + 1)
+    for view_id in sorted(set(paired_per_view) | set(excluded_per_view)):
+        paired = paired_per_view.get(view_id, 0)
+        excluded = excluded_per_view.get(view_id, 0)
+        if excluded > paired:
+            structural.append(
+                f"boundary_exclusions_exceed_pairings_in_view:{view_id}:"
+                f"paired={paired}:excluded={excluded}")
 
     mismatches = [row for row in rows if not row.matches]
     return BoundaryBasisAuditV1(
