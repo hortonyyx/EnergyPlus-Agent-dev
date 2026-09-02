@@ -360,7 +360,27 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 两个充分方向，⛔ 不是判据本身。⚠️ 且明写 **⛔ 不许拿夹具 #3（厚度报错）的输入去验本条的 ✅ 方向**
 （那按构造就是环带非空 ⇒ 必假红 ⇒ 白白浪费一轮停报）。
 
-**⏳ B1 已派 GLM 施工**（`/tmp/b1_bridge_glm`，单 = [2026-09-02ad](logs/reviews/request/2026-09-02ad_B1_projection_bridge_core_dispatch.md)）。
+**⭐⭐⭐ B1 已实质建成并全量绿 —— ⛔ 但【未收口】**（分支 `wt/09.02aj_b1_bridge`，worktree `/tmp/b1_bridge_glm`，
+单 = [2026-09-02ad](logs/reviews/request/2026-09-02ad_B1_projection_bridge_core_dispatch.md)）：
+
+| 读数（**主控独立跑的**，⛔ 非席位自述）| |
+|---|---|
+| 代码 | `src/agent/correction/projection_bridge.py` **838 行** + 三份测试 **949 行** |
+| B1 自己的测试 | **24 passed** |
+| **分支全量** | ⭐ **`3690 passed / 13 xfailed / 0 failed`**（6m28s，`-n auto`，`__file__` 落在该 worktree）|
+| 数目闭合 | **3666（基线）+ 24（B1 新增）= 3690** 逐位闭合 |
+| 覆盖 | 验收 **1/2/3a/3b/3c/4a/4b/5/6/7** + 夹具五件套 + 墙厚混排**全部有对应测试**；⭐ 含 `test_4b_counts_equalised_attack_red_only_on_2_and_3`（= v5 复审要求的**双向对账**那条）|
+
+⛔⛔ **为什么仍然不算完成（三条硬缺口，⛔ 别当成绩）**：
+1. **席位没交件** —— 撞 5 小时窗口上限中断（05:13 UTC 重置），没有它自述的「最薄弱的一处」；
+2. ⛔ **测试与实现是同一个席位写的** —— **「谁写谁不批」那道防线一次都没走**，
+   24 条绿完全可能是照着实现的形状长出来的（[[self-report-more-compliant-than-artifact]]）；
+3. **零跨家族审**。
+⇒ ⛔ **不许据此宣布 B1 完成、⛔ 不许在它之上开 B2、⛔ 不许 cherry-pick 进主分支。**
+
+⭐ **分段提交第三次兑现且这次是决定性的**：撞限时已提交 **1210 行**（含 838 行核心），
+只有 **591 行**未提交（主控就地代提交为 WIP，⛔ 标明未跑测未过审）。
+
 ⭐ **排期裁定：施工不等审** —— 今天只剩 GLM 能干活，让 B1 干等不如先施工、跨家族审等运维恢复后补。
 ⛔⛔ **但本单未过审即不得收口**：⛔ 不许据此宣布 B1 完成、⛔ 不许在它之上直接开 B2。
 
