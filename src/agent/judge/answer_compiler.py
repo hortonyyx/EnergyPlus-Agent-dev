@@ -1097,6 +1097,11 @@ def reconcile_boundary_basis(
       writes no loss, so no code fires and ⛔ no cavity id is baked in
       ([[gate-measures-right-but-carrier-gets-swapped]]: the '哪个方向没有锁'
       answer here is '加了就会红', which is the defect itself blocking the lock).
+      ⭐ rework4 T1: the ledger is swept EXHAUSTIVELY from the ledger side, ⛔ not
+      only while walking converter zones -- a producer loss on a cavity that NO
+      zone consumes is equally fail-loud
+      (``producer_ring_loss_unrepresented_by_any_converter_zone``).  The ledger,
+      ⛔ not the converter-zone population, is the traversal start.
     * ``below_request_area_threshold`` (when ``min_room_area_m2`` is the
       production threshold) is INDEPENDENTLY provable: the gate recomputes the
       raw cavity area itself and the threshold comes from the request (a
