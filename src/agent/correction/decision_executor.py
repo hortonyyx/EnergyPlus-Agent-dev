@@ -81,7 +81,7 @@ shape: findings ride the outcome until a candidate generator exists.
 """
 from __future__ import annotations
 
-from typing import Literal, Sequence
+from typing import Callable, Literal, Sequence
 
 from pydantic import BaseModel, ConfigDict
 
@@ -525,20 +525,50 @@ def run_decision_loop(
     artifact: CorrectionEvidenceBundleArtifactV1,
     *,
     profile: Literal["strict", "exploratory"] = "strict",
-    responses: Sequence[CorrectionDecisionResponseV1],
+    responses: Sequence[CorrectionDecisionResponseV1] = (),
+    response_provider: "Callable[[CorrectionDecisionPacketV1], CorrectionDecisionResponseV1] | None" = None,
     round_budget: int | None = None,
     solver_revision: str = COMPILATION_SCHEMA_VERSION,
 ) -> DecisionLoopOutcomeV1:
-    """Drive the three beats with FIXED responses (§9.1 step 5: no model
-    is consulted; the caller owns the response sequence).
+    """Drive the three beats (§9.1 step 5 → module 7 wiring).
+
+    Two response sources, exactly one per call (both ⇒ loud, neither ⇒
+    the loop consumes nothing and exits ``round_budget_exhausted``):
+
+    * ``responses`` — the FIXED sequence (fixtures; the module-5/6 shape,
+      unchanged).  The caller owns the sequence; ``round_budget`` defaults
+      to its length and caps how many entries are consumed.
+    * ``response_provider`` — a callable handed EACH round's freshly built
+      packet and returning that round's response.  ⭐ This is the model's
+      seat (module 7): the provider sees the CURRENT packet (so its
+      ``packet_hash`` can bind it) before answering -- the loop still
+      owns packet construction, response validation and every rebuild,
+      and a provider that returns garbage dies in the SAME
+      ``DecisionLoopError`` family as a bad fixture.  ``round_budget``
+      has no default in this mode and must be given explicitly.
 
     A ``strict`` profile refused by module 4's ambiguous-debt gate
     propagates unchanged: that refusal is already loud, named and
     measured there -- this loop does not swallow it into an exit it was
-    not given.  ``round_budget`` caps how many responses are consumed
-    (default: all of them); exhausting either without success is the
+    not given.  Exhausting the budget without success is the
     ``round_budget_exhausted`` exit.
     """
+    if response_provider is not None and len(responses) > 0:
+        raise DecisionLoopError(
+            "RESPONSE_SOURCE_AMBIGUOUS",
+            {
+                "fixed_responses": len(responses),
+                "hint": "pass either responses= or response_provider=, not both",
+            },
+        )
+    if response_provider is not None and round_budget is None:
+        raise DecisionLoopError(
+            "ROUND_BUDGET_REQUIRED_WITH_PROVIDER",
+            {
+                "hint": "a provider is unbounded; name the round budget "
+                "explicitly"
+            },
+        )
     if round_budget is None:
         round_budget = len(responses)
     if round_budget < 0:
@@ -578,7 +608,7 @@ def run_decision_loop(
             pending=pending,
         )
 
-    for index, response in enumerate(responses[:round_budget]):
+    for index in range(round_budget):
         packet = build_decision_packet(
             compilation,
             bundle=artifact,
@@ -586,6 +616,17 @@ def run_decision_loop(
             previous_decision_hashes=tuple(previous),
             solver_revision=solver_revision,
         )
+        # ⭐ Module 7: the response source. Provider mode asks with the
+        # CURRENT packet in hand (so the model can bind its hash); fixed
+        # mode reads entry `index` -- running past the sequence breaks to
+        # the same `round_budget_exhausted` exit the old
+        # `enumerate(responses[:round_budget])` produced.
+        if response_provider is not None:
+            response = response_provider(packet)
+        else:
+            if index >= len(responses):
+                break
+            response = responses[index]
         # ① -- stale first: a response bound to any earlier world state
         # terminates the loop, loudly, with the residual manifest.
         if response.packet_hash != packet.packet_hash:

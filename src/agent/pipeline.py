@@ -64,6 +64,11 @@ from src.agent.state import IntakeOutput
 from src.validator.checks.schema import Disposition, RunProfile
 
 if TYPE_CHECKING:
+    from src.agent.correction.decision_executor import DecisionLoopOutcomeV1
+    from src.agent.correction.decision_schema import (
+        CorrectionDecisionPacketV1,
+        CorrectionDecisionResponseV1,
+    )
     from src.agent.geometry.modelling import BuildingGeometry
     from src.agent.output_coordinates import IntakeArtifactBundle
 
@@ -424,9 +429,30 @@ def _build_correction_messages(
     # having passed no reading gate. Classify first: consumable files survive in
     # their original order, a declared non-input (check-report sidecar) is
     # dropped but named in the ledger, and anything else raises.
-    vector_files = classify_vector_dir(
+    vector_decision = classify_vector_dir(
         vector_dir, discover_vector_files(vector_dir)
-    ).consumed
+    )
+    # ⭐ Module 7 (2026-09-02): a recognized as-drawn product now has a WIRE
+    # (ADAPT → evidence chain). Pasting it into this prompt was never legal,
+    # and SILENTLY DROPPING it now would be worse: the run would look green
+    # while its entire as-drawn evidence stayed outside the model. The
+    # pasted-JSON leg refuses the directory instead — loudly, naming the
+    # files and the switch. (Mirror of "the evidence chain must never fall
+    # back to this leg": neither leg may quietly take the other's inputs.)
+    if vector_decision.adapted:
+        from src.agent.reading.vector_contract import UnconsumableVectorFile
+
+        raise UnconsumableVectorFile(
+            "1_correction pasted-JSON leg refuses to run over "
+            f"{Path(vector_dir)}: {len(vector_decision.adapted)} file(s) are "
+            "wired to the correction evidence adapter (module 7) and must "
+            "NOT be silently dropped from this run's evidence:\n  - "
+            + "\n  - ".join(vector_decision.adapted)
+            + "\nOpen the evidence chain (run_correction(..., "
+            "evidence_chain=True)) or move these products out of this "
+            "run's 0_reading directory."
+        )
+    vector_files = vector_decision.consumed
     room_label_inputs = _reading_room_label_inputs(vector_dir, vector_files)
     if room_label_inputs:
         chunks.append(
@@ -729,6 +755,373 @@ def _preflight_vector_contracts(vector_dir: Path, out_dir: Path | None) -> None:
 _UNSET_VALIDATOR = object()
 
 
+# --------------------------------------------------------------------------- #
+# 1_correction evidence chain (module 7 wiring, 2026-09-02)
+#
+#   frozen reading bytes → adapt_* → CorrectionEvidenceBundleArtifactV1
+#     → compile_wall_ir → WallCompilationV1
+#     → build_decision_packet → CorrectionDecisionPacketV1
+#     → [the model beat] → CorrectionDecisionResponseV1
+#     → run_decision_loop → DecisionLoopOutcomeV1   ← this module's terminus
+#
+# ⭐ The switch is EXPLICIT and the default is OFF: every existing caller keeps
+# the pasted-JSON leg byte-for-byte.  When the chain is on, a failure at ANY
+# link propagates to the caller UNCAUGHT and the run dir gets a record naming
+# the link — ⛔ this leg NEVER falls back to the pasted-JSON prompt (guide
+# §十之二 #4), and (mirror rule, enforced in _build_correction_messages) the
+# pasted-JSON leg never silently drops a file this chain owns.
+# --------------------------------------------------------------------------- #
+_EVIDENCE_CHAIN_ROUTE_NAME = "evidence_chain_route.json"
+_EVIDENCE_CHAIN_FAILURE_NAME = "evidence_chain_failure.json"
+_EVIDENCE_CHAIN_OUTCOME_NAME = "decision_loop_outcome.json"
+#: The llm.yaml section the model beat reads.  Absent sections fall back to
+#: `default` (llm.py resolution rule) — the beat never hardcodes a provider.
+DECISION_BEAT_LLM_SECTION = "correction_decision"
+
+
+class EvidenceChainTerminal(RuntimeError):
+    """The evidence chain reached THIS module's terminus (module 7 scope).
+
+    Raised by ``run_correction(evidence_chain=True)`` after the
+    ``DecisionLoopOutcomeV1`` is on disk: the projection bridge that would
+    turn the provisional wall IR into a ``CorrectedGeometry``
+    (``CorrectedGeometryProjectionEnvelopeV1``, design §5.4) is the NEXT
+    dispatch (甲-2), so there is no success product to return here — and
+    pretending otherwise is exactly "handing the provisional on as
+    finished", which the outcome type forbids.  Carries the outcome path,
+    ``success`` and ``exit_reason`` verbatim.
+    """
+
+
+def _evidence_chain_run_meta(out_dir: Path | None, name: str) -> Path | None:
+    """Best-effort path into the run's ``_run/`` metadata dir, or None.
+
+    ⭐ Like `_write_vector_contract_ledger`, never raises: a hostile run dir
+    must not turn a named chain failure into a bare filesystem error that
+    hides the original exception.
+    """
+    if out_dir is None:
+        return None
+    try:
+        from src.agent.execution.run_meta import run_meta_path
+
+        return run_meta_path(Path(out_dir).parent, name, for_write=True)
+    except OSError:
+        return None
+
+
+def _record_evidence_chain_failure(out_dir: Path | None, stage: str, exc: Exception) -> None:
+    """File ONE run-level record naming the link that failed, then return
+    (the caller re-raises the original exception — ⛔ never caught here)."""
+    path = _evidence_chain_run_meta(out_dir, _EVIDENCE_CHAIN_FAILURE_NAME)
+    if path is None:
+        return
+    try:
+        path.write_text(
+            json.dumps(
+                {
+                    "route": "evidence_chain",
+                    "failed_stage": stage,
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                },
+                indent=2,
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    except OSError as write_exc:
+        logger.warning(
+            "evidence chain: could not file the failure record under {}: {}",
+            path.parent,
+            type(write_exc).__name__,
+            write_exc,
+        )
+
+
+def _decision_beat_messages(packet_json: str, response_schema: str) -> tuple[str, str]:
+    """The model beat's prompt pair: adjudicate THIS packet, answer as the
+    no-coordinate response schema."""
+    system_prompt = (
+        "You are the adjudication beat of the 1_correction stage in a staged "
+        "EnergyPlus intake pipeline. The deterministic compiler has turned the "
+        "frozen reading evidence into a provisional wall model plus a packet "
+        "of OPEN ITEMS (each with symbolic candidates). Your job: decide every "
+        "open item, and give one whole-building review.\n\n"
+        "Rules:\n"
+        "1. Echo the packet's `packet_hash` verbatim in your response.\n"
+        "2. `item_id` values must be exactly the packet's open-item ids; "
+        "`candidate_id` values must be exactly the candidates listed for that "
+        "item. Unknown ids are rejected.\n"
+        "3. `action` is one of select_candidate / reject_all / "
+        "request_reperception; `candidate_id` rides ONLY with "
+        "select_candidate.\n"
+        "4. `reason_code` is a short code-style string (e.g. "
+        "DECLARED_THICKNESS_MATCH). Findings must cite entities the packet "
+        "actually indexes.\n"
+        "5. ⛔ Your response carries NO coordinates anywhere — no numbers at "
+        "all, and no coordinate pairs inside strings. Coordinates are computed "
+        "by code from the frozen evidence; a response containing them is "
+        "rejected before it reaches the executor.\n"
+        "6. `whole_building_review.verdict` is `accept` (no findings) or "
+        "`findings` (at least one finding). Acceptance is only meaningful "
+        "against THIS packet's provisional geometry.\n\n"
+        "OUTPUT FORMAT (strict): ONLY the response JSON object, `{`..`}`, no "
+        "markdown, no prose.\n\n"
+        "===== BEGIN CorrectionDecisionResponseV1 JSON SCHEMA =====\n"
+        f"{response_schema}\n"
+        "===== END CorrectionDecisionResponseV1 JSON SCHEMA =====\n"
+    )
+    human = (
+        "Adjudicate this decision packet now. Decide EVERY open item and give "
+        "the whole-building review.\n\n"
+        "===== BEGIN DECISION PACKET =====\n"
+        f"{packet_json}\n"
+        "===== END DECISION PACKET =====\n"
+    )
+    return system_prompt, human
+
+
+def _make_decision_response_provider(
+    *,
+    section_name: str,
+    out_dir: Path | None,
+) -> "Callable[[CorrectionDecisionPacketV1], CorrectionDecisionResponseV1]":
+    """Build the packet→response callable that seats the MODEL in the loop.
+
+    Every response is checked TWICE before the executor sees it: the
+    no-coordinate payload guard (numbers / coordinate pairs in strings,
+    naming the JSON path) and the strict type construction — both feed the
+    call's own format-retry, so a fixable draw is retried with guidance
+    instead of dying as a bare schema error.
+    """
+    from src.agent.correction.decision_schema import (
+        CorrectionDecisionResponseV1,
+        CoordinateSmuggledInResponse,
+        assert_response_payload_carries_no_coordinates,
+    )
+
+    def _validate_against(packet: object, parsed: dict) -> None:
+        assert_response_payload_carries_no_coordinates(parsed)
+        if parsed.get("packet_hash") != packet.packet_hash:
+            raise ValueError(
+                f"packet_hash mismatch: echo {packet.packet_hash!r} verbatim, "
+                f"got {parsed.get('packet_hash')!r}"
+            )
+        # ⭐ model_validate_json, NOT model_validate: the response type is
+        # strict, and a JSON array (item_decisions: [...]) is a tuple in the
+        # type's own terms only when validated in JSON mode — the python-mode
+        # path would refuse every real model draw on `tuple_type`.
+        CorrectionDecisionResponseV1.model_validate_json(json.dumps(parsed))
+
+    def _retry_guidance(exc: BaseException) -> str | None:
+        if isinstance(exc, CoordinateSmuggledInResponse):
+            return (
+                "FORMAT CORRECTION: your previous response carried a "
+                "coordinate. Resend it with every coordinate removed — "
+                f"({exc})"
+            )
+        if isinstance(exc, ValueError):
+            return f"FORMAT CORRECTION: {exc}. Resend the full response JSON."
+        return None
+
+    def provider(packet: "CorrectionDecisionPacketV1") -> "CorrectionDecisionResponseV1":
+        system_prompt, human = _decision_beat_messages(
+            packet.model_dump_json(indent=2),
+            json.dumps(
+                CorrectionDecisionResponseV1.model_json_schema(),
+                indent=2,
+                ensure_ascii=False,
+            ),
+        )
+        parsed = _call_json_llm(
+            _section(section_name),
+            system_prompt,
+            human,
+            out_dir=out_dir,
+            prefix="correction_decision",
+            attempts=2,
+            validate=lambda p, _packet=packet: _validate_against(_packet, p),
+            retry_guidance=_retry_guidance,
+        )
+        # Construction cannot fail here (validate already built it once) —
+        # this line is the type-layer boundary the executor relies on.
+        # JSON mode for the same strict-mode reason as in _validate_against.
+        return CorrectionDecisionResponseV1.model_validate_json(json.dumps(parsed))
+
+    return provider
+
+
+def run_correction_evidence_chain(
+    vector_dir: Path,
+    product_filename: str,
+    *,
+    out_dir: Path | None = None,
+    floor_ref: str | None = None,
+    view_type: str | None = None,
+    profile: str = "exploratory",
+    round_budget: int = 3,
+    fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None,
+    llm_section_name: str = DECISION_BEAT_LLM_SECTION,
+) -> "DecisionLoopOutcomeV1":
+    """Drive ONE frozen reading product through the evidence chain to a
+    ``DecisionLoopOutcomeV1`` on disk (module 7's terminus).
+
+    Route selection is the classifier's verdict, never a file name: an
+    ``as_drawn_plan`` product takes the as-drawn adapter (plan); a legacy
+    reading view takes the legacy adapter (its ``image_kind`` decides
+    plan/elevation).  Anything else — a v0 prototype, an unknown or damaged
+    shape — is a LOUD refusal at the adapt link: the chain has no silent
+    fallback to the pasted-JSON leg and none to legacy recognition.
+
+    ``fixed_responses`` is the sanctioned escape hatch (dispatch §四): when
+    given, the model beat is NOT called and the fixed responses drive the
+    loop — for proving the wiring when the provider cannot run.  The route
+    record says which source was used; a fixture result is never reported
+    as a model result.
+
+    Failure contract (acceptance 3): a failure at any link propagates to
+    the caller UNCAUGHT, and ``_run/evidence_chain_failure.json`` names the
+    link (source_read / adapt / compile / model / loop).
+    """
+    from src.agent.correction.decision_executor import run_decision_loop
+    from src.agent.correction.evidence_adapters import (
+        adapt_as_drawn_plan,
+        adapt_legacy_reading_view,
+    )
+    from src.agent.correction.evidence_contract import EvidenceContractError
+    from src.agent.reading.vector_contract import (
+        CONTRACT_AS_DRAWN_PLAN,
+        CONTRACT_READING_VIEW_LEGACY,
+        classify_vector_json,
+    )
+
+    # -- source_read: freeze the bytes -------------------------------------- #
+    try:
+        raw = (Path(vector_dir) / product_filename).read_bytes()
+    except OSError as exc:
+        _record_evidence_chain_failure(out_dir, "source_read", exc)
+        raise
+
+    # -- adapt: parse, classify, and let the classifier's verdict pick the
+    #    adapter (never the file name) --------------------------------------- #
+    try:
+        doc = json.loads(raw.decode("utf-8"))
+        decision = classify_vector_json(doc)
+        if decision.contract_id == CONTRACT_AS_DRAWN_PLAN:
+            adapter_name = "adapt_as_drawn_plan"
+            if floor_ref is None:
+                m = re.search(r"(\d+)\s*f", Path(product_filename).stem, re.I)
+                floor_ref = m.group(0).lower() if m else Path(product_filename).stem
+            artifact = adapt_as_drawn_plan(
+                raw,
+                input_id=Path(product_filename).stem,
+                floor_ref=floor_ref,
+                view_type="plan",
+            )
+        elif decision.contract_id == CONTRACT_READING_VIEW_LEGACY:
+            adapter_name = "adapt_legacy_reading_view"
+            kind = doc.get("image_kind") or "plan"
+            if view_type is None:
+                view_type = "elevation" if kind == "elevation" else "plan"
+            if floor_ref is None:
+                floor_ref = doc.get("image_label") or Path(product_filename).stem
+            artifact = adapt_legacy_reading_view(
+                raw,
+                input_id=Path(product_filename).stem,
+                floor_ref=floor_ref,
+                view_type=view_type,
+            )
+        else:
+            raise EvidenceContractError(
+                "EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED",
+                {
+                    "file": product_filename,
+                    "contract": decision.contract_id,
+                    "reason": decision.reason,
+                    "wired": [CONTRACT_AS_DRAWN_PLAN, CONTRACT_READING_VIEW_LEGACY],
+                },
+            )
+    except Exception as exc:  # ⛔ recorded, then re-raised untouched
+        _record_evidence_chain_failure(out_dir, "adapt", exc)
+        raise
+
+    # -- the loop (compile + packet + model + executor) ---------------------- #
+    if fixed_responses is not None:
+        provider = None
+        response_source = f"fixed_responses({len(fixed_responses)}; model NOT called)"
+        responses = tuple(fixed_responses)
+    else:
+        provider = _make_decision_response_provider(
+            section_name=llm_section_name, out_dir=out_dir
+        )
+        response_source = f"model:{llm_section_name}"
+        responses = ()
+    try:
+        outcome = run_decision_loop(
+            artifact,
+            profile=profile,
+            responses=responses,
+            response_provider=provider,
+            round_budget=round_budget,
+        )
+    except Exception as exc:
+        # Name the LINK, not just the call: compile and packet construction
+        # live inside the loop, so the exception family is the honest ruler —
+        # WallCompilerError / an evidence-contract raise ⇒ compile, a
+        # DecisionLoopError ⇒ the executor, anything else in provider mode
+        # ⇒ the model beat (transport / retry exhaustion / guard refusals
+        # the beat's own retry budget could not absorb).
+        from src.agent.correction.decision_executor import DecisionLoopError
+        from src.agent.correction.evidence_contract import EvidenceContractError
+        from src.agent.correction.wall_compiler import WallCompilerError
+
+        if isinstance(exc, (WallCompilerError, EvidenceContractError)):
+            stage = "compile"
+        elif isinstance(exc, DecisionLoopError):
+            stage = "loop"
+        else:
+            stage = "model" if provider is not None else "loop"
+        _record_evidence_chain_failure(out_dir, stage, exc)
+        raise
+
+    # -- terminus: the outcome + the route record, both as-measured ---------- #
+    if out_dir is not None:
+        (Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME).write_text(
+            outcome.model_dump_json(indent=2), encoding="utf-8"
+        )
+    route = {
+        "route": "evidence_chain",
+        "source_file": product_filename,
+        "contract": decision.contract_id,
+        "adapter": adapter_name,
+        "profile": profile,
+        "round_budget": round_budget,
+        "response_source": response_source,
+        "outcome_success": outcome.success,
+        "exit_reason": outcome.exit_reason,
+        "outcome_path": (
+            str(Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME)
+            if out_dir is not None
+            else None
+        ),
+    }
+    route_path = _evidence_chain_run_meta(out_dir, _EVIDENCE_CHAIN_ROUTE_NAME)
+    if route_path is not None:
+        try:
+            route_path.write_text(
+                json.dumps(route, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        except OSError as exc:
+            logger.warning(
+                "evidence chain: could not file the route record under {}: {}",
+                route_path.parent,
+                type(exc).__name__,
+                exc,
+            )
+    return outcome
+
+
 def run_correction(
     vector_dir: Path,
     testdata_text: str,
@@ -743,6 +1136,11 @@ def run_correction(
     fail_closed_evidence_debt: bool = False,
     target=None,
     observation_reference_catalog: str | None = None,
+    evidence_chain: bool = False,
+    evidence_chain_product: str | None = None,
+    evidence_chain_profile: str = "exploratory",
+    evidence_chain_round_budget: int = 3,
+    evidence_chain_fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -752,10 +1150,46 @@ def run_correction(
     ``_schema_only_correction_validator`` (stepwise mode) so the inner retry handles
     only schema/format, leaving semantic draw quality to gate① (so a content-bad
     draw is counted + filed as an attempt, not silently re-drawn). Pass ``None`` to
-    disable the inner validator entirely."""
+    disable the inner validator entirely.
+
+    ⭐ Module 7 (2026-09-02): ``evidence_chain=True`` switches this stage onto
+    the evidence chain (frozen bytes → adapter → compiler → decision packet →
+    model beat → decision loop).  The switch is EXPLICIT and one-way: the
+    pasted-JSON prompt below is not built at all in that mode, and when the
+    chain reaches its terminus this raises ``EvidenceChainTerminal`` — the
+    projection bridge that would produce the returned ``CorrectedGeometry``
+    is the NEXT dispatch, so there is no success product to hand back here
+    (⛔ and the provisional must never travel as one)."""
     from src.agent.correction.parse import correction_target, parse_correction_draw
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     target = target or correction_target(capability_profile)
+    if evidence_chain:
+        if evidence_chain_product is None:
+            raise ValueError(
+                "evidence_chain=True needs evidence_chain_product: the ONE "
+                "frozen reading product this chain run consumes (module 7 "
+                "wires one source per chain run)"
+            )
+        outcome = run_correction_evidence_chain(
+            vector_dir,
+            evidence_chain_product,
+            out_dir=out_dir,
+            profile=evidence_chain_profile,
+            round_budget=evidence_chain_round_budget,
+            fixed_responses=evidence_chain_fixed_responses,
+        )
+        outcome_path = (
+            Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME if out_dir is not None else None
+        )
+        raise EvidenceChainTerminal(
+            "1_correction evidence chain reached module 7's terminus: "
+            f"DecisionLoopOutcomeV1 on disk at {outcome_path} "
+            f"(success={outcome.success}, exit_reason={outcome.exit_reason!r}). "
+            "The projection bridge to CorrectedGeometry "
+            "(CorrectedGeometryProjectionEnvelopeV1, design §5.4) is the next "
+            "dispatch — no success product is returned here, and the "
+            "provisional travels for audit only."
+        )
     # F-97 (F-c, B-03): classify and FILE THE LEDGER FIRST -- before the reading
     # evidence preflight below, which parses `*_view.json` and dies on a
     # non-object with a bare `AttributeError: 'list' object has no attribute

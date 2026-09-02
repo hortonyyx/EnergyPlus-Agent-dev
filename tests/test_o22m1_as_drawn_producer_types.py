@@ -389,19 +389,42 @@ def test_every_in_scope_node_forbids_unknown_keys():
 
 
 # =========================================================================== #
-# 验收 6 -- the disposition is untouched (⛔ this dispatch does not wire it)
+# 验收 6 -- the disposition: ⭐ FLIPPED (module 7 wiring, 2026-09-02).
+# The old pin ("still known but NOT consumed") flipped on purpose the day the
+# adapter was registered; the rule it protected survives in a sharper shape.
 # =========================================================================== #
-def test_as_drawn_is_still_known_but_not_consumed():
+def test_as_drawn_plan_is_wired_to_the_adapter():
+    """⭐ FLIPPED (module 7, 2026-09-02) from ``test_as_drawn_is_still_known_
+    but_not_consumed``.  The wire the old pin was holding the door for now
+    EXISTS: a recognized as-drawn plan product takes disposition ``ADAPT`` —
+    frozen bytes through ``adapt_as_drawn_plan``, ⛔ never the pasted-JSON
+    prompt and ⛔ never offender status.  The rule the old pin protected
+    ("as-drawn is not silently pasted") is now held by the ADAPT ledger
+    contract in ``vector_contract`` (point-named, not consumed, not an
+    offender) plus the pasted-JSON leg's directory refusal."""
     spec = next(s for s in CONTRACTS if s.contract_id == CONTRACT_AS_DRAWN_PLAN)
-    assert spec.disposition is Disposition.KNOWN_NOT_CONSUMED
+    assert spec.disposition is Disposition.ADAPT
     assert classify_vector_json(_load("sm25_2f_v2.json")).disposition is (
-        Disposition.KNOWN_NOT_CONSUMED
+        Disposition.ADAPT
     )
 
 
-def test_no_new_contract_became_consumable():
+def test_only_the_two_named_contracts_hold_wires():
+    """⭐ STRENGTHENED (module 7) from ``test_no_new_contract_became_
+    consumable``.  The rule is "no contract may quietly grow a wire", and a
+    wire now has TWO directions — consuming (pasted-JSON leg) and adapting
+    (evidence chain) — so BOTH sets are named, not just the first.  A third
+    contract silently turning either direction on stays a red.  The
+    mutation that proves this rule can still go red is locked in
+    ``test_o22m7_evidence_wiring`` (dispatch v2 acceptance 4b)."""
     consuming = {s.contract_id for s in CONTRACTS if s.disposition is Disposition.CONSUME}
-    assert consuming == {CONTRACT_READING_VIEW_LEGACY}
+    adapting = {s.contract_id for s in CONTRACTS if s.disposition is Disposition.ADAPT}
+    assert consuming == {CONTRACT_READING_VIEW_LEGACY}, (
+        f"pasted-JSON leg quietly grew: {consuming}"
+    )
+    assert adapting == {CONTRACT_AS_DRAWN_PLAN}, (
+        f"evidence chain quietly grew: {adapting}"
+    )
 
 
 # =========================================================================== #

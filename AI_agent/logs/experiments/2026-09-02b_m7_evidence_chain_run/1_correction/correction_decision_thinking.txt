@@ -1,0 +1,9 @@
+We need respond JSON only. Need parse packet. open_items empty. So item_decisions empty array likely. whole_building_review verdict accept or findings. Need decide. Need review provisional geometry for findings. Packet open_items empty, but whole_building_review can have findings. We must judge. We have many wall summaries. Need identify potential issues? But acceptance only meaningful against packet provisional geometry. We can maybe accept if no findings. But maybe need inspect consistency results pass. There are walls with thickness resolutions snap to declarations. Could be issues like some observed face spacing mismatch 0.109 vs declared 0.12 delta 0.011, but that's allowed? Not necessarily finding. Need decide if any whole-building finding. The instruction says decide every open item and give whole-building review. Since no open items, accept unless there is issue.
+
+We need be careful: output no coordinates anywhere. We can use reason codes, entity ids, source refs but no numbers. Findings if any must cite entities. The packet has no open items. Whole building verdict accept if no findings. Are there hidden issues? Let's examine provisional geometry summaries. Several walls are single_face (wall_83c8...). This one uses single face 11 with resolved thickness 0.12 OFFSET_NEGATIVE. Is that okay? Could be missing paired face? But not open.
+
+We should not invent issues. Accept. But ensure response includes packet_hash exactly. item_decisions maybe [] because no open items. whole_building_review verdict accept. findings default omitted or empty? Schema allows findings optional default? In WholeBuildingReviewV1 required only verdict, findings default. So can provide verdict accept only. But maybe include findings empty. We can include both. No numbers.
+
+Need output only JSON object. Let's create: {"packet_hash":"e253...","item_decisions":[],"whole_building_review":{"verdict":"accept","findings":[]}}.
+
+Need ensure no markdown. final.

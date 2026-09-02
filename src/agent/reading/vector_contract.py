@@ -93,6 +93,15 @@ class Disposition(str, Enum):
     CONSUME = "consume"
     """Pasted into the correction prompt (today: legacy reading views only)."""
 
+    ADAPT = "adapt"
+    """Wired to a correction evidence adapter (module 7): the FROZEN BYTES
+    travel through adapt_* → bundle → compiler → decision loop, ⛔ never
+    into the pasted-JSON prompt.  ⭐ The four-value set is a deliberate
+    transition state: ``CONSUME`` dies with the legacy pasted-JSON leg
+    (plan.md ④), at which point the target three-value set
+    ``ADAPT / KNOWN_NOT_ADAPTED / EXCLUDE`` of the approved design is
+    reached by RENAMING, not by this module growing a fifth behaviour."""
+
     KNOWN_NOT_CONSUMED = "known_not_consumed"
     """Recognized contract that this stage has no wire for ⇒ loud failure.
     ⭐ Deliberately distinct from ``unknown``: when the reading/correction
@@ -199,9 +208,10 @@ def _detect_as_drawn_plan(raw: dict) -> bool:
     that declares a registered value and then fails its contract falls to the
     BLK-A rule in ``classify_vector_json`` and comes out UNKNOWN, never legacy.
 
-    ⛔ Deliberately NOT changed here: the disposition stays
-    ``KNOWN_NOT_CONSUMED``.  Pointing this contract at a correction adapter is a
-    later module's work.
+    ⭐ 2026-09-02 (module 7 wiring): the disposition moved to ``ADAPT`` -- the
+    bytes of a recognized product now have a wire (``adapt_as_drawn_plan``).
+    The ledger names ADAPT files without offender status: a run that has them
+    but did not take the evidence chain is refused by the caller, not here.
     """
     if not _is_declared(raw, AS_DRAWN_PLAN_SCHEMA):
         return False
@@ -249,7 +259,7 @@ CONTRACTS: tuple[ContractSpec, ...] = (
     ),
     ContractSpec(
         CONTRACT_AS_DRAWN_PLAN,
-        Disposition.KNOWN_NOT_CONSUMED,
+        Disposition.ADAPT,
         _detect_as_drawn_plan,
         f"schema=={AS_DRAWN_PLAN_SCHEMA!r} (imported from its producer) "
         "with observations/declarations/hypotheses AND parses as "
@@ -375,6 +385,14 @@ class LedgerRow:
 class VectorDirDecision:
     consumed: list[str]
     """Filenames 1_correction may paste, in the caller's original order."""
+    adapted: list[str]
+    """Filenames wired to a correction evidence adapter (module 7).
+
+    ⭐ Point-named in the ledger, ⛔ never offenders and ⛔ never in
+    ``consumed``: "adapted" and "pasted into the prompt" are disjoint
+    wires, and a run that carries ADAPT files without taking the
+    evidence chain is refused by the CALLER (the classifier does not know
+    which leg the run is on)."""
     rows: list[LedgerRow]
 
     def as_ledger(self) -> dict:
@@ -384,6 +402,7 @@ class VectorDirDecision:
         return {
             "ledger_version": "reading_vector_contract_ledger_v1",
             "consumed": list(self.consumed),
+            "adapted": list(self.adapted),
             "counts": counts,
             "files": [row.as_dict() for row in self.rows],
         }
@@ -478,11 +497,17 @@ def _classify_one(
 
 def _classify_rows(
     vector_dir: Path, names: list[str]
-) -> tuple[list[str], list[LedgerRow], list[str]]:
-    """Shared core: (consumed, ledger rows, offender descriptions). Never raises."""
+) -> tuple[list[str], list[str], list[LedgerRow], list[str]]:
+    """Shared core: (consumed, adapted, ledger rows, offender descriptions).
+
+    Never raises.  ⭐ Module 7: ADAPT files are point-named in ``adapted``
+    and in the ledger rows, ⛔ never offenders (the wire EXISTS) and ⛔ never
+    in ``consumed`` (adapting and pasting are disjoint wires).
+    """
     vector_dir = Path(vector_dir)
     rows: list[LedgerRow] = []
     consumed: list[str] = []
+    adapted: list[str] = []
     offenders: list[str] = []
     for name in names:
         decision, unintelligible = _classify_one(vector_dir, name)
@@ -494,6 +519,18 @@ def _classify_rows(
             rows.append(
                 LedgerRow(
                     name, decision.contract_id, decision.disposition.value, None
+                )
+            )
+        elif decision.disposition is Disposition.ADAPT:
+            adapted.append(name)
+            rows.append(
+                LedgerRow(
+                    name,
+                    decision.contract_id,
+                    decision.disposition.value,
+                    "recognized; wired to the correction evidence adapter "
+                    "(module 7) — the frozen bytes travel through "
+                    "adapt_*, never the pasted-JSON prompt",
                 )
             )
         elif decision.disposition is Disposition.EXCLUDE:
@@ -518,7 +555,7 @@ def _classify_rows(
         else:
             rows.append(LedgerRow(name, CONTRACT_UNKNOWN, "error", decision.reason))
             offenders.append(f"{name}: unknown contract — {decision.reason}")
-    return consumed, rows, offenders
+    return consumed, adapted, rows, offenders
 
 
 def ledger_for(vector_dir: Path, names: list[str]) -> dict:
@@ -527,8 +564,10 @@ def ledger_for(vector_dir: Path, names: list[str]) -> dict:
     Written before the prompt is assembled so that a run which fails
     classification still leaves a readable record naming every offending file.
     """
-    consumed, rows, _ = _classify_rows(vector_dir, names)
-    return VectorDirDecision(consumed=consumed, rows=rows).as_ledger()
+    consumed, adapted, rows, _ = _classify_rows(vector_dir, names)
+    return VectorDirDecision(
+        consumed=consumed, adapted=adapted, rows=rows
+    ).as_ledger()
 
 
 def classify_vector_dir(vector_dir: Path, names: list[str]) -> VectorDirDecision:
@@ -536,8 +575,11 @@ def classify_vector_dir(vector_dir: Path, names: list[str]) -> VectorDirDecision
 
     ⭐ This is the point where "an undeclared shape" stops being a silent paste
     and becomes a named failure.  ``EXCLUDE`` files are dropped but recorded.
+    ⭐ Module 7: ``ADAPT`` files are NOT offenders here — the wire exists; a
+    run that carries them without taking the evidence chain is refused by
+    the caller (``pipeline``), which knows which leg the run is on.
     """
-    consumed, rows, offenders = _classify_rows(vector_dir, names)
+    consumed, adapted, rows, offenders = _classify_rows(vector_dir, names)
     if offenders:
         raise UnconsumableVectorFile(
             "1_correction refuses to assemble a prompt from "
@@ -546,4 +588,4 @@ def classify_vector_dir(vector_dir: Path, names: list[str]) -> VectorDirDecision
             "pasted as untyped text). Offending files:\n  - "
             + "\n  - ".join(offenders)
         )
-    return VectorDirDecision(consumed=consumed, rows=rows)
+    return VectorDirDecision(consumed=consumed, adapted=adapted, rows=rows)

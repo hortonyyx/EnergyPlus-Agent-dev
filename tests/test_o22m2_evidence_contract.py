@@ -1739,15 +1739,18 @@ def test_the_type_layer_imports_no_pipeline():
     assert result.stdout.strip() == "False"
 
 
-def test_as_drawn_is_still_not_consumed():
-    """The one-line gate from the wiring survey is untouched BY THIS DISPATCH.
-    ⚠️ Like module 1's identical lock, this pin flips the day module 7
-    registers the adapter -- that flip must be an on-purpose change."""
+def test_as_drawn_plan_is_adapt_not_consumed():
+    """⭐ FLIPPED (module 7 wiring, 2026-09-02) from ``test_as_drawn_is_
+    still_not_consumed`` -- the flip this pin's own docstring said must be
+    on-purpose.  The adapter is registered: disposition ``ADAPT``, which
+    still means ⛔ NOT consumed (adapting and pasting are disjoint wires)
+    and ⛔ never an offender -- the ledger contract this module's bundles
+    rely on is unchanged where it touches us."""
     from src.agent.reading.vector_contract import CONTRACTS, Disposition
 
     spec = next(s for s in CONTRACTS
                 if s.contract_id == CONTRACT_AS_DRAWN_PLAN)
-    assert spec.disposition is Disposition.KNOWN_NOT_CONSUMED
+    assert spec.disposition is Disposition.ADAPT
 
 
 # =========================================================================== #

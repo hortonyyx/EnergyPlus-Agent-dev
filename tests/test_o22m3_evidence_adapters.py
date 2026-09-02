@@ -26,9 +26,10 @@ What is locked here, per acceptance item
    the real-product shape (pairs=None, buckets untouched) refuses loudly with
    ``PAIRS_SELECTION_ABSENT``; the honest covered shape travels with a
    ``pairs_selection_absent`` debt and ZERO pair claims;
-6  this module wires nothing (import probe; the as-drawn disposition is still
-   ``KNOWN_NOT_CONSUMED``; the git-diff half of the reading is in the
-   execution report);
+6  this module wires nothing (import probe; the as-drawn disposition was
+   ``KNOWN_NOT_CONSUMED`` until module 7 registered this adapter on
+   2026-09-02 — see the flipped pin below; the git-diff half of the reading
+   is in the execution report);
 7  determinism: same bytes twice → identical bundle hash and bytes.
 
 Every red test proves its own premise first (the uncorrupted input adapts and
@@ -596,12 +597,15 @@ def test_the_adapters_import_no_pipeline():
     assert result.stdout.strip() == "False"
 
 
-def test_as_drawn_is_still_not_consumed():
-    """The one-line gate from the wiring survey stays untouched BY THIS
-    DISPATCH: registering this adapter is module 7's on-purpose flip."""
+def test_as_drawn_plan_is_adapt_not_consumed():
+    """⭐ FLIPPED (module 7 wiring, 2026-09-02) from ``test_as_drawn_is_
+    still_not_consumed`` -- the flip this pin's own docstring reserved for
+    module 7.  This adapter IS the wire now: disposition ``ADAPT``, ⛔ not
+    consumed, ⛔ not an offender; the bytes reach this module through
+    ``adapt_as_drawn_plan``, never the pasted-JSON prompt."""
     spec = next(s for s in CONTRACTS
                 if s.contract_id == CONTRACT_AS_DRAWN_PLAN)
-    assert spec.disposition is Disposition.KNOWN_NOT_CONSUMED
+    assert spec.disposition is Disposition.ADAPT
 
 
 # =========================================================================== #

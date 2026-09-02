@@ -154,9 +154,15 @@ def test_b2_non_object_json_is_unknown():
 
 
 # --------------------------------------------------------------------------- #
-# B3' — as-drawn is KNOWN but NOT CONSUMED (a third behaviour, not the other two)
+# B3' — as-drawn is WIRED TO THE ADAPTER (module 7 flip, 2026-09-02):
+# a third behaviour — ⛔ not consumed, ⛔ not an offender, point-named as adapted.
 # --------------------------------------------------------------------------- #
-def test_b3_as_drawn_plan_is_known_but_not_consumed():
+def test_b3_as_drawn_plan_is_wired_to_the_adapter():
+    """⭐ FLIPPED (module 7, 2026-09-02) from ``test_b3_as_drawn_plan_is_
+    known_but_not_consumed``: the wire the old pin was waiting for exists
+    (``adapt_as_drawn_plan``).  The rule it protected -- ⛔ never pasted
+    into the correction prompt -- is unchanged; ADAPT and CONSUME are
+    disjoint wires."""
     raw = {
         "schema": PRODUCER_AS_DRAWN_SCHEMA,
         "image": "x.png",
@@ -168,7 +174,7 @@ def test_b3_as_drawn_plan_is_known_but_not_consumed():
     }
     decision = classify_vector_json(raw)
     assert decision.contract_id == CONTRACT_AS_DRAWN_PLAN
-    assert decision.disposition is Disposition.KNOWN_NOT_CONSUMED
+    assert decision.disposition is Disposition.ADAPT
 
 
 # --------------------------------------------------------------------------- #
@@ -199,7 +205,9 @@ def test_nf1_empty_face_lines_list_is_still_as_drawn_plan():
     reading of a blank image produces ``face_lines: []`` -- the key is present,
     the list is empty.  It stays routed to ``as_drawn_plan`` (账面: as-drawn
     plan, zero face lines).  Whether zero measured walls is *right* is
-    grade/zero-wall's job, ⛔ never a structural refusal here."""
+    grade/zero-wall's job, ⛔ never a structural refusal here.
+    (Module 7 flip, 2026-09-02: the disposition line below moved from
+    KNOWN_NOT_CONSUMED to ADAPT together with the contract's registration.)"""
     empty = {
         "schema": PRODUCER_AS_DRAWN_SCHEMA,
         "observations": {"face_lines": []},
@@ -208,13 +216,20 @@ def test_nf1_empty_face_lines_list_is_still_as_drawn_plan():
     }
     decision = classify_vector_json(empty)
     assert decision.contract_id == CONTRACT_AS_DRAWN_PLAN
-    assert decision.disposition is Disposition.KNOWN_NOT_CONSUMED
+    assert decision.disposition is Disposition.ADAPT
 
 
-def test_b3_as_drawn_raises_and_says_known_not_unknown(tmp_path):
-    """⛔ Not pasted as `others`, ⛔ not 'pretend we don't recognize it'.
-    When the reading/correction unification lands, 'not wired yet' and 'never
-    heard of it' must stay tellable apart."""
+def test_b3_as_drawn_directory_is_refused_by_the_pasted_json_leg(tmp_path):
+    """⭐ FLIPPED + REWRITTEN (module 7 wiring, 2026-09-02) from ``test_b3_
+    as_drawn_raises_and_says_known_not_unknown``.
+
+    What the OLD lock held: a recognized as-drawn product in the directory ⇒
+    the pasted-JSON leg refuses loudly, naming the file, with "no wire for
+    it / NOT unknown".  What the NEW rule holds -- same teeth, sharper aim:
+    the wire EXISTS now (ADAPT), so the refusal names the files AND the
+    switch, because the one thing that must never happen is the run looking
+    green while its entire as-drawn evidence silently stayed outside the
+    model.  Still ⛔ tellably different from "unknown contract"."""
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _legacy_view())
     _write(
@@ -233,7 +248,7 @@ def test_b3_as_drawn_raises_and_says_known_not_unknown(tmp_path):
         _build_correction_messages(vdir, "{}")
     msg = str(exc.value)
     assert "sm25_1f_v2.json" in msg
-    assert "no wire for it" in msg and "NOT unknown" in msg
+    assert "evidence adapter" in msg and "evidence_chain=True" in msg
     assert "unknown contract" not in msg
 
 

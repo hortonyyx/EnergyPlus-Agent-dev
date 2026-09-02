@@ -69,6 +69,24 @@ intake_correction:
     thinking:
       type: enabled
 
+# correction_decision (module 7 wiring, 2026-09-02): the model beat of the
+# 1_correction EVIDENCE CHAIN (decision packet → model → CorrectionDecision-
+# ResponseV1). Distinct from intake_correction on purpose: that section drives
+# the pasted-JSON leg; this one drives the adjudication beat, so it can be
+# pointed at a different model / temperature without touching the old leg.
+# Delete this section to fall back to `default` (llm.py resolution rule).
+correction_decision:
+  provider: openai
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+  api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+  model_name: deepseek-v4-pro
+  temperature: 0.3
+  max_tokens: 64000
+  reasoning_effort: high
+  extra_body:
+    thinking:
+      type: enabled
+
 # intake_mep (optional override for the 4_mep physics stage). If absent, the
 # pipeline falls back to intake_correction. Add a section here only to run 4_mep
 # on a different model than 1_correction.

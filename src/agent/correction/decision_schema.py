@@ -46,7 +46,8 @@ on the item path; the entity-index check proves it on the finding path.
 """
 from __future__ import annotations
 
-from typing import Annotated, Literal, Union
+import re
+from typing import Annotated, Any, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -287,8 +288,78 @@ class CorrectionDecisionResponseV1(BaseModel):
     whole_building_review: WholeBuildingReviewV1
 
 
+# ── module 7: the runtime twin of the no-coordinate type proof ------------- #
+#: A decimal coordinate PAIR (or an x=/y= axis assignment) inside ONE string
+#: leaf.  ⭐ This is a coordinate-pair detector, ⛔ NOT a general number ban:
+#: a rationale may legitimately cite one dimension ("spacing exceeds 0.24"),
+#: but two decimals separated by a comma/semicolon — or an axis assignment —
+#: is a coordinate smuggled through a channel the TYPE cannot see.
+_COORDINATE_PAIR_IN_STRING_RE = re.compile(
+    r"[xy]=\s*-?\d"                    # an axis assignment, e.g. x=12.3
+    r"|-?\d+\.\d+\s*[,;]\s*-?\d+\.\d+"  # two decimals: 12.34, 56.78
+)
+
+
+class CoordinateSmuggledInResponse(ValueError):
+    """A model response payload carries a coordinate the type layer cannot
+    see (module 7's model seat).  Raised by
+    ``assert_response_payload_carries_no_coordinates`` BEFORE the payload
+    is constructed into ``CorrectionDecisionResponseV1``."""
+
+
+def assert_response_payload_carries_no_coordinates(payload: Any) -> None:
+    """Runtime twin of the type-level no-coordinate proof (module 7).
+
+    The type proof (``extra="forbid"`` + no numeric field anywhere on the
+    response tree) cannot see numbers hidden INSIDE strings, and a bare
+    schema error does not tell the model seat WHICH channel smuggled.  This
+    walks the RAW parsed payload (pre-construction) and refuses, naming the
+    JSON path:
+
+    * any numeric leaf (``int``/``float``/``bool`` — the response type has
+      no numeric or boolean field at all, so a number here is an extra
+      channel or a mis-placed field; failing here gives the model seat a
+      retry with a pointed message instead of a bare schema error);
+    * any string leaf matching a decimal coordinate PAIR or an x=/y= axis
+      assignment (see the regex above — one dimension in prose is fine).
+
+    ⭐ Keep this a pure payload check: it never constructs, never reads the
+    packet, and never decides anything about the geometry — its whole job
+    is to make "the response has no coordinates" hold on the RAW bytes
+    channel too, not only on the constructed type.
+    """
+    def _walk(node: Any, path: str) -> None:
+        if isinstance(node, bool) or isinstance(node, (int, float)):
+            raise CoordinateSmuggledInResponse(
+                f"numeric leaf at {path or '<root>'}: {node!r} — the "
+                "decision response type has no numeric field at all"
+            )
+        if isinstance(node, str):
+            hit = _COORDINATE_PAIR_IN_STRING_RE.search(node)
+            if hit:
+                raise CoordinateSmuggledInResponse(
+                    f"coordinate-like pair in string at {path}: {hit.group(0)!r} "
+                    f"(full value {node!r}) — coordinates may not travel "
+                    "inside response strings"
+                )
+            return
+        if isinstance(node, dict):
+            for key, value in node.items():
+                _walk(value, f"{path}.{key}" if path else str(key))
+            return
+        if isinstance(node, (list, tuple)):
+            for i, value in enumerate(node):
+                _walk(value, f"{path}[{i}]")
+            return
+        # None / actual strings fell through above; anything else (a model
+        # seat should never produce it) is left to the strict type layer.
+
+    _walk(payload, "")
+
+
 __all__ = [
     "ConsistencyResultV1",
+    "CoordinateSmuggledInResponse",
     "CorrectionDecisionPacketV1",
     "CorrectionDecisionResponseV1",
     "EntitySourceRefsV1",
