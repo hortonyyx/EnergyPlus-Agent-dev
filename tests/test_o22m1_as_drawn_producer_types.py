@@ -443,9 +443,16 @@ _ADAPTING_WIRES = {
 _NON_ADAPTING_ENTRY_POINTS = {"adapt_legacy_reading_view"}
 
 
-def _wire_sets(contracts: tuple[ContractSpec, ...] = CONTRACTS) -> tuple[set, set]:
+def _wire_sets(contracts: tuple[ContractSpec, ...]) -> tuple[set, set]:
     """The criterion the lock and its mutation share: BOTH wire directions
-    at once (consuming = pasted-JSON leg, adapting = evidence chain)."""
+    at once (consuming = pasted-JSON leg, adapting = evidence chain).
+
+    ⚠️ Explicit parameter, NO default -- a module-level default would bind
+    ``CONTRACTS`` at def time and neuter the monkeypatch the mutation test
+    relies on (the exact trap the reference lock ``_wiring_sets`` in
+    ``test_o22m7_evidence_wiring`` warns about in its docstring; B-1 of the
+    2026-09-03 rework was this file copying that lock's shape but re-importing
+    the very defect its docstring was written to prevent)."""
     return (
         {s.contract_id for s in contracts
          if s.disposition is Disposition.CONSUME},
@@ -468,7 +475,7 @@ def test_every_adapt_wire_is_a_registered_contract_with_a_real_entry_point():
       ``evidence_adapters`` -- the registration cannot rot into a
       transcript naming functions that are no longer there.
     """
-    consuming, adapting = _wire_sets()
+    consuming, adapting = _wire_sets(vector_contract.CONTRACTS)
     assert consuming == {CONTRACT_READING_VIEW_LEGACY}, (
         f"pasted-JSON leg quietly grew: {consuming}"
     )
@@ -502,9 +509,17 @@ def test_every_public_adapt_entry_point_is_accounted_for():
 def test_a_fourth_contract_quietly_turning_adapting_goes_red(monkeypatch):
     """The STANDING mutation lock for the two rules above (same shape as
     ``test_o22m7``'s 4b pair, per dispatch T6-d): smuggle a FOURTH contract
-    into the adapting set; the registration rule must fail on it --
-    measured through the same criterion function, ⛔ not a re-quoted copy
-    of the assertion."""
+    into the adapting set and run THE MAIN LOCK ITSELF -- ⛔ not a
+    re-quoted copy of its assertion.
+
+    ⭐ B-1 (2026-09-03 rework): the first version smuggled the contract and
+    then re-stated the expected equality -- that copy went red while the
+    MAIN lock stayed GREEN, because ``_wire_sets`` carried ``CONTRACTS`` as
+    a def-time-bound default argument, so the main lock's ``_wire_sets()``
+    call never saw the monkeypatched tuple.  With the criterion now taking
+    an explicit parameter and the lock reading
+    ``vector_contract.CONTRACTS`` at call time, this mutation can only
+    pass by turning the real lock red."""
     smuggled = ContractSpec(
         "contract_smuggled_fourth_wire",
         Disposition.ADAPT,
@@ -515,10 +530,7 @@ def test_a_fourth_contract_quietly_turning_adapting_goes_red(monkeypatch):
         vector_contract, "CONTRACTS", vector_contract.CONTRACTS + (smuggled,)
     )
     with pytest.raises(AssertionError):
-        assert _wire_sets(vector_contract.CONTRACTS) == (
-            {CONTRACT_READING_VIEW_LEGACY},
-            set(_ADAPTING_WIRES),
-        )
+        test_every_adapt_wire_is_a_registered_contract_with_a_real_entry_point()
 
 
 # =========================================================================== #
