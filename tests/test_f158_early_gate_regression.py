@@ -32,12 +32,14 @@ from __future__ import annotations
 
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import textwrap
 import tomllib
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+_SELFCHECK = _REPO_ROOT / "tests" / "test_f158_gate_behavioral_selfcheck.py"
 
 
 def test_gate_plugin_is_pinned_first_in_addopts():
@@ -200,3 +202,50 @@ def test_early_and_prebound_carriers_are_blocked(tmp_path):
     # import (before pytest_configure), the inner asserts fail, rc != 0.
     assert proc.returncode == 0, detail
     assert "3 passed" in proc.stdout, detail
+
+
+def _run_selfcheck(tmp_path: pathlib.Path, gate_on: bool) -> subprocess.CompletedProcess:
+    """Run the real behavioural self-check (``tests/test_f158_gate_behavioral_
+    selfcheck.py``) in a fresh tree that has NO ``tests/conftest.py`` (so nothing
+    re-imports and auto-arms the gate). ``-o addopts=`` drops the ini pin, so with
+    ``gate_on=False`` the gate is genuinely absent; with ``gate_on=True`` we load
+    it explicitly via ``-p ep_no_billed_gate`` (resolved off the repo root on
+    PYTHONPATH)."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    probe = tmp_path / "test_probe.py"
+    shutil.copy2(_SELFCHECK, probe)
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(_REPO_ROOT), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
+    env.pop("PYTEST_ADDOPTS", None)
+    env.pop("DEEPSEEK_API_KEY", None)
+    env.pop("OPENAI_API_KEY", None)
+    cmd = [sys.executable, "-m", "pytest", "test_probe.py", "-o", "addopts=", "-q"]
+    if gate_on:
+        cmd += ["-p", "ep_no_billed_gate"]
+    cmd += ["-p", "no:cacheprovider"]
+    return subprocess.run(
+        cmd, cwd=str(tmp_path), env=env, capture_output=True, text=True, timeout=120
+    )
+
+
+def test_behavioral_selfcheck_has_teeth(tmp_path):
+    """Discriminating-power lock for T1: the behavioural self-check MUST go red
+    when the gate is absent and green when present. A resident test that can only
+    ever pass proves nothing (CLAUDE.md: two-kinds-of-latency); this pins that it
+    really flips. Runs the *same* self-check file, not a re-implementation."""
+    off = _run_selfcheck(tmp_path / "off", gate_on=False)
+    off_detail = f"rc={off.returncode}\n--- stdout ---\n{off.stdout}\n--- stderr ---\n{off.stderr}"
+    # Gate absent: the connect is NOT turned into ProviderCallBlocked (in this
+    # environment it either times out or spuriously returns), the self-check
+    # asserts -> red.
+    assert off.returncode != 0, off_detail
+    assert "1 failed" in off.stdout, off_detail
+    assert "egress gate" in off.stdout and "billed" in off.stdout, off_detail
+
+    on = _run_selfcheck(tmp_path / "on", gate_on=True)
+    on_detail = f"rc={on.returncode}\n--- stdout ---\n{on.stdout}\n--- stderr ---\n{on.stderr}"
+    # Gate present: connect -> ProviderCallBlocked -> self-check passes.
+    assert on.returncode == 0, on_detail
+    assert "1 passed" in on.stdout, on_detail
