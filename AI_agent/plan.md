@@ -478,6 +478,26 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 ⛔ 没拿夹具 #3 去验验收 #3 的 ✅ 方向 · ⭐ **4b③「无主面即红」有牙**（它另造攻击：计数相等 3==3、
 第三个面瞬移 ⇒ ②③ 双红，而单向版会绿）。
 
+### ✅ B1 收口补锁已过审（2026-09-03 第三程）· ⛔ 但带出 **1 条新 debt**
+
+**裁决** [`2026-09-03x`](logs/reviews/verdict/2026-09-03x_B1_closure_locks_crossreview_claude.md)：
+**APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 3**（GPT 施工 · Claude 亲审 · 跨家族）。
+**F-2 / F-3 / F-5 / F-6 四条 debt 的补锁均已交付**，复核方**逐把变异实测 4/4 有牙**（⛔ 非采信执行档）。
+
+| 新 # | 欠什么 | 归谁 |
+|---|---|---|
+| **F-7** ⭐⭐ **新** | **envelope 绑定校验量的是【声明】不是【载荷】** —— `source_resolved_sha256` 是 envelope **自己带的字段**，只与 outcome 比对；**没有任何东西验证 `envelope.geometry` 真是它声称的那次编译产出的**。复核方自造不同轴攻击**实测击穿**：不碰声明、只删 geometry 里一间房 ⇒ `run_correction` 原样返回 15 间（本为 16）零报错，且 envelope 自带的 `face_count` 停在 16 = **一份自相矛盾的 envelope 照样通行**。⭐ 免费补丁 = 消费侧拿 `face_count` 与载荷对账（**零阈值**，数据已在手，`pipeline.py:1266` 现在只抄进读数不对账）；⭐ 真解 = 哈希**对 geometry 的规范字节**计算、消费侧重算。⛔ 不塞进已过审的本单（碰投影桥产出格式=实质改动，须另派+换人审）| **另派**（B1 debt）|
+
+⭐⭐ **F-6 的状态要改写**：规则**实现了也锁住了**，但**今天没有任何路径能触发它** ——
+全仓 `evidence_chain_profile="strict"` **只出现 1 次**（就在那把新锁里），
+两个生产调用点 [`pipeline.py:2162`](../src/agent/pipeline.py#L2162) /
+[`run_stage.py:457`](../scripts/tool_scripts/run_stage.py#L457) **连 `evidence_chain=True` 都不传**
+（默认 `False` / `"exploratory"`，而 exploratory **按设计就允许 degraded 通过**）
+⇒ **派工单描述的那个洞对每个现存调用方仍原样成立**，且「strict 端到端」**全仓零测试**。
+⛔ **非施工方的错**（本单只要求实现规则，接线不在范围）。
+⇒ **归 B5，且 B5 的单里要写死「交 judge 那一步必须以 strict 进入」**，否则这道门永远是摆设。
+病族 = [[two-kinds-of-latency-no-ruler-vs-never-reached]] 第二种：**没跑到那一段**。
+
 ### ⛔ B1 收口时带走的 6 条 debt（⛔ 不许当「已做完」）
 
 | # | 欠什么 | 归谁 |
