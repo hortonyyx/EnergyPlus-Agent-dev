@@ -92,6 +92,10 @@ B-2: ``dimensions`` / ``room_roles`` / ``elevation_openings`` have NO
 payload member on this bundle, so no debt can make a ``present`` true for
 them -- their only legal shape is ``absent`` + ``missing_channel``, and a
 ``zero_payload_channel`` debt naming one of them is refused outright.
+(2026-09-03, B3: ``elevation_openings`` and the new ``floor_levels`` GAINED
+payload members -- ``elevation_opening_claims`` / ``floor_level_claims`` --
+so B-2's "no debt can make a present true" now covers only
+``dimensions`` / ``room_roles``.)
 
 Rework-3 (2026-09-01) -- ``absent`` while the payload rides along
 -----------------------------------------------------------------
@@ -139,6 +143,7 @@ from src.agent.correction.window_sources import (
     source_locator,
 )
 from src.agent.reading.vector_contract import (
+    CONTRACT_AS_DRAWN_ELEVATION_V0,
     CONTRACT_AS_DRAWN_PLAN,
     CONTRACT_READING_VIEW_LEGACY,
     CONTRACT_UNKNOWN,
@@ -146,10 +151,14 @@ from src.agent.reading.vector_contract import (
 )
 
 BUNDLE_SCHEMA_VERSION = "correction_evidence_bundle_v1"
-#: The two source contracts this layer knows how to dereference.  ⛔ Not a
+#: The source contracts this layer knows how to dereference.  ⛔ Not a
 #: registry: registration is ``reading.vector_contract``'s business (module 7).
 SOURCE_CONTRACT_AS_DRAWN = CONTRACT_AS_DRAWN_PLAN
 SOURCE_CONTRACT_LEGACY = CONTRACT_READING_VIEW_LEGACY
+#: 2026-09-03 (B3): the as-drawn elevation product joined the dereferenceable
+#: set -- its ``openings[].z_range_m`` and the floor levels carried by its
+#: ``structure_lines`` became referenced evidence (claims below).
+SOURCE_CONTRACT_AS_DRAWN_ELEVATION = CONTRACT_AS_DRAWN_ELEVATION_V0
 
 SourceLocatorStr = Annotated[
     str, StringConstraints(pattern=r"^src:[0-9a-f]{64}$")
@@ -431,15 +440,26 @@ class FaceDispositionV1(BaseModel):
 
 
 # ── §3.3: bundle members ──────────────────────────────────────────────────── #
+#: ⭐ 2026-09-03 (B3): ``floor_levels`` joined the domain.  An as-drawn
+#: elevation product carries the storey ladder in its horizontal structure
+#: lines; the plan and legacy families do not, so for them the channel
+#: travels ``absent`` + ``missing_channel`` -- the routing table says where
+#: each kind of evidence lives, ⛔ never a silent hole.
 CHANNELS = (
     "walls",
     "plan_openings",
     "elevation_openings",
+    "floor_levels",
     "dimensions",
     "room_roles",
 )
 ChannelName = Literal[
-    "walls", "plan_openings", "elevation_openings", "dimensions", "room_roles"
+    "walls",
+    "plan_openings",
+    "elevation_openings",
+    "floor_levels",
+    "dimensions",
+    "room_roles",
 ]
 
 
@@ -508,6 +528,79 @@ class OpeningClaimV1(BaseModel):
     source_ref: ObservationRefV1
 
 
+class ElevationOpeningClaimV1(BaseModel):
+    """One elevation opening's VERTICAL half: value AND byte provenance (B3).
+
+    ⭐ This is the elevation leg's counterpart of :class:`OpeningClaimV1`,
+    which is reference-only.  ``WindowV3.z`` needs the number, so the number
+    travels here -- but ⛔ never as a bare value: ``z_low_m`` / ``z_high_m``
+    each carry the pointer to the EXACT frozen byte they were read from
+    (``/openings/<i>/z_range_m/<0|1>``), and the validator recomputes the
+    equality against the frozen source.  A value that drifted from its
+    carrier is a carrier swap, ⛔ not a rounding matter, and the comparison
+    is exact: both sides are the same JSON literal parsed twice, so any
+    difference is a lie, never float noise.
+
+    The horizontal extent (``x_range_m``) is deliberately NOT here: B4 owns
+    the cross-view pairing that needs it, and this layer only carries what a
+    named consumer asked for.
+    """
+
+    model_config = _CFG
+
+    opening_id: StableId
+    source_ref: ObservationRefV1
+    z_low_m: float
+    z_low_ref: ArtifactPointerV1
+    z_high_m: float
+    z_high_ref: ArtifactPointerV1
+
+    @model_validator(mode="after")
+    def _z_direction_agrees(self) -> "ElevationOpeningClaimV1":
+        if not self.z_low_m < self.z_high_m:
+            raise ValueError(
+                f"elevation opening {self.opening_id!r}: z_low_m "
+                f"({self.z_low_m}) must be below z_high_m ({self.z_high_m})"
+            )
+        return self
+
+
+#: ⭐ T4's decidable floor-line rule, stated once and shared by the adapter
+#: (the producer) and the validator (the mirror), so they can never be two
+#: opinions: a floor-level candidate is EVERY horizontal structure line of
+#: the elevation (``constant_quantity == "z"``).  A rule, ⛔ not a list --
+#: a three-storey 2.9/3.3/4.2 elevation yields exactly its own four lines,
+#: and no sm25 reading ever appears in code.  Sorting the selected levels
+#: ascending gives the ladder; adjacent differences are the storey-height
+#: candidates B2 derives ``ceiling_height`` from.
+FLOOR_LEVEL_SELECTION_RULE = "every structure line with constant_quantity == 'z'"
+
+#: The structural minimum of a floor ladder: ground + one roof/upper level.
+#: ⚠️ A COUNT, not a length constant -- it encodes "a whole-building
+#: elevation has at least two levels", which is the z-direction shape of the
+#: ELEVATION_CHAIN_SPANS_WHOLE_BUILDING premise (a single-level line is the
+#: loud signature of a partial elevation).
+MIN_FLOOR_LEVELS = 2
+
+
+class FloorLevelClaimV1(BaseModel):
+    """One floor level: value AND byte provenance (B3/T4).
+
+    Selected by :data:`FLOOR_LEVEL_SELECTION_RULE` -- see its docstring for
+    why that predicate and not a hand-picked list.  ``z_m`` carries the
+    pointer to the frozen ``pos_m`` byte it was read from; the validator
+    recomputes the equality AND re-runs the rule against the frozen source,
+    so a dropped or invented level is loud, not silent.
+    """
+
+    model_config = _CFG
+
+    structure_line_id: StableId
+    source_ref: ObservationRefV1
+    z_m: float
+    z_ref: ArtifactPointerV1
+
+
 class SourceArtifactV1(BaseModel):
     """One frozen reading artifact's identity.  ``(view_type, floor_ref)``
     is the manifest's SEMANTIC slot; two sources in one slot is
@@ -542,6 +635,10 @@ class CorrectionEvidenceBundleV1(BaseModel):
     wall_claims: list[WallClaimV1] = Field(default_factory=list)
     face_dispositions: list[FaceDispositionV1] = Field(default_factory=list)
     opening_claims: list[OpeningClaimV1] = Field(default_factory=list)
+    elevation_opening_claims: list[ElevationOpeningClaimV1] = Field(
+        default_factory=list
+    )
+    floor_level_claims: list[FloorLevelClaimV1] = Field(default_factory=list)
     evidence_debts: list[EvidenceDebtV1] = Field(default_factory=list)
     content_sha256: Hex64 | None = None
 
@@ -642,6 +739,17 @@ def _sorted_bundle(bundle: CorrectionEvidenceBundleV1) -> dict:
         data["opening_claims"],
         key=lambda o: (o["source_ref"]["input_id"], o["opening_id"]),
     )
+    data["elevation_opening_claims"] = sorted(
+        data["elevation_opening_claims"],
+        key=lambda o: (o["source_ref"]["input_id"], o["opening_id"]),
+    )
+    data["floor_level_claims"] = sorted(
+        data["floor_level_claims"],
+        key=lambda o: (
+            o["source_ref"]["input_id"],
+            o["structure_line_id"],
+        ),
+    )
     data["evidence_debts"] = sorted(
         data["evidence_debts"], key=lambda d: d["debt_id"]
     )
@@ -721,17 +829,89 @@ def as_drawn_face_index(doc: dict) -> dict[str, tuple[int, dict]]:
     return index
 
 
+def as_drawn_elevation_opening_index(doc: dict) -> dict[str, tuple[int, dict]]:
+    """Map elevation opening id -> (index, node) for one elevation product.
+
+    Same discipline as :func:`as_drawn_face_index`: duplicate ids are LOUD,
+    and the adapter and the validator build their views through this one
+    function so a constructor-time refusal and a validator refusal are the
+    same teeth, never two opinions.
+    """
+    openings = doc.get("openings", [])
+    index: dict[str, tuple[int, dict]] = {}
+    for i, opening in enumerate(openings):
+        oid = opening.get("id")
+        if not isinstance(oid, str) or not oid:
+            raise EvidenceContractError(
+                "ELEVATION_OPENING_WITHOUT_ID", {"index": i}
+            )
+        if oid in index:
+            raise EvidenceContractError(
+                "DUPLICATE_OBSERVATION_ID",
+                {
+                    "observation_id": oid,
+                    "first_index": index[oid][0],
+                    "second_index": i,
+                },
+            )
+        index[oid] = (i, opening)
+    return index
+
+
+def as_drawn_elevation_floor_lines(doc: dict) -> dict[str, tuple[int, dict]]:
+    """Map floor-line id -> (index, node) via :data:`FLOOR_LEVEL_SELECTION_RULE`.
+
+    THE rule (T4), stated as a predicate over the frozen product and shared
+    by producer and validator: every ``structure_lines`` entry whose
+    ``constant_quantity`` is ``"z"`` (a horizontal line) is a floor-level
+    candidate.  ⛔ No magnitude filter, no count filter, no hand-picked list
+    -- the ladder is whatever the drawing's horizontal structure lines say,
+    sorted ascending by the consumer.  A vertical line (``"x"``) is an
+    opening-grid line and is never a level.
+    """
+    lines = doc.get("structure_lines", [])
+    index: dict[str, tuple[int, dict]] = {}
+    for i, line in enumerate(lines):
+        if line.get("constant_quantity") != "z":
+            continue
+        lid = line.get("id")
+        if not isinstance(lid, str) or not lid:
+            raise EvidenceContractError(
+                "STRUCTURE_LINE_WITHOUT_ID", {"index": i}
+            )
+        if lid in index:
+            raise EvidenceContractError(
+                "DUPLICATE_OBSERVATION_ID",
+                {
+                    "observation_id": lid,
+                    "first_index": index[lid][0],
+                    "second_index": i,
+                },
+            )
+        index[lid] = (i, line)
+    return index
+
+
 # ── cross-review rework (2026-08-31): F-1 / F-2 structural invariants ─────── #
 #: ⭐⭐ The ONE explicit ``channel -> payload member`` table (design §3.3).
 #: Every direction of the declaration/payload reconciliation below reads THIS
 #: table, so ``state`` is a reconciliation RESULT and ⛔ never a field that can
 #: be set independently of what the bundle actually carries.  A channel that
 #: is not a key here has no payload member on this bundle type at all --
-#: ``dimensions`` / ``room_roles`` / ``elevation_openings`` today (rework-2
-#: B-2: no debt can make a ``present`` true for them).
+#: ``dimensions`` / ``room_roles`` today (rework-2 B-2: no debt can make a
+#: ``present`` true for them; ``elevation_openings`` left that set on
+#: 2026-09-03 when B3 gave it a payload member).
 CHANNEL_PAYLOAD_MEMBERS: dict[str, tuple[str, ...]] = {
     "walls": ("wall_claims", "face_dispositions"),
     "plan_openings": ("opening_claims",),
+    # ⭐ 2026-09-03 (B3): the elevation leg's two payload members.  Adding
+    # them here is what retires B-2's "no payload carrier" exemption for
+    # ``elevation_openings`` and gives ``floor_levels`` a carrier at all:
+    # from now on a ``present`` row for either channel is measured against
+    # these lists, and a ``zero_payload_channel`` debt may legitimately name
+    # them (an honest wired-but-windowless elevation).
+    "elevation_openings": ("elevation_opening_claims",),
+    "floor_levels": ("floor_level_claims",),
 }
 
 
@@ -934,6 +1114,14 @@ def _payload_row_source_ids(member: str, row: object) -> set[str]:
         return ids
     if member == "opening_claims":
         return {row.source_ref.input_id}
+    if member == "elevation_opening_claims":
+        return {
+            row.source_ref.input_id,
+            row.z_low_ref.input_id,
+            row.z_high_ref.input_id,
+        }
+    if member == "floor_level_claims":
+        return {row.source_ref.input_id, row.z_ref.input_id}
     raise EvidenceContractError(
         "PAYLOAD_MEMBER_WITHOUT_SOURCE_RULE", {"member": member}
     )
@@ -1109,8 +1297,33 @@ def validate_evidence_bundle(
     # -- per-source observation indexes (NF-4 #3: duplicate ids are loud) --
     face_index: dict[str, dict[str, tuple[int, dict]]] = {}
     gaps_of: dict[str, dict[str, list]] = {}
+    elevation_opening_index: dict[str, dict[str, tuple[int, dict]]] = {}
+    floor_lines: dict[str, dict[str, tuple[int, dict]]] = {}
     for input_id, meta in declared.items():
-        if meta.source_contract_id == SOURCE_CONTRACT_AS_DRAWN:
+        if meta.source_contract_id == SOURCE_CONTRACT_AS_DRAWN_ELEVATION:
+            elevation_opening_index[input_id] = (
+                as_drawn_elevation_opening_index(docs[input_id])
+            )
+            floor_lines[input_id] = as_drawn_elevation_floor_lines(
+                docs[input_id]
+            )
+            # ⭐ The z-direction shape of ELEVATION_CHAIN_SPANS_WHOLE_BUILDING:
+            # a whole-building elevation draws at least ground + one upper
+            # level.  Fewer horizontal structure lines is the loud signature
+            # of a partial elevation, ⛔ never something to pad silently.
+            if len(floor_lines[input_id]) < MIN_FLOOR_LEVELS:
+                raise EvidenceContractError(
+                    "FLOOR_LADDER_DEGENERATE",
+                    {
+                        "input_id": input_id,
+                        "horizontal_structure_lines": sorted(
+                            floor_lines[input_id]
+                        ),
+                        "minimum": MIN_FLOOR_LEVELS,
+                        "rule": FLOOR_LEVEL_SELECTION_RULE,
+                    },
+                )
+        elif meta.source_contract_id == SOURCE_CONTRACT_AS_DRAWN:
             face_index[input_id] = as_drawn_face_index(docs[input_id])
             gaps_of[input_id] = {
                 fid: node.get("gaps", []) for fid, (_, node) in face_index[input_id].items()
@@ -1381,6 +1594,168 @@ def validate_evidence_bundle(
                 },
             )
 
+    # -- B3 (2026-09-03): elevation opening claims -- value↔byte equality ----
+    # ⭐ The whole point of this block: a z that cannot be traced back to its
+    # frozen byte is a bare value, and a z whose VALUE drifted from the byte
+    # it names is a carrier swap.  Both are loud here, exactly (== over two
+    # parses of the same JSON literal), ⛔ never a tolerance.
+    elevation_opening_seen: set[tuple[str, str]] = set()
+    for claim in bundle.elevation_opening_claims:
+        if claim.opening_id != claim.source_ref.observation_id:
+            raise EvidenceContractError(
+                "ELEVATION_OPENING_ID_MISMATCH",
+                {
+                    "opening_id": claim.opening_id,
+                    "ref_observation_id": claim.source_ref.observation_id,
+                },
+            )
+        key = (claim.source_ref.input_id, claim.opening_id)
+        if key in elevation_opening_seen:
+            raise EvidenceContractError(
+                "DUPLICATE_ELEVATION_OPENING_CLAIM",
+                {"opening_id": claim.opening_id},
+            )
+        elevation_opening_seen.add(key)
+        _deref_observation(claim.source_ref)
+        if claim.opening_id not in elevation_opening_index.get(
+            claim.source_ref.input_id, {}
+        ):
+            raise EvidenceContractError(
+                "ELEVATION_OPENING_CLAIM_SOURCE_UNKNOWN",
+                {
+                    "input_id": claim.source_ref.input_id,
+                    "opening_id": claim.opening_id,
+                },
+            )
+        for value, ref, which in (
+            (claim.z_low_m, claim.z_low_ref, "z_low"),
+            (claim.z_high_m, claim.z_high_ref, "z_high"),
+        ):
+            byte = _deref_pointer(
+                ref.input_id, ref.source_output_sha256, ref.json_pointer
+            )
+            if isinstance(byte, bool) or not isinstance(byte, (int, float)):
+                raise EvidenceContractError(
+                    "ELEVATION_Z_SOURCE_NOT_NUMERIC",
+                    {
+                        "opening_id": claim.opening_id,
+                        "which": which,
+                        "pointer": ref.json_pointer,
+                        "got": type(byte).__name__,
+                    },
+                )
+            if value != byte:
+                raise EvidenceContractError(
+                    "ELEVATION_Z_VALUE_DRIFTED_FROM_SOURCE",
+                    {
+                        "opening_id": claim.opening_id,
+                        "which": which,
+                        "pointer": ref.json_pointer,
+                        "claim_value": value,
+                        "frozen_byte": byte,
+                    },
+                )
+        # F-2 for the elevation leg: one claim, one frozen source.
+        claim_inputs = {
+            claim.source_ref.input_id,
+            claim.z_low_ref.input_id,
+            claim.z_high_ref.input_id,
+        }
+        if len(claim_inputs) != 1:
+            raise EvidenceContractError(
+                "CLAIM_REFS_SPAN_MULTIPLE_INPUTS",
+                {
+                    "opening_id": claim.opening_id,
+                    "input_ids": sorted(claim_inputs),
+                },
+            )
+
+    # -- B3 (2026-09-03): floor level claims -- rule mirror + value↔byte ----
+    floor_claim_seen: set[tuple[str, str]] = set()
+    claimed_levels: dict[str, set[str]] = {}
+    for claim in bundle.floor_level_claims:
+        if claim.structure_line_id != claim.source_ref.observation_id:
+            raise EvidenceContractError(
+                "FLOOR_LINE_ID_MISMATCH",
+                {
+                    "structure_line_id": claim.structure_line_id,
+                    "ref_observation_id": claim.source_ref.observation_id,
+                },
+            )
+        key = (claim.source_ref.input_id, claim.structure_line_id)
+        if key in floor_claim_seen:
+            raise EvidenceContractError(
+                "DUPLICATE_FLOOR_LEVEL_CLAIM",
+                {"structure_line_id": claim.structure_line_id},
+            )
+        floor_claim_seen.add(key)
+        node = _deref_observation(claim.source_ref)
+        if node.get("constant_quantity") != "z":
+            raise EvidenceContractError(
+                "FLOOR_LINE_NOT_HORIZONTAL",
+                {
+                    "input_id": claim.source_ref.input_id,
+                    "structure_line_id": claim.structure_line_id,
+                    "constant_quantity": node.get("constant_quantity"),
+                    "rule": FLOOR_LEVEL_SELECTION_RULE,
+                },
+            )
+        byte = _deref_pointer(
+            claim.z_ref.input_id,
+            claim.z_ref.source_output_sha256,
+            claim.z_ref.json_pointer,
+        )
+        if isinstance(byte, bool) or not isinstance(byte, (int, float)):
+            raise EvidenceContractError(
+                "FLOOR_LEVEL_SOURCE_NOT_NUMERIC",
+                {
+                    "structure_line_id": claim.structure_line_id,
+                    "pointer": claim.z_ref.json_pointer,
+                    "got": type(byte).__name__,
+                },
+            )
+        if claim.z_m != byte:
+            raise EvidenceContractError(
+                "FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE",
+                {
+                    "structure_line_id": claim.structure_line_id,
+                    "pointer": claim.z_ref.json_pointer,
+                    "claim_value": claim.z_m,
+                    "frozen_byte": byte,
+                },
+            )
+        claim_inputs = {claim.source_ref.input_id, claim.z_ref.input_id}
+        if len(claim_inputs) != 1:
+            raise EvidenceContractError(
+                "CLAIM_REFS_SPAN_MULTIPLE_INPUTS",
+                {
+                    "structure_line_id": claim.structure_line_id,
+                    "input_ids": sorted(claim_inputs),
+                },
+            )
+        claimed_levels.setdefault(claim.source_ref.input_id, set()).add(
+            claim.structure_line_id
+        )
+
+    # ⭐ T4's exit-side check (recompute-gate-must-mirror-producer-definition):
+    # the bundle's level set must BE what FLOOR_LEVEL_SELECTION_RULE selects
+    # from the frozen source -- a dropped level and an invented one are both
+    # loud.  This is the rule's enforcement, ⛔ not the adapter's promise.
+    for input_id, selected in floor_lines.items():
+        claimed = claimed_levels.get(input_id, set())
+        if claimed != set(selected):
+            raise EvidenceContractError(
+                "FLOOR_LADDER_NOT_EXHAUSTIVE",
+                {
+                    "input_id": input_id,
+                    "rule": FLOOR_LEVEL_SELECTION_RULE,
+                    "selected_by_rule": sorted(selected),
+                    "claimed": sorted(claimed),
+                    "dropped": sorted(set(selected) - claimed),
+                    "invented": sorted(claimed - set(selected)),
+                },
+            )
+
     # -- invariant 2: every as-drawn face line has exactly one disposition --
     claims_by_id: dict[str, WallClaimV1] = {c.claim_id: c for c in bundle.wall_claims}
     if len(claims_by_id) != len(bundle.wall_claims):
@@ -1581,6 +1956,18 @@ def _assert_canonical_order(bundle: CorrectionEvidenceBundleV1) -> None:
     ]
     if openings != sorted(openings):
         raise EvidenceContractError("OPENING_CLAIMS_UNORDERED", {})
+    elev = [
+        (o.source_ref.input_id, o.opening_id)
+        for o in bundle.elevation_opening_claims
+    ]
+    if elev != sorted(elev):
+        raise EvidenceContractError("ELEVATION_OPENING_CLAIMS_UNORDERED", {})
+    floors = [
+        (c.source_ref.input_id, c.structure_line_id)
+        for c in bundle.floor_level_claims
+    ]
+    if floors != sorted(floors):
+        raise EvidenceContractError("FLOOR_LEVEL_CLAIMS_UNORDERED", {})
     debts = [d.debt_id for d in bundle.evidence_debts]
     if debts != sorted(debts):
         raise EvidenceContractError("EVIDENCE_DEBTS_UNORDERED", {})
@@ -1590,15 +1977,20 @@ __all__ = [
     "BUNDLE_SCHEMA_VERSION",
     "CHANNELS",
     "CHANNEL_PAYLOAD_MEMBERS",
+    "FLOOR_LEVEL_SELECTION_RULE",
+    "MIN_FLOOR_LEVELS",
     "SOURCE_CONTRACT_AS_DRAWN",
+    "SOURCE_CONTRACT_AS_DRAWN_ELEVATION",
     "SOURCE_CONTRACT_LEGACY",
     "ArtifactPointerV1",
     "ChannelStatusV1",
     "CorrectionEvidenceBundleArtifactV1",
     "CorrectionEvidenceBundleV1",
+    "ElevationOpeningClaimV1",
     "EvidenceContractError",
     "EvidenceDebtV1",
     "FaceDispositionV1",
+    "FloorLevelClaimV1",
     "FrozenSourceV1",
     "LegacyWallTraceClaimV1",
     "ObservationRefV1",
@@ -1608,6 +2000,8 @@ __all__ = [
     "SolidBandWallClaimV1",
     "SourceArtifactV1",
     "WallClaimV1",
+    "as_drawn_elevation_floor_lines",
+    "as_drawn_elevation_opening_index",
     "as_drawn_face_index",
     "finalize_bundle",
     "resolve_json_pointer",
