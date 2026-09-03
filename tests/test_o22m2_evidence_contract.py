@@ -87,9 +87,7 @@ _PRODUCTS = Path(
 )
 _TRACKED = ("sm25_1f_v2.json", "sm25_2f_v2.json", "sm24_1f_v2.json")
 
-_ABSENT_CHANNELS = (
-    "elevation_openings", "floor_levels", "dimensions", "room_roles",
-)
+_ABSENT_CHANNELS = ("elevation_openings", "dimensions", "room_roles")
 
 
 # =========================================================================== #
@@ -1270,10 +1268,7 @@ def _empty_artifact() -> CorrectionEvidenceBundleArtifactV1:
         input_id="empty_plan", source_contract_id=SOURCE_CONTRACT_AS_DRAWN,
         source_output_sha256=sha, view_type="plan", floor_ref="5f",
     )
-    absent = (
-        "plan_openings", "elevation_openings", "floor_levels",
-        "dimensions", "room_roles",
-    )
+    absent = ("plan_openings", "elevation_openings", "dimensions", "room_roles")
     debts = [EvidenceDebtV1(
         debt_id=f"debt_{ch}_empty", kind="missing_channel", channel=ch,
         description="channel not carried by this empty product",
@@ -1444,10 +1439,7 @@ def _cross_input_artifact(cross: str) -> CorrectionEvidenceBundleArtifactV1:
         disp(fref("planB", sha_b, 0, "F01"), False),
         disp(fref("planB", sha_b, 1, "F02"), b_f02_claimed),
     ]
-    absent = (
-        "plan_openings", "elevation_openings", "floor_levels",
-        "dimensions", "room_roles",
-    )
+    absent = ("plan_openings", "elevation_openings", "dimensions", "room_roles")
     debts = [EvidenceDebtV1(
         debt_id=f"debt_{ch}_cross", kind="missing_channel", channel=ch,
         description="channel not carried by this probe bundle",
@@ -1949,14 +1941,9 @@ def test_r3_honest_absent_channels_are_not_killed():
     reading "the ledger is non-empty" as "the walls channel produced" would
     kill module 3's honest output and module 4's fixture.
     """
-    # the channels this plan-family fixture cannot carry.  B3 (2026-09-03)
-    # gave elevation_openings and floor_levels payload members, so for THEM
-    # "absent with an empty member list" is now the measured truth the
-    # closure gate checks; dimensions/room_roles stay payloadless (B-2).
+    # the three channels with no payload member at all, on the tiny fixture
     tiny = _tiny_artifact()
-    for channel in (
-        "dimensions", "room_roles", "elevation_openings", "floor_levels",
-    ):
+    for channel in ("dimensions", "room_roles", "elevation_openings"):
         row = _row(tiny.bundle, channel)
         assert row is not None and row.state == "absent", row
     validate_evidence_bundle(tiny)          # whole artifact
