@@ -295,7 +295,12 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **孤儿账**：119 行全丢 → 591 行代提交 → 14 行 → **零孤儿**。
 > 新增 `scripts/seat_{claude,glm,gpt}.sh`（⭐ 带**三秒存活检查** —— **死席位与活席位都留下近乎空的日志**）。
 >
-> ### ⑦ ⏭ 下程从这里接
+> ### ⑦ 收工权威全量 **`3717 passed / 0 failed`**（exit 0，`.pth` 哨兵前后同值）
+> 逐位闭合：3666 +24 +12 +6 +6 +3。⚠️ 这是**回退 B3 之后**的读数 ——
+> 含 B3 那一跑 **1 failed**（`test_only_the_two_named_contracts_hold_wires`：B3 长出第三条 `ADAPT` 线
+> 却没同步更新那把锁）⇒ ⭐ **锁没坏，是 B3 没做完**；⚠️ **派工方漏了给 B3 做「单外对撞」那一格**。
+>
+> ### ⑧ ⏭ 下程从这里接
 > ① **B3 补交执行档 + 跨家族审**（⛔ 不得 GLM）· ② **F-158 返工复审**（⛔ 不得 Claude）·
 > ③ **B2 多层装配**（前置 = B1 ✅ + B3）· ④ **B4 洞口合成**（⭐ 已有零参数配对方案）·
 > ⑤ **B5 端到端 + 生产帧对账（F-1）** · ⑥ B1 其余 5 条 debt · ⑦ 拆旧腿单（含删 `CONSUME`）·

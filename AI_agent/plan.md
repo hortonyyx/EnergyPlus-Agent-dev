@@ -337,6 +337,12 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 > ⑤ **B4 洞口合成**（⭐ 已有零参数配对方案）· ⑥ **B5 端到端 + 生产帧对账（F-1）** ·
 > ⑦ B1 其余 debt · ⑧ 拆旧腿单（含删 `CONSUME`）· ⑨ 产出新格式产物（需先拍配置）
 >
+> ### ⭐⭐⭐ 收工权威全量：**`3717 passed / 2 skipped / 13 xfailed / 0 failed`**（exit 0）
+> `.pth` 哨兵**跑前跑后同值** `dee19d8a…`、`m.__file__` 落主树、工作树干净。
+> **数目逐位闭合**：3666（起点）+24（B1 核心）+12（B1 接线）+6（F-158 首轮）
+> +6（B1 收口补锁）+3（F-158 返工三把锁）= **3717**。
+> ⚠️ 这是**回退 B3 之后**的读数；含 B3 的那一跑是 **1 failed**（见下）。
+
 > ### ⛔ B3 为什么被回退（⭐ 那把锁工作得完全正确）
 > 权威全量抓到 **1 failed**：`test_only_the_two_named_contracts_hold_wires` ——
 > 它断言 `adapting == {CONTRACT_AS_DRAWN_PLAN}`，而 B3 把立面契约改成 `ADAPT` ⇒ **变成两个**。
