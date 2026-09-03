@@ -203,7 +203,36 @@ $ python -m pytest -q -n0 -p no:cacheprovider tests/test_affected_tests_map.py \
   「带 .env」我造 dummy 键的 `.env`（门在 socket 层拦，dummy 键不会真出网），跑完删。
 - ⚠️ 同机有 GPT 席位在跑全量（PID 24989，`-n 6`，导入 `evidence_contract`）⇒ 用 `-n 6`，判假红看 summary 行。
 
-<!-- #8 两次全量结果在两跑完成后据实补入，⛔ 不留占位符 -->
+> ### ⭐ 以下两跑由 **orchestrator 代跑并据实补入**（2026-09-03 15:37–15:56 UTC）
+> **原因**：施工席在等后台 run#1 时被切断。⭐ 它**没有留假数**，只留了一行「两跑完成后据实补入」——
+> 该处理正确，故主控代跑而非要求它重来。
+
+**环境自证（与 pytest 同一条命令）**：
+```
+$ cd /tmp/f158_rework2_claude && python -c "import ep_no_billed_gate as m; print('GATE', m.__file__)"
+GATE /tmp/f158_rework2_claude/ep_no_billed_gate.py
+```
+
+**RUN 1 · 不带 `.env`**（`ls .env` 不存在 ⇒ 本跑即「不带」）：
+```
+$ python -m pytest -q -n 6 -p no:cacheprovider
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. ...
+3720 passed, 2 skipped, 13 xfailed, 211 warnings in 469.26s (0:07:49)
+RUN1_EXIT=0
+```
+
+**RUN 2 · 带 dummy `.env`**（`DEEPSEEK_API_KEY` / `OPENAI_API_KEY` 均为 dummy 串，跑完删）：
+```
+$ printf 'DEEPSEEK_API_KEY=dummy-not-a-real-key\nOPENAI_API_KEY=dummy-not-a-real-key\n' > .env
+$ python -m pytest -q -n 6 -p no:cacheprovider
+3720 passed, 2 skipped, 13 xfailed, 211 warnings in 569.49s (0:09:29)
+RUN2_EXIT=0
+$ rm -f .env && git status --porcelain
+（空）
+```
+
+⇒ **逐位闭合成立**：`3717 + 3 = 3720`（T1 行为自检 + 牙锁 + T3 镜像插件锁）。
+⇒ **带 / 不带 `.env` 两跑读数逐位相同**，`exit 0`，收尾树净。
 
 ---
 
