@@ -155,6 +155,19 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 ## ⏸ 已登记 · 触发式（⛔ 到条件才做，不占当前工期）
 
+### ⭐⭐ **07-07 那两根「拐杖」= 干扰，⛔ 现在不恢复**（2026-09-03 用户拍板）
+
+**触发 = 弱模型按【新模式】试过、实在脱离不了。** 到条件才讨论**两件事**：
+① 要不要恢复这种干扰 ② ⭐ **怎么做**这种干扰（⛔ 不是简单还原 07-07）。
+
+- **两根拐杖** = ① per-run **directive 槽** ② **会话连续性**（07-09 Haiku 4 轮止损的根因定性）
+- **今天状态**：`--directive` 槽**仍在代码里**（`spawn_isolated_reader.py:183`）·
+  **#6b staging 内 resume 从未做** · 隔离缺口 #4/#5/#6a 当年已修
+- ⛔ **理由不是隔离，是自主性**：目标 = reading **脱离强模型指导**；
+  ⚠️ 主控当日「隔离已物理化 ⇒ 可以直接还回去」的框架**被用户当场纠正**（不削弱隔离 ≠ 应该恢复）
+- ⇒ 全档 [`capability/reading/improvement_methodology.md §11`](capability/reading/improvement_methodology.md)
+
+
 ### ⭐⭐ **全盘清点**（2026-09-02 用户定）
 
 > **触发条件 = 本批落地 = 【一个 case 端到端跑通】**（图纸 → IDF → EnergyPlus）。
