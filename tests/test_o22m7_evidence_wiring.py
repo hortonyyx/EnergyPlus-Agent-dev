@@ -457,6 +457,12 @@ def test_switch_on_returns_the_projected_geometry(tmp_path, booby_trap_pasteed_l
     )
     assert outcome["success"] is True
     assert envelope.source_resolved_sha256 == outcome["final_provisional_sha256"]
+    # F-2 / N-3 production declaration: this is the floating-point-metre
+    # production leg, not the quantised fixture leg.  Both the value and the
+    # human-readable source declaration are part of the wiring contract.
+    assert envelope.tolerance_resolution_m == 0.0
+    assert "floating-point metres" in envelope.resolution_source
+    assert "no declared quantisation" in envelope.resolution_source
     # the route's as-measured projection readout
     route = json.loads(
         (tmp_path / "_run" / "evidence_chain_route.json").read_text(
@@ -465,6 +471,49 @@ def test_switch_on_returns_the_projected_geometry(tmp_path, booby_trap_pasteed_l
     )
     assert route["projection"]["projected"] is True
     assert route["projection"]["face_count"] == envelope.face_count
+
+
+def test_switch_on_rejects_a_tampered_projection_binding(
+    tmp_path, booby_trap_pasteed_leg, monkeypatch
+):
+    """F-3: a filed envelope cannot swap the wall compilation it binds.
+
+    This attack changes the consumer-visible envelope after the producer has
+    filed it but before ``run_correction`` consumes it.  Merely checking that
+    an untampered producer wrote matching values cannot exercise this refusal.
+    """
+    vector_dir, out_dir = _stage(tmp_path)
+    real_chain = pipeline.run_correction_evidence_chain
+
+    def _tamper_after_projection(*args, **kwargs):
+        outcome = real_chain(*args, **kwargs)
+        envelope_path = out_dir / "projection_envelope.json"
+        payload = json.loads(envelope_path.read_text(encoding="utf-8"))
+        payload["source_resolved_sha256"] = (
+            "0" * 64
+            if outcome.final_provisional_sha256 != "0" * 64
+            else "1" * 64
+        )
+        envelope_path.write_text(json.dumps(payload), encoding="utf-8")
+        return outcome
+
+    monkeypatch.setattr(
+        pipeline, "run_correction_evidence_chain", _tamper_after_projection
+    )
+    with pytest.raises(RuntimeError, match="does not bind"):
+        pipeline.run_correction(
+            vector_dir,
+            "{}",
+            out_dir=out_dir,
+            evidence_chain=True,
+            evidence_chain_product="sm25_2f_v2.json",
+            evidence_chain_fixed_responses=_drive_to_success(
+                vector_dir, "sm25_2f_v2.json"
+            ),
+            evidence_chain_round_budget=3,
+            evidence_chain_z_floor_m=0.0,
+            evidence_chain_ceiling_height_m=3.0,
+        )
 
 
 def test_switch_on_without_success_terminates_loudly_no_product(
