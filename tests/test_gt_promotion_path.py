@@ -581,6 +581,10 @@ def _mirror_repo(tmp_path: Path) -> Path:
     ):
         shutil.copytree(REPO / relative, mirror / relative, ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy2(REPO / "pyproject.toml", mirror / "pyproject.toml")
+    # pyproject addopts pins `-p ep_no_billed_gate` (the F-158 egress gate, a
+    # repo-root plugin); the child pytest below reads that pyproject, so the
+    # plugin module must exist in the mirror or the child fails to start.
+    shutil.copy2(REPO / "ep_no_billed_gate.py", mirror / "ep_no_billed_gate.py")
     return mirror
 
 
