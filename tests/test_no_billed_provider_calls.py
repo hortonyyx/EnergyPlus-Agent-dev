@@ -9,10 +9,12 @@ leaves — the address is only ever passed to the guarded ``connect``.
 from __future__ import annotations
 
 import socket
+import urllib.error
+import urllib.request
 
 import pytest
 
-from conftest import ProviderCallBlocked, _is_local
+from ep_no_billed_gate import ProviderCallBlocked, _is_local
 
 # RFC 5737 TEST-NET-1: guaranteed non-routable, never a real provider.
 _REMOTE = ("192.0.2.1", 80)
@@ -63,6 +65,23 @@ def test_connect_ex_to_remote_is_blocked():
             s.connect_ex(_REMOTE)
     finally:
         s.close()
+
+
+def test_urllib_request_to_remote_is_blocked():
+    # A high-level HTTP client (stdlib urllib) reaches the network through
+    # socket.create_connection -> socket.connect, so the class-attribute wrap
+    # catches it too. This makes the docstring claim "urllib is pinned" true
+    # rather than merely argued (verdict N-3). urllib re-raises non-HTTP errors
+    # as URLError, so ProviderCallBlocked surfaces wrapped in it.
+    with pytest.raises((ProviderCallBlocked, urllib.error.URLError)) as excinfo:
+        urllib.request.urlopen("http://192.0.2.1/", timeout=0.1)
+    # Whatever the wrapper, the gate must be the root cause.
+    root = excinfo.value
+    if isinstance(root, urllib.error.URLError):
+        root = root.reason
+    assert isinstance(root, ProviderCallBlocked), (
+        f"expected ProviderCallBlocked at the root, got {root!r}"
+    )
 
 
 def test_loopback_connection_is_allowed():
