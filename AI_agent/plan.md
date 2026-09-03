@@ -498,6 +498,27 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 ⇒ **归 B5，且 B5 的单里要写死「交 judge 那一步必须以 strict 进入」**，否则这道门永远是摆设。
 病族 = [[two-kinds-of-latency-no-ruler-vs-never-reached]] 第二种：**没跑到那一段**。
 
+### ⛔ F-158 第二轮返工 = **REWORK / 阻断 1 / 不阻断 1**（2026-09-03 第三程，GPT 复核）
+
+[裁决](logs/reviews/verdict/2026-09-03w_f158_rework1_crossreview_gpt.md)。判据①② 通过（旧提交复现得出 · 新提交两路 BLOCKED），
+⛔ **判据③ 失败**：复核方自造载体证明 **`-o addopts=` 能在不改 `pyproject.toml` 的前提下替换门的唯一早期接线** ——
+默认配置 control 被 `ProviderCallBlocked` 拦住，仅加 `-o addopts=` 即变成 `NOTBLOCKED(TimeoutError)`。
+⭐ **混淆项已排除**（control 证明探针能识别被 `URLError` 包裹的 `ProviderCallBlocked`，变异读数异常链里没有它）。
+
+⭐⭐ **主控复核裁决时自己补量的两条**：
+① 那把 `test_gate_plugin_is_pinned_first_in_addopts` 读的是 **`pyproject.toml` 的文件文本**
+（`tomllib.loads(...read_text())`），**不是本进程的有效配置** ⇒ 它挡得住「改文件」，挡不住「运行时覆盖」。
+② ⭐ **`-o addopts=` 这把钥匙就躺在门自己的测试代码里** ——
+施工方那把回归锁的子进程命令里本来就有 `-o addopts=`（用来控 `-p` 顺序）。
+
+⭐ **返工边界（复核方原话）**：目标是关闭「更早 test-owned 代码先于门执行」**这一类**，
+⛔ 不是把这次的 urllib 探针再加进现有四载体锁；且要为「**有效启动配置**」而非仅 pyproject 静态文本补永久回归。
+⚠️ **待用户拍板：修到什么程度**（插件排序这条路对启动形态变化是**无上界**的，
+施工方自己已登记「只有解释器启动期 `sitecustomize`/`.pth` 或 OS 层 deny 能更早」）。
+
+✅ **顺带补齐**：复核方跑出了施工方执行档里那两处空占位符 ——
+无 `.env` 全量 `3717 passed / 2 skipped / 13 xfailed` exit 0；**带 `.env` 同读数**。
+
 ### ⛔ B1 收口时带走的 6 条 debt（⛔ 不许当「已做完」）
 
 | # | 欠什么 | 归谁 |
