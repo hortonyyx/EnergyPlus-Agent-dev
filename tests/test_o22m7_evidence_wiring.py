@@ -641,8 +641,8 @@ def test_switch_on_without_a_product_is_a_loud_value_error(tmp_path):
 # =========================================================================== #
 def _wiring_sets(contracts) -> tuple[set[str], set[str]]:
     """The rule's criterion, shared by the lock and its own mutation check:
-    the consuming set and the adapting set are each EXACTLY the one named
-    contract.  ⚠️ Explicit parameter -- a module-level default would bind at
+    the consuming set and the adapting set are each EXACTLY the named
+    contracts.  ⚠️ Explicit parameter -- a module-level default would bind at
     def time and neuter the monkeypatch the mutation test relies on."""
     consuming = {
         s.contract_id for s in contracts
@@ -655,10 +655,20 @@ def _wiring_sets(contracts) -> tuple[set[str], set[str]]:
     return consuming, adapting
 
 
+#: The adapting set as a RULE, ⛔ not a transcript: every contract whose
+#: bytes have a wire (an ``adapt_*`` entry point in evidence_adapters).
+#: B3 (2026-09-03) added the elevation leg, so the set is now the plan and
+#: the elevation product contracts.
+_ADAPTING_SET = {
+    vc.CONTRACT_AS_DRAWN_PLAN,
+    vc.CONTRACT_AS_DRAWN_ELEVATION_V0,
+}
+
+
 def test_4b_the_wiring_rule_holds_on_the_real_contracts():
     consuming, adapting = _wiring_sets(vc.CONTRACTS)
     assert consuming == {vc.CONTRACT_READING_VIEW_LEGACY}
-    assert adapting == {vc.CONTRACT_AS_DRAWN_PLAN}
+    assert adapting == _ADAPTING_SET
 
 
 def test_4b_a_third_contract_quietly_turning_adapting_goes_red(monkeypatch):
@@ -675,7 +685,7 @@ def test_4b_a_third_contract_quietly_turning_adapting_goes_red(monkeypatch):
     with pytest.raises(AssertionError):
         assert _wiring_sets(vc.CONTRACTS) == (
             {vc.CONTRACT_READING_VIEW_LEGACY},
-            {vc.CONTRACT_AS_DRAWN_PLAN},
+            _ADAPTING_SET,
         )
 
 
@@ -693,7 +703,7 @@ def test_4b_a_third_contract_quietly_turning_consuming_goes_red(monkeypatch):
     with pytest.raises(AssertionError):
         assert _wiring_sets(vc.CONTRACTS) == (
             {vc.CONTRACT_READING_VIEW_LEGACY},
-            {vc.CONTRACT_AS_DRAWN_PLAN},
+            _ADAPTING_SET,
         )
 
 

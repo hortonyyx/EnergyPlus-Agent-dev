@@ -280,8 +280,13 @@ def test_b3_historical_as_drawn_prototypes_are_known_contracts():
     }
     assert classify_vector_json(plan_v0).contract_id == CONTRACT_AS_DRAWN_PLAN_V0
     assert classify_vector_json(elev_v0).contract_id == CONTRACT_AS_DRAWN_ELEVATION_V0
-    for raw in (plan_v0, elev_v0):
-        assert classify_vector_json(raw).disposition is Disposition.KNOWN_NOT_CONSUMED
+    # ⭐ 2026-09-03 (B3): the elevation prototype gained a wire
+    # (``adapt_as_drawn_elevation``), so its disposition moved to ADAPT --
+    # exactly the rename the plan contract already went through at module-7
+    # wiring.  The plan_v0 prototype stays KNOWN_NOT_CONSUMED: no adapter
+    # exists for the v0 plan shape.
+    assert classify_vector_json(plan_v0).disposition is Disposition.KNOWN_NOT_CONSUMED
+    assert classify_vector_json(elev_v0).disposition is Disposition.ADAPT
 
 
 # --------------------------------------------------------------------------- #
