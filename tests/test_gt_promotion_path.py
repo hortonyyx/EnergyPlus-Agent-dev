@@ -588,6 +588,31 @@ def _mirror_repo(tmp_path: Path) -> Path:
     return mirror
 
 
+# `mutation` marker => excluded from the child pytest runs (`-m "not mutation"`)
+# so it never recurses inside a mirror; still collected by the default suite,
+# which applies no `-m` filter.
+@pytest.mark.mutation
+def test_mirror_ships_the_egress_gate_plugin(tmp_path):
+    """T3 structural lock for the implicit pyproject<->plugin mirror edge.
+
+    ``_mirror_repo`` copies ``pyproject.toml``, whose ``addopts`` pins
+    ``-p ep_no_billed_gate`` (the F-158 egress gate, a repo-root plugin). The
+    child pytest that runs against the mirror therefore CANNOT START unless the
+    plugin file rode along. Pin that both land, so if a future edit drops the
+    ``shutil.copy2(... ep_no_billed_gate.py ...)`` line this goes red *here*, with
+    a message that names the requirement — instead of surfacing as a confusing
+    "every mutant failed" cascade. Any site that copies ``pyproject.toml`` to run
+    a child pytest MUST also copy ``ep_no_billed_gate.py``."""
+    mirror = _mirror_repo(tmp_path)
+    assert (mirror / "pyproject.toml").exists(), "mirror is missing pyproject.toml"
+    assert (mirror / "ep_no_billed_gate.py").exists(), (
+        "mirror copied pyproject.toml (which pins `-p ep_no_billed_gate`) but not "
+        "the gate plugin ep_no_billed_gate.py; the child pytest will fail to "
+        "start. Any site that copies pyproject.toml to run a child pytest must "
+        "also copy ep_no_billed_gate.py."
+    )
+
+
 def _apply_mutation(repo: Path, relative: str, original: str, replacement: str) -> None:
     path = repo / relative
     text = path.read_text(encoding="utf-8")
