@@ -41,6 +41,11 @@ from pydantic import BaseModel, ConfigDict
 from shapely.geometry import LineString, Point
 from shapely.ops import polygonize, unary_union
 
+from src.agent.correction.evidence_contract import (
+    SOURCE_CONTRACT_AS_DRAWN,
+    as_drawn_face_index,
+    resolve_json_pointer,
+)
 from src.agent.correction.schema import (
     CellV3,
     CorrectedGeometryV3,
@@ -578,28 +583,52 @@ def cut_lines_from_as_measured_view(
 
 @dataclass(frozen=True)
 class OpeningSpanV1:
-    """One production opening, dereferenced to its face line's geometry.
+    """One production opening, dereferenced BY REFERENCE (measured choice).
 
-    The producer (pipeline side) dereferences the bundle's opening_claims
-    into this: the face line's axis and constant position (world metres)
-    plus the opening's along-wall span (world metres).  Host-wall
-    resolution happens HERE, from the wall data (⛔ no constants): the
-    host is the wall whose midline sits half-its-own-thickness from the
-    face line and whose extent carries the span.
+    The bundle's ``opening_claims`` are reference-only; the wiring
+    dereferences each into (the face line's observation id + the opening's
+    along-wall span in world metres) — ⛔ NOT into geometry.  Host-wall
+    resolution is likewise by REFERENCE: the host is the wall whose own
+    ``source_refs`` claim that face observation id.
+
+    Why reference, not geometry (measured on the real sm25 2f product
+    before this choice was made): a geometric band test
+    (``|midline − face| ≤ half-thickness``) resolves only 11 of 87
+    openings — 76 fail structurally, in two classes: (a) the wall's own
+    resolved coverage EXCLUDES the opening gap, so the span sits between
+    two segments OF THE SAME wall and matches both; (b) the midline is a
+    DERIVED ``(face_a + face_b) / 2`` float, so the touching boundary is
+    off by up to ~1 ulp (measured ``+4.3e-16`` on L009) and exact
+    comparison flips.  The reference graph resolves 23/23 faces to exactly
+    one wall — zero tolerance, zero geometry, and no invented epsilon.
     """
 
     opening_id: str
-    axis: Literal["x", "y"]
-    face_pos_m: float
+    face_observation_id: str
     span_lo_m: float
     span_hi_m: float
+
+
+def _run_axis(constant_world_axis: Literal["x", "y"]) -> Literal["x", "y"]:
+    """Map the wall compiler's CONSTANT-axis vocabulary onto this module's.
+
+    ⚠️ Two different axis vocabularies meet here, and they are OPPOSITE:
+    the wall compiler (and the face lines it reads) names the CONSTANT
+    axis (``constant_world_axis == "x"`` ⇒ x is fixed, the line varies in
+    y), while ``CutLineV1.axis`` names the RUN axis (``"x"`` ⇒ the
+    rendered segment varies in x, ``_line_string`` puts ``pos_m`` on y —
+    the convention the gt facts layer also uses, and the one the fixture
+    loader inherits).  Copying ``constant_world_axis`` straight into
+    ``CutLineV1.axis`` transposes the whole floor by 90° (measured: bbox
+    [0.12, 0.12, 24.88, 19.88] becomes [0.12, 0.12, 19.88, 24.88] against
+    the signed gt footprint x∈[0,25] y∈[0,20]).
+    """
+    return "y" if constant_world_axis == "x" else "x"
 
 
 def cut_lines_from_wall_compilation(
     walls: Sequence[Any],
     opening_spans: Sequence[OpeningSpanV1] = (),
-    *,
-    resolution_m: float = 0.0,
 ) -> tuple[tuple[CutLineV1, ...], tuple[DanglingEndRecordV1, ...]]:
     """Load cut lines from the production wall IR (``ResolvedWallV1``s).
 
@@ -607,8 +636,15 @@ def cut_lines_from_wall_compilation(
     ⛔ skipping it silently is exactly the W2 failure mode (a missing wall
     leaves no geometric signature), so it fails LOUDLY here — the decision
     loop's success exit guarantees none reach this point.
+
+    Openings resolve to their carrier wall by REFERENCE (see
+    :class:`OpeningSpanV1`): the host is the wall whose ``source_refs``
+    claim the opening's face observation.  The opening's cut line borrows
+    the HOST wall's own axis / midline / half thickness — every number
+    read from the wall's own resolution, ⛔ none invented here.
     """
     lines: list[CutLineV1] = []
+    resolved_walls = []
     for wall in walls:
         centerline = wall.resolved_centerline
         thickness = wall.resolved_thickness_m
@@ -620,7 +656,10 @@ def cut_lines_from_wall_compilation(
                  "has_centerline": centerline is not None,
                  "has_thickness": thickness is not None},
             )
-        axis = _validated_axis(centerline.constant_world_axis)
+        axis = _run_axis(
+            _validated_axis(centerline.constant_world_axis)
+        )
+        resolved_walls.append(wall)
         for lo, hi in wall.resolved_along_intervals:
             lines.append(
                 CutLineV1(
@@ -633,15 +672,31 @@ def cut_lines_from_wall_compilation(
                     origin_id=wall.wall_id,
                 )
             )
+    owner: dict[str, list[Any]] = {}
+    for wall in resolved_walls:
+        for ref in wall.source_refs:
+            owner.setdefault(ref.observation_id, []).append(wall)
     for span in opening_spans:
-        host = _resolve_opening_host(span, lines, resolution_m=resolution_m)
+        owners = owner.get(span.face_observation_id, ())
+        if len(owners) != 1:
+            raise ProjectionBridgeError(
+                "OPENING_HOST_UNRESOLVED",
+                {"opening_id": span.opening_id,
+                 "face_observation_id": span.face_observation_id,
+                 "n_owner_walls": len(owners),
+                 "owner_wall_ids": [w.wall_id for w in owners]},
+            )
+        host = owners[0]
+        centerline = host.resolved_centerline
         lines.append(
             CutLineV1(
-                axis=span.axis,
-                pos_m=host.pos_m,
+                axis=_run_axis(
+                    _validated_axis(centerline.constant_world_axis)
+                ),
+                pos_m=float(centerline.constant_pos_m),
                 along_lo_m=span.span_lo_m,
                 along_hi_m=span.span_hi_m,
-                half_thickness_m=host.half_thickness_m,
+                half_thickness_m=float(host.resolved_thickness_m) / 2.0,
                 kind="opening",
                 origin_id=span.opening_id,
             )
@@ -649,34 +704,59 @@ def cut_lines_from_wall_compilation(
     return tuple(lines), ()
 
 
-def _resolve_opening_host(
-    span: OpeningSpanV1,
-    wall_lines: Sequence[CutLineV1],
-    *,
-    resolution_m: float,
-) -> CutLineV1:
-    """Find the opening's carrier wall — from the wall's OWN numbers.
+def opening_spans_from_artifact(artifact: Any) -> tuple[OpeningSpanV1, ...]:
+    """Dereference the bundle's ``opening_claims`` into spans (production).
 
-    The host wall's midline lies half ITS OWN thickness from the face line
-    (the face is one side of the wall), on the side its extent reaches, and
-    its along extent carries the span.  Zero or several hosts is a loud
-    dereference failure (a dangling opening reference, never a guess).
+    Walks every frozen as-drawn source, resolves each opening claim's json
+    pointer into that source's own ``hypotheses.opening_candidates`` node
+    (identity-checked the same way the wall compiler checks face nodes),
+    and reads the claim's ``face_line`` id plus ``span_m``.  Malformed
+    nodes, dangling pointers and face ids missing from the observation
+    index are LOUD — a dangling opening reference is never a guess.
     """
-    candidates = [
-        line for line in wall_lines
-        if line.axis == span.axis
-        and abs(line.pos_m - span.face_pos_m)
-        <= line.half_thickness_m + resolution_m
-        and line.along_lo_m - resolution_m <= span.span_hi_m
-        and span.span_lo_m <= line.along_hi_m + resolution_m
-    ]
-    if len(candidates) != 1:
-        raise ProjectionBridgeError(
-            "OPENING_HOST_UNRESOLVED",
-            {"opening_id": span.opening_id, "n_candidates": len(candidates),
-             "candidate_ids": [c.origin_id for c in candidates]},
-        )
-    return candidates[0]
+    spans: list[OpeningSpanV1] = []
+    for source in artifact.frozen_sources:
+        meta = source.artifact
+        if meta.source_contract_id != SOURCE_CONTRACT_AS_DRAWN:
+            continue
+        doc = json.loads(source.raw_bytes.decode("utf-8"))
+        face_index = as_drawn_face_index(doc)
+        for claim in artifact.bundle.opening_claims:
+            if claim.source_ref.input_id != meta.input_id:
+                continue
+            node = resolve_json_pointer(doc, claim.source_ref.json_pointer)
+            if not isinstance(node, dict) \
+                    or node.get("id") != claim.source_ref.observation_id:
+                raise ProjectionBridgeError(
+                    "OPENING_NODE_MISMATCH",
+                    {"input_id": meta.input_id,
+                     "pointer": claim.source_ref.json_pointer,
+                     "ref_says": claim.source_ref.observation_id},
+                )
+            face_line = node.get("face_line")
+            span = node.get("span_m")
+            if face_line not in face_index \
+                    or not isinstance(span, list) or len(span) != 2 \
+                    or not all(
+                        isinstance(v, (int, float)) and not isinstance(v, bool)
+                        for v in span
+                    ) \
+                    or not float(span[0]) < float(span[1]):
+                raise ProjectionBridgeError(
+                    "OPENING_DEREF_MALFORMED",
+                    {"opening_id": claim.opening_id,
+                     "face_line": face_line,
+                     "span_m": span},
+                )
+            spans.append(
+                OpeningSpanV1(
+                    opening_id=claim.opening_id,
+                    face_observation_id=face_line,
+                    span_lo_m=float(span[0]),
+                    span_hi_m=float(span[1]),
+                )
+            )
+    return tuple(spans)
 
 
 # ── the main entry: cut lines → envelope ──────────────────────────────────── #
@@ -830,6 +910,7 @@ __all__ = [
     "ProjectionBridgeError",
     "cut_lines_from_as_measured_view",
     "cut_lines_from_wall_compilation",
+    "opening_spans_from_artifact",
     "close_collinear_gaps",
     "extend_endpoints",
     "partition_lines",
