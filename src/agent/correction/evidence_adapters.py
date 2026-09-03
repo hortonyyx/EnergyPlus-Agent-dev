@@ -748,7 +748,37 @@ def adapt_as_drawn_elevation(
         ))
 
     # -- channels: the routing table says exactly what this leg carries -----
-    debts: list[EvidenceDebtV1] = []
+    debts: list[EvidenceDebtV1] = [
+        # ⭐ R2-b (B3 rework 1, 2026-09-03): the span-equality half of the
+        # named premise travels as a DEBT IN THE PRODUCT, ⛔ not as a source
+        # comment -- downstream reconciles artifacts, never comments (the
+        # cross-review's criterion verbatim).  ``other_known_missing`` is the
+        # registered kind for exactly this shape (an accounted known-missing
+        # that travels with the artifact; it blocks NO profile), and the
+        # description names B4's equality gate as owner, so B4 can hold the
+        # plan side accountable by ``debt_id`` when it reconciles the two
+        # families.  ⛔ This debt is a claim of ownership, ⛔ never a licence:
+        # it excuses no channel (channel is None on purpose).
+        EvidenceDebtV1(
+            debt_id=f"debt_elevation_chain_span_unchecked_{input_id}",
+            kind="other_known_missing",
+            channel=None,
+            affected_refs=(
+                _pointer(input_id, contract, sha, "/calibration"),
+            ),
+            description=(
+                "the elevation chain's total length is NOT reconciled "
+                "against the plan side's outer-skin span on this leg: that "
+                "equality needs the plan input (a different product "
+                "family) and is B4's zero-parameter equality gate, loud on "
+                "mismatch; this adapter must not fake it with a threshold "
+                "against structure-line ink coverage (measured 0.01-0.5 px "
+                "jitter on the real four facades -- that would be a "
+                "nobody-signed threshold, not an equality).  Named premise: "
+                f"{ELEVATION_CHAIN_SPANS_WHOLE_BUILDING}.  Owner: B4."
+            ),
+        ),
+    ]
     channels: list[ChannelStatusV1] = []
     if elev_openings:
         channels.append(ChannelStatusV1(

@@ -34,7 +34,10 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
+from src.agent.correction.evidence_adapters import (
+    ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
+    adapt_as_drawn_elevation,
+)
 from src.agent.correction.evidence_contract import (
     CHANNEL_PAYLOAD_MEMBERS,
     CorrectionEvidenceBundleV1,
@@ -451,6 +454,58 @@ def test_bundle_default_carries_the_new_members():
     )
     assert bundle.elevation_opening_claims == []
     assert bundle.floor_level_claims == []
+
+
+# ── acceptance 5, R2-b: the span debt travels in the PRODUCT ────────────────── #
+def _span_debt(artifact):
+    """The downstream's ONLY view: read the bundle, ⛔ never the source --
+    a source comment stops nobody (the rework sheet's criterion verbatim:
+    downstream does not read source comments, only products)."""
+    return [
+        d for d in artifact.bundle.evidence_debts
+        if d.debt_id.startswith("debt_elevation_chain_span_unchecked_")
+    ]
+
+
+@pytest.mark.parametrize("facade", _FACADES)
+def test_span_equality_gap_travels_as_a_named_debt(facade):
+    """⭐ R2-b (B3 rework 1, 2026-09-03): the half of the named premise this
+    leg cannot check single-sourced -- chain total == the plan side's
+    outer-skin span -- must be an EXPLICIT debt in every elevation bundle,
+    naming B4's equality gate as owner.  ``other_known_missing`` blocks no
+    profile by ruling, so the debt travels with the artifact instead of
+    making success unreachable; and ``channel=None`` keeps it an ownership
+    claim, ⛔ never a channel excuse."""
+    artifact = adapt_as_drawn_elevation(
+        _real_raw(facade), input_id=facade, facade_ref=facade
+    )
+    span = _span_debt(artifact)
+    assert len(span) == 1, (
+        f"the span-equality gap must travel as exactly one named debt, "
+        f"found {len(span)} -- without it the gap lives only in a source "
+        "comment, which downstream never reads"
+    )
+    debt = span[0]
+    assert debt.kind == "other_known_missing"
+    assert debt.channel is None, "an ownership claim, ⛔ not a channel excuse"
+    assert "B4" in debt.description, "the debt must name its owner"
+    assert ELEVATION_CHAIN_SPANS_WHOLE_BUILDING in debt.description
+    # the debt's refs must dereference into THIS artifact's frozen source
+    assert [r.input_id for r in debt.affected_refs] == [facade]
+    # the artifact with the debt on board stays wholly valid
+    validate_evidence_bundle(artifact)
+
+
+def test_the_span_debt_is_a_property_of_the_family_not_the_fixture():
+    """A synthetic three-storey facade carries the same debt: it cannot
+    silently depend on which fixture ran (the same family-rule shape as
+    acceptance 3's ladder locks)."""
+    artifact = adapt_as_drawn_elevation(
+        _synthetic_bytes([2900.0, 3300.0]),
+        input_id="synthetic", facade_ref="East",
+    )
+    assert len(_span_debt(artifact)) == 1
+    validate_evidence_bundle(artifact)
 
 
 # =========================================================================== #
