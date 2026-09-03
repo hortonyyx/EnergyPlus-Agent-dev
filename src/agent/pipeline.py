@@ -1358,7 +1358,9 @@ def run_correction(
     must be declared by the caller: the bridge never mints a z (B2 owns
     sourcing).  When the loop does NOT succeed there is still no product:
     ``EvidenceChainTerminal`` fires — the final provisional is audit-only
-    and ⛔ must never travel as one."""
+    and ⛔ must never travel as one.  A successful but ``degraded`` envelope
+    is returned only for the exploratory evidence-chain profile; the strict
+    profile refuses it here, before geometry can reach the judge."""
     from src.agent.correction.parse import correction_target, parse_correction_draw
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     target = target or correction_target(capability_profile)
@@ -1437,6 +1439,21 @@ def run_correction(
                 f"{envelope.source_resolved_sha256}, outcome has "
                 f"{outcome.final_provisional_sha256} — treat as a "
                 "projection failure"
+            )
+        # Design §四 hard rule, enforced at B1's consumer boundary: this is
+        # the last point where the envelope and the evidence-chain profile
+        # are both available before bare geometry could travel to the judge.
+        # Exploratory runs may inspect degraded geometry, but strict runs
+        # must stop with the filed envelope still available for audit.
+        if (
+            evidence_chain_profile == "strict"
+            and envelope.completion == "degraded"
+        ):
+            raise RuntimeError(
+                "strict evidence-chain profile refuses a degraded "
+                "projection before the judge: envelope on disk at "
+                f"{Path(out_dir) / _EVIDENCE_CHAIN_PROJECTION_NAME} has "
+                f"{len(envelope.dangling_end_debts)} dangling-end debt(s)"
             )
         return envelope.geometry
     # F-97 (F-c, B-03): classify and FILE THE LEDGER FIRST -- before the reading

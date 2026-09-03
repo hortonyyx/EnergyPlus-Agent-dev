@@ -38,6 +38,7 @@ from src.agent.correction.projection_bridge import (
     ProjectionBridgeError,
     _line_string,
     cut_lines_from_wall_compilation,
+    extend_endpoints,
     opening_spans_from_artifact,
     project_cut_lines,
 )
@@ -252,6 +253,63 @@ def test_opening_with_two_owner_walls_is_loud():
     assert exc.value.detail["n_owner_walls"] == 2
 
 
+def _mandated_mixed_thickness_walls():
+    """Build production IR walls from the existing S-mix data declaration."""
+    from tests.test_b1_projection_bridge_fixtures import UPM, smix_view
+
+    source_rows = smix_view()["walls"]
+    expected_thicknesses = {
+        row["thickness"] / UPM for row in source_rows
+    }
+    by_thickness = {}
+    for index, row in enumerate(source_rows):
+        thickness_m = row["thickness"] / UPM
+        if thickness_m in by_thickness:
+            continue
+        by_thickness[thickness_m] = _wall(
+            f"w_mix_{index}",
+            constant_world_axis="y" if row["axis"] == "x" else "x",
+            constant_pos_m=(row["face_lo"] + row["face_hi"]) / 2 / UPM,
+            along=((row["along_min"] / UPM, row["along_max"] / UPM),),
+            thickness_m=thickness_m,
+            face_ids=(f"mix_face_{index}",),
+        )
+    walls = tuple(by_thickness.values())
+    assert {wall.resolved_thickness_m for wall in walls} == expected_thicknesses
+    return walls
+
+
+def test_mixed_thickness_opening_with_no_owner_is_loud():
+    """The zero-owner refusal also has teeth on the mandated thickness mix."""
+    walls = _mandated_mixed_thickness_walls()
+    absent_face = f"absent:{walls[0].source_refs[0].observation_id}"
+    with pytest.raises(ProjectionBridgeError) as exc:
+        cut_lines_from_wall_compilation(walls, [_opening_span(absent_face)])
+    assert exc.value.code == "OPENING_HOST_UNRESOLVED"
+    assert exc.value.detail["n_owner_walls"] == 0
+    assert exc.value.detail["owner_wall_ids"] == []
+
+
+def test_mixed_thickness_opening_with_two_owners_is_loud():
+    """The multi-owner refusal also has teeth on the mandated thickness mix."""
+    walls = _mandated_mixed_thickness_walls()
+    shared_ref = walls[0].source_refs[0]
+    duplicate_owner = walls[-1].model_copy(
+        update={"source_refs": (shared_ref,)}
+    )
+    with pytest.raises(ProjectionBridgeError) as exc:
+        cut_lines_from_wall_compilation(
+            walls + (duplicate_owner,),
+            [_opening_span(shared_ref.observation_id)],
+        )
+    assert exc.value.code == "OPENING_HOST_UNRESOLVED"
+    assert exc.value.detail["n_owner_walls"] == 2
+    assert set(exc.value.detail["owner_wall_ids"]) == {
+        walls[0].wall_id,
+        duplicate_owner.wall_id,
+    }
+
+
 def test_unresolved_wall_is_loud():
     """W2 discipline: a wall that cannot be projected is never silently
     skipped — a missing wall leaves no geometric signature at all."""
@@ -371,3 +429,62 @@ def test_production_chain_on_real_sm25_2f_unrotated():
     assert x_extent - y_extent > 4.0, (x_extent, y_extent)
     # the envelope binds the compilation it was derived from
     assert envelope.source_resolved_sha256 == compilation.content_sha256
+
+
+def test_real_sm25_host_inventory_is_unique_but_has_no_refusal_stock():
+    """T3 inventory: every real opening has one owner; zero/two have no stock.
+
+    The real frame therefore exercises the success direction of host
+    resolution, while the refusal directions necessarily remain synthetic.
+    """
+    artifact = _real_artifact()
+    compilation = _all_keep_compilation(artifact)
+    spans = opening_spans_from_artifact(artifact)
+    owners = {}
+    for wall in compilation.walls:
+        for ref in wall.source_refs:
+            owners.setdefault(ref.observation_id, []).append(wall.wall_id)
+    owner_counts = tuple(
+        len(owners.get(span.face_observation_id, ())) for span in spans
+    )
+    assert owner_counts
+    assert set(owner_counts) == {1}
+
+
+def test_real_sm25_inward_candidates_exist_but_extensions_never_shorten():
+    """T3 inventory + lock: real inward candidates must not shorten lines."""
+    artifact = _real_artifact()
+    compilation = _all_keep_compilation(artifact)
+    spans = opening_spans_from_artifact(artifact)
+    lines, _ = cut_lines_from_wall_compilation(compilation.walls, spans)
+
+    inward_candidates = []
+    for line in lines:
+        for other in lines:
+            if other.axis == line.axis:
+                continue
+            crosses = (
+                other.along_lo_m - line.half_thickness_m <= line.pos_m
+                <= other.along_hi_m + line.half_thickness_m
+            )
+            if not crosses:
+                continue
+            lo_in_band = (
+                line.along_lo_m < other.pos_m
+                and abs(line.along_lo_m - other.pos_m)
+                <= other.half_thickness_m
+            )
+            hi_in_band = (
+                other.pos_m < line.along_hi_m
+                and abs(line.along_hi_m - other.pos_m)
+                <= other.half_thickness_m
+            )
+            if lo_in_band or hi_in_band:
+                inward_candidates.append((line.origin_id, other.origin_id))
+    assert inward_candidates, "real product lost inward-candidate inventory"
+
+    extended = extend_endpoints(lines, resolution_m=0.0).lines
+    assert len(extended) == len(lines)
+    for before, after in zip(lines, extended):
+        assert after.along_lo_m <= before.along_lo_m
+        assert after.along_hi_m >= before.along_hi_m
