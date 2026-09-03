@@ -31,7 +31,7 @@ MODEL="${4:-gpt-5.6-sol}"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 cd "$WORKTREE"
-nohup codex exec -m "$MODEL" --sandbox workspace-write --skip-git-repo-check \
+nohup codex exec -m "$MODEL" --sandbox danger-full-access --skip-git-repo-check \
     < "$PROMPT_FILE" > "$LOG_FILE" 2>&1 &
 PID=$!
 sleep 5
