@@ -1,4 +1,4 @@
-"""②-2 module 3: the two reading→correction evidence adapters (2026-08-31).
+"""②-2 module 3: the reading→correction evidence adapters (2026-08-31; B3 leg 2026-09-03).
 
 WHAT THIS MODULE IS
 -------------------
@@ -8,10 +8,14 @@ The production translation from a frozen reading artifact into the unified
 * :func:`adapt_as_drawn_plan`  -- an as-drawn v2 plan product → the four
   positive wall-claim kinds + the three-status face-disposition ledger;
 * :func:`adapt_legacy_reading_view` -- a legacy ``ReadingView`` (with
-  ``strokes``) → one ``legacy_wall_trace`` claim per ``pen == "wall"`` stroke.
+  ``strokes``) → one ``legacy_wall_trace`` claim per ``pen == "wall"`` stroke;
+* :func:`adapt_as_drawn_elevation` -- an as-drawn v0 elevation product →
+  the ``elevation_openings`` and ``floor_levels`` channels: every opening's
+  ``z_range_m`` and every horizontal structure line's ``pos_m`` as
+  value-plus-provenance claims (B3).
 
-Both take FROZEN BYTES (identity anchors in the bytes, design §3.2), both
-return the persistable artifact (bundle + frozen source), and both refuse
+All take FROZEN BYTES (identity anchors in the bytes, design §3.2), all
+return the persistable artifact (bundle + frozen source), and all refuse
 loudly -- with module 2's ``EvidenceContractError``, so an adapter-time
 refusal and a validator-time refusal are the same family of teeth, never two
 opinions.  ⛔ This module wires NOTHING: it does not touch the vector-contract
@@ -69,15 +73,20 @@ from typing import Literal
 
 from src.agent.correction.evidence_contract import (
     BUNDLE_SCHEMA_VERSION,
+    FLOOR_LEVEL_SELECTION_RULE,
+    MIN_FLOOR_LEVELS,
     SOURCE_CONTRACT_AS_DRAWN,
+    SOURCE_CONTRACT_AS_DRAWN_ELEVATION,
     SOURCE_CONTRACT_LEGACY,
     ArtifactPointerV1,
     ChannelStatusV1,
     CorrectionEvidenceBundleArtifactV1,
     CorrectionEvidenceBundleV1,
+    ElevationOpeningClaimV1,
     EvidenceContractError,
     EvidenceDebtV1,
     FaceDispositionV1,
+    FloorLevelClaimV1,
     FrozenSourceV1,
     LegacyWallTraceClaimV1,
     ObservationRefV1,
@@ -87,6 +96,8 @@ from src.agent.correction.evidence_contract import (
     SolidBandWallClaimV1,
     SourceArtifactV1,
     WallClaimV1,
+    as_drawn_elevation_floor_lines,
+    as_drawn_elevation_opening_index,
     as_drawn_face_index,
     finalize_bundle,
     validate_evidence_bundle,
@@ -94,6 +105,7 @@ from src.agent.correction.evidence_contract import (
 )
 from src.agent.correction.window_sources import source_locator
 from src.agent.reading.vector_contract import (
+    CONTRACT_AS_DRAWN_ELEVATION_V0,
     CONTRACT_AS_DRAWN_PLAN,
     CONTRACT_READING_VIEW_LEGACY,
     classify_vector_json,
@@ -107,9 +119,12 @@ LEGACY_BASIS_VALUES: tuple[str, ...] = ("centerline", "wall_face", "outer_skin")
 
 #: Channels an as-drawn plan product does not carry today.  Each becomes an
 #: absent channel + an explicit ``missing_channel`` debt -- ⛔ never a silent
-#: hole (the whole point of ``channel_status``, design §3.3).
+#: hole (the whole point of ``channel_status``, design §3.3).  (B3 note:
+#: ``floor_levels`` joined this list on 2026-09-03 -- the plan family has no
+#: storey ladder; only an elevation product does.)
 _AS_DRAWN_ABSENT_CHANNELS: tuple[str, ...] = (
     "elevation_openings",
+    "floor_levels",
     "dimensions",
     "room_roles",
 )
@@ -121,6 +136,17 @@ _AS_DRAWN_ABSENT_CHANNELS: tuple[str, ...] = (
 _LEGACY_ABSENT_CHANNELS: tuple[str, ...] = (
     "plan_openings",
     "elevation_openings",
+    "floor_levels",
+    "dimensions",
+    "room_roles",
+)
+
+#: Channels an elevation product does not carry: it speaks only the two
+#: channels of its leg (openings' vertical half + the storey ladder).  Each
+#: travels absent + ``missing_channel`` debt, same discipline as above.
+_ELEVATION_ABSENT_CHANNELS: tuple[str, ...] = (
+    "walls",
+    "plan_openings",
     "dimensions",
     "room_roles",
 )
@@ -516,6 +542,289 @@ def adapt_as_drawn_plan(
     return _close_and_freeze(bundle, meta, raw)
 
 
+# ── the as-drawn elevation adapter (B3, 2026-09-03) ────────────────────────── #
+#: ⭐ The named premise this leg stands on (dispatch sheet §五.3, guide §十三).
+#: "The elevation's dimension chain spans the whole building" -- a property
+#: of HOW this family of drawings is drawn, ⛔ not a theorem.  What THIS
+#: adapter can check of it single-sourced: the calibration chains close
+#: (zero-threshold recompute below) and the floor ladder is not degenerate
+#: (the validator raises for any elevation source with fewer than
+#: MIN_FLOOR_LEVELS horizontal structure lines).  The remaining half --
+#: chain total length == the plan side's outer-skin span -- needs the plan
+#: input and is B4's equality gate by design (see the cross-view probe:
+#: zero-parameter, loud on mismatch); ⛔ this adapter must not fake it with
+#: a threshold against structure-line ink coverage (measured: 0.01-0.5 px
+#: jitter on the real four facades, so any such check would be a
+#: nobody-signed threshold, not an equality).
+ELEVATION_CHAIN_SPANS_WHOLE_BUILDING = (
+    "the elevation dimension chain spans the whole building"
+)
+
+
+def _require_chain_closed(calibration: dict, input_id: str) -> None:
+    """Zero-threshold recompute of both calibration chains (⛔ not the
+    product's self-reported ``chain_closure_mm`` -- a recompute, so a
+    tampered self-report cannot vouch for itself).
+
+    Exact float equality on purpose: the three quantities are the same JSON
+    literals the producer derived each other from, so any difference is a
+    broken chain, never rounding.
+    """
+    for axis in ("x", "z"):
+        chain = calibration.get(axis)
+        if not isinstance(chain, dict):
+            raise EvidenceContractError(
+                "CALIBRATION_AXIS_MISSING",
+                {"input_id": input_id, "axis": axis},
+            )
+        values = chain.get("values_mm")
+        cum = chain.get("cum_mm")
+        overall = chain.get("overall_mm")
+        if (
+            not isinstance(values, list) or not values
+            or not isinstance(cum, list) or not cum
+            or any(
+                isinstance(v, bool) or not isinstance(v, (int, float))
+                for v in values
+            )
+        ):
+            raise EvidenceContractError(
+                "CALIBRATION_CHAIN_MALFORMED",
+                {"input_id": input_id, "axis": axis},
+            )
+        total = sum(values)
+        if total != cum[-1] or cum[-1] != overall:
+            raise EvidenceContractError(
+                "CALIBRATION_CHAIN_NOT_CLOSED",
+                {
+                    "input_id": input_id,
+                    "axis": axis,
+                    "sum_values_mm": total,
+                    "cum_mm_last": cum[-1],
+                    "overall_mm": overall,
+                },
+            )
+
+
+def adapt_as_drawn_elevation(
+    raw: bytes,
+    *,
+    input_id: str,
+    facade_ref: str,
+    view_type: Literal["plan", "elevation"] = "elevation",
+) -> CorrectionEvidenceBundleArtifactV1:
+    """Translate ONE frozen as-drawn v0 elevation product into a bundle.
+
+    The two evidences this leg exists for (design §7.2 B3 row):
+
+    * ``openings[].z_range_m`` → :class:`ElevationOpeningClaimV1` rows on the
+      ``elevation_openings`` channel -- the vertical half of every window,
+      each bound carrying the pointer to the frozen byte it was read from
+      plus the pixel witnesses the product recorded for it;
+    * the horizontal ``structure_lines`` → :class:`FloorLevelClaimV1` rows on
+      the ``floor_levels`` channel, selected by
+      :data:`FLOOR_LEVEL_SELECTION_RULE` (⭐ a predicate, ⛔ not a list -- a
+      different storey count selects its own ladder).
+
+    ⭐ Identity: ``input_id`` is the caller-supplied view-manifest slot and
+    ``facade_ref`` the semantic slot's second coordinate (it lands on
+    ``floor_ref``; the pair ``("elevation", facade_ref)`` is the uniqueness
+    slot, so the four facades of one building are four distinct sources).
+    Deterministic: the same bytes through this function produce a
+    byte-identical bundle.
+
+    Refuses loudly (stable codes): ``CALIBRATION_CHAIN_NOT_CLOSED`` (either
+    axis's chain does not close under recompute), ``FLOOR_LADDER_DEGENERATE``
+    (fewer than :data:`MIN_FLOOR_LEVELS` horizontal structure lines -- the
+    z-shape of :data:`ELEVATION_CHAIN_SPANS_WHOLE_BUILDING` failing),
+    ``ELEVATION_OPENING_Z_MISSING`` (an opening without a well-formed
+    ascending ``z_range_m`` pair), ``FLOOR_LINE_Z_MISSING`` (a selected
+    structure line without a numeric ``pos_m``).  A windowless facade is
+    ⛔ NOT an error: ``elevation_openings`` travels ``absent`` with a
+    ``missing_channel`` debt, the honest zero-run shape.
+    """
+    doc = _parse_json_bytes(raw, input_id)
+    _require_contract(doc, raw, input_id, CONTRACT_AS_DRAWN_ELEVATION_V0)
+
+    sha = hashlib.sha256(raw).hexdigest()
+    contract = SOURCE_CONTRACT_AS_DRAWN_ELEVATION
+    meta = SourceArtifactV1(
+        input_id=input_id, source_contract_id=contract,
+        source_output_sha256=sha, view_type=view_type, floor_ref=facade_ref,
+    )
+
+    # -- premise, single-sourceable half: both chains close under recompute --
+    calibration = doc.get("calibration")
+    if not isinstance(calibration, dict):
+        raise EvidenceContractError(
+            "CALIBRATION_MISSING", {"input_id": input_id}
+        )
+    _require_chain_closed(calibration, input_id)
+
+    # -- openings → elevation_opening_claims (value + byte provenance) -------
+    opening_index = as_drawn_elevation_opening_index(doc)
+    elev_openings: list[ElevationOpeningClaimV1] = []
+    for oid, (i, node) in opening_index.items():
+        base = f"/openings/{i}"
+        zr = node.get("z_range_m")
+        if (
+            not isinstance(zr, list) or len(zr) != 2
+            or isinstance(zr[0], bool) or isinstance(zr[1], bool)
+            or not isinstance(zr[0], (int, float))
+            or not isinstance(zr[1], (int, float))
+            or not zr[0] < zr[1]
+        ):
+            raise EvidenceContractError(
+                "ELEVATION_OPENING_Z_MISSING",
+                {
+                    "input_id": input_id,
+                    "opening_id": oid,
+                    "z_range_m": zr,
+                    "expected": "a two-element ascending numeric pair",
+                },
+            )
+        # pixel witnesses travel only when the product actually recorded
+        # them; without them the z is vector/calibration-derived, and the
+        # ref says so instead of promising pixels it cannot show.
+        edge = node.get("edge_witnesses")
+        witnesses = tuple(
+            f"{base}/edge_witnesses/{key}"
+            for key in ("z_low", "z_high")
+            if isinstance(edge, dict) and isinstance(edge.get(key), dict)
+        )
+        source_ref = _observation_ref(
+            input_id, contract, sha, base, oid,
+            witnesses=witnesses,
+            resolution="pixel_backed" if witnesses else "vector_only",
+        )
+        elev_openings.append(ElevationOpeningClaimV1(
+            opening_id=oid,
+            source_ref=source_ref,
+            z_low_m=float(zr[0]),
+            z_low_ref=_pointer(input_id, contract, sha, f"{base}/z_range_m/0"),
+            z_high_m=float(zr[1]),
+            z_high_ref=_pointer(input_id, contract, sha, f"{base}/z_range_m/1"),
+        ))
+
+    # -- horizontal structure lines → floor_level_claims (T4's rule) ---------
+    floor_lines = as_drawn_elevation_floor_lines(doc)
+    if len(floor_lines) < MIN_FLOOR_LEVELS:
+        raise EvidenceContractError(
+            "FLOOR_LADDER_DEGENERATE",
+            {
+                "input_id": input_id,
+                "horizontal_structure_lines": sorted(floor_lines),
+                "minimum": MIN_FLOOR_LEVELS,
+                "rule": FLOOR_LEVEL_SELECTION_RULE,
+            },
+        )
+    floors: list[FloorLevelClaimV1] = []
+    for lid, (i, node) in floor_lines.items():
+        base = f"/structure_lines/{i}"
+        pos_m = node.get("pos_m")
+        if isinstance(pos_m, bool) or not isinstance(pos_m, (int, float)):
+            raise EvidenceContractError(
+                "FLOOR_LINE_Z_MISSING",
+                {
+                    "input_id": input_id,
+                    "structure_line_id": lid,
+                    "pos_m": pos_m,
+                },
+            )
+        witnesses = tuple(
+            f"{base}/{key}"
+            for key in ("pos_px", "cols_px", "runs_px")
+            if key in node
+        )
+        floors.append(FloorLevelClaimV1(
+            structure_line_id=lid,
+            source_ref=_observation_ref(
+                input_id, contract, sha, base, lid,
+                witnesses=witnesses,
+                resolution="pixel_backed" if witnesses else "vector_only",
+            ),
+            z_m=float(pos_m),
+            z_ref=_pointer(input_id, contract, sha, f"{base}/pos_m"),
+        ))
+
+    # -- channels: the routing table says exactly what this leg carries -----
+    debts: list[EvidenceDebtV1] = [
+        # ⭐ R2-b (B3 rework 1, 2026-09-03): the span-equality half of the
+        # named premise travels as a DEBT IN THE PRODUCT, ⛔ not as a source
+        # comment -- downstream reconciles artifacts, never comments (the
+        # cross-review's criterion verbatim).  ``other_known_missing`` is the
+        # registered kind for exactly this shape (an accounted known-missing
+        # that travels with the artifact; it blocks NO profile), and the
+        # description names B4's equality gate as owner, so B4 can hold the
+        # plan side accountable by ``debt_id`` when it reconciles the two
+        # families.  ⛔ This debt is a claim of ownership, ⛔ never a licence:
+        # it excuses no channel (channel is None on purpose).
+        EvidenceDebtV1(
+            debt_id=f"debt_elevation_chain_span_unchecked_{input_id}",
+            kind="other_known_missing",
+            channel=None,
+            affected_refs=(
+                _pointer(input_id, contract, sha, "/calibration"),
+            ),
+            description=(
+                "the elevation chain's total length is NOT reconciled "
+                "against the plan side's outer-skin span on this leg: that "
+                "equality needs the plan input (a different product "
+                "family) and is B4's zero-parameter equality gate, loud on "
+                "mismatch; this adapter must not fake it with a threshold "
+                "against structure-line ink coverage (measured 0.01-0.5 px "
+                "jitter on the real four facades -- that would be a "
+                "nobody-signed threshold, not an equality).  Named premise: "
+                f"{ELEVATION_CHAIN_SPANS_WHOLE_BUILDING}.  Owner: B4."
+            ),
+        ),
+    ]
+    channels: list[ChannelStatusV1] = []
+    if elev_openings:
+        channels.append(ChannelStatusV1(
+            channel="elevation_openings", state="present",
+            source_input_ids=(input_id,),
+        ))
+    else:
+        debt_id = f"debt_missing_elevation_openings_{input_id}"
+        debts.append(EvidenceDebtV1(
+            debt_id=debt_id, kind="missing_channel",
+            channel="elevation_openings",
+            description="no opening in this elevation product",
+        ))
+        channels.append(ChannelStatusV1(
+            channel="elevation_openings", state="absent",
+            covered_by_debt_ids=(debt_id,),
+        ))
+    channels.append(ChannelStatusV1(
+        channel="floor_levels", state="present",
+        source_input_ids=(input_id,),
+    ))
+    for channel in _ELEVATION_ABSENT_CHANNELS:
+        debt_id = f"debt_{channel}_{input_id}"
+        debts.append(EvidenceDebtV1(
+            debt_id=debt_id, kind="missing_channel", channel=channel,
+            description="channel not carried by an elevation product",
+        ))
+        channels.append(ChannelStatusV1(
+            channel=channel, state="absent",
+            covered_by_debt_ids=(debt_id,),
+        ))
+
+    bundle = finalize_bundle(CorrectionEvidenceBundleV1(
+        schema_version=BUNDLE_SCHEMA_VERSION,
+        source_artifacts=[meta],
+        channel_status=channels,
+        wall_claims=[],
+        face_dispositions=[],
+        opening_claims=[],
+        elevation_opening_claims=elev_openings,
+        floor_level_claims=floors,
+        evidence_debts=debts,
+    ))
+    return _close_and_freeze(bundle, meta, raw)
+
+
 # ── the legacy adapter ────────────────────────────────────────────────────── #
 def adapt_legacy_reading_view(
     raw: bytes,
@@ -666,7 +975,9 @@ def adapt_legacy_reading_view(
 
 
 __all__ = [
+    "ELEVATION_CHAIN_SPANS_WHOLE_BUILDING",
     "LEGACY_BASIS_VALUES",
+    "adapt_as_drawn_elevation",
     "adapt_as_drawn_plan",
     "adapt_legacy_reading_view",
 ]

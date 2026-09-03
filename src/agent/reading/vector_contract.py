@@ -273,8 +273,14 @@ CONTRACTS: tuple[ContractSpec, ...] = (
         f"schema=={AS_DRAWN_PLAN_V0_SCHEMA!r} with wall_bands/dimension_witnesses",
     ),
     ContractSpec(
+        # ⭐ 2026-09-03 (B3, the as-drawn elevation leg): the disposition moved
+        # from KNOWN_NOT_CONSUMED to ADAPT -- the bytes of a recognized
+        # elevation product now have a wire (``adapt_as_drawn_elevation``),
+        # exactly as the plan contract did at module-7 wiring.  The ledger
+        # names them in ``adapted`` ⛔ never as offenders; a run that carries
+        # them without taking the evidence chain is the caller's refusal.
         CONTRACT_AS_DRAWN_ELEVATION_V0,
-        Disposition.KNOWN_NOT_CONSUMED,
+        Disposition.ADAPT,
         lambda raw: _is_declared(raw, AS_DRAWN_ELEVATION_V0_SCHEMA)
         and _has_keys(raw, "openings", "structure_lines"),
         f"schema=={AS_DRAWN_ELEVATION_V0_SCHEMA!r} with openings/structure_lines",

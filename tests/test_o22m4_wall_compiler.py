@@ -984,7 +984,9 @@ def _hand_built_artifact(doc: dict, input_id: str):
             covered_by_debt_ids=(f"debt_missing_plan_openings_{input_id}",),
         ),
     ]
-    for channel in ("elevation_openings", "dimensions", "room_roles"):
+    for channel in (
+        "elevation_openings", "floor_levels", "dimensions", "room_roles",
+    ):
         debt_id = f"debt_{channel}_{input_id}"
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel=channel,
