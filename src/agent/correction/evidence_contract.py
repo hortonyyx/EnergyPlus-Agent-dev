@@ -569,10 +569,11 @@ class ElevationOpeningClaimV1(BaseModel):
 #: (the producer) and the validator (the mirror), so they can never be two
 #: opinions: a floor-level candidate is EVERY horizontal structure line of
 #: the elevation (``constant_quantity == "z"``).  A rule, ⛔ not a list --
-#: a three-storey 2.9/3.3/4.2 elevation yields exactly its own four lines,
-#: and no sm25 reading ever appears in code.  Sorting the selected levels
-#: ascending gives the ladder; adjacent differences are the storey-height
-#: candidates B2 derives ``ceiling_height`` from.
+#: an elevation of any storey count and any storey heights yields exactly
+#: its own horizontal lines, and no real-case reading ever appears in code.
+#: Sorting the selected levels ascending gives the ladder; adjacent
+#: differences are the storey-height candidates B2 derives
+#: ``ceiling_height`` from.
 FLOOR_LEVEL_SELECTION_RULE = "every structure line with constant_quantity == 'z'"
 
 #: The structural minimum of a floor ladder: ground + one roof/upper level.
