@@ -652,23 +652,138 @@ def test_description_full_of_b4_wires_nothing():
 
 
 def test_registry_rows_are_wiring_not_decoration(monkeypatch):
-    for prefix, handler in DEBT_REDEMPTION_REGISTRY.items():
-        target = getattr(osm, handler, None)
-        assert callable(target), f"{prefix}: handler {handler!r} missing"
+    """⭐ rework 1 (cross-review B-1): the registry's gate column is
+    LOAD-BEARING.  The cross-review pointed the span prefix at
+    ``grid_units`` -- a real, existing, callable of this module, signature
+    and semantics both foreign -- and the old teeth waved it through while
+    the debt was still retired (``WRONG_HANDLER_ACCEPTED= grid_units``).
+    The teeth below refuse exactly that shape, at import time AND at the
+    real call site, and a wrong handler means NO product, so no
+    retirement."""
+    # the healthy shape: every row carries this module's named gate object
+    # and a premise, and the span row's premise IS the product's premise
+    for prefix, row in DEBT_REDEMPTION_REGISTRY.items():
+        assert isinstance(row, osm.DebtRedemption), prefix
+        assert callable(row.gate), f"{prefix}: gate missing"
+        assert getattr(osm, row.gate.__name__, None) is row.gate, (
+            f"{prefix}: gate is not a named function of this module"
+        )
+    span_prefix = "debt_elevation_chain_span_unchecked_"
+    assert (
+        DEBT_REDEMPTION_REGISTRY[span_prefix].premise
+        == ELEVATION_CHAIN_SPANS_WHOLE_BUILDING
+    )
 
-    # a handler name that exists nowhere must be refused at assert time
+    # (1) import-time teeth: the cross-review's exact mutation -- a
+    # real-but-wrong existing callable -- is loud, ⛔ not accepted
     monkeypatch.setitem(
-        DEBT_REDEMPTION_REGISTRY, "debt_x_", "no_such_handler"
+        DEBT_REDEMPTION_REGISTRY,
+        span_prefix,
+        osm.DebtRedemption(
+            premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING, gate=osm.grid_units
+        ),
+    )
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_GATE_SIGNATURE_MISMATCH"
+    assert caught.value.context["gate"] == "grid_units"
+    monkeypatch.undo()
+
+    # (1b) a lambda carries no module name: not module wiring
+    monkeypatch.setitem(
+        DEBT_REDEMPTION_REGISTRY,
+        span_prefix,
+        osm.DebtRedemption(
+            premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
+            gate=lambda **kw: 0,
+        ),
+    )
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_GATE_NOT_MODULE_FUNCTION"
+    monkeypatch.undo()
+
+    # (1c) a non-callable gate is still the old loud refusal
+    monkeypatch.setitem(
+        DEBT_REDEMPTION_REGISTRY,
+        span_prefix,
+        osm.DebtRedemption(
+            premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING, gate=None
+        ),
     )
     with pytest.raises(OpeningSynthesisError) as caught:
         osm._assert_registry_well_formed()
     assert caught.value.code == "DEBT_REGISTRY_HANDLER_MISSING"
     monkeypatch.undo()
 
-    # two type prefixes where one is a prefix of the other: a debt_id
+    # (1d) two rows for one premise: the premise is the execution-side
+    # lookup key, so two gates for it is ambiguous wiring
+    monkeypatch.setitem(
+        DEBT_REDEMPTION_REGISTRY,
+        "debt_other_",
+        osm.DebtRedemption(
+            premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
+            gate=span_equality_gate,
+        ),
+    )
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_PREMISE_AMBIGUOUS"
+    monkeypatch.undo()
+
+    # (2) the RUNTIME shape of the same mutation (import teeth already
+    # ran): the synthesis itself must fail loudly and retire NOTHING --
+    # the cross-review's RETIRED= line, reversed
+    monkeypatch.setitem(
+        DEBT_REDEMPTION_REGISTRY,
+        span_prefix,
+        osm.DebtRedemption(
+            premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING, gate=osm.grid_units
+        ),
+    )
+    debt = _debt(SPAN_DEBT_ID, description="wired by prefix, wrongly")
+    with pytest.raises(OpeningSynthesisError) as caught:
+        synthesize_openings(
+            elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+            walls=_walls(), plan_openings=(), mirrored=False,
+            local_x_positive="image_left_to_right",
+            evidence_debts=[debt],
+        )
+    assert caught.value.code == "DEBT_GATE_CALL_FAILED"
+    assert caught.value.context["gate"] == "grid_units"
+    monkeypatch.undo()
+
+    # the control: healthy registry, same inputs -- a product exists and
+    # the retirement works (the refusal above was the wiring's, ⛔ not the
+    # input's)
+    product = synthesize_openings(
+        elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+        walls=_walls(), plan_openings=(), mirrored=False,
+        local_x_positive="image_left_to_right",
+        evidence_debts=[debt],
+    )
+    assert product.retired_debt_ids == (SPAN_DEBT_ID,)
+
+    # (3) delete the row entirely: the premise the product promises is
+    # unwired -- loud, ⛔ never a silent skip of the gate
+    monkeypatch.delitem(DEBT_REDEMPTION_REGISTRY, span_prefix)
+    with pytest.raises(OpeningSynthesisError) as caught:
+        synthesize_openings(
+            elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+            walls=_walls(), plan_openings=(), mirrored=False,
+            local_x_positive="image_left_to_right",
+        )
+    assert caught.value.code == "PREMISE_GATE_UNWIRED"
+    monkeypatch.undo()
+
+    # (4) two type prefixes where one is a prefix of the other: a debt_id
     # matching both would be ambiguous wiring
     monkeypatch.setitem(
-        DEBT_REDEMPTION_REGISTRY, "debt_elevation_chain_span_", "span_equality_gate"
+        DEBT_REDEMPTION_REGISTRY,
+        "debt_elevation_chain_span_",
+        osm.DebtRedemption(
+            premise="some other premise", gate=span_equality_gate
+        ),
     )
     with pytest.raises(OpeningSynthesisError) as caught:
         osm._assert_registry_well_formed()
@@ -678,7 +793,11 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     # and the same ambiguity seen from the debt side
     both = _debt("debt_elevation_chain_span_unchecked_a", description="")
     monkeypatch.setitem(
-        DEBT_REDEMPTION_REGISTRY, "debt_elevation_chain_span_", "span_equality_gate"
+        DEBT_REDEMPTION_REGISTRY,
+        "debt_elevation_chain_span_",
+        osm.DebtRedemption(
+            premise="some other premise", gate=span_equality_gate
+        ),
     )
     with pytest.raises(OpeningSynthesisError) as caught:
         redeemable_debt_ids([both])
