@@ -492,6 +492,22 @@ def test_span_equality_gap_travels_as_a_named_debt(facade):
     assert ELEVATION_CHAIN_SPANS_WHOLE_BUILDING in debt.description
     # the debt's refs must dereference into THIS artifact's frozen source
     assert [r.input_id for r in debt.affected_refs] == [facade]
+    # ⭐ and the json_pointer must actually RESOLVE into the frozen doc --
+    # the validator's scoped-ref check only covers ``zero_payload_channel``
+    # debts, so without this assertion the debt's pointer could dangle
+    # uncheckably (the weakest joint this rework leaves; see the execution
+    # sheet)
+    frozen = _frozen_doc(artifact)
+    for ref in debt.affected_refs:
+        node = frozen
+        try:
+            for part in ref.json_pointer.strip("/").split("/"):
+                node = node[part]
+        except (KeyError, TypeError) as exc:
+            raise AssertionError(
+                f"span debt pointer {ref.json_pointer!r} does not resolve "
+                f"into the frozen product: {exc!r}"
+            ) from exc
     # the artifact with the debt on board stays wholly valid
     validate_evidence_bundle(artifact)
 
