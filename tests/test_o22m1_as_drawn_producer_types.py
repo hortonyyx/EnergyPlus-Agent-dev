@@ -25,6 +25,8 @@ import pytest
 from pydantic import ValidationError
 
 import src.agent.reading.as_drawn.as_drawn_v2 as A
+import src.agent.reading.vector_contract as vector_contract
+from src.agent.correction import evidence_adapters
 from src.agent.reading.as_drawn.schema import (
     DEFERRED_CHANNELS,
     FACE_DISPOSITION_BUCKETS,
@@ -35,10 +37,12 @@ from src.agent.reading.as_drawn.schema import (
     validate_as_drawn_plan,
 )
 from src.agent.reading.vector_contract import (
+    CONTRACT_AS_DRAWN_ELEVATION_V0,
     CONTRACT_AS_DRAWN_PLAN,
     CONTRACT_READING_VIEW_LEGACY,
     CONTRACT_UNKNOWN,
     CONTRACTS,
+    ContractSpec,
     Disposition,
     classify_vector_json,
 )
@@ -409,22 +413,112 @@ def test_as_drawn_plan_is_wired_to_the_adapter():
     )
 
 
-def test_only_the_two_named_contracts_hold_wires():
-    """⭐ STRENGTHENED (module 7) from ``test_no_new_contract_became_
-    consumable``.  The rule is "no contract may quietly grow a wire", and a
-    wire now has TWO directions — consuming (pasted-JSON leg) and adapting
-    (evidence chain) — so BOTH sets are named, not just the first.  A third
-    contract silently turning either direction on stays a red.  The
-    mutation that proves this rule can still go red is locked in
-    ``test_o22m7_evidence_wiring`` (dispatch v2 acceptance 4b)."""
-    consuming = {s.contract_id for s in CONTRACTS if s.disposition is Disposition.CONSUME}
-    adapting = {s.contract_id for s in CONTRACTS if s.disposition is Disposition.ADAPT}
+#: ⭐ A RULE, ⛔ not a transcript (B3, 2026-09-03 -- the adapting set grew to
+#: two ON PURPOSE, and this table is where that purpose is registered).  A
+#: contract may sit in the adapting set ONLY when its bytes have a real
+#: ``adapt_*`` entry point: membership is EARNED by a wire, never tolerated
+#: by silence.
+#:
+#: * ``as_drawn_plan`` -- ``adapt_as_drawn_plan`` (module 7 wiring,
+#:   2026-09-02).
+#: * ``as_drawn_elevation_v0`` -- ``adapt_as_drawn_elevation`` (B3,
+#:   2026-09-03): the elevation bytes are the ONLY source for the two
+#:   evidences this leg exists for -- the z half of every window
+#:   (``openings[].z_range_m``) and the floor ladder (the horizontal
+#:   ``structure_lines``) -- both of which have ZERO sources in the plan
+#:   family (a plan product has no z; the legacy adapter writes
+#:   ``opening_claims=[]``).
+#:
+#: The legacy view HAS an ``adapt_*`` entry point yet stays CONSUME: its
+#: wire is the pasted-JSON leg until the legacy-teardown dispatch retires
+#: it -- so the table below names the *adapting* wires, ⛔ not every entry
+#: point.
+_ADAPTING_WIRES = {
+    CONTRACT_AS_DRAWN_PLAN: "adapt_as_drawn_plan",
+    CONTRACT_AS_DRAWN_ELEVATION_V0: "adapt_as_drawn_elevation",
+}
+
+#: The one non-adapting entry point (see above): named here so the entry-
+#: point reconciliation below can be an exact-equality rule, ⛔ not a subset.
+_NON_ADAPTING_ENTRY_POINTS = {"adapt_legacy_reading_view"}
+
+
+def _wire_sets(contracts: tuple[ContractSpec, ...] = CONTRACTS) -> tuple[set, set]:
+    """The criterion the lock and its mutation share: BOTH wire directions
+    at once (consuming = pasted-JSON leg, adapting = evidence chain)."""
+    return (
+        {s.contract_id for s in contracts
+         if s.disposition is Disposition.CONSUME},
+        {s.contract_id for s in contracts
+         if s.disposition is Disposition.ADAPT},
+    )
+
+
+def test_every_adapt_wire_is_a_registered_contract_with_a_real_entry_point():
+    """⭐ RENAMED+RESTATED (B3, 2026-09-03) from ``test_only_the_two_named_
+    contracts_hold_wires`` -- that name stopped telling the truth the day
+    the adapting set grew to two (consuming 1 + adapting 2 = three wired
+    contracts).  The rule it protected survives unchanged: NO contract may
+    quietly grow a wire.  It now holds mechanically, in both directions:
+
+    * the disposition table and the registration table must agree EXACTLY
+      (a fourth contract silently turning ADAPT, or a registered one losing
+      its disposition, is a red), and
+    * every registered entry point must EXIST and be callable in
+      ``evidence_adapters`` -- the registration cannot rot into a
+      transcript naming functions that are no longer there.
+    """
+    consuming, adapting = _wire_sets()
     assert consuming == {CONTRACT_READING_VIEW_LEGACY}, (
         f"pasted-JSON leg quietly grew: {consuming}"
     )
-    assert adapting == {CONTRACT_AS_DRAWN_PLAN}, (
-        f"evidence chain quietly grew: {adapting}"
+    assert adapting == set(_ADAPTING_WIRES), (
+        f"evidence chain quietly grew: {adapting} vs registered "
+        f"{set(_ADAPTING_WIRES)} -- every wire must be registered in "
+        "_ADAPTING_WIRES with the reason it is intentional"
     )
+    for contract_id, entry_point in _ADAPTING_WIRES.items():
+        fn = getattr(evidence_adapters, entry_point, None)
+        assert callable(fn), (
+            f"{contract_id} is registered for wire {entry_point!r} but "
+            "evidence_adapters exposes no such callable entry point"
+        )
+
+
+def test_every_public_adapt_entry_point_is_accounted_for():
+    """The entry-point side of the same rule: ``evidence_adapters``'s public
+    ``adapt_*`` surface must be EXACTLY the registered adapting wires plus
+    the one declared legacy exception -- so a NEW entry point cannot appear
+    without its contract being registered (and signed for) above."""
+    public = {
+        name for name in evidence_adapters.__all__
+        if name.startswith("adapt_")
+    }
+    assert public == set(_ADAPTING_WIRES.values()) | _NON_ADAPTING_ENTRY_POINTS, (
+        f"adapt_* surface quietly grew or drifted: {public}"
+    )
+
+
+def test_a_fourth_contract_quietly_turning_adapting_goes_red(monkeypatch):
+    """The STANDING mutation lock for the two rules above (same shape as
+    ``test_o22m7``'s 4b pair, per dispatch T6-d): smuggle a FOURTH contract
+    into the adapting set; the registration rule must fail on it --
+    measured through the same criterion function, ⛔ not a re-quoted copy
+    of the assertion."""
+    smuggled = ContractSpec(
+        "contract_smuggled_fourth_wire",
+        Disposition.ADAPT,
+        lambda raw: False,
+        "smuggled wire for the B3 mutation lock",
+    )
+    monkeypatch.setattr(
+        vector_contract, "CONTRACTS", vector_contract.CONTRACTS + (smuggled,)
+    )
+    with pytest.raises(AssertionError):
+        assert _wire_sets(vector_contract.CONTRACTS) == (
+            {CONTRACT_READING_VIEW_LEGACY},
+            set(_ADAPTING_WIRES),
+        )
 
 
 # =========================================================================== #
