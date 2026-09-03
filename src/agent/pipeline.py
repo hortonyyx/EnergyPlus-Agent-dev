@@ -1043,11 +1043,12 @@ def run_correction_evidence_chain(
     ``DecisionLoopOutcomeV1`` on disk (module 7's terminus).
 
     Route selection is the classifier's verdict, never a file name: an
-    ``as_drawn_plan`` product takes the as-drawn adapter (plan); a legacy
-    reading view takes the legacy adapter (its ``image_kind`` decides
-    plan/elevation).  Anything else — a v0 prototype, an unknown or damaged
-    shape — is a LOUD refusal at the adapt link: the chain has no silent
-    fallback to the pasted-JSON leg and none to legacy recognition.
+    ``as_drawn_plan`` product takes the as-drawn adapter (plan); an
+    ``as_drawn_elevation_v0`` product takes the as-drawn adapter (elevation,
+    B3); a legacy reading view takes the legacy adapter (its ``image_kind``
+    decides plan/elevation).  Anything else — a v0 prototype, an unknown or
+    damaged shape — is a LOUD refusal at the adapt link: the chain has no
+    silent fallback to the pasted-JSON leg and none to legacy recognition.
 
     ``fixed_responses`` is the sanctioned escape hatch (dispatch §四): when
     given, the model beat is NOT called and the fixed responses drive the
@@ -1069,11 +1070,13 @@ def run_correction_evidence_chain(
     """
     from src.agent.correction.decision_executor import run_decision_loop
     from src.agent.correction.evidence_adapters import (
+        adapt_as_drawn_elevation,
         adapt_as_drawn_plan,
         adapt_legacy_reading_view,
     )
     from src.agent.correction.evidence_contract import EvidenceContractError
     from src.agent.reading.vector_contract import (
+        CONTRACT_AS_DRAWN_ELEVATION_V0,
         CONTRACT_AS_DRAWN_PLAN,
         CONTRACT_READING_VIEW_LEGACY,
         classify_vector_json,
@@ -1102,6 +1105,28 @@ def run_correction_evidence_chain(
                 floor_ref=floor_ref,
                 view_type="plan",
             )
+        elif decision.contract_id == CONTRACT_AS_DRAWN_ELEVATION_V0:
+            # ⭐ B3 (2026-09-03): the elevation branch.  An elevation has no
+            # floor, so the semantic slot's second coordinate is the FACADE,
+            # taken from what the product itself declares (``facade_label``),
+            # ⛔ never guessed from the file name unless the product declares
+            # nothing.  ``view_type`` is fixed: an elevation product is an
+            # elevation view BY CONTRACT -- there is no second possibility
+            # to infer, so none is inferred.
+            adapter_name = "adapt_as_drawn_elevation"
+            if floor_ref is None:
+                facade_label = doc.get("facade_label")
+                floor_ref = (
+                    facade_label
+                    if isinstance(facade_label, str) and facade_label
+                    else Path(product_filename).stem
+                )
+            artifact = adapt_as_drawn_elevation(
+                raw,
+                input_id=Path(product_filename).stem,
+                facade_ref=floor_ref,
+                view_type="elevation",
+            )
         elif decision.contract_id == CONTRACT_READING_VIEW_LEGACY:
             adapter_name = "adapt_legacy_reading_view"
             kind = doc.get("image_kind") or "plan"
@@ -1122,7 +1147,11 @@ def run_correction_evidence_chain(
                     "file": product_filename,
                     "contract": decision.contract_id,
                     "reason": decision.reason,
-                    "wired": [CONTRACT_AS_DRAWN_PLAN, CONTRACT_READING_VIEW_LEGACY],
+                    "wired": [
+                        CONTRACT_AS_DRAWN_PLAN,
+                        CONTRACT_AS_DRAWN_ELEVATION_V0,
+                        CONTRACT_READING_VIEW_LEGACY,
+                    ],
                 },
             )
     except Exception as exc:  # ⛔ recorded, then re-raised untouched

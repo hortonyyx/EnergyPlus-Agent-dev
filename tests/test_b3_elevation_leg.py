@@ -451,3 +451,113 @@ def test_bundle_default_carries_the_new_members():
     )
     assert bundle.elevation_opening_claims == []
     assert bundle.floor_level_claims == []
+
+
+# =========================================================================== #
+# Acceptance 7 (dispatch v2 T7): "wired" cashed at the REAL entry point.
+# Measured before the branch existed: the ledger printed "recognized; wired
+# to the correction evidence adapter (module 7)" for an elevation product
+# while the real if/elif refused the very same bytes with
+# EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED — a claim the pipeline did not
+# honour.
+# =========================================================================== #
+def _stage_real_east(tmp_path: Path) -> tuple[Path, Path]:
+    """Stage the REAL east facade product + a stage out_dir (route record
+    lands in ``out_dir.parent/_run/``)."""
+    vector_dir = tmp_path / "0_reading"
+    vector_dir.mkdir()
+    raw = _real_raw("east")
+    (vector_dir / "sm25_east_as_drawn.json").write_bytes(raw)
+    out_dir = tmp_path / "1_correction"
+    out_dir.mkdir()
+    return vector_dir, out_dir
+
+
+def _round0_elevation_packet(vector_dir: Path):
+    """Build the round-0 packet exactly as the chain's loop does, so the
+    fixed response can bind its hash (same shape as the wiring lock in
+    ``test_o22m7``)."""
+    from src.agent.correction.decision_executor import build_decision_packet
+    from src.agent.correction.decision_executor import compile_wall_ir
+
+    raw = (vector_dir / "sm25_east_as_drawn.json").read_bytes()
+    artifact = adapt_as_drawn_elevation(
+        raw, input_id="sm25_east_as_drawn", facade_ref="East"
+    )
+    return build_decision_packet(
+        compile_wall_ir(artifact, profile="exploratory"),
+        bundle=artifact,
+        round_index=0,
+    )
+
+
+def test_real_entry_point_takes_real_elevation_bytes(tmp_path):
+    """⛔ NOT a direct ``adapt_as_drawn_elevation`` call: the dispatch's
+    whole point (v2 T7) is that the DISPOSITION'S claim -- "recognized;
+    wired to the correction evidence adapter (module 7)" -- is true at
+    ``pipeline.run_correction_evidence_chain``, the real if/elif.  The
+    frozen bytes are fed THERE; ``fixed_responses`` drives the model beat
+    (the model is NOT called -- this lock proves wiring, ⛔ never a model
+    result), and the route record must name the elevation adapter and the
+    product's own facade label."""
+    from src.agent.correction.decision_executor import run_decision_loop  # noqa: F401  (proves the import path the chain drives)
+    from src.agent.correction.decision_schema import CorrectionDecisionResponseV1
+
+    import src.agent.pipeline as pipeline
+
+    vector_dir, out_dir = _stage_real_east(tmp_path)
+    packet = _round0_elevation_packet(vector_dir)
+    outcome = pipeline.run_correction_evidence_chain(
+        vector_dir,
+        "sm25_east_as_drawn.json",
+        out_dir=out_dir,
+        fixed_responses=[
+            CorrectionDecisionResponseV1(
+                packet_hash=packet.packet_hash,
+                item_decisions=(),
+                whole_building_review={"verdict": "accept"},
+            )
+        ],
+    )
+    route = json.loads(
+        (tmp_path / "_run" / "evidence_chain_route.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert route["contract"] == "as_drawn_elevation_v0"
+    assert route["adapter"] == "adapt_as_drawn_elevation"
+    assert route["response_source"].startswith("fixed_responses"), (
+        "the model beat must NOT be called by this lock"
+    )
+    assert route["outcome_success"] == outcome.success
+
+
+def test_real_entry_point_without_the_branch_goes_red_unwired(
+    monkeypatch, tmp_path
+):
+    """The STANDING neuter lock (dispatch acceptance 7-②): make the
+    elevation branch's condition unreachable -- exactly what removing the
+    branch does -- by rebinding the module constant the branch compares
+    against; the REAL entry point must then refuse the very same bytes
+    with ``EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED``.
+
+    ⭐ Premise is proven by the green twin above: with the branch intact
+    the same call does NOT raise, so a red here can only mean the branch.
+    """
+    import src.agent.pipeline as pipeline
+    import src.agent.reading.vector_contract as vector_contract
+
+    monkeypatch.setattr(
+        vector_contract,
+        "CONTRACT_AS_DRAWN_ELEVATION_V0",
+        "as_drawn_elevation_v0_branch_removed",
+    )
+    vector_dir, out_dir = _stage_real_east(tmp_path)
+    with pytest.raises(EvidenceContractError) as raised:
+        pipeline.run_correction_evidence_chain(
+            vector_dir,
+            "sm25_east_as_drawn.json",
+            out_dir=out_dir,
+            fixed_responses=[],
+        )
+    assert "EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED" in str(raised.value)
