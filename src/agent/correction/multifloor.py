@@ -18,9 +18,10 @@ other way round).
 
 ⛔ NOT this module's job (dispatch §四): opening synthesis (B4), touching the
 projection bridge's geometry algorithm, relaxing the z-stack continuity check,
-or reading gt.  It also does not specialise to sm25 — "two floors" / "3.6 m"
-are readings, not theorems: the storey count is COUNTED from the data and each
-storey height is COMPUTED from the data.
+or reading gt.  It also does not specialise to sm25 — a specific storey count
+or storey height is a reading, not a theorem: the storey count is COUNTED from
+the data and each storey height is COMPUTED from it (⛔ no sm25 elevation
+constant is written into this module — the acceptance greps for exactly that).
 """
 from __future__ import annotations
 
