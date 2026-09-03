@@ -45,7 +45,7 @@ packages = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-addopts = ["-n", "auto", "--dist", "load"]
+addopts = ["-n", "auto", "--dist", "load", "-p", "ep_no_billed_gate"]
 markers = [
     "mutation: fresh-process source-mutation matrix; excluded from child pytest runs",
 ]
