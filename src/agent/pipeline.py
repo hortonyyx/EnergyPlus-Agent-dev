@@ -1554,6 +1554,90 @@ def run_correction(
 
 
 # --------------------------------------------------------------------------- #
+# B2 multi-floor assembly (2026-09-03): derive the storey ladder from the
+# frozen elevation evidence and stack one evidence-chain projection per plan
+# product into a single multi-floor CorrectedGeometryV3.
+#
+# ⭐ This is the wiring the dispatch asks for: the storey z that used to be a
+# hand-filled parameter (``evidence_chain_z_floor_m`` /
+# ``evidence_chain_ceiling_height_m``) is now DERIVED from B3's
+# ``floor_level_claims`` and fed straight into those two params — and THIS
+# entry point exposes no z of its own, so the production multi-floor path
+# cannot hand-fill a z (dispatch T5).
+# --------------------------------------------------------------------------- #
+class MultiFloorPlanRun(NamedTuple):
+    """One storey's plan-side inputs for :func:`run_multifloor_correction`.
+
+    ⛔ Carries NO z: the storey elevation is DERIVED from the elevation ladder
+    (B2/T5), never declared here.  The list order is the storey order,
+    ground-up: ``plan_runs[i]`` is projected onto derived rung ``i``.
+    ``fixed_responses`` is the sanctioned model-free escape hatch (as in the
+    single-view chain); production leaves it None to seat the real model beat.
+    """
+
+    vector_dir: Path
+    product_filename: str
+    out_dir: Path
+    fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None
+    profile: str = "exploratory"
+    round_budget: int = 3
+
+
+def run_multifloor_correction(
+    elevation_floor_level_claims: "Sequence[FloorLevelClaimV1]",
+    plan_runs: "Sequence[MultiFloorPlanRun]",
+) -> "CorrectedGeometryV3":
+    """B2 wiring: derive the storey ladder from the frozen elevation evidence,
+    run the 1_correction evidence chain once per plan product with the DERIVED
+    z, and assemble the results into one multi-floor ``CorrectedGeometryV3``.
+
+    ⭐ z sourcing (T1/T5): the ONLY source of each storey's z is
+    ``derive_floor_ladder(elevation_floor_level_claims)``.  Each derived rung is
+    fed straight into ``run_correction``'s ``evidence_chain_z_floor_m`` /
+    ``evidence_chain_ceiling_height_m``; this function exposes NO z parameter,
+    so the hand-fill path is unreachable from here.  Neuter the derivation and
+    this call fails loudly (``FLOOR_PLAN_COUNT_MISMATCH``) — ⛔ it never falls
+    back to a caller-declared z.
+
+    ``plan_runs`` is ground-up: ``plan_runs[i]`` is projected onto derived rung
+    ``i``.  A plan-product count that disagrees with the derived storey count is
+    a loud ``FLOOR_PLAN_COUNT_MISMATCH`` (T4), raised BEFORE any chain runs.
+    """
+    from src.agent.correction.multifloor import (
+        MultiFloorAssemblyError,
+        assemble_multifloor_geometry,
+        derive_floor_ladder,
+    )
+
+    levels = derive_floor_ladder(elevation_floor_level_claims)
+    if len(plan_runs) != len(levels):
+        raise MultiFloorAssemblyError(
+            "FLOOR_PLAN_COUNT_MISMATCH",
+            {
+                "n_storeys_from_ladder": len(levels),
+                "n_plan_products": len(plan_runs),
+            },
+        )
+    geometries: list = []
+    for level, run in zip(levels, plan_runs):
+        geom = run_correction(
+            run.vector_dir,
+            "{}",
+            out_dir=run.out_dir,
+            evidence_chain=True,
+            evidence_chain_product=run.product_filename,
+            evidence_chain_fixed_responses=run.fixed_responses,
+            evidence_chain_profile=run.profile,
+            evidence_chain_round_budget=run.round_budget,
+            # ⭐ DERIVED from the frozen ladder, ⛔ never hand-filled.
+            evidence_chain_z_floor_m=level.z_floor_m,
+            evidence_chain_ceiling_height_m=level.ceiling_height_m,
+        )
+        geometries.append(geom)
+    return assemble_multifloor_geometry(levels, geometries)
+
+
+# --------------------------------------------------------------------------- #
 # 4_mep — physical-information authoring (LLM): non-geometry specs only
 # --------------------------------------------------------------------------- #
 def _build_mep_messages(

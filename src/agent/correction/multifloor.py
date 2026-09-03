@@ -27,6 +27,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
+from pydantic import ValidationError
+
 from src.agent.correction.evidence_contract import (
     MIN_FLOOR_LEVELS,
     ArtifactPointerV1,
@@ -166,6 +168,16 @@ def assemble_multifloor_geometry(
     rung[i+1] == z_floor[i+1]``; this guard therefore has teeth only against a
     future assembler that stamps z from some other source.  Its passing is a
     guardrail, ⛔ not an acceptance signal — see dispatch §三①.)
+
+    ⭐ Localised assumption (invariant #6): assembly is COMMON-FOOTPRINT only.
+    Every storey must describe the same footprint domain — the current
+    "共底面盒子 / 每层满铺楼板" simplification, which the ``CorrectedGeometryV3``
+    schema already enforces (``per-floor footprints must have identical
+    geometry``).  Per-floor DIFFERENT footprints (setback / 退台) are explicitly
+    NOT this module's job (dispatch §四); the assumption is not烤死-silent — a
+    violation is re-raised here as a named ``PER_FLOOR_FOOTPRINT_MISMATCH``
+    (⛔ the schema's authoritative check is reused, not re-implemented, so this
+    label never drifts from or masks it).
     """
     if len(levels) != len(single_floor_geometries):
         raise MultiFloorAssemblyError(
@@ -223,14 +235,32 @@ def assemble_multifloor_geometry(
         ys_lo.append(float(geom.footprint_y[0]))
         ys_hi.append(float(geom.footprint_y[1]))
 
-    assembled = CorrectedGeometryV3(
-        schema_version="3",
-        footprint_x=[min(xs_lo), max(xs_hi)],
-        footprint_y=[min(ys_lo), max(ys_hi)],
-        floors=floors,
-        windows=[],
-        facade_segments=[],
-    )
+    try:
+        assembled = CorrectedGeometryV3(
+            schema_version="3",
+            footprint_x=[min(xs_lo), max(xs_hi)],
+            footprint_y=[min(ys_lo), max(ys_hi)],
+            floors=floors,
+            windows=[],
+            facade_segments=[],
+        )
+    except ValidationError as exc:
+        # Re-label the schema's OWN authoritative verdict (⛔ not a second,
+        # possibly-drifting copy of the check).  The common-footprint
+        # assumption is the one a 1→N floor change activates; name it loudly.
+        if "per-floor footprints must have identical geometry" in str(exc):
+            raise MultiFloorAssemblyError(
+                "PER_FLOOR_FOOTPRINT_MISMATCH",
+                {
+                    "floor_ids": [f.id for f in floors],
+                    "reason": (
+                        "assembly is common-footprint only (invariant #6); "
+                        "per-floor different footprints (setback) are not B2's "
+                        "job — see dispatch §四"
+                    ),
+                },
+            ) from exc
+        raise
 
     zstack = check_zstack(assembled)
     if not zstack.ok:
