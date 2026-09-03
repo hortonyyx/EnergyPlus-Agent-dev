@@ -546,7 +546,27 @@ def _round0_elevation_packet(vector_dir: Path):
     )
 
 
-def test_real_entry_point_takes_real_elevation_bytes(tmp_path):
+def _booby_trap_the_model_seat(monkeypatch):
+    """⭐ R3 (B3 rework 1, 2026-09-03): make the model seat EXPLODE the
+    moment anything sits on it.  Both T7 locks prove a MODEL-FREE exit --
+    that proof must not depend on the refusal happening before the seat is
+    even built: if a future route change ever seats a provider under these
+    locks, the trap fires instead of a billed network call."""
+    import src.agent.pipeline as pipeline
+
+    def _trapped(*, section, out_dir):
+        def _never(packet):
+            raise AssertionError(
+                "MODEL SEAT OCCUPIED: this lock must stay model-free "
+                "(fixed_responses is the sanctioned escape hatch; a green "
+                "here must never cost a billed call)"
+            )
+        return _never
+
+    monkeypatch.setattr(pipeline, "_make_decision_response_provider", _trapped)
+
+
+def test_real_entry_point_takes_real_elevation_bytes(monkeypatch, tmp_path):
     """⛔ NOT a direct ``adapt_as_drawn_elevation`` call: the dispatch's
     whole point (v2 T7) is that the DISPOSITION'S claim -- "recognized;
     wired to the correction evidence adapter (module 7)" -- is true at
@@ -554,12 +574,19 @@ def test_real_entry_point_takes_real_elevation_bytes(tmp_path):
     frozen bytes are fed THERE; ``fixed_responses`` drives the model beat
     (the model is NOT called -- this lock proves wiring, ⛔ never a model
     result), and the route record must name the elevation adapter and the
-    product's own facade label."""
+    product's own facade label.
+
+    ⭐ R3-a: the model-free exit is held MECHANICALLY on BOTH sides -- the
+    ``response_source`` assertion below (red the moment the fixed
+    responses stop driving the loop) AND a booby-trapped model seat (so
+    the very mutation that would seat a model detonates here, ⛔ never on
+    the network)."""
     from src.agent.correction.decision_executor import run_decision_loop  # noqa: F401  (proves the import path the chain drives)
     from src.agent.correction.decision_schema import CorrectionDecisionResponseV1
 
     import src.agent.pipeline as pipeline
 
+    _booby_trap_the_model_seat(monkeypatch)
     vector_dir, out_dir = _stage_real_east(tmp_path)
     packet = _round0_elevation_packet(vector_dir)
     outcome = pipeline.run_correction_evidence_chain(
@@ -598,14 +625,37 @@ def test_real_entry_point_without_the_branch_goes_red_unwired(
 
     ⭐ Premise is proven by the green twin above: with the branch intact
     the same call does NOT raise, so a red here can only mean the branch.
-    """
+
+    ⭐ R3-b (B3 rework 1): the ``UNWIRED`` refusal fires at the adapt link,
+    BEFORE any route record exists -- so ``response_source`` is unreadable
+    here, and this lock used to have NO mechanical hold on the model-free
+    exit at all (dropping ``fixed_responses=[]`` left it green: B-3).  The
+    equivalent hold the cross-review named, now in place: (a) the CALL'S
+    OWN PARAMETERS are captured by a wrapper that forwards to the real
+    entry untouched -- the refusal must be proven to happen on a call that
+    carries ``fixed_responses``, so deleting that argument is a red; and
+    (b) the model seat is booby-trapped, so a future route that seats a
+    model before refusing detonates here instead of on the network."""
     import src.agent.pipeline as pipeline
     import src.agent.reading.vector_contract as vector_contract
 
+    _booby_trap_the_model_seat(monkeypatch)
     monkeypatch.setattr(
         vector_contract,
         "CONTRACT_AS_DRAWN_ELEVATION_V0",
         "as_drawn_elevation_v0_branch_removed",
+    )
+    # (a) parameter capture: forward to the REAL entry, record what the
+    # call itself carried (the wrapper adds nothing and removes nothing).
+    real_entry = pipeline.run_correction_evidence_chain
+    seen_kwargs: dict = {}
+
+    def _recording_entry(*args, **kwargs):
+        seen_kwargs.update(kwargs)
+        return real_entry(*args, **kwargs)
+
+    monkeypatch.setattr(
+        pipeline, "run_correction_evidence_chain", _recording_entry
     )
     vector_dir, out_dir = _stage_real_east(tmp_path)
     with pytest.raises(EvidenceContractError) as raised:
@@ -616,3 +666,9 @@ def test_real_entry_point_without_the_branch_goes_red_unwired(
             fixed_responses=[],
         )
     assert "EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED" in str(raised.value)
+    assert seen_kwargs.get("fixed_responses") == [], (
+        "the refusal was proven on a call WITHOUT the model-free hatch "
+        f"(kwargs seen: {sorted(seen_kwargs)}) -- this lock must keep "
+        "calling the real entry WITH fixed_responses, or it proves "
+        "nothing about the model-free exit (B-3)"
+    )
