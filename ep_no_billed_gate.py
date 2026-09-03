@@ -1,5 +1,23 @@
-"""F-158 — make a real, *billed* provider call structurally impossible in the
-default test suite, and do it **before any test-owned code can run**.
+"""F-158 — stop a real, *billed* provider call in the test suite, installed
+**before any test-owned code can run**.
+
+Honesty about the shape of the promise (T2)
+-------------------------------------------
+Under the **default startup configuration** a billed provider call is structurally
+impossible: ``pyproject.toml`` ``addopts`` pins ``-p ep_no_billed_gate`` first and
+``tests/conftest.py`` re-imports this module, so the gate is armed before any test
+body runs. It is **not** true, however, that *no test can ever* reach the network
+regardless of how pytest is started: a different startup config can drop the pin
+(``-o addopts=``, a ``PYTEST_ADDOPTS`` override, ``-c <other config>``, a foreign
+rootdir with no ``tests/conftest.py`` …). Those do not fail silently — the
+behavioural self-check ``tests/test_f158_gate_behavioral_selfcheck.py`` actually
+attempts an outbound connection at run time and goes **red** for any run whose
+gate is off, naming the startup config as the cause.
+
+That self-check is a **detector, not an interceptor**: it guarantees you *see*
+red, but a test that ran *before* it in a gate-off process and truly reached the
+network has already spent the money. Preventing that (as opposed to reporting it)
+would need a process/OS-layer deny, out of scope for the test harness.
 
 Why this lives in a repo-root plugin instead of ``tests/conftest.py``
 --------------------------------------------------------------------
