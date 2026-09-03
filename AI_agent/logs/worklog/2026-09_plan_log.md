@@ -10,42 +10,42 @@
 ### ⭐⭐⭐ 本日最要紧：**用户拍板「旧格式不兼顾，全部按新的来」**
 用户原话两句：「**旧格式不用兼顾，全部按新的来**」·
 「**sm21、24、25 这几个都可以按新格式重新完整做（gt 和 pipeline），所以不用兼顾旧的**」。
-⇒ 口径已落 [`guides/reading_correction_split_guide.md §十之二`](guides/reading_correction_split_guide.md)
-+ [CLAUDE.md §2 banner](CLAUDE.md)。**⛔ 它覆盖了已过审设计稿的 §8.1「并存」与 §9.1 第 8 步**，
+⇒ 口径已落 [`guides/reading_correction_split_guide.md §十之二`](../../guides/reading_correction_split_guide.md)
++ [CLAUDE.md §2 banner](../../CLAUDE.md)。**⛔ 它覆盖了已过审设计稿的 §8.1「并存」与 §9.1 第 8 步**，
 连带作废 §8.3 与那套只为旧产物服务的签名 sidecar。
 ⭐ **主控提过一条顾虑并被用户当场解掉**：我实测「sm21/24/25 识图产物**全是旧格式**、
 `case_tests/` 下**新格式零份**」⇒ 拆了没东西喂新路径；用户答「三个都重做」⇒ 顾虑不成立。
 ⭐ **依赖闭包已量**（`58bb59f`）：`tests/` 3 文件 14 处 + `src/` 4 文件 19 处，**全在模块 2/3/4 + 契约注册表**，
 ⛔ 没有历史回归测试挂在上面。**第三格对撞干净**：bundle 哈希未落盘、`gt_staging` 三件套零 `legacy` 字样。
-⇒ 拆单已写 → [派工单](logs/reviews/request/2026-09-01_o22m8_drop_the_legacy_leg.md)，
+⇒ 拆单已写 → [派工单](../../logs/reviews/request/2026-09-01_o22m8_drop_the_legacy_leg.md)，
 ⛔ **必须排在模块 5/6 落地之后**（它们正 import 编译器）。
 
 ### ⭐ 三席起飞（家族各一 · 写面互不相交 · 已按 `environ` 点名核实）
 | 席位 | 任务 | 状态 |
 |---|---|---|
-| **GPT** | [F-154 重发](logs/reviews/request/2026-09-01_f154_reissue_wall_endcap_unowned.md)（**授权重做基线**）| ⏳ 在飞 |
-| **GLM** | [模块 5+6](logs/reviews/request/2026-09-01_o22m56_decision_packet_and_executor.md)（待裁决包 / 决定响应 / 执行器）| ⏳ 在飞 |
-| **Claude 席** | [NF-1 微单](logs/reviews/request/2026-08-30_nf1_empty_skeleton_micro_dispatch.md) | ✅ **已交件**（⛔ 未过跨家族审 —— Claude 写的，须换家族）|
+| **GPT** | [F-154 重发](../../logs/reviews/request/2026-09-01_f154_reissue_wall_endcap_unowned.md)（**授权重做基线**）| ⏳ 在飞 |
+| **GLM** | [模块 5+6](../../logs/reviews/request/2026-09-01_o22m56_decision_packet_and_executor.md)（待裁决包 / 决定响应 / 执行器）| ⏳ 在飞 |
+| **Claude 席** | [NF-1 微单](../../logs/reviews/request/2026-08-30_nf1_empty_skeleton_micro_dispatch.md) | ✅ **已交件**（⛔ 未过跨家族审 —— Claude 写的，须换家族）|
 
-### ⛔ 模块 4 = **REWORK / 阻断 1 / 不阻断 2** → [裁决](logs/reviews/verdict/2026-09-01_o22m4_crossreview_claude.md)
+### ⛔ 模块 4 = **REWORK / 阻断 1 / 不阻断 2** → [裁决](../../logs/reviews/verdict/2026-09-01_o22m4_crossreview_claude.md)
 主控自造 **8 个变异**（每个 = 一种历史缺陷形状）在**独立 worktree** 里跑（⛔ 主树零改动，三席在飞）：**6 有牙 / 2 全绿**。
 ⭐⭐⭐ **阻断**：把「单面墙遇多解必须开项」整个摘掉 ⇒ **43 全绿，完全看不见**。
 ⛔ 先排除「变异没跑」，做**四通道存货普查**：
 `_compile_paired 260 · _compile_solid_band 16 · _compile_single_face 0 · _compile_legacy_trace 35`
 —— 那个函数**只有一个出口**，探针就在唯一出口上。
 ⭐ **旧腿一拆它从「四选一」变「三选一」，更承重**；且**模块 6 的成功条件第一项正是「无 blocking open item」**。
-⇒ 返工单已写 → [派工单](logs/reviews/request/2026-09-01_o22m4_rework_single_face_channel.md)（**补锁单，⛔ 不改生产代码**）。
+⇒ 返工单已写 → [派工单](../../logs/reviews/request/2026-09-01_o22m4_rework_single_face_channel.md)（**补锁单，⛔ 不改生产代码**）。
 ⭐ **不阻断 2 条**：① 余段 canonical 排序无锁但**⛔ 未证明有害**（恒等类变异，不记缺陷）；
 ② 中线取值的牙**挂在别人的测试上**（M4/M6 唯一红的那条主题是余段），将来重构会静默失去。
 
-### ✅ 模块 2 二轮返工 = **APPROVE-WITH-FINDINGS / 阻断 0** → [裁决](logs/reviews/verdict/2026-09-01_o22m2_rework2_crossreview_claude.md)
+### ✅ 模块 2 二轮返工 = **APPROVE-WITH-FINDINGS / 阻断 0** → [裁决](../../logs/reviews/verdict/2026-09-01_o22m2_rework2_crossreview_claude.md)
 返工审三条检查：① 两条阻断关掉 ✅ ② **主控独立 neuter 复跑**（摘掉校验器 ⇒ **16 红**，三条新锁全在名单）
 ⇒ 新门确实在**校验器**里不是测试工厂里 ✅ ③ ⭐⭐⭐ **换同形输入 —— 仍走得通**。
 **主控独立构造实测**：`walls` 声明 `absent` 而 2 条 wall claim / 4 条 disposition **照旧在包里** ⇒ **放行**；
 `plan_openings` 同形 ⇒ **放行**。机制 = 两道新门**都以 `if state != "present": continue` 开头**。
 ⭐⭐⭐ **同一病族第三次换载体**（① 全局空载荷 → ② 错误来源的载荷 → ③ **`absent` 却带着载荷**）。
 ⇒ ⛔ 不阻断本次返工（这条是**施工方自己交出来的**），**另立单** →
-[派工单](logs/reviews/request/2026-09-01_o22m2_absent_with_payload_dispatch.md)。
+[派工单](../../logs/reviews/request/2026-09-01_o22m2_absent_with_payload_dispatch.md)。
 ⭐ 不阻断 N2：scoped 豁免是**超集语义**（施工方自报，主控确认）—— 登记不改。
 
 ### ⚠️ 本轮题错 **#55**（累计 **55，仍 55/55**）
@@ -64,23 +64,23 @@ plan-F2  健康的 14 个腔 各 4 条边 全 valid ｜ 救回来的那个 35 �
 ```
 ⭐⭐⭐ **自交的两个都是走廊形状、几十个 T 接头** ⇒ 病灶不在「端头能不能被认领」，
 在**环是怎么造出来的**（`derive_boundary_edges` 把 span 端点首尾接）。
-⇒ **这撞上的是用户 2026-08-29 已签字的口径**（[指南 §十.6c](guides/reading_correction_split_guide.md)：
+⇒ **这撞上的是用户 2026-08-29 已签字的口径**（[指南 §十.6c](../../guides/reading_correction_split_guide.md)：
 「接头处传播**线**、⛔ 不传播端点，端点由相邻两条线求交算出」，当时就注明「gt 侧已这么做、另一侧没有，
 **事实层存逐边端点后它会从已解变成未解**」）—— **那句预言应验了**，
 `s7_expand_zones` docstring 逐字「rebuild the zone polygon from **offset support-line corners**」为存在性证明。
 ⇒ 席位实现已撤下树、保全进
-[`logs/experiments/2026-09-01_f154_endcap_selfintersection/`](logs/experiments/2026-09-01_f154_endcap_selfintersection/README.md)（**线索非证据**）；
-⇒ 新立 **F-155 判别实验**（⛔ 只出读数不改 `src/`）→ [派工单](logs/reviews/request/2026-09-01_f155_ring_from_supportline_intersection_probe.md)。
+[`logs/experiments/2026-09-01_f154_endcap_selfintersection/`](../../logs/experiments/2026-09-01_f154_endcap_selfintersection/README.md)（**线索非证据**）；
+⇒ 新立 **F-155 判别实验**（⛔ 只出读数不改 `src/`）→ [派工单](../../logs/reviews/request/2026-09-01_f155_ring_from_supportline_intersection_probe.md)。
 
-### ⛔ 模块 5/6 = **REWORK / 阻断 4 / 不阻断 3**（GPT 跨家族审）→ [裁决](logs/reviews/verdict/2026-09-01_o22m56_crossreview_gpt.md)
+### ⛔ 模块 5/6 = **REWORK / 阻断 4 / 不阻断 3**（GPT 跨家族审）→ [裁决](../../logs/reviews/verdict/2026-09-01_o22m56_crossreview_gpt.md)
 **B-1** 对**旧** provisional 的 accept 放行了**执行后的新** geometry（独立读数：`8b2f1ff4…` ≠ `52552c17…` 却 success），
 ⭐ **且有一条测试把这个错误语义钉住了** · **B-2** 多轮不累计决定，第二轮撤销第一轮 ·
 **B-3** strict residual debt 被收窄为仅 `ambiguous_face`（⭐ **正是施工方自报「请重点打」的那处，一打就中**）·
 **B-4** 洞口宿主实体闭包漏检 candidate wall ids，且真实产物 **85/87/87 个洞口一个都没进 packet**。
-⇒ 返工单已发 → [返工单](logs/reviews/request/2026-09-01_o22m56_rework_glm.md)（**返工要求逐字贴复核方原文**）。
+⇒ 返工单已发 → [返工单](../../logs/reviews/request/2026-09-01_o22m56_rework_glm.md)（**返工要求逐字贴复核方原文**）。
 
 ### ⭐ 第二程派工（三席，家族各一）
-GLM = 模块 5/6 返工 · GPT = F-155 判别实验 · Claude 席 = [②-1d 第二轮返工](logs/reviews/request/2026-09-01_o21d_rework2_exclusion_gap.md)。
+GLM = 模块 5/6 返工 · GPT = F-155 判别实验 · Claude 席 = [②-1d 第二轮返工](../../logs/reviews/request/2026-09-01_o21d_rework2_exclusion_gap.md)。
 ⭐ **②-1d 解锁的原因**：它的返工要求带一句「先核清那 3 个 exclusion 的真实性质再定登记口径」，
 而 F-153/F-154 今天把这件事**答完了**（真实围合房间 · 导不出 ring 是**已知缺陷**不是天然 NA）
 ⇒ 口径写进单子 §二，走「带独立证据的显式登记」，⛔ 不许调阈值容纳现状。
@@ -109,14 +109,14 @@ MISALIGNED_0P1MM cavity:04e1293098b1a95a alive=True vertices=8 valid=True
 **⛔ 不成立**：`valid` 与面积**都是代理量**。实测 `source_symdiff_m2=0.000000` ⇒
 **重建与源腔逐点等价，它没修也没坏那个 0.1 mm 错位**；而**源腔本身跨了两个答案 zone**
 （`F1-z4` / `F1-z5`，从已落库 `review/conversion_report.json` 直读）⇒ 配不上任何一个。
-⇒ **F-153「两个病别当一个修」依然成立。** [裁定](logs/reviews/verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md)
+⇒ **F-153「两个病别当一个修」依然成立。** [裁定](../../logs/reviews/verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md)
 ⭐ **仍然成立的一半**：② `interval_misses=0` + symdiff 0 ⇒ **自交环**那个病
 （形态 A，两个走廊腔）**答案本来就在事实层**，`derive_boundary_edges` 是从一份与源腔等价的表示里
 造出了自交的环 ⇒ 不是补数据，是换角点算法 ⇒ **那一半修法轻得多**。
 ⚠️ ⛔ 原文写的「腔多边形**一直**是对的」**说宽了**：symdiff=0 只证明「重建==源腔」，
 ⛔ **不证明「源腔==答案」** —— 28.68 那个的源腔本身就是错的。
-⇒ [主控核验裁定](logs/reviews/verdict/2026-09-01_f155_ring_probe_orchestrator_verification.md) ·
-[F-156 实现单](logs/reviews/request/2026-09-01_f156_ring_from_intersection_implementation.md)（**授权重做基线**）。
+⇒ [主控核验裁定](../../logs/reviews/verdict/2026-09-01_f155_ring_probe_orchestrator_verification.md) ·
+[F-156 实现单](../../logs/reviews/request/2026-09-01_f156_ring_from_intersection_implementation.md)（**授权重做基线**）。
 
 ### ✅ 模块 5/6 返工已交（GLM）· ⏳ 未复审
 四条阻断逐条修：**B-1** 成功条件改为 `packet.provisional_geometry == compilation.content_sha256`
@@ -137,7 +137,7 @@ MISALIGNED_0P1MM cavity:04e1293098b1a95a alive=True vertices=8 valid=True
 我的 ②-1d 验收 5 写「**那 3 个 cavity** 走显式登记」⇒ 施工方照做，
 `tests/test_o21d_exclusion_gap.py:89` 逐个断言三个腔的登记面积。
 **F-156 把环修好后它们不再是 exclusion ⇒ 这条锁必红。**
-⇒ ⭐ 改法（已写进 [②-1d 单 §九](logs/reviews/request/2026-09-01_o21d_rework2_exclusion_gap.md)）：
+⇒ ⭐ 改法（已写进 [②-1d 单 §九](../../logs/reviews/request/2026-09-01_o21d_rework2_exclusion_gap.md)）：
 拆成**规则**（任何过阈值的 exclusion 必须登记并引用台账，与是哪几个无关）+ **读数**（台账条数）两半。
 ⛔ **施工方无过** —— F-155 的结论是在它开工之后才出来的。
 
@@ -146,7 +146,7 @@ MISALIGNED_0P1MM cavity:04e1293098b1a95a alive=True vertices=8 valid=True
 | 席位 | 结果 |
 |---|---|
 | **GLM 模块 4 返工** | ✅ **交付**：生产代码**零改动**，只加测试（`tests/test_o22m4_wall_compiler.py` **+264 行**，22→27 个 `def`）。补上 `_compile_single_face` 的夹具存货（此前 43 条测试**一次没跑到**）。⏳ 未复审（⛔ GLM 不能审自己）|
-| **Claude 席 F-156** | ⛔ **停报**，`src/` 与 `case_tests/` **零改动**。三条阻断 → [主控裁定](logs/reviews/verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md) |
+| **Claude 席 F-156** | ⛔ **停报**，`src/` 与 `case_tests/` **零改动**。三条阻断 → [主控裁定](../../logs/reviews/verdict/2026-09-01_f156_stop_report_orchestrator_ruling.md) |
 | **GPT 模块 5/6 复审** | ⛔ **停审**，只写了停审报告。三格第①格**结构上不可执行** |
 
 ### ⛔⛔ 昨天那条 ⭐⭐⭐ 结论作废：**题错 #59**（累计 **61，仍 61/61**）
@@ -189,9 +189,9 @@ REBUILT plan-F1 cavity:04e1293098b1a95a supports=8 vertices=8 valid=True
 
 | 件 | v2 |
 |---|---|
-| F-156 | [`2026-09-01b_f156v2_ring_from_intersection.md`](logs/reviews/request/2026-09-01b_f156v2_ring_from_intersection.md) —— 判据换成**对着答案的**（腔 ↔ zone 几何等价 + 一腔配多 zone 必须响亮失败）· 写面放开到 `answer_compiler.py` · **28.68 那个明确移出范围**（归 F-153 形态 B）· 端头边作为**待签字设计决定**随件送审 |
-| 模块 5/6 复审 | [`2026-09-01b_o22m56v2_rework_crossreview_gpt.md`](logs/reviews/request/2026-09-01b_o22m56v2_rework_crossreview_gpt.md) —— 第①格改**逆向变异**，并要求「逆向变异后仍不复现 ⇒ 写进裁决，⛔ 别为凑三格糊过去」|
-| NF-1 复审 | [`2026-09-01b_nf1_crossreview_glm.md`](logs/reviews/request/2026-09-01b_nf1_crossreview_glm.md) —— ⭐ 要求**两个方向都变异**（逆向 + 改过头），因为 NF-1 是「缺键拒 / 空列表放」**两半互为对撞**的判据 |
+| F-156 | [`2026-09-01b_f156v2_ring_from_intersection.md`](../../logs/reviews/request/2026-09-01b_f156v2_ring_from_intersection.md) —— 判据换成**对着答案的**（腔 ↔ zone 几何等价 + 一腔配多 zone 必须响亮失败）· 写面放开到 `answer_compiler.py` · **28.68 那个明确移出范围**（归 F-153 形态 B）· 端头边作为**待签字设计决定**随件送审 |
+| 模块 5/6 复审 | [`2026-09-01b_o22m56v2_rework_crossreview_gpt.md`](../../logs/reviews/request/2026-09-01b_o22m56v2_rework_crossreview_gpt.md) —— 第①格改**逆向变异**，并要求「逆向变异后仍不复现 ⇒ 写进裁决，⛔ 别为凑三格糊过去」|
+| NF-1 复审 | [`2026-09-01b_nf1_crossreview_glm.md`](../../logs/reviews/request/2026-09-01b_nf1_crossreview_glm.md) —— ⭐ 要求**两个方向都变异**（逆向 + 改过头），因为 NF-1 是「缺键拒 / 空列表放」**两半互为对撞**的判据 |
 
 ### ⭐⭐⭐ 第四～六程（本日续 · 用户令「推进吧，有重大问题或要拍板的再停下问」）
 
@@ -244,7 +244,7 @@ REBUILT plan-F1 cavity:04e1293098b1a95a supports=8 vertices=8 valid=True
 
 - **GLM 撞 5 小时额度上限**、在**跑测之前**就断了，留下 `+93/−41` 生产代码半成品。
   收到失败通知**第一件事 `git status`** ⇒ 隔离进
-  [`logs/experiments/2026-09-01_glm_quota_orphan_o22m2_absent/`](logs/experiments/2026-09-01_glm_quota_orphan_o22m2_absent/README.md)，
+  [`logs/experiments/2026-09-01_glm_quota_orphan_o22m2_absent/`](../../logs/experiments/2026-09-01_glm_quota_orphan_o22m2_absent/README.md)，
   README 写死「**线索非证据**」，`git checkout --` **只点名那两个文件**。后重派、席位**零复用**。
 - ⭐ **并发条款实测生效**：模块 2 席撞到别席的红 ⇒ 先 `git status` 认出、
   **只还原自己那个文件后同一条仍逐字相同地红** ⇒ 判与己无关：⛔ 没修、⛔ 没记回归、⛔ 没 `git checkout -- .`。
@@ -627,7 +627,7 @@ $ cd /tmp/o22m4_review_orch && uv run python -c "pass"
 > ④ **F-157** · ⑤ **F-158**（权威全量里有一条测试**真打一次计费的 LLM 调用**，且 `.env` 被 gitignore ⇒ worktree 席位必红一条）·
 > ⑥ 拆旧腿单（⭐ **必须同时删掉 `CONSUME`** —— 它的存活期恰等于旧贴 JSON 路的存活期）· ⑦ 产出新格式产物（需先拍配置）。
 >
-> ### ⑧ ⏸ **触发式登记：全盘清点**（2026-09-02 用户定）· 展开与基线数 → [plan.md](plan.md) 同名节
+> ### ⑧ ⏸ **触发式登记：全盘清点**（2026-09-02 用户定）· 展开与基线数 → [plan.md](../../plan.md) 同名节
 > **触发 = 本批落地 = 【一个 case 端到端跑通】**（图纸→IDF→EnergyPlus），⛔ **不是「新链跑通」**
 > （新链已通但终点是 `EvidenceChainTerminal`，**投影桥仍断**）。范围：**管理文档 · 测试围栏 · 目标与 todo**。
 >
@@ -636,3 +636,284 @@ $ cd /tmp/o22m4_review_orch && uv run python -c "pass"
 > ⭐⭐⭐ **三次「转引未量」的来源分别是：开发指南 · plan.md · 跨家族裁决 —— 越权威的来源，我越容易直接照抄。**
 > ⭐ **对撞清单补第三格「任务项×禁令」**（#70 漏的正是这格）；
 > ⭐ **新自查**：单子里凡出现「诚实数据会被判红」，**先把那份"诚实数据"逐条对一遍未闭合缺陷登记**。
+
+---
+
+## ⬇ 2026-09-02（**第一程**）日更全文 —— 逐字自 plan.md 搬入（2026-09-03 搬，⛔ 正文一字未改，仅按 §0.5 第 3 步修了相对链接层级）
+
+## 2026-09-02（**上一程 · 已收工**）· 两条并行：**接线** ＋ **补 exclusion 那个洞**
+
+> ## ⭐⭐⭐ 本程结果（两件都到了明确节点）
+> | 件 | 裁决 | 被审 commit |
+> |---|---|---|
+> | **接线（模块 7 上半）** | ✅ **APPROVE / 阻断 0 / 不阻断 2**（Claude 复核席）| `ebe90cf` |
+> | **补洞（F-156 第六轮 / ②-1d 第四轮）** | ⛔ **REWORK / 阻断 3 / 不阻断 1**（GPT）| `2a5aec4` |
+>
+> **⭐⭐⭐ 本批最大的一步：新链从「生产侧零消费者」走到「模型真的在上面做裁决」，
+> 且被【两个不同家族各自独立跑通】** —— GLM 186.2 秒 / GPT 复核 186.232 秒（哈希一致）/
+> Claude 复核席改动后 195.4 秒，均 2 轮 · 22 项裁决 · `success=True`。
+> ⛔ **投影桥（墙→房间）仍未做**，是 sm25 端到端的下一道关（甲-2，主控出方案）。
+
+### 〇、权威全量（收工，主树）
+
+```
+$ md5sum <.pth>                      5198f6f9…   /workspaces/EnergyPlus-Agent-dev   ← 跑前哨兵
+$ python -c "import src.agent.pipeline as m; print(m.__file__)" && python -m pytest -q -n auto -p no:cacheprovider
+SELF-ATTEST /workspaces/EnergyPlus-Agent-dev/src/agent/pipeline.py
+3664 passed, 13 xfailed, 212 warnings in 705.30s (0:11:45)      EXIT=0
+$ md5sum <.pth>                      5198f6f9…   /workspaces/EnergyPlus-Agent-dev   ← 跑后哨兵（相同）
+```
+⚠️ **如实记一条偏差**：**跑前工作树【不干净】，有 3 条改动**
+（`CLAUDE.md` / `plan.md` / `logs/worklog/2026-09_plan_log.md`，**全部是 markdown**，
+= 本次收工正在写的管理文档）。⛔ 不是「跑前跑后均干净」，别照抄成那句。
+⭐ 判断：不影响本读数 —— 三份都是 md、且**跑测【途中】没有再动过**
+（`record_baseline` 那条假红的前提是「整树在跑测窗口内变化」，本次没有发生）。
+⛔ 但下次应**先提交文档再跑全量**。
+
+### 一、接线：两轮被打穿，两次病根都是**载体被换掉**
+
+| 轮 | 结果 | 病根 |
+|---|---|---|
+| v1 | ⛔ A 层停报（**题错 #70**）| 我写「注册只是一行」，而枚举里**没有一个值能表达「交给 adapter」** |
+| v2 | ⛔ REWORK / 阻断 2 | ① 新配置节**是死的**（名字对不上 `intake_` 前缀 ⇒ 静默回落）⇒ **跑通用的不是配置点名的模型** ② 坐标闸是**词法正则**，主控实测五种写法**漏三种** |
+| v3 | ✅ **APPROVE / 阻断 0** | 两条都修在**类型层**：节按真名加载（缺失 = 响亮配置错）· `CodeToken = ^[A-Z][A-Z_]*$`（**字符集无数字** ⇒ 任何进制的数都进不来）|
+
+⭐ **复核席位做了三件我点名的事，全部独立坐实**：改动后**首次**真实模型端到端由它跑通；
+`llm_model_resolved` 是**从加载后的 section 字典读出来的**（⛔ 不是请求名回显）；
+round 0 的 decision hash **从逐轮归档独立重算命中**。
+⭐ 并且它**摘掉实现实测两条锁回到红**（[[neuter-proves-wiring-not-discriminating-power]]）。
+
+### 二、补洞：⛔ REWORK / 阻断 3 —— ⭐ **主控的两条假说全部命中**
+
+| 阻断 | 内容 | 出处 |
+|---|---|---|
+| **1** | **两条锁写死「台账必须非空」** ⇒ F-153 形态 B 一修好，它们**先红** —— 正是判据钉住缺陷存在；⭐ **而文件自己的注释写着相反的话**（"台账缩到 0 依然成立"）⇒ **声称与实测矛盾** | ⭐ **主控 H2**（已独立复验：`assert _ledger_pairs(signed), "…has no stock"` / `assert live, "…has no stock"`）|
+| **2** | **没有任何房间踩到的 producer loss 完全静默** —— 实现顺着房间查台账（`loss_by_id.get(cavity_id)`），⇒ 真相是「**任何被房间消费到的台账才红**」。攻击前后失败列表**逐字相同** | 复核方新形状 ⇒ ⭐ 正是 **「出口全检，不是入口收窄」** + 「反查哪个方向没有锁」|
+| **3** | 摘掉 ring/loss 校验器，对应锁**仍然通过** ⇒ 恒绿零分辨力 | ⭐ **主控 H3** |
+
+✅ **方向是对的**：1:1 那个聚合阈值**确实拿掉了**，类型层分离成立
+（豁免凭据字段收成 `Literal` 单值 ⇒ producer 自写的那种**结构上表达不成凭据**）。
+⭐ **修法明确**：反向按台账逐条核销 · 拆掉"台账非空"断言 · 给那条恒绿锁装牙。
+
+⭐⭐ **附带成果**：我在请求书里点名请 GPT **重看它自己上一轮给的那句 either/or**
+（就是把我坑进题错 #71 的那句）—— **它照做并修正了**。
+
+### 三、⭐⭐⭐ 本程头号发现：**「加了锁就会红」的那条红，是缺陷本身在挡锁**
+
+（完整推导见 §二之五；裁定书 [2026-09-02c](../reviews/verdict/2026-09-02c_f156r5_stop_report_ruling.md)）
+
+### 四、⭐⭐ 分段提交：今天付了两次学费，然后救了三次
+
+| 场次 | 中断原因 | 结果 |
+|---|---|---|
+| GLM 第一次 | 5 小时上限 | ⛔ **1035 行成孤儿** |
+| Claude 施工席第一次 | 月度上限 | ⛔ **1273 行成孤儿** |
+| ⇒ **加纪律：每完成一小步就提交** | | |
+| Claude 施工席第二次 | 会话结束 | ✅ 3 个提交全在 |
+| GLM 第二次 | 5 小时上限 | ✅ 4 个提交全在 |
+| Claude 复核席 | 会话结束 | ✅ 草案保住 |
+
+⭐ **两次孤儿件的日志都只有 2–3 行、只字不提它干过活**
+⇒ ⛔ **收到任何席位失败通知，第一件事永远是 `git status`（含它的 worktree）**，
+⛔ 不许只看日志就下「它什么都没做」的结论。
+
+### 五、⚠️ 我今天的题错与错误（⛔ 全部记账）
+
+| # | 内容 | 病族 |
+|---|---|---|
+| **#70** | 「注册只是一行」—— **从 plan.md 抄的**，没读枚举 | 转引未量 |
+| **#71** | 把路写死成 either/or —— **从 GPT 裁决抄的**，正解是先问那条 loss 合不合法 | [[dispatch-options-list-is-itself-a-hidden-premise]] |
+| 非题错① | 「新格式产物只有 sm24 一层」—— **从指南抄的**，实测 22 份含 sm25 两层 | 转引未量 |
+| 非题错② | 返工单基线写了一个**不存在的 commit**（凭手写）| git 事实凭记忆 |
+| 非题错③ | 用**裸 dict** 量坐标闸 ⇒ 量错面，差点冤枉施工方「只是补正则」 | 载体/量面 |
+| 非题错④ | `&& echo "(空=没留下任何东西)"` = **无条件标签不是断言** | 给输出贴标签 |
+
+⭐⭐⭐ **三次「转引未量」的来源分别是：开发指南 · plan.md · 跨家族裁决 ——
+越权威的来源，我越容易直接照抄。**
+⇒ **新自查（可机械执行）**：单子里凡出现「诚实数据会被判红」这种论断，
+**先把那份"诚实数据"逐条对一遍未闭合缺陷登记**。
+
+### 六、⏭ 下程从这里接
+
+① ⭐ **补洞第四轮**（三条阻断，修法已明确）· ② ⭐⭐⭐ **投影桥（墙→房间）主控出方案** ——
+sm25 端到端的**唯一剩余关键路径** · ③ **F-153 形态 B 立单**（⭐ 它今天冒充过一次「合法排除」，
+且补洞那条红要等它修好才会清）· ④ **F-157** · ⑤ **F-158 给那条真打 LLM 的测试加 mock 或标记** ·
+⑥ 拆旧腿单 · ⑦ 产出新格式产物（需先拍配置）
+
+> **本程口径（用户开工拍板）**：① **两条并行** —— 接线 + 补洞 ·
+> ② **接线先只求「跑得通」，一条 case 端到端**。派工表用户已拍板。
+
+### 〇、⭐⭐⭐ 主控探针推翻了指南的一句话
+
+→ [`logs/experiments/2026-09-01i_wiring_seam_probe/`](../experiments/2026-09-01i_wiring_seam_probe/README.md)
+
+**指南 §十之二 写「新格式产物全仓只有 sm24 一层」——错的。** 我最初照抄了它（[[citing-someone-elses-fact-does-not-transfer-responsibility]] 又一次），
+逐份 `AsDrawnPlanV2.model_validate` 之后实测：**22 份合格，含 `sm25_1f_v2.json` / `sm25_2f_v2.json`**。
+⇒ ⭐ **接线可以直接走新格式**，⛔ 不必投资在用户已拍板要拆的旧腿上。
+
+**同时量到：五步链的前三步今天就在真实 sm25 上通。**
+
+| 环节 | 新格式读数 | 旧格式读数 |
+|---|---|---|
+| `adapt_as_drawn_plan` / `adapt_legacy_reading_view` | 22 条 `PairedFacesWallClaimV1` + 49 face disposition | 22 条 `legacy_wall_trace` |
+| `compile_wall_ir` | 22 墙 / 22 条 **`thickness_resolution`** 待裁决 / `degraded` / 3 债 | 22 墙 / 22 条 **`legacy_basis_unknown`**（连基准都不知道）/ 4 债 |
+| `build_decision_packet` | ✅ 出包，**134** 条 entity→source | ✅ 出包，44 条 |
+| ④ 模型那一拍 · ⑤ 投影桥 | ⛔ **两者皆零实现** | 同 |
+
+⇒ ⭐ 上一程 banner 说「不止是翻一行开关」**是对的，但缺口比想的窄**：不是整条链要重写，是**缺明确的两块**。
+
+### 一、⛔ 范围收缩（已当面告知用户）
+
+**本程做不到 sm25 完整端到端。** 第⑤步「墙 → 房间」是**几何派生的架构决定，不是接线**
+⇒ 塞进施工单等于让施工席替主控做架构决定（违 §5#8）。
+⇒ **甲单只做到第④步**（模型真的在新链上裁决一次并落盘）；**第⑤步主控出方案、另开单**。
+⭐ 第④步在任何路线下都要做，⛔ 不会白干。
+
+### 二、派工（两席在飞，一家族一活，合规）
+
+| | 干什么 | 施工 | 审 | 单子 | worktree |
+|---|---|---|---|---|---|
+| **甲** | 接线（模块 7 上半）：一行注册 · 接进 `run_correction` · 模型那一拍 · 落盘 | **GLM** | GPT | [单](../reviews/request/2026-09-01i_wiring_module7_dispatch.md) | `/tmp/wiring_glm` |
+| **乙** | F-156 第四轮 ＋ ②-1d **同修**（三个阻断一起） | **Claude 施工席** | GLM 或 GPT | [单](../reviews/request/2026-09-01i_f156r4_o21d_joint_rework_dispatch.md) | `/tmp/joint_rework_claude` |
+
+⭐ 乙的核心 = 复核方的结构定性：**11 条锁的牙全朝「撤证」方向，攻击来自「灌证」方向**。
+
+### 二之二、⛔ 甲单第一轮 = **A 层停报，停得对** ⇒ **题错 #70（累计 70/70）**
+
+→ [裁定书](../reviews/verdict/2026-09-02a_wiring_module7_stop_report_ruling.md) ·
+[v2 单](../reviews/request/2026-09-02a_wiring_module7_dispatch_v2.md)
+
+**我写「A 项只是【一行注册】」，而 `Disposition` 枚举里根本没有一个值能表达「交给 adapter」。**
+席位五条断言我**逐条独立复核、全部成立零夸大**（含回原件核设计稿 §8.2 第 7 条逐字属实）；
+交件只有一份执行日志、零生产代码、工作树空。
+
+⭐ **「一行注册」这五个字是我从 plan.md 抄的，而我没去读那个枚举有哪几个值**
+⇒ [[citing-someone-elses-fact-does-not-transfer-responsibility]]，**今天同一病族第二次**
+（上午刚照抄指南「新格式只有 sm24 一层」栽过）。⭐ 两次都是**把别人写的一句话放进承重位置**，且**一量就翻**。
+
+⭐⭐⭐ **对撞自查为什么没拦下 ⇒ 清单补成【三格】**：我只做了「验收×禁令」「验收×任务项」两格，
+**漏掉的正是「任务项×禁令」** —— 任务项 A 在结构上必须新增枚举值+第五分支，
+而禁令写着「⛔ 不做 ledger 重排」，**两者直接打架，而验收项夹在中间看不出来**。
+⇒ 写 v2 时用**三格**重扫，**当场又抓到一条**（验收 2「3632 不许消失」× 任务项「翻 6 把 pin 锁」会让锁改名）。
+
+**范围裁定（派工方定，⛔ 未上抬用户）**：采纳「新增 `ADAPT` 值 + 第五分支」；
+⛔ 仍不做重命名与 ledger 重排。⭐ 先问过有没有第四条路 ——
+「新链绕开合同分类直接读冻结字节」**否决**（新路径没有消费对账台账 ⇒ **F-97 原地复活** + 造出两个入口）。
+⭐ **`CONSUME` 的存活期 = 旧贴 JSON 路的存活期，两者在【拆旧腿单】里一起死**
+⇒ ⛔ **拆旧腿单必须同时删掉 `CONSUME`**（本条即为登记）。
+
+### 二之三、✅ 乙单（同修）已交件 ⇒ 送 GPT 跨家族审
+
+**被审 `bbeab77`**（施工方原件 `e35cc1d`，`cherry-pick -x` 落分支）·
+diff = `answer_compiler.py` **+52/−1** + 两份测试 **+170** ·
+[复核请求](../reviews/request/2026-09-02b_f156r4_o21d_joint_crossreview.md)
+
+**施工方做法**：灌证方向的牙 = **按 view 的聚合判据**「一个 view 里 exclusion 不得多于 pairing」；
+阻断丙**判了 NA 那一边**（奇数 interzone 厚度响亮 NA），⛔ 没采 GPT 裁决建议的 `/ 2.0`
+——理由是生产者的**编译器**本来就对奇数响亮 NA，mirror 生产者定义 = mirror 这道纪律，
+而 `/ 2.0` 会对整数存储的正确奇数答案**假红**。⭐ 单子本来就写了「二选一并说明理由」。
+
+**⭐ 主控自查出两条不阻断，已写进复核请求**（⛔ 让复核方别当新发现重复记）：
+① **`_the_compiler` 是假锚点** —— 只出现在施工方自己新写的两条注释里，全仓无此定义，
+真锚是 `_project_span`（`answer_compiler.py:667`）⇒ [[grep-zero-hits-conflates-unused-with-nonexistent]] 同族；
+② 源码注释里写了记忆库的 `[[wiki 链接]]` 语法。
+
+**⭐⭐ 主控给复核方点名的两处疑点**（⛔ 写成**假说**要它实测，未代判）：
+① **1:1 那条切分是不是一个没人签字的领域参数** —— 施工方辩「是仪器自身定义、不是照数据设的百分比」，
+我判**有力但不充分**：它等价于把一个数设成 **1.0**，而「合法豁免最多能占验证数几倍」是**领域问题**。
+⇒ 要它构造「诚实但 `excluded > paired`」的 view 实测会不会**真假红**（[[silent-default-threshold-behind-otherwise-conclusions]]）；
+② **reason 准入表被判「不必加」是不是偷换了问题** —— 复核方原话要的是「**8 个值里每一个都有资格豁免房间吗**」，
+施工方答的是「reason 是不是闭集」。
+
+### 二之四、⛔⛔ **F-158（新）：权威全量里有一条测试会真的打一次【计费的】LLM 调用**
+
+**起因**：施工方报 1 条红并判「环境红」。**方向对，机制说错了**；我独立追到真机制：
+
+```
+tests/test_zone_agent.py（无 mock，直接 zone_agent(...)）
+  → src/configs/llm.yaml:104   zone: provider=openai, api_key=${oc.env:DEEPSEEK_API_KEY,null}
+  → .env 在主树有、被 .gitignore:173 忽略 ⇒ /tmp 的 worktree 里【没有】
+  ⇒ DEEPSEEK_API_KEY 未设 ⇒ langchain_openai 报 "OPENAI_API_KEY not set"
+```
+
+⭐⭐⭐ **两条后果，都比那一条红本身重要**：
+1. **这是主控的布置错误** —— 我建 worktree 时没处理凭据 ⇒ **任何放在 `/tmp` worktree 的席位都会看到这条红**。
+   ⛔ 且它会**常态化**：常态化的假红掩护真正的静默（F-153 条目已警告过这个形状）。
+   ⇒ **修法不是把 `.env` 拷进 /tmp**（凭据落进全局可读目录）；⭐ 按仓库自己的纪律
+   「**凭据只注入子进程**」（`glm_code.sh` 就是这么做的）⇒ **派工时把所需变量注入席位子进程**。
+2. ⭐⭐ **`EP 0 Severe` 家族的新一例**：**「全仓绿」原来还是【网络 + 余额】的属性** ——
+   那条测试**没有 mock**，每跑一次权威全量就真打一次 **DeepSeek（按量计费、与管线共用余额）**。
+   ⇒ ⛔ 「3632 passed」这个读数一直隐含一个没人声明的前提。**待办：给它加 mock 或标记。**
+
+### 二之五、⭐⭐⭐ **本程头号发现：「加了锁就会红」的那条红，是缺陷本身在挡锁**
+
+施工席按 A③ 停报（**题错 #71，累计 71/71**），
+理由 = 「blanket fail-loud 会永久判红真实 sm25 那条**合法** endcap loss ⇒ sm25 整份不可用」。
+→ [裁定书](../reviews/verdict/2026-09-02c_f156r5_stop_report_ruling.md)
+
+**⛔ 主控把那条台账的数字对了一遍 —— 它不合法，它是 F-153 形态 B（已登记未修）**：
+
+| 对的是什么 | 台账 | F-153 形态 B 登记 |
+|---|---|---|
+| 面积 | `2868321200` units（0.1mm）⇒ **28.683212 m²** | **28.68 m²** |
+| 坐标 | `const=52401 lo=99430 hi=100630` | 墙 `w_x_99430_100630_52401_88800` |
+| 机制 | `nearest…=52400`，**`delta=1`** | 「`along_min` 比同侧三兄弟大 **1 个单位**」 |
+
+⭐ 数量也对：F-153 原三个腔，F-156 v3 修掉**形态 A** 那两个 ⇒ 台账 3→1，剩的正是形态 B。
+而 F-153 登记的实测是它 **贴墙 401/401、最远采样点距墙 0.000 m** = **被墙完全围合的真实房间**。
+⇒ **fail-loud 只会判红这一样东西，而它本来就该红。A③ 的前提倒了 ⇒ C/D/E 岔口不存在。**
+
+⭐⭐⭐ **记忆里那条规则原样命中**：**反查「哪个方向没有锁」，答案若是「加了就会红」，那是缺陷本身在挡锁。**
+
+**题错 #71 的形状**：我把话写死成「逐条独立证明做不到 ⇒ 就该 fail-loud」这个**二选一**，
+而正解是**先问那条 loss 合不合法**。⇒ [[dispatch-options-list-is-itself-a-hidden-premise]]，
+**这条我记忆里已经有了**；且这个二选一是**从 GPT 裁决照搬的** ⇒ ⭐ **今天第三次**
+「把别人写的一句话放进承重位置而没自己量」（① 指南说新格式只有 sm24 一层 ② plan.md 说注册只是一行 ③ 本条）。
+⇒ ⭐ **新自查（可机械执行）**：**单子里凡出现「诚实数据会被判红」，先把那份"诚实数据"逐条对一遍未闭合缺陷登记。**
+
+⭐ 施工席**路 D 的洞察不作废、改归属**：「真伪该在产台账那一步防」是对的长期方向
+⇒ **登记：随 F-153 形态 B 那一单做**，⛔ 不在本单。
+
+### 二之六、⛔ 接线件跨家族审 = **REWORK / 阻断 2 / 不阻断 2**（GPT）
+
+→ [裁决](../reviews/verdict/2026-09-02d_wiring_module7_v2_crossreview_gpt.md)
+
+⭐ **好消息先说：「模型真跑了」被独立复现坐实** —— 复核方自己重跑真实模型
+**186.232 秒 / 2 轮 / 22 项裁决 / `success=True`，且最终 provisional 哈希与施工档一致**。
+⇒ 主控 H1 / H2 两条假说**成立**；施工方自我披露的 `adapted`「加不改」边界**获认可**。全量 `3657 passed / 0 failed`。
+
+**阻断 1（主控独立读码复验成立）**：新配置节**是死的**。
+`llm.yaml:78` 的节叫 `correction_decision`，而 [`pipeline.py:147 _section`](../../../src/agent/pipeline.py#L147)
+查的是 `intake_{stage}` = `intake_correction_decision` ⇒ **不存在 ⇒ 静默回落 `intake_correction`（:57）**
+⇒ **那次跑通用的不是配置点名的模型**。⭐ 同族 [[gate-measures-right-but-carrier-gets-swapped]]：**门量得准，载体被换了**。
+
+**阻断 2（主控实测，⭐ 比裁决报的更宽）**：无坐标 guard 是**词法正则**，
+`_COORDINATE_PAIR_IN_STRING_RE` 的成对形式**要求带小数点** ⇒ 五种写法实测**漏三种**：
+```
+'(12, 34)'        -> ⛔ 漏      'X = 12, Y = 34' -> ⛔ 漏      '[12, 34]' -> ⛔ 漏
+'(12.5, 34.5)'    -> 抓到       'x=12 y=34'      -> 抓到
+```
+⇒ 正是 [[lexical-guard-cannot-be-completed]]：**不是护栏太多，是这一个护栏类型选错**。
+⭐ 复核方给的方向对：**把 `reason_code` 收窄成 code token、自由叙述字段改类型化词表**
+（⇒ 让坐标在**类型层**装不进去），⛔ 不是继续穷举坐标正则。
+
+### 三、⭐⭐ 发单前自查抓出**我自己 3 条题错**（⛔ 都在发单前改掉了，未流出）
+
+| # | 抓到什么 | 病族 |
+|---|---|---|
+| 1 | 验收写「全量读数一位不变 3632」，**而任务项要求加测试锁** ⇒ 加了锁总数必变 | **验收与任务项对撞**（同 08-29 ⑬）|
+| 2 | 验收写「不产出任何下游几何」——**那座桥本来就不在本单** ⇒ **恒真、零分辨力** | [[gate-with-only-negative-assertions-is-unobservable]] |
+| 3 | 禁令「不补围栏」 vs 验收「要加锁」**会把施工席逼进停报** | [[rule-without-legal-exit-breeds-invention]] |
+
+⭐ **抓住它们的是那条机械自查**：把验收项逐条与①本单禁令②本单任务项对撞。第 2 条是新形态 ——
+**恒真判据**（此前记的都是恒红/绿锚），⇒ 对撞清单要加一问：**「这条验收有没有可能不通过？」**
+
+### 四、⭐ §5#8.6 当场再验一次（实况，非引用）
+
+两个席位起来之后立刻测：`.pth` 已被改指到 **`/tmp/joint_rework_claude`**（最后启动的那个 claude 家族席位），
+**而主控自己 `python -c "import src.agent.pipeline as m"` 仍解析到主树** ⇒
+⭐ **cwd 胜过 `.pth` 这条实测又成立一次**；⛔ 权威全量前仍须把 `.pth` 恢复到主树并核一次。
+
+---
+
+> ⛔ **2026-09-01【上一程】整节已于 2026-09-02 收工逐字搬入** [`logs/worklog/2026-09_plan_log.md`](../worklog/2026-09_plan_log.md)（§0.5 三步）。
