@@ -1,8 +1,11 @@
 # 跨家族复核请求 · **F-156 第七轮 / ②-1d 第五轮**（返工第四轮）
 
-- **日期**：2026-09-02 · **请审方**：orchestrator · **复核方**：**GPT 家族**
-  （⭐ 协议 §1.1 默认 GLM，但 **GLM 家族此刻有活在飞**（投影桥设计审）⇒ 按「一家族一活」改派 GPT；
-  ⭐ 且 GPT 正是上一轮的裁决方，三条阻断的上下文在它手里）
+- **日期**：2026-09-02 · **请审方**：orchestrator
+- **复核方**：⛔ **原派 GPT，2026-09-03 改派【GLM 家族】**（协议 §1.1 的默认值）——
+  ⭐ 改派理由**不是**质量问题：GPT 席位那一轮**零交付**，因为 codex 的沙箱在本容器里起不来
+  （`bwrap: No permissions to create a new namespace`，它的每条 shell 命令都失败）。
+  ⭐ 该席位**拒绝拿施工方自述代替实测、也没有据此擅下裁决** —— 行为正确，⛔ 别记成失职。
+  ⇒ 本单改由 GLM 审（GLM **不是**本单施工方，`谁写谁不批` 成立）。
 - **被审 commit**：`e065aeb`（分支 `08.23_AsDrawnReading` 顶；施工方原件 `f735461`，`cherry-pick -x` 落地）
 - **上一轮裁决**：[REWORK / 阻断 3 / 不阻断 1](../verdict/2026-09-02g_f156r6_o21d_crossreview_gpt.md)
 - **本轮任务书**：[2026-09-02i](2026-09-02i_f156r7_o21d_rework4.md)
@@ -75,6 +78,6 @@
 
 ## 八、交件
 
-`AI_agent/logs/reviews/verdict/2026-09-02u_f156r7_o21d_rework4_crossreview_gpt.md`：
+`AI_agent/logs/reviews/verdict/2026-09-02u_f156r7_o21d_rework4_crossreview_glm.md`：
 裁决 + 阻断数/不阻断数，逐条对 §二 / §四 / §五 报；凡下结论处贴命令原文 + 输出原文。
 ⛔ 不许 `pip install -e .`；⛔ 不许 `git add -A`。
