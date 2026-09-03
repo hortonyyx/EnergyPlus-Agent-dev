@@ -32,6 +32,13 @@ v3 rework (2026-09-02, GPT cross-review B-1/B-2/NF-1) adds three families:
   UNREPRESENTABLE, not detected;
 * NF-1: per-round raw archives, so each round's decision hash recomputes
   from the archive without trusting the report.
+
+B1 wiring (2026-09-03, dispatch §四之二): the projection bridge landed, so
+the terminus split — a SUCCESSFUL outcome is projected into the returned
+``CorrectedGeometryV3`` (envelope on disk, ``footprint_provenance=
+"derived_from_walls"``), and ``EvidenceChainTerminal`` now fires exactly
+when the loop did NOT succeed (the audit-only provisional never travels
+as a product).  The old terminus lock was rewritten accordingly.
 """
 from __future__ import annotations
 
@@ -96,20 +103,74 @@ def _accept_empty(packet) -> CorrectionDecisionResponseV1:
     )
 
 
-def _round0_packet(vector_dir: Path, filename: str, profile: str = "exploratory"):
+def _artifact(vector_dir: Path, filename: str):
+    """Adapt the staged product exactly as the chain's adapt link does."""
     raw = (vector_dir / filename).read_bytes()
     doc = json.loads(raw.decode("utf-8"))
     if vc.classify_vector_json(doc).contract_id == vc.CONTRACT_AS_DRAWN_PLAN:
-        artifact = adapt_as_drawn_plan(
+        return adapt_as_drawn_plan(
             raw, input_id=Path(filename).stem, floor_ref="2f"
         )
-    else:
-        artifact = adapt_legacy_reading_view(
-            raw, input_id=Path(filename).stem, floor_ref="1f"
-        )
+    return adapt_legacy_reading_view(
+        raw, input_id=Path(filename).stem, floor_ref="1f"
+    )
+
+
+def _round0_packet(vector_dir: Path, filename: str, profile: str = "exploratory"):
+    artifact = _artifact(vector_dir, filename)
     return build_decision_packet(
         compile_wall_ir(artifact, profile=profile), bundle=artifact, round_index=0
     )
+
+
+def _drive_to_success(vector_dir: Path, filename: str):
+    """The deterministic route to ``outcome.success`` on the real product:
+    round 0 selects every open item's FIRST candidate (KEEP), round 1 is a
+    pure accept bound to the moved packet's hash.  Measured on
+    sm25_2f_v2.json: the surviving residual debts are support channels
+    (dimensions / elevation_openings / room_roles), which block nothing."""
+    from src.agent.correction.wall_compiler import FixedDecisionV1
+
+    artifact = _artifact(vector_dir, filename)
+    packet0 = build_decision_packet(
+        compile_wall_ir(artifact, profile="exploratory"),
+        bundle=artifact,
+        round_index=0,
+    )
+    picks = tuple(
+        (item.item_id, item.candidates[0].candidate_id)
+        for item in packet0.open_items
+    )
+    select = CorrectionDecisionResponseV1(
+        packet_hash=packet0.packet_hash,
+        item_decisions=tuple(
+            ItemDecisionV1(
+                item_id=item_id,
+                action="select_candidate",
+                candidate_id=candidate_id,
+                reason_code="WIRING_LOCK",
+            )
+            for item_id, candidate_id in picks
+        ),
+        whole_building_review={"verdict": "accept"},
+    )
+    packet1 = build_decision_packet(
+        compile_wall_ir(
+            artifact,
+            profile="exploratory",
+            decisions=tuple(
+                FixedDecisionV1(item_id=i, candidate_id=c) for i, c in picks
+            ),
+        ),
+        bundle=artifact,
+        round_index=1,
+        previous_decision_hashes=(decision_hash(select),),
+    )
+    accept = CorrectionDecisionResponseV1(
+        packet_hash=packet1.packet_hash,
+        whole_building_review={"verdict": "accept"},
+    )
+    return [select, accept]
 
 
 class _PastedLegTouched(RuntimeError):
@@ -351,11 +412,69 @@ def test_evidence_chain_switch_defaults_off():
     assert params["evidence_chain"].default is False
 
 
-def test_switch_on_reaches_the_terminus_loudly(tmp_path, booby_trap_pasteed_leg):
-    """evidence_chain=True drives the chain to its terminus and raises
-    EvidenceChainTerminal -- ⛔ no CorrectedGeometry is invented, ⛔ no
-    fallback to the pasted-JSON leg (booby trap), and the message carries
-    the as-measured success / exit_reason."""
+def test_switch_on_returns_the_projected_geometry(tmp_path, booby_trap_pasteed_leg):
+    """The REWRITTEN lock (dispatch §四之二, B1 landed 2026-09-03).
+
+    Lineage -- what the OLD lock measured, and who measures it now:
+    * old: ``pytest.raises(EvidenceChainTerminal)`` on ANY outcome — its
+      premise was "the projection bridge does not exist, so no success
+      product can be returned, and the provisional must never travel as
+      one".
+    * now: the SUCCESS half of that premise is gone (the bridge exists and
+      is wired in), so THIS lock asserts the positive contract — the chain
+      RETURNS the projected ``CorrectedGeometryV3``, the envelope on disk
+      carries ``footprint_provenance="derived_from_walls"`` and binds the
+      outcome's final provisional hash — while the DISCIPLINE half of the
+      old lock (⛔ no invented product, ⛔ no pasted-JSON fallback) lives on
+      in the non-success twin below and the booby trap shared by both.
+    """
+    vector_dir, out_dir = _stage(tmp_path)
+    geom = pipeline.run_correction(
+        vector_dir,
+        "{}",
+        out_dir=out_dir,
+        evidence_chain=True,
+        evidence_chain_product="sm25_2f_v2.json",
+        evidence_chain_fixed_responses=_drive_to_success(
+            vector_dir, "sm25_2f_v2.json"
+        ),
+        evidence_chain_round_budget=3,
+        evidence_chain_z_floor_m=0.0,
+        evidence_chain_ceiling_height_m=3.0,
+    )
+    from src.agent.correction.projection_bridge import (
+        CorrectedGeometryProjectionEnvelopeV1,
+    )
+
+    envelope = CorrectedGeometryProjectionEnvelopeV1.model_validate_json(
+        (out_dir / "projection_envelope.json").read_text(encoding="utf-8")
+    )
+    assert envelope.footprint_provenance == "derived_from_walls"
+    assert envelope.geometry == geom
+    assert envelope.face_count == len(geom.floors[0].cells) > 0
+    outcome = json.loads(
+        (out_dir / "decision_loop_outcome.json").read_text(encoding="utf-8")
+    )
+    assert outcome["success"] is True
+    assert envelope.source_resolved_sha256 == outcome["final_provisional_sha256"]
+    # the route's as-measured projection readout
+    route = json.loads(
+        (tmp_path / "_run" / "evidence_chain_route.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert route["projection"]["projected"] is True
+    assert route["projection"]["face_count"] == envelope.face_count
+
+
+def test_switch_on_without_success_terminates_loudly_no_product(
+    tmp_path, booby_trap_pasteed_leg
+):
+    """The discipline the old lock carried, on its new footing: when the
+    loop does NOT succeed there is still NO product — EvidenceChainTerminal,
+    ⛔ no envelope on disk, ⛔ no CorrectedGeometry invented, ⛔ no fallback
+    to the pasted-JSON leg (booby trap).  The final provisional is
+    audit-only and never travels as a product."""
     vector_dir, out_dir = _stage(tmp_path)
     packet = _round0_packet(vector_dir, "sm25_2f_v2.json")
     with pytest.raises(pipeline.EvidenceChainTerminal) as exc:
@@ -366,13 +485,42 @@ def test_switch_on_reaches_the_terminus_loudly(tmp_path, booby_trap_pasteed_leg)
             evidence_chain=True,
             evidence_chain_product="sm25_2f_v2.json",
             evidence_chain_fixed_responses=[_accept_empty(packet)],
+            evidence_chain_z_floor_m=0.0,
+            evidence_chain_ceiling_height_m=3.0,
         )
     outcome = json.loads(
         (out_dir / "decision_loop_outcome.json").read_text(encoding="utf-8")
     )
+    assert outcome["success"] is False
     msg = str(exc.value)
     assert f"success={outcome['success']}" in msg
     assert f"exit_reason={outcome['exit_reason']!r}" in msg
+    assert not (out_dir / "projection_envelope.json").exists()
+    route = json.loads(
+        (tmp_path / "_run" / "evidence_chain_route.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert route["projection"] == {
+        "requested": True,
+        "projected": False,
+        "reason": "outcome_success=False",
+    }
+
+
+def test_switch_on_without_declared_z_is_a_loud_value_error(tmp_path):
+    """The bridge never mints a z (design §四 — B2 owns sourcing the floor
+    elevation): a caller without a DECLARED z cannot construct a product,
+    and the refusal is loud before the chain runs at all."""
+    vector_dir, _ = _stage(tmp_path)
+    with pytest.raises(ValueError, match="evidence_chain_z_floor_m"):
+        pipeline.run_correction(
+            vector_dir,
+            "{}",
+            out_dir=tmp_path / "1_correction",
+            evidence_chain=True,
+            evidence_chain_product="sm25_2f_v2.json",
+        )
 
 
 def test_switch_on_without_a_product_is_a_loud_value_error(tmp_path):
