@@ -35,8 +35,37 @@ import pathlib
 import subprocess
 import sys
 import textwrap
+import tomllib
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+
+
+def test_gate_plugin_is_pinned_first_in_addopts():
+    """Lock the *wiring position*, not just the mechanism.
+
+    The subprocess lock below proves the import-time install stops both carriers
+    *when the gate loads before the probe*. But the real suite gets that ordering
+    only because ``pyproject.toml`` ``addopts`` pins ``-p ep_no_billed_gate``
+    ahead of every other ``-p`` (ini addopts ``-p`` load before PYTEST_ADDOPTS
+    and command-line ``-p``). If someone moved it after another ``-p`` — or
+    dropped it — the mechanism lock would still pass while the real suite went
+    bypassable again. This closes that gap.
+    """
+    data = tomllib.loads((_REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    addopts = data["tool"]["pytest"]["ini_options"]["addopts"]
+    # Collect the plugin name after each "-p" token, in order.
+    p_plugins = [
+        addopts[i + 1]
+        for i, tok in enumerate(addopts)
+        if tok == "-p" and i + 1 < len(addopts)
+    ]
+    assert "ep_no_billed_gate" in p_plugins, (
+        f"gate plugin missing from addopts -p list: {addopts!r}"
+    )
+    assert p_plugins[0] == "ep_no_billed_gate", (
+        f"gate plugin must be the FIRST -p in addopts so it installs before any "
+        f"other plugin can bind a pre-gate socket reference; got {p_plugins!r}"
+    )
 
 # A probe plugin loaded AFTER the gate. Everything it does happens at module
 # import (pre-parse) or binds a reference then, mirroring the review probe.
