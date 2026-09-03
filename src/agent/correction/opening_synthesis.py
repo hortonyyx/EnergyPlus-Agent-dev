@@ -386,17 +386,80 @@ def redemption_row_for_premise(premise: str) -> tuple[str, DebtRedemption]:
     return rows[0]
 
 
-def redeemable_debt_ids(debts: Sequence[EvidenceDebtV1]) -> tuple[str, ...]:
-    """Which of these debts THIS stage redeems, by debt TYPE PREFIX.
+# ── T4-c: the per-run binding (rework 1, cross-review B-2) ──────────────────── #
+@dataclass(frozen=True)
+class ElevationSourceIdentity:
+    """WHO one gate run was actually checked against: the caller-declared
+    identity of the ONE frozen elevation source behind ``elevation_doc``.
 
-    A ``debt_id`` matching ZERO registry prefixes is simply not ours (the
-    caller keeps it); matching MORE than one is ambiguous wiring and is
-    loud.  ⛔ The free-text ``description`` is never read.
+    Three fields, exactly the identity vocabulary of an
+    ``ArtifactPointerV1`` / ``SourceArtifactV1`` (input slot + contract +
+    frozen-byte hash); ``json_pointer`` is deliberately absent -- it names
+    a place INSIDE a source, and this is the source itself.
 
-    ⚠️ Rework 1 splits this responsibility: this prefix-only view says
-    which debt TYPES this stage owns, and the per-run binding (the gate
-    that actually ran, against the ONE source instance it ran against)
-    lands with it -- see the retirement path in :func:`synthesize_openings`.
+    ⚠️ The sha is CALLER-DECLARED: a parsed ``dict`` carries no bytes to
+    re-hash, so this type is a trust boundary the caller signs, ⛔ not a
+    fact this module re-derives.  What this module does enforce, on it,
+    is the retirement binding below.
+    """
+
+    input_id: str
+    source_contract_id: str
+    source_output_sha256: str
+
+    def binds(self, ref: ArtifactPointerV1) -> bool:
+        """Does this ref point INTO the source instance this identity
+        names?  (Any json pointer inside it -- B3's span debt points at
+        ``/calibration``, exactly the node the gate reads.)"""
+        return (
+            ref.input_id == self.input_id
+            and ref.source_contract_id == self.source_contract_id
+            and ref.source_output_sha256 == self.source_output_sha256
+        )
+
+
+@dataclass(frozen=True)
+class ExecutedRedemption:
+    """What ONE ``synthesize_openings`` run actually discharged.
+
+    All three fields are binding for a retirement (rework 1):
+
+    * ``prefix`` / ``row`` -- the registry row whose gate RAN AND RETURNED
+      in that run (object identity with the registry's row, so the
+      retirement cites the gate that actually carried the check);
+    * ``source`` -- the ONE source instance that gate ran against.  A run
+      without a declared source (``None``) can retire nothing: no
+      binding, no retirement -- the obligation stays open, ⛔ never a
+      prefix-coincidence deletion of another facade's real debt.
+    """
+
+    prefix: str
+    row: DebtRedemption
+    source: ElevationSourceIdentity | None
+
+
+def redeemable_debt_ids(
+    debts: Sequence[EvidenceDebtV1],
+    *,
+    executed: ExecutedRedemption,
+) -> tuple[str, ...]:
+    """Which of these debts THIS run actually discharged.
+
+    Three bindings, all required (rework 1; cross-review B-1 + B-2 -- the
+    old prefix-only view let a South gate run retire REAL East/West
+    debts):
+
+    1. **type** -- the ``debt_id`` matches exactly ONE registry prefix
+       (zero = not this stage's, the caller keeps it; more than one =
+       ambiguous wiring, loud);
+    2. **execution** -- the matched row IS the row whose gate ran and
+       returned in ``executed`` (object identity, ⛔ never a name match);
+    3. **source** -- the debt's ``affected_refs`` name the ONE source
+       instance that run checked (``executed.source``); a debt from
+       another facade, or one whose ``affected_refs`` name nothing, is
+       kept exactly as open as before.
+
+    ⛔ The free-text ``description`` is never read.
     """
     redeemed: list[str] = []
     for debt in debts:
@@ -410,8 +473,23 @@ def redeemable_debt_ids(debts: Sequence[EvidenceDebtV1]) -> tuple[str, ...]:
                 "DEBT_TYPE_AMBIGUOUS",
                 {"debt_id": debt.debt_id, "matched_prefixes": sorted(matches)},
             )
-        if matches:
-            redeemed.append(debt.debt_id)
+        if not matches:
+            continue
+        prefix = matches[0]
+        if (
+            prefix != executed.prefix
+            or DEBT_REDEMPTION_REGISTRY[prefix] is not executed.row
+        ):
+            # a redemption this run never executed: not ours to retire
+            continue
+        if executed.source is None or not any(
+            executed.source.binds(ref) for ref in debt.affected_refs
+        ):
+            # B-2: no binding to the source instance THIS gate run
+            # checked -- a foreign facade's REAL debt, or a debt that
+            # names no source.  Kept open, ⛔ never retired by prefix.
+            continue
+        redeemed.append(debt.debt_id)
     return tuple(sorted(redeemed))
 
 
@@ -463,8 +541,10 @@ class OpeningSynthesisV1(BaseModel):
     #: dimension; this field is the honest "not decidable here" ledger.
     same_interval_groups: tuple[tuple[str, ...], ...] = ()
     #: T4-c: debts whose obligation THIS product actually discharged (the
-    #: equality gate passed for this facade).  ⛔ Not a claim to have
-    #: closed the debt type in general -- per product, per facade.
+    #: equality gate passed for this facade AND the debt's ``affected_refs``
+    #: name this run's ``elevation_source`` instance -- rework 1, cross-
+    #: review B-2: "per product, per facade" is a BINDING here, ⛔ not a
+    #: comment).  ⛔ Not a claim to have closed the debt type in general.
     retired_debt_ids: tuple[str, ...] = ()
 
 
@@ -671,6 +751,7 @@ def synthesize_openings(
     mirrored: bool,
     local_x_positive: str,
     evidence_debts: Sequence[EvidenceDebtV1] = (),
+    elevation_source: ElevationSourceIdentity | None = None,
 ) -> OpeningSynthesisV1:
     """Steps 1-3 + the premise gate + the debt retirement, one facade.
 
@@ -686,10 +767,31 @@ def synthesize_openings(
     orientation, resolved fail-closed through the signed convention
     (``facade_convention``); this function ⛔ never guesses a direction,
     and an unresolved mirror flag is a loud input fault upstream.
+
+    ⭐ ``elevation_source`` (rework 1, cross-review B-2) is the
+    caller-declared identity of the ONE frozen source behind
+    ``elevation_doc``; a debt is retired only if its ``affected_refs``
+    name exactly that instance -- so a South run retires South's debt and
+    ⛔ never East's or West's, even though all four facades mint the SAME
+    debt type prefix.  A run that declares no source retires nothing (the
+    honest conservative read: no binding, no retirement).
     """
     _require_elevation_contract(elevation_doc)
     _require_lines(walls, kind="wall", what="walls")
     _require_lines(plan_openings, kind="opening", what="plan_openings")
+    if elevation_source is not None and (
+        elevation_source.source_contract_id != CONTRACT_AS_DRAWN_ELEVATION_V0
+    ):
+        # the declared identity and the checked document must at least
+        # agree on WHAT KIND of source this is
+        raise OpeningSynthesisError(
+            "ELEVATION_SOURCE_CONTRACT_MISMATCH",
+            {
+                "input_id": elevation_source.input_id,
+                "declared_contract": elevation_source.source_contract_id,
+                "required": CONTRACT_AS_DRAWN_ELEVATION_V0,
+            },
+        )
 
     family = elevation_doc.get("facade_label")
     if family not in _FAMILIES:
@@ -837,8 +939,17 @@ def synthesize_openings(
                 tuple(sorted(plans_here + [o for o, _, _ in elevations_here]))
             )
 
-    # -- T4-c: retire what this product actually redeemed (gate passed) ---------
-    retired = redeemable_debt_ids(evidence_debts)
+    # -- T4-c: retire what THIS run actually discharged (rework 1) --------------
+    # the binding evidence: the registry row whose gate ran and returned
+    # above, against the ONE source instance this run checked.  With no
+    # declared source the run retires nothing -- the debt stays open,
+    # ⛔ never a prefix-coincidence deletion of another facade's debt.
+    retired = redeemable_debt_ids(
+        evidence_debts,
+        executed=ExecutedRedemption(
+            prefix=span_prefix, row=span_row, source=elevation_source
+        ),
+    )
 
     return OpeningSynthesisV1(
         schema_version=SYNTHESIS_SCHEMA_VERSION,
@@ -864,6 +975,8 @@ __all__ = [
     "DECLARED_GRID_UNITS_PER_M",
     "DEBT_REDEMPTION_REGISTRY",
     "DebtRedemption",
+    "ElevationSourceIdentity",
+    "ExecutedRedemption",
     "OpeningPairingV1",
     "OpeningSynthesisError",
     "OpeningSynthesisV1",

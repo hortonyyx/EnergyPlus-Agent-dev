@@ -51,7 +51,10 @@ from src.agent.correction.evidence_adapters import (
     ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
     adapt_as_drawn_elevation,
 )
-from src.agent.correction.evidence_contract import EvidenceDebtV1
+from src.agent.correction.evidence_contract import (
+    ArtifactPointerV1,
+    EvidenceDebtV1,
+)
 from src.agent.correction.opening_synthesis import (
     DEBT_REDEMPTION_REGISTRY,
     OpeningSynthesisError,
@@ -223,13 +226,58 @@ def _elevation_doc(
     }
 
 
-def _debt(debt_id: str, description: str) -> EvidenceDebtV1:
-    return EvidenceDebtV1(
-        debt_id=debt_id, kind="other_known_missing", description=description
+def _source(input_id: str) -> osm.ElevationSourceIdentity:
+    """A caller-declared elevation source identity (synthetic ids; the
+    REAL-bytes tests below use identities extracted from B3's own
+    bundles)."""
+    return osm.ElevationSourceIdentity(
+        input_id=input_id,
+        source_contract_id=CONTRACT_AS_DRAWN_ELEVATION_V0,
+        source_output_sha256="0" * 64,
     )
 
 
-SPAN_DEBT_ID = "debt_elevation_chain_span_unchecked_input_east"
+def _south_executed() -> osm.ExecutedRedemption:
+    """The redemption a healthy South run executes: the span registry row,
+    against the South source instance."""
+    prefix = "debt_elevation_chain_span_unchecked_"
+    return osm.ExecutedRedemption(
+        prefix=prefix,
+        row=DEBT_REDEMPTION_REGISTRY[prefix],
+        source=_source("input_south"),
+    )
+
+
+def _debt(
+    debt_id: str,
+    description: str,
+    *,
+    source: osm.ElevationSourceIdentity | None = None,
+) -> EvidenceDebtV1:
+    """A span-shaped debt.  With ``source`` it carries B3's REAL shape:
+    one ``affected_ref`` naming exactly that source instance (B3 points it
+    at ``/calibration`` -- the very node the gate reads).  ⛔ A debt
+    without refs is the shape rework 1 refuses to retire: it names no
+    source, so no run may claim it."""
+    refs: tuple[ArtifactPointerV1, ...] = ()
+    if source is not None:
+        refs = (
+            ArtifactPointerV1(
+                input_id=source.input_id,
+                source_contract_id=source.source_contract_id,
+                source_output_sha256=source.source_output_sha256,
+                json_pointer="/calibration",
+            ),
+        )
+    return EvidenceDebtV1(
+        debt_id=debt_id,
+        kind="other_known_missing",
+        affected_refs=refs,
+        description=description,
+    )
+
+
+SPAN_DEBT_ID = "debt_elevation_chain_span_unchecked_input_south"
 
 
 # ── acceptance #1: the gate is an equality, ⛔ not a threshold ───────────────── #
@@ -614,13 +662,17 @@ def test_debt_wiring_survives_removal_of_every_b4_word():
     DEFECT of B3's shape (the wiring locked a word).  Here the reverse
     is locked: a debt whose description never says "B4" at all is still
     wired, redeemed and retired -- because the wiring key is the debt's
-    TYPE PREFIX in ``debt_id``, ⛔ never the free text."""
+    TYPE PREFIX in ``debt_id`` plus its ``affected_refs`` naming this
+    run's source, ⛔ never the free text."""
     debt = _debt(
         SPAN_DEBT_ID,
         description="span equality unverified until the plan side sees it",
+        source=_source("input_south"),
     )
     assert "B4" not in debt.description
-    assert redeemable_debt_ids([debt]) == (SPAN_DEBT_ID,)
+    assert redeemable_debt_ids(
+        [debt], executed=_south_executed()
+    ) == (SPAN_DEBT_ID,)
 
     walls = _walls()
     product = synthesize_openings(
@@ -628,6 +680,7 @@ def test_debt_wiring_survives_removal_of_every_b4_word():
         walls=walls, plan_openings=(), mirrored=False,
         local_x_positive="image_left_to_right",
         evidence_debts=[debt],
+        elevation_source=_source("input_south"),
     )
     assert product.retired_debt_ids == (SPAN_DEBT_ID,)
 
@@ -639,14 +692,18 @@ def test_description_full_of_b4_wires_nothing():
     impostor = _debt(
         "debt_some_other_kind_input_1",
         description="Owner: B4. B4 must handle this. Trust B4.",
+        source=_source("input_south"),
     )
-    assert redeemable_debt_ids([impostor]) == ()
+    assert redeemable_debt_ids(
+        [impostor], executed=_south_executed()
+    ) == ()
     walls = _walls()
     product = synthesize_openings(
         elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
         walls=walls, plan_openings=(), mirrored=False,
         local_x_positive="image_left_to_right",
         evidence_debts=[impostor],
+        elevation_source=_source("input_south"),
     )
     assert product.retired_debt_ids == ()
 
@@ -760,7 +817,8 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
         elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
         walls=_walls(), plan_openings=(), mirrored=False,
         local_x_positive="image_left_to_right",
-        evidence_debts=[debt],
+        evidence_debts=[_debt(SPAN_DEBT_ID, "wired", source=_source("input_south"))],
+        elevation_source=_source("input_south"),
     )
     assert product.retired_debt_ids == (SPAN_DEBT_ID,)
 
@@ -791,7 +849,10 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     monkeypatch.undo()
 
     # and the same ambiguity seen from the debt side
-    both = _debt("debt_elevation_chain_span_unchecked_a", description="")
+    both = _debt(
+        "debt_elevation_chain_span_unchecked_a", description="",
+        source=_source("input_south"),
+    )
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
         "debt_elevation_chain_span_",
@@ -800,7 +861,7 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
         ),
     )
     with pytest.raises(OpeningSynthesisError) as caught:
-        redeemable_debt_ids([both])
+        redeemable_debt_ids([both], executed=_south_executed())
     assert caught.value.code == "DEBT_TYPE_AMBIGUOUS"
 
 
@@ -809,7 +870,10 @@ def test_b3s_real_span_debt_is_redeemed_on_real_bytes():
     (which mint the span debt with "Owner: B4." in its description),
     REWRITE that description to remove every "B4" word, and the debt is
     still recognised, redeemed and retired -- the structural wiring,
-    exercised on the real product."""
+    exercised on the real product.  Rework 1: the retirement also needs
+    the caller to declare WHICH source instance ran, taken here from the
+    bundle's own artifact metadata (⭐ the identity is not re-typed by
+    hand -- it is what B3 froze)."""
     raw = (_PRODUCTS / "sm25_east_as_drawn.json").read_bytes()
     artifact = adapt_as_drawn_elevation(
         raw, input_id="input_east", facade_ref="east"
@@ -821,6 +885,7 @@ def test_b3s_real_span_debt_is_redeemed_on_real_bytes():
     assert len(span_debts) == 1
     original = span_debts[0]
     assert "B4" in original.description  # the B3 shape, for contrast
+    assert original.affected_refs  # B3's real debt names its source
 
     scrubbed = original.model_copy(
         update={"description": "span equality now checked by the plan side"}
@@ -829,12 +894,18 @@ def test_b3s_real_span_debt_is_redeemed_on_real_bytes():
 
     lines, _ = _facts_lines()
     walls = [l for l in lines if l.kind == "wall"]
+    meta = artifact.bundle.source_artifacts[0]
     product = synthesize_openings(
         elevation_doc=json.loads(raw), walls=walls,
         plan_openings=[l for l in lines
                        if l.kind == "opening" and l.axis == "y"],
         mirrored=False, local_x_positive="image_left_to_right",
         evidence_debts=[scrubbed],
+        elevation_source=osm.ElevationSourceIdentity(
+            input_id=meta.input_id,
+            source_contract_id=meta.source_contract_id,
+            source_output_sha256=meta.source_output_sha256,
+        ),
     )
     assert product.retired_debt_ids == (original.debt_id,)
 
@@ -843,7 +914,8 @@ def test_retirement_requires_the_gate_to_have_passed():
     """A debt that failed the gate is NOT retired: with the chain off by
     one bay the synthesis raises, so no product exists to carry the
     retirement -- the obligation stays exactly as open as before."""
-    debt = _debt(SPAN_DEBT_ID, description="unchanged")
+    debt = _debt(SPAN_DEBT_ID, description="unchanged",
+                 source=_source("input_south"))
     walls = _walls()
     with pytest.raises(OpeningSynthesisError) as caught:
         synthesize_openings(
@@ -853,7 +925,116 @@ def test_retirement_requires_the_gate_to_have_passed():
             walls=walls, plan_openings=(), mirrored=False,
             local_x_positive="image_left_to_right",
             evidence_debts=[debt],
+            elevation_source=_source("input_south"),
         )
     assert caught.value.code == "ELEVATION_CHAIN_SPAN_MISMATCH"
-    # and the debt itself is untouched by the refusal
-    assert redeemable_debt_ids([debt]) == (SPAN_DEBT_ID,)
+    # and the debt itself is untouched by the refusal: a later healthy
+    # run of the same gate, against the source it names, still redeems it
+    assert redeemable_debt_ids(
+        [debt], executed=_south_executed()
+    ) == (SPAN_DEBT_ID,)
+
+
+def test_retirement_binds_to_the_source_instance_real_bytes():
+    """⭐ rework 1's second lock (cross-review B-2), built verbatim on the
+    cross-review's counterexample shape -- B3's REAL bytes, ⛔ not a
+    synthetic same-prefix-different-id pair:
+
+    the cross-review adapted real East/West bytes into two LEGITIMATE
+    debts, ran only South's gate, and measured
+
+        CURRENT_FACADE= South
+        RETIRED= ('debt_..._input_east', 'debt_..._input_west')
+
+    South passing proves nothing about East/West.  Here the same three
+    real debts (one per facade, each minted by B3 from that facade's own
+    frozen bytes) go into one South run, and only South's own debt may
+    retire."""
+    lines, _ = _facts_lines()
+    walls = [l for l in lines if l.kind == "wall"]
+
+    debts: dict[str, EvidenceDebtV1] = {}
+    identities: dict[str, osm.ElevationSourceIdentity] = {}
+    for facade in ("east", "west", "south"):
+        raw = (_PRODUCTS / f"sm25_{facade}_as_drawn.json").read_bytes()
+        artifact = adapt_as_drawn_elevation(
+            raw, input_id=f"input_{facade}", facade_ref=facade
+        )
+        span_debts = [
+            d for d in artifact.bundle.evidence_debts
+            if d.debt_id.startswith("debt_elevation_chain_span_unchecked_")
+        ]
+        assert len(span_debts) == 1, facade
+        debts[facade] = span_debts[0]
+        meta = artifact.bundle.source_artifacts[0]
+        identities[facade] = osm.ElevationSourceIdentity(
+            input_id=meta.input_id,
+            source_contract_id=meta.source_contract_id,
+            source_output_sha256=meta.source_output_sha256,
+        )
+        # B3's real mint: the debt names exactly ITS OWN source
+        assert debts[facade].affected_refs[0].input_id == f"input_{facade}"
+
+    south_debt_id = debts["south"].debt_id
+    east_debt_id = debts["east"].debt_id
+    west_debt_id = debts["west"].debt_id
+    assert len({south_debt_id, east_debt_id, west_debt_id}) == 3
+
+    # the South run: all three REAL debts travel in, the source identity
+    # declared is South's own -- and ONLY South's debt retires
+    south_raw = (_PRODUCTS / "sm25_south_as_drawn.json").read_bytes()
+    product = synthesize_openings(
+        elevation_doc=json.loads(south_raw), walls=walls,
+        plan_openings=[l for l in lines
+                       if l.kind == "opening" and l.axis == "x"],
+        mirrored=False, local_x_positive="image_left_to_right",
+        evidence_debts=[debts["east"], debts["west"], debts["south"]],
+        elevation_source=identities["south"],
+    )
+    assert product.retired_debt_ids == (south_debt_id,)
+    assert east_debt_id not in product.retired_debt_ids
+    assert west_debt_id not in product.retired_debt_ids
+
+    # the foreign debts are KEPT AS-IS, ⛔ not consumed: a later healthy
+    # East run against East's own source still redeems East's debt
+    east_openings = [l for l in lines
+                     if l.kind == "opening" and l.axis == "y"]
+    east_raw = (_PRODUCTS / "sm25_east_as_drawn.json").read_bytes()
+    east_product = synthesize_openings(
+        elevation_doc=json.loads(east_raw), walls=walls,
+        plan_openings=east_openings,
+        mirrored=False, local_x_positive="image_left_to_right",
+        evidence_debts=[debts["east"], debts["west"]],
+        elevation_source=identities["east"],
+    )
+    assert east_product.retired_debt_ids == (east_debt_id,)
+    assert west_debt_id not in east_product.retired_debt_ids
+
+    # and the honest conservative read: a run that declares NO source
+    # retires nothing, even its own facade's debt
+    no_source = synthesize_openings(
+        elevation_doc=json.loads(south_raw), walls=walls,
+        plan_openings=[l for l in lines
+                       if l.kind == "opening" and l.axis == "x"],
+        mirrored=False, local_x_positive="image_left_to_right",
+        evidence_debts=[debts["south"]],
+    )
+    assert no_source.retired_debt_ids == ()
+
+
+def test_source_identity_declared_with_a_foreign_contract_is_loud():
+    """The declared identity and the checked document must agree on WHAT
+    KIND of source this is -- an identity carrying a non-elevation
+    contract cannot bind an elevation gate run."""
+    with pytest.raises(OpeningSynthesisError) as caught:
+        synthesize_openings(
+            elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+            walls=_walls(), plan_openings=(), mirrored=False,
+            local_x_positive="image_left_to_right",
+            elevation_source=osm.ElevationSourceIdentity(
+                input_id="input_plan",
+                source_contract_id="as_drawn_plan_v2",
+                source_output_sha256="0" * 64,
+            ),
+        )
+    assert caught.value.code == "ELEVATION_SOURCE_CONTRACT_MISMATCH"
