@@ -529,8 +529,18 @@ def run_decision_loop(
     response_provider: "Callable[[CorrectionDecisionPacketV1], CorrectionDecisionResponseV1] | None" = None,
     round_budget: int | None = None,
     solver_revision: str = COMPILATION_SCHEMA_VERSION,
+    compilation_sink: "Callable[[WallCompilationV1], None] | None" = None,
 ) -> DecisionLoopOutcomeV1:
     """Drive the three beats (§9.1 step 5 → module 7 wiring).
+
+    ``compilation_sink`` (B1 wiring): when given, receives the FINAL wall
+    compilation exactly once, on EVERY exit — the one choke point the
+    ``outcome()`` closure is.  The outcome itself carries only hashes
+    (``final_provisional_sha256``); the projection bridge needs the walls,
+    and this is the seam that hands them over without changing the
+    outcome's own contract.  On a non-success exit the sunk compilation is
+    the audit-only provisional (``success=False`` on the same outcome says
+    so) — the sink's consumer owns that discipline, not this loop.
 
     Two response sources, exactly one per call (both ⇒ loud, neither ⇒
     the loop consumes nothing and exits ``round_budget_exhausted``):
@@ -600,6 +610,8 @@ def run_decision_loop(
         exit_reason: str,
         current: WallCompilationV1,
     ) -> DecisionLoopOutcomeV1:
+        if compilation_sink is not None:
+            compilation_sink(current)
         return _finalize_outcome(
             success=exit_reason == "success",
             exit_reason=exit_reason,

@@ -35,7 +35,7 @@ import json
 import re
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from loguru import logger
 from openai import OpenAI
@@ -804,6 +804,10 @@ _UNSET_VALIDATOR = object()
 _EVIDENCE_CHAIN_ROUTE_NAME = "evidence_chain_route.json"
 _EVIDENCE_CHAIN_FAILURE_NAME = "evidence_chain_failure.json"
 _EVIDENCE_CHAIN_OUTCOME_NAME = "decision_loop_outcome.json"
+#: B1 wiring: the projection bridge's whole product, filed next to the
+#: outcome.  ⛔ The bare geometry never travels as the product without
+#: this envelope (design §四: hash 对不上 / envelope 丢失 ⇒ 投影失败).
+_EVIDENCE_CHAIN_PROJECTION_NAME = "projection_envelope.json"
 #: The llm.yaml section the model beat reads, BY ITS REAL NAME (v3, B-1 —
 #: ⛔ never through the `intake_`-prefixing `_section()`, which silently
 #: resolved this to `intake_correction`).  An absent section is a LOUD
@@ -812,17 +816,38 @@ _EVIDENCE_CHAIN_OUTCOME_NAME = "decision_loop_outcome.json"
 DECISION_BEAT_LLM_SECTION = "correction_decision"
 
 
-class EvidenceChainTerminal(RuntimeError):
-    """The evidence chain reached THIS module's terminus (module 7 scope).
+class EvidenceChainProjection(NamedTuple):
+    """B1 wiring: the caller's DECLARED floor meta for the projection.
 
-    Raised by ``run_correction(evidence_chain=True)`` after the
-    ``DecisionLoopOutcomeV1`` is on disk: the projection bridge that would
-    turn the provisional wall IR into a ``CorrectedGeometry``
-    (``CorrectedGeometryProjectionEnvelopeV1``, design §5.4) is the NEXT
-    dispatch (甲-2), so there is no success product to return here — and
-    pretending otherwise is exactly "handing the provisional on as
-    finished", which the outcome type forbids.  Carries the outcome path,
-    ``success`` and ``exit_reason`` verbatim.
+    ``z_floor_m`` / ``ceiling_height_m`` are REQUIRED with no defaults and
+    no invention: the bridge refuses to mint a z (B2 owns sourcing them),
+    so a caller without a sourced value cannot construct a product — pass
+    nothing and ``run_correction`` fails loudly before the chain runs.
+    ``floor_id`` / ``floor_name`` default to the chain's derived
+    ``floor_ref`` when omitted.
+    """
+
+    z_floor_m: float
+    ceiling_height_m: float
+    floor_id: str | None = None
+    floor_name: str | None = None
+
+
+class EvidenceChainTerminal(RuntimeError):
+    """The evidence chain terminated WITHOUT a product to hand back.
+
+    B1 landed (2026-09-03): the projection bridge exists, and a SUCCESSFUL
+    chain outcome is projected into a ``CorrectedGeometryV3`` whose
+    envelope (``projection_envelope.json``, ``footprint_provenance=
+    "derived_from_walls"``) is filed next to the outcome — that is what
+    ``run_correction(evidence_chain=True)`` returns.
+
+    This exception now fires exactly when the loop did NOT succeed: the
+    final provisional compilation is then an audit-only product
+    (``success=False`` on the same outcome says so), and ⛔ the provisional
+    must never travel as — or be projected into — a finished
+    ``CorrectedGeometry``.  Carries the outcome path, ``success`` and
+    ``exit_reason`` verbatim.
     """
 
 
@@ -1012,6 +1037,7 @@ def run_correction_evidence_chain(
     round_budget: int = 3,
     fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None,
     llm_section_name: str = DECISION_BEAT_LLM_SECTION,
+    projection: EvidenceChainProjection | None = None,
 ) -> "DecisionLoopOutcomeV1":
     """Drive ONE frozen reading product through the evidence chain to a
     ``DecisionLoopOutcomeV1`` on disk (module 7's terminus).
@@ -1029,9 +1055,17 @@ def run_correction_evidence_chain(
     record says which source was used; a fixture result is never reported
     as a model result.
 
+    ``projection`` (B1 wiring): when given AND the outcome is a success,
+    the chain also drives the projection bridge over the final wall
+    compilation and files ``projection_envelope.json`` next to the outcome
+    (the return type is unchanged — the envelope is the on-disk product).
+    A non-success outcome is never projected: the provisional is
+    audit-only, and refusing it is ``run_correction``'s job.  Requires
+    ``out_dir`` (the envelope IS the product; ⛔ a bare geometry).
+
     Failure contract (acceptance 3): a failure at any link propagates to
     the caller UNCAUGHT, and ``_run/evidence_chain_failure.json`` names the
-    link (source_read / adapt / compile / model / loop).
+    link (source_read / adapt / compile / model / loop / project).
     """
     from src.agent.correction.decision_executor import run_decision_loop
     from src.agent.correction.evidence_adapters import (
@@ -1124,12 +1158,16 @@ def run_correction_evidence_chain(
         response_source = f"model:{llm_section_resolved}"
         responses = ()
     try:
+        final_compilation: list = []
         outcome = run_decision_loop(
             artifact,
             profile=profile,
             responses=responses,
             response_provider=provider,
             round_budget=round_budget,
+            compilation_sink=(
+                final_compilation.append if projection is not None else None
+            ),
         )
     except Exception as exc:
         # Name the LINK, not just the call: compile and packet construction
@@ -1156,6 +1194,84 @@ def run_correction_evidence_chain(
         (Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME).write_text(
             outcome.model_dump_json(indent=2), encoding="utf-8"
         )
+
+    # -- B1 wiring: project a SUCCESSFUL outcome's walls into the envelope -- #
+    projection_record: dict | None = None
+    if projection is not None:
+        if not outcome.success:
+            # ⛔ never project the audit-only provisional — the refusal is
+            # run_correction's (EvidenceChainTerminal); the route just
+            # records that no projection happened, and why.
+            projection_record = {
+                "requested": True,
+                "projected": False,
+                "reason": "outcome_success=False",
+            }
+        else:
+            if out_dir is None:
+                raise ValueError(
+                    "evidence chain projection requires out_dir: the "
+                    "projection envelope IS the product (⛔ a bare geometry "
+                    "never travels without it)"
+                )
+            if not final_compilation:
+                raise RuntimeError(
+                    "evidence chain: the compilation sink never fired "
+                    "although the loop returned an outcome"
+                )
+            try:
+                from src.agent.correction.projection_bridge import (
+                    cut_lines_from_wall_compilation,
+                    opening_spans_from_artifact,
+                    project_cut_lines,
+                )
+
+                spans = opening_spans_from_artifact(artifact)
+                lines, _ = cut_lines_from_wall_compilation(
+                    final_compilation[-1].walls, spans
+                )
+                envelope = project_cut_lines(
+                    lines,
+                    # N-3, redeclared HERE for the production chain: the
+                    # as-drawn *_m fields are floating-point metres with no
+                    # declared quantisation — ⛔ the fixture world's 1-unit
+                    # number is NOT carried over.  (The source's calibration
+                    # does declare m_per_px; absorbing that would blur real
+                    # centimetre-scale mismatches, so it is NOT used.)
+                    resolution_m=0.0,
+                    resolution_source=(
+                        "production evidence chain: as-drawn *_m fields, "
+                        "floating-point metres, no declared quantisation "
+                        "(N-3 redeclared at the wiring)"
+                    ),
+                    source_resolved_sha256=final_compilation[
+                        -1
+                    ].content_sha256,
+                    floor_id=projection.floor_id or floor_ref,
+                    floor_name=projection.floor_name or floor_ref,
+                    z_floor_m=projection.z_floor_m,
+                    ceiling_height_m=projection.ceiling_height_m,
+                    view_id=Path(product_filename).stem,
+                    floor_ref=floor_ref,
+                    origin_label=Path(product_filename).stem,
+                )
+                envelope_path = Path(out_dir) / _EVIDENCE_CHAIN_PROJECTION_NAME
+                envelope_path.write_text(
+                    envelope.model_dump_json(indent=2), encoding="utf-8"
+                )
+                projection_record = {
+                    "requested": True,
+                    "projected": True,
+                    "envelope_path": str(envelope_path),
+                    "face_count": envelope.face_count,
+                    "completion": envelope.completion,
+                    "extension_count": envelope.extension_count,
+                    "n_dangling_end_debts": len(envelope.dangling_end_debts),
+                    "n_opening_spans": len(spans),
+                }
+            except Exception as exc:  # recorded, then re-raised untouched
+                _record_evidence_chain_failure(out_dir, "project", exc)
+                raise
     route = {
         "route": "evidence_chain",
         "source_file": product_filename,
@@ -1177,6 +1293,8 @@ def run_correction_evidence_chain(
             if out_dir is not None
             else None
         ),
+        # B1 wiring: as-measured projection readout (None = not requested)
+        "projection": projection_record,
     }
     route_path = _evidence_chain_run_meta(out_dir, _EVIDENCE_CHAIN_ROUTE_NAME)
     if route_path is not None:
@@ -1213,6 +1331,8 @@ def run_correction(
     evidence_chain_profile: str = "exploratory",
     evidence_chain_round_budget: int = 3,
     evidence_chain_fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None,
+    evidence_chain_z_floor_m: float | None = None,
+    evidence_chain_ceiling_height_m: float | None = None,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -1227,11 +1347,18 @@ def run_correction(
     ⭐ Module 7 (2026-09-02): ``evidence_chain=True`` switches this stage onto
     the evidence chain (frozen bytes → adapter → compiler → decision packet →
     model beat → decision loop).  The switch is EXPLICIT and one-way: the
-    pasted-JSON prompt below is not built at all in that mode, and when the
-    chain reaches its terminus this raises ``EvidenceChainTerminal`` — the
-    projection bridge that would produce the returned ``CorrectedGeometry``
-    is the NEXT dispatch, so there is no success product to hand back here
-    (⛔ and the provisional must never travel as one)."""
+    pasted-JSON prompt below is not built at all in that mode.
+
+    ⭐ B1 wiring (2026-09-03): a SUCCESSFUL chain outcome is projected by the
+    projection bridge into the returned ``CorrectedGeometry`` (subclass
+    ``CorrectedGeometryV3``), with the whole product — ``footprint_provenance=
+    "derived_from_walls"`` and the binding hash — filed as
+    ``projection_envelope.json`` under ``out_dir`` (both required in this
+    mode).  ``evidence_chain_z_floor_m`` / ``evidence_chain_ceiling_height_m``
+    must be declared by the caller: the bridge never mints a z (B2 owns
+    sourcing).  When the loop does NOT succeed there is still no product:
+    ``EvidenceChainTerminal`` fires — the final provisional is audit-only
+    and ⛔ must never travel as one."""
     from src.agent.correction.parse import correction_target, parse_correction_draw
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     target = target or correction_target(capability_profile)
@@ -1242,6 +1369,30 @@ def run_correction(
                 "frozen reading product this chain run consumes (module 7 "
                 "wires one source per chain run)"
             )
+        if evidence_chain_z_floor_m is None or (
+            evidence_chain_ceiling_height_m is None
+        ):
+            missing = " and ".join(
+                name for name, value in (
+                    ("evidence_chain_z_floor_m", evidence_chain_z_floor_m),
+                    (
+                        "evidence_chain_ceiling_height_m",
+                        evidence_chain_ceiling_height_m,
+                    ),
+                )
+                if value is None
+            )
+            raise ValueError(
+                f"evidence_chain=True needs {missing}: the projection "
+                "bridge refuses to mint a z (design §四 — B2 owns sourcing "
+                "floor elevation), so the caller must declare it"
+            )
+        if out_dir is None:
+            raise ValueError(
+                "evidence_chain=True needs out_dir: the projection envelope "
+                "IS the chain's product (⛔ the bare geometry never travels "
+                "without it)"
+            )
         outcome = run_correction_evidence_chain(
             vector_dir,
             evidence_chain_product,
@@ -1249,19 +1400,45 @@ def run_correction(
             profile=evidence_chain_profile,
             round_budget=evidence_chain_round_budget,
             fixed_responses=evidence_chain_fixed_responses,
+            projection=EvidenceChainProjection(
+                z_floor_m=evidence_chain_z_floor_m,
+                ceiling_height_m=evidence_chain_ceiling_height_m,
+            ),
         )
-        outcome_path = (
-            Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME if out_dir is not None else None
+        outcome_path = Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME
+        if not outcome.success:
+            # The one surviving terminus: the loop did NOT succeed, so
+            # there is no product to hand back — the final provisional is
+            # audit-only (success=False says so on the same outcome) and
+            # ⛔ must never travel as, or be projected into, a finished
+            # CorrectedGeometry.
+            raise EvidenceChainTerminal(
+                "1_correction evidence chain terminated WITHOUT a product: "
+                f"DecisionLoopOutcomeV1 on disk at {outcome_path} says "
+                f"success={outcome.success}, exit_reason="
+                f"{outcome.exit_reason!r}. The final provisional travels "
+                "for audit only and is not projected."
+            )
+        from src.agent.correction.projection_bridge import (
+            CorrectedGeometryProjectionEnvelopeV1,
         )
-        raise EvidenceChainTerminal(
-            "1_correction evidence chain reached module 7's terminus: "
-            f"DecisionLoopOutcomeV1 on disk at {outcome_path} "
-            f"(success={outcome.success}, exit_reason={outcome.exit_reason!r}). "
-            "The projection bridge to CorrectedGeometry "
-            "(CorrectedGeometryProjectionEnvelopeV1, design §5.4) is the next "
-            "dispatch — no success product is returned here, and the "
-            "provisional travels for audit only."
+
+        envelope = CorrectedGeometryProjectionEnvelopeV1.model_validate_json(
+            (Path(out_dir) / _EVIDENCE_CHAIN_PROJECTION_NAME).read_text(
+                encoding="utf-8"
+            )
         )
+        # consumer-side binding check (design §四): hash mismatch = a
+        # projection failure, never a shrug
+        if envelope.source_resolved_sha256 != outcome.final_provisional_sha256:
+            raise RuntimeError(
+                "evidence chain projection envelope does not bind the "
+                "outcome's final provisional: envelope has "
+                f"{envelope.source_resolved_sha256}, outcome has "
+                f"{outcome.final_provisional_sha256} — treat as a "
+                "projection failure"
+            )
+        return envelope.geometry
     # F-97 (F-c, B-03): classify and FILE THE LEDGER FIRST -- before the reading
     # evidence preflight below, which parses `*_view.json` and dies on a
     # non-object with a bare `AttributeError: 'list' object has no attribute
