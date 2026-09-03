@@ -331,10 +331,19 @@ footprint 当分母 ⇒ **`hole_area` 与 `outside_area` 按构造恒为 0** ⇒
 | 批 | 内容 | 前置 | 交付判据（规则形态）|
 |---|---|---|---|
 | **B1** | ⭐ **投影桥核心**：中轴平面剖分（**含把洞口当中线延续**）→ cells + footprint；envelope 契约与失败语义 | 无（**可立即派**）| §六 规则 **1/2/3/4/4b** ＋ **对 gt 签字 zone 逐个位置对账（F1 14 / F2 15）**（§六之三#3）⛔ **不许再引「28 vs 30」** |
-| **B2** | **多楼层装配**：每视图一份 → `floors[]`（层高 / `z_floor` 的来源要有出处）| B1 | 两层 case 装出 `floors`，且**逐层对 gt 签字 zone 对账**。⛔ **不许拿 B3 的「零洞零重叠」当判据** —— W3 已证它在本链按构造恒真（自派生 footprint 自己当分母）= 无牙读数 |
-| **B3** | **as-drawn 立面腿**：处置改 ADAPT + `adapt_as_drawn_elevation` + 把 `openings[].z_range_m` 变成**带引用的证据** | 无（可与 B1 并行，⛔ 但不同家族）| 四个立面产物全部能进 bundle；z 带 `source_ref` |
+| **B3** | **as-drawn 立面腿**：处置改 ADAPT + `adapt_as_drawn_elevation` + 把 `openings[].z_range_m` **与 `structure_lines` 的楼层标高**变成**带引用的证据** | 无（可与 B1 并行，⛔ 但不同家族）| 四个立面产物全部能进 bundle；z 与楼层标高都带 `source_ref` |
+| **B2** | **多楼层装配**：每视图一份 → `floors[]`（`z_floor` + `ceiling_height`）| ⭐⭐ **B1 ＋ B3**（见下方 ⚠️）| 两层 case 装出 `floors`，且**逐层对 gt 签字 zone 对账**。⛔ **不许拿 B3 门的「零洞零重叠」当判据** —— W3 已证它在本链按构造恒真（自派生 footprint 自己当分母）= 无牙读数 |
 | **B4** | ⭐⭐ **洞口合成**：平面半 × 竖向半 → `WindowV3`（宿主房间 · facade · span · z）| B1+B2+B3 | 见下方 ⚠️ |
 | **B5** | **端到端** sm25 → IDF → EnergyPlus | B1–B4 | 一口气跑通 ≥3 次（[[one-shot-acceptance-bar-kills-false-claims]]）|
+
+⚠️⚠️ **2026-09-03 主控实测：B2 的前置从「B1」改成「B1 ＋ B3」，顺序已调整（B3 提到 B2 之前）**
+—— `FloorV3` 要 `z_floor` + `ceiling_height`，而它们今天是**模型在旧贴 JSON 路里手填的**
+（[`pipeline.py:419`](../../src/agent/pipeline.py#L419) 提示词原文「Each floor gives z_floor + ceiling_height」）；
+**新链的墙编译器完全没有 z**（墙是平面线）⇒ 与窗的 z 一样**零来源**。
+⭐ 而**立面产物里就有**：`structure_lines` 的水平线直接带楼层标高 ——
+实测 sm25 东立面 **S06 `pos_m ≈ 0.000`（地面）· S05 `3.600`（二层）· S04 `7.202`（屋顶）**，
+且 z 标定链 `cum_mm = [0, 1000, 2600, 3600, 4600, 6200, 7200]` **逐位闭合**。
+⇒ **层高的唯一来源 = 立面腿**，B2 必须排在 B3 之后。
 
 ⚠️ **B4 里藏着一个真问题，⛔ 别当接线**：**平面上的那个洞口，和立面上的那扇窗，是同一扇吗？**
 这是**跨视图身份配对**，两边的坐标系不同（平面 = 世界 xy；立面 = 沿墙局部 + z）。
