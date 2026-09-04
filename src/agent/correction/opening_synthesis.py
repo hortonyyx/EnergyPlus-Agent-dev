@@ -622,8 +622,9 @@ def _resolve_backed_obligation(obligation: str) -> tuple[str, DebtRedemption]:
     returned.  This is the check the cross-review found missing: no lock
     quantified "the set of inputs that resolve successfully == the live
     key set", and the binding trusted the resolver's canonical key instead
-    of re-checking the ORIGINAL ``obligation`` value (``owner_b4`` slipped
-    through with all 28 near-miss locks green).
+    of re-checking the ORIGINAL ``obligation`` value (a compat map from a
+    lexically-dissimilar string to the live key slipped through with all 28
+    near-miss locks green).
 
     Two teeth, both on the ORIGINAL value, both BEFORE the seam is
     consulted for membership:
