@@ -112,22 +112,24 @@ def near_misses() -> list[tuple[str, str]]:
     return probes
 
 
-def _refusal_gone(probe: str) -> bool:
-    """True iff EVERY runtime entry ACCEPTS the probe without a loud
-    ``OpeningSynthesisError``.  The battery asserts the negation on the
-    healthy seam; each demo asserts this under its widening -- the same
-    probe function, so a demo literally proves the battery's teeth in
-    that direction."""
-    debt = _bypass_debt(probe)
-    for call in (
-        lambda: osm.redemption_row_for_obligation(probe),
-        lambda: osm.assert_obligations_backed([debt]),
-        lambda: osm.redeemable_debt_ids([debt], executed=_executed()),
-    ):
-        try:
-            call()
-        except osm.OpeningSynthesisError:
-            return False
+def _refusal_gone_at_seam(probe: str) -> bool:
+    """True iff the SEAM (:func:`redemption_row_for_obligation`) ACCEPTS
+    the probe without a loud ``OpeningSynthesisError``.
+
+    ⭐ Rework 2 of T4-a (cross-review 2026-09-04v B-1): this is SEAM-scoped
+    on purpose.  The M1-M3 demos install a widening on the SEAM to prove
+    the seam battery (:func:`test_near_miss_obligations_are_refused_on_every_entry`)
+    has teeth in that direction.  The BINDING no longer trusts the seam --
+    :func:`osm._resolve_backed_obligation` re-checks the ORIGINAL
+    obligation against the plain dict directly -- so a seam-only widening
+    is caught at the callers even while the seam accepts it.  That
+    caller-independence is itself locked below
+    (:func:`test_widened_seam_cannot_make_the_binding_back_a_non_key_input`);
+    here we measure only whether the widening reached the seam."""
+    try:
+        osm.redemption_row_for_obligation(probe)
+    except osm.OpeningSynthesisError:
+        return False
     return True
 
 
@@ -261,7 +263,7 @@ def test_demo_M1_normalisation_widening_would_turn_the_battery_red():
     probe = "  " + SPAN_OBLIGATION.upper() + "  "
     osm.redemption_row_for_obligation = normalising
     try:
-        assert _refusal_gone(probe), (
+        assert _refusal_gone_at_seam(probe), (
             "the normalising seam still refuses every probe -- the "
             "battery has no teeth in the normalisation direction"
         )
@@ -288,7 +290,7 @@ def test_demo_M2_compat_table_widening_would_turn_the_battery_red():
     probe = SPAN_OBLIGATION + "_legacy"
     osm.redemption_row_for_obligation = compat_seam
     try:
-        assert _refusal_gone(probe), (
+        assert _refusal_gone_at_seam(probe), (
             "the compat seam still refuses the legacy name -- the "
             "battery has no teeth in the compat direction"
         )
@@ -324,7 +326,7 @@ def test_demo_M3_one_to_many_prefix_resolver_would_turn_the_battery_red():
     probe = "elevation_chain_spans"
     osm.redemption_row_for_obligation = prefix_resolver
     try:
-        assert _refusal_gone(probe), (
+        assert _refusal_gone_at_seam(probe), (
             "the prefix resolver still refuses the truncated obligation "
             "-- the battery has no teeth in the one-to-many direction"
         )
@@ -471,7 +473,7 @@ def test_demo_M6_redirect_widening_is_what_the_identity_pin_locks():
     try:
         # the battery's refusal survives this widening (honest boundary:
         # a redirect accepts no near-miss)...
-        assert not _refusal_gone(SPAN_OBLIGATION + "_legacy")
+        assert not _refusal_gone_at_seam(SPAN_OBLIGATION + "_legacy")
         # ...the retirement keeps the debt open (no wrong-gate retire)...
         assert osm.redeemable_debt_ids([debt], executed=executed) == ()
         # ...and the identity pin's own assertion is RED under it:
@@ -487,3 +489,237 @@ def test_demo_M6_redirect_widening_is_what_the_identity_pin_locks():
         resolved_key, resolved_row = osm.redemption_row_for_obligation(key)
         assert resolved_key == key
         assert resolved_row is row
+
+
+# ── R1 (rework 2, cross-review 2026-09-04v B-1): ─────────────────────────────── #
+# ── the SET OF INPUTS THAT SUCCESSFULLY BACK/RETIRE == the live key set, ─────── #
+# ── proven RESOLVER-INDEPENDENT (no enumeration of inputs) ───────────────────── #
+#
+# The v2 lock only quantified "a finite near-miss family is refused at the
+# seam"; the cross-review mounted a compat map from a string with NO
+# lexical similarity to any live key straight to the live key, OUTSIDE the
+# seam's teeth, and the binding retired the debt with all 28 locks green.
+# The property that was missing: whatever the (swappable) seam returns, the
+# BINDING backs EXACTLY the stored keys.  These locks install a widening on
+# the seam so the seam itself accepts a dissimilar input (the mutation
+# provably takes), then assert the binding refuses it anyway -- the subject
+# of every assertion is the PROPERTY (a loud refusal of a non-key input),
+# ⛔ never a specific alias string.
+def _live_key() -> str:
+    """The live registry key, taken as a RULE over the live table
+    (⛔ not a hard-coded constant; a future domain value is covered for
+    free)."""
+    return sorted(osm.DEBT_REDEMPTION_REGISTRY)[0]
+
+
+def _seam_widenings() -> list[tuple[str, object]]:
+    """(label, make) where ``make(real, canonical)`` returns
+    ``(widened_seam, foreign_input)``.
+
+    Each is a DIFFERENT extension shape that makes the swappable seam
+    ACCEPT an input the registry never stored, mapping it to a live key:
+
+    * ``external_compat_table`` -- the exact cross-review B-1 shape: a
+      compat map from a string with no lexical similarity to any live key;
+    * ``prepended_normalisation`` -- strip + casefold before lookup (the
+      shape a "robust input handling" change takes);
+    * ``one_to_many_silent_pick`` -- collect candidates by prefix and pick
+      one silently (the old debt_id-prefix world reborn on obligations);
+    * ``unicode_nfkc_fold`` -- NFKC-normalise a full-width variant.
+
+    ⭐ §二#2 of the dispatch: the first is the reviewer's counterexample;
+    the other three are self-set, same-class-different-shape, so the lock
+    proves the CLASS is refused, ⛔ not one instance.
+    """
+
+    def external_compat_table(real, canonical):
+        foreign = "compat_owner_of_the_span_debt"  # ⛔ no lexical overlap
+        table = {foreign: canonical}
+
+        def seam(obligation):
+            if obligation in table:
+                return real(table[obligation])
+            return real(obligation)
+
+        return seam, foreign
+
+    def prepended_normalisation(real, canonical):
+        foreign = "  " + canonical.upper() + "  "
+
+        def seam(obligation):
+            try:
+                return real(obligation)
+            except osm.OpeningSynthesisError as exc:
+                if exc.code != "OBLIGATION_UNBACKED":
+                    raise
+                return real(obligation.strip().casefold())
+
+        return seam, foreign
+
+    def one_to_many_silent_pick(real, canonical):
+        foreign = canonical[: max(1, len(canonical) // 2)]
+
+        def seam(obligation):
+            try:
+                return real(obligation)
+            except osm.OpeningSynthesisError as exc:
+                if exc.code != "OBLIGATION_UNBACKED":
+                    raise
+                hits = sorted(
+                    key
+                    for key in osm.DEBT_REDEMPTION_REGISTRY
+                    if key.startswith(obligation)
+                    or obligation.startswith(key)
+                )
+                if not hits:
+                    raise
+                return real(hits[0])
+
+        return seam, foreign
+
+    def unicode_nfkc_fold(real, canonical):
+        import unicodedata
+
+        foreign = canonical.translate(
+            {ord(c): ord(c) + 0xFEE0 for c in canonical if "!" <= c <= "~"}
+        )
+
+        def seam(obligation):
+            try:
+                return real(obligation)
+            except osm.OpeningSynthesisError as exc:
+                if exc.code != "OBLIGATION_UNBACKED":
+                    raise
+                return real(unicodedata.normalize("NFKC", obligation))
+
+        return seam, foreign
+
+    return [
+        ("external_compat_table", external_compat_table),
+        ("prepended_normalisation", prepended_normalisation),
+        ("one_to_many_silent_pick", one_to_many_silent_pick),
+        ("unicode_nfkc_fold", unicode_nfkc_fold),
+    ]
+
+
+@pytest.mark.parametrize("label,make", _seam_widenings())
+def test_widened_seam_cannot_make_the_binding_back_a_non_key_input(label, make):
+    """R1 / acceptance #1: for EVERY widening shape, the set of
+    obligations the binding backs stays EXACTLY the live key set.
+
+    The widening is installed on the swappable seam so the seam itself
+    accepts a dissimilar ``foreign`` input (the mutation TOOK -- asserted
+    below, so "the lock has teeth" is distinguished from "the mutation was
+    a no-op").  The binding refuses ``foreign`` anyway, because
+    ``_resolve_backed_obligation`` re-derives membership from the immutable
+    plain dict, ⛔ never trusts the seam's canonical return."""
+    real = osm.redemption_row_for_obligation
+    canonical = _live_key()
+    seam, foreign = make(real, canonical)
+    assert foreign not in osm.DEBT_REDEMPTION_REGISTRY, (
+        f"{label}: foreign input collides with a live key"
+    )
+    debt = _bypass_debt(foreign)
+    executed = _executed()
+
+    # GREEN CONTROL, before the widening: the binding backs the healthy
+    # exact key -- so the refusals below are the lock's, ⛔ not a dead entry
+    osm.assert_obligations_backed([_bypass_debt(canonical)])
+
+    osm.redemption_row_for_obligation = seam
+    try:
+        # the mutation TOOK: the widened seam now resolves foreign -> live
+        widened_key, _row = osm.redemption_row_for_obligation(foreign)
+        assert widened_key == canonical, f"{label}: widening did not take"
+        # ...and the binding refuses foreign anyway, loudly, on every caller
+        with pytest.raises(osm.OpeningSynthesisError) as caught:
+            osm.assert_obligations_backed([debt])
+        assert caught.value.code == "OBLIGATION_UNBACKED", label
+        with pytest.raises(osm.OpeningSynthesisError) as caught:
+            osm.redeemable_debt_ids([debt], executed=executed)
+        assert caught.value.code == "OBLIGATION_UNBACKED", label
+    finally:
+        osm.redemption_row_for_obligation = real
+    # restored: the exact seam refuses the foreign input again
+    with pytest.raises(osm.OpeningSynthesisError):
+        osm.redemption_row_for_obligation(foreign)
+
+
+# ── R2 (rework 2): a schema-bypassed obligation outside the domain is ────────── #
+# ── refused at the exit even with NO widening installed ──────────────────────── #
+def _foreign_obligations() -> list[tuple[str, str]]:
+    """(label, value): strings guaranteed NOT to be a live registry key
+    and dissimilar to every live key.  Generated as rules and asserted
+    non-colliding, ⛔ not a hand-picked instance."""
+    live = sorted(osm.DEBT_REDEMPTION_REGISTRY)
+    values = [
+        ("dissimilar", "an_obligation_no_registry_row_backs"),
+        ("numeric", "1234567890"),
+        ("empty", ""),
+        ("path_like", "/calibration/owner"),
+        ("first_live_reversed", live[0][::-1]),
+    ]
+    for label, value in values:
+        assert value not in osm.DEBT_REDEMPTION_REGISTRY, (
+            f"foreign obligation {label}={value!r} collides with a live key"
+        )
+    return values
+
+
+@pytest.mark.parametrize("label,value", _foreign_obligations())
+def test_schema_bypassed_obligation_outside_the_domain_is_refused_loudly(
+    label, value
+):
+    """R2 / acceptance #2: a debt whose ``obligation`` BYPASSES the schema
+    (``model_construct``) and is NOT a stored key is refused LOUDLY -- no
+    silent retirement -- at ``assert_obligations_backed`` AND at
+    ``redeemable_debt_ids``, with NO widening installed.  The binding
+    re-checks the ORIGINAL obligation against the plain dict (rework 2),
+    ⛔ it does not trust a resolver's canonical return."""
+    debt = _bypass_debt(value)
+    with pytest.raises(osm.OpeningSynthesisError) as caught:
+        osm.assert_obligations_backed([debt])
+    assert caught.value.code == "OBLIGATION_UNBACKED"
+    with pytest.raises(osm.OpeningSynthesisError) as caught:
+        osm.redeemable_debt_ids([debt], executed=_executed())
+    assert caught.value.code == "OBLIGATION_UNBACKED"
+
+
+# ── R3 (cross-review B-2 non-blocking #2), now FIXED at the exit ─────────────── #
+def test_query_side_str_subclass_obligation_is_refused_at_the_exit():
+    """A ``str`` subclass whose loose ``__eq__``/``__hash__`` a ``dict``
+    membership test resolves to a live key by REFLECTED equality is refused
+    (``OBLIGATION_TYPE_NOT_PLAIN_STR``) -- the backed set is plain-``str``
+    exact keys only.  Post-``model_validate`` debts already carry canonical
+    plain ``str``; this closes the ``model_construct`` schema-bypass path
+    the review left open as a boundary."""
+    canonical = _live_key()
+
+    class _AliasStr(str):
+        def __new__(cls, visible, target):
+            obj = super().__new__(cls, visible)
+            obj._target = target
+            return obj
+
+        def __hash__(self):
+            return hash(self._target)
+
+        def __eq__(self, other):
+            return other == self._target
+
+        def __ne__(self, other):
+            return not self.__eq__(other)
+
+    alias = _AliasStr("owner_of_span", canonical)
+    # the smuggle really would fool a RAW dict membership test (reflected
+    # equality), which is exactly why a value-membership check is not
+    # enough on its own...
+    assert alias in osm.DEBT_REDEMPTION_REGISTRY
+    # ...but the exit refuses it by exact TYPE, before any lookup decides:
+    debt = _bypass_debt(alias)
+    with pytest.raises(osm.OpeningSynthesisError) as caught:
+        osm.assert_obligations_backed([debt])
+    assert caught.value.code == "OBLIGATION_TYPE_NOT_PLAIN_STR"
+    with pytest.raises(osm.OpeningSynthesisError) as caught:
+        osm.redeemable_debt_ids([debt], executed=_executed())
+    assert caught.value.code == "OBLIGATION_TYPE_NOT_PLAIN_STR"

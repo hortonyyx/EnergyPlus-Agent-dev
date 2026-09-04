@@ -606,6 +606,79 @@ class ExecutedRedemption:
     source: ElevationSourceIdentity | None
 
 
+def _resolve_backed_obligation(obligation: str) -> tuple[str, DebtRedemption]:
+    """The debt-side EXIT postcondition (rework 2 of T4-a, cross-review
+    2026-09-04v B-1): the set of obligations this module will back and
+    retire is EXACTLY the set of stored registry keys -- ⛔ never a
+    superset that an alias / case-or-space normalisation / compat table /
+    one-to-many resolver widened the (swappable) seam to accept.
+
+    :func:`redemption_row_for_obligation` is the ONE place the resolution
+    may be extended on its INSIDE.  This postcondition is the one the
+    CALLERS trust, and it re-derives membership DIRECTLY from the
+    immutable plain-``dict`` registry -- ⛔ NOT from the seam's return
+    value.  So a widened seam that returns a canonical ``(key, row)`` for
+    an input the registry never stored is refused HERE, whatever the seam
+    returned.  This is the check the cross-review found missing: no lock
+    quantified "the set of inputs that resolve successfully == the live
+    key set", and the binding trusted the resolver's canonical key instead
+    of re-checking the ORIGINAL ``obligation`` value (``owner_b4`` slipped
+    through with all 28 near-miss locks green).
+
+    Two teeth, both on the ORIGINAL value, both BEFORE the seam is
+    consulted for membership:
+
+    * ``type(obligation) is str`` -- ⛔ not a ``str`` subclass whose loose
+      ``__eq__``/``__hash__`` a ``dict`` membership test resolves to a
+      live key by REFLECTED equality (cross-review B-2 non-blocking #2,
+      now fixed at the exit): a smuggling subclass is refused
+      (``OBLIGATION_TYPE_NOT_PLAIN_STR``);
+    * ``obligation in DEBT_REDEMPTION_REGISTRY`` -- an EXACT plain-dict
+      membership of the original value, ⛔ never the seam's normalised /
+      aliased hit (``OBLIGATION_UNBACKED``).
+
+    The carrier tooth (``type() is dict``) still guards that membership
+    test's own exactness.  The seam is then still exercised, so its
+    claimant tooth (``DEBT_TYPE_AMBIGUOUS``) and the row it returns stay
+    part of the contract -- but the SUCCESS/FAILURE decision no longer
+    depends on what the seam returns.
+    """
+    if type(DEBT_REDEMPTION_REGISTRY) is not dict:
+        raise OpeningSynthesisError(
+            "DEBT_REGISTRY_CARRIER_NOT_PLAIN_DICT",
+            {
+                "carrier": type(DEBT_REDEMPTION_REGISTRY).__name__,
+                "because": (
+                    "the debt-side membership is exact single-value on a "
+                    "plain dict; a mapping subclass is where an alias / "
+                    "normalisation fallback hides"
+                ),
+            },
+        )
+    if type(obligation) is not str:
+        raise OpeningSynthesisError(
+            "OBLIGATION_TYPE_NOT_PLAIN_STR",
+            {
+                "obligation": repr(obligation),
+                "obligation_type": type(obligation).__name__,
+                "because": (
+                    "a str subclass with a loose __eq__/__hash__ resolves "
+                    "to a live key by reflected equality; the backed set is "
+                    "plain-str exact keys only"
+                ),
+            },
+        )
+    if obligation not in DEBT_REDEMPTION_REGISTRY:
+        raise OpeningSynthesisError(
+            "OBLIGATION_UNBACKED",
+            {
+                "obligation": obligation,
+                "registry_keys": sorted(DEBT_REDEMPTION_REGISTRY),
+            },
+        )
+    return redemption_row_for_obligation(obligation)
+
+
 def assert_obligations_backed(debts: Sequence[EvidenceDebtV1]) -> None:
     """(dispatch 2026-09-04e T4) A debt that carries an ``obligation`` is
     a PROMISE that this module's registry redeems it.
@@ -616,16 +689,16 @@ def assert_obligations_backed(debts: Sequence[EvidenceDebtV1]) -> None:
     (``OBLIGATION_UNBACKED``), ⛔ never a silent skip that strands the
     debt forever while its bundle still records it as owed.
 
-    (rework 1 of T4-a) Every non-``None`` obligation resolves through
-    :func:`redemption_row_for_obligation` -- THE seam -- so this entry
-    check inherits the seam's exact-single-value teeth (carrier /
-    claimant) too; a widened resolution cannot dodge it by entering
-    here.
+    (rework 2 of T4-a, cross-review B-1) Every non-``None`` obligation
+    goes through :func:`_resolve_backed_obligation` -- THE EXIT
+    POSTCONDITION -- which re-checks the ORIGINAL value against the plain
+    dict directly, so a widened seam cannot make a non-key obligation pass
+    here by returning a canonical row for it.
     """
     for debt in debts:
         if debt.obligation is None:
             continue
-        redemption_row_for_obligation(debt.obligation)
+        _resolve_backed_obligation(debt.obligation)
 
 
 def redeemable_debt_ids(
@@ -640,17 +713,17 @@ def redeemable_debt_ids(
     debts):
 
     1. **obligation** (dispatch 2026-09-04e T3: ⛔ the ``debt_id`` prefix
-       is never matched) -- the debt's ``obligation`` resolves to
-       exactly ONE registry row through THE seam
-       (:func:`redemption_row_for_obligation`, rework 1 of T4-a):
-       ``None`` = no downstream obligation, not this stage's, the caller
-       keeps it; a value with NO row is an unwritten promise, loud
-       (``OBLIGATION_UNBACKED``, asserted here again so the direct-call
-       path cannot dodge the entry check); a resolution that is not
-       exact single-value is ambiguous DEBT-side wiring, loud
-       (``DEBT_TYPE_AMBIGUOUS``, from the seam -- ⛔ the premise
-       direction is ``redemption_row_for_premise``'s two teeth, not this
-       code's: two error codes must not point at one thing);
+       is never matched) -- the debt's ``obligation`` is backed through
+       THE EXIT POSTCONDITION (:func:`_resolve_backed_obligation`, rework
+       2 of T4-a): ``None`` = no downstream obligation, not this stage's,
+       the caller keeps it; the ORIGINAL value must itself be an EXACT
+       stored key of the plain-dict registry (⛔ never the seam's
+       normalised / aliased hit), else loud (``OBLIGATION_UNBACKED``); a
+       ``str``-subclass smuggling value is loud
+       (``OBLIGATION_TYPE_NOT_PLAIN_STR``); the seam's own claimant tooth
+       still fires (``DEBT_TYPE_AMBIGUOUS``, ⛔ the premise direction is
+       ``redemption_row_for_premise``'s two teeth, not this code's: two
+       error codes must not point at one thing);
     2. **execution** -- the seam-resolved row IS the row whose gate ran
        and returned in ``executed`` (object identity, ⛔ never a name
        match);
@@ -667,7 +740,7 @@ def redeemable_debt_ids(
     for debt in debts:
         if debt.obligation is None:
             continue
-        key, row = redemption_row_for_obligation(debt.obligation)
+        key, row = _resolve_backed_obligation(debt.obligation)
         if key != executed.obligation or row is not executed.row:
             # a redemption this run never executed: not ours to retire
             continue
