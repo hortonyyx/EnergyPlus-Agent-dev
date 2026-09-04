@@ -260,11 +260,15 @@ def test_degenerate_ladder_is_loud():
     assert exc.value.code == "FLOOR_LADDER_DEGENERATE"
 
 
-def test_nonpositive_ceiling_is_loud():
-    """The assembly boundary check: even a FORGED sealed ladder whose level's
-    bounding claims resolve to the SAME byte z (a non-physical zero height) is
-    stopped here.  ⭐ There is no z keyword to forge a bare z with (B-2); the
-    forge must supply claims, and ceiling is byte-resolved from them."""
+def test_nonpositive_ceiling_is_loud(monkeypatch):
+    """The assembly boundary check.  ⭐ Rework-3: the round-2 way of reaching it
+    — ``ValidatedFloorLadder((bad,))`` with a hand-built zero-height level — is
+    now IMPOSSIBLE one step earlier (the constructor is sealed), so this test
+    (a) locks that seal refusal for the same bad input, and (b) still exercises
+    the ``NONPOSITIVE_CEILING_HEIGHT`` branch itself by injecting the bad level
+    through the derivation core (the sanctioned monkeypatch seam this file
+    already uses for ``mf.derive_floor_ladder``)."""
+    import src.agent.correction.multifloor as mf
     from src.agent.correction.multifloor import _DerivedFloorLevel
 
     art = _elevation([2900.0, 3300.0])
@@ -273,10 +277,15 @@ def test_nonpositive_ceiling_is_loud():
         floor_index=0, lower=z0, upper=z0, frozen_docs=_docs(art)
     )
     assert bad.ceiling_height_m == 0.0  # ← non-positive, byte-resolved
+    # (a) the forged-carrier route to this check is gone at the TYPE layer
+    with pytest.raises(MultiFloorAssemblyError) as seal_exc:
+        ValidatedFloorLadder((bad,))
+    assert seal_exc.value.code == "LADDER_MINT_SEAL_REQUIRED"
+    # (b) the boundary check itself still fires loud on a zero-height level
+    monkeypatch.setattr(mf, "_levels_of", lambda art_: (bad,))
+    ladder = mf.derive_floor_ladder(art)
     with pytest.raises(MultiFloorAssemblyError) as exc:
-        assemble_multifloor_geometry(
-            ValidatedFloorLadder((bad,)), [_square_floor("f0", _RECT)]
-        )
+        assemble_multifloor_geometry(ladder, [_square_floor("f0", _RECT)])
     assert exc.value.code == "NONPOSITIVE_CEILING_HEIGHT"
 
 
@@ -579,12 +588,12 @@ def test_reviewer_round2_bypass_is_dead_at_the_public_helpers():
 
 
 def test_my_own_same_shape_forge_the_sealed_ladder_cannot_inject_a_hand_z():
-    """§三 #2 — my OWN same-shape attack, one the reviewer did NOT run: skip the
-    gate entirely and hand-forge the sealed carrier.  Build a
-    ``ValidatedFloorLadder`` directly from a level whose bounding claims had
-    their ``z_m`` ``model_copy``'d to 12.34 / 17.91 (honest ``z_ref`` kept), then
-    assemble.  Because z is byte-resolved, the assembled storey z is the HONEST
-    byte (0.0 / 2.9), ⛔ NEVER the hand-filled 12.34 — the swap has no effect."""
+    """§三 #2 — my OWN same-shape attack (round-2 form, replayed under the
+    rework-3 seal): hand-forge the sealed carrier from a level whose bounding
+    claims had their ``z_m`` ``model_copy``'d to 12.34 / 17.91 (honest
+    ``z_ref`` kept).  Two independent walls now stop it: the constructor is
+    SEALED (named ``LADDER_MINT_SEAL_REQUIRED``), and even the level itself
+    ignores the hand ``z_m`` — z is byte-resolved, so the drift moves nothing."""
     from src.agent.correction.multifloor import _DerivedFloorLevel
 
     art = _elevation([2900.0, 3300.0])
@@ -593,17 +602,15 @@ def test_my_own_same_shape_forge_the_sealed_ladder_cannot_inject_a_hand_z():
     forged_level = _DerivedFloorLevel(
         floor_index=0, lower=lo, upper=hi, frozen_docs=_docs(art)
     )
-    # the level ignores the hand ``z_m`` and reads the frozen bytes
+    # wall 2 is independent of wall 1: the level reads the frozen bytes, so the
+    # hand ``z_m`` never moves z even if a level object is obtained somehow
     assert forged_level.z_floor_m == 0.0
     assert round(forged_level.ceiling_height_m, 6) == 2.9
-    geom = assemble_multifloor_geometry(
-        ValidatedFloorLadder((forged_level,)), [_square_floor("f0", _RECT)]
-    )
-    assert (geom.floors[0].z_floor, round(geom.floors[0].ceiling_height, 6)) == (
-        0.0,
-        2.9,
-    )
-    assert geom.floors[0].z_floor != 12.34
+    assert forged_level.z_floor_m != 12.34
+    # wall 1: the forged level cannot even be placed into a carrier
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        ValidatedFloorLadder((forged_level,))
+    assert exc.value.code == "LADDER_MINT_SEAL_REQUIRED"
 
 
 def test_assemble_refuses_a_bare_level_sequence():

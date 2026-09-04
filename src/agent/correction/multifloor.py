@@ -6,50 +6,49 @@ ladder (B3 evidence) and stack single-floor projections into one
 rework-2 2026-09-04g): the storey elevations are DERIVED from frozen reading
 bytes, ⛔ never hand-filled.
 
-Rework-2 (2026-09-04g) — why the previous two rounds were REWORKed, and what
-changed at the TYPE LAYER this time
+Rework-3 (2026-09-04w) — round 3 fell to a forged CARRIER, not a forged claim
 -----------------------------------------------------------------------------
-The first two rounds only changed the SURFACE: round 1 dropped z from the entry
-signature; round 2 made the carrier private with read-only ``z`` properties.
-Both times the reviewer walked straight past it with PUBLIC APIs —
-``model_copy(update={"z_m": 12.34})`` on an honest ``FloorLevelClaimV1`` (keeping
-its byte ``z_ref``) fed to the two public helpers, which never ran the gate and
-read ``z`` straight off ``claim.z_m``.  The root cause was never "a missing
-check": ``FloorLevelClaimV1`` was the SAME type validated or not, and ``z`` was a
-value a caller could swap on it ([[gate-measures-right-but-carrier-gets-swapped]]).
+Rounds 1-2 fixed the surface (z dropped from the entry signature, then the
+claim paths gated), so the round-3 reviewer stopped forging claims and forged
+the CARRIER instead: ``ValidatedFloorLadder((SimpleNamespace(z_floor_m=12.34,
+...),))`` — a public dataclass constructor whose ``_levels`` element annotation
+Python never enforces at runtime — after which ``assemble_multifloor_geometry``
+read ``level.z_floor_m`` straight off whatever it found inside.  The docstring
+said "The SEALED assembly carrier" while no seal existed ([[design-doc-
+described-what-code-never-implemented]], [[gate-measures-right-but-carrier-
+gets-swapped]]).  Two type-level facts are enforced now:
 
-Two type-level facts now make "a hand-filled z assembles successfully"
-impossible to CONSTRUCT, not merely discouraged:
+  * **The constructor is sealed** (dispatch §一(a)): ``__init__`` compares a
+    token that exists ONLY inside the ``_seal_validated_ladder`` closure — not
+    a module attribute, never returned, never stored on an instance.  Every
+    construction attempt from outside (a direct call, ``dataclasses.replace``,
+    a subclass constructor) is a named ``LADDER_MINT_SEAL_REQUIRED`` /
+    ``LADDER_SEALED_NO_SUBCLASS`` red.  ⭐ Closure-held is strictly stronger
+    than a module-global ``_SEAL``: an underscore global is still reachable as
+    an attribute of the module, a closure cell of a factory that has returned
+    is reachable only by introspection.
 
-  * **The assembly boundary accepts ONLY a sealed carrier
-    (:class:`ValidatedFloorLadder`).**  That type is minted by exactly one
-    function, :func:`derive_floor_ladder`, whose sole input is the SEALED
-    ``CorrectionEvidenceBundleArtifactV1`` (bundle + frozen bytes) and whose
-    FIRST act is B3's ``validate_evidence_bundle`` gate.  A claim whose ``z_m``
-    drifted from the frozen byte its ``z_ref`` names is a named
-    ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red BEFORE any ladder exists — the
-    SAME B3 gate, reused, ⛔ not a second copy.  ``derive_floor_ladder`` has NO
-    ``Sequence[FloorLevelClaimV1]`` overload any more, so a detached / hand-
-    edited claim list cannot reach it, and ``assemble_multifloor_geometry``
-    type-refuses anything that is not a ``ValidatedFloorLadder`` — the low-level
-    helpers, in ANY combination, cannot re-acquire production assembly capability
-    (dispatch §〇③(b)).
+  * **The carrier stores NO z-bearing state** (dispatch §一(c) moved to the
+    consumption boundary — the exit check, ⛔ not a narrower entrance): its only
+    field is the sealed ``CorrectionEvidenceBundleArtifactV1``.  The per-storey
+    levels are RE-DERIVED on every read — ``validate_evidence_bundle`` first,
+    then ``_byte_z`` resolution — so there is no stored element to swap, and a
+    shell forged with ``object.__new__`` (which no ``__init__`` can stop)
+    still cannot move a z: whatever artifact it ends up carrying is GATED AT
+    THE READ.  Assembly's z is therefore never a value read off instance
+    state; it is always re-derived from frozen bytes that re-passed the gate
+    in that very call.
 
-  * **Every derived z is RESOLVED FROM THE FROZEN BYTES, ⛔ never from
-    ``claim.z_m``.**  ``_DerivedFloorLevel.z_floor_m`` / ``ceiling_height_m``
-    dereference each claim's ``z_ref`` json pointer into the frozen source doc
-    carried on the level.  So even the reviewer's ``model_copy`` on ``z_m`` — and
-    even a hand-forged ``_DerivedFloorLevel`` / ``ValidatedFloorLadder`` — has NO
-    effect on the assembled z: it is always the byte the ref names.  Changing the
-    NUMBER requires supplying different frozen bytes, i.e. authoring a different
-    frozen reading product (with its own sha256 and contract classification),
-    which the reading stage's trust root owns — that is the reading trust
-    boundary, ⛔ not a "hand-filled z" (dispatch §〇③(a)).
-
-Answer to the acceptance question "为什么这条路现在构造不出来?": there is no type
-you can hand-hold that carries a settable z into assembly.  The only z-bearing
-input to assembly is a ``ValidatedFloorLadder`` whose z is byte-resolved, and the
-only minter of it runs the frozen-byte gate.
+Why "a hand-filled z assembles" is now un-CONSTRUCTIBLE, not merely refused:
+the only z that reaches assembly is computed inside ``_levels_of`` from an
+artifact that must re-pass ``validate_evidence_bundle`` at the moment of the
+read.  Changing the assembled number requires supplying different frozen bytes
+that still pass the gate — i.e. authoring a different frozen reading product,
+which is the reading trust boundary the 2026-09-04p verdict adjudicated as out
+of B2's scope.  (What no Python type layer can stop: runtime introspection that
+reads this module's own closure cells or rebinds its globals — that is
+equivalent to editing the code, and even then the z stays gated, because the
+gate runs at consumption, ⛔ not at mint time only.)
 
 Layering: this module depends only on the evidence contract, the correction
 schema, and the geometry validator.  It never imports ``pipeline``.  The
@@ -181,43 +180,146 @@ class _DerivedFloorLevel:
         return self.upper.z_ref
 
 
-@dataclass(frozen=True, eq=False)
-class ValidatedFloorLadder:
-    """The SEALED assembly carrier (dispatch §〇③(a)): "these storey levels came
-    from claims that PASSED B3's frozen-byte gate" is carried by the TYPE.
+# ── the seal (dispatch §一(a)) ──────────────────────────────────────────────── #
+# ``_LADDER_SEAL`` exists ONLY inside this factory's closure: it is not a module
+# attribute (⭐ unlike a ``_SEAL`` global, which stays reachable as ``m._SEAL``),
+# it is never returned, and it is never stored on an instance.  The factory runs
+# once at import and hands back the class plus a private minter that can present
+# the token; module-external code has NO name that binds it.
+def _seal_validated_ladder():
+    _LADDER_SEAL = object()
 
-    ⭐ Minted by exactly one function — :func:`derive_floor_ladder`, which runs
-    ``validate_evidence_bundle`` on the sealed
-    ``CorrectionEvidenceBundleArtifactV1`` before building any level.
-    :func:`assemble_multifloor_geometry` accepts ONLY this type, so a bare
-    ``Sequence[_DerivedFloorLevel]`` — and any low-level-helper combination —
-    cannot reach assembly (dispatch §〇③(b)).  It is iterable / indexable / sized
-    so callers read its levels without unwrapping raw z."""
+    @dataclass(frozen=True, eq=False, init=False, repr=False)
+    class ValidatedFloorLadder:
+        """The SEALED assembly carrier (dispatch §一(a)+(c), rework-3).
 
-    _levels: tuple[_DerivedFloorLevel, ...]
+        ⭐ CLAIM LEDGER — every claim below names the code that enforces it
+        (rework-3 dispatch §二#3); a claim with no enforcing line gets deleted,
+        ⛔ not narrated:
 
-    def __len__(self) -> int:
-        return len(self._levels)
+        1. "It cannot be populated from outside this module" — ``__init__``
+           compares ``_seal`` against the closure-held ``_LADDER_SEAL``; any
+           external construction attempt (direct call, ``dataclasses.replace``,
+           a subclass's inherited constructor) raises the named
+           ``LADDER_MINT_SEAL_REQUIRED``.  ``object.__new__`` can still yield an
+           attribute-less shell — no ``__init__`` can stop that — which is why
+           claim 3 exists.
+        2. "It cannot be subclassed" — ``__init_subclass__`` raises the named
+           ``LADDER_SEALED_NO_SUBCLASS`` at class-creation time, so an
+           ``isinstance``-passing subclass with an overridden constructor
+           cannot exist.
+        3. "It stores NO z-bearing state, so there is nothing to swap" — its
+           only field is ``_artifact``; ``__len__`` / ``__iter__`` /
+           ``__getitem__`` all go through ``_levels_of_carrier``, which
+           RE-DERIVES the levels (``validate_evidence_bundle`` first, then
+           ``_byte_z`` resolution) on every read.  An ``object.__new__`` shell
+           — or an honest carrier whose ``_artifact`` was swapped post-hoc —
+           either assembles its artifact's GATED bytes or fails by name
+           (``LADDER_CARRIER_CORRUPT`` / ``EvidenceContractError``); it can
+           never assemble a value that was merely SET on an instance.
+        4. "The only sanctioned minter gates first" — the closure-held
+           ``_mint_sealed`` is module-private, and its only module-level caller
+           is :func:`derive_floor_ladder`, whose first act is ``_levels_of``
+           (the gate + derivation), so a bad artifact is a named red at the
+           minter's door, ⛔ never inside assembly.
+        """
 
-    def __iter__(self):
-        return iter(self._levels)
+        _artifact: CorrectionEvidenceBundleArtifactV1
 
-    def __getitem__(self, index):
-        return self._levels[index]
+        def __init__(self, artifact=None, *, _seal=None):
+            if _seal is not _LADDER_SEAL:
+                raise MultiFloorAssemblyError(
+                    "LADDER_MINT_SEAL_REQUIRED",
+                    {
+                        "got": type(self).__name__,
+                        "reason": (
+                            "ValidatedFloorLadder cannot be constructed "
+                            "outside multifloor: it is minted only by "
+                            "derive_floor_ladder, which runs the frozen-byte "
+                            "gate first (dispatch §一(a))"
+                        ),
+                    },
+                )
+            if not isinstance(artifact, CorrectionEvidenceBundleArtifactV1):
+                raise MultiFloorAssemblyError(
+                    "LADDER_MINT_REQUIRES_SEALED_ARTIFACT",
+                    {
+                        "got": (
+                            type(artifact).__name__
+                            if artifact is not None
+                            else "None"
+                        )
+                    },
+                )
+            object.__setattr__(self, "_artifact", artifact)
+
+        def __init_subclass__(cls, **kwargs):
+            raise MultiFloorAssemblyError(
+                "LADDER_SEALED_NO_SUBCLASS",
+                {
+                    "subclass": cls.__name__,
+                    "reason": (
+                        "ValidatedFloorLadder is sealed; an isinstance-passing "
+                        "subclass with an overridden constructor must not "
+                        "exist (dispatch §一(a))"
+                    ),
+                },
+            )
+
+        def _levels_of_carrier(self) -> tuple[_DerivedFloorLevel, ...]:
+            """The exit check (§一(c)): re-derive levels from the artifact AT
+            THE READ — gate first, bytes only, ⛔ never instance-carried z."""
+            artifact = getattr(self, "_artifact", None)
+            if not isinstance(artifact, CorrectionEvidenceBundleArtifactV1):
+                raise MultiFloorAssemblyError(
+                    "LADDER_CARRIER_CORRUPT",
+                    {
+                        "got": (
+                            type(artifact).__name__
+                            if artifact is not None
+                            else "None"
+                        ),
+                        "reason": (
+                            "the carrier carries no sealed artifact — an "
+                            "object.__new__ shell or a stripped instance "
+                            "has no z to assemble (dispatch §一(c))"
+                        ),
+                    },
+                )
+            return _levels_of(artifact)
+
+        def __len__(self) -> int:
+            return len(self._levels_of_carrier())
+
+        def __iter__(self):
+            return iter(self._levels_of_carrier())
+
+        def __getitem__(self, index):
+            return self._levels_of_carrier()[index]
+
+    def _mint_sealed(artifact: CorrectionEvidenceBundleArtifactV1):
+        return ValidatedFloorLadder(artifact, _seal=_LADDER_SEAL)
+
+    return ValidatedFloorLadder, _mint_sealed
+
+
+ValidatedFloorLadder, _mint_sealed_ladder = _seal_validated_ladder()
 
 
 def _mint_ladder(
     claims: Sequence[FloorLevelClaimV1],
     frozen_docs: dict[str, dict],
-) -> ValidatedFloorLadder:
-    """Build the storey ladder from ALREADY-GATE-VALIDATED claims + frozen docs.
+) -> tuple[_DerivedFloorLevel, ...]:
+    """Build the DERIVED levels from ALREADY-GATE-VALIDATED claims + frozen docs.
 
     ⚠️ PRIVATE and byte-derived: the z used to order and to size each storey is
     resolved from ``frozen_docs`` (see :func:`_byte_z`), ⛔ never from
     ``claim.z_m``.  The rule (the consumer-side mirror of B3's
     ``FLOOR_LEVEL_SELECTION_RULE``): sort the rungs ascending by their frozen
     byte; N distinct rungs give N-1 storeys; storey ``i`` sits on rung ``i`` and
-    rises to rung ``i+1``.
+    rises to rung ``i+1``.  It returns the raw levels tuple — sealing them
+    into a :class:`ValidatedFloorLadder` is :func:`derive_floor_ladder`'s job
+    (the seal lives in the closure, ⛔ not here).
 
     Loud, never silent (T4):
       * fewer than ``MIN_FLOOR_LEVELS`` rungs -> ``FLOOR_LADDER_DEGENERATE``;
@@ -254,7 +356,29 @@ def _mint_ladder(
                 floor_index=index, lower=lower, upper=upper, frozen_docs=frozen_docs
             )
         )
-    return ValidatedFloorLadder(tuple(levels))
+    return tuple(levels)
+
+
+def _levels_of(
+    elevation_evidence: CorrectionEvidenceBundleArtifactV1,
+) -> tuple[_DerivedFloorLevel, ...]:
+    """THE single derivation core — gate FIRST, then byte-resolve the levels.
+
+    ⭐ Rework-3 (dispatch §一(c) at the boundary): EVERY consumer of storey z —
+    :func:`derive_floor_ladder`, the carrier's own ``__len__`` / ``__iter__`` /
+    ``__getitem__``, and :func:`assemble_multifloor_geometry` — gets its levels
+    from THIS function, which re-runs B3's ``validate_evidence_bundle`` and
+    resolves each z from the frozen bytes via :func:`_byte_z`.  There is no
+    second copy of the gate and no stored z anywhere: whatever a caller did to
+    an instance in between cannot survive this re-derivation.  A claim whose
+    ``z_m`` drifted from the byte its ``z_ref`` names is a named
+    ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red HERE."""
+    validate_evidence_bundle(elevation_evidence)
+    frozen_docs = {
+        source.artifact.input_id: json.loads(source.raw_bytes)
+        for source in elevation_evidence.frozen_sources
+    }
+    return _mint_ladder(elevation_evidence.bundle.floor_level_claims, frozen_docs)
 
 
 def derive_floor_ladder(
@@ -262,24 +386,20 @@ def derive_floor_ladder(
 ) -> ValidatedFloorLadder:
     """B2/T1: turn B3's frozen floor-level ladder into a SEALED per-storey ladder.
 
-    ⭐ B-1/B-2 (rework-2 2026-09-04g): the SOLE input is the SEALED carrier
-    ``elevation_evidence`` (``CorrectionEvidenceBundleArtifactV1`` = bundle plus
-    its frozen bytes), ⛔ NOT a detached ``Sequence[FloorLevelClaimV1]``.  The
-    FIRST act is B3's existing value↔byte gate (``validate_evidence_bundle``): a
-    claim whose ``z_m`` drifted from the byte its ``z_ref`` names is a named
-    ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red HERE, before any storey is
-    minted.  Only then are levels built from ``elevation_evidence.bundle.
-    floor_level_claims``, with each storey's z RESOLVED FROM THE FROZEN BYTES
-    (see :func:`_byte_z`).  The returned :class:`ValidatedFloorLadder` is the
-    only thing :func:`assemble_multifloor_geometry` accepts, so "passed the
+    ⭐ B-1/B-2 (rework-2 2026-09-04g) + the rework-3 seal: the SOLE input is the
+    SEALED carrier ``elevation_evidence`` (``CorrectionEvidenceBundleArtifactV1``
+    = bundle plus its frozen bytes), ⛔ NOT a detached
+    ``Sequence[FloorLevelClaimV1]``.  The FIRST act is B3's existing value↔byte
+    gate via :func:`_levels_of`: a claim whose ``z_m`` drifted from the byte its
+    ``z_ref`` names is a named ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red
+    HERE, before any carrier is minted (the derivation result is deliberately
+    consumed only for its errors — the carrier re-derives on every read, so it
+    stores no z-bearing state).  The returned :class:`ValidatedFloorLadder` is
+    the only thing :func:`assemble_multifloor_geometry` accepts, so "passed the
     frozen-byte gate" is carried by the TYPE, ⛔ not by the history of some call.
     """
-    validate_evidence_bundle(elevation_evidence)
-    frozen_docs = {
-        source.artifact.input_id: json.loads(source.raw_bytes)
-        for source in elevation_evidence.frozen_sources
-    }
-    return _mint_ladder(elevation_evidence.bundle.floor_level_claims, frozen_docs)
+    _levels_of(elevation_evidence)
+    return _mint_sealed_ladder(elevation_evidence)
 
 
 def _footprint_fingerprint(floor: FloorV3):
@@ -305,23 +425,35 @@ def assemble_multifloor_geometry(
 ) -> CorrectedGeometryV3:
     """B2/T2+T3: stack N single-floor projections into one ``floors[]``.
 
-    ⭐ B-2 (dispatch §〇③): the SOLE z-bearing input is ``ladder``, a SEALED
-    :class:`ValidatedFloorLadder` minted only by :func:`derive_floor_ladder`
-    (which ran the frozen-byte gate).  A bare ``Sequence[_DerivedFloorLevel]`` —
-    or anything else — is type-refused as ``UNSEALED_FLOOR_LADDER``, so no
-    low-level-helper combination re-acquires production assembly capability.
-    Each output floor's ``z_floor`` / ``ceiling_height`` are re-stamped from the
-    derived rung's BYTE-RESOLVED z, ⛔ never from whatever the incoming
-    single-floor geometry carried.  ``single_floor_geometries`` supplies only the
-    XY (id/name/footprint/cells), one per storey, ground-up (``ladder[i]`` pairs
-    with ``single_floor_geometries[i]``).
+    ⭐ B-2 (dispatch §〇③ + rework-3 §一(c)): the SOLE z-bearing input is
+    ``ladder``, a SEALED :class:`ValidatedFloorLadder` minted only by
+    :func:`derive_floor_ladder` (which runs the frozen-byte gate first).  A bare
+    ``Sequence[_DerivedFloorLevel]`` — or anything else — is type-refused as
+    ``UNSEALED_FLOOR_LADDER``, so no low-level-helper combination re-acquires
+    production assembly capability.  ⭐ And this boundary does not TRUST the
+    carrier's history either: the levels it consumes are RE-DERIVED through the
+    carrier's read path (``tuple(ladder)`` -> gate + ``_byte_z`` resolution),
+    ⛔ never read off stored instance state — so even an ``object.__new__``
+    shell or a post-hoc-swapped artifact assembles only bytes that re-pass the
+    gate in THIS call.  Each output floor's ``z_floor`` / ``ceiling_height``
+    are re-stamped from that derived rung's BYTE-RESOLVED z, ⛔ never from
+    whatever the incoming single-floor geometry carried.
+    ``single_floor_geometries`` supplies only the XY (id/name/footprint/cells),
+    one per storey, ground-up (``ladder[i]`` pairs with
+    ``single_floor_geometries[i]``).
 
     Loud, never silent (T4):
       * ``ladder`` is not a ``ValidatedFloorLadder`` -> ``UNSEALED_FLOOR_LADDER``;
+      * the carrier carries no sealed artifact (an ``object.__new__`` shell or
+        a stripped instance) -> ``LADDER_CARRIER_CORRUPT`` (from the read path);
+      * the carrier's artifact fails the re-run gate (e.g. a drifted ``z_m``)
+        -> ``EvidenceContractError`` from ``_levels_of``, RAW, ⛔ never swallowed;
       * ``len(ladder) != len(single_floor_geometries)``
         -> ``FLOOR_PLAN_COUNT_MISMATCH`` (⛔ never a truncation);
       * a derived level with ``ceiling_height_m <= 0`` ->
-        ``NONPOSITIVE_CEILING_HEIGHT`` (a defensive boundary check);
+        ``NONPOSITIVE_CEILING_HEIGHT`` (defense-in-depth: unreachable through
+        the sealed surface, because ``_mint_ladder`` refuses non-ascending
+        rungs — kept for a future assembler that stamps z from elsewhere);
       * a single-floor geometry not carrying exactly one floor
         -> ``EXPECTED_SINGLE_FLOOR_GEOMETRY``;
       * two storeys sharing a floor id -> ``DUPLICATE_FLOOR_ID`` (downstream
@@ -365,6 +497,8 @@ def assemble_multifloor_geometry(
                 ),
             },
         )
+    # ⭐ rework-3: the levels are RE-DERIVED here (gate + byte resolution) via
+    # the carrier's read path — an instance-carried z never reaches this loop.
     levels = tuple(ladder)
     if len(levels) != len(single_floor_geometries):
         raise MultiFloorAssemblyError(
