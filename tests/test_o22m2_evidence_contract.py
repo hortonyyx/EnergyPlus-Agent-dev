@@ -45,6 +45,7 @@ from src.agent.correction.evidence_contract import (
     ChannelStatusV1,
     CorrectionEvidenceBundleArtifactV1,
     CorrectionEvidenceBundleV1,
+    DebtObligationV1,
     EvidenceContractError,
     EvidenceDebtV1,
     FaceDispositionV1,
@@ -2137,3 +2138,42 @@ def test_r3_a_mapped_member_without_a_source_rule_is_loud(monkeypatch):
     art = _tiny_artifact()
     assert art.bundle.source_artifacts, "fixture must carry the new member"
     _expect_error(art, "PAYLOAD_MEMBER_WITHOUT_SOURCE_RULE")
+
+
+def test_obligation_is_a_closed_enum_not_a_free_string():
+    """Dispatch 2026-09-04e T4-a, acceptance #1: ``obligation`` is a
+    CLOSED Literal enum, ⛔ not a free string.  Undefined values (a typo
+    of the real one, an arbitrary string, a non-string) are refused by
+    the schema; the field is REQUIRED (T2 -- a producer cannot skip the
+    decision); the one defined value plus ``None`` is the whole domain,
+    and that domain is exactly what today's producers mint (acceptance
+    #5 -- no unused slots)."""
+    # the whole domain, read off the type itself (a rule, ⛔ not a
+    # transcript of one run's values)
+    assert set(typing.get_args(DebtObligationV1)) == {
+        "elevation_chain_spans_whole_building"
+    }
+    base = dict(
+        debt_id="debt_probe", kind="other_known_missing", description="d"
+    )
+    # a one-character typo of the real value -- the shape a free string
+    # would wave through
+    with pytest.raises(ValidationError):
+        EvidenceDebtV1(**base, obligation="elevation_chain_spans_whole_buildings")
+    # an arbitrary free string
+    with pytest.raises(ValidationError):
+        EvidenceDebtV1(**base, obligation="owner_b4")
+    # a non-string
+    with pytest.raises(ValidationError):
+        EvidenceDebtV1(**base, obligation=1)
+    # required: the mint must DECIDE (enum value or None), not skip
+    with pytest.raises(ValidationError):
+        EvidenceDebtV1(**base)
+    # the two legal shapes
+    assert (
+        EvidenceDebtV1(
+            **base, obligation="elevation_chain_spans_whole_building"
+        ).obligation
+        == "elevation_chain_spans_whole_building"
+    )
+    assert EvidenceDebtV1(**base, obligation=None).obligation is None

@@ -69,43 +69,49 @@ tolerance here.
 
 THE DEBT WIRING (T4-b / T4-c; ⛔ structural, never textual)
 -----------------------------------------------------------
-B3 ships the span gap as an ``EvidenceDebtV1`` whose ``debt_id`` carries
-the type prefix ``debt_elevation_chain_span_unchecked_``.  The
-cross-review's N-1 finding was that "owned by B4" lived only in the FREE
-TEXT ``description`` -- locking a word, not a structure
+B3 ships the span gap as an ``EvidenceDebtV1`` whose ``obligation``
+field carries the enum value ``"elevation_chain_spans_whole_building"``
+(the lower-case snake form of the named premise below; the debt's
+``debt_id`` still carries the historical type prefix, but ⛔ that prefix
+is NO LONGER the wiring criterion anywhere -- dispatch 2026-09-04e T3).
+The cross-review's N-1 finding was that "owned by B4" lived only in the
+FREE TEXT ``description`` -- locking a word, not a structure
 (``OWNER_TEXT_REMOVED=GREEN``).  This module's
-:data:`DEBT_REDEMPTION_REGISTRY` wires debt TYPE PREFIXES (the structural
-identity a producer mints into ``debt_id``) to the gate OBJECT that
-redeems them; ``description`` is never read.
+:data:`DEBT_REDEMPTION_REGISTRY` wires debt OBLIGATIONS (the closed
+``DebtObligationV1`` domain the producer mints into ``obligation``) to
+the gate OBJECT that redeems them; ``description`` is never read and
+``debt_id`` is never matched.
 
 ⭐ Rework 1 (2026-09-03, cross-review B-1): the registry's gate column is
 LOAD-BEARING.  ``synthesize_openings`` does not hard-call the span gate
 -- it looks the gate up in the registry BY PREMISE (the product's named
 premise is the execution-side key) and calls what it finds, so the
-registry is the single source of the wiring: point a prefix at a wrong
-existing callable and the call itself fails loudly (import-time teeth
-name it ``DEBT_REGISTRY_GATE_SIGNATURE_MISMATCH`` / runtime
+registry is the single source of the wiring: point an obligation at a
+wrong existing callable and the call itself fails loudly (import-time
+teeth name it ``DEBT_REGISTRY_GATE_SIGNATURE_MISMATCH`` / runtime
 ``DEBT_GATE_CALL_FAILED``), ⛔ never a silently accepted ornament.
 
-A debt whose type this stage redeemed is RETIRED (:T4-c): it travels
-into the product's ``retired_debt_ids`` once the equality gate has
-actually passed for that product AND the debt's ``affected_refs`` name
-the ONE source instance the gate ran against (rework 1, cross-review
-B-2: South passing retires South's debt, ⛔ never East's or West's) -- a
-debt that failed the gate, or one from another facade, is NOT retired
-(the obligation stays exactly as open as before).
+⭐ Dispatch 2026-09-04e T4: an obligation is a PROMISE that a handler
+redeems it.  Two layers hold that promise: the import-time teeth refuse
+any registry key outside the ``DebtObligationV1`` domain (a key no real
+debt can ever carry) and any domain value without a registry row (a
+mintable obligation nobody redeems); at runtime
+:func:`assert_obligations_backed` and the retirement both refuse, loudly
+(``OBLIGATION_UNBACKED``), a debt whose obligation has no row.
 
-⛔ NOT THIS MODULE'S BUSINESS: the EvidenceDebtV1 schema upgrade (adding
-a structured obligation/owner field) is dispatch sheet §五 A-② STOP-AND-
-REPORT territory -- it touches every existing debt and potentially the
-hash of already-persisted products; the adapter seat must not invent it
-unilaterally (see the B4 execution report for the written-up proposal).
+A debt whose obligation this stage redeemed is RETIRED (:T4-c): it
+travels into the product's ``retired_debt_ids`` once the equality gate
+has actually passed for that product AND the debt's ``affected_refs``
+name the ONE source instance the gate ran against (rework 1,
+cross-review B-2: South passing retires South's debt, ⛔ never East's or
+West's) -- a debt that failed the gate, or one from another facade, is
+NOT retired (the obligation stays exactly as open as before).
 """
 from __future__ import annotations
 
 import inspect
 from dataclasses import dataclass
-from typing import Callable, Literal, Sequence
+from typing import Callable, Literal, Sequence, get_args
 
 from pydantic import BaseModel, ConfigDict
 
@@ -114,6 +120,7 @@ from src.agent.correction.evidence_adapters import (
 )
 from src.agent.correction.evidence_contract import (
     ArtifactPointerV1,
+    DebtObligationV1,
     EvidenceDebtV1,
 )
 from src.agent.correction.facade_convention import resolve_sign, world_axis
@@ -233,7 +240,7 @@ class DebtRedemption:
     is load-bearing, ⛔ never decoration.  ``premise`` is the
     execution-side key: the product's named premise selects the row whose
     gate must run, so the same table serves both the execution (premise ->
-    gate) and the retirement (debt prefix -> gate) and the two can never
+    gate) and the retirement (obligation -> gate) and the two can never
     silently disagree.
     """
 
@@ -241,13 +248,21 @@ class DebtRedemption:
     gate: Callable[..., int]
 
 
-#: debt TYPE PREFIX (the structural identity minted into ``debt_id`` by the
-#: producer) -> the wiring row (named premise + gate object) of THIS module
-#: that redeems it.  ⛔⛔ ``description`` is never consulted: the
-#: cross-review measured that "Owner: B4" living in free text locks a WORD,
-#: not a structure (``OWNER_TEXT_REMOVED=GREEN``).
+#: The closed ``DebtObligationV1`` domain (dispatch 2026-09-04e T3): the
+#: registry's keys are EXACTLY this domain -- a debt is wired to this
+#: module by its ``obligation`` field, ⛔ never by a ``debt_id`` prefix.
+#: The import-time teeth below refuse the two ways the domain and the key
+#: set can drift apart.
+_OBLIGATION_DOMAIN: frozenset[str] = frozenset(get_args(DebtObligationV1))
+
+#: debt OBLIGATION (the enum value minted into ``obligation`` by the
+#: producer; the lower-case snake form of the premise it stands for) -> the
+#: wiring row (named premise + gate object) of THIS module that redeems it.
+#: ⛔⛔ ``description`` is never consulted and ``debt_id`` is never matched:
+#: the cross-review measured that "Owner: B4" living in free text locks a
+#: WORD, not a structure (``OWNER_TEXT_REMOVED=GREEN``).
 DEBT_REDEMPTION_REGISTRY: dict[str, DebtRedemption] = {
-    "debt_elevation_chain_span_unchecked_": DebtRedemption(
+    "elevation_chain_spans_whole_building": DebtRedemption(
         premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
         gate=span_equality_gate,
     ),
@@ -282,25 +297,32 @@ def _assert_registry_well_formed() -> None:
     * one premise per row and one row per premise (the premise is the
       execution-side lookup key; two rows for one premise would be
       ambiguous wiring);
-    * no key is a proper prefix of another key (a ``debt_id`` matching two
-      type prefixes would be ambiguous wiring -- exactly the
+    * no key is a proper prefix of another key (two obligations where one
+      is a prefix of the other is ambiguous wiring -- exactly the
       ``case``-path-through flavour of smuggling this project keeps
-      finding).
+      finding);
+    * (dispatch 2026-09-04e T4) every key IS a ``DebtObligationV1`` value
+      -- a key outside the domain can never be carried by any real debt,
+      so it is dead wiring, loud at import;
+    * (dispatch 2026-09-04e T4) every ``DebtObligationV1`` value HAS a
+      row -- a mintable obligation with no handler is an unwritten
+      promise, loud at import (this is the structural form of "⛔ no
+      slots for values nobody redeems").
     """
     seen: dict[str, str] = {}
     premises: dict[str, str] = {}
-    for prefix, row in DEBT_REDEMPTION_REGISTRY.items():
+    for key, row in DEBT_REDEMPTION_REGISTRY.items():
         if not isinstance(row, DebtRedemption):
             raise OpeningSynthesisError(
                 "DEBT_REGISTRY_ROW_MALFORMED",
-                {"prefix": prefix, "got": type(row).__name__},
+                {"key": key, "got": type(row).__name__},
             )
         gate = row.gate
         gate_name = getattr(gate, "__name__", None)
         if not callable(gate):
             raise OpeningSynthesisError(
                 "DEBT_REGISTRY_HANDLER_MISSING",
-                {"prefix": prefix, "handler": gate_name},
+                {"key": key, "handler": gate_name},
             )
         if (
             not isinstance(gate_name, str)
@@ -309,7 +331,7 @@ def _assert_registry_well_formed() -> None:
             raise OpeningSynthesisError(
                 "DEBT_REGISTRY_GATE_NOT_MODULE_FUNCTION",
                 {
-                    "prefix": prefix,
+                    "key": key,
                     "gate": gate_name,
                     "reason": (
                         "the gate must be a named function of THIS "
@@ -323,7 +345,7 @@ def _assert_registry_well_formed() -> None:
             raise OpeningSynthesisError(
                 "DEBT_REGISTRY_GATE_SIGNATURE_MISMATCH",
                 {
-                    "prefix": prefix,
+                    "key": key,
                     "gate": gate_name,
                     "call_keywords": sorted(_GATE_CALL_KEYWORDS),
                     "because": str(exc),
@@ -331,25 +353,44 @@ def _assert_registry_well_formed() -> None:
             ) from exc
         if not isinstance(row.premise, str) or not row.premise:
             raise OpeningSynthesisError(
-                "DEBT_REGISTRY_PREMISE_MISSING", {"prefix": prefix}
+                "DEBT_REGISTRY_PREMISE_MISSING", {"key": key}
             )
         if row.premise in premises:
             raise OpeningSynthesisError(
                 "DEBT_REGISTRY_PREMISE_AMBIGUOUS",
                 {
                     "premise": row.premise,
-                    "prefix_a": premises[row.premise],
-                    "prefix_b": prefix,
+                    "key_a": premises[row.premise],
+                    "key_b": key,
                 },
             )
-        premises[row.premise] = prefix
+        premises[row.premise] = key
         for other in seen:
-            if other.startswith(prefix) or prefix.startswith(other):
+            if other.startswith(key) or key.startswith(other):
                 raise OpeningSynthesisError(
                     "DEBT_REGISTRY_PREFIX_AMBIGUOUS",
-                    {"prefix_a": other, "prefix_b": prefix},
+                    {"key_a": other, "key_b": key},
                 )
-        seen[prefix] = gate_name
+        seen[key] = gate_name
+    # -- (dispatch 2026-09-04e T4) domain <-> key-set coverage, both ways --
+    for key in sorted(DEBT_REDEMPTION_REGISTRY):
+        if key not in _OBLIGATION_DOMAIN:
+            raise OpeningSynthesisError(
+                "DEBT_REGISTRY_KEY_NOT_OBLIGATION",
+                {
+                    "key": key,
+                    "obligation_domain": sorted(_OBLIGATION_DOMAIN),
+                },
+            )
+    for obligation in sorted(_OBLIGATION_DOMAIN):
+        if obligation not in DEBT_REDEMPTION_REGISTRY:
+            raise OpeningSynthesisError(
+                "DEBT_REGISTRY_OBLIGATION_UNCOVERED",
+                {
+                    "obligation": obligation,
+                    "registry_keys": sorted(DEBT_REDEMPTION_REGISTRY),
+                },
+            )
 
 
 _assert_registry_well_formed()
@@ -364,8 +405,8 @@ def redemption_row_for_premise(premise: str) -> tuple[str, DebtRedemption]:
     skip); more than one row is ambiguous wiring and is equally loud.
     """
     rows = [
-        (prefix, row)
-        for prefix, row in DEBT_REDEMPTION_REGISTRY.items()
+        (key, row)
+        for key, row in DEBT_REDEMPTION_REGISTRY.items()
         if row.premise == premise
     ]
     if not rows:
@@ -381,7 +422,7 @@ def redemption_row_for_premise(premise: str) -> tuple[str, DebtRedemption]:
     if len(rows) > 1:
         raise OpeningSynthesisError(
             "PREMISE_GATE_AMBIGUOUS",
-            {"premise": premise, "prefixes": sorted(p for p, _ in rows)},
+            {"premise": premise, "keys": sorted(k for k, _ in rows)},
         )
     return rows[0]
 
@@ -424,18 +465,45 @@ class ExecutedRedemption:
 
     All three fields are binding for a retirement (rework 1):
 
-    * ``prefix`` / ``row`` -- the registry row whose gate RAN AND RETURNED
-      in that run (object identity with the registry's row, so the
-      retirement cites the gate that actually carried the check);
+    * ``obligation`` / ``row`` -- the registry row whose gate RAN AND
+      RETURNED in that run (object identity with the registry's row, so
+      the retirement cites the gate that actually carried the check);
+      ``obligation`` names the registry KEY this run executed -- the same
+      field a debt is wired by since dispatch 2026-09-04e T3 (⛔ the
+      ``debt_id`` prefix is no longer the wiring criterion);
     * ``source`` -- the ONE source instance that gate ran against.  A run
       without a declared source (``None``) can retire nothing: no
       binding, no retirement -- the obligation stays open, ⛔ never a
-      prefix-coincidence deletion of another facade's real debt.
+      coincidence deletion of another facade's real debt.
     """
 
-    prefix: str
+    obligation: str
     row: DebtRedemption
     source: ElevationSourceIdentity | None
+
+
+def assert_obligations_backed(debts: Sequence[EvidenceDebtV1]) -> None:
+    """(dispatch 2026-09-04e T4) A debt that carries an ``obligation`` is
+    a PROMISE that this module's registry redeems it.
+
+    ``obligation is None`` = no downstream obligation (the honest shape
+    of every non-span debt today) and passes untouched.  A non-``None``
+    obligation with NO registry row is an unwritten promise -- loud
+    (``OBLIGATION_UNBACKED``), ⛔ never a silent skip that strands the
+    debt forever while its bundle still records it as owed.
+    """
+    for debt in debts:
+        if debt.obligation is None:
+            continue
+        if debt.obligation not in DEBT_REDEMPTION_REGISTRY:
+            raise OpeningSynthesisError(
+                "OBLIGATION_UNBACKED",
+                {
+                    "debt_id": debt.debt_id,
+                    "obligation": debt.obligation,
+                    "registry_keys": sorted(DEBT_REDEMPTION_REGISTRY),
+                },
+            )
 
 
 def redeemable_debt_ids(
@@ -449,9 +517,17 @@ def redeemable_debt_ids(
     old prefix-only view let a South gate run retire REAL East/West
     debts):
 
-    1. **type** -- the ``debt_id`` matches exactly ONE registry prefix
-       (zero = not this stage's, the caller keeps it; more than one =
-       ambiguous wiring, loud);
+    1. **obligation** (dispatch 2026-09-04e T3: ⛔ the ``debt_id`` prefix
+       is never matched) -- the debt's ``obligation`` names exactly ONE
+       registry row: ``None`` = no downstream obligation, not this
+       stage's, the caller keeps it; a value with NO row is an unwritten
+       promise, loud (``OBLIGATION_UNBACKED``, asserted here again so
+       the direct-call path cannot dodge the entry check); a value whose
+       row's PREMISE is claimed by more than one row is ambiguous
+       wiring -- which gate redeems this debt? -- loud
+       (``DEBT_TYPE_AMBIGUOUS``, the same ambiguity the import-time
+       teeth refuse for the healthy registry; a runtime-mutated table
+       meets it here);
     2. **execution** -- the matched row IS the row whose gate ran and
        returned in ``executed`` (object identity, ⛔ never a name match);
     3. **source** -- the debt's ``affected_refs`` name the ONE source
@@ -459,26 +535,33 @@ def redeemable_debt_ids(
        another facade, or one whose ``affected_refs`` name nothing, is
        kept exactly as open as before.
 
-    ⛔ The free-text ``description`` is never read.
+    ⛔ The free-text ``description`` is never read; ⛔ ``debt_id`` is
+    never matched.
     """
+    assert_obligations_backed(debts)
     redeemed: list[str] = []
     for debt in debts:
-        matches = [
-            prefix
-            for prefix in DEBT_REDEMPTION_REGISTRY
-            if debt.debt_id.startswith(prefix)
-        ]
-        if len(matches) > 1:
+        if debt.obligation is None:
+            continue
+        row = DEBT_REDEMPTION_REGISTRY[debt.obligation]
+        claimants = sorted(
+            key
+            for key, other in DEBT_REDEMPTION_REGISTRY.items()
+            if other.premise == row.premise
+        )
+        if len(claimants) > 1:
             raise OpeningSynthesisError(
                 "DEBT_TYPE_AMBIGUOUS",
-                {"debt_id": debt.debt_id, "matched_prefixes": sorted(matches)},
+                {
+                    "debt_id": debt.debt_id,
+                    "obligation": debt.obligation,
+                    "claimant_keys": claimants,
+                    "premise": row.premise,
+                },
             )
-        if not matches:
-            continue
-        prefix = matches[0]
         if (
-            prefix != executed.prefix
-            or DEBT_REDEMPTION_REGISTRY[prefix] is not executed.row
+            debt.obligation != executed.obligation
+            or DEBT_REDEMPTION_REGISTRY[debt.obligation] is not executed.row
         ):
             # a redemption this run never executed: not ours to retire
             continue
@@ -487,7 +570,7 @@ def redeemable_debt_ids(
         ):
             # B-2: no binding to the source instance THIS gate run
             # checked -- a foreign facade's REAL debt, or a debt that
-            # names no source.  Kept open, ⛔ never retired by prefix.
+            # names no source.  Kept open, ⛔ never retired by coincidence.
             continue
         redeemed.append(debt.debt_id)
     return tuple(sorted(redeemed))
@@ -773,12 +856,17 @@ def synthesize_openings(
     ``elevation_doc``; a debt is retired only if its ``affected_refs``
     name exactly that instance -- so a South run retires South's debt and
     ⛔ never East's or West's, even though all four facades mint the SAME
-    debt type prefix.  A run that declares no source retires nothing (the
+    obligation.  A run that declares no source retires nothing (the
     honest conservative read: no binding, no retirement).
     """
     _require_elevation_contract(elevation_doc)
     _require_lines(walls, kind="wall", what="walls")
     _require_lines(plan_openings, kind="opening", what="plan_openings")
+    # (dispatch 2026-09-04e T4) fail-fast: a debt carrying an obligation
+    # this registry cannot redeem is an unwritten promise -- loud BEFORE
+    # any geometry runs, so the refusal cannot be mistaken for a pairing
+    # failure (``redeemable_debt_ids`` enforces the same tooth again).
+    assert_obligations_backed(evidence_debts)
     if elevation_source is not None and (
         elevation_source.source_contract_id != CONTRACT_AS_DRAWN_ELEVATION_V0
     ):
@@ -819,7 +907,7 @@ def synthesize_openings(
     # the premise's row at a wrong existing callable and THIS call fails
     # loudly, ⛔ never a silently accepted ornament that still retires
     # debts.  Delete the row and the premise is unwired, equally loud.
-    span_prefix, span_row = redemption_row_for_premise(
+    span_key, span_row = redemption_row_for_premise(
         ELEVATION_CHAIN_SPANS_WHOLE_BUILDING
     )
     try:
@@ -840,7 +928,7 @@ def synthesize_openings(
         raise OpeningSynthesisError(
             "DEBT_GATE_CALL_FAILED",
             {
-                "prefix": span_prefix,
+                "obligation": span_key,
                 "gate": getattr(span_row.gate, "__name__", repr(span_row.gate)),
                 "call_keywords": sorted(_GATE_CALL_KEYWORDS),
                 "because": str(exc),
@@ -947,7 +1035,7 @@ def synthesize_openings(
     retired = redeemable_debt_ids(
         evidence_debts,
         executed=ExecutedRedemption(
-            prefix=span_prefix, row=span_row, source=elevation_source
+            obligation=span_key, row=span_row, source=elevation_source
         ),
     )
 
@@ -980,6 +1068,7 @@ __all__ = [
     "OpeningPairingV1",
     "OpeningSynthesisError",
     "OpeningSynthesisV1",
+    "assert_obligations_backed",
     "grid_units",
     "grid_units_from_mm",
     "redeemable_debt_ids",
