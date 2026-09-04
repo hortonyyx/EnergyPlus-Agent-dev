@@ -52,3 +52,122 @@ $ ... east cum_mm = [0.0, 6000.0, 6740.0, 7640.0, ...]  # East O01 x_mm=[536.7, 
 （原料：`AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_{south,east}_as_drawn.json`。）
 
 ---
+
+## D1 · 勘察落点：x 从 reading 产物到配对的完整路径（逐跳 file:line + 溯源/档位）
+
+⭐ 每一跳的行号我自己 `grep -n` 过（见各跳末括注），⛔ 未引派工单里的行号。
+
+| 跳 | 位置（file:line） | x 在这里是什么 | 有无冻结字节溯源 | 有无证据档位 |
+|---|---|---|---|---|
+| **0 · 产物** | reading 立面产物 JSON `openings[i].x_range_m`（如 `.../sm25_south_as_drawn.json`，schema `as_drawn_elevation_v0`）| 一对 `[x_lo_m, x_hi_m]` 浮点，**像素换算而来**（`mm_per_px ≈ 13.6`）| ❌ 是磁盘上的裸 JSON 值，无 `ArtifactPointerV1` | ❌ 无（既非一档也非二档，只是「像素读数」）|
+| **1 · 适配器** | `adapt_as_drawn_elevation`（`evidence_adapters.py:609`）建 `ElevationOpeningClaimV1`，**只搬 z**：`z_low_ref=_pointer(...,"/z_range_m/0")`（`:704`）、`elevation_opening_claims=elev_openings`（`:821`）| **x 根本没被搬进 bundle** —— 适配器只对 `z_range_m` 建 `z_low_ref/z_high_ref`（`:700-707`）| ❌ x 不在场 | ❌ x 不在场 |
+| **2 · 契约类型** | `ElevationOpeningClaimV1`（`evidence_contract.py:531`），docstring `:544`「`x_range_m` deliberately NOT here」| 类型上**只有** `z_low_m/z_low_ref/z_high_m/z_high_ref`（`:553-556`）| ❌ x 无字段 | ❌ x 无字段 |
+| **3 · 校验器** | `validate_evidence_bundle` 逐条重算 z 相等（`evidence_contract.py:1631-1658`，`ELEVATION_Z_VALUE_DRIFTED_FROM_SOURCE`）| **只校 z**，无 x 分支 | z 有（`_deref_pointer` 对冻结字节 `==`）；**x 无** | x 无 |
+| **4 · 配对消费者 B4** | `synthesize_openings(elevation_doc: dict, ...)`（`opening_synthesis.py:746`）| **直接从原始 dict 读**：`_elevation_openings(doc)`（`:693`）在 `:713` 取 `("x_range_m","z_range_m")`；`:887` `for oid, x_lo, x_hi, z_lo, z_hi in ...` | ❌ **绕过整个 bundle**，`elevation_doc` 是裸 dict | ❌ 无 |
+| **5 · 用作坐标** | `opening_synthesis.py:894-901`：`grid_units(x_lo)` → `world_lo = along_origin_u + sign * lo_u` → 世界区间做**零容差**等值配对（`:914-935`）| 像素外推 x 被当**权威坐标**参与等值 | ❌ | ❌ |
+
+（跳 1/2/3 行号：`grep -n "def adapt_as_drawn_elevation\|z_low_ref=_pointer\|elevation_opening_claims=elev\|class ElevationOpeningClaimV1\|The horizontal extent\|z_low_ref\|z_high_ref" src/agent/correction/{evidence_adapters,evidence_contract}.py`；
+跳 4/5 行号：`grep -n "x_range_m\|def _elevation_openings\|world_lo = along_origin\|for oid, x_lo" src/agent/correction/opening_synthesis.py`。）
+
+### D1 的三条硬结论
+
+1. **派工方核到的落点属实**：x 从产物到 B4 配对，**全程五跳没有一跳有冻结字节溯源、没有一跳有证据档位**。
+   z 有契约（跳 2/3），x 完全裸奔。
+2. ⭐ **比派工单更进一步的一条**：即便是**有契约的 z**，B4 也**没消费契约** —— `synthesize_openings` 收的是
+   `elevation_doc: dict`（`:748`），z 也走 `_elevation_openings` 从裸 dict 读（`:905-906`）。
+   全仓对 `elevation_opening_claims` 的**唯一消费者是校验器**（`grep -rn "elevation_opening_claims" src` ⇒
+   只有 `evidence_adapters`〔产〕、`evidence_contract`〔校/排序/哈希〕，**无任何配对/装配消费**）。
+   ⇒ **本单不仅要给 x 建契约，还要把 B4 从「读 dict」改成「读认领结果」**，否则建了契约也没人读（同 §D7 风险）。
+3. **B4 未接线**：`synthesize_openings` 在 `src/`、`scripts/` 里**零调用**（`grep -rn "synthesize_openings" src scripts` ⇒
+   仅定义处与自身 docstring）。⇒ 这条 x 路**今天连 pipeline 都还没接上**（与 CLAUDE.md §2 banner ⑥b「洞口对齐等用户拍次序」一致）。
+   **好处**：改造 x 路**不动任何在跑的生产消费者**（唯一潜在消费者 B4 尚未接线）。
+
+---
+
+## D2 · 契约形态方案：一条洞口边的裁定结果长什么样
+
+先分清**两层不同的东西**（今天全项目把它们混成「x_range_m 一个裸值」，这就是病）：
+
+- **证据档（输入侧，纯搬运）**：洞口边的**像素读数**，带冻结字节溯源。它是「指认」证据，权威**天然是二档**，
+  ⛔ 认领之前不作坐标。落点 = **`ElevationOpeningClaimV1` 与 z 完全对称地补 x**。
+- **裁定结果（输出侧，D2 的主体）**：第一步「尺寸证据裁定」对**这一条边**下的结论 —— 几档、值从哪来、依据哪几条链节点。
+  落点 = **新产物 `OpeningEdgeTickClaimV1`**（每条竖边一行）。
+
+### D2-a 证据档：`ElevationOpeningClaimV1` 补 x（只写形状与不变量）
+
+```
+ElevationOpeningClaimV1（在既有 z 四字段旁，镜像地加）:
+    x_lo_m:  float          # 像素读数，逐字来自 /openings/<i>/x_range_m/0
+    x_lo_ref: ArtifactPointerV1   # json_pointer = "/openings/<i>/x_range_m/0"
+    x_hi_m:  float          # 逐字来自 /openings/<i>/x_range_m/1
+    x_hi_ref: ArtifactPointerV1   # json_pointer = "/openings/<i>/x_range_m/1"
+```
+
+**不变量**（全部与 z 现有校验同构，`evidence_contract.py:1631-1658` 已是模板）：
+- `x_lo_m == 冻结字节(/openings/<i>/x_range_m/0)`、`x_hi_m == 冻结字节(...1)`，**精确 `==`，⛔ 无容差**
+  （两侧是同一 JSON 字面量解析两次，差即撒谎）。
+- `x_lo_m < x_hi_m`（同 `_z_direction_agrees`，`:558`）。
+- F-2 单源：`{source_ref, x_lo_ref, x_hi_ref}.input_id` 必须同一（同 z 的 `:1660-1665`）。
+- 适配器侧：`adapt_as_drawn_elevation` 在建 z ref 处**同点建 x ref**（`evidence_adapters.py:700-707` 旁），
+  `_payload_row_source_ids` 的 `elevation_opening_claims` 分支（`evidence_contract.py:1118-1123`）**加上 x_lo_ref/x_hi_ref**。
+
+### D2-b 裁定结果：`OpeningEdgeTickClaimV1`（每条竖边一行 —— D2 三问的正式答案）
+
+```
+OpeningEdgeTickClaimV1:
+    edge_id:        str            # <opening_id>:<lo|hi>，来自证据档，非数组下标
+    evidence_ref:   ObservationRefV1   # 指回证据档那条边的像素读数（指认，不作坐标）
+    # —— ① 它是几档 ——
+    tier:           Literal["chain_backed", "pixel_only"]   # 一档 / 二档
+    # —— ② 值从哪来 ——
+    value_source:   Literal["chain_node", "segment_sum", "pixel"]
+    # —— ③ 依据哪几条 dimension_refs ——
+    dimension_refs: tuple[ArtifactPointerV1, ...]   # 指向 calibration.x.cum_mm 的具体节点
+    resolved_local_x_ref: ArtifactPointerV1 | None  # 一档：指向被认领的那个 cum_mm 节点字节；二档：None
+```
+
+**硬不变量**（这些是 D2 的承重处，⛔ 不写实现）：
+- `tier=="chain_backed"` ⟺ `value_source ∈ {chain_node, segment_sum}` 且 `dimension_refs` **非空** 且
+  `resolved_local_x_ref` 非空；`tier=="pixel_only"` ⟺ `value_source=="pixel"` 且 `dimension_refs` **恰好为空** 且
+  `resolved_local_x_ref is None`。（枚举与字段互锁，同 `FaceDispositionV1._status_fields_agree` 的写法，`:418`。）
+- **⛔ 本类型不带任何坐标值字段**：认领结果**只说「是哪个链节点」（ref），坐标由代码从该节点算**
+  —— 与不变量「模型/裁定层出决定，代码出坐标」一致（下游从 `resolved_local_x_ref` 指的 `cum_mm` 字节取值）。
+  一档的世界坐标 = `along_origin + sign * cum_mm[node]`，全部代码算，本层不落浮点。
+- **二档不是缺陷**（指南 §〇 第 4 条）：`pixel_only` 是干净出口，`dimension_refs=()` 是「没有可指认刻度」的**显式**记录。
+
+### D2-c 三问的具体例子（验收 #2：一档 + 二档各一）
+
+**一档 —— South `O01`**（`x_range_m=[6.9219, 8.7512]`，cum_mm 含 `6930/8730`）：
+| 边 | ① tier | ② value_source | 值从哪来 | ③ dimension_refs |
+|---|---|---|---|---|
+| `O01:lo` | `chain_backed` | `chain_node` | 链节点 `6930 mm`（像素 6921.9 指认到它）| `/calibration/x/cum_mm/2` |
+| `O01:hi` | `chain_backed` | `chain_node` | 链节点 `8730 mm` | `/calibration/x/cum_mm/3` |
+⇒ 宽度 = `8730-6930 = 1800 = values_mm[2]`（一段画出的尺寸，`segment_sum` 退化为单段）。**零容差成立**（两端都是精确 tick）。
+
+**二档 —— East `O01`**（`x_range_m=[0.5367, 2.1646]`，落在东立面第一段 6000 mm **正中**，无中间刻度）：
+| 边 | ① tier | ② value_source | 值从哪来 | ③ dimension_refs |
+|---|---|---|---|---|
+| `O01:lo` | `pixel_only` | `pixel` | 像素读数 `536.7 mm`（按出口 10 mm 颗粒度出干净数）| `()` |
+| `O01:hi` | `pixel_only` | `pixel` | 像素读数 `2164.6 mm` | `()` |
+⇒ **不强行认领**：最近 tick 是 0.0、距 536.7 mm，认了就是大错。二档如实标出，权威低，⛔ 非失败。
+
+### D2-d ⭐ §二的正面论证：x 该进这层，且不破坏 docstring 原意（⛔ 不停报）
+
+docstring（`evidence_contract.py:544`）原意两句：**(a)**「x 故意不在，B4 拥有需要它的跨视图配对」·
+**(b)**「这层只带**被具名消费者要过**的东西」。逐句核：
+
+1. **(b) 是这层的真原则，我的方案恰好履行它、不违反它。** B3 加 z 时（`:531` 起 docstring、`:95-98` 变更记）
+   走的就是同一逻辑：`WindowV3.z needs the number, so the number travels here` —— z 从前也「不在这层」，
+   **有了具名消费者（`WindowV3.z`）才带进来，且必带冻结字节溯源**。x 现在**同样有了具名消费者**：
+   第一步的刻度认领要对 x 裁定，而裁定的证据必须挂在带溯源的载体上（D1 证明今天它挂在裸 dict 上 = 病）。
+   ⇒ 按 (b) 自己的判据，x **现在有资格进**，进法与 z 逐字对称。
+2. **(a) 的事实前提已经变了，不是原则变了。** 「B4 拥有需要 x 的配对」当时等价于「x 还没有证据层消费者」。
+   但 D1 跳 4/5 证明：B4 靠**读裸 dict** 拿 x，零容差配对**永远对不上**（banner ⑥b：真实四立面配 0 对）——
+   **这正是「x 没有证据档位」的直接恶果**。让 x 带溯源进层、B4 改读认领结果，**恰恰是在兑现 (a)**
+   （B4 仍拥有配对，只是配对喂的是认领后的一档值而非像素外推值）。原意「B4 owns pairing」保留，**改的只是它读什么**。
+3. **反面验证（我认真想过「x 不该进这层」的可能）**：若把 x 认领结果放进一个**平行的新层**、
+   `ElevationOpeningClaimV1` 只留 z，会造出「一个洞口的 x 与 z 分属两个溯源载体」——正是指南 §〇之二警告的
+   **F-130「两条并列生产线各自漂移」**形状。x 与 z 读自**同一个** `/openings/<i>` 节点、共享 `source_ref`，
+   拆开无收益、有漂移风险。⇒ **证据档 x 与 z 同类**（D2-a）；**裁定结果**才另立一层（D2-b，因为它是第一步的**产出**，不是 reading 的搬运）。
+
+⇒ **结论：x 应当进证据契约层，落点如 D2-a/D2-b。不触发 §六 A 层①。**
