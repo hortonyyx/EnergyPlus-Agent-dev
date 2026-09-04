@@ -875,14 +875,12 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     assert caught.value.context == {"key_a": SPAN_OBLIGATION, "key_b": "elevation_chain_spans"}
     monkeypatch.undo()
 
-    # ⭐ acceptance #6, tooth 3/3 re-keyed: TYPE_AMBIGUOUS seen from the
-    # debt side.  The old trigger (one debt_id matching two prefixes) is
-    # STRUCTURALLY DEAD under exact-key matching -- a dict cannot hold a
-    # key twice -- which is exactly what T3 bought.  The ambiguity that
-    # CAN still happen: two rows (different keys) CLAIMING the same
-    # premise, so which gate redeems the debt is undecided.  The runtime
-    # tooth refuses it loudly; the import-time PREMISE_AMBIGUOUS tooth
-    # (1d) refuses the same table earlier.
+    # ⭐ rework 1 of T4-a (2026-09-04o, cross-review B-1): the premise
+    # direction is ⛔ NOT the debt-side code's business -- v2 had
+    # DEBT_TYPE_AMBIGUOUS fire on it, a duplicate exit of the two teeth
+    # that already own that direction.  The same mutated table (two
+    # rows, different keys, CLAIMING one premise) is now refused where
+    # the premise direction lives, and only there:
     both = _debt(
         "debt_elevation_chain_span_unchecked_a", description="",
         source=_source("input_south"),
@@ -895,12 +893,23 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
             gate=span_equality_gate,
         ),
     )
+    # (a) the import-time owner of the premise direction fires...
     with pytest.raises(OpeningSynthesisError) as caught:
-        redeemable_debt_ids([both], executed=_south_executed())
-    assert caught.value.code == "DEBT_TYPE_AMBIGUOUS"
-    assert caught.value.context["claimant_keys"] == [
-        "elevation_chain_height_spans_building", SPAN_OBLIGATION,
-    ]
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_PREMISE_AMBIGUOUS"
+    # (b) ...and so does the runtime execution entry (the lookup
+    # synthesize_openings actually makes, BY PREMISE)...
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm.redemption_row_for_premise(ELEVATION_CHAIN_SPANS_WHOLE_BUILDING)
+    assert caught.value.code == "PREMISE_GATE_AMBIGUOUS"
+    # (c) ...while the debt-side retirement raises NOTHING on this
+    # table: the debt's obligation resolves to exactly its own row, so
+    # DEBT_TYPE_AMBIGUOUS (a debt-direction code, held at the seam by
+    # tests/test_t4a_rework1_resolution_lock.py) must stay silent here --
+    # two error codes may not point at one thing.
+    assert redeemable_debt_ids([both], executed=_south_executed()) == (
+        "debt_elevation_chain_span_unchecked_a",
+    )
     monkeypatch.undo()
 
     # (5) ⭐ dispatch T4 import tooth, direction A: a registry key OUTSIDE

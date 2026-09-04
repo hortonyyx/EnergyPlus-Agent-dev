@@ -99,6 +99,23 @@ mintable obligation nobody redeems); at runtime
 :func:`assert_obligations_backed` and the retirement both refuse, loudly
 (``OBLIGATION_UNBACKED``), a debt whose obligation has no row.
 
+⭐ Rework 1 of T4-a (2026-09-04o, cross-review B-1): the DEBT-side
+resolution -- one debt's ``obligation`` -> ONE registry row -- is a
+single seam, :func:`redemption_row_for_obligation`, and it is exact
+single-value BY CONSTRUCTION: a PLAIN-``dict`` carrier (``type() is
+dict``, ⛔ not ``isinstance`` -- a mapping subclass's ``__getitem__`` /
+``__missing__`` is exactly where an alias or normalisation fallback
+hides) and a PLAIN-``str`` exact key (⛔ not a ``str`` subclass with a
+loose ``__eq__`` claiming several obligations).  Every entry that
+resolves debt wiring routes through that one seam, so a widening of the
+resolution -- alias / case-or-space normalisation / a compat table / a
+one-to-many resolver -- is refused by the seam's own teeth and by the
+resolution-lock battery, ⛔ never silently picked from.  The premise
+direction (one premise -> one row) is ⛔ NOT this seam's business: it
+keeps its own two teeth (import-time ``DEBT_REGISTRY_PREMISE_AMBIGUOUS``
+and runtime ``PREMISE_GATE_AMBIGUOUS``), so no two error codes point at
+one thing.
+
 A debt whose obligation this stage redeemed is RETIRED (:T4-c): it
 travels into the product's ``retired_debt_ids`` once the equality gate
 has actually passed for that product AND the debt's ``affected_refs``
@@ -307,11 +324,45 @@ def _assert_registry_well_formed() -> None:
     * (dispatch 2026-09-04e T4) every ``DebtObligationV1`` value HAS a
       row -- a mintable obligation with no handler is an unwritten
       promise, loud at import (this is the structural form of "⛔ no
-      slots for values nobody redeems").
+      slots for values nobody redeems");
+    * (rework 1 of T4-a, 2026-09-04o) the carrier IS a plain ``dict``
+      (``type() is dict``) -- a mapping subclass is where an alias /
+      normalisation fallback ``__getitem__`` / ``__missing__`` hides, and
+      the debt-side resolution below is exact single-value ONLY on a
+      plain dict;
+    * (rework 1 of T4-a, 2026-09-04o) every key IS a plain ``str``
+      (``type(key) is str``) -- a ``str`` subclass with a loose
+      ``__eq__`` is one row claiming SEVERAL obligations, i.e. alias
+      wiring wearing the exact-key costume, loud at import.
     """
+    if type(DEBT_REDEMPTION_REGISTRY) is not dict:
+        raise OpeningSynthesisError(
+            "DEBT_REGISTRY_CARRIER_NOT_PLAIN_DICT",
+            {
+                "carrier": type(DEBT_REDEMPTION_REGISTRY).__name__,
+                "because": (
+                    "the debt-side resolution is exact single-value on a "
+                    "plain dict; a mapping subclass is where an alias / "
+                    "normalisation fallback hides"
+                ),
+            },
+        )
     seen: dict[str, str] = {}
     premises: dict[str, str] = {}
     for key, row in DEBT_REDEMPTION_REGISTRY.items():
+        if type(key) is not str:
+            raise OpeningSynthesisError(
+                "DEBT_REGISTRY_KEY_NOT_PLAIN_STR",
+                {
+                    "key": repr(key),
+                    "key_type": type(key).__name__,
+                    "because": (
+                        "a str subclass with a loose __eq__ is one row "
+                        "claiming several obligations -- alias wiring, "
+                        "⛔ not an exact key"
+                    ),
+                },
+            )
         if not isinstance(row, DebtRedemption):
             raise OpeningSynthesisError(
                 "DEBT_REGISTRY_ROW_MALFORMED",
@@ -427,6 +478,79 @@ def redemption_row_for_premise(premise: str) -> tuple[str, DebtRedemption]:
     return rows[0]
 
 
+def redemption_row_for_obligation(obligation: str) -> tuple[str, DebtRedemption]:
+    """⭐ THE single DEBT-side resolution point (rework 1 of T4-a,
+    2026-09-04o, cross-review B-1): one debt's ``obligation`` -> exactly
+    ONE registry row, by EXACT single-value lookup.  This is the one
+    place debt wiring resolves, and the one place a WIDENING of that
+    resolution -- an alias, a case/space normalisation, a compat table,
+    a one-to-many resolver -- is refused:
+
+    * the carrier is a PLAIN ``dict`` (``type() is dict``, ⛔ not
+      ``isinstance`` -- a mapping subclass's ``__getitem__`` /
+      ``__missing__`` is exactly where an alias fallback hides) --
+      otherwise loud ``DEBT_REGISTRY_CARRIER_NOT_PLAIN_DICT``;
+    * the obligation IS a stored key, EXACTLY -- a value no row is
+      stored under is an unwritten promise (``OBLIGATION_UNBACKED``),
+      ⛔ never normalised or aliased into a hit;
+    * the rows CLAIMING this obligation, counted the way any matching
+      rule would count them (``key == obligation``), are exactly ONE --
+      the plain-``str`` key equal to it.  A ``str``-subclass key with a
+      loose ``__eq__`` (one row claimable by several obligation strings)
+      or two keys claiming one obligation is ambiguous DEBT-side wiring
+      -- loud ``DEBT_TYPE_AMBIGUOUS``, the debt direction this code
+      name has always belonged to (the debt_id-prefix world held the
+      same tooth: one debt must never match two rows).  The premise
+      direction is :func:`redemption_row_for_premise`'s, ⛔ not this
+      code's.
+
+    Locked by ``tests/test_t4a_rework1_resolution_lock.py``: a battery
+    of near-miss obligations (case / spacing / prefix / suffix /
+    separator variants of every live key) must ALL be refused here and
+    on both callers, and each of the four canonical widenings, installed
+    in-process, turns that battery red.
+    """
+    if type(DEBT_REDEMPTION_REGISTRY) is not dict:
+        raise OpeningSynthesisError(
+            "DEBT_REGISTRY_CARRIER_NOT_PLAIN_DICT",
+            {
+                "carrier": type(DEBT_REDEMPTION_REGISTRY).__name__,
+                "because": (
+                    "the debt-side resolution is exact single-value on a "
+                    "plain dict; a mapping subclass is where an alias / "
+                    "normalisation fallback hides"
+                ),
+            },
+        )
+    if obligation not in DEBT_REDEMPTION_REGISTRY:
+        raise OpeningSynthesisError(
+            "OBLIGATION_UNBACKED",
+            {
+                "obligation": obligation,
+                "registry_keys": sorted(DEBT_REDEMPTION_REGISTRY),
+            },
+        )
+    claimants = [key for key in DEBT_REDEMPTION_REGISTRY if key == obligation]
+    if len(claimants) != 1 or type(claimants[0]) is not str:
+        raise OpeningSynthesisError(
+            "DEBT_TYPE_AMBIGUOUS",
+            {
+                "obligation": obligation,
+                "claimant_keys": [
+                    f"{key!r}<{type(key).__name__}>"
+                    for key in DEBT_REDEMPTION_REGISTRY
+                    if key == obligation
+                ],
+                "because": (
+                    "exactly ONE row may claim an obligation -- the "
+                    "plain-str key equal to it; a loose-equality key "
+                    "claiming several obligations is alias wiring"
+                ),
+            },
+        )
+    return obligation, DEBT_REDEMPTION_REGISTRY[obligation]
+
+
 # ── T4-c: the per-run binding (rework 1, cross-review B-2) ──────────────────── #
 @dataclass(frozen=True)
 class ElevationSourceIdentity:
@@ -491,19 +615,17 @@ def assert_obligations_backed(debts: Sequence[EvidenceDebtV1]) -> None:
     obligation with NO registry row is an unwritten promise -- loud
     (``OBLIGATION_UNBACKED``), ⛔ never a silent skip that strands the
     debt forever while its bundle still records it as owed.
+
+    (rework 1 of T4-a) Every non-``None`` obligation resolves through
+    :func:`redemption_row_for_obligation` -- THE seam -- so this entry
+    check inherits the seam's exact-single-value teeth (carrier /
+    claimant) too; a widened resolution cannot dodge it by entering
+    here.
     """
     for debt in debts:
         if debt.obligation is None:
             continue
-        if debt.obligation not in DEBT_REDEMPTION_REGISTRY:
-            raise OpeningSynthesisError(
-                "OBLIGATION_UNBACKED",
-                {
-                    "debt_id": debt.debt_id,
-                    "obligation": debt.obligation,
-                    "registry_keys": sorted(DEBT_REDEMPTION_REGISTRY),
-                },
-            )
+        redemption_row_for_obligation(debt.obligation)
 
 
 def redeemable_debt_ids(
@@ -518,18 +640,20 @@ def redeemable_debt_ids(
     debts):
 
     1. **obligation** (dispatch 2026-09-04e T3: ⛔ the ``debt_id`` prefix
-       is never matched) -- the debt's ``obligation`` names exactly ONE
-       registry row: ``None`` = no downstream obligation, not this
-       stage's, the caller keeps it; a value with NO row is an unwritten
-       promise, loud (``OBLIGATION_UNBACKED``, asserted here again so
-       the direct-call path cannot dodge the entry check); a value whose
-       row's PREMISE is claimed by more than one row is ambiguous
-       wiring -- which gate redeems this debt? -- loud
-       (``DEBT_TYPE_AMBIGUOUS``, the same ambiguity the import-time
-       teeth refuse for the healthy registry; a runtime-mutated table
-       meets it here);
-    2. **execution** -- the matched row IS the row whose gate ran and
-       returned in ``executed`` (object identity, ⛔ never a name match);
+       is never matched) -- the debt's ``obligation`` resolves to
+       exactly ONE registry row through THE seam
+       (:func:`redemption_row_for_obligation`, rework 1 of T4-a):
+       ``None`` = no downstream obligation, not this stage's, the caller
+       keeps it; a value with NO row is an unwritten promise, loud
+       (``OBLIGATION_UNBACKED``, asserted here again so the direct-call
+       path cannot dodge the entry check); a resolution that is not
+       exact single-value is ambiguous DEBT-side wiring, loud
+       (``DEBT_TYPE_AMBIGUOUS``, from the seam -- ⛔ the premise
+       direction is ``redemption_row_for_premise``'s two teeth, not this
+       code's: two error codes must not point at one thing);
+    2. **execution** -- the seam-resolved row IS the row whose gate ran
+       and returned in ``executed`` (object identity, ⛔ never a name
+       match);
     3. **source** -- the debt's ``affected_refs`` name the ONE source
        instance that run checked (``executed.source``); a debt from
        another facade, or one whose ``affected_refs`` name nothing, is
@@ -543,26 +667,8 @@ def redeemable_debt_ids(
     for debt in debts:
         if debt.obligation is None:
             continue
-        row = DEBT_REDEMPTION_REGISTRY[debt.obligation]
-        claimants = sorted(
-            key
-            for key, other in DEBT_REDEMPTION_REGISTRY.items()
-            if other.premise == row.premise
-        )
-        if len(claimants) > 1:
-            raise OpeningSynthesisError(
-                "DEBT_TYPE_AMBIGUOUS",
-                {
-                    "debt_id": debt.debt_id,
-                    "obligation": debt.obligation,
-                    "claimant_keys": claimants,
-                    "premise": row.premise,
-                },
-            )
-        if (
-            debt.obligation != executed.obligation
-            or DEBT_REDEMPTION_REGISTRY[debt.obligation] is not executed.row
-        ):
+        key, row = redemption_row_for_obligation(debt.obligation)
+        if key != executed.obligation or row is not executed.row:
             # a redemption this run never executed: not ours to retire
             continue
         if executed.source is None or not any(
@@ -1072,6 +1178,7 @@ __all__ = [
     "grid_units",
     "grid_units_from_mm",
     "redeemable_debt_ids",
+    "redemption_row_for_obligation",
     "redemption_row_for_premise",
     "span_equality_gate",
     "synthesize_openings",
