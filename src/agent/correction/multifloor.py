@@ -226,7 +226,13 @@ def _seal_validated_ladder():
 
         _artifact: CorrectionEvidenceBundleArtifactV1
 
-        def __init__(self, artifact=None, *, _seal=None):
+        def __init__(self, _artifact=None, *, _seal=None):
+            # ⭐ the parameter NAME matches the field name on purpose:
+            # ``dataclasses.replace`` rebuilds init kwargs from FIELD names
+            # (init=False on the decorator only suppresses GENERATING
+            # ``__init__`` — the field's init flag stays True), so every
+            # replace shape re-enters THIS seal check, ⛔ never a keyword
+            # TypeError by accident.
             if _seal is not _LADDER_SEAL:
                 raise MultiFloorAssemblyError(
                     "LADDER_MINT_SEAL_REQUIRED",
@@ -240,18 +246,18 @@ def _seal_validated_ladder():
                         ),
                     },
                 )
-            if not isinstance(artifact, CorrectionEvidenceBundleArtifactV1):
+            if not isinstance(_artifact, CorrectionEvidenceBundleArtifactV1):
                 raise MultiFloorAssemblyError(
                     "LADDER_MINT_REQUIRES_SEALED_ARTIFACT",
                     {
                         "got": (
-                            type(artifact).__name__
-                            if artifact is not None
+                            type(_artifact).__name__
+                            if _artifact is not None
                             else "None"
                         )
                     },
                 )
-            object.__setattr__(self, "_artifact", artifact)
+            object.__setattr__(self, "_artifact", _artifact)
 
         def __init_subclass__(cls, **kwargs):
             raise MultiFloorAssemblyError(

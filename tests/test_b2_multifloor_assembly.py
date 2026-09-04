@@ -632,6 +632,143 @@ def test_assemble_refuses_a_bare_level_sequence():
     assert exc.value.code == "UNSEALED_FLOOR_LADDER"
 
 
+# ── rework-3 §二: the carrier ITSELF cannot be forged (round-3's bypass) ───── #
+def _drifted_artifact(art, z_lo: float, z_hi: float):
+    """A REAL sealed artifact whose two lowest claims' ``z_m`` drifted (honest
+    ``z_ref`` kept, bundle re-finalized) — built exactly like the round-2/3
+    reviewers built theirs, from PUBLIC API only."""
+    from src.agent.correction.evidence_contract import (
+        CorrectionEvidenceBundleArtifactV1,
+        finalize_bundle,
+    )
+
+    claims = list(art.bundle.floor_level_claims)
+    ordered = sorted(claims, key=lambda c: c.z_m)
+    drift = {ordered[0].structure_line_id: z_lo, ordered[1].structure_line_id: z_hi}
+    drifted = [
+        c.model_copy(update={"z_m": drift[c.structure_line_id]})
+        if c.structure_line_id in drift else c
+        for c in claims
+    ]
+    bundle = finalize_bundle(
+        art.bundle.model_copy(update={"floor_level_claims": drifted})
+    )
+    return CorrectionEvidenceBundleArtifactV1(
+        bundle=bundle, frozen_sources=art.frozen_sources
+    )
+
+
+def test_reviewer_round3_replay_public_constructor_is_sealed():
+    """§二 #1 as a permanent lock — the reviewer's EXACT round-3 shape: a
+    hand-filled ``SimpleNamespace`` level into the PUBLIC constructor, then
+    assembly.  It now dies AT THE CONSTRUCTOR with the named
+    ``LADDER_MINT_SEAL_REQUIRED``; assembly is never reached, and no evidence
+    artifact / frozen bytes / byte gate were ever involved."""
+    from types import SimpleNamespace
+
+    hand_level = SimpleNamespace(
+        floor_index=0, z_floor_m=12.34, ceiling_height_m=5.57
+    )
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        ValidatedFloorLadder((hand_level,))
+    assert exc.value.code == "LADDER_MINT_SEAL_REQUIRED"
+    with pytest.raises(MultiFloorAssemblyError) as sealed:
+        assemble_multifloor_geometry(
+            ValidatedFloorLadder((hand_level,)),  # ← must not mint, must red
+            [_square_floor("f0", _RECT)],
+        )
+    assert sealed.value.code == "LADDER_MINT_SEAL_REQUIRED"
+
+
+def test_posthoc_artifact_swap_is_gated_at_consumption():
+    """§二 #2 path A ("先合法拿到一个真载体再替换它的内容"): take an HONEST
+    ladder, swap its only field post-hoc with ``object.__setattr__`` (bypassing
+    the frozen dataclass guard) to a REAL-but-drifted sealed artifact — the
+    assembled z is still decided by the re-run gate: a named
+    ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red, ⛔ never the hand z."""
+    from src.agent.correction.evidence_contract import EvidenceContractError
+
+    art = _elevation([2900.0, 3300.0])
+    ladder = derive_floor_ladder(art)
+    object.__setattr__(ladder, "_artifact", _drifted_artifact(art, 12.34, 17.91))
+    with pytest.raises(EvidenceContractError) as exc:
+        assemble_multifloor_geometry(ladder, [_square_floor("f0", _RECT)])
+    assert exc.value.code == "FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE"
+
+
+def test_object_new_shell_cannot_assemble_a_hand_z():
+    """§二 #2 path B: ``object.__new__`` bypasses every ``__init__`` (which no
+    constructor-side seal can stop), so the shell is the strongest forge left.
+    Three sub-shapes: a duck-typed artifact with hand z (refused by name), a
+    REAL drifted sealed artifact (the re-run gate refuses it), and a bare
+    attribute-less shell (refused by name).  None can assemble a value that was
+    merely SET on an instance."""
+    from types import SimpleNamespace
+
+    from src.agent.correction.evidence_contract import EvidenceContractError
+
+    # (a) duck-typed artifact carrying hand-authored content — refused BY NAME
+    duck = SimpleNamespace(
+        bundle=SimpleNamespace(floor_level_claims=()),
+        frozen_sources=[
+            SimpleNamespace(
+                artifact=SimpleNamespace(input_id="x"),
+                raw_bytes=b'{"structure_lines": []}',
+            )
+        ],
+    )
+    shell = object.__new__(ValidatedFloorLadder)
+    object.__setattr__(shell, "_artifact", duck)
+    with pytest.raises(MultiFloorAssemblyError) as duck_exc:
+        assemble_multifloor_geometry(shell, [_square_floor("f0", _RECT)])
+    assert duck_exc.value.code == "LADDER_CARRIER_CORRUPT"
+
+    # (b) a REAL sealed artifact with drifted claims — the re-run gate refuses
+    art = _elevation([2900.0, 3300.0])
+    shell2 = object.__new__(ValidatedFloorLadder)
+    object.__setattr__(shell2, "_artifact", _drifted_artifact(art, 12.34, 17.91))
+    with pytest.raises(EvidenceContractError) as gate_exc:
+        assemble_multifloor_geometry(shell2, [_square_floor("f0", _RECT)])
+    assert gate_exc.value.code == "FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE"
+
+    # (c) an attribute-less shell (nothing set at all) — refused by name too
+    with pytest.raises(MultiFloorAssemblyError) as bare_exc:
+        assemble_multifloor_geometry(object.__new__(ValidatedFloorLadder), [])
+    assert bare_exc.value.code == "LADDER_CARRIER_CORRUPT"
+
+
+def test_subclassing_the_carrier_is_refused_at_class_creation():
+    """§二 #2 path C: an ``isinstance``-passing subclass with an overridden
+    constructor cannot even be DEFINED — ``__init_subclass__`` raises the named
+    ``LADDER_SEALED_NO_SUBCLASS`` at class-creation time."""
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        class FakeLadder(ValidatedFloorLadder):
+            def __init__(self, levels):
+                object.__setattr__(self, "_levels", levels)
+
+    assert exc.value.code == "LADDER_SEALED_NO_SUBCLASS"
+
+
+def test_dataclasses_replace_cannot_rebuild_the_carrier():
+    """§二 #2 path D: ``dataclasses.replace`` cannot mint a modified carrier.
+    replace rebuilds init kwargs from FIELD names (the decorator's init=False
+    only suppresses GENERATING ``__init__`` — the field's init flag stays
+    True), so both shapes re-enter the sealed constructor and die on the NAMED
+    seal error — with the drifted artifact swapped in, and bare."""
+    import dataclasses
+
+    art = _elevation([2900.0, 3300.0])
+    ladder = derive_floor_ladder(art)
+    # replacing the artifact field: the seal refuses the mint
+    with pytest.raises(MultiFloorAssemblyError) as swapped:
+        dataclasses.replace(ladder, _artifact=_drifted_artifact(art, 12.34, 17.91))
+    assert swapped.value.code == "LADDER_MINT_SEAL_REQUIRED"
+    # a bare replace (no changes) re-enters the same sealed constructor
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        dataclasses.replace(ladder)
+    assert exc.value.code == "LADDER_MINT_SEAL_REQUIRED"
+
+
 def test_run_correction_refuses_a_bare_z_requires_validated_level(tmp_path):
     """§三 #2 (cont.): the migrated ``run_correction`` face — a bare hand-filled z
     is refused (``TypeError``), and a missing level is a loud ``ValueError``; the
