@@ -1128,7 +1128,7 @@ def test_obligation_not_prefix_is_the_wiring_criterion():
     ).model_copy(
         update={"debt_id": "zz_irrelevant_identifier_zz"}
     )
-    assert "debt_" not in renamed.debt_id[:2] or True  # renamed, not prefixed
+    assert not renamed.debt_id.startswith("debt_")  # renamed, not prefixed
     assert not renamed.debt_id.startswith("debt_elevation_chain_span_unchecked_")
     assert renamed.obligation == SPAN_OBLIGATION
     assert redeemable_debt_ids(
