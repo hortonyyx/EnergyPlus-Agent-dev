@@ -2,17 +2,34 @@
 ladder (B3 evidence) and stack single-floor projections into one
 ``CorrectedGeometryV3`` with ``floors[]`` of length N.
 
-⭐ The whole point of this module (dispatch 2026-09-03ai): the storey
-elevations are DERIVED from frozen reading bytes, ⛔ never hand-filled.  There
-is no z parameter anywhere in this module — a caller cannot inject one — and
-every derived value traces back to the exact byte it came from, the same rule
-B3 holds for its ``floor_level_claims`` (each carries a ``z_ref``).
+⭐ The whole point of this module (dispatch 2026-09-03ai / rework 2026-09-04a):
+the storey elevations are DERIVED from frozen reading bytes, ⛔ never
+hand-filled.
+
+Two things make "a hand-filled z assembles successfully" impossible rather than
+merely discouraged:
+
+  * **No raw z anywhere in the carrier (B-2, type layer).** The derived carrier
+    ``_DerivedFloorLevel`` has NO settable z field — ``z_floor_m`` /
+    ``ceiling_height_m`` are read-only PROPERTIES computed from a bounding pair
+    of ``FloorLevelClaimV1`` (each of which names the frozen byte it was read
+    from via ``z_ref``).  The old ``DerivedFloorLevel(z_floor_m=12.34,
+    ceiling_height_m=5.67)`` hand-fill no longer type-checks: those keywords do
+    not exist.  To put a z into an assembled geometry you must supply a claim
+    whose ``z_m`` names a byte.
+  * **The production entry runs B3's value↔byte gate (B-1).**
+    ``pipeline.run_multifloor_correction`` consumes the sealed
+    ``CorrectionEvidenceBundleArtifactV1`` (bundle + frozen bytes) and runs
+    ``validate_evidence_bundle`` on it BEFORE any storey is derived, so a claim
+    whose ``z_m`` drifted from its frozen byte is a named
+    ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red — the SAME B3 gate
+    (``evidence_contract.py`` §B3), reused, ⛔ not re-implemented here.
 
 Layering: this module is PURE — it depends only on the evidence contract, the
-correction schema, and the geometry validator.  It never imports
-``pipeline``.  The model-driven orchestration that runs the evidence chain
-once per plan product and feeds the derived z into
-``evidence_chain_z_floor_m`` / ``evidence_chain_ceiling_height_m`` lives in
+correction schema, and the geometry validator.  It never imports ``pipeline``.
+The model-driven orchestration that runs the evidence chain once per plan
+product and feeds the derived z into ``evidence_chain_z_floor_m`` /
+``evidence_chain_ceiling_height_m`` lives in
 ``pipeline.run_multifloor_correction`` (which imports THIS module, not the
 other way round).
 
@@ -53,34 +70,73 @@ class MultiFloorAssemblyError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class DerivedFloorLevel:
-    """One storey's z, DERIVED from the frozen floor-level ladder (B2/T1).
+class _DerivedFloorLevel:
+    """One storey's z, DERIVED from a bounding pair of frozen floor-level
+    claims (B2/T1) — ⛔ never hand-filled.
 
-    ⛔ Never hand-filled: every field traces to a byte in the frozen reading
-    product.  ``z_floor_m`` is the ladder rung this storey sits on;
-    ``ceiling_height_m`` is the rise to the next rung — a DERIVED difference,
-    so it carries BOTH operands' byte refs (``z_floor_ref`` for the lower
-    rung, ``z_top_ref`` for the upper), ⛔ never a bare number with no source.
+    ⭐ Type-level no-hand-fill (B-2, dispatch §二): this carrier holds the two
+    bounding ``FloorLevelClaimV1`` (``lower`` = the rung this storey sits on,
+    ``upper`` = the next rung up) and NOTHING a caller can set to a bare z.
+    Every z-shaped attribute is a READ-ONLY property computed from those two
+    claims:
+
+      * ``z_floor_m`` is the lower rung's ``z_m`` (which names a frozen byte);
+      * ``ceiling_height_m`` is the rise ``upper.z_m - lower.z_m`` — a DERIVED
+        difference that carries BOTH operands' byte refs.
+
+    There is no ``z_floor_m=`` / ``ceiling_height_m=`` constructor keyword, so
+    the reviewer's ``DerivedFloorLevel(z_floor_m=12.34, ceiling_height_m=5.67)``
+    hand-fill is a ``TypeError`` now, not a silent success.  This class is
+    PRIVATE (⛔ not in ``__all__``): the only sanctioned minter is
+    :func:`derive_floor_ladder`, and the only production-reachable path to it,
+    ``pipeline.run_multifloor_correction``, validates the frozen carrier first
+    (B-1).
     """
 
     floor_index: int
-    z_floor_m: float
-    ceiling_height_m: float
-    z_floor_claim_id: str
-    z_floor_ref: ArtifactPointerV1
-    z_top_claim_id: str
-    z_top_ref: ArtifactPointerV1
+    lower: FloorLevelClaimV1
+    upper: FloorLevelClaimV1
+
+    @property
+    def z_floor_m(self) -> float:
+        return self.lower.z_m
+
+    @property
+    def ceiling_height_m(self) -> float:
+        return self.upper.z_m - self.lower.z_m
+
+    @property
+    def z_floor_claim_id(self) -> str:
+        return self.lower.structure_line_id
+
+    @property
+    def z_floor_ref(self) -> ArtifactPointerV1:
+        return self.lower.z_ref
+
+    @property
+    def z_top_claim_id(self) -> str:
+        return self.upper.structure_line_id
+
+    @property
+    def z_top_ref(self) -> ArtifactPointerV1:
+        return self.upper.z_ref
 
 
 def derive_floor_ladder(
     floor_level_claims: Sequence[FloorLevelClaimV1],
-) -> tuple[DerivedFloorLevel, ...]:
+) -> tuple[_DerivedFloorLevel, ...]:
     """B2/T1: turn B3's frozen floor-level ladder into per-storey z meta.
+
+    ⚠️ This is a LOW-LEVEL helper on already-validated claims, ⛔ NOT a
+    production capability entry: the production path
+    (``pipeline.run_multifloor_correction``) runs the B3 value↔byte gate on the
+    sealed carrier BEFORE calling this, so a hand-crafted claim whose ``z_m``
+    drifted from its byte never reaches here on a real run (B-1).
 
     The rule (the consumer-side mirror of B3's ``FLOOR_LEVEL_SELECTION_RULE``):
     sort the claimed rungs ascending; N distinct rungs give N-1 storeys;
     storey ``i`` sits on rung ``i`` and rises to rung ``i+1``.  Each z is a
-    byte read from the frozen source, ⛔ never invented — the returned
+    byte read from the frozen source, ⛔ never invented — the returned level's
     ``z_floor_ref`` / ``z_top_ref`` are the very ``z_ref`` pointers the two
     bounding claims carry, so acceptance #1 can dereference any derived value
     straight back to the frozen bytes.
@@ -101,7 +157,7 @@ def derive_floor_ladder(
             "FLOOR_LADDER_DEGENERATE",
             {"n_levels": len(claims), "min_levels": MIN_FLOOR_LEVELS},
         )
-    levels: list[DerivedFloorLevel] = []
+    levels: list[_DerivedFloorLevel] = []
     for index in range(len(claims) - 1):
         lower, upper = claims[index], claims[index + 1]
         rise = upper.z_m - lower.z_m
@@ -117,21 +173,13 @@ def derive_floor_ladder(
                 },
             )
         levels.append(
-            DerivedFloorLevel(
-                floor_index=index,
-                z_floor_m=lower.z_m,
-                ceiling_height_m=rise,
-                z_floor_claim_id=lower.structure_line_id,
-                z_floor_ref=lower.z_ref,
-                z_top_claim_id=upper.structure_line_id,
-                z_top_ref=upper.z_ref,
-            )
+            _DerivedFloorLevel(floor_index=index, lower=lower, upper=upper)
         )
     return tuple(levels)
 
 
 def assemble_multifloor_geometry(
-    levels: Sequence[DerivedFloorLevel],
+    levels: Sequence[_DerivedFloorLevel],
     single_floor_geometries: Sequence[CorrectedGeometryV3],
 ) -> CorrectedGeometryV3:
     """B2/T2+T3: stack N single-floor projections into one ``floors[]``.
@@ -142,8 +190,9 @@ def assemble_multifloor_geometry(
     incoming single-floor geometry happened to carry.  ``single_floor_
     geometries`` supplies only the XY — the ``FloorV3`` id/name/footprint/cells
     — one per storey, ground-up (``levels[i]`` pairs with
-    ``single_floor_geometries[i]``).  There is no z parameter: the hand-fill
-    path does not exist at this boundary (T5).
+    ``single_floor_geometries[i]``).  There is no z parameter, and ``levels``
+    carries no raw z either (its z is a property of frozen-byte-bound claims):
+    the hand-fill path does not exist at this boundary (T5 / B-2).
 
     Loud, never silent (T4):
       * ``len(levels) != len(single_floor_geometries)``
@@ -151,9 +200,9 @@ def assemble_multifloor_geometry(
         elevation ladder; a plan-product count that disagrees is a real,
         unresolvable mismatch, ⛔ never a truncation);
       * a derived level with ``ceiling_height_m <= 0``
-        -> ``NONPOSITIVE_CEILING_HEIGHT`` (a defensive boundary check: even if
-        a caller hand-built a ``DerivedFloorLevel`` bypassing
-        :func:`derive_floor_ladder`, a non-physical storey height stops here);
+        -> ``NONPOSITIVE_CEILING_HEIGHT`` (a defensive boundary check: even a
+        forged ``_DerivedFloorLevel`` whose bounding claims do not ascend is
+        stopped here, before it can stamp a non-physical storey height);
       * a single-floor geometry that does not carry exactly one floor
         -> ``EXPECTED_SINGLE_FLOOR_GEOMETRY``;
       * two storeys sharing a floor id -> ``DUPLICATE_FLOOR_ID`` (downstream
@@ -176,9 +225,9 @@ def assemble_multifloor_geometry(
     schema already enforces (``per-floor footprints must have identical
     geometry``).  Per-floor DIFFERENT footprints (setback / 退台) are explicitly
     NOT this module's job (dispatch §四); the assumption is not烤死-silent — a
-    violation is re-raised here as a named ``PER_FLOOR_FOOTPRINT_MISMATCH``
-    (⛔ the schema's authoritative check is reused, not re-implemented, so this
-    label never drifts from or masks it).
+    violation is re-raised here as a named ``PER_FLOOR_FOOTPRINT_MISMATCH``.
+    ⛔ The label is decided by the ERROR'S STRUCTURE (loc/type), ⛔ never by a
+    substring of ``str(exc)`` (B-3): see the ``except`` below.
     """
     if len(levels) != len(single_floor_geometries):
         raise MultiFloorAssemblyError(
@@ -246,10 +295,24 @@ def assemble_multifloor_geometry(
             facade_segments=[],
         )
     except ValidationError as exc:
-        # Re-label the schema's OWN authoritative verdict (⛔ not a second,
-        # possibly-drifting copy of the check).  The common-footprint
-        # assumption is the one a 1→N floor change activates; name it loudly.
-        if "per-floor footprints must have identical geometry" in str(exc):
+        # B-3 (dispatch §三 / verdict B-3): decide by the ERROR'S STRUCTURE,
+        # ⛔ NEVER by a substring of str(exc).  The common-footprint invariant
+        # (#6) surfaces as a model-level after-validator ValueError
+        # (schema.py:_v3_integrity) — pydantic tags it ``type == "value_error"``
+        # with an EMPTY ``loc``.  pydantic runs that after-validator ONLY once
+        # every field has validated, and at THIS construction site
+        # windows/facade_segments are ``[]`` and floor ids are already
+        # de-duplicated above, so the only empty-loc value_error reachable here
+        # is the footprint mismatch.  A field-level error (missing / wrong-type
+        # / extra-forbidden — even one whose text happens to contain our label)
+        # always carries a NON-empty ``loc``, so it surfaces RAW, never
+        # relabeled (acceptance #4).  ⛔ The schema's own check stays the
+        # authority; this branch only renames its verdict, it does not
+        # re-implement it.
+        errs = exc.errors()
+        if errs and all(
+            e.get("loc") == () and e.get("type") == "value_error" for e in errs
+        ):
             raise MultiFloorAssemblyError(
                 "PER_FLOOR_FOOTPRINT_MISMATCH",
                 {
@@ -272,7 +335,6 @@ def assemble_multifloor_geometry(
 
 
 __all__ = [
-    "DerivedFloorLevel",
     "MultiFloorAssemblyError",
     "assemble_multifloor_geometry",
     "derive_floor_ladder",
