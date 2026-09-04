@@ -171,3 +171,111 @@ docstring（`evidence_contract.py:544`）原意两句：**(a)**「x 故意不在
    拆开无收益、有漂移风险。⇒ **证据档 x 与 z 同类**（D2-a）；**裁定结果**才另立一层（D2-b，因为它是第一步的**产出**，不是 reading 的搬运）。
 
 ⇒ **结论：x 应当进证据契约层，落点如 D2-a/D2-b。不触发 §六 A 层①。**
+
+---
+
+## D3 · 模型那一拍怎么接（`CorrectionDecisionPacketV1` / `CorrectionDecisionResponseV1`）
+
+⭐ 现有机制**已经够用，几乎不用扩响应侧** —— 这正是铁律「模型只回决定、⛔ 不回坐标」在类型层的落地方式，复用它最省、最安全。
+
+**现状回顾**（我核过）：
+- 包（code→model）`CorrectionDecisionPacketV1`（`decision_schema.py:174`）带 `open_items: tuple[OpenItemV1,...]`（`:192`）；
+  每个 `OpenItemV1`（`wall_compiler.py:296`）带 `candidates: tuple[SymbolicCandidateV1,...]`（`:313`），
+  候选是**代码枚举**的、带 code-computed preview（`SymbolicCandidateV1`，`wall_compiler.py:217`）。
+- 响应（model→code）`ItemDecisionV1`（`decision_schema.py:208`）：`action ∈ {select_candidate, reject_all, request_reperception}`，
+  `candidate_id: str`（**回显包里的 id**，执行器校成员资格 `UNKNOWN_RESPONSE_CANDIDATE`）。
+  **响应树无任何数值字段**（`decision_schema.py:30-41` 的结构性证明 + `CoordinateSmuggledInResponse` 走查）。
+
+**刻度认领怎么套进去**（⛔ 只写形状）：
+1. **`OpenItemV1.kind` 扩一个枚举值**：`"opening_edge_tick_claim"`（`wall_compiler.py:304-309` 的 Literal 里加一项 —— 这是**可见 diff**，不是自由文本）。
+   `scope_entity_ids` = 那条洞口边的 `edge_id`；`source_refs` = 证据档 x ref（D2-a）+ 候选链节点 refs。
+2. **候选 = 代码枚举的链节点**。两条路，**推荐后者**：
+   - (甲) 复用 `SymbolicCandidateV1`：`symbolic_operation` 枚举加 `"CLAIM_CHAIN_TICK"`（`wall_compiler.py:119` 的 Literal），
+     每个候选一个 cum_mm 节点，`preview_constant_pos_m` 放 code-computed 预览值（**preview 是代码算的，不是模型回的**）。
+   - (乙) 若不想动 `SymbolicOperation` 语义（它现在全是墙厚操作），新增一个**平行候选类型** `TickCandidateV1`
+     `{candidate_id: str, tick_ref: ArtifactPointerV1, preview_local_x_m: float}`，`OpenItemV1` 用判别联合承载。
+   两路的共同点：**候选 id 由代码 mint、preview 由代码算、模型只在 id 之间选**。
+3. **响应侧：一字不改就够**。模型对该 open item 回 `ItemDecisionV1`：
+   - `select_candidate` + `candidate_id`（某个 tick 节点的 id）⇒ **一档**（认领这个节点）；
+   - `reject_all` ⇒ **二档**（没有 tick 配得上这条边，像素值站住）；
+   - `request_reperception` ⇒ 退回 reading 重读（边本身没量准）。
+   ⛔ **模型全程只吐 id 与枚举，零坐标**：`candidate_id` 是包的索引成员（执行器校验），
+   `reason_code` 是 `CodeToken`（`decision_schema.py:129`，无数字），坐标由代码从 `tick_ref` 指的字节算。
+
+**为什么这样接不破铁律（承重论证）**：`CorrectionDecisionResponseV1`（`:356`）**类型上构造不出数字**
+（`decision_schema.py:36-40`：`extra="forbid"` + 无数值字段 + 五种 effect 是封闭域）。刻度认领**没有新增任何**
+需要模型吐数的通道 —— 它把「认哪个刻度」表达成「在代码枚举的候选 id 里选一个」，与现有 `select_candidate`
+选墙厚候选**同构**。⇒ 「模型回坐标」在类型层依旧不可表达，认领只是多了一种 `OpenItem.kind`。
+
+---
+
+## D4 · 零阈值判据（⛔ 不许「差多少毫米算够近」）
+
+### D4-a 判据表述
+把认领结果的**合法取值集合**限制成「尺寸链能给出的值」：
+
+> **一档认领合法 ⟺ 被认领的每条边的 local x 值，精确等于 `calibration.x.cum_mm` 里的某一个节点值**（在项目声明的
+> 0.1 mm 整数栅格上做**精确成员判定**，即 `opening_synthesis.grid_units` 那套 round-trip 相等，`opening_synthesis.py:153-171`，
+> ⛔ 无 epsilon）。于是一条洞口的一档区间 `[cum_mm[i], cum_mm[j]]` 的长度 = `cum_mm[j]-cum_mm[i]`
+> = `values_mm[i..j-1]` 之和 = **恰好等于图纸画出的一段或连续几段之和**（cum 是 values 的精确前缀和，抽查已证：
+> South `8730-6930=1800=values_mm[2]`）。
+
+**判分怎么写（零阈值）**：判据**不问「边离刻度多近」**，只问「认领结果里填的值，是不是链上真有的一个节点」——
+是 `cum_mm` 的成员就合法，不是就红。**没有任何毫米阈值**：像素读数（6921.9）根本不进判据，
+进判据的是**认领后的值**（6930），它要么 `== cum_mm[k]` 要么不等。
+
+### D4-b 成立性正面论证
+- **拒伪造**：任何「模型/代码编出来、链上没有的 x」都当场红（`6925` 不是 cum_mm 成员 ⇒ 不合法）。这是零阈值能给的**真保证**。
+- **区间=画出的尺寸**：因 cum 是精确前缀和，合法区间必然 = 某几段连续 `values_mm` 之和，
+  ⇒ 认领后的洞口宽度**必是图纸整数**（派工单 §一实测：1829.3→1800、936→900… 全部落在 `values_mm` 上）。
+- **与已有零阈值范式一致**：`opening_synthesis` 全模块已经在用「声明栅格上的精确 `==`」而非容差
+  （`opening_synthesis.py:56-68`、`grid_units` `:166`）。本判据是同一范式搬到「候选集 = cum_mm 节点」。
+
+### D4-c ⭐ 失效条件（验收 #3 硬要求：它在什么输入下判错）
+零阈值判据是**必要非充分**。三种失效，逐一写清：
+
+1. **认对了「是个刻度」，认错了「是哪个刻度」——判据看不见。** 若两个相邻 cum_mm 节点相距很近（
+   而像素分辨率 `mm_per_px≈13.6`），一条边的像素读数离两个节点都在一像素内，认领成 A 或认领成 B **都通过判据**
+   （两者都是合法 cum_mm 成员）。判据只保证「值是画出来的尺寸」，**不保证是界定这条边的那个尺寸**。
+   ⇒ 区分「哪个刻度」的唯一证据是**像素指认**（`evidence_ref`/`witness`），**这正是这类必须惊动模型的原因（见 D5）**，
+   ⛔ 判据自己解决不了，也不该假装能。
+2. **该二档的边被强行认成一档——若判据被误写成「区间必须等于某段之和」就会犯。** East `O01`（二档）
+   两端离最近 tick 536.7/2164.6 mm；若强制「必须认到某个节点」，它会被认成 `[0, 6000]` 之类**大错但"合法"**的区间。
+   ⇒ **判据必须允许 `pixel_only` 作为一等出口**（D2-b），把「有没有资格认一档」交给「边是否精确落在某 tick 的
+   指认半径内」这个**上游门**（那是 D5 的自动/惊动分流，仍零几何阈值 —— 用「像素读数到最近 tick 的排序」而非「毫米阈值」判，
+   见 D5-b），⛔ 不能让 D4 的等值判据兼职做「该不该认」。
+3. **链本身不闭合/被污染——判据的地基塌了。** 判据把 `cum_mm` 当权威合法集。若某立面链 `chain_closure_mm ≠ 0`
+   或 cum_mm 有脏节点，则「合法集」本身错，认领全体失真。⇒ 前置门必须复用已有链闭合校验
+   （`evidence_adapters._require_chain_closed`，`adapt_as_drawn_elevation:662`；抽查 South/East `chain_closure_mm=0.0`）。
+   这是判据的**前提**，不是判据本身能兜的。
+
+⇒ **零阈值做得到**（拒伪造 + 区间=画出尺寸，均无毫米数），**但只覆盖「值是否为真刻度」这一问**；
+「是否该认、认哪个」由 D5 的分流 + 模型承担。**不触发 §六 A 层②**（判据成立，失效边界写全）。
+
+---
+
+## D5 · 按需触发：什么时候才惊动模型
+
+66/68 条边无歧义 ⇒ 绝大多数应**代码自动认领（`AutoActionV1`）**，只把真歧义送模型。分三类：
+
+### D5-a 自动认领（不惊动模型，走 `AutoActionV1`，`wall_compiler.py:318`）
+一条边**恰好有唯一一个 cum_mm 节点**落在它的像素指认半径内（即：把该边像素读数到各 tick 的距离排序，
+**最近的一个显著唯一**）⇒ 代码直接认成一档，记 `AutoActionV1`（带 rule id + 证据 ref），⛔ 不进 open_items。
+这覆盖派工单说的 66/68。
+
+### D5-b 惊动模型（进 `OpenItemV1`，D3）
+仅当**有歧义**，两种形态：
+1. **多刻度争一边**：最近的若干 tick 里，**排序前两名的像素距离分不开**（失效条件 #1 的场景）⇒
+   代码列出这几个 tick 作候选，模型用像素图/上下文选一个（`select_candidate`）或都不选（`reject_all`→二档）。
+2. **无刻度可认但疑似该有**：边离所有 tick 都远（二档候选），但代码不敢独判它是真二档还是漏了刻度 ⇒
+   送模型，`reject_all`=确认二档 / `request_reperception`=让 reading 重读。East `O01` 那种**明确落在整段正中**的，
+   代码可直接判二档（`AutoAction`）不必惊动 —— 惊动只留给「代码分不清」的。
+
+### D5-c 分流判据本身也零阈值（⭐ 关键，别把阈值从 D4 挤到这里）
+「显著唯一/分不开」**不用毫米阈值**：用**排序 + 结构**判 —— 若像素读数落在某 tick 的**指认区间**内（该 tick 与
+相邻 tick 的**中点划界**，纯几何、无签字常量）且该区间只含这一个 tick，即唯一 ⇒ 自动；若边落在两个 tick 的
+**等距分界带**（中点两侧对称）⇒ 送模型。分界由 cum_mm 自身的中点决定，是**数据自定义的**，⛔ 不是外来阈值。
+（这条是我最不确定的一处 —— 见末尾「最薄弱一处」。）
+
+**省钱 + 少给模型乱动机会**：66/68 自动 ⇒ 模型每立面平均只看 0–1 条边；且模型只能在**代码给定的 tick 候选**里选，
+⛔ 不能凭空移边（`candidate_id` 必是包成员，执行器 `UNKNOWN_RESPONSE_CANDIDATE` 挡）。
