@@ -67,12 +67,16 @@ from src.agent.correction.decision_schema import (
     assert_response_payload_carries_no_coordinates,
 )
 from src.agent.correction.evidence_adapters import (
+    adapt_as_drawn_elevation,
     adapt_as_drawn_plan,
     adapt_legacy_reading_view,
 )
 from src.agent.correction.evidence_contract import EvidenceContractError
+from src.agent.correction.multifloor import derive_floor_ladder
 from src.agent.correction.wall_compiler import WallCompilerError
 from src.agent.reading.as_drawn.schema import SCHEMA
+
+from tests.test_b3_elevation_leg import _synthetic_bytes
 
 _V2_OUT = Path(
     "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
@@ -93,6 +97,18 @@ def _stage(tmp_path: Path) -> tuple[Path, Path]:
     out_dir = tmp_path / "1_correction"
     out_dir.mkdir()
     return vector_dir, out_dir
+
+
+def _storey_level_0_3():
+    """A byte-validated storey level (z_floor 0.0, ceiling 3.0) minted from a
+    synthetic one-storey elevation through ``derive_floor_ladder`` — the migrated
+    ``run_correction`` face accepts ONLY this carrier, ⛔ never a bare z (B2
+    rework-2 2026-09-04g).  The z is byte-resolved, so this is the same
+    validated-carrier path production uses, not a hand-filled 0.0/3.0."""
+    art = adapt_as_drawn_elevation(
+        _synthetic_bytes([3000.0]), input_id="o22m7_elev", facade_ref="S"
+    )
+    return derive_floor_ladder(art)[0]
 
 
 def _accept_empty(packet) -> CorrectionDecisionResponseV1:
@@ -441,8 +457,7 @@ def test_switch_on_returns_the_projected_geometry(tmp_path, booby_trap_pasteed_l
             vector_dir, "sm25_2f_v2.json"
         ),
         evidence_chain_round_budget=3,
-        evidence_chain_z_floor_m=0.0,
-        evidence_chain_ceiling_height_m=3.0,
+        evidence_chain_level=_storey_level_0_3(),
     )
     from src.agent.correction.projection_bridge import (
         CorrectedGeometryProjectionEnvelopeV1,
@@ -515,8 +530,7 @@ def test_switch_on_rejects_a_tampered_projection_binding(
                 vector_dir, "sm25_2f_v2.json"
             ),
             evidence_chain_round_budget=3,
-            evidence_chain_z_floor_m=0.0,
-            evidence_chain_ceiling_height_m=3.0,
+            evidence_chain_level=_storey_level_0_3(),
         )
 
 
@@ -558,8 +572,7 @@ def test_strict_profile_rejects_real_degraded_projection_before_judge(
                 vector_dir, "sm25_2f_v2.json"
             ),
             evidence_chain_round_budget=3,
-            evidence_chain_z_floor_m=0.0,
-            evidence_chain_ceiling_height_m=3.0,
+            evidence_chain_level=_storey_level_0_3(),
         )
     from src.agent.correction.projection_bridge import (
         CorrectedGeometryProjectionEnvelopeV1,
@@ -590,8 +603,7 @@ def test_switch_on_without_success_terminates_loudly_no_product(
             evidence_chain=True,
             evidence_chain_product="sm25_2f_v2.json",
             evidence_chain_fixed_responses=[_accept_empty(packet)],
-            evidence_chain_z_floor_m=0.0,
-            evidence_chain_ceiling_height_m=3.0,
+            evidence_chain_level=_storey_level_0_3(),
         )
     outcome = json.loads(
         (out_dir / "decision_loop_outcome.json").read_text(encoding="utf-8")
@@ -613,12 +625,14 @@ def test_switch_on_without_success_terminates_loudly_no_product(
     }
 
 
-def test_switch_on_without_declared_z_is_a_loud_value_error(tmp_path):
+def test_switch_on_without_a_validated_level_is_a_loud_value_error(tmp_path):
     """The bridge never mints a z (design §四 — B2 owns sourcing the floor
-    elevation): a caller without a DECLARED z cannot construct a product,
-    and the refusal is loud before the chain runs at all."""
+    elevation): a caller without a byte-validated storey level cannot construct
+    a product, and the refusal is loud before the chain runs at all.  B2
+    rework-2 (2026-09-04g) migrated the raw-z face — the z is no longer a bare
+    ``float`` param but a validated ``evidence_chain_level`` carrier."""
     vector_dir, _ = _stage(tmp_path)
-    with pytest.raises(ValueError, match="evidence_chain_z_floor_m"):
+    with pytest.raises(ValueError, match="evidence_chain_level"):
         pipeline.run_correction(
             vector_dir,
             "{}",
