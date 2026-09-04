@@ -513,6 +513,14 @@ class EvidenceDebtV1(BaseModel):
     channel: ChannelName | None = None
     affected_refs: tuple[ArtifactPointerV1, ...] = ()
     description: str
+    #: ⭐ T0 (2026-09-04, dispatch T4-a): a COST PROBE, deliberately loose.
+    #: The approved end state is a Literal enum minted as REQUIRED by every
+    #: producer; shipping it first as ``str | None = None`` exists only to
+    #: MEASURE what tightening costs (which tests break, and whether by
+    #: ``content_sha256`` churn or by required-field absence).  ⚠️ It rides
+    #: inside ``_sorted_bundle``'s dump, so every freshly finalized bundle
+    #: hash changes shape -- that measured blast radius is the point.
+    obligation: str | None = None
 
 
 class OpeningClaimV1(BaseModel):
