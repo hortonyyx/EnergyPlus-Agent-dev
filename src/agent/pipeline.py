@@ -1363,8 +1363,7 @@ def run_correction(
     evidence_chain_profile: str = "exploratory",
     evidence_chain_round_budget: int = 3,
     evidence_chain_fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None,
-    evidence_chain_z_floor_m: float | None = None,
-    evidence_chain_ceiling_height_m: float | None = None,
+    evidence_chain_level: "object | None" = None,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -1386,9 +1385,13 @@ def run_correction(
     ``CorrectedGeometryV3``), with the whole product — ``footprint_provenance=
     "derived_from_walls"`` and the binding hash — filed as
     ``projection_envelope.json`` under ``out_dir`` (both required in this
-    mode).  ``evidence_chain_z_floor_m`` / ``evidence_chain_ceiling_height_m``
-    must be declared by the caller: the bridge never mints a z (B2 owns
-    sourcing).  When the loop does NOT succeed there is still no product:
+    mode).  ⭐ B2 rework-2 (2026-09-04g): the storey z is supplied by
+    ``evidence_chain_level`` — a byte-validated ``_DerivedFloorLevel`` minted by
+    ``multifloor.derive_floor_ladder`` over the SEALED evidence carrier — ⛔ NO
+    LONGER two bare ``float`` params a caller could hand-fill.  The bridge still
+    never mints a z (B2 owns sourcing); the difference is that the only z it can
+    now receive is byte-resolved and gate-validated.  When the loop does NOT
+    succeed there is still no product:
     ``EvidenceChainTerminal`` fires — the final provisional is audit-only
     and ⛔ must never travel as one.  A successful but ``degraded`` envelope
     is returned only for the exploratory evidence-chain profile; the strict
@@ -1403,23 +1406,25 @@ def run_correction(
                 "frozen reading product this chain run consumes (module 7 "
                 "wires one source per chain run)"
             )
-        if evidence_chain_z_floor_m is None or (
-            evidence_chain_ceiling_height_m is None
-        ):
-            missing = " and ".join(
-                name for name, value in (
-                    ("evidence_chain_z_floor_m", evidence_chain_z_floor_m),
-                    (
-                        "evidence_chain_ceiling_height_m",
-                        evidence_chain_ceiling_height_m,
-                    ),
-                )
-                if value is None
-            )
+        # ⭐ B2 rework-2 (2026-09-04g): the raw-z production face is MIGRATED —
+        # this stage no longer accepts a bare hand-filled z.  The only z-bearing
+        # input is a byte-validated _DerivedFloorLevel minted by
+        # derive_floor_ladder over the SEALED carrier (which ran the frozen-byte
+        # gate).  A bare float, or any other object, is refused here.
+        from src.agent.correction.multifloor import _DerivedFloorLevel
+        if evidence_chain_level is None:
             raise ValueError(
-                f"evidence_chain=True needs {missing}: the projection "
-                "bridge refuses to mint a z (design §四 — B2 owns sourcing "
-                "floor elevation), so the caller must declare it"
+                "evidence_chain=True needs evidence_chain_level: a byte-"
+                "validated storey level from multifloor.derive_floor_ladder over "
+                "the sealed evidence carrier (design §四 — B2 owns sourcing floor "
+                "elevation; the projection bridge never mints a z). A bare "
+                "hand-filled z is no longer accepted."
+            )
+        if not isinstance(evidence_chain_level, _DerivedFloorLevel):
+            raise TypeError(
+                "evidence_chain_level must be a _DerivedFloorLevel minted by "
+                "multifloor.derive_floor_ladder (the frozen-byte-validated "
+                "carrier); a hand-built z-bearing object is refused (B2 rework-2)"
             )
         if out_dir is None:
             raise ValueError(
@@ -1435,8 +1440,9 @@ def run_correction(
             round_budget=evidence_chain_round_budget,
             fixed_responses=evidence_chain_fixed_responses,
             projection=EvidenceChainProjection(
-                z_floor_m=evidence_chain_z_floor_m,
-                ceiling_height_m=evidence_chain_ceiling_height_m,
+                # ⭐ byte-resolved from the frozen ladder, ⛔ never hand-filled
+                z_floor_m=evidence_chain_level.z_floor_m,
+                ceiling_height_m=evidence_chain_level.ceiling_height_m,
             ),
         )
         outcome_path = Path(out_dir) / _EVIDENCE_CHAIN_OUTCOME_NAME
@@ -1562,19 +1568,21 @@ def run_correction(
 # product into a single multi-floor CorrectedGeometryV3.
 #
 # ⭐ This is the wiring the dispatch asks for: the storey z that used to be a
-# hand-filled parameter (``evidence_chain_z_floor_m`` /
-# ``evidence_chain_ceiling_height_m``) is now DERIVED from B3's
-# ``floor_level_claims`` and fed straight into those two params — and THIS
-# entry point exposes no z of its own, so the production multi-floor path
-# cannot hand-fill a z (dispatch T5).
+# hand-filled parameter is now DERIVED from B3's ``floor_level_claims`` and fed
+# in as a byte-validated level — and THIS entry point exposes no z of its own,
+# so the production multi-floor path cannot hand-fill a z (dispatch T5).
 #
-# ⭐ B-1 rework (2026-09-04a): the entry consumes the SEALED evidence carrier
-# (``CorrectionEvidenceBundleArtifactV1`` = bundle + frozen bytes), ⛔ not a
-# detached ``Sequence[FloorLevelClaimV1]``.  It runs B3's existing value↔byte
-# gate (``validate_evidence_bundle``) on it BEFORE any storey is derived, so a
-# claim whose ``z_m`` drifted from the frozen byte its ``z_ref`` names is a
+# ⭐ B-1/B-2 rework-2 (2026-09-04g): the entry consumes the SEALED evidence
+# carrier (``CorrectionEvidenceBundleArtifactV1`` = bundle + frozen bytes) via
+# ``derive_floor_ladder``, which runs B3's value↔byte gate
+# (``validate_evidence_bundle``) as its FIRST act, then mints a SEALED
+# ``ValidatedFloorLadder`` whose per-storey z is RESOLVED FROM THE FROZEN BYTES.
+# A claim whose ``z_m`` drifted from the frozen byte its ``z_ref`` names is a
 # named ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red before any per-floor chain
-# runs — the SAME B3 gate, reused, ⛔ not a second copy.
+# runs — the SAME B3 gate, reused, ⛔ not a second copy.  The per-floor
+# ``run_correction`` call now receives that byte-validated level (not two bare z
+# floats), and assembly accepts only the sealed ladder — the hand-fill z path
+# does not exist at the type layer.
 # --------------------------------------------------------------------------- #
 class MultiFloorPlanRun(NamedTuple):
     """One storey's plan-side inputs for :func:`run_multifloor_correction`.
@@ -1602,50 +1610,51 @@ def run_multifloor_correction(
     run the 1_correction evidence chain once per plan product with the DERIVED
     z, and assemble the results into one multi-floor ``CorrectedGeometryV3``.
 
-    ⭐ B-1 (2026-09-04a): the ONLY input carrying the storey levels is the
-    SEALED carrier ``elevation_evidence`` (``CorrectionEvidenceBundleArtifactV1``
-    = the bundle plus its frozen bytes).  The FIRST thing this entry does is run
-    B3's existing value↔byte gate on it (``validate_evidence_bundle``), so a
-    claim whose ``z_m`` drifted from the frozen byte its ``z_ref`` names is a
-    named ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red BEFORE any per-floor
-    chain runs — the same B3 gate, reused, ⛔ never a second copy.  Only after it
-    passes are the levels derived from ``elevation_evidence.bundle.
-    floor_level_claims``.
+    ⭐ B-1/B-2 (rework-2 2026-09-04g): the ONLY input carrying the storey levels
+    is the SEALED carrier ``elevation_evidence``
+    (``CorrectionEvidenceBundleArtifactV1`` = the bundle plus its frozen bytes),
+    handed to ``derive_floor_ladder``, whose FIRST act is B3's value↔byte gate
+    (``validate_evidence_bundle``): a claim whose ``z_m`` drifted from the frozen
+    byte its ``z_ref`` names is a named ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE``
+    red BEFORE any per-floor chain runs — the same B3 gate, reused, ⛔ never a
+    second copy.  It returns a SEALED ``ValidatedFloorLadder`` whose per-storey z
+    is RESOLVED FROM THE FROZEN BYTES.
 
-    ⭐ z sourcing (T1/T5): the ONLY source of each storey's z is
-    ``derive_floor_ladder(...)`` over those validated claims.  Each derived rung
-    is fed straight into ``run_correction``'s ``evidence_chain_z_floor_m`` /
-    ``evidence_chain_ceiling_height_m``; this function exposes NO z parameter,
-    so the hand-fill path is unreachable from here.  Neuter the derivation and
-    this call fails loudly (``FLOOR_PLAN_COUNT_MISMATCH``) — ⛔ it never falls
-    back to a caller-declared z.
+    ⭐ z sourcing (T1/T5): the ONLY source of each storey's z is that byte-
+    validated ladder.  Each derived level is fed to ``run_correction`` via
+    ``evidence_chain_level`` (a ``_DerivedFloorLevel`` — ⛔ not two bare z
+    floats); this function exposes NO z parameter, so the hand-fill path is
+    unreachable from here.  Neuter the derivation and this call fails loudly
+    (``FLOOR_PLAN_COUNT_MISMATCH``) — ⛔ it never falls back to a caller-declared
+    z.
 
     ``plan_runs`` is ground-up: ``plan_runs[i]`` is projected onto derived rung
     ``i``.  A plan-product count that disagrees with the derived storey count is
     a loud ``FLOOR_PLAN_COUNT_MISMATCH`` (T4), raised BEFORE any chain runs.
     """
-    from src.agent.correction.evidence_contract import validate_evidence_bundle
     from src.agent.correction.multifloor import (
         MultiFloorAssemblyError,
         assemble_multifloor_geometry,
         derive_floor_ladder,
     )
 
-    # B-1: the B3 value↔byte gate on the frozen carrier, BEFORE any storey is
-    # derived or any per-floor chain runs.  A drifted z_m (ref kept, value
-    # changed) is a named EvidenceContractError here, ⛔ not a silent accept.
-    validate_evidence_bundle(elevation_evidence)
-    levels = derive_floor_ladder(elevation_evidence.bundle.floor_level_claims)
-    if len(plan_runs) != len(levels):
+    # B-1/B-2: derive_floor_ladder consumes the SEALED carrier and runs B3's
+    # value↔byte gate (validate_evidence_bundle) as its FIRST act, BEFORE any
+    # storey is minted or any per-floor chain runs.  A drifted z_m (ref kept,
+    # value changed) is a named EvidenceContractError here, ⛔ not a silent
+    # accept.  The returned ValidatedFloorLadder is the sealed carrier — the only
+    # thing assemble_multifloor_geometry accepts.
+    ladder = derive_floor_ladder(elevation_evidence)
+    if len(plan_runs) != len(ladder):
         raise MultiFloorAssemblyError(
             "FLOOR_PLAN_COUNT_MISMATCH",
             {
-                "n_storeys_from_ladder": len(levels),
+                "n_storeys_from_ladder": len(ladder),
                 "n_plan_products": len(plan_runs),
             },
         )
     geometries: list = []
-    for level, run in zip(levels, plan_runs):
+    for level, run in zip(ladder, plan_runs):
         geom = run_correction(
             run.vector_dir,
             "{}",
@@ -1655,12 +1664,12 @@ def run_multifloor_correction(
             evidence_chain_fixed_responses=run.fixed_responses,
             evidence_chain_profile=run.profile,
             evidence_chain_round_budget=run.round_budget,
-            # ⭐ DERIVED from the frozen ladder, ⛔ never hand-filled.
-            evidence_chain_z_floor_m=level.z_floor_m,
-            evidence_chain_ceiling_height_m=level.ceiling_height_m,
+            # ⭐ the byte-validated DERIVED level, ⛔ never a hand-filled z: the
+            # migrated run_correction face accepts only this carrier.
+            evidence_chain_level=level,
         )
         geometries.append(geom)
-    return assemble_multifloor_geometry(levels, geometries)
+    return assemble_multifloor_geometry(ladder, geometries)
 
 
 # --------------------------------------------------------------------------- #
