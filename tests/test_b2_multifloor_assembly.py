@@ -21,6 +21,16 @@ of one run's readings):
    loader module nor read the signed-gt directory (the needles are built by
    concatenation below so this file does not self-match its own scan).
 
+REWORK 2026-09-04a additions (verdict 2026-09-03al aborts B-1/B-2/B-3):
+  * B-1: z drift is a MACHINE gate — the formal entry consumes the SEALED
+    carrier and runs B3's ``validate_evidence_bundle`` before any chain, so a
+    ref-kept / value-drifted claim goes red as
+    ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` (⛔ not a two-sample spot-check);
+  * B-2: the hand-fill z path does not exist at the type layer — the derived
+    carrier is private with no raw-z keyword;
+  * B-3: the footprint relabel is decided by the error's STRUCTURE, ⛔ never by
+    a substring of ``str(exc)``.
+
 ⚠️ Everything here is SYNTHETIC (the B3 factory's three-storey / mixed-height
 fixture), so any sm25 constant smuggled into the production code breaks these
 tests — and it keeps the whole file gt-free.
@@ -41,7 +51,6 @@ from src.agent.correction.evidence_adapters import (
 )
 from src.agent.correction.evidence_contract import resolve_json_pointer
 from src.agent.correction.multifloor import (
-    DerivedFloorLevel,
     MultiFloorAssemblyError,
     assemble_multifloor_geometry,
     derive_floor_ladder,
@@ -230,26 +239,28 @@ def test_degenerate_ladder_is_loud():
     assert exc.value.code == "FLOOR_LADDER_DEGENERATE"
 
 
-def test_nonpositive_ceiling_is_loud():
-    """The assembly boundary check even if a caller hand-built a level that
-    bypassed ``derive_floor_ladder`` with a non-physical height."""
-    from src.agent.correction.evidence_contract import ArtifactPointerV1
+def _claim(sid: str, z_m: float):
+    """A real, well-formed ``FloorLevelClaimV1`` with its ``z_m`` re-pointed —
+    built by ``model_copy`` off an honest adapted claim so every nested ref is
+    valid.  ⛔ NOT byte-VALIDATED against the source (the B3 gate is not run
+    here); this is only for forging a private ``_DerivedFloorLevel`` in a
+    boundary test.  z rides on the claim, ⛔ never a bare float on the level."""
+    base = _elevation([2900.0, 3300.0]).bundle.floor_level_claims[0]
+    return base.model_copy(update={"structure_line_id": sid, "z_m": z_m})
 
-    ref = ArtifactPointerV1(
-        input_id="x",
-        source_contract_id="c",
-        source_output_sha256="0" * 64,
-        json_pointer="/structure_lines/0/pos_m",
+
+def test_nonpositive_ceiling_is_loud():
+    """The assembly boundary check: even a FORGED private ``_DerivedFloorLevel``
+    whose bounding claims do not ascend (a non-physical height) is stopped here.
+    ⭐ There is no ``z_floor_m=``/``ceiling_height_m=`` keyword to forge a bare z
+    with (B-2, type layer) — the forge must supply claims, and ceiling is a
+    property computed from them."""
+    from src.agent.correction.multifloor import _DerivedFloorLevel
+
+    bad = _DerivedFloorLevel(
+        floor_index=0, lower=_claim("L0", 0.0), upper=_claim("L1", 0.0)
     )
-    bad = DerivedFloorLevel(
-        floor_index=0,
-        z_floor_m=0.0,
-        ceiling_height_m=0.0,  # ← non-positive
-        z_floor_claim_id="L0",
-        z_floor_ref=ref,
-        z_top_claim_id="L1",
-        z_top_ref=ref,
-    )
+    assert bad.ceiling_height_m == 0.0  # ← non-positive, computed from claims
     with pytest.raises(MultiFloorAssemblyError) as exc:
         assemble_multifloor_geometry([bad], [_square_floor("f0", _RECT)])
     assert exc.value.code == "NONPOSITIVE_CEILING_HEIGHT"
@@ -310,7 +321,7 @@ def test_wiring_feeds_the_derived_z_into_the_chain(monkeypatch):
         pipeline.MultiFloorPlanRun(Path("v0"), "p0.json", Path("o0")),
         pipeline.MultiFloorPlanRun(Path("v1"), "p1.json", Path("o1")),
     ]
-    geom = pipeline.run_multifloor_correction(art.bundle.floor_level_claims, runs)
+    geom = pipeline.run_multifloor_correction(art, runs)
     fed = [
         (k["evidence_chain_z_floor_m"], k["evidence_chain_ceiling_height_m"])
         for k in seen
@@ -328,11 +339,13 @@ def test_neutered_derivation_fails_loud_never_falls_back(monkeypatch):
     monkeypatch.setattr(pipeline, "run_correction", lambda *a, **k: _square_floor("x", _RECT))
     monkeypatch.setattr(mf, "derive_floor_ladder", lambda claims: ())
     # the pipeline function imports derive_floor_ladder locally from mf, so the
-    # patch on the module reaches it
+    # patch on the module reaches it.  The B3 gate still passes (the artifact is
+    # honest), then the neutered derivation yields zero storeys -> loud count
+    # mismatch, ⛔ never a fall-back to a hand-filled z.
     art = _elevation([2900.0, 3300.0])
     runs = [pipeline.MultiFloorPlanRun(Path("v0"), "p0.json", Path("o0"))]
     with pytest.raises(MultiFloorAssemblyError) as exc:
-        pipeline.run_multifloor_correction(art.bundle.floor_level_claims, runs)
+        pipeline.run_multifloor_correction(art, runs)
     assert exc.value.code == "FLOOR_PLAN_COUNT_MISMATCH"
 
 
@@ -422,15 +435,139 @@ def test_real_chain_one_storey_takes_z_from_the_ladder(tmp_path):
         out_dir=out_dir,
         fixed_responses=_drive_plan_to_success(vector_dir, product),
     )
-    geom = pipeline.run_multifloor_correction(
-        art.bundle.floor_level_claims, [run]
-    )
+    geom = pipeline.run_multifloor_correction(art, [run])
     assert len(geom.floors) == 1
     assert (round(geom.floors[0].z_floor, 6), round(geom.floors[0].ceiling_height, 6)) == (
         0.0,
         2.9,
     )
     assert geom.floors[0].cells, "the real product must yield cells"
+
+
+# ── rework acceptance 1: z drift is a MACHINE gate, not a spot-check ────────── #
+def test_tampered_z_is_rejected_by_the_gate_before_any_chain(monkeypatch):
+    """Rework §四 #1: keep the frozen ``z_ref``, hand-edit ``z_m`` on one
+    claim, re-seal the carrier — the FORMAL entry must reject it with the B3
+    value↔byte gate (``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE``) BEFORE any
+    per-floor chain runs.  ⛔ Not "I spot-checked two"."""
+    from src.agent.correction.evidence_contract import (
+        CorrectionEvidenceBundleArtifactV1,
+        EvidenceContractError,
+        finalize_bundle,
+    )
+
+    art = _elevation([2900.0, 3300.0])
+    claims = list(art.bundle.floor_level_claims)
+    target = max(claims, key=lambda c: c.z_m)  # keep its z_ref, drift its value
+    tampered = target.model_copy(update={"z_m": 12.34})
+    bundle = art.bundle.model_copy(
+        update={
+            "floor_level_claims": [
+                tampered if c is target else c for c in claims
+            ]
+        }
+    )
+    bundle = finalize_bundle(bundle)
+    tampered_art = CorrectionEvidenceBundleArtifactV1(
+        bundle=bundle, frozen_sources=art.frozen_sources
+    )
+
+    chain_calls: list = []
+    monkeypatch.setattr(
+        pipeline,
+        "run_correction",
+        lambda *a, **k: chain_calls.append(k) or _square_floor("x", _RECT),
+    )
+    runs = [pipeline.MultiFloorPlanRun(Path("v0"), "p0.json", Path("o0"))]
+    with pytest.raises(EvidenceContractError) as exc:
+        pipeline.run_multifloor_correction(tampered_art, runs)
+    assert exc.value.code == "FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE"
+    assert chain_calls == [], "the gate must fire BEFORE any per-floor chain"
+
+
+def test_honest_carrier_passes_the_gate_and_derives():
+    """The gate is a real gate, not a wall: the honest sealed carrier passes
+    ``validate_evidence_bundle`` and the ladder derives from its claims."""
+    from src.agent.correction.evidence_contract import validate_evidence_bundle
+
+    art = _elevation([2900.0, 3300.0, 4200.0])
+    validate_evidence_bundle(art)  # ⛔ must not raise on the honest carrier
+    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    assert [round(l.z_floor_m, 6) for l in levels] == [0.0, 2.9, 6.2]
+
+
+# ── rework acceptance 2: the hand-fill z path does not exist at the type layer  #
+def test_no_raw_z_hand_fill_path_exists():
+    """Rework §四 #2 / §二: the reviewer's direct bypass
+    ``DerivedFloorLevel(z_floor_m=12.34, ceiling_height_m=5.67)`` cannot be
+    constructed — the carrier is private and has NO raw-z keyword.  z can only
+    ride on a byte-bound claim."""
+    import src.agent.correction.multifloor as mf
+
+    # the old public raw-z carrier is gone from the module's surface
+    assert not hasattr(mf, "DerivedFloorLevel")
+    assert "DerivedFloorLevel" not in mf.__all__
+
+    # the private carrier has no z_floor_m / ceiling_height_m constructor keyword
+    with pytest.raises(TypeError):
+        mf._DerivedFloorLevel(z_floor_m=12.34, ceiling_height_m=5.67)
+
+    # z_floor_m / ceiling_height_m are read-only PROPERTIES (computed from the
+    # bounding claims), ⛔ not settable fields
+    level = mf._DerivedFloorLevel(
+        floor_index=0, lower=_claim("L0", 0.0), upper=_claim("L1", 2.9)
+    )
+    assert (level.z_floor_m, round(level.ceiling_height_m, 6)) == (0.0, 2.9)
+    with pytest.raises((AttributeError, TypeError)):
+        level.z_floor_m = 99.0  # frozen + property: no setter
+
+
+# ── rework acceptance 4: footprint relabel is STRUCTURAL, ⛔ not substring ───── #
+def test_footprint_relabel_is_structural_not_substring():
+    """Rework §四 #4: an error with a required field missing + a wrong type +
+    an extra key whose NAME is the footprint sentence must NOT be relabeled as
+    a footprint mismatch — even though ``str(exc)`` contains the sentence.  A
+    genuine footprint mismatch IS.  Exercises the REAL production predicate."""
+    from pydantic import ValidationError
+
+    from src.agent.correction.multifloor import _is_footprint_mismatch_error
+    from src.agent.correction.schema import CorrectedGeometryV3
+
+    needle = "per-floor footprints " + "must have identical geometry"
+
+    # (a) reviewer shape: field errors + a key named after the sentence
+    square = [[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]]
+    bad_floor = {
+        "id": "F1",  # ⛔ name missing
+        "z_floor": 0.0,
+        "ceiling_height": 3.0,
+        "footprint": {"vertices": square},
+        "cells": [{"id": "F1-c0", "role": "office", "x": ["NOT_A_FLOAT", 10], "y": [0, 8]}],
+        needle: "x",  # ← extra key whose name IS the needle
+    }
+    ok_floor = {
+        "id": "F2", "name": "2F", "z_floor": 3.0, "ceiling_height": 3.0,
+        "footprint": {"vertices": square},
+        "cells": [{"id": "F2-c0", "role": "office", "x": [0, 10], "y": [0, 8]}],
+    }
+    with pytest.raises(ValidationError) as exc:
+        CorrectedGeometryV3(
+            schema_version="3", footprint_x=[0, 10], footprint_y=[0, 8],
+            floors=[bad_floor, ok_floor], windows=[], facade_segments=[],
+        )
+    assert needle in str(exc.value)  # the OLD substring check would have fired
+    assert not _is_footprint_mismatch_error(exc.value)  # the structural one does not
+
+    # (b) genuine footprint mismatch: two valid floors, different footprints
+    wide = [[0.0, 0.0], [12.0, 0.0], [12.0, 8.0], [0.0, 8.0]]
+    levels = derive_floor_ladder(
+        _elevation([2900.0, 3300.0]).bundle.floor_level_claims
+    )
+    with pytest.raises(MultiFloorAssemblyError) as exc2:
+        assemble_multifloor_geometry(
+            levels, [_square_floor("g0", square), _square_floor("g1", wide)]
+        )
+    assert exc2.value.code == "PER_FLOOR_FOOTPRINT_MISMATCH"
 
 
 # ── acceptance 7: zero gt contact by the new files ─────────────────────────── #
