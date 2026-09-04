@@ -256,6 +256,7 @@ def _bundle_from_as_drawn(doc: dict, raw: bytes, input_id: str,
             debt_id=f"debt_amb_{input_id}_{n}", kind="ambiguous_face",
             channel="walls", affected_refs=(ref,),
             description="reading abstained on this face line",
+            obligation=None,
         ))
 
     for i, opening in enumerate(hyp.get("opening_candidates") or []):
@@ -271,6 +272,7 @@ def _bundle_from_as_drawn(doc: dict, raw: bytes, input_id: str,
             debt_id=f"debt_{channel}_{input_id}", kind="missing_channel",
             channel=channel,
             description="channel not carried by this prototype product",
+            obligation=None,
         ))
     channels = [
         ChannelStatusV1(channel="walls", state="present",
@@ -430,6 +432,7 @@ def _legacy_artifact() -> CorrectionEvidenceBundleArtifactV1:
         EvidenceDebtV1(
             debt_id=f"debt_{channel}_legacy", kind="missing_channel",
             channel=channel, description="legacy view carries no such channel",
+            obligation=None,
         )
         for channel in ("plan_openings", *_ABSENT_CHANNELS)
     ]
@@ -1277,6 +1280,7 @@ def _empty_artifact() -> CorrectionEvidenceBundleArtifactV1:
     debts = [EvidenceDebtV1(
         debt_id=f"debt_{ch}_empty", kind="missing_channel", channel=ch,
         description="channel not carried by this empty product",
+        obligation=None,
     ) for ch in absent]
     return CorrectionEvidenceBundleArtifactV1(
         bundle=finalize_bundle(CorrectionEvidenceBundleV1(
@@ -1319,6 +1323,7 @@ def test_f1_present_channel_requires_payload_or_an_explicit_debt(monkeypatch):
     honest.bundle.evidence_debts.append(EvidenceDebtV1(
         debt_id="debt_zero_walls", kind="zero_payload_channel",
         channel="walls", description="walls wired, produced nothing",
+        obligation=None,
     ))
     validate_evidence_bundle(_refinalize(honest))
 
@@ -1327,6 +1332,7 @@ def test_f1_present_channel_requires_payload_or_an_explicit_debt(monkeypatch):
     dangling.bundle.evidence_debts.append(EvidenceDebtV1(
         debt_id="debt_zero_none", kind="zero_payload_channel",
         description="no channel named",
+        obligation=None,
     ))
     _expect_error(_refinalize(dangling), "ZERO_PAYLOAD_DEBT_WITHOUT_CHANNEL")
 
@@ -1451,6 +1457,7 @@ def _cross_input_artifact(cross: str) -> CorrectionEvidenceBundleArtifactV1:
     debts = [EvidenceDebtV1(
         debt_id=f"debt_{ch}_cross", kind="missing_channel", channel=ch,
         description="channel not carried by this probe bundle",
+        obligation=None,
     ) for ch in absent]
     return CorrectionEvidenceBundleArtifactV1(
         bundle=finalize_bundle(CorrectionEvidenceBundleV1(
@@ -1546,6 +1553,7 @@ def _zero_payload_debt(
         channel=channel,
         affected_refs=scoped_to,
         description="wired, produced nothing this run",
+        obligation=None,
     )
 
 
@@ -1848,6 +1856,7 @@ def _declare_absent(art, channel: str, debt_id: str | None = None):
         [*out.bundle.evidence_debts, EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel=channel,
             description="declared absent by this fixture",
+            obligation=None,
         )],
         key=lambda d: d.debt_id,
     )
@@ -1990,6 +1999,7 @@ def test_r3_zero_payload_channel_exit_survives():
     art.bundle.evidence_debts.append(EvidenceDebtV1(
         debt_id="debt_zero_walls", kind="zero_payload_channel",
         channel="walls", description="walls wired, produced nothing",
+        obligation=None,
     ))
     art = _refinalize(art)
     assert _row(art.bundle, "walls").state == "present"

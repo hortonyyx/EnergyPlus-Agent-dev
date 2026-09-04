@@ -274,6 +274,7 @@ def _debt(
         kind="other_known_missing",
         affected_refs=refs,
         description=description,
+        obligation="elevation_chain_spans_whole_building",
     )
 
 
