@@ -222,6 +222,10 @@ python -c "import src.agent.correction.evidence_contract as c, src.agent.correct
 **逐位闭合**：基线 `3809 = 3781 + 28`（`df57f9a3`，复核方独立复现过）；本轮新增 10 项（4 R1 参数化 + 5 R2 参数化 + 1 R3 查询侧）
 ⇒ `3819 = 3809 + 10`；`2 skipped / 13 xfailed / 0 failed` 与基线逐位一致。两个 `__file__` 均落本工作树。
 
+> 上表那次全量跑在 `8cd7df01`（源与最终 HEAD 行为等价，仅差一行 docstring）。
+> 为使「已测状态 == 已提交状态」，在**最终提交 `4d0b99ad`**（git 工作树干净）上**再跑一次权威全量**，逐位相同：
+> `3819 passed, 2 skipped, 13 xfailed, 211 warnings in 469.87s`，两个 `__file__` 同落本工作树。
+
 ---
 
 ## 四、R3 两条不阻断的处置
