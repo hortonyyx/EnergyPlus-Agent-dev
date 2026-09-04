@@ -1,6 +1,6 @@
-"""B2 — multi-floor assembly (dispatch 2026-09-03ai).
+"""B2 — multi-floor assembly (dispatch 2026-09-03ai / rework-2 2026-09-04g).
 
-WHAT THIS FILE LOCKS (the §六 acceptance table, as RULES, ⛔ not as transcripts
+WHAT THIS FILE LOCKS (the §四 acceptance table, as RULES, ⛔ not as transcripts
 of one run's readings):
 
 1. every derived storey z (z_floor AND ceiling_height's two operands)
@@ -21,15 +21,18 @@ of one run's readings):
    loader module nor read the signed-gt directory (the needles are built by
    concatenation below so this file does not self-match its own scan).
 
-REWORK 2026-09-04a additions (verdict 2026-09-03al aborts B-1/B-2/B-3):
-  * B-1: z drift is a MACHINE gate — the formal entry consumes the SEALED
-    carrier and runs B3's ``validate_evidence_bundle`` before any chain, so a
+REWORK-2 (2026-09-04g) — the type-layer closure the first two rounds missed:
+  * B-1: z drift is a MACHINE gate — ``derive_floor_ladder`` consumes the SEALED
+    carrier and runs B3's ``validate_evidence_bundle`` as its first act, so a
     ref-kept / value-drifted claim goes red as
     ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` (⛔ not a two-sample spot-check);
-  * B-2: the hand-fill z path does not exist at the type layer — the derived
-    carrier is private with no raw-z keyword;
-  * B-3: the footprint relabel is decided by the error's STRUCTURE, ⛔ never by
-    a substring of ``str(exc)``.
+  * B-2: the hand-fill z path does not exist at the type layer — assembly
+    accepts ONLY a ``ValidatedFloorLadder`` minted by ``derive_floor_ladder``,
+    and every derived z is RESOLVED FROM THE FROZEN BYTES, so a ``model_copy`` on
+    ``z_m`` (round 2's bypass) or a hand-forged level cannot move the assembled z
+    (see the §三 self-attack tests below);
+  * B-3: the footprint relabel is decided by an EXPLICIT pre-construction
+    footprint compare; every construction ``ValidationError`` propagates RAW.
 
 ⚠️ Everything here is SYNTHETIC (the B3 factory's three-storey / mixed-height
 fixture), so any sm25 constant smuggled into the production code breaks these
@@ -39,7 +42,6 @@ from __future__ import annotations
 
 import json
 import re
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -52,6 +54,7 @@ from src.agent.correction.evidence_adapters import (
 from src.agent.correction.evidence_contract import resolve_json_pointer
 from src.agent.correction.multifloor import (
     MultiFloorAssemblyError,
+    ValidatedFloorLadder,
     assemble_multifloor_geometry,
     derive_floor_ladder,
 )
@@ -72,6 +75,24 @@ def _elevation(storey_mm: list[float]):
     return adapt_as_drawn_elevation(
         _synthetic_bytes(storey_mm), input_id="synth_elev", facade_ref="S"
     )
+
+
+def _docs(art) -> dict:
+    """The frozen-source doc map a ``_DerivedFloorLevel`` resolves z against."""
+    return {
+        s.artifact.input_id: json.loads(s.raw_bytes) for s in art.frozen_sources
+    }
+
+
+def _claim_at(art, z_m: float):
+    """The honest floor-level claim whose FROZEN BYTE z equals ``z_m`` — its
+    ``z_ref`` points at that byte, so a level built from it byte-resolves to
+    ``z_m`` (⛔ regardless of what ``claim.z_m`` says)."""
+    doc = _docs(art)[art.frozen_sources[0].artifact.input_id]
+    for c in art.bundle.floor_level_claims:
+        if round(resolve_json_pointer(doc, c.z_ref.json_pointer), 6) == round(z_m, 6):
+            return c
+    raise AssertionError(f"no honest claim at z={z_m}")
 
 
 def _square_floor(
@@ -115,18 +136,16 @@ _RECT = [[0.0, 0.0], [6.0, 0.0], [6.0, 4.0], [0.0, 4.0]]
 def test_derived_z_dereferences_back_to_the_frozen_bytes():
     art = _elevation([2900.0, 3300.0, 4200.0])
     doc = json.loads(art.frozen_sources[0].raw_bytes)
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
-    assert len(levels) == 3
-    for level in levels:
+    ladder = derive_floor_ladder(art)
+    assert len(ladder) == 3
+    for level in ladder:
         # z_floor's own byte
         assert level.z_floor_m == resolve_json_pointer(
             doc, level.z_floor_ref.json_pointer
         )
         # ceiling_height is a DERIVED difference — BOTH operands trace to bytes
         top = resolve_json_pointer(doc, level.z_top_ref.json_pointer)
-        assert level.ceiling_height_m == pytest.approx(
-            top - level.z_floor_m
-        )
+        assert level.ceiling_height_m == pytest.approx(top - level.z_floor_m)
         # the pointer is anchored into THIS artifact's frozen source
         assert level.z_floor_ref.source_output_sha256 == (
             art.frozen_sources[0].artifact.source_output_sha256
@@ -134,27 +153,23 @@ def test_derived_z_dereferences_back_to_the_frozen_bytes():
 
 
 def test_derived_heights_are_the_input_storey_heights():
-    art = _elevation([2900.0, 3300.0, 4200.0])
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
-    assert [round(l.z_floor_m, 6) for l in levels] == [0.0, 2.9, 6.2]
-    assert [round(l.ceiling_height_m, 6) for l in levels] == [2.9, 3.3, 4.2]
+    ladder = derive_floor_ladder(_elevation([2900.0, 3300.0, 4200.0]))
+    assert [round(l.z_floor_m, 6) for l in ladder] == [0.0, 2.9, 6.2]
+    assert [round(l.ceiling_height_m, 6) for l in ladder] == [2.9, 3.3, 4.2]
 
 
 # ── acceptance 3: two-storey assembly passes the EXISTING continuity check ─── #
 def test_two_storey_assembles_and_passes_pipeline_zstack_check():
-    art = _elevation([2900.0, 3300.0])  # 3 rungs -> 2 storeys
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
-    assert len(levels) == 2
+    ladder = derive_floor_ladder(_elevation([2900.0, 3300.0]))  # 3 rungs -> 2
+    assert len(ladder) == 2
     geom = assemble_multifloor_geometry(
-        levels, [_square_floor("f0", _RECT), _square_floor("f1", _RECT)]
+        ladder, [_square_floor("f0", _RECT), _square_floor("f1", _RECT)]
     )
     assert len(geom.floors) == 2
-    assert [(round(f.z_floor, 6), round(f.ceiling_height, 6)) for f in geom.floors] == [
-        (0.0, 2.9),
-        (2.9, 3.3),
-    ]
-    # ⭐ T3: pass pipeline.py:661-668's ACTUAL check, not a private copy. A
-    # clean assembly has no issue at all (and specifically no z-stack break).
+    assert [
+        (round(f.z_floor, 6), round(f.ceiling_height, 6)) for f in geom.floors
+    ] == [(0.0, 2.9), (2.9, 3.3)]
+    # ⭐ T3: pass pipeline.py:661-668's ACTUAL check, not a private copy.
     issues = pipeline.correction_draw_issues(geom, 0)
     assert issues == [], issues
     assert not any("z-stack" in msg for msg in issues)
@@ -162,10 +177,9 @@ def test_two_storey_assembles_and_passes_pipeline_zstack_check():
 
 # ── acceptance 4: storey count / heights come from the DATA ────────────────── #
 def test_three_storey_mixed_heights_assemble_three_floors():
-    art = _elevation([2900.0, 3300.0, 4200.0])  # 4 rungs -> 3 storeys
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    ladder = derive_floor_ladder(_elevation([2900.0, 3300.0, 4200.0]))
     geom = assemble_multifloor_geometry(
-        levels, [_square_floor(f"f{i}", _RECT) for i in range(3)]
+        ladder, [_square_floor(f"f{i}", _RECT) for i in range(3)]
     )
     assert len(geom.floors) == 3
     assert [round(f.ceiling_height, 6) for f in geom.floors] == [2.9, 3.3, 4.2]
@@ -175,10 +189,9 @@ def test_three_storey_mixed_heights_assemble_three_floors():
 def test_reshaped_ladder_yields_a_new_floor_count():
     """A two-storey ladder gives two floors from the SAME code — the count is
     not a constant.  (A code that hardcoded 3 storeys fails here.)"""
-    art = _elevation([3050.0, 2750.0])
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    ladder = derive_floor_ladder(_elevation([3050.0, 2750.0]))
     geom = assemble_multifloor_geometry(
-        levels, [_square_floor("f0", _RECT), _square_floor("f1", _RECT)]
+        ladder, [_square_floor("f0", _RECT), _square_floor("f1", _RECT)]
     )
     assert len(geom.floors) == 2
     assert [round(f.z_floor, 6) for f in geom.floors] == [0.0, 3.05]
@@ -206,11 +219,10 @@ def pipeline_b2_source() -> str:
 
 # ── acceptance 5: bad inputs fail loudly with NAMED codes ──────────────────── #
 def test_plan_count_mismatch_is_loud():
-    art = _elevation([2900.0, 3300.0, 4200.0])  # 3 storeys
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    ladder = derive_floor_ladder(_elevation([2900.0, 3300.0, 4200.0]))  # 3
     with pytest.raises(MultiFloorAssemblyError) as exc:
         assemble_multifloor_geometry(
-            levels, [_square_floor("f0", _RECT), _square_floor("f1", _RECT)]
+            ladder, [_square_floor("f0", _RECT), _square_floor("f1", _RECT)]
         )  # only 2 plan products for 3 storeys
     assert exc.value.code == "FLOOR_PLAN_COUNT_MISMATCH"
     assert exc.value.detail["n_storeys_from_ladder"] == 3
@@ -218,73 +230,73 @@ def test_plan_count_mismatch_is_loud():
 
 
 def test_non_ascending_ladder_is_loud():
-    """Two floor lines at the same z: the ladder does not strictly ascend
-    ("标高不单调"), which is exactly the degenerate zero-height case."""
+    """Two floor lines at the same FROZEN BYTE z: the ladder does not strictly
+    ascend ("标高不单调"), the degenerate zero-height case.  Exercised through
+    ``_mint_ladder`` (the byte-resolving core), with a duplicate rung forged by
+    re-pointing one claim's ``z_ref`` at another's frozen byte."""
+    from src.agent.correction.multifloor import _mint_ladder
+
     art = _elevation([2900.0, 3300.0])
-    claims = list(art.bundle.floor_level_claims)
-    # forge a duplicate rung by re-pointing one claim's z onto another's z
-    lo = min(claims, key=lambda c: c.z_m)
-    dup = claims[-1].model_copy(update={"z_m": lo.z_m})
+    docs = _docs(art)
+    lo = _claim_at(art, 0.0)
+    hi = _claim_at(art, 2.9)
+    # a duplicate rung: point hi's z_ref at lo's frozen byte (both -> 0.0)
+    dup = hi.model_copy(update={"z_ref": lo.z_ref, "structure_line_id": "DUP"})
     with pytest.raises(MultiFloorAssemblyError) as exc:
-        derive_floor_ladder([*claims, dup])
+        _mint_ladder([lo, dup], docs)
     assert exc.value.code == "FLOOR_LADDER_NOT_ASCENDING"
     assert exc.value.detail["rise_m"] == 0.0
 
 
 def test_degenerate_ladder_is_loud():
+    """Fewer than MIN_FLOOR_LEVELS rungs is loud in the derivation core.  (The
+    production adapter also refuses a single-level elevation up front, with the
+    same code — tested in test_b3_elevation_leg; here we lock the core.)"""
+    from src.agent.correction.multifloor import _mint_ladder
+
     art = _elevation([2900.0, 3300.0])
-    one = [min(art.bundle.floor_level_claims, key=lambda c: c.z_m)]
     with pytest.raises(MultiFloorAssemblyError) as exc:
-        derive_floor_ladder(one)
+        _mint_ladder([_claim_at(art, 0.0)], _docs(art))
     assert exc.value.code == "FLOOR_LADDER_DEGENERATE"
 
 
-def _claim(sid: str, z_m: float):
-    """A real, well-formed ``FloorLevelClaimV1`` with its ``z_m`` re-pointed —
-    built by ``model_copy`` off an honest adapted claim so every nested ref is
-    valid.  ⛔ NOT byte-VALIDATED against the source (the B3 gate is not run
-    here); this is only for forging a private ``_DerivedFloorLevel`` in a
-    boundary test.  z rides on the claim, ⛔ never a bare float on the level."""
-    base = _elevation([2900.0, 3300.0]).bundle.floor_level_claims[0]
-    return base.model_copy(update={"structure_line_id": sid, "z_m": z_m})
-
-
 def test_nonpositive_ceiling_is_loud():
-    """The assembly boundary check: even a FORGED private ``_DerivedFloorLevel``
-    whose bounding claims do not ascend (a non-physical height) is stopped here.
-    ⭐ There is no ``z_floor_m=``/``ceiling_height_m=`` keyword to forge a bare z
-    with (B-2, type layer) — the forge must supply claims, and ceiling is a
-    property computed from them."""
+    """The assembly boundary check: even a FORGED sealed ladder whose level's
+    bounding claims resolve to the SAME byte z (a non-physical zero height) is
+    stopped here.  ⭐ There is no z keyword to forge a bare z with (B-2); the
+    forge must supply claims, and ceiling is byte-resolved from them."""
     from src.agent.correction.multifloor import _DerivedFloorLevel
 
+    art = _elevation([2900.0, 3300.0])
+    z0 = _claim_at(art, 0.0)
     bad = _DerivedFloorLevel(
-        floor_index=0, lower=_claim("L0", 0.0), upper=_claim("L1", 0.0)
+        floor_index=0, lower=z0, upper=z0, frozen_docs=_docs(art)
     )
-    assert bad.ceiling_height_m == 0.0  # ← non-positive, computed from claims
+    assert bad.ceiling_height_m == 0.0  # ← non-positive, byte-resolved
     with pytest.raises(MultiFloorAssemblyError) as exc:
-        assemble_multifloor_geometry([bad], [_square_floor("f0", _RECT)])
+        assemble_multifloor_geometry(
+            ValidatedFloorLadder((bad,)), [_square_floor("f0", _RECT)]
+        )
     assert exc.value.code == "NONPOSITIVE_CEILING_HEIGHT"
 
 
 def test_per_floor_footprint_mismatch_is_loud():
     """Invariant #6: assembly is common-footprint only; different per-floor
     footprints (setback) are refused by name, ⛔ not silently allowed."""
-    art = _elevation([2900.0, 3300.0])
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    ladder = derive_floor_ladder(_elevation([2900.0, 3300.0]))
     other = [[0.0, 0.0], [7.0, 0.0], [7.0, 4.0], [0.0, 4.0]]  # wider
     with pytest.raises(MultiFloorAssemblyError) as exc:
         assemble_multifloor_geometry(
-            levels, [_square_floor("f0", _RECT), _square_floor("f1", other)]
+            ladder, [_square_floor("f0", _RECT), _square_floor("f1", other)]
         )
     assert exc.value.code == "PER_FLOOR_FOOTPRINT_MISMATCH"
 
 
 def test_duplicate_floor_id_is_loud():
-    art = _elevation([2900.0, 3300.0])
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    ladder = derive_floor_ladder(_elevation([2900.0, 3300.0]))
     with pytest.raises(MultiFloorAssemblyError) as exc:
         assemble_multifloor_geometry(
-            levels, [_square_floor("dup", _RECT), _square_floor("dup", _RECT)]
+            ladder, [_square_floor("dup", _RECT), _square_floor("dup", _RECT)]
         )
     assert exc.value.code == "DUPLICATE_FLOOR_ID"
 
@@ -304,10 +316,10 @@ def test_run_multifloor_has_no_z_parameter():
 
 def test_wiring_feeds_the_derived_z_into_the_chain(monkeypatch):
     """Behavioural half of T5 + T1: run_multifloor_correction calls
-    run_correction with ``evidence_chain=True`` and the z of each DERIVED
-    rung — captured here, ⛔ never a caller-declared value."""
+    run_correction with ``evidence_chain=True`` and the byte-validated level of
+    each DERIVED rung — captured here, ⛔ never a caller-declared value."""
     art = _elevation([2900.0, 3300.0])  # storeys: (0, 2.9), (2.9, 3.3)
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
+    ladder = derive_floor_ladder(art)
     seen: list[dict] = []
 
     def _fake_run_correction(*args, **kwargs):
@@ -323,10 +335,13 @@ def test_wiring_feeds_the_derived_z_into_the_chain(monkeypatch):
     ]
     geom = pipeline.run_multifloor_correction(art, runs)
     fed = [
-        (k["evidence_chain_z_floor_m"], k["evidence_chain_ceiling_height_m"])
+        (
+            k["evidence_chain_level"].z_floor_m,
+            k["evidence_chain_level"].ceiling_height_m,
+        )
         for k in seen
     ]
-    assert fed == [(l.z_floor_m, l.ceiling_height_m) for l in levels]
+    assert fed == [(l.z_floor_m, l.ceiling_height_m) for l in ladder]
     assert [(f.z_floor, f.ceiling_height) for f in geom.floors] == fed
 
 
@@ -336,12 +351,13 @@ def test_neutered_derivation_fails_loud_never_falls_back(monkeypatch):
     z (there is none to fall back to)."""
     import src.agent.correction.multifloor as mf
 
-    monkeypatch.setattr(pipeline, "run_correction", lambda *a, **k: _square_floor("x", _RECT))
-    monkeypatch.setattr(mf, "derive_floor_ladder", lambda claims: ())
-    # the pipeline function imports derive_floor_ladder locally from mf, so the
-    # patch on the module reaches it.  The B3 gate still passes (the artifact is
-    # honest), then the neutered derivation yields zero storeys -> loud count
-    # mismatch, ⛔ never a fall-back to a hand-filled z.
+    monkeypatch.setattr(
+        pipeline, "run_correction", lambda *a, **k: _square_floor("x", _RECT)
+    )
+    monkeypatch.setattr(mf, "derive_floor_ladder", lambda art: ())
+    # the pipeline imports derive_floor_ladder locally from mf, so the patch on
+    # the module reaches it.  A neutered derivation yields zero storeys -> loud
+    # count mismatch, ⛔ never a fall-back to a hand-filled z.
     art = _elevation([2900.0, 3300.0])
     runs = [pipeline.MultiFloorPlanRun(Path("v0"), "p0.json", Path("o0"))]
     with pytest.raises(MultiFloorAssemblyError) as exc:
@@ -437,10 +453,10 @@ def test_real_chain_one_storey_takes_z_from_the_ladder(tmp_path):
     )
     geom = pipeline.run_multifloor_correction(art, [run])
     assert len(geom.floors) == 1
-    assert (round(geom.floors[0].z_floor, 6), round(geom.floors[0].ceiling_height, 6)) == (
-        0.0,
-        2.9,
-    )
+    assert (
+        round(geom.floors[0].z_floor, 6),
+        round(geom.floors[0].ceiling_height, 6),
+    ) == (0.0, 2.9)
     assert geom.floors[0].cells, "the real product must yield cells"
 
 
@@ -492,16 +508,17 @@ def test_honest_carrier_passes_the_gate_and_derives():
 
     art = _elevation([2900.0, 3300.0, 4200.0])
     validate_evidence_bundle(art)  # ⛔ must not raise on the honest carrier
-    levels = derive_floor_ladder(art.bundle.floor_level_claims)
-    assert [round(l.z_floor_m, 6) for l in levels] == [0.0, 2.9, 6.2]
+    ladder = derive_floor_ladder(art)
+    assert [round(l.z_floor_m, 6) for l in ladder] == [0.0, 2.9, 6.2]
 
 
-# ── rework acceptance 2: the hand-fill z path does not exist at the type layer  #
+# ── rework §四 #2 / §三: the hand-fill z path does not exist at the type layer  #
 def test_no_raw_z_hand_fill_path_exists():
-    """Rework §四 #2 / §二: the reviewer's direct bypass
+    """§四 #2 / §二: the reviewer's direct bypass
     ``DerivedFloorLevel(z_floor_m=12.34, ceiling_height_m=5.67)`` cannot be
-    constructed — the carrier is private and has NO raw-z keyword.  z can only
-    ride on a byte-bound claim."""
+    constructed — the carrier is private and has NO raw-z keyword.  z is
+    byte-resolved from the bounding claims' refs, and its properties are
+    read-only."""
     import src.agent.correction.multifloor as mf
 
     # the old public raw-z carrier is gone from the module's surface
@@ -512,62 +529,185 @@ def test_no_raw_z_hand_fill_path_exists():
     with pytest.raises(TypeError):
         mf._DerivedFloorLevel(z_floor_m=12.34, ceiling_height_m=5.67)
 
-    # z_floor_m / ceiling_height_m are read-only PROPERTIES (computed from the
-    # bounding claims), ⛔ not settable fields
+    # z_floor_m / ceiling_height_m are read-only, byte-resolved PROPERTIES
+    art = _elevation([2900.0, 3300.0])
     level = mf._DerivedFloorLevel(
-        floor_index=0, lower=_claim("L0", 0.0), upper=_claim("L1", 2.9)
+        floor_index=0,
+        lower=_claim_at(art, 0.0),
+        upper=_claim_at(art, 2.9),
+        frozen_docs=_docs(art),
     )
     assert (level.z_floor_m, round(level.ceiling_height_m, 6)) == (0.0, 2.9)
     with pytest.raises((AttributeError, TypeError)):
         level.z_floor_m = 99.0  # frozen + property: no setter
 
 
-# ── rework acceptance 4: footprint relabel is STRUCTURAL, ⛔ not substring ───── #
-def test_footprint_relabel_is_structural_not_substring():
-    """Rework §四 #4: an error with a required field missing + a wrong type +
-    an extra key whose NAME is the footprint sentence must NOT be relabeled as
-    a footprint mismatch — even though ``str(exc)`` contains the sentence.  A
-    genuine footprint mismatch IS.  Exercises the REAL production predicate."""
+def test_reviewer_round2_bypass_is_dead_at_the_public_helpers():
+    """§三 #1 — the reviewer's EXACT round-2 path, replayed verbatim: keep both
+    claims' honest ``z_ref``, ``model_copy`` their ``z_m`` to 12.34 / 17.91, and
+    try to walk the PUBLIC helper.  ``derive_floor_ladder`` now takes only the
+    sealed carrier and runs the gate, so the drifted ``z_m`` is a named red — the
+    two-public-helper combination that assembled last round no longer exists."""
+    from src.agent.correction.evidence_contract import (
+        CorrectionEvidenceBundleArtifactV1,
+        EvidenceContractError,
+        finalize_bundle,
+    )
+
+    art = _elevation([2900.0, 3300.0])
+    ordered = sorted(art.bundle.floor_level_claims, key=lambda c: c.z_m)
+    forged_values = {ordered[0].structure_line_id: 12.34,
+                     ordered[1].structure_line_id: 17.91}
+    tampered_claims = [
+        c.model_copy(update={"z_m": forged_values[c.structure_line_id]})
+        if c.structure_line_id in forged_values else c
+        for c in art.bundle.floor_level_claims
+    ]
+    bundle = finalize_bundle(
+        art.bundle.model_copy(update={"floor_level_claims": tampered_claims})
+    )
+    tampered_art = CorrectionEvidenceBundleArtifactV1(
+        bundle=bundle, frozen_sources=art.frozen_sources
+    )
+    with pytest.raises(EvidenceContractError) as exc:
+        derive_floor_ladder(tampered_art)  # ← the only public entry now
+    assert exc.value.code == "FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE"
+
+    # and there is no Sequence[FloorLevelClaimV1] overload to slip past the gate
+    with pytest.raises((AttributeError, TypeError)):
+        derive_floor_ladder(tampered_claims)
+
+
+def test_my_own_same_shape_forge_the_sealed_ladder_cannot_inject_a_hand_z():
+    """§三 #2 — my OWN same-shape attack, one the reviewer did NOT run: skip the
+    gate entirely and hand-forge the sealed carrier.  Build a
+    ``ValidatedFloorLadder`` directly from a level whose bounding claims had
+    their ``z_m`` ``model_copy``'d to 12.34 / 17.91 (honest ``z_ref`` kept), then
+    assemble.  Because z is byte-resolved, the assembled storey z is the HONEST
+    byte (0.0 / 2.9), ⛔ NEVER the hand-filled 12.34 — the swap has no effect."""
+    from src.agent.correction.multifloor import _DerivedFloorLevel
+
+    art = _elevation([2900.0, 3300.0])
+    lo = _claim_at(art, 0.0).model_copy(update={"z_m": 12.34})   # keep z_ref
+    hi = _claim_at(art, 2.9).model_copy(update={"z_m": 17.91})   # keep z_ref
+    forged_level = _DerivedFloorLevel(
+        floor_index=0, lower=lo, upper=hi, frozen_docs=_docs(art)
+    )
+    # the level ignores the hand ``z_m`` and reads the frozen bytes
+    assert forged_level.z_floor_m == 0.0
+    assert round(forged_level.ceiling_height_m, 6) == 2.9
+    geom = assemble_multifloor_geometry(
+        ValidatedFloorLadder((forged_level,)), [_square_floor("f0", _RECT)]
+    )
+    assert (geom.floors[0].z_floor, round(geom.floors[0].ceiling_height, 6)) == (
+        0.0,
+        2.9,
+    )
+    assert geom.floors[0].z_floor != 12.34
+
+
+def test_assemble_refuses_a_bare_level_sequence():
+    """§三 #2 (cont.): the low-level helpers cannot be recombined into assembly —
+    ``assemble_multifloor_geometry`` type-refuses a bare list of levels; only a
+    ``ValidatedFloorLadder`` (minted by the gate-running ``derive_floor_ladder``)
+    is accepted."""
+    from src.agent.correction.multifloor import _DerivedFloorLevel
+
+    art = _elevation([2900.0, 3300.0])
+    level = _DerivedFloorLevel(
+        floor_index=0,
+        lower=_claim_at(art, 0.0),
+        upper=_claim_at(art, 2.9),
+        frozen_docs=_docs(art),
+    )
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        assemble_multifloor_geometry([level], [_square_floor("f0", _RECT)])
+    assert exc.value.code == "UNSEALED_FLOOR_LADDER"
+
+
+def test_run_correction_refuses_a_bare_z_requires_validated_level(tmp_path):
+    """§三 #2 (cont.): the migrated ``run_correction`` face — a bare hand-filled z
+    is refused (``TypeError``), and a missing level is a loud ``ValueError``; the
+    old ``evidence_chain_z_floor_m`` float param no longer exists."""
+    import inspect
+
+    params = set(inspect.signature(pipeline.run_correction).parameters)
+    assert "evidence_chain_z_floor_m" not in params
+    assert "evidence_chain_ceiling_height_m" not in params
+    assert "evidence_chain_level" in params
+
+    vector_dir = tmp_path / "0_reading"
+    vector_dir.mkdir()
+    out_dir = tmp_path / "1_correction"
+    # a bare float where a validated level is required -> TypeError
+    with pytest.raises(TypeError):
+        pipeline.run_correction(
+            vector_dir, "{}", out_dir=out_dir, evidence_chain=True,
+            evidence_chain_product="p.json", evidence_chain_level=12.34,
+        )
+    # no level at all -> loud ValueError before the chain runs
+    with pytest.raises(ValueError, match="evidence_chain_level"):
+        pipeline.run_correction(
+            vector_dir, "{}", out_dir=out_dir, evidence_chain=True,
+            evidence_chain_product="p.json",
+        )
+
+
+# ── rework §四 #4 / §三 #3: footprint relabel is STRUCTURAL, ⛔ not substring ── #
+def test_footprint_relabel_is_from_an_explicit_precheck_only():
+    """§四 #4 / §三 #3: ``PER_FLOOR_FOOTPRINT_MISMATCH`` comes ONLY from the
+    explicit pre-construction footprint compare.  Every OTHER model-level schema
+    error reaching the construction propagates RAW — it is NEVER relabeled as a
+    footprint mismatch.  Shown with the reviewer's empty-floor-id case AND a
+    second today-reachable error (duplicate id), plus a genuine mismatch."""
     from pydantic import ValidationError
 
-    from src.agent.correction.multifloor import _is_footprint_mismatch_error
-    from src.agent.correction.schema import CorrectedGeometryV3
-
-    needle = "per-floor footprints " + "must have identical geometry"
-
-    # (a) reviewer shape: field errors + a key named after the sentence
-    square = [[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]]
-    bad_floor = {
-        "id": "F1",  # ⛔ name missing
-        "z_floor": 0.0,
-        "ceiling_height": 3.0,
-        "footprint": {"vertices": square},
-        "cells": [{"id": "F1-c0", "role": "office", "x": ["NOT_A_FLOAT", 10], "y": [0, 8]}],
-        needle: "x",  # ← extra key whose name IS the needle
-    }
-    ok_floor = {
-        "id": "F2", "name": "2F", "z_floor": 3.0, "ceiling_height": 3.0,
-        "footprint": {"vertices": square},
-        "cells": [{"id": "F2-c0", "role": "office", "x": [0, 10], "y": [0, 8]}],
-    }
-    with pytest.raises(ValidationError) as exc:
-        CorrectedGeometryV3(
-            schema_version="3", footprint_x=[0, 10], footprint_y=[0, 8],
-            floors=[bad_floor, ok_floor], windows=[], facade_segments=[],
-        )
-    assert needle in str(exc.value)  # the OLD substring check would have fired
-    assert not _is_footprint_mismatch_error(exc.value)  # the structural one does not
-
-    # (b) genuine footprint mismatch: two valid floors, different footprints
-    wide = [[0.0, 0.0], [12.0, 0.0], [12.0, 8.0], [0.0, 8.0]]
-    levels = derive_floor_ladder(
-        _elevation([2900.0, 3300.0]).bundle.floor_level_claims
+    # (a) reviewer's empty floor id, model_copy'd past re-validation so it
+    # reaches the final construction — surfaces RAW, ⛔ not footprint.
+    good = _square_floor("F1", [[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]])
+    empty_id = good.model_copy(
+        update={"floors": [good.floors[0].model_copy(update={"id": ""})]}
     )
-    with pytest.raises(MultiFloorAssemblyError) as exc2:
+    ladder1 = derive_floor_ladder(_elevation([2900.0]))
+    with pytest.raises(ValidationError) as exc_a:
+        assemble_multifloor_geometry(ladder1, [empty_id])
+    assert "floor ids must be non-empty" in str(exc_a.value)
+    assert not isinstance(exc_a.value, MultiFloorAssemblyError)
+
+    # (b) my own second reachable error: a duplicate floor id — caught by the
+    # named DUPLICATE_FLOOR_ID check, ⛔ never PER_FLOOR_FOOTPRINT_MISMATCH.
+    ladder2 = derive_floor_ladder(_elevation([2900.0, 3300.0]))
+    with pytest.raises(MultiFloorAssemblyError) as exc_b:
         assemble_multifloor_geometry(
-            levels, [_square_floor("g0", square), _square_floor("g1", wide)]
+            ladder2, [_square_floor("same", _RECT), _square_floor("same", _RECT)]
         )
-    assert exc2.value.code == "PER_FLOOR_FOOTPRINT_MISMATCH"
+    assert exc_b.value.code == "DUPLICATE_FLOOR_ID"
+
+    # (c) a GENUINE footprint mismatch IS caught by name (the pre-check).
+    square = [[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]]
+    wide = [[0.0, 0.0], [12.0, 0.0], [12.0, 8.0], [0.0, 8.0]]
+    with pytest.raises(MultiFloorAssemblyError) as exc_c:
+        assemble_multifloor_geometry(
+            ladder2, [_square_floor("g0", square), _square_floor("g1", wide)]
+        )
+    assert exc_c.value.code == "PER_FLOOR_FOOTPRINT_MISMATCH"
+
+
+def test_no_loctype_or_substring_footprint_predicate_remains():
+    """§四 #4 / §二: the round-1 structural predicate (``loc``/``type`` over all
+    model-level value_errors) and any substring-of-``str(exc)`` footprint
+    decision are GONE.  ``PER_FLOOR_FOOTPRINT_MISMATCH`` is raised only by the
+    explicit pre-check, and the construction is not wrapped in an ``except
+    ValidationError`` at all — so no schema error can be mislabeled by SHAPE or
+    by TEXT.  A source-level lock that turns 'we removed the predicate' into a
+    checkable rule."""
+    src = (REPO / "src/agent/correction/multifloor.py").read_text("utf-8")
+    assert "_is_footprint_mismatch_error" not in src  # round-1 predicate gone
+    assert ".errors()" not in src  # no loc/type inspection of a ValidationError
+    assert "except ValidationError" not in src  # construction propagates raw
+    # the footprint sentence is not compared as a substring anywhere
+    sentence = "must have identical" + " geometry"
+    assert sentence not in src
 
 
 # ── acceptance 7: zero gt contact by the new files ─────────────────────────── #
