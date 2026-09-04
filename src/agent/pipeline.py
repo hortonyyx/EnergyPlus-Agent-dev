@@ -69,6 +69,9 @@ if TYPE_CHECKING:
         CorrectionDecisionPacketV1,
         CorrectionDecisionResponseV1,
     )
+    from src.agent.correction.evidence_contract import (
+        CorrectionEvidenceBundleArtifactV1,
+    )
     from src.agent.geometry.modelling import BuildingGeometry
     from src.agent.output_coordinates import IntakeArtifactBundle
 
@@ -1564,6 +1567,14 @@ def run_correction(
 # ``floor_level_claims`` and fed straight into those two params — and THIS
 # entry point exposes no z of its own, so the production multi-floor path
 # cannot hand-fill a z (dispatch T5).
+#
+# ⭐ B-1 rework (2026-09-04a): the entry consumes the SEALED evidence carrier
+# (``CorrectionEvidenceBundleArtifactV1`` = bundle + frozen bytes), ⛔ not a
+# detached ``Sequence[FloorLevelClaimV1]``.  It runs B3's existing value↔byte
+# gate (``validate_evidence_bundle``) on it BEFORE any storey is derived, so a
+# claim whose ``z_m`` drifted from the frozen byte its ``z_ref`` names is a
+# named ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red before any per-floor chain
+# runs — the SAME B3 gate, reused, ⛔ not a second copy.
 # --------------------------------------------------------------------------- #
 class MultiFloorPlanRun(NamedTuple):
     """One storey's plan-side inputs for :func:`run_multifloor_correction`.
@@ -1584,16 +1595,26 @@ class MultiFloorPlanRun(NamedTuple):
 
 
 def run_multifloor_correction(
-    elevation_floor_level_claims: "Sequence[FloorLevelClaimV1]",
+    elevation_evidence: "CorrectionEvidenceBundleArtifactV1",
     plan_runs: "Sequence[MultiFloorPlanRun]",
 ) -> "CorrectedGeometryV3":
     """B2 wiring: derive the storey ladder from the frozen elevation evidence,
     run the 1_correction evidence chain once per plan product with the DERIVED
     z, and assemble the results into one multi-floor ``CorrectedGeometryV3``.
 
+    ⭐ B-1 (2026-09-04a): the ONLY input carrying the storey levels is the
+    SEALED carrier ``elevation_evidence`` (``CorrectionEvidenceBundleArtifactV1``
+    = the bundle plus its frozen bytes).  The FIRST thing this entry does is run
+    B3's existing value↔byte gate on it (``validate_evidence_bundle``), so a
+    claim whose ``z_m`` drifted from the frozen byte its ``z_ref`` names is a
+    named ``FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`` red BEFORE any per-floor
+    chain runs — the same B3 gate, reused, ⛔ never a second copy.  Only after it
+    passes are the levels derived from ``elevation_evidence.bundle.
+    floor_level_claims``.
+
     ⭐ z sourcing (T1/T5): the ONLY source of each storey's z is
-    ``derive_floor_ladder(elevation_floor_level_claims)``.  Each derived rung is
-    fed straight into ``run_correction``'s ``evidence_chain_z_floor_m`` /
+    ``derive_floor_ladder(...)`` over those validated claims.  Each derived rung
+    is fed straight into ``run_correction``'s ``evidence_chain_z_floor_m`` /
     ``evidence_chain_ceiling_height_m``; this function exposes NO z parameter,
     so the hand-fill path is unreachable from here.  Neuter the derivation and
     this call fails loudly (``FLOOR_PLAN_COUNT_MISMATCH``) — ⛔ it never falls
@@ -1603,13 +1624,18 @@ def run_multifloor_correction(
     ``i``.  A plan-product count that disagrees with the derived storey count is
     a loud ``FLOOR_PLAN_COUNT_MISMATCH`` (T4), raised BEFORE any chain runs.
     """
+    from src.agent.correction.evidence_contract import validate_evidence_bundle
     from src.agent.correction.multifloor import (
         MultiFloorAssemblyError,
         assemble_multifloor_geometry,
         derive_floor_ladder,
     )
 
-    levels = derive_floor_ladder(elevation_floor_level_claims)
+    # B-1: the B3 value↔byte gate on the frozen carrier, BEFORE any storey is
+    # derived or any per-floor chain runs.  A drifted z_m (ref kept, value
+    # changed) is a named EvidenceContractError here, ⛔ not a silent accept.
+    validate_evidence_bundle(elevation_evidence)
+    levels = derive_floor_ladder(elevation_evidence.bundle.floor_level_claims)
     if len(plan_runs) != len(levels):
         raise MultiFloorAssemblyError(
             "FLOOR_PLAN_COUNT_MISMATCH",
