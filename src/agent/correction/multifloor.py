@@ -122,6 +122,28 @@ class _DerivedFloorLevel:
         return self.upper.z_ref
 
 
+def _is_footprint_mismatch_error(exc: ValidationError) -> bool:
+    """B-3 (dispatch §三): is this ValidationError the common-footprint
+    invariant firing, decided by the error's STRUCTURE — ⛔ never by a substring
+    of ``str(exc)``?
+
+    The footprint check is a model-level after-validator
+    (``schema.py:_v3_integrity``), which pydantic tags ``type == "value_error"``
+    with an EMPTY ``loc``.  pydantic runs that after-validator ONLY once every
+    field validated, so a field-level error (missing / wrong-type /
+    extra-forbidden — even one whose text happens to contain the footprint
+    sentence) always carries a NON-empty ``loc`` and returns ``False`` here.  At
+    :func:`assemble_multifloor_geometry`'s construction site
+    (``windows``/``facade_segments`` empty, floor ids pre-de-duplicated) the
+    only empty-loc value_error reachable is the footprint mismatch, so this
+    predicate never renames another schema error as footprint (acceptance #4).
+    """
+    errs = exc.errors()
+    return bool(errs) and all(
+        e.get("loc") == () and e.get("type") == "value_error" for e in errs
+    )
+
+
 def derive_floor_ladder(
     floor_level_claims: Sequence[FloorLevelClaimV1],
 ) -> tuple[_DerivedFloorLevel, ...]:
@@ -295,24 +317,13 @@ def assemble_multifloor_geometry(
             facade_segments=[],
         )
     except ValidationError as exc:
-        # B-3 (dispatch §三 / verdict B-3): decide by the ERROR'S STRUCTURE,
-        # ⛔ NEVER by a substring of str(exc).  The common-footprint invariant
-        # (#6) surfaces as a model-level after-validator ValueError
-        # (schema.py:_v3_integrity) — pydantic tags it ``type == "value_error"``
-        # with an EMPTY ``loc``.  pydantic runs that after-validator ONLY once
-        # every field has validated, and at THIS construction site
-        # windows/facade_segments are ``[]`` and floor ids are already
-        # de-duplicated above, so the only empty-loc value_error reachable here
-        # is the footprint mismatch.  A field-level error (missing / wrong-type
-        # / extra-forbidden — even one whose text happens to contain our label)
-        # always carries a NON-empty ``loc``, so it surfaces RAW, never
-        # relabeled (acceptance #4).  ⛔ The schema's own check stays the
-        # authority; this branch only renames its verdict, it does not
-        # re-implement it.
-        errs = exc.errors()
-        if errs and all(
-            e.get("loc") == () and e.get("type") == "value_error" for e in errs
-        ):
+        # B-3 (dispatch §三 / verdict B-3): the label is decided by the error's
+        # STRUCTURE (see :func:`_is_footprint_mismatch_error`), ⛔ NEVER by a
+        # substring of ``str(exc)``.  A field-level schema error — even one
+        # whose text happens to contain the footprint sentence — surfaces RAW,
+        # never relabeled (acceptance #4).  ⛔ The schema's own check stays the
+        # authority; this branch only renames its verdict.
+        if _is_footprint_mismatch_error(exc):
             raise MultiFloorAssemblyError(
                 "PER_FLOOR_FOOTPRINT_MISMATCH",
                 {
