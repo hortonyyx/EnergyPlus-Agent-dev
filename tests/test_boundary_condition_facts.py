@@ -52,18 +52,21 @@ def _edge_conditions(answer) -> list[tuple[str, str]]:
         for view in answer.views for zone in view.zones for edge in zone.edges)
 
 
-def test_r1_real_sm25_stores_171_projection_free_boundary_edges_in_both_facts_layers():
+def test_r1_real_sm25_stores_179_projection_free_boundary_edges_in_both_facts_layers():
     """F-156: 100 -> 171.  The two corridor cavities used to yield NO ring at
     all (every one of their wall end caps read as ``owner_count=0``); they now
-    carry rings, which is the whole point of the change.  ⛔ The count is a
-    readout, not the criterion -- the criteria are the ring identity checks
-    below and in ``tests/test_f156_ring_from_intersection.py``."""
+    carry rings, which is the whole point of the change.  A-11 (2026-09-05,
+    1 mm ingest snap): 171 -> 179 -- one as-received-F1 cavity that was a
+    ring LOSS closes into a ring (83 -> 91 edges), and its two rooms now
+    carry rings of their own.  ⛔ The count is a readout, not the criterion
+    -- the criteria are the ring identity checks below and in
+    ``tests/test_f156_ring_from_intersection.py``."""
     measured, _ledger, signed, _request, _report = _real_inputs()
     for document in (measured, signed):
         edges = [edge for view in document.views for edge in view.boundary_edges]
-        assert len(edges) == 171
+        assert len(edges) == 179
         assert Counter(edge.boundary_condition for edge in edges) == {
-            "exterior": 44, "interzone": 127}
+            "exterior": 46, "interzone": 133}
         assert all(edge.evidence.thickness_units > 0 for edge in edges)
         assert all(edge.evidence.cavity_side_face_line_ids for edge in edges)
         assert all(edge.evidence.far_side_face_line_ids for edge in edges)
@@ -106,14 +109,23 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     """
     _measured, _ledger, signed, _request, report = _real_inputs()
     audit = reconcile_boundary_basis(signed, report)
-    assert audit.paired_edges == 100
+    assert audit.paired_edges == 108
     assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 29)
     assert audit.mismatches == []
     # ⭐⭐⭐ Zero threshold: every cavity that is NOT reported as a
     # projected-ring difference has a residual of exactly nothing -- there is no
     # "small enough" band anywhere in this assertion.
+    # A-11 (1 mm ingest snap): 100 -> 108 paired edges and 2 -> 4 deferred
+    # cavities.  The snap closes the old 286.8 m2 endcap-loss cavity into two
+    # REAL rooms, whose projected rings then surface the F-153 form B endcap
+    # geometry difference for the first time (named ``..._is_not_the_
+    # converter_zone`` rows, symdiff 1182000 units2 -- a real geometric
+    # difference, ⛔ not representation noise: the reconciliation now compares
+    # BOTH sides on the same 1 mm grid, so a 0.1 mm band can no longer hide
+    # here).  Plus the two pre-existing ``..._unavailable`` parallel cavities
+    # F-157 already owed.
     deferred = _deferred_cavities(audit)
-    assert len(deferred) == 2
+    assert len(deferred) == 4
     assert _failures_not_from_deferred_cavities(audit) == []
     assert not audit.passed  # F-157 owes two residuals; F-153 form B owes the endcap
     # ⭐ ②-1d rework3: the producer-written endcap loss (F-153 form B) is now
@@ -124,8 +136,8 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     assert audit.exclusions == []
     assert Counter((row.facts_boundary_condition, row.converter_basis)
                    for row in audit.rows) == {
-        ("exterior", "outer_skin"): 32,
-        ("interzone", "wall_axis"): 68,
+        ("exterior", "outer_skin"): 34,
+        ("interzone", "wall_axis"): 74,
     }
 
 
@@ -147,7 +159,7 @@ def test_r2_mutating_one_boundary_condition_reddens_only_that_edge():
 
     audit = reconcile_boundary_basis(perturbed, report)
     assert not audit.passed
-    assert audit.paired_edges == 100
+    assert audit.paired_edges == 108
     assert [row.facts_edge_id for row in audit.mismatches] == [target_id]
     # ⭐⭐⭐ The zero-threshold ring gate sees it too: re-projecting that edge on
     # the WRONG basis moves the ring by half a wall thickness, so the mutated
@@ -178,7 +190,7 @@ def test_r2_mutating_one_boundary_condition_reddens_only_that_edge():
 def test_r2_pairing_exhausts_both_directions_and_all_rotations_with_hard_limit():
     _measured, _ledger, signed, _request, report = _real_inputs()
     audit = reconcile_boundary_basis(signed, report)
-    assert len(audit.pairings) == 25
+    assert len(audit.pairings) == 27  # A-11: 25 -> 27 (two closed rings)
     for proof in audit.pairings:
         edge_count = len(proof.facts_edge_ids)
         assert len(proof.hypotheses) == edge_count * 2
@@ -264,7 +276,7 @@ def test_rework_e3_deleting_one_complete_facts_ring_reddens_only_that_ring():
             edge for edge in view["boundary_edges"] if edge["id"] not in removed]
 
     audit = reconcile_boundary_basis(AsSignedV1.model_validate(raw), report)
-    assert audit.paired_edges == 96
+    assert audit.paired_edges == 104  # A-11: 96 -> 104 (baseline 100 -> 108)
     assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 29)
     assert _failures_not_from_deferred_cavities(audit) == [
         f"facts_boundary_ring_missing:plan-F1:{pairing.cavity_id}:converter=F1-z3"]
@@ -283,7 +295,7 @@ def test_rework_e4_all_boundary_facts_empty_is_never_zero_comparisons_green():
     assert sum(item.startswith("facts_boundary_edges_empty:")
                for item in audit.structural_failures) == 2
     assert sum(item.startswith("facts_boundary_ring_missing:")
-               for item in audit.structural_failures) == 27
+               for item in audit.structural_failures) == 29  # A-11: +2 rings
     assert not any(item.startswith("converter_zone_unclaimed_by_facts:")
                    for item in audit.structural_failures)
     _assert_structural_red(audit, "facts_boundary_edges_empty:plan-F1")
@@ -310,7 +322,7 @@ def test_rework_e2c_converter_zone_fifty_metres_outside_all_facts_is_named():
 
     audit = reconcile_boundary_basis(
         signed, ConversionReportV1.model_validate(report_raw))
-    assert audit.paired_edges == 100
+    assert audit.paired_edges == 108  # A-11: 100 -> 108
     assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 30)
     assert _failures_not_from_deferred_cavities(audit) == [
         "converter_zone_facts_cavity_pairing_not_unique:"
