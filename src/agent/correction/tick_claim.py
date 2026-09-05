@@ -339,8 +339,9 @@ def build_packet(raw: bytes, *, image_id: str, generation: int,
         named = {}
         for ref in refs:
             match = re.fullmatch(r"(.+)_s([1-9][0-9]*)", ref)
-            if match:
-                named.setdefault(match[1], set()).add(int(match[2]))
+            if not match:
+                raise TickClaimError("WITNESS_REFERENCE_INVALID", ref)
+            named.setdefault(match[1], set()).add(int(match[2]))
         missing = tuple(sorted(cid for cid in named if cid not in chains))
         # Preserve chain identity. No use of dimension_witnesses' lossy value map.
         proposed = []
@@ -403,7 +404,7 @@ class TickSession:
         self._current: TickBatch | None = None
         self._history: list[bytes] = []
         self._previous_debts: dict[str, tuple[str, str]] = {}
-        self._blocked = False
+        self._blocked: str | None = None
         self._precision_u = units(Decimal(str(load_core_tolerances().output_precision_m)) * 1000)
         if self._precision_u <= 0:
             raise TickClaimError("OUTPUT_PRECISION_INVALID")
@@ -418,7 +419,7 @@ class TickSession:
 
     def submit(self, response: TickResponse) -> TickBatch:
         if self._blocked:
-            raise TickClaimError("REGISTER_PENDING_ROUND_LIMIT")
+            raise TickClaimError(self._blocked)
         if type(response) is not TickResponse or response.packet_id != self._packet.packet_id:
             raise TickClaimError("STALE_TICK_RESPONSE")
         if self._current is not None:
@@ -478,6 +479,9 @@ class TickSession:
                              rows=rows))
         self._current = TickBatch(digest(record), record)
         self._history.append(record)
+        for row in rows:
+            if row["retired_debt_id"]:
+                self._previous_debts.pop(row["edge_id"], None)
         return self._current
 
     def consume(self, expected_batch_id: str, batch: TickBatch | None = None) -> tuple[TickFact, ...]:
@@ -530,9 +534,10 @@ class TickSession:
         self._history.append(freeze(dict(event="RETURN_TO_STEP_ONE", reason=reason,
                                         invalidated=self._current.batch_id if self._current else None)))
         self._current = None  # invalidate BEFORE any possible retry failure
+        self._blocked = "REGISTER_PENDING_READING_INPUT"
         self._generation += 1
         if self._generation >= self._max_rounds:
-            self._blocked = True
+            self._blocked = "REGISTER_PENDING_ROUND_LIMIT"
             raise TickClaimError("REGISTER_PENDING_ROUND_LIMIT")
         old = self._packet
         new_raw = old.source_bytes if raw is None else raw
@@ -543,4 +548,5 @@ class TickSession:
             expressions = tuple((e.edge_id, c.expression) for e in old.edges for c in e.candidates)
         self._packet = build_packet(new_raw, image_id=old.image_id, generation=self._generation,
                                     supplement=new_supplement, expressions=expressions)
+        self._blocked = None
         return self._packet

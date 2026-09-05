@@ -218,3 +218,17 @@ def test_original_center_and_declared_width_derive_non_nodes():
     assert evaluate(center_minus_half_width, raw=raw, supplement=sup, axis='x') == 25500
     assert evaluate(replace(center_minus_half_width, direction='positive'), raw=raw, supplement=sup, axis='x') == 34500
     assert 2550 not in json.loads(sup)['chains']['P']['cum_mm']
+
+
+def test_failed_evidence_replacement_cannot_resurrect_old_response():
+    raw, sup = fixture()
+    s = TickSession(raw, image_id='test', supplement=sup)
+    old_response = response(s)
+    b = s.submit(old_response)
+    bad = json.loads(sup)
+    bad['source_sha'] = 'f' * 64
+    assert_code('SUPPLEMENT_SOURCE_MISMATCH', lambda: s.reconsider('new reading evidence', supplement=freeze(bad)))
+    assert_code('TICK_BATCH_INVALIDATED', lambda: s.consume(b.batch_id))
+    assert_code('REGISTER_PENDING_READING_INPUT', lambda: s.submit(old_response))
+    s.reconsider('correct source-bound evidence', supplement=sup)
+    assert s.submit(response(s))

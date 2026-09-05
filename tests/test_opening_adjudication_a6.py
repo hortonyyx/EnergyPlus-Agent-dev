@@ -33,9 +33,9 @@ def review_fixture():
         CutLineV1('y', 0.12, 0, 3, 0.12, 'wall', 'W'),
         CutLineV1('y', 7.38, 0, 3, 0.12, 'wall', 'E'))
     bindings = tuple(PlanBinding(f'S:run{i}', 'South', 'S', 'room',
-                                CutLineV1('x', .12, 0, 1, .12, 'opening', f'S:run{i}')) for i in range(3)) + (
-        PlanBinding('E:run0', 'East', 'E', 'room', CutLineV1('y', 7.38, 0, 1, .12, 'opening', 'E:run0')),)
-    facades = tuple(FacadeInput(f, e if f == 'South' else None, eb.batch_id if f == 'South' else None)
+                                CutLineV1('x', .12, 0, 1, .12, 'opening', f'S:run{i}'), floor_origin_u=0) for i in range(3)) + (
+        PlanBinding('E:run0', 'East', 'E', 'room', CutLineV1('y', 7.38, 0, 1, .12, 'opening', 'E:run0'), floor_origin_u=0),)
+    facades = tuple(FacadeInput(f, e if f == 'South' else None, eb.batch_id if f == 'South' else None, mirrored=False, local_x_positive='image_left_to_right')
                     for f in ('South', 'East', 'North', 'West'))
     return p, pb, e, eb, bindings, facades, walls
 
@@ -74,6 +74,8 @@ def test_input_and_output_coverage_and_no_inference_when_facade_exists():
     p, pb, e, eb, bindings, facades, walls = review_fixture()
     assert_code('PLAN_TOPOLOGY_COVERAGE_MISMATCH', lambda: OpeningReview(plan=p, expected_plan_batch_id=pb.batch_id, bindings=bindings[:-1], facades=facades, walls=walls))
     assert_code('FACADE_AVAILABILITY_MANIFEST_INCOMPLETE', lambda: OpeningReview(plan=p, expected_plan_batch_id=pb.batch_id, bindings=bindings, facades=facades[:-1], walls=walls))
+    wrong_axis = (replace(bindings[0], family='East'),) + bindings[1:]
+    assert_code('PLAN_HOST_BINDING_MISMATCH', lambda: OpeningReview(plan=p, expected_plan_batch_id=pb.batch_id, bindings=wrong_axis, facades=facades, walls=walls))
     review, _ = make_review()
     r = spatial_response(review)
     assert_code('SPATIAL_DECISION_COVERAGE_MISMATCH', lambda: review.submit(r.model_copy(update={'choices': r.choices[:-1]})))

@@ -15,6 +15,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from src.agent.correction.config import load_core_tolerances
+from src.agent.correction.facade_convention import world_axis
 from src.agent.correction.opening_synthesis import (
     ElevationSourceIdentity, synthesize_openings,
 )
@@ -34,7 +35,7 @@ class PlanBinding:
     wall_id: str
     room_id: str
     line: CutLineV1
-    floor_origin_u: int = 0
+    floor_origin_u: int
 
 
 @dataclass(frozen=True)
@@ -42,8 +43,8 @@ class FacadeInput:
     family: str
     session: TickSession | None
     expected_batch_id: str | None
-    mirrored: bool = False
-    local_x_positive: str = "image_left_to_right"
+    mirrored: bool | None = None
+    local_x_positive: str | None = None
 
 
 class InferredDimensions(BaseModel):
@@ -166,6 +167,8 @@ class OpeningReview:
             wall = wall_index[binding.wall_id]
             if (binding.line.origin_id != oid or binding.line.kind != "opening" or
                     binding.line.axis != facts[f"{oid}:lo"].axis or
+                    binding.line.axis != world_axis(binding.family) or
+                    type(binding.floor_origin_u) is not int or
                     binding.line.axis != wall.axis or binding.line.pos_m != wall.pos_m or
                     binding.line.half_thickness_m != wall.half_thickness_m):
                 raise TickClaimError("PLAN_HOST_BINDING_MISMATCH", oid)
@@ -241,9 +244,13 @@ class OpeningReview:
             ids = response.reconsider_image_ids
             if not ids or len(ids) != len(set(ids)) or not set(ids) <= set(sessions):
                 raise TickClaimError("RECONSIDERATION_IMAGE_SCOPE_INVALID")
+            exits = {}
             for image_id in ids:
-                sessions[image_id].reconsider(response.reason)
-            raise TickClaimError("RETURN_TO_STEP_ONE_FROM_SPATIAL", ids)
+                try:
+                    sessions[image_id].reconsider(response.reason)
+                except TickClaimError as exc:
+                    exits[image_id] = exc.code
+            raise TickClaimError("RETURN_TO_STEP_ONE_FROM_SPATIAL", {"images": ids, "exits": exits})
         if response.reconsider_image_ids:
             raise TickClaimError("RECONSIDERATION_ACTION_MISMATCH")
         choices = {c.plan_opening_id: c for c in response.choices}
