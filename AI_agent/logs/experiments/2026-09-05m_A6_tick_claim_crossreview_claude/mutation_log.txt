@@ -1,0 +1,38 @@
+§六 变异测试记录（三处，均已 git checkout -- 复原，复原后 27/27 重新全绿）
+
+## 变异 A：禁用区间顺序检查（submit 入口）
+文件: src/agent/correction/tick_claim.py:478
+原文: if high and row["value_u"] >= by_id[high]["value_u"]:
+变异: if False:  # MUTATION-A: disable interval check
+命令: python -m pytest -q tests/test_tick_claim_a6.py -k "test_collapsed_or_reversed_interval_returns_to_first_step"
+结果: FAILED tests/test_tick_claim_a6.py::test_collapsed_or_reversed_interval_returns_to_first_step[chosen1]
+      FAILED tests/test_tick_claim_a6.py::test_collapsed_or_reversed_interval_returns_to_first_step[chosen0]
+      2 failed in 5.54s  (DID NOT RAISE RETURN_TO_STEP_ONE_INTERVAL)
+
+## 变异 B：禁用退债条件（永不退债）
+文件: src/agent/correction/tick_claim.py:464-467
+原文: retired_debt_id=self._previous_debts[edge.edge_id][0]
+      if (tier == "chain_backed" and not edge.missing_chains
+          and edge.edge_id in self._previous_debts
+          and self._previous_debts[edge.edge_id][1] == self._packet.source_sha) else None))
+变异: retired_debt_id=None))  # MUTATION-B: never retire any debt
+命令: python -m pytest -q tests/test_tick_claim_a6.py -k "test_debt_supplement_reclaim_retirement"
+结果: FAILED tests/test_tick_claim_a6.py::test_debt_supplement_reclaim_retirement
+      assert 0 == 2 (retired_debt_id 全部丢失)
+
+## 变异 C：禁用补证源不匹配检查
+文件: src/agent/correction/tick_claim.py:168-170
+原文: if (cfg.get("source_sha") != digest(raw) or cfg.get("image") != doc.get("image")
+          or cfg.get("schema") != "tick_reading_supplement_v1"):
+          raise TickClaimError("SUPPLEMENT_SOURCE_MISMATCH")
+变异: if False:  # MUTATION-C: never detect supplement/source mismatch
+          raise TickClaimError("SUPPLEMENT_SOURCE_MISMATCH")
+命令: python -m pytest -q tests/test_tick_claim_a6.py -k "test_failed_evidence_replacement_cannot_resurrect_old_response"
+结果: FAILED tests/test_tick_claim_a6.py::test_failed_evidence_replacement_cannot_resurrect_old_response
+      DID NOT RAISE SUPPLEMENT_SOURCE_MISMATCH
+
+## 复原确认
+git checkout -- src/agent/correction/tick_claim.py   (三次，每次变异后立即复原)
+git status --short src/ tests/                        => 无输出（干净）
+python -m pytest -q tests/test_tick_claim_a6.py tests/test_opening_adjudication_a6.py
+  => 27 passed in 9.63s

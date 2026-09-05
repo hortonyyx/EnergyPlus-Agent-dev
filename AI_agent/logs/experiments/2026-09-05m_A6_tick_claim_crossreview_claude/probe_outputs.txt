@@ -1,0 +1,112 @@
+=== attack_probe_1.py (Attacks 1/2/3 + own attack 4) ===
+======================================================================
+ATTACK 1: direct private-attribute mutation of `_current`
+======================================================================
+legit facts: {'O01:x0': 10000, 'O01:x1': 20000, 'O01:z_low': 5000, 'O01:z_high': 15000}
+consume() REJECTED forged batch: TICK_VALUE_RECOMPUTE_MISMATCH
+
+======================================================================
+ATTACK 2: TickSession constructed via __new__, bypassing __init__ entirely
+======================================================================
+type(fake) is TickSession: True
+FAKE session .consume() SUCCEEDED with zero __init__ validation ever run: [('O01:x0', 10000), ('O01:x1', 20000), ('O01:z_low', 5000), ('O01:z_high', 15000)]
+VERDICT: `type(plan) is not TickSession` in OpeningReview.__init__ would ACCEPT this object.
+
+======================================================================
+ATTACK 3: __class__ reassignment to forge a TickBatch
+======================================================================
+type(imp) is TickBatch: True
+Impostor with __class__ reassignment ACCEPTED: [('O01:x0', 10000), ('O01:x1', 20000), ('O01:z_low', 5000), ('O01:z_high', 15000)]
+Impostor with DIFFERENT forged record REJECTED: TICK_BATCH_INVALIDATED  (blocked by byte-equality check against self._current.record, not by isinstance)
+
+======================================================================
+OWN ATTACK 4: canonical-JSON collision probe (float / -0.0 / key-order)
+======================================================================
+freeze(0.0) == freeze(-0.0)? False  a=b'{"k":[1,2],"v":0.0}' b=b'{"k":[1,2],"v":-0.0}'
+key order collapsed by sort_keys? True
+freeze(1) == freeze(1.0)? False (int 1 == float 1.0 in Python, must stay distinct in bytes) -> safe, distinct bytes
+NaN correctly rejected by allow_nan=False: Out of range float values are not JSON compliant: nan
+
+======================================================================
+OWN ATTACK 5: does OpeningReview re-check lo < hi after consuming ticks?
+======================================================================
+Searching OpeningReview.__init__ for lo<hi post-consumption re-validation...
+(manual review of source; see verdict doc for the actual line-by-line finding)
+
+======================================================================
+ATTACK 1b (refined): chain-backed candidate cross-wire => inverted interval
+======================================================================
+O02:x0 legitimate candidate values (u): []
+O02:x1 legitimate candidate values (u): []
+Traceback (most recent call last):
+  File "/tmp/a6_review_claude/AI_agent/logs/experiments/2026-09-05m_A6_tick_claim_crossreview_claude/attack_probe_1.py", line 209, in <module>
+    TickChoice(edge_id="O02:x0", action="select", candidate_id=x0_candidates[10000], reason="node1"),
+                                                               ~~~~~~~~~~~~~^^^^^^^
+KeyError: 10000
+
+=== attack_probe_2_chain_reorder.py (Attack 1b refined: chain-backed cross-wire) ===
+======================================================================
+ATTACK 1b (refined v2): chain-backed candidate cross-wire -> inverted interval
+======================================================================
+O02:x0 legitimate candidate values (u): [0, 10000, 20000, 30000]
+O02:x1 legitimate candidate values (u): [0, 10000, 20000, 30000]
+legit submit() rows (x0,x1): [('O02:x0', 10000), ('O02:x1', 20000)]
+FORGED consume() result: x0=30000 x1=0  inverted=True
+CONFIRMED: consume() accepts an interval-INVERTED chain-backed batch built
+from two individually-legitimate, pre-existing candidates of each edge.
+submit()'s `by_id` ordering loop (T:470-480) is entry-only; consume() (T:493)
+never re-checks cross-edge ordering, only per-edge value recomputation.
+
+======================================================================
+Downstream cascade check: does OpeningReview reject lo>=hi spans?
+======================================================================
+178:                                       along_lo_m=facts[f"{oid}:lo"].value_u / 10000,
+179:                                       along_hi_m=facts[f"{oid}:hi"].value_u / 10000)
+271:                 self._plans[oid].along_lo_m, self._plans[oid].along_hi_m))
+
+=== own_third_collision_input.py (own §三 third same-shape input) ===
+Three write orders produce identical candidate-identity fingerprints: True
+Total distinct addressable node candidates at the single pixel key 512.75: 11 (spans 3 chains x 5/3/3 nodes with 4 pairwise value-collisions)
+CONFIRMED: the 'same pixel key, one flattened value, multiple chains, multiple
+distinct pairwise node-value collisions (P<->Q twice, P<->R once)' shape --
+untested by the execution doc's two examples (which only ever had ONE pairwise
+collision between exactly two chains) -- is handled identically: node identity
+(chain_id, index) survives regardless of which chain's flattened value won the
+legacy pixel-map write race, and the model must still make an explicit choice.
+
+=== r3_hard_example.py (R-3 hard example, corrected) ===
+Correctly-shaped hard example: node1 + node2 (domain='node') fed into anchored_sum
+evaluate() REJECTED as designed: OPERAND_REF_DOMAIN (would have produced 5900=5900 if allowed)
+Legit segment0+segment1 sum: 43000 units = 4300.0mm (true value 4300mm)
+
+=== r2_debt_lifecycle.py (R-2 debt retire lifecycle, independent of legacy B4) ===
+======================================================================
+R-3 hard example: cum=[0,1600,4300,7500], segment_len via index 1/2 = 5900 vs true 4300
+======================================================================
+UNEXPECTED: evaluate() returned 59000 (should have been rejected)
+Legit segment0+segment1 sum: 43000 units = 4300.0mm (true value 4300mm)
+
+======================================================================
+R-2 hard example: TickSession's OWN debt tracking (obligation=None is the OLD B4 issue,
+not this module's path -- verify NEW module's retire logic independently)
+======================================================================
+O:x0 missing_chains (no supplement supplied 'P'): ('P',)
+debt_id after first submit: 755af91fd46d6ae44c729456da99bdd6e25ec18b0d50b37a1b8b1d8ab50b5ef4  tier: pixel_only
+After reconsider+select(chain_backed): retired_debt_id=755af91fd46d6ae44c729456da99bdd6e25ec18b0d50b37a1b8b1d8ab50b5ef4 == original debt 755af91fd46d6ae44c729456da99bdd6e25ec18b0d50b37a1b8b1d8ab50b5ef4? True
+CONFIRMED: this module's OWN debt lifecycle (pixel_pending_evidence -> reconsider with supplement -> select chain_backed) actually retires the SAME debt_id it minted;
+this does NOT touch or depend on the legacy B4 obligation=None/assert_backed path at all.
+
+=== r1_r4_e2e.py (R-1 return-to-step-one + R-4 cross-session substitution) ===
+======================================================================
+R-1 end-to-end: whole_building_review=return_to_step_one invalidates plan batch
+======================================================================
+submit() returns named exit: RETURN_TO_STEP_ONE_FROM_SPATIAL  detail={'images': ('plan1',), 'exits': {}}
+CONFIRMED: old plan batch invalidated -- consume() now raises TICK_BATCH_INVALIDATED
+
+======================================================================
+R-4 end-to-end: replacing current with a batch from an INDEPENDENT session
+(same source bytes, freshly re-submitted) must be rejected
+======================================================================
+same source bytes -> same packet_id? True
+same source bytes -> same batch_id (since content identical)? False
+Cross-session batch substitution REJECTED: TICK_BATCH_NOT_CURRENT_DECISION
