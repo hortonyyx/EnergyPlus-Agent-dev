@@ -6,6 +6,12 @@
 #
 #   scripts/seat_glm.sh <worktree-dir> <prompt-file> [log-file]
 #
+# Model: whatever glm_code.sh defaults to (glm-5.3). GLM_MODEL passes straight
+# through — .env does not define it, so an exported value wins:
+#   GLM_MODEL=glm-5.3-flash bash scripts/seat_glm.sh <dir> <prompt>
+# ⛔ Any seat that must LOOK AT AN IMAGE has to be launched that way: glm-5.3
+# answers image questions wrongly without ever erroring (see glm_code.sh).
+#
 # Same contract and same caveats as seat_claude.sh:
 #   * cwd for the seat = <worktree-dir>
 #   * headless `-p` prints only when the turn ends ⇒ an empty log means

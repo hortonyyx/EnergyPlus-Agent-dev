@@ -5,19 +5,37 @@
 > 本文 = 操作手册；核心约定同时收录在 [../CLAUDE.md](../CLAUDE.md) §5#8/#10。换主控模型读此接手。
 > **2026-07-10 修订**：GPT-5.6 家族发布（有限预览）+ Fable 5 订阅 07-12 到期 → 从「Claude 编排 / Codex 执行」两方模式升级为**完整双模型家族分工**（用户 2026-07-10 拍）。文件名沿用 `codex_execution_protocol.md` 保链接稳定。
 
-## 1. 家族版图（**2026-08-16 全量核对，下表 = 当前唯一在册口径**）
+## 1. 家族版图（**2026-09-05 增补 GPT-6 Astra / GLM-5.3-flash，下表 = 当前唯一在册口径**）
 
 | 档位 | Claude 家族 | GPT 家族（Codex 通道） | GLM 家族 | DeepSeek 家族 | 说明 |
 |---|---|---|---|---|---|
-| 旗舰 | **Fable 5**（2026-07-16 起不任主控、降为点射；退场后顶位由 **Opus 4.8** 顺移） | **gpt-5.6-sol**（$5/$30） | **glm-5.3**（08-13 发布，**08-16 起席位默认**） | **deepseek-v4-pro**（08-13 GA） | sol=长程 agent；Opus=工程秩序；glm-5.3=编程/长程 agent |
-| 主力 | **Sonnet 5**（$3/$15，08-31 前 $2/$10） | **gpt-5.6-terra**（$2.5/$15） | 同上（GLM 单档，无独立主力位） | **deepseek-v4-flash**（07-31 GA） | everyday work，执行主力 |
-| 轻档 | **Haiku 4.5** | **gpt-5.6-luna**（$1/$6） | — | 同上 | 批量机械/提取/预处理 |
-| 视觉 | 主控/子代理原生多模态 | CLI `codex exec -i` | **glm-5v-turbo**（200K，识图实验臂唯一候选） | — | GLM 无 5.3v；`glm-4.6v` 已出局（把毫米标注当像素） |
+| **最高档** | **Fable 5**（2026-07-16 起不任主控、降为点射；退场后顶位由 **Opus 4.8** 顺移） | ⭐ **gpt-6-astra**（2026-09-04 发布，**09-05 用户令入册为 GPT 侧最高档**；⛔ **要 codex CLI ≥ 0.153**）| **glm-5.3**（08-13 发布，**08-16 起席位默认**） | **deepseek-v4-pro**（08-13 GA） | astra=规划/方案审；Opus=工程秩序；glm-5.3=编程/长程 agent |
+| 次高档 | **Opus 4.8** | **gpt-5.6-sol**（$5/$30；**astra 入册后由最高档顺移**） | 同上（GLM 无独立次高位） | 同上 | 出工程细稿 + 执行审 |
+| 主力 | **Sonnet 5**（$3/$15，08-31 前 $2/$10） | **gpt-5.6-terra**（$2.5/$15） | ⭐ **glm-5.3-flash**（09-05 入册，**用户定：暂与 deepseek-v4-flash 同档**）| **deepseek-v4-flash**（07-31 GA） | everyday work，执行主力 |
+| 轻档 | **Haiku 4.5** | **gpt-5.6-luna**（$1/$6） | 同上（glm-5.3-flash） | 同上 | 批量机械/提取/预处理 |
+| 视觉 | 主控/子代理原生多模态 | CLI `codex exec -i` | ⭐⭐ **glm-5.3-flash**（09-05 主控实测 6/6 全对）· ⛔ **`glm-5v-turbo` 已被套餐挡死**（`1311 当前订阅套餐暂未开放`）| — | ⛔ **`glm-5.3` 不可作识图用**（见下）；`glm-4.6v` 早已出局（把毫米标注当像素） |
 
 **计费性质（决定能不能随便派长批次）**：Claude / GPT / GLM = **订阅制 5h 窗口**；**DeepSeek = 按量扣账户余额**，
 和管线（`src/configs/llm.yaml` 的 1_correction / 4_mep / 9 subagent）**共用同一个余额** ⇒ 席位烧穿余额会**连带打断 e2e**。
 派长批次前查：`curl -s https://api.deepseek.com/user/balance -H "Authorization: Bearer $DEEPSEEK_API_KEY"`。
 DeepSeek 峰谷计价（谷价=峰价一半，2026-08-16 16:00 UTC 起）⇒ 长批次排谷时段；GLM 高峰 14:00–18:00 (UTC+8) 3x 扣。
+
+- ⭐⭐⭐ **GPT-6 Astra（2026-09-05 主控实测，⛔ 非转引 → [探针档](../logs/experiments/2026-09-05_model_roster_probe/README.md)）**：
+  模型 id = **`gpt-6-astra`**（官方 `learn.chatgpt.com/docs/models`；⛔ 不是 `gpt-6` / `gpt-6-codex` / `gpt-6-sol`，这三个都不存在）。
+  **本账号（ChatGPT Plus）有权，但要 codex CLI ≥ 0.153** —— 09-05 已把全局 CLI 从 `0.144.1` 升到 **`0.153.4`**，
+  升级后 `codex exec -m gpt-6-astra` 与 `scripts/seat_gpt.sh` 席位**均实测通过**，且 `gpt-5.6-sol` 回归正常。
+  ⛔⛔ **判读陷阱（本轮真踩到）**：旧 CLI 下 `-m gpt-6` 报的
+  `"The 'gpt-6' model is not supported when using Codex with a ChatGPT account."`
+  **与我随手编的 `zzz-not-a-model` 报的是同一句话**，也与真实存在但无权的 `gpt-5.5-pro` 同句
+  ⇒ **这句报错分不清「id 不存在／套餐无权／CLI 太旧」三种原因，⛔ 不能拿它下任何结论**；
+  只有用**正确 id** 探到那句 `"requires a newer version of Codex"` 才是可判读的信号
+  （同族：[[gate-measures-a-proxy-not-the-thing-it-guards]] / [[absence-conflates-causes-in-observables]]）。
+- ⭐⭐ **GLM-5.3-flash（2026-09-05 主控实测）**：文本通道正常（**thinking 同样强制常开**，照计 `reasoning_tokens`）；
+  ⭐ **识图真的能用** —— 自造矩形图同时问【数量 + 指定序位颜色】两个量，两种几何共 **6 次全对**。
+  ⛔⛔ **同一探针下 `glm-5.3`（旗舰）不可作识图用**：6 次里只 1 次两个量全对，**2 次自称「看不见」**、
+  3 次答错（6 矩形 / 黄 / 蓝），**而且全程 200、不报错** ⇒ **静默降级**，不专门量就会以为它看过图。
+  ⚠️ 实测只支持「**不稳定、不能承重**」，⛔ 别写成「它是瞎的」。
+  ⇒ **GLM 侧要看图，只派 `glm-5.3-flash`**（`GLM_MODEL=glm-5.3-flash scripts/glm_code.sh`）。
 
 - **GPT-5.6 = 有限预览**（少量受邀组织，无公开申请入口/GA 日期；本账号 Codex 已可用，CLI ≥0.144）。三型号：~105 万 ctx / 128K 输出 / 截止 2026-02；effort `low→ultra` 六档（**luna 无 ultra**）；`ultra`≈多智能体并行（消耗大）；另有 fast 速度档（1.5x 速度多耗额度）。5.5/5.4/5.4-mini 仍可用（5.4-mini 交叉测试交接单不作废）。
 - **GLM-5.3（08-16 实测 + 官方文档核对）**：1M ctx / 128K 输出；**thinking 强制常开**——`thinking.type:"disabled"` 接口收下但**静默忽略**（实测仍计 `reasoning_tokens`），`reasoning_effort` 默认 `max`（`low|high|max` 三档）。同基座纯后训练，官方称内部 Code Bench 较 5.2 **+50%**、Terminal-Bench 3.0 4.6→28.3、DeepSWE 46.2→66.9，且平均输出 token 更省（~50K vs Opus 4.8 ~120K）。**⚠️ 我方零实测**：07-21 那份「验证性审阅=Fable 级 / 探索性审阅=不及格」的能力画像是 **5.2 的**，未迁移到 5.3；档位定级沿用 5.2 那套，直到实战暴露差异。
@@ -57,10 +75,15 @@ DeepSeek 峰谷计价（谷价=峰价一半，2026-08-16 16:00 UTC 起）⇒ 长
 
 | 档位 | Claude 侧 ↔ GPT 侧 | 职责 |
 |---|---|---|
-| **最高档** | **Fable 5 ↔ sol** | 规划/方向 + 方案审 |
+| **最高档** | **Fable 5 ↔ 〔2026-09-05 起〕astra**（此前 = sol） | 规划/方向 + 方案审 |
 | **次高档** | **Opus 4.8 ↔ sol** | 出工程方案/细稿 + 执行审 |
 | **中档** | **Sonnet 5 ↔ terra** | 执行（按 spec 改码+跑测） |
 | **低档** | **Haiku 4.5 ↔ luna** | 批量机械/提取/预处理 |
+
+> ⭐ **2026-09-05 用户令「GPT-6 加到模型家族、作为最高档」** ⇒ 上表 GPT 侧最高档由 `sol` 换成 **`gpt-6-astra`**，
+> **`sol` 顺移为次高档**（它原本就同时占着这两格）。⚠️ **`scripts/seat_gpt.sh` 的默认模型仍是 `sol`**
+> —— 席位日常干的是**执行审/细稿**（次高档），最高档按需在第四个参数显式传 `gpt-6-astra`；
+> 要改默认须用户另行拍板。
 
 **审一律比产出高一档（07-12 用户补充）**：
 - **规划**（Fable 在场期）：GPT 家族暂无对标 Fable 的档 → **规划一律 Fable 出、sol 对抗审**（07-16 起 Fable 以点射子代理/独立短会话方式出稿，不任主控）。

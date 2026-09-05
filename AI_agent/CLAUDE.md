@@ -62,12 +62,15 @@ orchestrator 当时判读为「病灶更窄 = 一个护栏类型选错」——*
 （用户令「这条线上的开发都先读这份指南」）。
 凡不服务这三条的工作**一律登记进 [plan.md](plan.md) 不做**（同 §0.1）。
 
-> ⭐ **此刻在哪（2026-09-04 收工）**：⭐⭐⭐ **B1 / B3 / F-158 / B4 四条线全部过审并合并，
-> 权威全量 `3778 passed / 0 failed`**。**T4-a 已做完待审**；⛔ **B2 多层装配两轮均 REWORK**。
-> ⛔ **sm25 端到端仍未跑通** —— 差 **B2 收口** → **B5 端到端**（⛔ 用户定：全部落完再跑，中途不试跑）。
-> ⚠️ **且即使跑通，窗也是空的** —— B4 在真实四立面**配对 0 对**（见 §2 banner ⑥b，**等用户拍次序**）。
-> ⛔⛔ **两条最要紧的 debt**：**F-1 生产帧【平面几何】零 gt 对账** · **F-7 绑定校验量声明不量载荷**。
-> ⭐ **下程第一件事见 §2 banner ⑦。**
+> ⭐ **此刻在哪（2026-09-05 收工 · 第四程）**：⭐⭐⭐ **B1 / B3 / F-158 / B4 / T4-a 五条线全部过审并合并，
+> 权威全量 `3819 passed / 2 skipped / 13 xfailed / 0 failed`**（`.pth` 前后哨兵同值）。
+> ⏳ **两件交件待审**：**B2 返工 3**（GLM 施工 ⇒ ⛔ 必须改派 Claude）· **刻度认领设计稿 返工 1**（Claude 交件 ⇒ ⛔ 不得 Claude 审）。
+> ⛔ **sm25 端到端仍未跑通**，且用户 09-04 定 **先修洞口对齐再跑端到端**、**第一次跑 = 跑通＋判出分**
+> ⇒ 挡路新单 **6 个**（A-6a/A-6b 刻度认领与四分类 · A-11 gt 按 1 mm 修正入库 · E-a 端到端接线 · J-判分改造 · J-6 四条判分缺陷重新确认）
+> + **两处卡用户**（gt 人签台账 · 跑前配置拍板）⇒ **乐观 4 程 / 现实 6–8 程**（盘面 → [plan.md](plan.md)）。
+> ⚠️ **B4 配对模块今天零生产调用者**（主控 09-04 实测）。
+> ⛔⛔ **两条最要紧的 debt**：**F-1 生产帧【平面几何】零 gt 对账**（09-04 那份对账只对了 z 一个维度）· **F-7 绑定校验量声明不量载荷**。
+> ⭐ **下程第一件事见 §2 第四程 banner ⑥。**
 
 ### 0.1 唯一判断法则
 
@@ -199,7 +202,7 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 | [../src/agent/reading/](../src/agent/reading) | 0_reading schema（P1a dimension chain + P1b facade image-local + legacy 迁移）|
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）；容差 [correction.yaml](../src/configs/correction.yaml) |
 | [../src/agent/graph.py](../src/agent/graph.py) | 下游 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）；prompt 演进归协作者（§3）|
-| [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（默认 **glm-5.3**）+ `deepseek_code.sh`=DeepSeek 席位启动器（默认 **deepseek-v4-pro**，**⛔ 按量扣余额、与管线共用**）——两者**凭据只注入子进程，勿全局导出 `ANTHROPIC_*`**；家族版图见 [codex_execution_protocol §1](guides/codex_execution_protocol.md)|
+| [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（默认 **glm-5.3**）+ `deepseek_code.sh`=DeepSeek 席位启动器（默认 **deepseek-v4-pro**，**⛔ 按量扣余额、与管线共用**）——两者**凭据只注入子进程，勿全局导出 `ANTHROPIC_*`**；家族版图见 [codex_execution_protocol §1](guides/codex_execution_protocol.md)（⭐ **2026-09-05 入册**：GPT 侧**最高档 = `gpt-6-astra`**〔⛔ 要 codex CLI ≥0.153，已升 0.153.4〕· **GLM 侧要看图只派 `glm-5.3-flash`**，⛔ `glm-5.3` 对图**静默出错**、`glm-5v-turbo` 已被套餐挡死）|
 | [../tests/](../tests) | ✅ **当前全绿**：pytest **3378 passed / 13 xfailed / 0 failed**（2026-08-30 主控权威全量 **`407fa44`**，14m28s、`-n auto`、exit 0；`3355 + 23 = 3378` 逐文件闭合：`answer_compiler_{closure,exit_gate,profiles}` 6+3+8 · `denominator_from_facts` **5**（⚠️ 3 个 `def` 但**含参数化**，⛔ `grep def test_` 会低估）· `as_measured_facts_layer` +1；⛔ **`3130`/`3fe0d29` 那条读数已过期，勿再引用**）。⭐⭐ **该读数带 `.pth` 哨兵**（跑前跑后各记一次 editable 装机文件哈希，`58f547fa…` 两次相同、内容均为主树）。⛔ **哨兵是 2026-08-27 因事故新立的**：`.pth` 曾被改指到 `/tmp/ep_f97`、正好穿过一次权威全量的窗口 ⇒ **「全仓绿」的第四种假象 = 跑测【途中】启动器被第三方改掉**，那轮读数已作废。⇒ ⛔⛔ **两条硬口径**：① **席位绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令**（venv 全机器共享）；② **权威全量必须带 `.pth` 前后哨兵，两次相同才算数**。事故档 → [logs/experiments/2026-08-27_pth_hijack/](logs/experiments/2026-08-27_pth_hijack/)。⛔ **~~08-25 的「3010 passed / 1 failed / 3 errors」已作废~~** —— 那批红 = **F-93**，已于 `b3e0a32` 闭合（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟；⚠️ **有别的席位在同机跑时一律 `-n 6`**，见 §5#7.5。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
 | [../case_tests/](../case_tests) | `0_reading_tests/` + `e2e_tests/`(含 sm20_anchor/sm21_anchor) + `test_baseline/`(方案+注册表+gt) |
 | `$ENERGYPLUS_EXE` | EnergyPlus 引擎；解析序 env→PATH→硬编码默认。容器内 25.1.0、宿主 Windows 25.2.0（patch 差异，数值对齐以容器为准）|

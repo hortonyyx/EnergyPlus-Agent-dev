@@ -19,6 +19,18 @@
 #     channel already uses per AI_agent/guides/codex_execution_protocol.md).
 #   * an empty log mid-run means "still working", ⛔ not "dead" — which is why
 #     the kill -0 check below exists.
+#
+# Roster (probed 2026-09-05, AI_agent/logs/experiments/2026-09-05_model_roster_probe/):
+#   gpt-6-astra    TOP tier since 2026-09-05 (user ruling). ⛔ NEEDS codex CLI
+#                  >= 0.153 — on 0.144.1 the server answers 400 "requires a
+#                  newer version of Codex". This box runs 0.153.4, probed OK.
+#   gpt-5.6-sol    second tier — execution reviews / engineering specs. DEFAULT
+#                  below, because that is what a seat normally does; pass
+#                  gpt-6-astra as $4 for top-tier duty (planning / design review).
+#   gpt-5.6-terra  mid tier   ·  gpt-5.6-luna  light tier
+# ⛔ `gpt-6`, `gpt-6-codex`, `gpt-6-sol` do NOT exist, and the 400 they return is
+# word-for-word the one a made-up id returns — never read that message as
+# "the model exists but the plan lacks it" (see the protocol doc §1).
 set -euo pipefail
 
 WORKTREE="${1:?usage: seat_gpt.sh <worktree-dir> <prompt-file> [log-file] [model]}"
