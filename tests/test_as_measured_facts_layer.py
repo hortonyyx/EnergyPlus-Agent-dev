@@ -118,14 +118,27 @@ EXPECTED = {
     # wall), and S4 dangles goes 4->8 (see the module docstring's ②-1b-S
     # UPDATE note -- a real, out-of-scope topology consequence, not a defect
     # in the snap itself; ``tarch_wall_free_end`` was already a BLOCK before).
+    #
+    # ⭐ A-11 (2026-09-05, 1 mm ingest snap, user 「走乙」) moved exactly
+    # three readouts, each with a stated cause: ``split_const_groups`` 2/4
+    # -> 0/0 on plan-F1 (the 0.1 mm representation residue those groups
+    # existed to name is absorbed, so the groups honestly stop existing);
+    # as-received-F1 ``bands_missing_a_face_line`` 11 -> 9 (two bands whose
+    # face sat 0.1 mm off a drawn stroke now reconcile against the snapped
+    # ``face_lines[*].const`` -- the by_const lookup key snaps with it); and
+    # the boundary-edge total pinned in test_r2_projection_fields_are_
+    # absent_but_boundary_condition_is_first_class (one cavity that was a
+    # ring LOSS on the unsnapped build now closes into a ring, 83 -> 91
+    # edges on as-received F1).  Everything else in this table is UNCHANGED
+    # by the snap.
     ("as_received", "plan-F1"): {"face_lines": 224, "walls": 55, "openings": 31,
                                  "wall_lines_total": 225, "non_orthogonal": 1,
                                  "dangles": 8, "gates_failed": ["G5"],
                                  "block_codes": ["tarch_wall_free_end"],
                                  "thickness_mm": {120: 28, 240: 27},
                                  "jamb_cap_bands": 44,
-                                 "bands_missing_a_face_line": 11,
-                                 "split_const_groups": 2},
+                                 "bands_missing_a_face_line": 9,
+                                 "split_const_groups": 0},
     ("as_received", "plan-F2"): {"face_lines": 222, "walls": 53, "openings": 30,
                                  "wall_lines_total": 222, "non_orthogonal": 0,
                                  "dangles": 0, "gates_failed": [],
@@ -140,7 +153,7 @@ EXPECTED = {
                             "thickness_mm": {120: 28, 240: 27},
                             "jamb_cap_bands": 45,
                             "bands_missing_a_face_line": 9,
-                            "split_const_groups": 4},
+                            "split_const_groups": 0},
     ("signed", "plan-F2"): {"face_lines": 222, "walls": 53, "openings": 30,
                             "wall_lines_total": 222, "non_orthogonal": 0,
                             "dangles": 0, "gates_failed": [], "block_codes": [],
@@ -444,7 +457,10 @@ def test_r2_projection_fields_are_absent_but_boundary_condition_is_first_class(
                       '"outer_skin"', '"zone_edges"'):
         assert forbidden not in text, forbidden
     assert '"boundary_condition"' in text
-    assert sum(len(view.boundary_edges) for view in as_received_doc.views) == 171
+    # 171 pre-A-11 -> 179: the 1 mm ingest snap lets one as-received-F1
+    # cavity that was a ring LOSS close into a ring (83 -> 91 edges; the
+    # ring_losses readout goes 1 -> 0 -- see the EXPECTED table's A-11 note).
+    assert sum(len(view.boundary_edges) for view in as_received_doc.views) == 179
 
 
 def test_r2_no_s7_dependency_in_the_module_source():
