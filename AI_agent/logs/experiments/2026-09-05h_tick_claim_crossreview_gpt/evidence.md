@@ -1,0 +1,1224 @@
+# 本轮独立命令与原文输出
+
+被审对象固定为 `75f7732a`。SPEC 是明示的设计公式/字段形状推演；ACTUAL 才是现有仓库代码。
+
+## E01 scope
+
+```sh
+pwd
+git rev-parse HEAD
+git status --short
+git diff --numstat b4f0b348..75f7732a
+git diff --numstat 75f7732a -- src tests
+git diff --exit-code 75f7732a -- AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+```
+
+```text
+/tmp/tickrw2_review_gpt
+75f7732a4a7fa0529561b1533de0170ca7e7e91c
+?? AI_agent/logs/experiments/2026-09-05h_tick_claim_crossreview_gpt/
+?? AI_agent/logs/reviews/request/2026-09-05h_tick_claim_design_rework2_crossreview.md
+21	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/README.md
+6	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/arithmetic.txt
+34	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/capture_evidence.py
+15	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/counterexamples.txt
+878	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/evidence.md
+215	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/numbers.txt
+160	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/probe.py
+78	0	AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/statistics.txt
+802	0	AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+99	0	AI_agent/logs/reviews/request/2026-09-05f_tick_claim_design_rework2.md
+394	0	AI_agent/logs/reviews/verdict/2026-09-05e_tick_claim_design_rework1_crossreview_gpt.md
+[exit 0]
+```
+
+## E02 original five findings and four nonblocking items
+
+```sh
+rg -n -A 18 '^### F-|^### N-' AI_agent/logs/reviews/verdict/2026-09-05e_tick_claim_design_rework1_crossreview_gpt.md
+rg -n '病根一句|建议方向' AI_agent/logs/reviews/verdict/2026-09-05e_tick_claim_design_rework1_crossreview_gpt.md
+```
+
+```text
+156:### F-1 · D5 的“结构证书”是最近邻选择的产物，旧判断被搬到了输入侧
+157-
+158-**现象：** 无标注的中间段洞口也会自动一档；正确指向原点的边却会被 `ALL_S1` 自动降二档。East `O01` 原例修好，不代表这一类修好。
+159-
+160-**可复现证据：** 设计稿:332–333 给出两个自动分支；证据 E06 的独立 `rg -n` 原文为：
+161-
+162-```text
+163-63:def _nearest(ticks: list[float], px: float) -> tuple[float | None, float]:
+164-66:    t = min(ticks, key=lambda v: abs(v - px))
+165-90:            tick_map[world][str(round(px, 1))] = c["world_start_mm"] + c["direction"] * cum
+166-91:            here = refs[world].setdefault(round(px, 1), [])
+167-93:                here.append(f"{cid}_s{k}")
+168-95:                here.append(f"{cid}_s{k+1}")
+169-174:            t, d = _nearest(tk, px)
+170-178:                             "dimension_refs": refs[pool].get(round(t, 1), []) if t is not None else []}
+171-```
+172-
+173-文件是 `AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/as_drawn_elev.py`。这说明 refs 是“所选最近刻度两旁有什么段”，不是“尺寸标注定位了这个洞”。执行该文件实际 `_nearest` 的新输入输出：
+174-
+--
+187:### F-2 · 多链的源映射没有进入契约；当前已有 6 条边无法构造指定 node_ref
+188-
+189-**现象：** D5 明令自动一档为 `chain_node`，D2:122、145 却只允许 `/calibration/x/cum_mm` 节点/段。该数组只保存 primary chain；其他链的值不能借同数值查表自动取得该节点身份。
+190-
+191-**可复现命令：** 全量扫描后执行：
+192-
+193-```sh
+194-rg -n 'primary_indices=\[\]' AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/statistics.txt
+195-```
+196-
+197-原文输出：
+198-
+199-```text
+200-4:  O02:x0 1CHAIN-CONSEC refs=['C_bot_fine_s2', 'C_bot_fine_s3'] px=1013.5 mapped_mm=8640.0 chain_values={'C_bot_fine:boundary2': Decimal('8640')} primary_indices=[]
+201-5:  O02:x1 1CHAIN-CONSEC refs=['C_bot_fine_s3', 'C_bot_fine_s4'] px=1309.0 mapped_mm=12640.0 chain_values={'C_bot_fine:boundary3': Decimal('12640')} primary_indices=[]
+202-8:  O04:x0 1CHAIN-CONSEC refs=['C_bot_fine_s4', 'C_bot_fine_s5'] px=1362.5 mapped_mm=13360.0 chain_values={'C_bot_fine:boundary4': Decimal('13360')} primary_indices=[]
+203-9:  O04:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1657.5 mapped_mm=17360.0 chain_values={'C_bot_fine:boundary5': Decimal('17360')} primary_indices=[]
+204-72:  O05:x0 1CHAIN-CONSEC refs=['C_top_fine_s4', 'C_top_fine_s5'] px=1595.5 mapped_mm=14540.0 chain_values={'C_top_fine:boundary4': Decimal('14540')} primary_indices=[]
+205-73:  O05:x1 1CHAIN-CONSEC refs=['C_top_fine_s5', 'C_top_fine_s6'] px=1683.5 mapped_mm=15740.0 chain_values={'C_top_fine:boundary5': Decimal('15740')} primary_indices=[]
+--
+222:### F-3 · D4 把“链总长闭合”当成“所有 cum 是干净前缀和”
+223-
+224-**现象：** 设计稿:298、301 将污染链交给 `_require_chain_closed`，:287 的恒等式却需要每个中间 cum 都是段长前缀和。两者不是同一个性质。
+225-
+226-**可复现证据：** E08 对 `src/agent/correction/evidence_adapters.py` 的独立行号输出：
+227-
+228-```text
+229-595-        total = sum(values)
+230-596-        if total != cum[-1] or cum[-1] != overall:
+231-```
+232-
+233-函数 `:564–606` 只做基本形状、段数值类型及总长/末节点相等检查，未逐节点核前缀和、节点个数或中间有序。`probe.py arithmetic` 实际调用该门：把 South `cum[2]` 改为 `7000`，总长不变，门仍 PASS；认领 `[7000,8730]` 后区间严格有序、宽 `1730`，但原声明段仍为 `1800`。再令两个 cum 索引都为 `5000`，该门仍 PASS。原文见 §一.3 / `arithmetic.txt:2–3`。
+234-
+235-**病根一句：** 前置门测的是总长代理量，设计的成立性证明依赖的是逐节点前缀和事实。
+236-
+237-**建议方向：** 在设计中补齐“哪些链事实先被精确验证、失败交给谁”的前提；区分总体闭合与节点/段一致性。这里不是要求本席改现有函数，也不是宣称零阈值不可能做到。
+238-
+239:### F-4 · chain_derived 的运算签名与证据资格未封闭，精确重算不能证明一档
+240-
+241-**现象与引文：** 设计稿:126–133 只有操作枚举、角色和裸 ArtifactPointer；:272 接受 `cum_lo/cum_hi` 或“一组 segment_len”，:275 把符号交给 lo/hi。仍缺下列决定契约含义的约束：
+242-
+243-1. **加减方向不由 lo/hi 唯一决定。** 外侧边与两墙内侧洞边的合法方向相反。`4000/8000` 轴线、`200` 墙厚的内侧边须 `4100/7900`，不能复用稿中 lo 减半厚的固定解释。需要反映几何关系的运算选择依据。
+244-2. **墙厚 ref 指全厚还是半厚不一致。** :133 说指“声明墙厚”，:178 的例子引用 `240` 后取一半，:275 却直接使用 half_wall_units；未声明除二资格、半格不可表示时的出口。
+245-3. **分段和/差的输入域不封闭。** :272 允许 diff 配一组 segment_len，但 :276 公式只取 cum_hi/cum_lo；sum 配两个 cum 时 :277 又只对 segment_len 求和。没有规定次数、段序、连续性、原点或差值何时能成为局部 x。负差 `[-400,100]` 本身不是普遍非法，但稿中没有足够信息判定它在这张图上的合法性。
+246-4. **证据档位与同图约束没有递归到操作数。** :107 只约束原始 x 的五个 ref 同源；:301 只要求两条边的 evidence input_id 相同。另一个图的节点、或者 `pixel_only` 墙厚值也能满足“ref 可解、角色齐、证书算得对”。两道检查没有声明墙厚必须是图上声明/已裁定可用证据，也没有定义低档操作数的档位传播。
+247-
+248-**可复现依据：** E03 保存上述逐行原文；`counterexamples.txt:9–12` 记录新输入和按纸面公式的推演；`arithmetic.txt:5` 实证负数也属于现有 0.1 mm 算术域。指南 `:1038,1097,1141,1166` 分别要求链派生、只用本图声明数、逐图独立及档位权威，不能仅凭有冻结字节就满足。
+249-
+250-**病根一句：** 运算结果可复算只证明算术一致，不能证明操作数有资格、表达式有唯一含义、结果属于本图一档证据。
+251-
+252-**建议方向：** 补齐每种封闭运算的角色/基数/方向/坐标系签名及操作数证据资格；明确无资格、表达不出与纯像素三种情况各自的具名出口。模型仍只选择代码枚举的决定，不新增坐标输出。
+253-
+254:### F-5 · D6 限制了构造，却未把引用选择与第一步裁决一起冻结；B2 不能代证
+255-
+256-**现象：** 设计稿:365–366 限制新建 wrapper/元素；:367 从“每条 claim 的冻结 ref + 裁决账”重建。但它复用的 ref 本体是可赋值的 Pydantic 对象。**源字节不可变，不意味着指向源内哪个节点的指针不可变。** 换指针内容无需新建 claim、无需改任何坐标浮点。
+257-
+258-**独立可复现证据：** `src/agent/correction/evidence_contract.py:170,190,200` 定义 `_CFG={extra=forbid,strict=True}` 及 `ArtifactPointerV1.json_pointer`，没有 frozen。本席用实际类型正常构造 ref，然后正常赋值：
+259-
+260-```text
+261-NESTED_POINTER_ASSIGNMENT /calibration/x/cum_mm/2 -> /calibration/x/cum_mm/3 model_config= {'extra': 'forbid', 'strict': True}
+262-```
+263-
+264-这是**现有被引用类型的运行事实**，不是声称已执行了尚不存在的 `SealedTickClaimsV1`。在拟议契约中，若没有额外的递归不可变表示或对原裁决的独立绑定，同一个受封元素的 `node_ref.json_pointer` 就仍可换节点；#3 跟着新 ref 重读冻结字节会得到另一个同样精确的值。即使加 hash，若第二步可接受重新生成的索引/hash，也没有证明它仍是本次第一步交来的决定。
+265-
+266-**裁决账没有补足这个锚点。** 设计稿:210 的 `auto_rule_id` 允许解释为 rule_id 或 action_id；实际 `wall_compiler.py:324,333` 是两个不同字段，同规则可产生多次动作。:325–330 的 AutoAction.kind 还是四种墙语义，未包含自动刻度认领；稿中只扩了 OpenItem.kind。`rule_id` 不能唯一定位本次 action、更不能独立锁住本次选定的节点/档位。模型分支有 packet/item/decision hash 的方向正确，但还须说明重建时如何核它与候选、边、裁决结果的绑定。
+267-
+268-**三条叠加后仍需明确的第二步外延：** 可以选取/舍弃已经冻结的事实；不得改同一事实的嵌套 ref、tier、来源、所隶属的图/裁决批次。当前 #1/#2 只回答“谁能新建”，#3 若从可变索引出发，只回答“这个新索引还能否算出一个数”。这两问尚未推出后一条不变量。
+269-
+270-**B2 依赖核查：** D2/D3 没有直接调用 B2 API，也没有证据表明它们已把 B2 实现接入；:371、407 等过审的条件正确。问题在 :19、470、480 又把 D6 写成已闭合/“B2 已定门”。本席读取 `b4f0b348:AI_agent/logs/reviews/execution/2026-09-04w_B2_rework3_execution.md:30–59`：实际交件采用 **闭包持牌 + 仅存 artifact、每次消费重新过门派生**，不是本稿描述的“模块私有令牌 + 逐元素受封”三件现成套件。它仍待审，本席不代批，也不以它的自述证明封印有效。
+271-
+272-**病根一句：** 构造许可、来源字节完整性和“本次第一步究竟裁了什么”被合并成同一个冻结承诺。
+--
+297:### N-1 · 全量数字自查仍有遗漏，“66 自动”分类错误
+298-
+299-**独立扫描命令：** `python3 AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/probe.py numbers`。正则与上轮相同：`\d+(?:\.\d+)?(?:e[+-]?\d+)?`，逐次记录行号。[170 个 token 的全部原文输出](../../experiments/2026-09-05e_tick_claim_crossreview_gpt/numbers.txt)已入库。
+300-
+301-```text
+302-UNIQUE_COUNT 170
+303-OCCURRENCE_COUNT 948
+304-```
+305-
+306-相对于稿中分类表，**41 个 token 没在表中出现**。不是把每个定位符漏列都当领域错误：日期、章节、行号可由类别概括。需要补清的有实际单位换算、示例运算和规整结果：`6.9219/8.7512/0.5367/2.1646`、`30000/1200/28800`、`540/2160`、`1700/9700`、`1935/1940`，以及分布计数 `14/24/26`。这些不能全说成“图纸原声明值”。
+307-
+308-本席按上下文重分以下全部身份；同 token 可跨行具有不同身份，完整出现定位见附件：
+309-
+310-| 数字身份 | 独立判定及例子 | 抽查证据 |
+311-|---|---|---|
+312-| 已签字量 | `0.1 mm` 表示、`1 mm` gt、`10 mm` pipeline = 声明值 | 指南:1265–1267；`opening_synthesis.py:130,133`；配置:41,72,80，E08/E14 |
+313-| 原料数组/测量 | South/East cum 全数组、16 段、原始 x 数、distance、`≈13.6`、原宽 = 观察/声明；不是自动认领判据 | `probe.py statistics` 全扫各原料；South `O01` 的两 refs/值在输出:2–3，East 输出:18–19 |
+314-| 规则运行结果 | `66 自动` 不等于派工方的“66 距离≤34”；是**作者分流规则的计算结论** | 原任务书:31 的 66 测的是距离；设计稿:435 换成自动数量。照 D5 文字应为 66 一档 + 2 二档 = **68 自动**，且另有 6 条 node_ref 不成立 |
+315-| 统计判断 | `≤34 mm` = 既有经验判断；`0–1/立面` = 作者估算 | 设计稿:437 已改前者、:435 已改后者；这两处旧错已修；不能由当前零模型边推保证其他图的模型调用数 |
+--
+324:### N-2 · D7 按 b4f0b348 全节复核：4/5 风险行有过期内容
+325-
+326-按**风险行**计：R1/R4 的状态与排期逻辑过期；R3/R5 的源码定位过期，共 **4/5 行**。R2 待审状态正确。B2 实际交件形态与本稿借用描述的差异归 F-5，不冒称 B2 已过审。
+327-
+328-| D7 行 | 当前主线核验结果 | 应更新内容 |
+329-|---|---|---|
+330-| R1，设计稿:406 | `b4f0b348` 已包含 T4-a；resolver `:481`、出口核验 `:609`、binding `:705`，源绑定 `:749` | “已交件待审/未合并”撤下；改为基于已合并代码保护现有出口检查及锁，不能仍按旧 :338–365/:513–524 定位 |
+331-| R2，:407 | plan:406 仍待审；实际交件为闭包 mint + artifact 重派生 | 保留待审复用条件；附实际交件而非只读返工单。D2/D3 无 B2 API 依赖，但验收:470/:480 不能以它证明闭合 |
+332-| R3，:408 | `_sorted_bundle:737`、`finalize_bundle:784`、`_payload_row_source_ids:1127` | 更新旧 :713/:760/:1103；x/witness 入 dump 会影响相应非空 payload，保留基线重生成/源闭合核验要求，不把“每个”扩大到无洞口记录的 bundle |
+333-| R4，:409 | `EvidenceDebtV1.obligation` 已存在于主线 :539；hash 迁移已是基线组成部分 | 后续只按当前基线计算 x 增量影响；不再写与 T4-a 在飞并发翻两次。无 debt 行的 bundle 也不能仅因类型新增字段就断言 hash 必变 |
+334-| R5，:410 | B4 仍裸 dict，`_elevation_openings:956`、`synthesize_openings:1009`；docstring 当前 `evidence_contract.py:568` | 改输入风险与 docstring 依赖纪律仍对；更新旧 :544 的当前定位 |
+335-
+336-独立命令与输出在 E12。核心原文：
+337-
+338-```text
+339-b4f0b348 09.05b_wrapup_fourth_leg (opening-alignment doctrine ratified; T4-a merged; suite 3819)
+340-bfd6419a 09.05a_merge_T4a_obligation_field (GLM cross-review APPROVE / 阻断 0 / 不阻断 3)
+341-539:    obligation: DebtObligationV1 | None
+342-737:def _sorted_bundle(bundle: CorrectionEvidenceBundleV1) -> dict:
+--
+353:### N-3 · ②b / ③ 装不下是合理范围边界，但还没有具名边界出口
+354-
+355-原任务书:71–72 明确本稿不做第二步四分类；**不因没有实现②b/③判阻断**。本轮仍按要求套了 D2：`evidence_ref` 必须回 D2-a 的立面洞口行，PixelOut 也必须有原像素 ref。②b 缺这行，③ 缺该立面 artifact，均无法形成有效 claim；把 `tier` 改成二档并不能补出缺失证据。`provenance=model` 只表示谁裁定，不能替代指南要求的“来源=推测”。
+356-
+357-独立负向检索（E11）：
+358-
+359-```sh
+360-rg -n '②b|只有平面|平面有立面无|推测|plan_only|unsupported|OUT_OF_SCOPE' AI_agent/logs/reviews/execution/2026-09-05a_tick_claim_design_rework1.md
+361-```
+362-
+363-输出为空，exit 1。结合设计稿:138,150,206–216 与指南:1075–1076，裁定为**输入域不适用但未定义具名处置**，不是已证实的静默降档漏洞。建议写明本类型只承载本图实际观测边；不存在的立面边进入第二步登记/推测的独立载体，禁止以缺失 ref 伪装二档。本轮不补参考表、不写四分类实现。
+364-
+365:### N-4 · 一档免疫的决定已成立，但“由旧条文唯一推出”的论证写过头
+366-
+367-**结论不重开：免疫已获用户同意，正确。** E12 独立读取 `b4f0b348:AI_agent/plan.md:428`，原文：
+368-
+369-```text
+370-428:| **A-2** | ⭐ **出口格点【免疫一档】** | 用户同日拍「同意」 | 防「10 mm 格点把 `1935` 碾成 `1940`」= 用格点产物覆盖图纸真值 |
+371-```
+372-
+373-需要修的是三个推论，不是重新请用户同意：
+374-
+375-1. 设计稿:384 说 `1940` “既不是链节点，也不是任何链运算的结果”不普遍成立；若同一链有节点 `[0,1935,1940]`，1940 本身就是另一节点。真正被破坏的是**这一条边已裁定取1935的事实**，不是抽象链成员资格。这个反例也是 F-5 必须冻结引用选择的原因。
+376-2. :385 将 §15.11 的“pipeline 出口”推成该节“都是关于二档/像素”，指南终裁表 `:1266` 本身没有这个限定。应引用后续 A-2 的明确分档豁免，而非改写旧终裁的语义后声称“非新决策、唯一自洽”。
+377-3. :391 “无坐标字段 ⇒ 天然不过 snap”不成立。代码解引用后依然可以 snap；实际消费位置 `deterministic.py:282,349,390,1247` 已经说明规整发生在代码端。契约明确免疫是正确要求，必须在后续出口消费处兑现；同理 `output_precision_ref` 是拟议引用，不代表配置的三处声明已统一。
+378-
+379-证据命令及原文在 E04/E14。建议按“已批准的分档政策 + 保持每条已裁定事实 + 出口明确消费/不消费”的关系重写推导，不把链成员存在性或没有 float 字段当证明。
+380-
+381-## 六、未复现项、边界与改动声明
+382-
+383-1. **没有运行 pytest、端到端或模型调用**。本单为设计审；实际运行范围已在 §一.3 列清，未把构造性推演报成拟议实现通过。
+183:**病根一句：** 用最近邻选择的结果证明最近邻选择具有建筑语义，证据与待证结论来自同一次选择。
+185:**建议方向：** 区分测量候选、节点拓扑、边到节点的认领依据；自动分支只消费足够支持认领或明确无标注的证据，其余进入模型判断。不能把 `_s1` 的序号身份当“没有尺寸标注”证书，也不能给最近邻再套一个容差。
+218:**病根一句：** 把多链的节点来源、坐标系和等价关系压成一个数值查找表，后续却要求它提供完整来源证明。
+220:**建议方向：** 先明确各链与段/节点的冻结源定位、坐标系和跨链精确等价条件，再定义自动分流及结果引用。数值相等可作精确检查，不能替代节点身份；合法非主链节点必须有确定出口。
+235:**病根一句：** 前置门测的是总长代理量，设计的成立性证明依赖的是逐节点前缀和事实。
+237:**建议方向：** 在设计中补齐“哪些链事实先被精确验证、失败交给谁”的前提；区分总体闭合与节点/段一致性。这里不是要求本席改现有函数，也不是宣称零阈值不可能做到。
+250:**病根一句：** 运算结果可复算只证明算术一致，不能证明操作数有资格、表达式有唯一含义、结果属于本图一档证据。
+252:**建议方向：** 补齐每种封闭运算的角色/基数/方向/坐标系签名及操作数证据资格；明确无资格、表达不出与纯像素三种情况各自的具名出口。模型仍只选择代码枚举的决定，不新增坐标输出。
+272:**病根一句：** 构造许可、来源字节完整性和“本次第一步究竟裁了什么”被合并成同一个冻结承诺。
+274:**建议方向：** 指定第二步从哪个不可改的本次裁决记录重建，封住索引本身的改变和跨批次替换，给自动动作唯一实例绑定；明确 B2 最终模式只是待审依赖及复用条件，不能替本契约提供完成证明。不涉及运行时反射等范围外问题。
+[exit 0]
+```
+
+## E03 F1 completeness and competing branches
+
+```sh
+rg -n -A 12 '^AutoProvenanceV1:|^WholeBuildingOpeningReviewInputV1:|^候选生成|^不满足值域锚点' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n '强制进入|不进.*OpenItem|已裁定|ALL_S1|本轮新增的.*confidence|信息论' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+```
+
+```text
+181:AutoProvenanceV1:
+182-    decided_by: Literal["auto"]
+183-    auto_action_id: str            # AutoActionV1 的 action_id（本次具体动作实例，闭合 F-5 的字段拆分）
+184-    auto_rule_id:   str            # AutoActionV1 的 rule_id（规则本身）
+185-    confidence: Literal["structural_only"]
+186-    #  ⭐ 今天唯一合法值。"reading_confirmed"（reading 独立断言像素确实落在刻度墨迹/引出线上，
+187-    #  一个与 nearest() 正交的事实源）不存在于当前 reading 契约里——不在本稿臆造，
+188-    #  作为显式的上游依赖登记在 D7。这条字段存在的意义是让「今天的自动认领只有结构证据、
+189-    #  没有独立坐标证据」这个事实，从『读代码才知道』变成『类型上写明』。
+190-```
+191-
+192-**出口全检修法**：`confidence == "structural_only"` 的认领**结构性地**必须进入第二步整体把关（§15.3 步骤②b「总体把控」）的输入集——这不是纪律，是构造约束：
+193-
+--
+195:WholeBuildingOpeningReviewInputV1:
+196-    # 第二步整体把关拿到的输入之一，⛔ 不是可选项
+197-    structural_only_tick_claims: tuple[OpeningEdgeTickClaimV1, ...]
+198-    #  不变量：bundle 里每一条 provenance.confidence == "structural_only" 的
+199-    #  OpeningEdgeTickClaimV1，必须原样出现在这个元组里——构造函数机械遍历
+200-    #  bundle 生成这个元组（同 evidence_contract.py:1127 _payload_row_source_ids
+201-    #  「加成员不教函数在哪儿找它就响亮拒绝」的同一种写法），遗漏一条 = 装配函数
+202-    #  本身构造不出合法的 WholeBuildingOpeningReviewInputV1（字段与来源之间没有
+203-    #  「手写映射表」可以漏项，只有「遍历」可以完整）。
+204-```
+205-
+206-**这closes 的是什么、不 close 的是什么，必须说清楚**：这**不能**保证模型一定会抓出每一条错误认领（模型判断本来就没有 100% 保证，同 §15.3 本身接受的风险模型——「任何确定性检查都抓不到；只有做总体把控的模型会看出」这句话本来就承认这类风险交给模型、不交给确定性判据）。它 close 的是：**「一条局部像样、全局有问题的认领永远不会被任何后续步骤看见」这条路不再存在**——从「模型判断可能不完美」退化到「模型判断的输入集本身就不完整」，是两种不同严重程度的风险，本修法只处理第二种（也是唯一能在类型层处理的那种）。
+207-
+--
+605:AutoProvenanceV1:
+606-    decided_by: Literal["auto"]
+607-    auto_action_id: str      # AutoActionV1.action_id（F-5 拆分，本次具体动作实例）
+608-    auto_rule_id:   str      # AutoActionV1.rule_id（规则本身）
+609-    confidence: Literal["structural_only"]   # F-1 修法：今天唯一合法值
+610-
+611-ModelProvenanceV1:
+612-    decided_by: Literal["model"]
+613-    packet_hash:   Hex64
+614-    item_id:       str
+615-    decision_hash: Hex64
+616-```
+617-
+--
+705:候选生成 ⟺ nearest_tick_px 经 dimension_witnesses.x 表解析到某值 V，
+706-    且 Decimal(V) 精确等于 calibration.x.cum_mm 的某个元素（§二.2 唯一锚点，取代
+707-    「N 被 dimension_refs 角色闭合」这一条单独的判据——结构闭合仍然要看，但只是
+708-    「有没有辅助证据」，不再是「能不能自动认领」的唯一门槛）
+709-⇒ 构造 ChainNodeValueV1，provenance = AutoProvenanceV1(confidence="structural_only")
+710-⇒ ⭐ 该 claim 强制进入 WholeBuildingOpeningReviewInputV1.structural_only_tick_claims（F-1 出口全检）
+711-
+712:不满足值域锚点 ⇒ 不生成 chain_node 候选；
+713-    若 dimension_refs 全 `_s1`（ALL_S1，结构上表示"落在开口段内部，无刻度可认"）
+714-    ⇒ 直接 tier="pixel_only"（无 debt，语义上的二档，不是数据缺陷）；
+715-    若 dimension_refs 非 `_s1` 但值域锚点不过（F-2 的 6 条边情形）
+716-    ⇒ tier="pixel_only" + 挂 EvidenceDebtV1（有 debt，数据地址缺陷）
+717-```
+718-
+719-**D5-b 惊动模型**：与上一稿一致（结构不闭合/refs 矛盾/残缺）——这部分本来就走 `OpenItemV1`，未被任何一条裁决意见挑战。
+720-
+721-**D5-c 为什么这仍然是零阈值**：三个分支判据全是符号谓词或精确值域成员检查（`Decimal ==`，不是「差多少算近」）；`distance_mm` 依旧只作证据随 claim 流转，永不进任何分支条件。**本轮新增的 `confidence` 字段不是阈值**——它是一个**永远只有一个合法取值**（`structural_only`）的枚举，不是一个可调的数字。
+722-
+723-### D6 · 两步之间的冻结
+724-
+176:**⇒ 结论**：在**今天的证据字段**（`measured_px`/`nearest_tick_px`/`dimension_refs`/`distance_mm`，全部来自同一次 `_nearest()` 调用）范围内，**不存在**一个零阈值、纯结构的判据能把「真边」和「假边」分开——这是这批证据字段的**信息论极限**，不是没想到聪明写法。
+209:- `REAL_SEGMENT_INTERIOR_PROBE`（假边）：`confidence="structural_only"` ⇒ 强制进入 `structural_only_tick_claims`，第二步模型审查这条边时能看到「这条边认成了 17270mm，且没有独立坐标证据佐证」，可以质疑（旧规则下：这条边永远不会被任何后续步骤看到，因为它被当作「自动、已完成」直接落地）。
+216:**补一处 F-2 原文点名但 §二 未覆盖的旁支**：East `O01` 的 `ALL_S1` 签名（真实二档，无刻度可指认）与本节的「有刻度但地址缺失」是**两种不同原因的二档**——两者在 `tier` 枚举上目前都落在 `pixel_only`，这是**有意的**：`tier` 只回答「这个值能不能被链权威支撑」，不回答「为什么不能」；「为什么不能」的区分靠 `PixelOutV1`（无 debt）vs `PixelOutV1` + 附挂的 `EvidenceDebtV1`（有 debt）来体现，⛔ 不在 `tier` 上加第三个值——加第三个值意味着以后每处消费 `tier` 的代码都要多处理一支，而下游（B4 配对/输出）真正关心的只是「这个坐标能不能信到一档权威」，不关心「不能信的原因是没画还是画了地址不够」，这个区分只有**债务台账**的读者（人工排期）需要看见。
+236:| 「这条边该认哪个节点」（是否为**真边**而非假边，F-1 的问题）| **不在本层验证** | 交给 D5 的结构候选 + 强制进入第二步整体把关（F-1 修法）|
+433:1. **撤回**：「`1940` 既不是链节点、也不是任何链运算的结果」不是普遍成立的论断（若某条链恰好有节点 `1940`，它就是别的边的合法节点）。**改写为**：真正被免疫格点破坏的是**这一条边已裁定取 `1935` 的事实**——一旦这条边的一档认领已经落地为 `1935`（来自 `node_ref` 或 `chain_derived` 的精确重算），10mm 输出格点绝不能把**这个已裁定的值**改写成 `1940`，⛔ 不论 `1940` 本身在别处是不是某个节点的合法值。
+493:**用真实链数据、真实 `_nearest()` 函数、一个此前两轮审阅都没碰过的位置**（南立面索引 8→9 段），证明「1CHAIN-CONSEC ⇒ 自动一档」这**一类**规则在**任何**位置都可能被击穿，不是 East `O01` 或复核方那几个例子的特例。**本稿修法后的行为**：`confidence="structural_only"`（今天没有独立坐标证据），强制进入第二步整体把关输入集——不再是「悄悄落地、永远无人复查」。
+618:**硬不变量**：`tier=="chain_backed"` ⟺ `tier_one_value is not None` 且 `pixel_out_ref is None` 且 `dimension_refs` 非空；`tier=="pixel_only"` ⟺ 反之。二档不是缺陷（§14.2b）。`debt_ref` 非空的 `pixel_only` 边表示「有刻度指认但今天冻结不了地址」（F-2 的 6 条边），与「结构上无刻度可指认」（East `O01` 的 `ALL_S1`）是**不同原因**，但**都落在 `pixel_only`**（N-1 之后的旁支说明，见 F-2 节末）。
+625:4. **二档-无债 — East `O01`**：`refs` 全 `_s1`（`ALL_S1`），无内部边界被引用 ⇒ 结构上判定「没有可认的内部刻度」，`tier="pixel_only"`，`debt_ref=None`（这不是数据缺陷，是这个位置本来就没画刻度）。
+642:**⭐ F-1 修法在这里的接口影响**：D5-b 惊动模型的边（结构不闭合/矛盾）走 `OpenItemV1`；D5-a 自动认领的边（结构闭合，`confidence="structural_only"`）**不进 `OpenItemV1`**（它们没有歧义需要模型逐条选择候选），但**必须**同时进入 D5 之后新增的 `WholeBuildingOpeningReviewInputV1.structural_only_tick_claims`（F-1 修法），由第二步整体把关看到——**两条不同的模型接触点，服务不同目的**：`OpenItemV1` 是「这条边有歧义，请选一个」；`structural_only_tick_claims` 是「这条边代码已经决定了，但决定的依据只有结构证据，请在看整栋楼是否讲得通时留意它」。
+700:**D5-实测**（与上一稿一致，本轮重新验证签名统计，§五.1 逐字复现）：三类结构签名（`1CHAIN-CONSEC`/`ALL_S1`/`MULTI`），68 条边分布不变。
+710:⇒ ⭐ 该 claim 强制进入 WholeBuildingOpeningReviewInputV1.structural_only_tick_claims（F-1 出口全检）
+713:    若 dimension_refs 全 `_s1`（ALL_S1，结构上表示"落在开口段内部，无刻度可认"）
+721:**D5-c 为什么这仍然是零阈值**：三个分支判据全是符号谓词或精确值域成员检查（`Decimal ==`，不是「差多少算近」）；`distance_mm` 依旧只作证据随 claim 流转，永不进任何分支条件。**本轮新增的 `confidence` 字段不是阈值**——它是一个**永远只有一个合法取值**（`structural_only`）的枚举，不是一个可调的数字。
+756:**三处收窄**（详见 N-4 节）：① 不再声称「`1940` 普遍不是链节点」，改为「这一条边**已裁定**的值不许被格点改写」；② 不扩大引用 §15.11 的范围到「整节都是二档」；③ 「无坐标字段⇒天然不过 snap」改为**显式契约条款**（一档解引用函数与二档解引用函数是两个不同函数，前者不 import snap 符号），不依赖字段缺失的偶然性。
+769:| **F-1** | 用最近邻选择的结果证明最近邻选择有建筑语义 | `AutoProvenanceV1.confidence="structural_only"`（类型层承认今天没有独立坐标证据）+ 强制进入第二步整体把关（出口全检，遗漏一条即装配函数构造不出输入对象）| §三 F-1 全节；D2-b `AutoProvenanceV1`/D3-a 接口影响/D5-a；自设反例 Counterexample A（§五.2）|
+781:**F-1 修法的「出口全检」只保证「模型看得到」，不保证「模型看得对」。** 本稿把 F-1 从「局部判据能不能证明建筑语义」这个我已经证明**信息论上不可能**用今天的证据字段解决的问题，转移成「局部判据的产物是否结构性地暴露给第二步整体把关」这个**能**在类型层解决的问题——这是一次**范围收缩**，不是一次**风险消除**：如果第二步的模型审查本身质量不够（漏看、判断错），一条被 `structural_only` 标记的错误认领依然会走到最终几何里，只是**这次它至少留了一个可以被复查/事后审计的痕迹**（`confidence` 字段本身就是将来做「这批一档值里有多少从未被独立坐标证据验证过」这种统计审计的抓手）。这个薄弱处**不能靠本稿再往前推一步解决**——已经穷尽了当前证据字段能给出的所有零阈值组合（§三 F-1「穷尽过的无效解」），真正的解法是**reading 侧**新增一个与 `_nearest()` 正交的独立坐标证据源（如「像素是否落在识别出的引出线/刻度墨迹上」的视觉判断），这不在本单范围内，已作为 D7 之外的**显式上游依赖**登记在 F-1 节。
+[exit 0]
+```
+
+## E04 F2 membership, address debt, and named owner search
+
+```sh
+rg -n 'CHAIN_NODE_VALUE_AUTHORITY|∃ k|不管.*dimension_refs|obligation=None|debt_id=|affected_refs=|description=|升档条件|人工排期|主链数组|同一个锚点|另一种' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n '兑债|兑现|redeem|owner|升级|升档|重跑|回第一步|本次裁决|batch|manifest' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+```
+
+```text
+18:2. **F-2**（数值当节点身份）：**硬事实**——今天 `calibration.x` 只冻结**主链**一条 `cum_mm`；非主链节点在冻结字节里**没有地址**。本稿用**已冻结的主链数组做值域成员检查**（`primary_indices` 非空）给出 6 条边各自的具名出口：**降二档 + 挂 `EvidenceDebtV1`（`kind="other_known_missing"`）**，⛔ 不是「没有刻度」的二档，是「有刻度但今天的产物冻不住它的地址」的**另一种、显式记账的**二档。跨链「同指」不能从扁平表核实的问题，用同一个锚点（成员检查落在**唯一**被冻结的权威数组上）同构解决。
+21:5. **F-5**：撤回上一稿「模块私有令牌 + 逐元素受封」的三件套描述——**B2 返工 3 实际交出的范式是另一种**（闭包持牌，不是模块属性；载体**零携带状态**，不是「逐元素受封」；每次读取从冻结字节重新推导）。本稿改为**如实复用这个已验证有效的范式**，并补上 `rule_id`/`action_id` 拆分、`AutoActionV1.kind` 补项。
+111:CHAIN_NODE_VALUE_AUTHORITY_CHECK(claimed_mm) :=
+112:    ∃ k : Decimal(calibration.x.cum_mm[k]) == Decimal(claimed_mm)
+115:- **通过** ⇒ `node_ref = ArtifactPointerV1(..., json_pointer=f"/calibration/x/cum_mm/{k}")`，可以构造 `ChainNodeValueV1`——**不管 `dimension_refs` 字面上引用的是哪条链的段名**。这不是走后门：`calibration.x` 是这张立面**唯一**的权威 x 记录，任何数值只要精确出现在这个数组里，就是这张立面在这个位置**已经声明过**的一档事实；`dimension_refs` 只是**辅助的、不承重的**指认线索（帮模型/人理解「像素落在哪些段名附近」），⛔ 不再是认领合法性的唯一依据。
+120:    debt_id=<edge_id 派生>,
+122:    affected_refs=(edge 的 evidence_ref,),
+123:    description="edge 的 dimension_refs 指向的链在当前 calibration.x 之外没有冻结地址；"
+126:    obligation=None,
+130:这份债**不是「未来施工方随便找理由消掉」的空话**——它点名了**具体缺什么**（非主链的冻结地址空间）、**为什么现在做不到**（今天的 schema 只留了一份主链槽位）、**升档条件是什么**（reading 产物扩展 `calibration.x` 为可按链寻址的结构，例如 `calibration.x.chains.<chain_id>.cum_mm`）。这份债本身**就是**具名出口——它比「静默降二档」多出的东西是：**可审计、可统计、指向明确升级路径**。
+132:### 二.3 跨链 MULTI「同指」不能只从扁平表核实——同一个锚点解决
+136:**我自己的反例**（§五.2 Counterexample B，不是复核方那条）证明：**同一个锚点检查天然筛掉了这个风险**——不需要另外发明「跨链一致性」判据：
+144:两条链（主链 P：`[0,4000,9000]`；非主链 Q：独立拟合得到 `4050`，真实相差 50mm）在扁平表里共享一个像素键，谁写谁读全靠字典写入顺序——**但**无论最终扁平表报的是 `4000` 还是 `4050`，二.2 的成员检查只对**主链数组**做精确匹配：`4000` 通过（它就是主链自己的节点，MULTI 的另一条链只是**恰好**也在同一物理位置画了刻度，这在建筑图纸上完全合理——两条尺寸线标注同一个真实边），`4050` 不通过（它不是主链任何节点，即便扁平表因为覆写而报告了它，也只会正确地掉进 §二.2 的「降二档 + 挂债」分支，不会被误当成一档事实）。**⇒ 「多链同指」问题不需要单独判据——它被「只信一个冻结锚点」这个决定自动吸收：能通过锚点检查的，就是这张立面已经声明的事实，不管有几条链凑巧指向它；不能通过的，不管扁平表报的是哪个数，都进不了一档。**
+216:**补一处 F-2 原文点名但 §二 未覆盖的旁支**：East `O01` 的 `ALL_S1` 签名（真实二档，无刻度可指认）与本节的「有刻度但地址缺失」是**两种不同原因的二档**——两者在 `tier` 枚举上目前都落在 `pixel_only`，这是**有意的**：`tier` 只回答「这个值能不能被链权威支撑」，不回答「为什么不能」；「为什么不能」的区分靠 `PixelOutV1`（无 debt）vs `PixelOutV1` + 附挂的 `EvidenceDebtV1`（有 debt）来体现，⛔ 不在 `tier` 上加第三个值——加第三个值意味着以后每处消费 `tier` 的代码都要多处理一支，而下游（B4 配对/输出）真正关心的只是「这个坐标能不能信到一档权威」，不关心「不能信的原因是没画还是画了地址不够」，这个区分只有**债务台账**的读者（人工排期）需要看见。
+624:3. **二档-有债 — South `O02:x0`**：`refs=[C_bot_fine_s2,s3]`，`mapped_mm=8640`，`8640 ∉ calibration.x.cum_mm` ⇒ 构造 `ChainNodeValueV1` 失败 ⇒ `tier="pixel_only"`，`pixel_out_ref` 记像素规整值，`debt_ref` 指向 `EvidenceDebtV1(kind="other_known_missing", description="C_bot_fine 链在当前 calibration.x 之外无冻结地址")`。
+666:∃ k : Decimal(calibration.x.cum_mm[k]) == Decimal(claimed_mm)
+76:**独立命令**（我重跑，§五.1 有全部四条探针的逐字复现）：
+125:                "读法产物需要为非主链新增可寻址的冻结记录后才能升档",
+130:这份债**不是「未来施工方随便找理由消掉」的空话**——它点名了**具体缺什么**（非主链的冻结地址空间）、**为什么现在做不到**（今天的 schema 只留了一份主链槽位）、**升档条件是什么**（reading 产物扩展 `calibration.x` 为可按链寻址的结构，例如 `calibration.x.chains.<chain_id>.cum_mm`）。这份债本身**就是**具名出口——它比「静默降二档」多出的东西是：**可审计、可统计、指向明确升级路径**。
+228:这段代码**只**检查：`values` 非空且全数值 · `sum(values) == cum[-1] == overall`。它**从未**读取 `values[i]` 与 `cum[i]-cum[i-1]` 的关系——`cum` 数组的中间元素**完全不参与**这道门的任何比较。⇒ 复核方 `INTERIOR_CUM_CHANGED`（把 South `cum[2]` 从 `6930` 改成 `7000`，`PASS`）与 `DUPLICATE_NODE_VALUE`（把 `cum[2]` 改成等于 `cum[1]`，`PASS`）两条反例精确命中这个空白，我本轮重跑确认（§五.1，逐字相同）。
+383:**独立命令**（本轮重跑，输出与复核方逐字相同，§五.1）：
+391:本稿是全新文本（行号、数字分布与上一稿不同），因此这份机械扫描必须在**本稿定稿后**对本稿自己重跑一遍（见 §五.1 的复跑记录——探针脚本读取的是**上一稿**路径 `2026-09-05a_tick_claim_design_rework1.md`，用于验证复核方证据可复现；本稿自己的数字自查见下表，逻辑与探针一致但目标文件是本稿）。
+731:| **R1 · T4-a（已合并，⛔ 不再是「待审」）** | `git log --oneline -1` = `b4f0b348`，`09.05b_wrapup_fourth_leg (...T4-a merged; suite 3819)`；`opening_synthesis.py` 现有 `redemption_row_for_obligation`（`:481`）、`_resolve_backed_obligation`（`:609`）、`assert_obligations_backed`（`:683`）、`redeemable_debt_ids`（`:705`）——出口全检锁已在主线 | 本方案要改的 B4 输入面（`_elevation_openings`，`:956`）与 T4-a 改动的 obligation resolver（`:481-722`）**同文件不同函数**，重叠风险低于上一稿描述的「同函数碰撞」；仍需施工前重跑一次全量确认锁不退化 |
+743:$ grep -n "def redemption_row_for_obligation\|def _resolve_backed_obligation\|def assert_obligations_backed\|def redeemable_debt_ids" src/agent/correction/opening_synthesis.py
+747:705:def redeemable_debt_ids(
+774:| **N-1** | 数字自查非全量+分类错 | 全量重跑（170 token 逐字复现）；`≤34mm` 降级为纯统计描述，D5-a 不再引用 | §四 N-1；§五.1 |
+[exit 0]
+```
+
+## E05 F3 exact gate promises
+
+```sh
+rg -n '逐节点前缀和|CALIBRATION_CHAIN_|原始像素测量|不在本层验证|两道任一|∀ i|区间级' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n -A 43 '^def _require_chain_closed' src/agent/correction/evidence_adapters.py
+```
+
+```text
+19:3. **F-3**：前置门只验总长闭合，不验逐节点前缀和——**这是两件事**。本稿新增一道**独立于** `_require_chain_closed` 的前缀和精确检查（⛔ 不改现有函数），写清楚「验过什么、没验什么、没验的部分谁来兜底」。
+66:| F-3 | 「总长闭合」≠「逐节点前缀和」 | 新增独立前缀和检查作为 `node_ref`/`chain_derived` 构造的前置条件（类型构造函数里的守卫，不是事后校验） | —（前置错误直接堵死构造，不存在「构造出来再靠出口拦」的路） |
+218:### F-3 · 「总长闭合」≠「逐节点前缀和」
+225:    raise EvidenceContractError("CALIBRATION_CHAIN_NOT_CLOSED", ...)
+234:| 链总长闭合（`sum(values)==cum[-1]==overall`）| 既有 `_require_chain_closed`（`evidence_adapters.py:569`，⛔ 本稿不改） | `EvidenceContractError("CALIBRATION_CHAIN_NOT_CLOSED")`，整条链的任何认领全部拒绝构造 |
+235:| **逐节点前缀和**（`cum[i] == cum[i-1] + values[i-1]` 对所有 `i`，精确整数域比较）| **新增、独立的**前置检查 `_require_chain_prefix_consistent`（本稿只给规格，不写实现，⛔ 改动 `evidence_adapters.py` 属另一张施工单）| 同一错误族：`EvidenceContractError("CALIBRATION_CHAIN_NODE_NOT_PREFIX_SUM")`，整条链的任何 `node_ref`/`chain_derived` 认领全部拒绝构造——**在构造函数的守卫里堵死，不是先构造出来再指望某个下游校验器发现** |
+236:| 「这条边该认哪个节点」（是否为**真边**而非假边，F-1 的问题）| **不在本层验证** | 交给 D5 的结构候选 + 强制进入第二步整体把关（F-1 修法）|
+237:| 原始像素测量本身的精度 | **不在本层验证** | reading 自己的置信度域（`confidence: high/medium/low`，`reading/schema.py:51`），本稿不重新发明 |
+691:     ∀ i : cum_mm[i] == cum_mm[i-1] + values_mm[i-1]（精确整数域）
+692:两道任一不过 ⇒ 该链上任何 node_ref/chain_derived 构造直接拒绝（EvidenceContractError），
+696:**失效条件（区间级，与上一稿一致，未被裁决书挑战，保留）**：同节点塌缩、反向节点由区间不变量（`lo_units < hi_units` 严格、非零宽）挡；合法链派生 false-negative 由检查②「运算精确可复算」而非「结果∈cum」放行；「认对是个刻度、认错哪个刻度」——**本轮不再交给 D5 的结构谓词独自解决**（那正是 F-1 揭示的空白），而是交给 F-1 修法的 `confidence` 分档 + 强制整体把关。
+771:| **F-3** | 链总长闭合当逐节点前缀和 | 新增独立 `_require_chain_prefix_consistent` 前置门（不改现有函数），写清「验过什么/没验什么/交给谁」表 | §三 F-3 全节；D4 前置门表 |
+569:def _require_chain_closed(calibration: dict, input_id: str) -> None:
+570-    """Zero-threshold recompute of both calibration chains (⛔ not the
+571-    product's self-reported ``chain_closure_mm`` -- a recompute, so a
+572-    tampered self-report cannot vouch for itself).
+573-
+574-    Exact float equality on purpose: the three quantities are the same JSON
+575-    literals the producer derived each other from, so any difference is a
+576-    broken chain, never rounding.
+577-    """
+578-    for axis in ("x", "z"):
+579-        chain = calibration.get(axis)
+580-        if not isinstance(chain, dict):
+581-            raise EvidenceContractError(
+582-                "CALIBRATION_AXIS_MISSING",
+583-                {"input_id": input_id, "axis": axis},
+584-            )
+585-        values = chain.get("values_mm")
+586-        cum = chain.get("cum_mm")
+587-        overall = chain.get("overall_mm")
+588-        if (
+589-            not isinstance(values, list) or not values
+590-            or not isinstance(cum, list) or not cum
+591-            or any(
+592-                isinstance(v, bool) or not isinstance(v, (int, float))
+593-                for v in values
+594-            )
+595-        ):
+596-            raise EvidenceContractError(
+597-                "CALIBRATION_CHAIN_MALFORMED",
+598-                {"input_id": input_id, "axis": axis},
+599-            )
+600-        total = sum(values)
+601-        if total != cum[-1] or cum[-1] != overall:
+602-            raise EvidenceContractError(
+603-                "CALIBRATION_CHAIN_NOT_CLOSED",
+604-                {
+605-                    "input_id": input_id,
+606-                    "axis": axis,
+607-                    "sum_values_mm": total,
+608-                    "cum_mm_last": cum[-1],
+609-                    "overall_mm": overall,
+610-                },
+611-            )
+612-
+[exit 0]
+```
+
+## E06 F4 complete declared signatures
+
+```sh
+rg -n -A 13 '^ChainDerivedValueV1:|^DerivedOperandV1:|^硬不变量（ChainDerived|^segment_span_diff 的合法性|^segment_span_sum 的合法性' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n 'operand.evidence_tier|evidence_tier|value_source:|direction:|role:|derivation:|source_ref.input_id|声明常量|结果 =|前置：每个 operand|WALL_THICKNESS_HALF_UNGRID' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+```
+
+```text
+252:ChainDerivedValueV1:
+253-    value_source: Literal["axis_plus_half_wall", "segment_span_diff", "segment_span_sum"]
+254-    direction: Literal["toward_positive", "toward_negative"] | None
+255-    #  仅 axis_plus_half_wall 需要；segment_span_diff/sum 无方向歧义（差/和的符号
+256-    #  由 operands 的角色 cum_lo/cum_hi 天然决定，⛔ 不需要额外字段）。
+257-    #  方向不能由 lo/hi 边角色自动推断——D3 的候选生成阶段，遇到轴线两侧都可能是
+258-    #  合法解释时（洞口在两片墙体之间），代码必须把两个方向**都**列成独立候选
+259-    #  （TickCandidateV1 各开一条），由模型依据它能看到的空间上下文（这条边到底
+260-    #  在墙的内侧还是外侧）选择，⛔ 不能让代码替它选一个默认方向。
+261-    operands: tuple[DerivedOperandV1, ...]
+262-    recompute_cert_units: int
+263-```
+264-
+265-**② 墙厚 ref 全厚/半厚不一致**：`DerivedOperandV1.role="half_wall_thickness"` 必须显式声明来源，不允许静默做除二：
+--
+268:DerivedOperandV1:
+269-    role: Literal["axis", "half_wall_thickness", "cum_lo", "cum_hi", "segment_len"]
+270-    ref:  ArtifactPointerV1
+271-    derivation: Literal["declared_as_half", "half_of_declared_full"] | None
+272-    #  仅 role == "half_wall_thickness" 需要。"half_of_declared_full" 时，
+273-    #  recompute_cert_units 的重算必须显式做 full_units // 2 且要求
+274-    #  full_units % 2 == 0（0.1mm 整数格点上必须能整除，否则
+275-    #  WALL_THICKNESS_HALF_UNGRID 具名拒绝，⛔ 不悄悄四舍五入）。
+276-```
+277-
+278-复核方反例 `OPERAND_TIER`（轴线一档、半墙厚 `115` 来自二档测量，`evidence_tier_gate=UNSPECIFIED`）指出的其实是**第③点**（见下），这里先说明方向/半厚字段本身必须显式，不是本条反例的核心。
+279-
+280-**③ 证据档位不可降级传播（`OPERAND_TIER` 反例的真正修法）**：一个 `pixel_only`（二档）的量，不能作为 `operand.ref` 参与构造 `ChainDerivedValueV1`（一档）——否则一档的权威性就是编出来的：
+281-
+--
+283:硬不变量（ChainDerivedValueV1 的构造前置条件）：
+284-    ∀ operand ∈ operands :
+285-        operand.role == "axis" 或 "cum_lo" 或 "cum_hi" ⇒ operand.ref 必须解析到
+286-            calibration.x.cum_mm 的某个索引（同 §二.2 的锚点检查）
+287-        operand.role == "half_wall_thickness" ⇒ operand.ref 必须解析到一份
+288-            **声明值**（图纸自己标注的墙厚 callout，非测量推断），
+289-            ⛔ 不能是某处测得的、tier=pixel_only 的间距
+290-        operand.role == "segment_len" ⇒ 同 cum_lo/cum_hi 的锚点检查
+291-    任一 operand 不满足 ⇒ 整条 ChainDerivedValueV1 构造失败，
+292-    该边退回 tier="pixel_only"（不是「部分相信」，是整体降档）
+293-```
+294-
+295-反例 `axis_mm=4200 half_wall_mm=115 wall_tier=pixel_only` 在新规则下：`half_wall_thickness` 的 `ref` 解析到的是一个二档测量值（不是声明墙厚）⇒ **构造 `ChainDerivedValueV1` 直接失败**，边整体退到 `pixel_only`，⛔ 不会出现「一档结果、二档 operand」这种自相矛盾的产物。
+296-
+--
+300:segment_span_diff 的合法性：cum_lo.ref 与 cum_hi.ref 必须解析到**同一条链**
+301-    （同一个 calibration.x 数组，今天只有主链一份，天然满足），
+302-    结果可正可负——⛔ 不强制非负；符号的**含义**（"在轴线之前/之后"）
+303-    由消费方（D3 候选生成时的 direction 字段，见①）显式声明，本层不做裁剪。
+304-    坐标系：结果始终是主链自己的坐标系（相对于该链 world_start_mm 的 x），
+305-    与 operand 的 ref 天然共享同一个 source_ref.input_id（沿用既有的
+306-    F-2 单源不变量，evidence_contract.py 现有的「同 input_id」检查同构复用）。
+307-
+308:segment_span_sum 的合法性：segment_len 操作数必须是**连续**的段（索引相邻，
+309-    ⛔ 不能跳段求和——跳段求和没有对应的物理意义，图纸不会画「第2段+第5段」
+310-    这种量），连续性通过 operand 各自的 ref 索引在构造时机械核验
+311-    （索引序列必须是 [i, i+1, i+2, ..., j]，缺一即拒绝构造）。
+312-```
+313-
+314-复核方 `NEGATIVE_DIFF`（`lo=-400, hi=100`）在这套规则下：负值本身合法（未强制非负），前提是这条边的 `direction`/消费语义已声明「允许跨轴线两侧」——这是**领域判断**（这张图上这个负值有没有意义），本层只保证**算术**正确，不代为裁定「负的对不对」，这条边和其余「结构闭合但语义存疑」的边一样，落进 F-1 的 `structural_only` 分支，交给第二步整体把关。
+315-
+316-### F-5 · 真封印：撤回三件套，改用 B2 返工 3 实际验证过的范式
+317-
+318-**我核实的事实**（上一稿的病根）：`multifloor.py` 今天**在主线树里不存在**——
+319-
+320-```text
+321-$ find src -iname "*multifloor*"
+--
+574:ChainDerivedValueV1:
+575-    value_source: Literal["axis_plus_half_wall", "segment_span_diff", "segment_span_sum"]
+576-    direction: Literal["toward_positive", "toward_negative"] | None   # 仅 axis_plus_half_wall（F-4①）
+577-    operands: tuple[DerivedOperandV1, ...]
+578-    recompute_cert_units: int
+579-    #  构造前置条件：每个 operand 的证据档位不可低于 chain_backed（F-4③，
+580-    #  operand 是 pixel_only 时整条 ChainDerivedValueV1 构造失败）；
+581-    #  segment_span_sum 的 operands 索引必须连续（F-4④）。
+582-
+583:DerivedOperandV1:
+584-    role: Literal["axis", "half_wall_thickness", "cum_lo", "cum_hi", "segment_len"]
+585-    ref:  ArtifactPointerV1
+586-    derivation: Literal["declared_as_half", "half_of_declared_full"] | None  # 仅 half_wall_thickness（F-4②）
+587-
+588-OpeningEdgeTickClaimV1:
+589-    edge_id:       str                       # <opening_id>:<lo|hi>
+590-    evidence_ref:  ObservationRefV1          # 指回 D2-a；⛔ 该类型只在存在对应 D2-a 行时才被构造（N-3）
+591-    tier:          Literal["chain_backed", "pixel_only"]
+592-    tier_one_value: OneTierValueV1 | None
+593-    pixel_out_ref:  PixelOutV1     | None
+594-    dimension_refs: tuple[ArtifactPointerV1, ...]   # 辅助指认线索，⛔ 不再是认领合法性的唯一依据（§二.2）
+595-    debt_ref:      ArtifactPointerV1 | None  # 新增（F-2）：指向挂在这条边上的 EvidenceDebtV1（若有）
+596-    provenance:    ClaimProvenanceV1
+67:| F-4 | 「能复算」≠「操作数有资格/方向唯一/属于本图」 | `ChainDerivedValueV1` 的 `direction`/`operand.evidence_tier`/`operand.role` 全部收进类型字段，非法组合构造不出 | operand 证据档位**不可降级传播**在装配处强制核验（任何 operand 是 `pixel_only` 时整条 claim 强制降档，不是留白） |
+253:    value_source: Literal["axis_plus_half_wall", "segment_span_diff", "segment_span_sum"]
+254:    direction: Literal["toward_positive", "toward_negative"] | None
+269:    role: Literal["axis", "half_wall_thickness", "cum_lo", "cum_hi", "segment_len"]
+271:    derivation: Literal["declared_as_half", "half_of_declared_full"] | None
+275:    #  WALL_THICKNESS_HALF_UNGRID 具名拒绝，⛔ 不悄悄四舍五入）。
+278:复核方反例 `OPERAND_TIER`（轴线一档、半墙厚 `115` 来自二档测量，`evidence_tier_gate=UNSPECIFIED`）指出的其实是**第③点**（见下），这里先说明方向/半厚字段本身必须显式，不是本条反例的核心。
+305:    与 operand 的 ref 天然共享同一个 source_ref.input_id（沿用既有的
+569:    value_source: Literal["chain_node"]
+575:    value_source: Literal["axis_plus_half_wall", "segment_span_diff", "segment_span_sum"]
+576:    direction: Literal["toward_positive", "toward_negative"] | None   # 仅 axis_plus_half_wall（F-4①）
+584:    role: Literal["axis", "half_wall_thickness", "cum_lo", "cum_hi", "segment_len"]
+586:    derivation: Literal["declared_as_half", "half_of_declared_full"] | None  # 仅 half_wall_thickness（F-4②）
+676:chain_node:            结果 = grid_units_from_mm(node_ref 指的 cum 值)
+677:axis_plus_half_wall:   结果 = axis_units ± half_wall_units（符号取自显式 direction 字段，⛔ 不由 lo/hi 边角色推断，F-4①）
+678:segment_span_diff:     结果 = cum_hi_units − cum_lo_units（同链，允许负值，F-4④）
+679:segment_span_sum:      结果 = Σ segment_len_units（operands 索引连续，F-4④）
+680:前置：每个 operand 的证据档位 == chain_backed 或 role == 声明常量（F-4③，
+[exit 0]
+```
+
+## E07 F5 complete printed factory and bindings
+
+```sh
+rg -n -A 31 '^def _mint_sealed_tick_claims' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n '本次具体动作|auto_action_id:|auto_rule_id:|packet_hash:|decision_hash:|AutoActionV1.kind|裁决账绑定|tuple.sealed_claims|正反例覆盖' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n -A 47 '^class CorrectionEvidenceBundleV1' src/agent/correction/evidence_contract.py
+rg -n -A 13 '^class CorrectionEvidenceBundleArtifactV1|^def validate_evidence_bundle' src/agent/correction/evidence_contract.py
+```
+
+```text
+335:def _mint_sealed_tick_claims(bundle_artifact: CorrectionEvidenceBundleArtifactV1) -> "SealedTickClaimsV1":
+336-    _SEAL = object()   # ⭐ 闭包局部变量，不是模块属性；模块外的任何名字空间都拿不到它
+337-
+338-    class SealedTickClaimsV1:
+339-        """第二步唯一合法消费入口。⛔ 无公开构造器：__init__ 要求出示 _SEAL，
+340-        该名字只活在这个工厂函数的闭包里。⛔ 零携带状态：唯一字段是 _artifact
+341-        （对冻结 bundle 的引用），没有任何 z/tick 值被 setattr 到实例上——
+342-        『换元素』这个攻击类别没有对象。每次读取（__len__/__iter__/__getitem__）
+343-        都重新跑 validate_evidence_bundle + 从冻结字节解析 tick 值，
+344-        不存在『读一次、之后都信』的窗口。"""
+345-
+346-        __slots__ = ("_artifact",)
+347-
+348-        def __init__(self, artifact, seal):
+349-            if seal is not _SEAL:
+350-                raise EvidenceContractError("SEALED_TICK_CLAIMS_MINT_REQUIRED", {})
+351-            object.__setattr__(self, "_artifact", artifact)
+352-
+353-        def __init_subclass__(cls, **kwargs):
+354-            raise EvidenceContractError("SEALED_TICK_CLAIMS_NO_SUBCLASS", {"subclass": cls.__name__})
+355-
+356-        def _claims(self):
+357-            validate_evidence_bundle(self._artifact.bundle, self._artifact.frozen_sources)  # 门在前
+358-            return _derive_tick_claims_from_frozen_bytes(self._artifact)  # 纯函数，永远从冻结字节算
+359-
+360-        def __len__(self):    return len(self._claims())
+361-        def __iter__(self):   return iter(self._claims())
+362-        def __getitem__(self, i): return self._claims()[i]
+363-
+364-    return SealedTickClaimsV1(bundle_artifact, _SEAL)
+365-```
+366-
+21:5. **F-5**：撤回上一稿「模块私有令牌 + 逐元素受封」的三件套描述——**B2 返工 3 实际交出的范式是另一种**（闭包持牌，不是模块属性；载体**零携带状态**，不是「逐元素受封」；每次读取从冻结字节重新推导）。本稿改为**如实复用这个已验证有效的范式**，并补上 `rule_id`/`action_id` 拆分、`AutoActionV1.kind` 补项。
+183:    auto_action_id: str            # AutoActionV1 的 action_id（本次具体动作实例，闭合 F-5 的字段拆分）
+184:    auto_rule_id:   str            # AutoActionV1 的 rule_id（规则本身）
+367:**正反例覆盖**（照抄 B2 返工 3 §二#2 已实证的 7 条攻击形状，逐条对应到本类型上）：① 公开构造器直接调用 ⇒ `SEALED_TICK_CLAIMS_MINT_REQUIRED`（无 `_SEAL` 可出示）；② 拿到合法实例后 `object.__setattr__` 换 `_artifact` ⇒ 换了也没用，下次读取 `_claims()` 重新过门，漂移的冻结字节在 `validate_evidence_bundle` 处响亮拒绝；③ `object.__new__` 壳 ⇒ 没有 `_artifact` 属性，`_claims()` 访问 `self._artifact` 直接 `AttributeError`（具名度弱于 B2，这是**本稿要求施工时补一道**「载体缺 `_artifact` 时给具名错误而非裸异常」的验收项，非本设计的结构性缺口）；④ 子类化 ⇒ `__init_subclass__` 类创建时红；⑤ `dataclasses.replace` ⇒ 走 `__init__`，同①；⑥ 鸭子类型 `_artifact`（手填字节）⇒ `validate_evidence_bundle` 类型/内容全检，塞不进去。
+369:**第二步消费**：`tuple(sealed_claims)` 在装配处**当次取值**，⛔ 不缓存成实例状态跨调用复用——与 B2 `levels = tuple(ladder)` 同款。
+373:**`AutoActionV1.kind` 补项**：今天的 4 个枚举值（`wall_compiler.py:325-330`）全是墙语义，没有刻度认领的位置——本稿要求新增第 5 个字面量 `"claim_dimension_tick"`（⛔ 本稿只写规格，实际加这一行字面量属于施工单改 `src/agent/correction/wall_compiler.py` 的范围，不在本设计稿的零改动范围内执行，但**契约上必须点名**，否则 D5-a 产出的 `AutoActionV1` 无法自洽地声明自己的 `kind`）。
+607:    auto_action_id: str      # AutoActionV1.action_id（F-5 拆分，本次具体动作实例）
+608:    auto_rule_id:   str      # AutoActionV1.rule_id（规则本身）
+613:    packet_hash:   Hex64
+615:    decision_hash: Hex64
+629:**D2-e 裁决账绑定**：见上方 `ClaimProvenanceV1`（已含 F-5 的 `auto_action_id`/`auto_rule_id` 拆分）。
+649:    packet_hash: Hex64
+725:见 §三 F-5 全节：闭包持牌 + 零携带状态载体 + 出口重推导（`SealedTickClaimsV1`），复用 B2 返工 3 已实证的范式。`rule_id`/`action_id` 拆分、`AutoActionV1.kind` 补项均已在 D2/D5 给出。
+773:| **F-5** | 冻结源字节当冻结指针；三件套描述与 B2 实际交件不符 | 撤回三件套，改用 B2 返工 3 实证范式：闭包持牌+零携带状态载体+出口重推导；`rule_id`/`action_id` 拆分；`AutoActionV1.kind` 补项 | §三 F-5 全节；D6 `SealedTickClaimsV1` |
+643:class CorrectionEvidenceBundleV1(BaseModel):
+644-    """The unified evidence bundle top level (design §3.3).
+645-
+646-    ``content_sha256`` is computed by :func:`finalize_bundle` over the
+647-    canonically sorted bundle with the hash field removed; the validator
+648-    recomputes it (invariant 8), so the same frozen bytes must produce a
+649-    byte-identical bundle and any tampering with ordering or content goes
+650-    loud.  ⚠️ It is a bundle IDENTITY, ⛔ not an equality test for sub-facts
+651-    of the bundle.
+652-    """
+653-
+654-    model_config = _CFG
+655-
+656-    schema_version: Literal["correction_evidence_bundle_v1"]
+657-    view_manifest_sha256: Hex64 | None = None
+658-    source_artifacts: list[SourceArtifactV1] = Field(default_factory=list)
+659-    channel_status: list[ChannelStatusV1] = Field(default_factory=list)
+660-    wall_claims: list[WallClaimV1] = Field(default_factory=list)
+661-    face_dispositions: list[FaceDispositionV1] = Field(default_factory=list)
+662-    opening_claims: list[OpeningClaimV1] = Field(default_factory=list)
+663-    elevation_opening_claims: list[ElevationOpeningClaimV1] = Field(
+664-        default_factory=list
+665-    )
+666-    floor_level_claims: list[FloorLevelClaimV1] = Field(default_factory=list)
+667-    evidence_debts: list[EvidenceDebtV1] = Field(default_factory=list)
+668-    content_sha256: Hex64 | None = None
+669-
+670-
+671-class FrozenSourceV1(BaseModel):
+672-    """One source artifact together with its frozen bytes.  ⭐ References
+673-    resolve ONLY inside these bytes -- never by re-reading a working
+674-    directory file that may have changed (design §3.2)."""
+675-
+676-    model_config = _CFG
+677-
+678-    artifact: SourceArtifactV1
+679-    raw_bytes: bytes
+680-
+681-
+682-class CorrectionEvidenceBundleArtifactV1(BaseModel):
+683-    """The persistable carrier: the bundle plus every frozen source."""
+684-
+685-    model_config = _CFG
+686-
+687-    bundle: CorrectionEvidenceBundleV1
+688-    frozen_sources: list[FrozenSourceV1] = Field(default_factory=list)
+689-
+690-
+682:class CorrectionEvidenceBundleArtifactV1(BaseModel):
+683-    """The persistable carrier: the bundle plus every frozen source."""
+684-
+685-    model_config = _CFG
+686-
+687-    bundle: CorrectionEvidenceBundleV1
+688-    frozen_sources: list[FrozenSourceV1] = Field(default_factory=list)
+689-
+690-
+691-# ── canonical identity helpers ────────────────────────────────────────────── #
+692-def _pointer_identity(ref: ArtifactPointerV1) -> dict:
+693-    data = {
+694-        "input_id": ref.input_id,
+695-        "source_contract_id": ref.source_contract_id,
+--
+1239:def validate_evidence_bundle(
+1240-    artifact: CorrectionEvidenceBundleArtifactV1,
+1241-) -> None:
+1242-    """Check hard invariants 1-8 of design §4.4 on ONE frozen artifact.
+1243-
+1244-    Raises :class:`EvidenceContractError` with a stable ``code``.  Everything
+1245-    here is input integrity: none of it is ever a model's job to fix.
+1246-    """
+1247-    bundle = artifact.bundle
+1248-    if bundle.content_sha256 is None:
+1249-        raise EvidenceContractError("BUNDLE_NOT_FINALIZED", {})
+1250-
+1251-    # -- frozen sources: identity, integrity, and contract match ----------
+1252-    frozen: dict[str, FrozenSourceV1] = {}
+[exit 0]
+```
+
+## E08 B2 actual paradigm and its stated limits
+
+```sh
+rg -n '闭包|只存一个字段|每次读取|门在前|急切过门|塞类型正确|不同.*冻结字节|reading 信任根|载体唯一|only sanctioned|没有声称' AI_agent/logs/reviews/execution/2026-09-04w_B2_rework3_execution.md
+rg -n -A 8 '唯一途径是提供' AI_agent/logs/reviews/execution/2026-09-04w_B2_rework3_execution.md
+```
+
+```text
+7:  - `173ed7ef` 核心：闭包封印 + 无 z 状态载体 + 消费端重推导（含两条旧测试按新语义改写）
+32:`object.__new__` 绕构造器与事后字段替换。本轮**自己重新论证**后改用**闭包持牌**
+42:工厂函数闭包里**的令牌（`multifloor.py:189-190`；⛔ 不是模块属性，比对在
+49:- 载体**只存一个字段** `_artifact`（`:227`）——**不存在任何 z 携带状态**，
+52:  `_levels_of_carrier`（`:275-295`）→ `_levels_of`（`:368-388`）**每次读取重新
+60:载体唯一能塞进去的 `_artifact` 在读取时过门，塞鸭子类型 → `LADDER_CARRIER_CORRUPT`，
+61:塞类型正确但漂移的真 artifact → `FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`。
+66:derive / 读取 / 装配共用同一条路）；`derive_floor_ladder` 保持**急切过门**契约
+287:4. "The only sanctioned minter gates first" — the closure-held
+300:| 1 "cannot be populated from outside this module" | `:189-190` 令牌定义于闭包（⛔ 非模块属性）；`:236-247` `if _seal is not _LADDER_SEAL → LADDER_MINT_SEAL_REQUIRED`；`:229` 参数名对齐字段名使 replace 的 FIELD 名 kwargs 也进这道检查 | §二#1 + EXTRA_D 两形状 |
+306:| 4 "only sanctioned minter gates first" | `:306-307` `_mint_sealed` 定义于工厂内（持牌）；其模块级唯一调用点 `:408`，且 `:407` 先 `_levels_of(evidence)`（门）后铸造 | `grep -n "_mint_sealed_ladder(" src` 仅 `:408` 一处；§三#4a 探针 |
+308:未写进 docstring 的**不声称**项（同样重要）：没有声称「绝对不可构造」——
+309:`object.__new__` 壳的存在在句 1 里如实写明；没有声称「防 runtime introspection」
+310:（闭包抠牌 / 改模块全局 = 等价于改代码，见 §五）。
+324:- **(a)** 构造要求出示闭包令牌（`:236`）。模块外的名字空间里**不存在**这个绑定
+328:  每次经 `_levels_of`（`:382` 门在前）**重推导**，z 只能来自 `:97 _byte_z`
+330:  冻结字节** = 自造一份自洽 reading 产物 = reading 信任根（裁决 §三#3 已裁定
+382:1. **runtime introspection**：闭包抠牌（`__closure__`）、改模块全局、monkeypatch
+387:   为 reading 信任根、不在 B2 范围（本单 §〇② 重申别再动）。
+400:不必然踩中放宽的那个分支。次弱（同族）：闭包令牌可被 introspection 抠出，
+329:  对冻结字节的解析。**要移动装配出来的那个数，唯一途径是提供一份能过门的不同
+330-  冻结字节** = 自造一份自洽 reading 产物 = reading 信任根（裁决 §三#3 已裁定
+331-  不在 B2 范围）。载体内已无 `_levels` 字段，「换元素」没有对象。
+332-
+333-**#3（docstring 每句有强制行）✅** §二#3 逐句对账表；指不出强制行的句子
+334-（本轮之前的 "The SEALED assembly carrier" 空称）已由实体封印兑现，无删除项。
+335-
+336-**#4（上一轮已过审四件不退化）✅**
+337-- 旧公开路径（model_copy z_m → 公开 helper）仍关：探针输出原文
+[exit 0]
+```
+
+## E09 real debt dispatch and review API
+
+```sh
+rg -n -A 37 '^class EvidenceDebtV1' src/agent/correction/evidence_contract.py
+rg -n -A 75 '^def assert_obligations_backed' src/agent/correction/opening_synthesis.py
+rg -n -A 31 '^class WholeBuildingReviewV1' src/agent/correction/decision_schema.py
+rg -n -A 16 '^class AutoActionV1' src/agent/correction/wall_compiler.py
+```
+
+```text
+505:class EvidenceDebtV1(BaseModel):
+506-    """A structured, named known-missing (design §3.3).  Whether a profile may
+507-    continue past it is module 3+/pipeline policy, ⛔ not this type's call.
+508-
+509-    ``zero_payload_channel`` (cross-review F-1) is the explicit companion of
+510-    a ``present`` channel that produced no payload this run -- distinct from
+511-    ``missing_channel``, which covers an ``absent`` channel.  It is what
+512-    keeps the payload-closure gate from killing the honest "wired, produced
+513-    nothing" shape."""
+514-
+515-    model_config = _CFG
+516-
+517-    debt_id: StableId
+518-    kind: Literal[
+519-        "missing_channel",
+520-        "ambiguous_face",
+521-        "pairs_selection_absent",
+522-        "zero_payload_channel",
+523-        "other_known_missing",
+524-    ]
+525-    channel: ChannelName | None = None
+526-    affected_refs: tuple[ArtifactPointerV1, ...] = ()
+527-    description: str
+528-    #: (dispatch 2026-09-04e, T4-a T1/T2) REQUIRED on every mint: the debt's
+529-    #: downstream obligation, or ``None`` = no downstream obligation at all
+530-    #: (the honest shape of every non-span debt today).  A non-``None`` value
+531-    #: is a PROMISE that a handler redeems it: the handler side (B4's
+532-    #: ``DEBT_REDEMPTION_REGISTRY``) keys its rows by exactly this domain,
+533-    #: refuses a debt whose obligation has no row, loudly, and its
+534-    #: import-time teeth refuse a registry key outside this domain (or a
+535-    #: domain value with no registry row) -- so a value here cannot exist
+536-    #: unwired.  ⚠️ The field rides inside ``_sorted_bundle``'s dump, so a
+537-    #: freshly finalized bundle hash changes shape; that cost was measured
+538-    #: once, 0 red (execution report 2026-09-04b, T0).
+539-    obligation: DebtObligationV1 | None
+540-
+541-
+542-class OpeningClaimV1(BaseModel):
+683:def assert_obligations_backed(debts: Sequence[EvidenceDebtV1]) -> None:
+684-    """(dispatch 2026-09-04e T4) A debt that carries an ``obligation`` is
+685-    a PROMISE that this module's registry redeems it.
+686-
+687-    ``obligation is None`` = no downstream obligation (the honest shape
+688-    of every non-span debt today) and passes untouched.  A non-``None``
+689-    obligation with NO registry row is an unwritten promise -- loud
+690-    (``OBLIGATION_UNBACKED``), ⛔ never a silent skip that strands the
+691-    debt forever while its bundle still records it as owed.
+692-
+693-    (rework 2 of T4-a, cross-review B-1) Every non-``None`` obligation
+694-    goes through :func:`_resolve_backed_obligation` -- THE EXIT
+695-    POSTCONDITION -- which re-checks the ORIGINAL value against the plain
+696-    dict directly, so a widened seam cannot make a non-key obligation pass
+697-    here by returning a canonical row for it.
+698-    """
+699-    for debt in debts:
+700-        if debt.obligation is None:
+701-            continue
+702-        _resolve_backed_obligation(debt.obligation)
+703-
+704-
+705-def redeemable_debt_ids(
+706-    debts: Sequence[EvidenceDebtV1],
+707-    *,
+708-    executed: ExecutedRedemption,
+709-) -> tuple[str, ...]:
+710-    """Which of these debts THIS run actually discharged.
+711-
+712-    Three bindings, all required (rework 1; cross-review B-1 + B-2 -- the
+713-    old prefix-only view let a South gate run retire REAL East/West
+714-    debts):
+715-
+716-    1. **obligation** (dispatch 2026-09-04e T3: ⛔ the ``debt_id`` prefix
+717-       is never matched) -- the debt's ``obligation`` is backed through
+718-       THE EXIT POSTCONDITION (:func:`_resolve_backed_obligation`, rework
+719-       2 of T4-a): ``None`` = no downstream obligation, not this stage's,
+720-       the caller keeps it; the ORIGINAL value must itself be an EXACT
+721-       stored key of the plain-dict registry (⛔ never the seam's
+722-       normalised / aliased hit), else loud (``OBLIGATION_UNBACKED``); a
+723-       ``str``-subclass smuggling value is loud
+724-       (``OBLIGATION_TYPE_NOT_PLAIN_STR``); the seam's own claimant tooth
+725-       still fires (``DEBT_TYPE_AMBIGUOUS``, ⛔ the premise direction is
+726-       ``redemption_row_for_premise``'s two teeth, not this code's: two
+727-       error codes must not point at one thing);
+728-    2. **execution** -- the seam-resolved row IS the row whose gate ran
+729-       and returned in ``executed`` (object identity, ⛔ never a name
+730-       match);
+731-    3. **source** -- the debt's ``affected_refs`` name the ONE source
+732-       instance that run checked (``executed.source``); a debt from
+733-       another facade, or one whose ``affected_refs`` name nothing, is
+734-       kept exactly as open as before.
+735-
+736-    ⛔ The free-text ``description`` is never read; ⛔ ``debt_id`` is
+737-    never matched.
+738-    """
+739-    assert_obligations_backed(debts)
+740-    redeemed: list[str] = []
+741-    for debt in debts:
+742-        if debt.obligation is None:
+743-            continue
+744-        key, row = _resolve_backed_obligation(debt.obligation)
+745-        if key != executed.obligation or row is not executed.row:
+746-            # a redemption this run never executed: not ours to retire
+747-            continue
+748-        if executed.source is None or not any(
+749-            executed.source.binds(ref) for ref in debt.affected_refs
+750-        ):
+751-            # B-2: no binding to the source instance THIS gate run
+752-            # checked -- a foreign facade's REAL debt, or a debt that
+753-            # names no source.  Kept open, ⛔ never retired by coincidence.
+754-            continue
+755-        redeemed.append(debt.debt_id)
+756-    return tuple(sorted(redeemed))
+757-
+758-
+335:class WholeBuildingReviewV1(BaseModel):
+336-    """The model's overall verdict on the SAME provisional geometry the
+337-    packet hashed (§6.3's success condition 3 binds through packet_hash).
+338-    ``findings`` may name problems the code never listed -- that channel
+339-    exists precisely so the model never has to smuggle them into item
+340-    decisions."""
+341-
+342-    model_config = _CFG
+343-
+344-    verdict: Literal["accept", "findings"]
+345-    findings: tuple[FindingV1, ...] = ()
+346-
+347-    @model_validator(mode="after")
+348-    def _verdict_agrees_with_findings(self) -> "WholeBuildingReviewV1":
+349-        if self.verdict == "accept" and self.findings:
+350-            raise ValueError(
+351-                "verdict=accept carries findings: acceptance is unconditioned"
+352-            )
+353-        return self
+354-
+355-
+356-class CorrectionDecisionResponseV1(BaseModel):
+357-    """The model's whole answer for one packet.  ⭐ There is no coordinate
+358-    anywhere on this type or anything reachable from it -- see the module
+359-    docstring; the structural proof is a test that walks this type's
+360-    field tree and fails on ANY numeric field."""
+361-
+362-    model_config = _CFG
+363-
+364-    packet_hash: Hex64
+365-    item_decisions: tuple[ItemDecisionV1, ...] = ()
+366-    whole_building_review: WholeBuildingReviewV1
+318:class AutoActionV1(BaseModel):
+319-    """A code action taken without any model, with its rule id on the record
+320-    (design §6.1's auto table)."""
+321-
+322-    model_config = _CFG
+323-
+324-    action_id: str
+325-    kind: Literal[
+326-        "honor_non_wall_declaration",
+327-        "derive_two_face_midline",
+328-        "derive_band_midline",
+329-        "identity_axis_from_centerline_evidence",
+330-    ]
+331-    scope_entity_ids: tuple[str, ...]
+332-    source_refs: tuple[ArtifactPointerV1, ...]
+333-    rule_id: str
+334-
+[exit 0]
+```
+
+## E10 authority and configuration
+
+```sh
+rg -n '把多通道证据变成|刻度认领.*第一步|只能取自|一档.*链|二档.*只有|逐图独立|无歧义的自动|本图一致性|有新的不一致|几档|推测|两个分辨率|半格|没有落地|pipeline 出口.*10 mm|0.1 mm 整数' AI_agent/guides/reading_correction_split_guide.md
+rg -n 'A-2.*免疫' AI_agent/plan.md
+rg -n 'structural_snap_grid_m:|output_precision_m:|window_snap_grid_m:' src/configs/correction.yaml
+```
+
+```text
+35:     │      ⭐ 坐标存 0.1 mm 整数（⛔ 不存浮点）                      ← 人在这里签字
+232:③ 代码：执行裁决 → 出几何 → 重跑一致性检查；还有新的不一致就回 ②（有限轮）
+862:**代码出坐标**（②-2）· **合并成墙线**（结构判据）· **0.1 mm 整数存储**（已定）。
+930:主控自查记账：投影桥探针喂的是 `as_measured`（**已正交吸附、0.1 mm 整数**），
+983:   把多通道证据变成【事实】 ⇒ 判据 = 「每张图各自都干净了、尺寸都统一确定了」
+991:> 然后 correction 首先是做**尺寸证据裁定**，把多通道证据变成事实——可以理解为**每个图都干净了，
+1006:| **刻度认领**（这条边指尺寸链哪个节点）| **第一步** | 模型出决定 · **代码出坐标** | ⭐ **零阈值**：认领是判断题，⛔ 不是毫米比较；认不上 ⇒ 落到 §14.2b 的**低一档证据**，⛔ 不是失败 |
+1015:- **洞口边 / 轴线的坐标，只能取自尺寸链节点**（图纸自己画出来的毫米数）。
+1038:| **一档**：链 + 像素**对上** | 像素证据能**指认到**尺寸链（⛔ **不要求数值完全一致**）| **尺寸链** —— ⭐ 节点，**或由链【算出来】的值**（用户 2026-09-04 补：「不一定能直接对上」，例：累加 · 分段相减 · 轴线 ± 半墙厚）| 高 —— 与它冲突的要让路 |
+1039:| **二档**：**只有像素** | 该处**没有可指认的刻度**（例：东立面那个洞落在 6000 mm 段的正中间）| **像素**，按出口颗粒度出干净的数 | 低 —— 由第二步的空间推理去权衡 |
+1076:| **③** | **只有平面**（⭐ 这个方向**根本没有立面图**）| ⭐⭐ **本批先不做机制，纯靠模型推**（用户 2026-09-04 拍板）—— ⛔ 不建常见尺度参考表、⛔ 不写模数策略；模型推出来的**必须标记来源=推测**，⛔ 不混进成绩 |
+1096:- **刻度认领（第一步）= 本批做**：只用**这张图纸自己画出来的数**，外部可证伪、**零建筑先验**
+1105:| **0.1 mm** | `opening_synthesis.py:130` `DECLARED_GRID_UNITS_PER_M = 10_000` | 已签字的**坐标算术域**（「坐标是 0.1 mm 整数」）|
+1136:- **两步 = 阶段**（2026-09-04 用户定）：**第一步 尺寸证据裁定**（逐图独立）→ **第二步 空间推理**（跨图）。
+1141:第一步 · 尺寸证据裁定（逐图独立，⛔ 跨图的事一件不做）
+1143:         无歧义的自动定下来【并记账】，只把真歧义送上去
+1145:  ③代码：落值（一档取链上的数 · 二档取像素）→ 重跑本图一致性检查 → 有新的不一致回②（有限轮）
+1146:  ⇒ 出口：每张图【各自干净、尺寸确定】，且每个数都带着【它是几档】
+1152:  ③代码：执行裁决 → 出几何 → 重跑一致性检查 → 有新的不一致回②（有限轮）
+1160:### 15.4 第一步 · 尺寸证据裁定（逐图独立）
+1166:| **一档** | 像素证据能**指认到**尺寸链（⛔ **不要求数值完全一致**）| **尺寸链**：节点 **或由链算出来的值** | 高 |
+1180:**②b 平面有立面无 ⇒ 只登记待用户确认** · **③ 只有平面 ⇒ 纯靠模型推、标记来源=推测**。
+1244:> ⛔ **两层 gt 撤销**（只一层、**入库即修正后**）· **坐标存 0.1 mm 整数**（换表示，⛔ 不是加吸附）·
+1261:> **「gt 分辨率按 1 mm，pipeline 出口按 10 mm。都统一按这个最新口径。」**
+1266:| **pipeline 出口**（correction 落地坐标）| **10 mm** | = 今天 `OUTPUT_PRECISION` / `SNAP_GRID` / `WINDOW_SNAP_GRID` 的现值 |
+1267:| **坐标存储表示** | **0.1 mm 整数** | 2026-08-29 签字，⛔ 不受本条影响 |
+1273:   ⭐ 改成：判分侧核对的是「**两个分辨率各自被显式声明、且各自被消费**」，⛔ **不是「两个数相等」**。
+1275:2. ⭐⭐ **pipeline 出口永远不可能逐位等于 gt**（最大差半格 = 5 mm）
+1278:3. ⚠️ **gt 侧的 1 mm 今天【没有落地】**（主控 2026-09-04 实测）：
+428:| **A-2** | ⭐ **出口格点【免疫一档】** | 用户同日拍「同意」 | 防「10 mm 格点把 `1935` 碾成 `1940`」= 用格点产物覆盖图纸真值 |
+492:**A-1** 出口颗粒度收单一声明点 · **A-2** 出口格点免疫一档 · **A-3** C-4 基准差挪给模型 ·
+41:  structural_snap_grid_m: 0.010
+72:  output_precision_m: 0.010
+80:  window_snap_grid_m: 0.010
+[exit 0]
+```
+
+## E11 nonblocking closure and author evidence claims
+
+```sh
+rg -n '数字自查|170|948|本稿定稿后|South/East|代价是所有|三处|拟议|单一声明点|②b|③ 场景|纯平面实体|不再声称|撤回|0mm|R[1-5] ·|碰撞点数值|capture_evidence|my_counterexamples.py' AI_agent/logs/reviews/execution/2026-09-05f_tick_claim_design_rework2.md
+rg -n '^def _sorted_bundle|^def finalize_bundle|^def _payload_row_source_ids|^def validate_evidence_bundle' src/agent/correction/evidence_contract.py
+rg -n '^def adapt_as_drawn_elevation|^def _require_chain_closed' src/agent/correction/evidence_adapters.py
+rg -n '^def redemption_row_for_obligation|^def _resolve_backed_obligation|^def assert_obligations_backed|^def redeemable_debt_ids|^def _elevation_openings|^def synthesize_openings' src/agent/correction/opening_synthesis.py
+```
+
+```text
+17:1. **F-1**（最近邻自证）：证明**结构闭合本身不能证明建筑语义**——`_nearest()` 是全函数，对任何输入都返回一个结构上「看起来合法」的答案（本稿自设反例：真实 South 链内部、一个 700mm 处的假边，结构签名与真实 O01 一模一样）。**这是类型层不存在的问题**：把 `provenance=auto` 拆成显式的 `confidence: "structural_only"`（今天唯一可能值，因为 reading 还没有给出「像素确实落在刻度墨迹上」这个独立判断）；**出口全检**：契约新增强制——任何 `confidence="structural_only"` 的认领**必须**进入第二步整体把关（`WholeBuildingReviewV1` 消费的输入集**结构性地**必须囊括它，遗漏一条＝构造不出该输入对象），把「局部像样、全局有问题」的残余风险交给架构里本来就该管这类风险的机制（§15.3），不再假装局部能一次性判死。
+21:5. **F-5**：撤回上一稿「模块私有令牌 + 逐元素受封」的三件套描述——**B2 返工 3 实际交出的范式是另一种**（闭包持牌，不是模块属性；载体**零携带状态**，不是「逐元素受封」；每次读取从冻结字节重新推导）。本稿改为**如实复用这个已验证有效的范式**，并补上 `rule_id`/`action_id` 拆分、`AutoActionV1.kind` 补项。
+23:4 条不阻断照办：N-1 数字自查重做、N-2 D7 按 `b4f0b348` 全节重写、N-3 给②b/③具名边界出口（不建机制）、N-4 收窄三处论证过头但保留已成立的免疫结论。
+53:README.md  arithmetic.txt  capture_evidence.py  counterexamples.txt  evidence.md  numbers.txt  probe.py  statistics.txt
+144:两条链（主链 P：`[0,4000,9000]`；非主链 Q：独立拟合得到 `4050`，真实相差 50mm）在扁平表里共享一个像素键，谁写谁读全靠字典写入顺序——**但**无论最终扁平表报的是 `4000` 还是 `4050`，二.2 的成员检查只对**主链数组**做精确匹配：`4000` 通过（它就是主链自己的节点，MULTI 的另一条链只是**恰好**也在同一物理位置画了刻度，这在建筑图纸上完全合理——两条尺寸线标注同一个真实边），`4050` 不通过（它不是主链任何节点，即便扁平表因为覆写而报告了它，也只会正确地掉进 §二.2 的「降二档 + 挂债」分支，不会被误当成一档事实）。**⇒ 「多链同指」问题不需要单独判据——它被「只信一个冻结锚点」这个决定自动吸收：能通过锚点检查的，就是这张立面已经声明的事实，不管有几条链凑巧指向它；不能通过的，不管扁平表报的是哪个数，都进不了一档。**
+157:$ python3 .../my_counterexamples.py
+161:OLD_RULE(rework1 D5-a)=AUTO_ONE value_mm=17270.0  <-- silently finalized, 700mm away from true (fabricated) edge
+165:South 主链真实存在一段**1800mm、今天没有任何开口的干净段**（索引 8→9，`17270→19070`）。我在这段内部虚构一条「假边」，其原始像素换算值是 `17970`（离低端 700mm，离高端 1100mm，二者都远超真实数据里 66 条边的最大距离 `34mm`）。`_nearest()` 依旧诚实地返回 `17270`（这是真实的链节点，两侧段名俱全，**结构签名与真实 South O01 完全一样**：`1CHAIN-CONSEC`）。⇒ **上一稿 D5-a 会把这条假边自动认成一档、值 `17270`，无声无息、没有任何字段能事后区分它和一条真边。**
+192:**出口全检修法**：`confidence == "structural_only"` 的认领**结构性地**必须进入第二步整体把关（§15.3 步骤②b「总体把控」）的输入集——这不是纪律，是构造约束：
+209:- `REAL_SEGMENT_INTERIOR_PROBE`（假边）：`confidence="structural_only"` ⇒ 强制进入 `structural_only_tick_claims`，第二步模型审查这条边时能看到「这条边认成了 17270mm，且没有独立坐标证据佐证」，可以质疑（旧规则下：这条边永远不会被任何后续步骤看到，因为它被当作「自动、已完成」直接落地）。
+210:- 真实 South O01：同样 `confidence="structural_only"`（因为今天没有任何边有 `reading_confirmed` 证据），同样进整体把关——**代价是所有 66 条边现在都显式进入第二步的审查范围**，不再是「悄悄自动完成」。这是**诚实的代价**：上一稿「66/68 自动、省钱」的叙事本身建立在「结构闭合=已证实」这个不成立的假设上；本稿把「自动」的含义改写为「代码先给出一个高置信度候选，仍需第二步过目」，⛔ 不再是「代码独立终局裁决」。
+316:### F-5 · 真封印：撤回三件套，改用 B2 返工 3 实际验证过的范式
+381:### N-1 · 全量数字自查重做
+387:UNIQUE_COUNT 170
+388:OCCURRENCE_COUNT 948
+391:本稿是全新文本（行号、数字分布与上一稿不同），因此这份机械扫描必须在**本稿定稿后**对本稿自己重跑一遍（见 §五.1 的复跑记录——探针脚本读取的是**上一稿**路径 `2026-09-05a_tick_claim_design_rework1.md`，用于验证复核方证据可复现；本稿自己的数字自查见下表，逻辑与探针一致但目标文件是本稿）。
+393:**分类判定**（沿用上一稿已验证正确的分类框架，`≤34mm` 与中点 `1/2` 两处旧错不复现——本稿的 D5 已经不含「相邻刻度中点」这个隐含阈值，`≤34mm` 全文只作为**已发生过的事实描述**——South/East 68 条边里 66 条落在这个距离内——⛔ **不作为任何分支的判据**，判据已改写为 §二.2 的值域成员检查 + F-1 的 `confidence` 分档）：
+397:| 已签字颗粒度 | `0.1mm`/`1mm`/`10mm` | 声明值（§十五终裁） |
+412:### N-3 · ②b / ③ 具名边界出口（不建机制）
+414:**问题**：一条洞口边若属于②b（平面画了、立面没画）或③（这个方向根本没有立面），今天的 `OpeningEdgeTickClaimV1` 结构要求 `evidence_ref` 指回 D2-a 的立面洞口证据档——而这两种情形下**根本不存在**这样一条立面记录。
+421:    ⛔ ②b/③ 场景下，D2-a 不存在对应行 ⇒ 本类型**根本不为这条边构造实例**——
+423:    这条洞口边在这一步之后仍然是**纯平面实体**，等待第二步 §14.4 的
+427:这与「无刻度可指认」的 `pixel_only` 是**不同性质**的空白：`pixel_only` 是「有一份立面证据，但没有链权威支撑其坐标」；②b/③ 是「压根没有立面证据可谈」。⛔ 不能把两者都译成二档——`tier` 字段的语义只在**存在立面证据**的前提下才有意义。
+429:### N-4 · 收窄三处论证过头，保留免疫结论
+431:**免疫结论本身不重开**（用户已拍板，§14.2 已定死洞口坐标只能取自尺寸链）。收窄三处：
+433:1. **撤回**：「`1940` 既不是链节点、也不是任何链运算的结果」不是普遍成立的论断（若某条链恰好有节点 `1940`，它就是别的边的合法节点）。**改写为**：真正被免疫格点破坏的是**这一条边已裁定取 `1935` 的事实**——一旦这条边的一档认领已经落地为 `1935`（来自 `node_ref` 或 `chain_derived` 的精确重算），10mm 输出格点绝不能把**这个已裁定的值**改写成 `1940`，⛔ 不论 `1940` 本身在别处是不是某个节点的合法值。
+437:3. **撤回**：「无坐标字段 ⇒ 天然不过 snap」——这不是自动成立的推论（代码解引用出坐标之后，完全可以选择再调用一次 snap 函数，类型层挡不住这个选择）。**改写为显式契约条款**（不是自动推论，是一条必须遵守的规则）：
+485:$ python3 my_counterexamples.py
+498:$ python3 my_counterexamples.py（下半段）
+504:与复核方的 `RASTER_COLLISION`（两条链**总长相同**、碰撞点数值**恰好相同**，用来证明「碰撞发生」这件事本身）不同，本反例的两条链**独立拟合、真实数值相差 50mm**，用来证明：**即使扁平表已经因为覆写而报告了错误的那个值（`Q_WINS`），§二.2 的成员检查依然正确拒绝它**——不是「运气好没撞上」，是**这个检查的锚点从来不依赖扁平表本身是否曾经历过覆写**，只依赖它是否精确等于主链冻结数组里的某个值。
+526:**三条硬结论**（与上一稿一致，本轮重新核实行号，未变）：① x 全程没有冻结字节溯源；② z 虽有契约但 B4 也不消费它（`synthesize_openings` 收 `elevation_doc: dict`，z 也从裸 dict 读）——`grep -rn "elevation_opening_claims" src` 只命中产/校验/排序三处，无配对消费者；③ B4 今天在 `src/`、`scripts/` 里零调用（`grep -rn "synthesize_openings(" src scripts` 只命中定义与测试），改造 x 路不动任何在跑的生产路径。
+600:    output_precision_ref: ArtifactPointerV1  # 指向 pipeline 出口颗粒度声明点（10mm）
+731:| **R1 · T4-a（已合并，⛔ 不再是「待审」）** | `git log --oneline -1` = `b4f0b348`，`09.05b_wrapup_fourth_leg (...T4-a merged; suite 3819)`；`opening_synthesis.py` 现有 `redemption_row_for_obligation`（`:481`）、`_resolve_backed_obligation`（`:609`）、`assert_obligations_backed`（`:683`）、`redeemable_debt_ids`（`:705`）——出口全检锁已在主线 | 本方案要改的 B4 输入面（`_elevation_openings`，`:956`）与 T4-a 改动的 obligation resolver（`:481-722`）**同文件不同函数**，重叠风险低于上一稿描述的「同函数碰撞」；仍需施工前重跑一次全量确认锁不退化 |
+732:| **R2 · B2 返工 3（仍待审，`multifloor.py` 今天不在主线）** | `find src -iname "*multifloor*"` 无输出——B2 的封印代码**只存在于它自己的分支**；`AI_agent/logs/reviews/execution/2026-09-04w_B2_rework3_execution.md` 是**已交付、待跨家族审**的施工报告，非主线代码 | 本方案 D6 引用的是 B2 **已验证的封印范式**（闭包令牌+零状态+出口重推导），不引用 `multifloor.py` 的具体代码或哈希；即便 B2 返工 3 再改一轮，只要范式不变本方案不受影响；施工排期仍应**晚于** B2 合并（⛔ 不碰同一份 `multifloor.py`，本方案不新建这个文件） |
+733:| **R3 · 立面 bundle 既有哈希/锁** | `_sorted_bundle`（`evidence_contract.py:737`）、`finalize_bundle`（`:784`）、`_payload_row_source_ids`（`:1127`）| x 四字段 + 两 witness ref 进 `_sorted_bundle` dump ⇒ 每个立面 bundle 的 `content_sha256` 变；`debt_ref` 字段（本轮新增）若挂在 `OpeningEdgeTickClaimV1` 上也会进哈希——施工需重生成受影响立面产物基线 |
+734:| **R4 · content_sha256 churn** | T4-a 的 `obligation` 字段已经翻过一次哈希（`EvidenceDebtV1.obligation`，`evidence_contract.py:539`，已在主线）| 本方案的 x 四字段是**第二次**翻搅同一批 bundle 的哈希——施工单应在 T4-a 稳定后一次性重算基线，⛔ 不与任何在飞的哈希改动并发 |
+735:| **R5 · B4 已合并主线 + docstring 依赖边** | `synthesize_openings`（`opening_synthesis.py:1009`）从裸 dict 读 x、零容差配对；改 `evidence_contract.py:568` docstring | 改 B4 输入 = 改已签字模块入口，属工程档、须派工换人审；docstring 修改**⛔ 不写仓库根前缀的生产路径**（CLAUDE.md §8.5，`affected_tests` 会建边）|
+752:## 颗粒度收口（一档链真值 vs pipeline 10mm 出口，N-4 收窄版）
+754:**结论不变（用户已拍板，§14.2 定死）**：一档坐标免疫 10mm 出口格点；二档消费 10mm 出口格点。
+756:**三处收窄**（详见 N-4 节）：① 不再声称「`1940` 普遍不是链节点」，改为「这一条边**已裁定**的值不许被格点改写」；② 不扩大引用 §15.11 的范围到「整节都是二档」；③ 「无坐标字段⇒天然不过 snap」改为**显式契约条款**（一档解引用函数与二档解引用函数是两个不同函数，前者不 import snap 符号），不依赖字段缺失的偶然性。
+760:| 一档 | 坐标 = `tier_one_value` 精确落地，⛔ 不经 10mm snap（由**解引用函数分离**这条显式规则保证，非字段缺失自动推出）| `OpeningEdgeTickClaimV1` 无坐标字段；两个独立解引用函数 |
+773:| **F-5** | 冻结源字节当冻结指针；三件套描述与 B2 实际交件不符 | 撤回三件套，改用 B2 返工 3 实证范式：闭包持牌+零携带状态载体+出口重推导；`rule_id`/`action_id` 拆分；`AutoActionV1.kind` 补项 | §三 F-5 全节；D6 `SealedTickClaimsV1` |
+774:| **N-1** | 数字自查非全量+分类错 | 全量重跑（170 token 逐字复现）；`≤34mm` 降级为纯统计描述，D5-a 不再引用 | §四 N-1；§五.1 |
+776:| **N-3** | ②b/③ 缺具名边界出口 | `OpeningEdgeTickClaimV1` 显式声明「只在存在 D2-a 行时构造」，不建四分类机制 | §四 N-3 |
+777:| **N-4** | 免疫结论论证过头三处 | 撤回「`1940` 普遍非节点」/收窄 §15.11 引用范围/撤回「无字段⇒不过snap」改显式契约条款 | §四 N-4 + 颗粒度收口节 |
+737:def _sorted_bundle(bundle: CorrectionEvidenceBundleV1) -> dict:
+784:def finalize_bundle(
+1127:def _payload_row_source_ids(member: str, row: object) -> set[str]:
+1239:def validate_evidence_bundle(
+569:def _require_chain_closed(calibration: dict, input_id: str) -> None:
+614:def adapt_as_drawn_elevation(
+481:def redemption_row_for_obligation(obligation: str) -> tuple[str, DebtRedemption]:
+609:def _resolve_backed_obligation(obligation: str) -> tuple[str, DebtRedemption]:
+683:def assert_obligations_backed(debts: Sequence[EvidenceDebtV1]) -> None:
+705:def redeemable_debt_ids(
+956:def _elevation_openings(doc: dict) -> tuple[tuple[str, float, float, float, float], ...]:
+1009:def synthesize_openings(
+[exit 0]
+```
+
+## E12 producer, data and probe source anchors
+
+```sh
+rg -n 'def _nearest|min\(ticks|tick_map\[world\]|here = refs|here.append|t, d = _nearest|dimension_refs.*refs\[pool\]' AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/as_drawn_elev.py
+rg -n 'world_start_mm|direction|primary_x_chain' AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_south.json
+rg -n 'SPEC_|ACTUAL_|EXACT_D6|carrier._artifact|def draft_branch|def check|prefix =|def arity_bridge' AI_agent/logs/experiments/2026-09-05h_tick_claim_crossreview_gpt/probe.py
+```
+
+```text
+63:def _nearest(ticks: list[float], px: float) -> tuple[float | None, float]:
+66:    t = min(ticks, key=lambda v: abs(v - px))
+90:            tick_map[world][str(round(px, 1))] = c["world_start_mm"] + c["direction"] * cum
+91:            here = refs[world].setdefault(round(px, 1), [])
+93:                here.append(f"{cid}_s{k}")
+95:                here.append(f"{cid}_s{k+1}")
+174:            t, d = _nearest(tk, px)
+178:                             "dimension_refs": refs[pool].get(round(t, 1), []) if t is not None else []}
+12:  "primary_x_chain": "C_top_fine",
+24:      "world_start_mm": 0,
+25:      "direction": 1,
+48:      "world_start_mm": 0,
+49:      "direction": 1,
+66:      "world_start_mm": 0,
+67:      "direction": 1,
+80:      "world_start_mm": 0,
+81:      "direction": 1,
+93:      "world_start_mm": 0,
+94:      "direction": 1,
+106:      "world_start_mm": 7200,
+107:      "direction": -1,
+120:      "world_start_mm": 7200,
+121:      "direction": -1,
+138:      "world_start_mm": 7200,
+139:      "direction": -1,
+152:      "world_start_mm": 7200,
+153:      "direction": -1,
+165:      "world_start_mm": 7200,
+166:      "direction": -1,
+38:def draft_branch(doc, witness):
+58:                    print('SPEC_D5', face, opening['id'] + ':' + edge, branch, 'value=', value, 'indices=', indices)
+59:    print('SPEC_D5_TOTAL', dict(counts))
+64:    print('ACTUAL_NEW_NEAREST unlabelled_raw_px=[176,254]', 'picked=', picked,
+65:          'SPEC_chain_mm=', [values[p] for p in picked], 'ordered=', values[picked[0]] < values[picked[1]])
+70:    print('SPEC_REVIEW_COVERAGE required=', sorted(required_ids), 'supplied=', supplied_ids,
+81:        print('SPEC_NEW_COLLISION', name, 'true_boundaries=[2600,5200]', 'flat=', value,
+86:    def check(values, cum):
+91:        prefix = all(Decimal(str(cum[i])) == Decimal(str(cum[i-1])) + Decimal(str(values[i-1]))
+100:        print('ACTUAL_CLOSED=PASS', name, 'SPEC_prefix=', check(values, cum),
+106:    print('SPEC_SEGMENT_SUM refs=/cum_mm/1,/cum_mm/2 contiguous=True',
+108:    print('SPEC_SEGMENT_DIFF refs=/cum_mm/1,/cum_mm/2', 'difference_mm=', cum[2]-cum[1],
+120:    print('SPEC_OPERAND_FIELD_SHAPE', tuple(operand.model_dump()),
+123:    print('SPEC_HALF_GRID full_units=201 reject=', 201 % 2 != 0,
+125:    print('SPEC_EXPLICIT_SIGN axes_mm=[3600,7600] full_wall_mm=220',
+136:    print('ACTUAL_DEBT', 'obligation=', d.obligation, 'assert_backed=PASS', 'redeemed=', redeemed,
+150:    print('ACTUAL_TWO_VALID_ARTIFACTS same_source_bytes=', a.frozen_sources[0].raw_bytes == b.frozen_sources[0].raw_bytes,
+165:        print('EXACT_D6_EXCERPT', type(exc).__name__, str(exc))
+166:    def arity_bridge(bundle, frozen_sources):
+170:    carrier._artifact = b  # ordinary assignment: the printed design has no __setattr__ guard
+[exit 0]
+```
+
+## E13 independent NEW inputs
+
+```sh
+python3 AI_agent/logs/experiments/2026-09-05h_tick_claim_crossreview_gpt/probe.py all
+```
+
+```text
+SPEC_D5 south O02:x0 pixel_debt value= 8640.0 indices= []
+SPEC_D5 south O02:x1 pixel_debt value= 12640.0 indices= []
+SPEC_D5 south O04:x0 pixel_debt value= 13360.0 indices= []
+SPEC_D5 south O04:x1 pixel_debt value= 17360.0 indices= []
+SPEC_D5 east O01:x0 auto_chain value= 0.0 indices= [0]
+SPEC_D5 east O01:x1 auto_chain value= 0.0 indices= [0]
+SPEC_D5 west O05:x0 pixel_debt value= 14540.0 indices= []
+SPEC_D5 west O05:x1 pixel_debt value= 15740.0 indices= []
+SPEC_D5_TOTAL {'auto_chain': 62, 'pixel_debt': 6}
+ACTUAL_NEW_NEAREST unlabelled_raw_px=[176,254] picked= [120.0, 300.0] SPEC_chain_mm= [3100, 7800] ordered= True
+SPEC_REVIEW_COVERAGE required= ['FacadeR:W07:hi', 'FacadeR:W07:lo'] supplied= ('FacadeR:W07:lo',) tuple_field_well_typed=True missing= ['FacadeR:W07:hi'] draft_has_no_manifest_field_or_consumer_binding=True
+SPEC_NEW_COLLISION P_LAST true_boundaries=[2600,5200] flat= 2600 membership= True selected_primary_index= 1
+SPEC_NEW_COLLISION Q_LAST true_boundaries=[2600,5200] flat= 5200 membership= True selected_primary_index= 2
+ACTUAL_CLOSED=PASS INTERIOR_NEW SPEC_prefix= False len_cum= 4 len_values_plus_1= 4 cum= [0, 900, 2450, 3600]
+ACTUAL_CLOSED=PASS ZERO_SEGMENT_NEW SPEC_prefix= True len_cum= 4 len_values_plus_1= 4 cum= [0, 900, 900, 2400]
+ACTUAL_CLOSED=PASS NEGATIVE_SEGMENT_NEW SPEC_prefix= True len_cum= 4 len_values_plus_1= 4 cum= [0, 1250, 1000, 1900]
+ACTUAL_CLOSED=PASS SHORT_CUM_NONZERO_ORIGIN SPEC_prefix= True len_cum= 3 len_values_plus_1= 4 cum= [1800, 2500, 3600]
+SPEC_SEGMENT_SUM refs=/cum_mm/1,/cum_mm/2 contiguous=True draft_sum_mm= 5900 declared_segment_sum_mm= 4300
+SPEC_SEGMENT_DIFF refs=/cum_mm/1,/cum_mm/2 difference_mm= 2700 node_coordinate_mm= 4300 anchor_needed_mm= 1600
+SPEC_OPERAND_FIELD_SHAPE ('role', 'ref', 'derivation') foreign_input_and_measured_ref_admitted_by_fields=True not_a_run_of_promised_qualification_guard=True
+SPEC_HALF_GRID full_units=201 reject= True full_units=202 half_units= 101
+SPEC_EXPLICIT_SIGN axes_mm=[3600,7600] full_wall_mm=220 inside_edges_mm= [3710, 7490]
+ACTUAL_DEBT obligation= None assert_backed=PASS redeemed= () description_upgrade_request_does_not_dispatch=True
+ACTUAL_TWO_VALID_ARTIFACTS same_source_bytes= True bundle_ids_differ= True
+EXACT_D6_EXCERPT TypeError validate_evidence_bundle() takes 1 positional argument but 2 were given
+D6_WITH_ARITY_BRIDGE ordinary_artifact_assignment=PASS derive_received_other_bundle= True new_bundle_valid=True not_a_production_tick_claim_test=True
+[exit 0]
+```
+
+## E14 unchanged prior statistics
+
+```sh
+python3 AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/probe.py statistics
+```
+
+```text
+FACE south primary=C_top_fine closure=0.0
+  O01:x0 1CHAIN-CONSEC refs=['C_top_fine_s2', 'C_top_fine_s3'] px=887.5 mapped_mm=6930.0 chain_values={'C_top_fine:boundary2': Decimal('6930')} primary_indices=[2]
+  O01:x1 1CHAIN-CONSEC refs=['C_top_fine_s3', 'C_top_fine_s4'] px=1020.5 mapped_mm=8730.0 chain_values={'C_top_fine:boundary3': Decimal('8730')} primary_indices=[3]
+  O02:x0 1CHAIN-CONSEC refs=['C_bot_fine_s2', 'C_bot_fine_s3'] px=1013.5 mapped_mm=8640.0 chain_values={'C_bot_fine:boundary2': Decimal('8640')} primary_indices=[]
+  O02:x1 1CHAIN-CONSEC refs=['C_bot_fine_s3', 'C_bot_fine_s4'] px=1309.0 mapped_mm=12640.0 chain_values={'C_bot_fine:boundary3': Decimal('12640')} primary_indices=[]
+  O03:x0 1CHAIN-CONSEC refs=['C_top_fine_s4', 'C_top_fine_s5'] px=1073.5 mapped_mm=9450.0 chain_values={'C_top_fine:boundary4': Decimal('9450')} primary_indices=[4]
+  O03:x1 1CHAIN-CONSEC refs=['C_top_fine_s5', 'C_top_fine_s6'] px=1206.5 mapped_mm=11250.0 chain_values={'C_top_fine:boundary5': Decimal('11250')} primary_indices=[5]
+  O04:x0 1CHAIN-CONSEC refs=['C_bot_fine_s4', 'C_bot_fine_s5'] px=1362.5 mapped_mm=13360.0 chain_values={'C_bot_fine:boundary4': Decimal('13360')} primary_indices=[]
+  O04:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1657.5 mapped_mm=17360.0 chain_values={'C_bot_fine:boundary5': Decimal('17360')} primary_indices=[]
+  O05:x0 1CHAIN-CONSEC refs=['C_top_fine_s6', 'C_top_fine_s7'] px=1464.5 mapped_mm=14750.0 chain_values={'C_top_fine:boundary6': Decimal('14750')} primary_indices=[6]
+  O05:x1 1CHAIN-CONSEC refs=['C_top_fine_s7', 'C_top_fine_s8'] px=1597.5 mapped_mm=16550.0 chain_values={'C_top_fine:boundary7': Decimal('16550')} primary_indices=[7]
+  O06:x0 1CHAIN-CONSEC refs=['C_top_fine_s8', 'C_top_fine_s9'] px=1650.5 mapped_mm=17270.0 chain_values={'C_top_fine:boundary8': Decimal('17270')} primary_indices=[8]
+  O06:x1 1CHAIN-CONSEC refs=['C_top_fine_s9', 'C_top_fine_s10'] px=1783.5 mapped_mm=19070.0 chain_values={'C_top_fine:boundary9': Decimal('19070')} primary_indices=[9]
+  O07:x0 1CHAIN-CONSEC refs=['C_top_fine_s10', 'C_top_fine_s11'] px=1948.0 mapped_mm=21300.0 chain_values={'C_top_fine:boundary10': Decimal('21300')} primary_indices=[10]
+  O07:x1 1CHAIN-CONSEC refs=['C_top_fine_s11', 'C_top_fine_s12'] px=2081.0 mapped_mm=23100.0 chain_values={'C_top_fine:boundary11': Decimal('23100')} primary_indices=[11]
+SUMMARY south edges=14 {'1CHAIN-CONSEC': 14}
+FACE east primary=C_bot_fine closure=0.0
+  O01:x0 ALL_S1 refs=['C_top_overall_s1', 'C_top_mid_s1', 'C_bot_fine_s1', 'C_bot_mid_s1', 'C_bot_overall_s1'] px=312.5 mapped_mm=0.0 chain_values={} primary_indices=[0]
+  O01:x1 ALL_S1 refs=['C_top_overall_s1', 'C_top_mid_s1', 'C_bot_fine_s1', 'C_bot_mid_s1', 'C_bot_overall_s1'] px=312.5 mapped_mm=0.0 chain_values={} primary_indices=[0]
+  O02:x0 1CHAIN-CONSEC refs=['C_bot_fine_s2', 'C_bot_fine_s3'] px=809.5 mapped_mm=6740.0 chain_values={'C_bot_fine:boundary2': Decimal('6740')} primary_indices=[2]
+  O02:x1 1CHAIN-CONSEC refs=['C_bot_fine_s3', 'C_bot_fine_s4'] px=875.5 mapped_mm=7640.0 chain_values={'C_bot_fine:boundary3': Decimal('7640')} primary_indices=[3]
+  O03:x0 1CHAIN-CONSEC refs=['C_bot_fine_s2', 'C_bot_fine_s3'] px=809.5 mapped_mm=6740.0 chain_values={'C_bot_fine:boundary2': Decimal('6740')} primary_indices=[2]
+  O03:x1 1CHAIN-CONSEC refs=['C_bot_fine_s3', 'C_bot_fine_s4'] px=875.5 mapped_mm=7640.0 chain_values={'C_bot_fine:boundary3': Decimal('7640')} primary_indices=[3]
+  O04:x0 1CHAIN-CONSEC refs=['C_bot_fine_s4', 'C_bot_fine_s5'] px=956.5 mapped_mm=8740.0 chain_values={'C_bot_fine:boundary4': Decimal('8740')} primary_indices=[4]
+  O04:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1023.0 mapped_mm=9640.0 chain_values={'C_bot_fine:boundary5': Decimal('9640')} primary_indices=[5]
+  O05:x0 1CHAIN-CONSEC refs=['C_bot_fine_s4', 'C_bot_fine_s5'] px=956.5 mapped_mm=8740.0 chain_values={'C_bot_fine:boundary4': Decimal('8740')} primary_indices=[4]
+  O05:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1023.0 mapped_mm=9640.0 chain_values={'C_bot_fine:boundary5': Decimal('9640')} primary_indices=[5]
+  O06:x0 1CHAIN-CONSEC refs=['C_bot_fine_s6', 'C_bot_fine_s7'] px=1076.5 mapped_mm=10360.0 chain_values={'C_bot_fine:boundary6': Decimal('10360')} primary_indices=[6]
+  O06:x1 1CHAIN-CONSEC refs=['C_bot_fine_s7', 'C_bot_fine_s8'] px=1142.5 mapped_mm=11260.0 chain_values={'C_bot_fine:boundary7': Decimal('11260')} primary_indices=[7]
+  O07:x0 1CHAIN-CONSEC refs=['C_bot_fine_s6', 'C_bot_fine_s7'] px=1076.5 mapped_mm=10360.0 chain_values={'C_bot_fine:boundary6': Decimal('10360')} primary_indices=[6]
+  O07:x1 1CHAIN-CONSEC refs=['C_bot_fine_s7', 'C_bot_fine_s8'] px=1142.5 mapped_mm=11260.0 chain_values={'C_bot_fine:boundary7': Decimal('11260')} primary_indices=[7]
+  O08:x0 1CHAIN-CONSEC refs=['C_bot_fine_s8', 'C_bot_fine_s9'] px=1251.5 mapped_mm=12740.0 chain_values={'C_bot_fine:boundary8': Decimal('12740')} primary_indices=[8]
+  O08:x1 1CHAIN-CONSEC refs=['C_bot_fine_s9', 'C_bot_fine_s10'] px=1318.0 mapped_mm=13640.0 chain_values={'C_bot_fine:boundary9': Decimal('13640')} primary_indices=[9]
+  O09:x0 1CHAIN-CONSEC refs=['C_bot_fine_s8', 'C_bot_fine_s9'] px=1251.5 mapped_mm=12740.0 chain_values={'C_bot_fine:boundary8': Decimal('12740')} primary_indices=[8]
+  O09:x1 1CHAIN-CONSEC refs=['C_bot_fine_s9', 'C_bot_fine_s10'] px=1318.0 mapped_mm=13640.0 chain_values={'C_bot_fine:boundary9': Decimal('13640')} primary_indices=[9]
+  O10:x0 1CHAIN-CONSEC refs=['C_bot_fine_s10', 'C_bot_fine_s11'] px=1371.0 mapped_mm=14360.0 chain_values={'C_bot_fine:boundary10': Decimal('14360')} primary_indices=[10]
+  O10:x1 1CHAIN-CONSEC refs=['C_bot_fine_s11', 'C_bot_fine_s12'] px=1437.5 mapped_mm=15260.0 chain_values={'C_bot_fine:boundary11': Decimal('15260')} primary_indices=[11]
+  O11:x0 1CHAIN-CONSEC refs=['C_bot_fine_s10', 'C_bot_fine_s11'] px=1371.0 mapped_mm=14360.0 chain_values={'C_bot_fine:boundary10': Decimal('14360')} primary_indices=[10]
+  O11:x1 1CHAIN-CONSEC refs=['C_bot_fine_s11', 'C_bot_fine_s12'] px=1437.5 mapped_mm=15260.0 chain_values={'C_bot_fine:boundary11': Decimal('15260')} primary_indices=[11]
+  O12:x0 1CHAIN-CONSEC refs=['C_bot_fine_s12', 'C_bot_fine_s13'] px=1546.5 mapped_mm=16740.0 chain_values={'C_bot_fine:boundary12': Decimal('16740')} primary_indices=[12]
+  O12:x1 1CHAIN-CONSEC refs=['C_bot_fine_s13', 'C_bot_fine_s14'] px=1612.5 mapped_mm=17640.0 chain_values={'C_bot_fine:boundary13': Decimal('17640')} primary_indices=[13]
+  O13:x0 1CHAIN-CONSEC refs=['C_bot_fine_s14', 'C_bot_fine_s15'] px=1666.0 mapped_mm=18360.0 chain_values={'C_bot_fine:boundary14': Decimal('18360')} primary_indices=[14]
+  O13:x1 1CHAIN-CONSEC refs=['C_bot_fine_s15', 'C_bot_fine_s16'] px=1732.5 mapped_mm=19260.0 chain_values={'C_bot_fine:boundary15': Decimal('19260')} primary_indices=[15]
+SUMMARY east edges=26 {'ALL_S1': 2, '1CHAIN-CONSEC': 24}
+FACE north primary=C_bot_fine closure=0.0
+  O01:x0 MULTI refs=['C_top_fine_s1', 'C_top_fine_s2', 'C_bot_fine_s1', 'C_bot_fine_s2'] px=566.0 mapped_mm=1700.0 chain_values={'C_top_fine:boundary1': Decimal('1700'), 'C_bot_fine:boundary1': Decimal('1700')} primary_indices=[1]
+  O01:x1 MULTI refs=['C_top_fine_s2', 'C_top_fine_s3', 'C_bot_fine_s2', 'C_bot_fine_s3'] px=1156.0 mapped_mm=9700.0 chain_values={'C_top_fine:boundary2': Decimal('9700'), 'C_bot_fine:boundary2': Decimal('9700')} primary_indices=[2]
+  O02:x0 MULTI refs=['C_top_fine_s1', 'C_top_fine_s2', 'C_bot_fine_s1', 'C_bot_fine_s2'] px=566.0 mapped_mm=1700.0 chain_values={'C_top_fine:boundary1': Decimal('1700'), 'C_bot_fine:boundary1': Decimal('1700')} primary_indices=[1]
+  O02:x1 MULTI refs=['C_top_fine_s2', 'C_top_fine_s3', 'C_bot_fine_s2', 'C_bot_fine_s3'] px=1156.0 mapped_mm=9700.0 chain_values={'C_top_fine:boundary2': Decimal('9700'), 'C_bot_fine:boundary2': Decimal('9700')} primary_indices=[2]
+  O03:x0 MULTI refs=['C_top_fine_s4', 'C_top_fine_s5', 'C_bot_fine_s4', 'C_bot_fine_s5'] px=1480.5 mapped_mm=14100.0 chain_values={'C_top_fine:boundary4': Decimal('14100'), 'C_bot_fine:boundary4': Decimal('14100')} primary_indices=[4]
+  O03:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1525.0 mapped_mm=14700.0 chain_values={'C_bot_fine:boundary5': Decimal('14700')} primary_indices=[5]
+  O04:x0 MULTI refs=['C_top_fine_s4', 'C_top_fine_s5', 'C_bot_fine_s4', 'C_bot_fine_s5'] px=1480.5 mapped_mm=14100.0 chain_values={'C_top_fine:boundary4': Decimal('14100'), 'C_bot_fine:boundary4': Decimal('14100')} primary_indices=[4]
+  O04:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1525.0 mapped_mm=14700.0 chain_values={'C_bot_fine:boundary5': Decimal('14700')} primary_indices=[5]
+  O05:x0 MULTI refs=['C_top_fine_s6', 'C_top_fine_s7', 'C_bot_fine_s6', 'C_bot_fine_s7'] px=1712.5 mapped_mm=17240.0 chain_values={'C_top_fine:boundary6': Decimal('17240'), 'C_bot_fine:boundary6': Decimal('17240')} primary_indices=[6]
+  O05:x1 MULTI refs=['C_top_fine_s7', 'C_top_fine_s8', 'C_bot_fine_s7', 'C_bot_fine_s8'] px=1889.5 mapped_mm=19640.0 chain_values={'C_top_fine:boundary7': Decimal('19640'), 'C_bot_fine:boundary7': Decimal('19640')} primary_indices=[7]
+  O06:x0 MULTI refs=['C_top_fine_s6', 'C_top_fine_s7', 'C_bot_fine_s6', 'C_bot_fine_s7'] px=1712.5 mapped_mm=17240.0 chain_values={'C_top_fine:boundary6': Decimal('17240'), 'C_bot_fine:boundary6': Decimal('17240')} primary_indices=[6]
+  O06:x1 MULTI refs=['C_top_fine_s7', 'C_top_fine_s8', 'C_bot_fine_s7', 'C_bot_fine_s8'] px=1889.5 mapped_mm=19640.0 chain_values={'C_top_fine:boundary7': Decimal('19640'), 'C_bot_fine:boundary7': Decimal('19640')} primary_indices=[7]
+  O07:x0 MULTI refs=['C_top_fine_s8', 'C_top_fine_s9', 'C_bot_fine_s8', 'C_bot_fine_s9'] px=1942.5 mapped_mm=20360.0 chain_values={'C_top_fine:boundary8': Decimal('20360'), 'C_bot_fine:boundary8': Decimal('20360')} primary_indices=[8]
+  O07:x1 MULTI refs=['C_top_fine_s9', 'C_top_fine_s10', 'C_bot_fine_s9', 'C_bot_fine_s10'] px=2119.5 mapped_mm=22760.0 chain_values={'C_top_fine:boundary9': Decimal('22760'), 'C_bot_fine:boundary9': Decimal('22760')} primary_indices=[9]
+  O08:x0 MULTI refs=['C_top_fine_s8', 'C_top_fine_s9', 'C_bot_fine_s8', 'C_bot_fine_s9'] px=1942.5 mapped_mm=20360.0 chain_values={'C_top_fine:boundary8': Decimal('20360'), 'C_bot_fine:boundary8': Decimal('20360')} primary_indices=[8]
+  O08:x1 MULTI refs=['C_top_fine_s9', 'C_top_fine_s10', 'C_bot_fine_s9', 'C_bot_fine_s10'] px=2119.5 mapped_mm=22760.0 chain_values={'C_top_fine:boundary9': Decimal('22760'), 'C_bot_fine:boundary9': Decimal('22760')} primary_indices=[9]
+SUMMARY north edges=16 {'MULTI': 14, '1CHAIN-CONSEC': 2}
+FACE west primary=C_bot_fine closure=0.0
+  O01:x0 1CHAIN-CONSEC refs=['C_bot_fine_s1', 'C_bot_fine_s2'] px=865.5 mapped_mm=4660.0 chain_values={'C_bot_fine:boundary1': Decimal('4660')} primary_indices=[1]
+  O01:x1 1CHAIN-CONSEC refs=['C_bot_fine_s2', 'C_bot_fine_s3'] px=924.5 mapped_mm=5460.0 chain_values={'C_bot_fine:boundary2': Decimal('5460')} primary_indices=[2]
+  O02:x0 MULTI refs=['C_top_fine_s2', 'C_top_fine_s3', 'C_bot_fine_s4', 'C_bot_fine_s5'] px=1100.5 mapped_mm=7840.0 chain_values={'C_top_fine:boundary2': Decimal('7840'), 'C_bot_fine:boundary4': Decimal('7840')} primary_indices=[4]
+  O02:x1 MULTI refs=['C_top_fine_s3', 'C_top_fine_s4', 'C_bot_fine_s7', 'C_bot_fine_s8'] px=1419.5 mapped_mm=12160.0 chain_values={'C_top_fine:boundary3': Decimal('12160'), 'C_bot_fine:boundary7': Decimal('12160')} primary_indices=[7]
+  O03:x0 MULTI refs=['C_top_fine_s2', 'C_top_fine_s3', 'C_bot_fine_s4', 'C_bot_fine_s5'] px=1100.5 mapped_mm=7840.0 chain_values={'C_top_fine:boundary2': Decimal('7840'), 'C_bot_fine:boundary4': Decimal('7840')} primary_indices=[4]
+  O03:x1 1CHAIN-CONSEC refs=['C_bot_fine_s5', 'C_bot_fine_s6'] px=1233.5 mapped_mm=9640.0 chain_values={'C_bot_fine:boundary5': Decimal('9640')} primary_indices=[5]
+  O04:x0 1CHAIN-CONSEC refs=['C_bot_fine_s6', 'C_bot_fine_s7'] px=1286.5 mapped_mm=10360.0 chain_values={'C_bot_fine:boundary6': Decimal('10360')} primary_indices=[6]
+  O04:x1 MULTI refs=['C_top_fine_s3', 'C_top_fine_s4', 'C_bot_fine_s7', 'C_bot_fine_s8'] px=1419.5 mapped_mm=12160.0 chain_values={'C_top_fine:boundary3': Decimal('12160'), 'C_bot_fine:boundary7': Decimal('12160')} primary_indices=[7]
+  O05:x0 1CHAIN-CONSEC refs=['C_top_fine_s4', 'C_top_fine_s5'] px=1595.5 mapped_mm=14540.0 chain_values={'C_top_fine:boundary4': Decimal('14540')} primary_indices=[]
+  O05:x1 1CHAIN-CONSEC refs=['C_top_fine_s5', 'C_top_fine_s6'] px=1683.5 mapped_mm=15740.0 chain_values={'C_top_fine:boundary5': Decimal('15740')} primary_indices=[]
+  O06:x0 1CHAIN-CONSEC refs=['C_bot_fine_s8', 'C_bot_fine_s9'] px=1621.5 mapped_mm=14900.0 chain_values={'C_bot_fine:boundary8': Decimal('14900')} primary_indices=[8]
+  O06:x1 1CHAIN-CONSEC refs=['C_bot_fine_s9', 'C_bot_fine_s10'] px=1681.0 mapped_mm=15700.0 chain_values={'C_bot_fine:boundary9': Decimal('15700')} primary_indices=[9]
+SUMMARY west edges=12 {'1CHAIN-CONSEC': 8, 'MULTI': 4}
+TOTAL edges=68 signatures={'1CHAIN-CONSEC': 48, 'ALL_S1': 2, 'MULTI': 18} MULTI_agreement={'total': 18, 'numeric_equal_to_map': 18, 'same_symbol': 0}
+LITERAL_D5_COUNTS auto_one=66 auto_two=2 model=0 auto_total=68
+[exit 0]
+```
+
+## E15 unchanged prior counterexamples
+
+```sh
+python3 AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/probe.py counterexamples
+```
+
+```text
+ACTUAL_NEAREST_SOURCE AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/as_drawn_elev.py:63
+NEAREST_COUNTEREXAMPLE unlabelled_second_segment_lo px=800.0 nearest=1000.0 distance_px=200.0 signature=OTHER D5=model value_mm=12000
+NEAREST_COUNTEREXAMPLE unlabelled_second_segment_hi px=950.0 nearest=1000.0 distance_px=50.0 signature=OTHER D5=model value_mm=12000
+NEAREST_COUNTEREXAMPLE chain_origin_edge px=0.0 nearest=0.0 distance_px=0.0 signature=ALL_S1 D5=auto_two value_mm=0
+NEAREST_COUNTEREXAMPLE ordinary_interior_nearest px=700.0 nearest=500.0 distance_px=200.0 signature=1CHAIN-CONSEC D5=auto_one value_mm=6000
+UNLABELLED_MIDDLE_INTERVAL raw_px=[620,870] picked_px=[500.0, 1000.0] signatures=['1CHAIN-CONSEC', '1CHAIN-CONSEC'] D4_order_pass=True
+UPSTREAM_HIDDEN_MIDPOINT_PX 750.0
+RASTER_COLLISION refs=['C_A_s1', 'C_A_s2', 'C_B_s1', 'C_B_s2'] signature=MULTI flattened={'400.0': 4900} true_boundaries=[4700, 4900]
+DERIVED_SIGN opening_inside_two_wall_faces axis_lo_mm=4000 axis_hi_mm=8000 wall_mm=200 expected_mm=[4100,7900] D4_lo_minus_hi_plus_mm=[3900,8100]
+OPERAND_TIER axis_mm=4200 half_wall_mm=115 wall_tier=pixel_only refs_resolve=True roles_complete=True certificate_units=40850 D4_checks=True evidence_tier_gate=UNSPECIFIED
+NEGATIVE_DIFF lo=(900-1300)=-400 hi=(1400-1300)=100 refs_resolve=True recompute=True interval_order=True interval_width=500 coordinate_frame_gate=UNSPECIFIED
+DUPLICATE_VALUE chains=A:[0,4200,10000],B:[0,4200,10000] exact_value_equal=True identity_equal=False D4_ref_choice=UNSPECIFIED_BY_VALUE D5_equivalence=UNSPECIFIED_WITHOUT_CHAIN_BINDING
+PLAN_ONLY_2b elevation_row=None evidence_ref_to_D2a=UNAVAILABLE pixel_fallback_also_requires_elevation_ref named_rejection=NOT_SPECIFIED
+PLAN_ONLY_3 elevation_artifact=None evidence_ref_to_D2a=UNAVAILABLE inferred_provenance=NOT_IN_auto_or_model named_rejection=NOT_SPECIFIED
+SEAL_SCOPE first_step_runs=A,B authentic_elements=True same_edge_id=True selected_run_manifest_binding=NOT_SPECIFIED does_not_claim_runtime_bypass=True
+[exit 0]
+```
+
+## E16 unchanged prior arithmetic
+
+```sh
+python3 AI_agent/logs/experiments/2026-09-05e_tick_claim_crossreview_gpt/probe.py arithmetic
+```
+
+```text
+IMPORTED /tmp/tickrw2_review_gpt/src/agent/correction/evidence_adapters.py /tmp/tickrw2_review_gpt/src/agent/correction/opening_synthesis.py
+INTERIOR_CUM_CHANGED require_chain_closed=PASS lo_mm= 7000.0 hi_mm= 8730.0 width_mm= 1730.0 declared_segment_mm= 1800.0
+DUPLICATE_NODE_VALUE require_chain_closed=PASS cum_indices_1_2= [5000.0, 5000.0]
+GRID_6925 69250
+GRID_NEGATIVE_400 -4000
+NESTED_POINTER_ASSIGNMENT /calibration/x/cum_mm/2 -> /calibration/x/cum_mm/3 model_config= {'extra': 'forbid', 'strict': True}
+[exit 0]
+```
