@@ -261,4 +261,115 @@ TickItemDecisionV1:                          # 与既有 ItemDecisionV1（:208�
 1. **铁律**：`TickClaimResponseV1` 的字段树**构造不出数字**（`_CFG` = `extra="forbid"` + 无数值字段 + 动作是封闭域），与既有响应侧的「无坐标」结构证明同款（可加一条 walk-the-tree 测试，⛔ 本稿不写实现）。
 2. **阶段隔离（B-5#3）**：第一步在**类型层**就没有 `whole_building_review` 这条路 —— ⛔ 不是「填 accept」的纪律，是**结构上填不了**。第二步的响应仍用 `CorrectionDecisionResponseV1`（它带 review）。两步响应类型**判别分开**。
 
+## D4 · 零阈值判据（⛔ 不许「差多少毫米算够近」；闭合 B-2）
+
+⭐ 相比上一稿，本节把判据从「结果 ∈ cum 集合」改成**两道分离的精确检查 + 区间级不变量 + chain_derived 精确重算**，并**列全失效条件**。
+
+### D4-a 判据表述（两道**分离**的精确检查，⛔ 不许用「即」混成一件事，闭合 N-2）
+
+一档认领合法 ⟺ **同时**满足下面两道**各自独立**的精确检查（⛔ 无 epsilon、⛔ 无毫米阈值）：
+
+- **检查① · 引用存在且角色闭合**：claim 的 `tier_one_value` 引用的每个 ref（`node_ref` 或 `operands[*].ref`）**都能在冻结字节里解析到**，且角色齐备（`chain_node` 要 1 个节点 ref；`axis_plus_half_wall` 要 `axis` + `half_wall_thickness` 各 1；`segment_span_diff/sum` 要 `cum_lo` + `cum_hi` 或一组 `segment_len`）。
+- **检查② · 运算精确可复算**：代码在**声明的 0.1 mm 整数域**（`grid_units_from_mm`，`opening_synthesis.py:174`，round-trip 相等强制，`:180`）按 `value_source` 指定的**封闭运算**对 operands 重算：
+  - `chain_node`：结果 = `grid_units_from_mm(node_ref 指的 cum 值)`。
+  - `axis_plus_half_wall`：结果 = `axis_units ± half_wall_units`（符号由边角色 lo/hi 定）。
+  - `segment_span_diff`：结果 = `cum_hi_units − cum_lo_units`。
+  - `segment_span_sum`：结果 = `Σ segment_len_units`。
+  重算结果**必精确 == `recompute_cert_units`**（整数比较，零 epsilon）。
+
+⭐ **关键分辨（N-2）**：`grid_units_from_mm` 只证明「值落在 0.1 mm 存储格点上」（实测 `grid_units_from_mm(6925)=69250` 正常返回，而 `6925` **不在** East `cum_mm`）—— 它**不**证明值属于某链集合。所以检查①（引用+角色）与检查②（运算重算）**是两件事**，⛔ 不能用「即」连接、⛔ 不能只用存储格点成员冒充链成员。此外「合法区间宽度必是图纸整数」只是**当前样本现象、不是定理**（0.1 mm 表示本就允许小数毫米）；真正能证的是「宽度精确等于被引用尺寸段的整数域求和」。
+
+**判分怎么写（零阈值）**：判据**不问「边离刻度多近」** —— 像素读数（6921.9）根本不进判据；进判据的是**认领结果**（节点 ref / 派生运算），它要么精确可复算要么红。**没有任何毫米阈值**。
+
+### D4-b 成立性正面论证（含 B-2 承认成立的窄子域）
+
+- **拒伪造**：任何「编出来、链上算不出」的 x 当场红（`chain_node` 填 `6925` ⇒ `6925` 不是 cum 成员 ⇒ 检查①失败；`chain_derived` 填错运算 ⇒ 检查②重算对不上 `recompute_cert`）。这是零阈值给的**真保证**。
+- **窄子域的恒等式成立**（GPT B-2 承认的部分）：若 `lo`/`hi` 都认到**同一条干净链**的两个精确前缀和节点 `cum[i]`/`cum[j]` 且 `i<j`，则 `cum[j]−cum[i] = Σ values[i:j]`，整数域精确、零 epsilon。抽查已证：South `8730−6930 = 1800 = values_mm[2]`。
+- **`chain_derived` 兑现权威口径**：`axis_plus_half_wall` 让 `2880/3120` 这类**非节点但链派生**的值合法（B-1），判据放行它靠的是「运算精确可复算」而非「结果 ∈ cum」。
+
+### D4-c ⭐ 失效条件（验收 #3 硬要求：它在什么输入下判错；闭合 B-2）
+
+零阈值判据是**必要非充分**。GPT 补出三类我上一稿漏掉的失效，逐一收进不变量：
+
+1. **同节点塌缩**：`lo` 与 `hi` 都认领同一个节点（如都认 0）⇒ 逐边检查全绿，但**洞口宽度为 0**。⇒ **区间级不变量**（D2-b）强制 `lo` 与 `hi` **非零宽**（`hi_units > lo_units`），跨两条边查，逐边判据看不见。
+2. **反向节点**：`lo` 认 6000、`hi` 认 0 ⇒ 两边分别通过成员检查，但**结果反向**。⇒ 区间级不变量强制 `lo_units < hi_units`（严格有序）。
+3. **合法链派生边被误判红（false negative）**：上一稿「结果必 ∈ cum 集合」会把 `2880`（`axis±半墙厚`）判红。⇒ D4-a 检查②的判据是「**运算精确可复算**」而非「结果在 cum」，放行 chain_derived。
+4. **认对「是个刻度」、认错「是哪个刻度」——判据看不见**：两个相邻节点很近，一条边指认到 A 或 B **都通过判据**。⇒ 区分「哪个刻度」是**指认**问题，归 D5 的**结构分流 + 模型**，⛔ D4 不兼职。
+5. **链本身不闭合/被污染——判据地基塌了**：判据把 `cum_mm` 当权威合法集。前置门必须复用 `_require_chain_closed`（`evidence_adapters.py:564`，在 `:662` 调用；抽查 South/East `chain_closure_mm=0.0`）。这是判据的**前提**，不是判据能兜的。
+
+**区间级不变量（D2-b 承诺、这里给全，闭合 B-2）**：一条洞口的 `lo`/`hi` 两条 claim 必须
+① **同源**（两条边的证据档 `input_id` 同一条立面链）· ② **角色互异**（一个 lo、一个 hi）· ③ **严格有序**（`lo_units < hi_units`）· ④ **非零宽** · ⑤ 若为 `chain_derived` 则各自**重算精确**。⇒ 失效 1/2 被 ③④ 挡、失效 3 被 D4-a② 放行、失效 4 交 D5、失效 5 交前置门。
+
+⇒ **零阈值做得到**（拒伪造 + 运算精确，均无毫米数），**但只覆盖「值是否为真链派生」这一问**；「是否该认、认哪个」由 D5 + 模型承担。**不触发 §六 A 层②**（判据成立，失效边界写全）。
+
+---
+
+## D5 · 按需触发：什么时候才惊动模型（⛔ 结构谓词，不用中点/阈值；闭合 B-3）
+
+⭐ **上一稿用「相邻刻度中点划界」做自动分流 —— 那是把一个没人签字的判断（间距 1/2）挤到了别处**（GPT B-3 点名，且实测会把明确二档的 East `O01` 自动认成一档 `[0,0]`）。**本稿彻底换掉它**：分流只依赖 reading **已经提供**的**显式结构证据**，⛔ 无任何毫米/像素阈值。
+
+### D5-实测：reading 每条边已自带指认证据（全量重量 68 条 x 边）
+
+reading 立面产物 `openings[i].edge_witnesses.{x0,x1}` 每条边带：`dimension_refs`（链段名列表）· `nearest_tick_px` · `distance_mm`。`dimension_witnesses.x` 另给一张 `像素 → cum 值` 的**已解析刻度表**。我把四张立面 68 条 x 边全扫了一遍，**结构签名恰好三类**：
+
+| 签名 | 含义 | 出现 | 分流 |
+|---|---|---|---|
+| **1CHAIN-CONSEC** | `dimension_refs` = **同一条链的两个相邻段**（如 `C_top_fine_s2 + s3`）⇒ 共享边界 = **唯一一个 cum 内部节点** | South 全 14 边 · East 24/26 · West/North 多数 | **自动一档**（D5-a）|
+| **ALL_S1** | `dimension_refs` **全是 `_s1`**（多条链的开口段）⇒ 像素落在若干 6000/overall 段**内部**、无内部边界被引用 | **仅 East `O01` 两边**（d=535.8/2163.7mm）| **自动二档**（D5-a，`_s1` 证书）|
+| **MULTI** | `dimension_refs` 来自 ≥2 条链、共 4 段 ⇒ 需查它们是否**共同指认同一个内部节点** | North 全部 · West 部分 | **同一节点 ⇒ 自动一档；否则 ⇒ 惊动模型**（D5-b）|
+
+⭐ 实测：MULTI 的 North `O01` 两边 `nearest_tick_px` 经表映到 `1700 / 9700` ⇒ 宽 `8000`（正是派工方那条 `8039.0→8000`）。当前 fixture 里 MULTI 全部**共同指认同一节点** ⇒ 全自动一档；⚠️ **但「MULTI 一定同指」是数据巧合、⛔ 不是规则**（[[gate-teeth-direction-follows-fixture-inventory]]）—— 设计必须为「MULTI 指认分歧」留惊动模型的路，即使今天撞不上。
+
+```text
+# 全量重量命令（我自己跑过；三类签名的判定纯符号，⛔ 无毫米比较）
+python3 -c "... 扫 sm25_{south,east,north,west}_as_drawn.json 的 edge_witnesses 的 dimension_refs 链-段结构 ..."
+# 输出摘要：South 14/14=1CHAIN-CONSEC；East O01=ALL_S1 其余=1CHAIN-CONSEC；North 全 MULTI（均同指）；West 混合
+```
+
+### D5-a 自动认领（不惊动模型，走 `AutoActionV1`，`wall_compiler.py:318`）
+
+**结构谓词**（⛔ 无阈值 —— 每个分支都是**符号判断**：段相邻、节点相等、集合基数）：
+- **自动一档** ⟺ `nearest_tick_px` 经 `dimension_witnesses.x` 表解析到节点 N（**纯查表，无距离**），**且** N 被 `dimension_refs` **角色闭合**：存在某条链，其被引用的两个**相邻段**的共享边界 == N（1CHAIN-CONSEC 天然满足；MULTI 需两条链都指到**同一个** N）。⇒ 代码认成一档 `chain_node`（值 = N），记 `AutoActionV1`（带 `rule_id`，`:333` + 证据 ref），`provenance=auto`。
+- **自动二档** ⟺ `dimension_refs` **全是开口段**（`_s1`）、**无任何内部边界被引用**、`nearest_tick_px` 解析到链原点（ALL_S1 证书）⇒ 边**结构上落在某段内部、无刻度可认** ⇒ 代码认成二档 `pixel_only`，记 `AutoActionV1`，`provenance=auto`。
+
+### D5-b 惊动模型（进 `OpenItemV1` → D3）
+
+⟺ **既非自动一档、也非自动二档**，即 witness **不角色闭合**：
+- MULTI 的两条链**指认到不同节点**（真「哪个刻度」歧义）；
+- `nearest_tick_px` 解析的节点与 `dimension_refs` 角色闭合的节点**矛盾**；
+- refs 结构无法判定（残缺 / 角色不齐）。
+
+⇒ 代码把候选（相关 cum 节点 + 可能的派生运算）列进 `OpenItemV1`，模型 `select_candidate`（认某候选→一档）/ `reject_all`（→二档）/ `request_reperception`（重读）。`provenance=model`（带 packet+item+decision hash）。
+
+### D5-c ⭐ 为什么这是零阈值（对 B-3 的正面回答）
+
+- 三个分支的判据全是**符号谓词**：①「refs 是不是同链相邻段」= 段名字符串比较；②「两条链是否指同一 N」= 节点相等；③「refs 是否全 `_s1`」= 段索引集合。**没有一处是「距离 ≤ X mm/px」**。
+- `distance_mm`（6.8 / 535.8 / …）**只作为证据随 `OpenItem` 流给模型**，**永不进任何分支条件** —— 它是给模型看的上下文，不是门。
+- ⇒ 上一稿「中点 = 间距 1/2」这个隐含阈值**被删除**；本稿分流不含任何数值边界。**不触发「引入新阈值」**（验收 #4）。
+
+**省钱 + 少给模型乱动机会**：当前 fixture 66/68 自动（East `O01` 两边二档、其余全一档），模型每立面平均看 0–1 条边；且模型只能在**代码给定的候选**里选，⛔ 不能凭空移边。
+
+---
+
+## D6 · 两步之间的冻结：真封印类型（⛔ 不是纪律；闭合 B-4）
+
+**要守的性质**：第一步产出的 `OpeningEdgeTickClaimV1`（含 tier / tier_one_value / provenance）进第二步（跨图配对 / B4）后，第二步**只能选与取舍，⛔ 不能改认领的值/档位/来源**。
+
+⛔ **上一稿的三条（finalize+hash / validated carrier「无公开构造器」/ 无坐标字段）不足以成立**（GPT B-4 逐条驳）：
+1. `finalize_bundle`（`evidence_contract.py:760`）是**公开纯函数**、在 `__all__` 里；改 `tick_ref`/tier 后**重新 finalize** 就得到自洽新 hash。**hash 是完整性校验，不是授权封印。**
+2. 「`SealedTickClaimsV1` 无公开构造器」只是目标句 —— B2 返工 1/2 已证：`frozen=True` / 加下划线 / `__all__` 摘除 / 最外层 `isinstance` **都挡不住**公开构造器与鸭子元素（`2026-09-04w_B2_rework3.md` §③：「病根 = 构造能力公开 + Python 不强制注解元素类型」）。
+3. 「没有坐标字段」并未冻结决定 —— 第二步把 `tick_ref` 从 A 换到 B、或 `tier` 换成 `pixel_only`，就已改了第一步事实，**无需写浮点**。
+
+**⇒ 本稿的真封印（三条叠加，均为结构，复用 B2 返工 3 的最终范式，⛔ 不另造）**：
+
+1. **构造时出示模块私有令牌**（B2 返工 3 §出路(a) 原话）：`SealedTickClaimsV1` 的构造**必须持有一个从不导出、从不返回、不存在于任何实例上的模块私有 seal 令牌**；`__all__` 里没有它、没有工厂返回它。⇒ 第二步**无法凭空铸造**封印载体。
+2. **逐元素受封**（B2 返工 3 §出路(b)）：装配入口**不只查最外层类型**，还**逐个元素**核每条 `OpeningEdgeTickClaimV1` 确实来自封印通道 —— 且**元素类型本身也不可公开构造**（否则等于「加一句检查」，B2 返工 3 明警）。
+3. **第二步从冻结字节重建、不信载体携带值**（B2 返工 3 §出路(c)）：第二步入口**不直接消费**载体里的 `tier_one_value` 数值，而是**从每条 claim 的冻结 ref + 第一步裁决账重新解析**一遍 —— 载体只当「一份可复算的索引」，改了载体里的值也没用，因为第二步照 ref 重算。
+
+**正反例必须覆盖**（B2 裁决同款要求）：① 重 finalize 后替换 → 拒 · ② 替换某个元素 → 拒 · ③ 把某条边的 `tick_ref`/`tier` 从 A 换 B → 拒。第二步入口**只接受**该真封印类型，⛔ 不接受裸 `OpeningEdgeTickClaimV1` 列表。
+
+⭐ **三条里 #1+#2 是承重的**（构造能力结构性不可获得），#3 让「即便拿到载体也改不动事实」。**这与 B2 返工 3 正在解的是同一道题** ⇒ 见 D7：应**等 B2 返工 3 过审、按其最终封印范式复用**，⛔ 不各造一套、⛔ 不碰 `multifloor.py`。
+
+---
+
 ---
