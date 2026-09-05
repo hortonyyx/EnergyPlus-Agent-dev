@@ -102,3 +102,30 @@ def test_pair_identity_not_reused_and_whole_review_pending_not_scoreable():
     assert_code('PAIR_IDENTITY_REUSED', lambda: review.submit(r.model_copy(update={'choices': (r.choices[0], same) + r.choices[2:]})))
     result = review.submit(r.model_copy(update={'whole_building_review': 'register'}))
     assert review.scoreable_openings(result.result_id) == ()
+
+
+def test_mutable_caller_inputs_cannot_change_frozen_choices_or_manifest():
+    from src.agent.correction.tick_claim import Expression, OperandRef, digest
+    raw, sup = fixture()
+    operands = [OperandRef(digest(raw), 'P', 'segment', 0)]
+    expr = Expression('anchored_sum', OperandRef(digest(raw), 'P', 'node', 0), operands)
+    source_buffer, supplement_buffer = bytearray(raw), bytearray(sup)
+    s = TickSession(source_buffer, image_id='mutable', supplement=supplement_buffer,
+                    expressions=(('O:x0', expr),))
+    candidate = next(c for c in s.packet.edges[0].candidates if c.expression.operation == 'anchored_sum')
+    operands.append(OperandRef(digest(raw), 'P', 'segment', 1))
+    source_buffer.clear()
+    supplement_buffer.clear()
+    batch = s.submit(response(s, {'O:x0': candidate.candidate_id}))
+    assert s.consume(batch.batch_id)[0].value_u == candidate.value_u == 16000
+    p, pb, e, eb, bindings, facades, walls = review_fixture()
+    mutable_facades, mutable_bindings = list(facades), list(bindings)
+    r = OpeningReview(plan=p, expected_plan_batch_id=pb.batch_id, bindings=mutable_bindings,
+                      facades=mutable_facades, walls=walls)
+    with pytest.raises(AttributeError):
+        r.packet = replace(r.packet, record=b'{}')
+    mutable_bindings.clear()
+    result = r.submit(spatial_response(r))
+    mutable_facades.clear()
+    e.reconsider('source invalidated')
+    assert_code('TICK_BATCH_INVALIDATED', lambda: r.consume(result.result_id))

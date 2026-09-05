@@ -140,7 +140,9 @@ class OpeningReview:
     def __init__(self, *, plan: TickSession, expected_plan_batch_id: str,
                  bindings: tuple[PlanBinding, ...], facades: tuple[FacadeInput, ...],
                  walls: tuple[CutLineV1, ...]):
-        if type(plan) is not TickSession or any(type(f) is not FacadeInput for f in facades):
+        bindings, facades, walls = tuple(bindings), tuple(facades), tuple(walls)
+        if (type(plan) is not TickSession or any(type(f) is not FacadeInput for f in facades)
+                or any(type(b) is not PlanBinding for b in bindings)):
             raise TickClaimError("TICK_SESSION_REQUIRED")
         plan_doc = json.loads(plan.packet.source_bytes)
         if plan_doc["schema"] != "as_drawn_plan_v0":
@@ -162,10 +164,10 @@ class OpeningReview:
         self._plans = {}
         for binding in bindings:
             oid = binding.opening_id
-            if binding.family not in FAMILIES or not binding.room_id or binding.wall_id not in wall_index:
+            if binding.family not in FAMILIES or type(binding.room_id) is not str or not binding.room_id or binding.wall_id not in wall_index:
                 raise TickClaimError("PLAN_TOPOLOGY_INVALID", oid)
             wall = wall_index[binding.wall_id]
-            if (binding.line.origin_id != oid or binding.line.kind != "opening" or
+            if (type(binding.line) is not CutLineV1 or binding.line.origin_id != oid or binding.line.kind != "opening" or
                     binding.line.axis != facts[f"{oid}:lo"].axis or
                     binding.line.axis != world_axis(binding.family) or
                     type(binding.floor_origin_u) is not int or
@@ -222,7 +224,11 @@ class OpeningReview:
                        openings=[dict(family=k[0], opening_id=k[1], span_u=v[0], z_u=v[1])
                                  for k, v in sorted(self._elevations.items())], exact=self._exact)
         record = freeze(payload)
-        self.packet = SpatialPacket(digest(record), record)
+        self._packet = SpatialPacket(digest(record), record)
+
+    @property
+    def packet(self) -> SpatialPacket:
+        return self._packet
 
     def _check_current(self):
         self._plan.consume(self._plan_batch)

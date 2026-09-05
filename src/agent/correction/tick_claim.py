@@ -80,6 +80,10 @@ class Expression:
     direction: Literal["positive", "negative"] = "positive"
     thickness_kind: Literal["full", "half"] | None = None
 
+    def __post_init__(self):
+        # Own the sequence even when ordinary callers supply a mutable list.
+        object.__setattr__(self, "operands", tuple(self.operands))
+
 
 @dataclass(frozen=True)
 class Candidate:
@@ -327,6 +331,8 @@ def _raw_edges(doc: dict):
 def build_packet(raw: bytes, *, image_id: str, generation: int,
                  supplement: bytes | None = None,
                  expressions: tuple[tuple[str, Expression], ...] = ()) -> TickPacket:
+    raw = bytes(raw)
+    supplement = bytes(supplement) if supplement is not None else None
     chains = _chain_records(raw, supplement)
     source_sha = digest(raw)
     edges = []
