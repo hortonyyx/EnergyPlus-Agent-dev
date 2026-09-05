@@ -490,6 +490,18 @@ class ChannelStatusV1(BaseModel):
         return self
 
 
+#: (dispatch 2026-09-04e, T4-a T1) The CLOSED obligation domain: every value
+#: is a downstream obligation a debt may carry -- the promise that a named
+#: handler exists and must redeem it.  The domain is exactly what today's
+#: producers mint (ONE value: the B4 span-equality obligation), ⛔ no slots
+#: for values nobody mints.  The value is the premise constant
+#: ``ELEVATION_CHAIN_SPANS_WHOLE_BUILDING`` (defined in ``evidence_adapters``
+#: -- this module cannot import it there, so it is spelled out here in
+#: lower-case snake form, same name): B4's redemption registry keys its rows
+#: by this domain and checks the two sides cover each other at import.
+DebtObligationV1 = Literal["elevation_chain_spans_whole_building"]
+
+
 class EvidenceDebtV1(BaseModel):
     """A structured, named known-missing (design §3.3).  Whether a profile may
     continue past it is module 3+/pipeline policy, ⛔ not this type's call.
@@ -513,6 +525,18 @@ class EvidenceDebtV1(BaseModel):
     channel: ChannelName | None = None
     affected_refs: tuple[ArtifactPointerV1, ...] = ()
     description: str
+    #: (dispatch 2026-09-04e, T4-a T1/T2) REQUIRED on every mint: the debt's
+    #: downstream obligation, or ``None`` = no downstream obligation at all
+    #: (the honest shape of every non-span debt today).  A non-``None`` value
+    #: is a PROMISE that a handler redeems it: the handler side (B4's
+    #: ``DEBT_REDEMPTION_REGISTRY``) keys its rows by exactly this domain,
+    #: refuses a debt whose obligation has no row, loudly, and its
+    #: import-time teeth refuse a registry key outside this domain (or a
+    #: domain value with no registry row) -- so a value here cannot exist
+    #: unwired.  ⚠️ The field rides inside ``_sorted_bundle``'s dump, so a
+    #: freshly finalized bundle hash changes shape; that cost was measured
+    #: once, 0 red (execution report 2026-09-04b, T0).
+    obligation: DebtObligationV1 | None
 
 
 class OpeningClaimV1(BaseModel):
@@ -1989,6 +2013,7 @@ __all__ = [
     "CorrectionEvidenceBundleV1",
     "ElevationOpeningClaimV1",
     "EvidenceContractError",
+    "DebtObligationV1",
     "EvidenceDebtV1",
     "FaceDispositionV1",
     "FloorLevelClaimV1",

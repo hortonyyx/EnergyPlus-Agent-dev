@@ -237,13 +237,17 @@ def _source(input_id: str) -> osm.ElevationSourceIdentity:
     )
 
 
+#: (dispatch 2026-09-04e T3) the registry key the span debt is wired by:
+#: the debt's ``obligation`` value, ⛔ never its ``debt_id`` prefix.
+SPAN_OBLIGATION = "elevation_chain_spans_whole_building"
+
+
 def _south_executed() -> osm.ExecutedRedemption:
     """The redemption a healthy South run executes: the span registry row,
     against the South source instance."""
-    prefix = "debt_elevation_chain_span_unchecked_"
     return osm.ExecutedRedemption(
-        prefix=prefix,
-        row=DEBT_REDEMPTION_REGISTRY[prefix],
+        obligation=SPAN_OBLIGATION,
+        row=DEBT_REDEMPTION_REGISTRY[SPAN_OBLIGATION],
         source=_source("input_south"),
     )
 
@@ -253,12 +257,15 @@ def _debt(
     description: str,
     *,
     source: osm.ElevationSourceIdentity | None = None,
+    obligation: str | None = SPAN_OBLIGATION,
 ) -> EvidenceDebtV1:
     """A span-shaped debt.  With ``source`` it carries B3's REAL shape:
     one ``affected_ref`` naming exactly that source instance (B3 points it
     at ``/calibration`` -- the very node the gate reads).  ⛔ A debt
     without refs is the shape rework 1 refuses to retire: it names no
-    source, so no run may claim it."""
+    source, so no run may claim it.  ``obligation`` defaults to the span
+    obligation; pass ``None`` for the converse shape (a debt with no
+    downstream obligation at all)."""
     refs: tuple[ArtifactPointerV1, ...] = ()
     if source is not None:
         refs = (
@@ -274,6 +281,7 @@ def _debt(
         kind="other_known_missing",
         affected_refs=refs,
         description=description,
+        obligation=obligation,
     )
 
 
@@ -662,8 +670,9 @@ def test_debt_wiring_survives_removal_of_every_b4_word():
     DEFECT of B3's shape (the wiring locked a word).  Here the reverse
     is locked: a debt whose description never says "B4" at all is still
     wired, redeemed and retired -- because the wiring key is the debt's
-    TYPE PREFIX in ``debt_id`` plus its ``affected_refs`` naming this
-    run's source, ⛔ never the free text."""
+    ``obligation`` field (dispatch 2026-09-04e T3) plus its
+    ``affected_refs`` naming this run's source, ⛔ never the free text
+    and ⛔ never the ``debt_id`` prefix."""
     debt = _debt(
         SPAN_DEBT_ID,
         description="span equality unverified until the plan side sees it",
@@ -687,12 +696,15 @@ def test_debt_wiring_survives_removal_of_every_b4_word():
 
 def test_description_full_of_b4_wires_nothing():
     """The converse tooth: free text naming "B4" repeatedly must not
-    wire an unregistered debt type -- otherwise the wiring would be
-    textual again, just inverted."""
+    wire a debt that carries no obligation -- otherwise the wiring would
+    be textual again, just inverted.  (Dispatch 2026-09-04e T3: the
+    debt_id prefix likewise wires NOTHING -- this impostor keeps the
+    historical span-shaped ``debt_id`` and drops only the ``obligation``.)"""
     impostor = _debt(
         "debt_some_other_kind_input_1",
         description="Owner: B4. B4 must handle this. Trust B4.",
         source=_source("input_south"),
+        obligation=None,
     )
     assert redeemable_debt_ids(
         [impostor], executed=_south_executed()
@@ -710,24 +722,31 @@ def test_description_full_of_b4_wires_nothing():
 
 def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     """⭐ rework 1 (cross-review B-1): the registry's gate column is
-    LOAD-BEARING.  The cross-review pointed the span prefix at
+    LOAD-BEARING.  The cross-review pointed the span obligation at
     ``grid_units`` -- a real, existing, callable of this module, signature
     and semantics both foreign -- and the old teeth waved it through while
     the debt was still retired (``WRONG_HANDLER_ACCEPTED= grid_units``).
     The teeth below refuse exactly that shape, at import time AND at the
     real call site, and a wrong handler means NO product, so no
-    retirement."""
+    retirement.
+
+    ⭐ dispatch 2026-09-04e T3/#6: the registry keys are now the
+    ``obligation`` values, and ALL of rework 1's import-time teeth
+    (HANDLER_MISSING / PREFIX_AMBIGUOUS) plus the retirement-side
+    TYPE_AMBIGUOUS are re-triggered in the re-keyed world below -- each
+    mutation is a shape the CURRENT wiring could actually take, ⛔ not a
+    transcript of the old prefix world."""
     # the healthy shape: every row carries this module's named gate object
     # and a premise, and the span row's premise IS the product's premise
-    for prefix, row in DEBT_REDEMPTION_REGISTRY.items():
-        assert isinstance(row, osm.DebtRedemption), prefix
-        assert callable(row.gate), f"{prefix}: gate missing"
+    for key, row in DEBT_REDEMPTION_REGISTRY.items():
+        assert isinstance(row, osm.DebtRedemption), key
+        assert callable(row.gate), f"{key}: gate missing"
         assert getattr(osm, row.gate.__name__, None) is row.gate, (
-            f"{prefix}: gate is not a named function of this module"
+            f"{key}: gate is not a named function of this module"
         )
-    span_prefix = "debt_elevation_chain_span_unchecked_"
+    assert DEBT_REDEMPTION_REGISTRY.keys() == {SPAN_OBLIGATION}
     assert (
-        DEBT_REDEMPTION_REGISTRY[span_prefix].premise
+        DEBT_REDEMPTION_REGISTRY[SPAN_OBLIGATION].premise
         == ELEVATION_CHAIN_SPANS_WHOLE_BUILDING
     )
 
@@ -735,7 +754,7 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     # real-but-wrong existing callable -- is loud, ⛔ not accepted
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        span_prefix,
+        SPAN_OBLIGATION,
         osm.DebtRedemption(
             premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING, gate=osm.grid_units
         ),
@@ -749,7 +768,7 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     # (1b) a lambda carries no module name: not module wiring
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        span_prefix,
+        SPAN_OBLIGATION,
         osm.DebtRedemption(
             premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
             gate=lambda **kw: 0,
@@ -760,10 +779,13 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     assert caught.value.code == "DEBT_REGISTRY_GATE_NOT_MODULE_FUNCTION"
     monkeypatch.undo()
 
-    # (1c) a non-callable gate is still the old loud refusal
+    # (1c) ⭐ acceptance #6, tooth 1/3 re-keyed: a non-callable gate is
+    # still the old loud refusal (the tooth is about the ROW's gate
+    # column -- the key rename never touched it, and the re-trigger below
+    # proves it bites under the obligation keys)
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        span_prefix,
+        SPAN_OBLIGATION,
         osm.DebtRedemption(
             premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING, gate=None
         ),
@@ -774,10 +796,11 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     monkeypatch.undo()
 
     # (1d) two rows for one premise: the premise is the execution-side
-    # lookup key, so two gates for it is ambiguous wiring
+    # lookup key, so two gates for it is ambiguous wiring (the twin key
+    # deliberately shares NO prefix with the span key)
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        "debt_other_",
+        "elevation_chain_height_spans_building",
         osm.DebtRedemption(
             premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
             gate=span_equality_gate,
@@ -793,12 +816,12 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     # the cross-review's RETIRED= line, reversed
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        span_prefix,
+        SPAN_OBLIGATION,
         osm.DebtRedemption(
             premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING, gate=osm.grid_units
         ),
     )
-    debt = _debt(SPAN_DEBT_ID, description="wired by prefix, wrongly")
+    debt = _debt(SPAN_DEBT_ID, description="wired by obligation, wrongly")
     with pytest.raises(OpeningSynthesisError) as caught:
         synthesize_openings(
             elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
@@ -824,7 +847,7 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
 
     # (3) delete the row entirely: the premise the product promises is
     # unwired -- loud, ⛔ never a silent skip of the gate
-    monkeypatch.delitem(DEBT_REDEMPTION_REGISTRY, span_prefix)
+    monkeypatch.delitem(DEBT_REDEMPTION_REGISTRY, SPAN_OBLIGATION)
     with pytest.raises(OpeningSynthesisError) as caught:
         synthesize_openings(
             elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
@@ -834,11 +857,14 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     assert caught.value.code == "PREMISE_GATE_UNWIRED"
     monkeypatch.undo()
 
-    # (4) two type prefixes where one is a prefix of the other: a debt_id
-    # matching both would be ambiguous wiring
+    # (4) ⭐ acceptance #6, tooth 2/3 re-keyed: two obligation keys where
+    # one is a PREFIX of the other is still ambiguous wiring -- the tooth
+    # is a structural property of the KEY SPACE (it guards the next
+    # enum value someone mints from reading as two rows), ⛔ not a
+    # leftover of the debt_id world
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        "debt_elevation_chain_span_",
+        "elevation_chain_spans",
         osm.DebtRedemption(
             premise="some other premise", gate=span_equality_gate
         ),
@@ -846,23 +872,73 @@ def test_registry_rows_are_wiring_not_decoration(monkeypatch):
     with pytest.raises(OpeningSynthesisError) as caught:
         osm._assert_registry_well_formed()
     assert caught.value.code == "DEBT_REGISTRY_PREFIX_AMBIGUOUS"
+    assert caught.value.context == {"key_a": SPAN_OBLIGATION, "key_b": "elevation_chain_spans"}
     monkeypatch.undo()
 
-    # and the same ambiguity seen from the debt side
+    # ⭐ rework 1 of T4-a (2026-09-04o, cross-review B-1): the premise
+    # direction is ⛔ NOT the debt-side code's business -- v2 had
+    # DEBT_TYPE_AMBIGUOUS fire on it, a duplicate exit of the two teeth
+    # that already own that direction.  The same mutated table (two
+    # rows, different keys, CLAIMING one premise) is now refused where
+    # the premise direction lives, and only there:
     both = _debt(
         "debt_elevation_chain_span_unchecked_a", description="",
         source=_source("input_south"),
     )
     monkeypatch.setitem(
         DEBT_REDEMPTION_REGISTRY,
-        "debt_elevation_chain_span_",
+        "elevation_chain_height_spans_building",
+        osm.DebtRedemption(
+            premise=ELEVATION_CHAIN_SPANS_WHOLE_BUILDING,
+            gate=span_equality_gate,
+        ),
+    )
+    # (a) the import-time owner of the premise direction fires...
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_PREMISE_AMBIGUOUS"
+    # (b) ...and so does the runtime execution entry (the lookup
+    # synthesize_openings actually makes, BY PREMISE)...
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm.redemption_row_for_premise(ELEVATION_CHAIN_SPANS_WHOLE_BUILDING)
+    assert caught.value.code == "PREMISE_GATE_AMBIGUOUS"
+    # (c) ...while the debt-side retirement raises NOTHING on this
+    # table: the debt's obligation resolves to exactly its own row, so
+    # DEBT_TYPE_AMBIGUOUS (a debt-direction code, held at the seam by
+    # tests/test_t4a_rework1_resolution_lock.py) must stay silent here --
+    # two error codes may not point at one thing.
+    assert redeemable_debt_ids([both], executed=_south_executed()) == (
+        "debt_elevation_chain_span_unchecked_a",
+    )
+    monkeypatch.undo()
+
+    # (5) ⭐ dispatch T4 import tooth, direction A: a registry key OUTSIDE
+    # the DebtObligationV1 domain is dead wiring -- no real debt can ever
+    # carry it (the schema refuses the value), loud at import
+    monkeypatch.setitem(
+        DEBT_REDEMPTION_REGISTRY,
+        "obligation_nobody_can_mint",
         osm.DebtRedemption(
             premise="some other premise", gate=span_equality_gate
         ),
     )
     with pytest.raises(OpeningSynthesisError) as caught:
-        redeemable_debt_ids([both], executed=_south_executed())
-    assert caught.value.code == "DEBT_TYPE_AMBIGUOUS"
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_KEY_NOT_OBLIGATION"
+    monkeypatch.undo()
+
+    # (6) ⭐ dispatch T4 import tooth, direction B: a DebtObligationV1
+    # value with NO registry row is a mintable promise nobody redeems --
+    # loud at import (the structural form of "⛔ no slots for values
+    # nobody redeems").  The empty-key check must pass first (no key
+    # outside the domain), so this trigger deletes the span row and adds
+    # NOTHING -- the uncovered domain value is the only defect left.
+    monkeypatch.delitem(DEBT_REDEMPTION_REGISTRY, SPAN_OBLIGATION)
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm._assert_registry_well_formed()
+    assert caught.value.code == "DEBT_REGISTRY_OBLIGATION_UNCOVERED"
+    assert caught.value.context["obligation"] == SPAN_OBLIGATION
+    monkeypatch.undo()
 
 
 def test_b3s_real_span_debt_is_redeemed_on_real_bytes():
@@ -880,7 +956,7 @@ def test_b3s_real_span_debt_is_redeemed_on_real_bytes():
     )
     span_debts = [
         d for d in artifact.bundle.evidence_debts
-        if d.debt_id.startswith("debt_elevation_chain_span_unchecked_")
+        if d.obligation == SPAN_OBLIGATION
     ]
     assert len(span_debts) == 1
     original = span_debts[0]
@@ -962,7 +1038,7 @@ def test_retirement_binds_to_the_source_instance_real_bytes():
         )
         span_debts = [
             d for d in artifact.bundle.evidence_debts
-            if d.debt_id.startswith("debt_elevation_chain_span_unchecked_")
+            if d.obligation == SPAN_OBLIGATION
         ]
         assert len(span_debts) == 1, facade
         debts[facade] = span_debts[0]
@@ -1038,3 +1114,110 @@ def test_source_identity_declared_with_a_foreign_contract_is_loud():
             ),
         )
     assert caught.value.code == "ELEVATION_SOURCE_CONTRACT_MISMATCH"
+
+
+# ── dispatch 2026-09-04e (T4-a v2): obligation is the wiring key ─────────────── #
+def test_obligation_not_prefix_is_the_wiring_criterion():
+    """⭐ acceptance #2, both directions.  The wiring is the debt's
+    ``obligation`` field, ⛔ never its ``debt_id`` prefix:
+
+    * direction A -- the debt_id is renamed to something COMPLETELY
+      unrelated to the historical span prefix, the ``obligation`` is the
+      real one: the debt still wires, redeems and retires;
+    * direction B -- the debt_id keeps the historical span prefix
+      verbatim, the ``obligation`` is dropped (``None``): NOTHING wires.
+
+    Each direction is the other's control: same registry, same source
+    binding, only the criterion under test flips."""
+    # direction A: unrelated debt_id, real obligation -- still wired
+    renamed = _debt(
+        "debt_totally_unrelated_name",
+        description="span equality unverified until the plan side sees it",
+        source=_source("input_south"),
+    ).model_copy(
+        update={"debt_id": "zz_irrelevant_identifier_zz"}
+    )
+    assert not renamed.debt_id.startswith("debt_")  # renamed, not prefixed
+    assert not renamed.debt_id.startswith("debt_elevation_chain_span_unchecked_")
+    assert renamed.obligation == SPAN_OBLIGATION
+    assert redeemable_debt_ids(
+        [renamed], executed=_south_executed()
+    ) == (renamed.debt_id,)
+    walls = _walls()
+    product = synthesize_openings(
+        elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+        walls=walls, plan_openings=(), mirrored=False,
+        local_x_positive="image_left_to_right",
+        evidence_debts=[renamed],
+        elevation_source=_source("input_south"),
+    )
+    assert product.retired_debt_ids == (renamed.debt_id,)
+
+    # direction B: the historical span prefix verbatim, obligation=None
+    # -- NOTHING wires (free text and debt_id are both decoration)
+    prefixed = _debt(
+        SPAN_DEBT_ID,
+        description="the historical B3 shape, verbatim",
+        source=_source("input_south"),
+        obligation=None,
+    )
+    assert prefixed.debt_id.startswith("debt_elevation_chain_span_unchecked_")
+    assert prefixed.obligation is None
+    assert redeemable_debt_ids(
+        [prefixed], executed=_south_executed()
+    ) == ()
+    product_b = synthesize_openings(
+        elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+        walls=walls, plan_openings=(), mirrored=False,
+        local_x_positive="image_left_to_right",
+        evidence_debts=[prefixed],
+        elevation_source=_source("input_south"),
+    )
+    assert product_b.retired_debt_ids == ()
+
+
+def test_unbacked_obligation_fails_loudly(monkeypatch):
+    """⭐ acceptance #3 / dispatch T4: a debt whose ``obligation`` points
+    at NO handler fails LOUDLY, on every entry path -- the promise an
+    obligation IS cannot exist unwired.  (The schema keeps the value
+    itself inside the closed Literal domain, so "no handler" is reached
+    the way it can still happen: the registry row is gone at runtime.)
+    Every refusal below is a control-checked tooth, ⛔ not an input
+    fault: the same debt against the healthy registry retires fine."""
+    debt = _debt(
+        SPAN_DEBT_ID, description="unchanged", source=_source("input_south")
+    )
+    # the executed binding is built against the HEALTHY registry (what a
+    # run that already executed the gate holds); the tooth below removes
+    # the row AFTER it, the way a runtime registry loss actually happens
+    executed = _south_executed()
+
+    # entry 1: the standalone validator
+    monkeypatch.delitem(DEBT_REDEMPTION_REGISTRY, SPAN_OBLIGATION)
+    with pytest.raises(OpeningSynthesisError) as caught:
+        osm.assert_obligations_backed([debt])
+    assert caught.value.code == "OBLIGATION_UNBACKED"
+    assert caught.value.context["obligation"] == SPAN_OBLIGATION
+
+    # entry 2: the retirement path (direct call) cannot dodge it
+    with pytest.raises(OpeningSynthesisError) as caught:
+        redeemable_debt_ids([debt], executed=executed)
+    assert caught.value.code == "OBLIGATION_UNBACKED"
+
+    # entry 3: the synthesis itself fails fast, BEFORE any geometry runs
+    with pytest.raises(OpeningSynthesisError) as caught:
+        synthesize_openings(
+            elevation_doc=_elevation_doc(family="South", chain_total_mm=25_000.0),
+            walls=_walls(), plan_openings=(), mirrored=False,
+            local_x_positive="image_left_to_right",
+            evidence_debts=[debt],
+            elevation_source=_source("input_south"),
+        )
+    assert caught.value.code == "OBLIGATION_UNBACKED"
+    monkeypatch.undo()
+
+    # the control: healthy registry, SAME debt -- retires normally, so
+    # the refusals above were the tooth's, ⛔ not the input's
+    assert redeemable_debt_ids(
+        [debt], executed=_south_executed()
+    ) == (SPAN_DEBT_ID,)

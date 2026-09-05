@@ -347,6 +347,7 @@ def adapt_as_drawn_plan(
                     f"(pairs_status={pairs_status!r}); this adapter did not "
                     "invent one from the candidate graph"
                 ),
+                obligation=None,
             ))
     else:
         for j, pair in enumerate(pairs):
@@ -469,6 +470,7 @@ def adapt_as_drawn_plan(
             debt_id=f"debt_amb_{input_id}_{n}", kind="ambiguous_face",
             channel="walls", affected_refs=(ref,),
             description="reading abstained on this face line",
+            obligation=None,
         ))
 
     # -- opening candidates: by reference only (their business protocol is
@@ -499,6 +501,7 @@ def adapt_as_drawn_plan(
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel="walls",
             description="no positive wall claim could be derived from this product",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel="walls", state="absent",
@@ -514,6 +517,7 @@ def adapt_as_drawn_plan(
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel="plan_openings",
             description="no opening candidate in this product",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel="plan_openings", state="absent",
@@ -524,6 +528,7 @@ def adapt_as_drawn_plan(
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel=channel,
             description="channel not carried by this product family",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel=channel, state="absent",
@@ -777,6 +782,12 @@ def adapt_as_drawn_elevation(
                 "nobody-signed threshold, not an equality).  Named premise: "
                 f"{ELEVATION_CHAIN_SPANS_WHOLE_BUILDING}.  Owner: B4."
             ),
+            # ⭐ (dispatch 2026-09-04e, T4-a T1/T2) THE one obligation today:
+            # the lower-case snake form of the premise constant above -- the
+            # value B4's DEBT_REDEMPTION_REGISTRY keys its span row by.  The
+            # debt_id prefix still carries it too, but ⛔ that prefix is no
+            # longer the wiring criterion anywhere (T3).
+            obligation="elevation_chain_spans_whole_building",
         ),
     ]
     channels: list[ChannelStatusV1] = []
@@ -791,6 +802,7 @@ def adapt_as_drawn_elevation(
             debt_id=debt_id, kind="missing_channel",
             channel="elevation_openings",
             description="no opening in this elevation product",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel="elevation_openings", state="absent",
@@ -805,6 +817,7 @@ def adapt_as_drawn_elevation(
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel=channel,
             description="channel not carried by an elevation product",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel=channel, state="absent",
@@ -936,6 +949,7 @@ def adapt_legacy_reading_view(
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel="walls",
             description="no pen=='wall' stroke in this view",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel="walls", state="absent",
@@ -953,6 +967,7 @@ def adapt_legacy_reading_view(
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel=channel,
             description=description,
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel=channel, state="absent",

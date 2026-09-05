@@ -967,11 +967,13 @@ def _hand_built_artifact(doc: dict, input_id: str):
         EvidenceDebtV1(
             debt_id=f"debt_missing_walls_{input_id}", kind="missing_channel",
             channel="walls", description="no positive claim",
+            obligation=None,
         ),
         EvidenceDebtV1(
             debt_id=f"debt_missing_plan_openings_{input_id}",
             kind="missing_channel", channel="plan_openings",
             description="no opening candidate",
+            obligation=None,
         ),
     ]
     channels = [
@@ -991,6 +993,7 @@ def _hand_built_artifact(doc: dict, input_id: str):
         debts.append(EvidenceDebtV1(
             debt_id=debt_id, kind="missing_channel", channel=channel,
             description="not carried",
+            obligation=None,
         ))
         channels.append(ChannelStatusV1(
             channel=channel, state="absent", covered_by_debt_ids=(debt_id,)
