@@ -51,20 +51,33 @@ def test_1_as_measured_matches_the_as_received_build_bit_for_bit():
     assert content_sha256(staged_as_measured) == content_sha256(fresh)
 
 
-def test_6_the_five_line_worklist_is_all_unsigned_with_two_well_formed_candidates():
+def test_6_the_worklist_is_all_unsigned_and_matches_the_a11_shape():
     """Verification #6: the待签清单 is machine-produced (recomputed here from
-    scratch, not merely re-read) and every verdict is unsigned."""
+    scratch, not merely re-read) and every verdict is unsigned.
+
+    ⚠️ A-11 (2026-09-05) moved this shape, MEASURED: with the 1 mm ingest
+    snap in place, 13AC/160A's ~0.2 mm "difference" was pure representation
+    residue and is absorbed (their records are GONE -- the user's ruling
+    that residue belongs to the measurement representation, ⛔ never to a
+    signed ``drawing_error``), while 13AD/13AE -- admitted as face lines by
+    the ②-1b-S snap gates -- now surface their REAL correction as a
+    well-formed single-field translate (const -30, i.e. 3.0 mm).  13AF
+    remains inexpressible as a translate (still absent from the
+    as-received face_lines).  See gt_revisions.py's module docstring."""
     before = build_as_measured(ANCHOR / "sm25-L_t3_as_received.dxf",
                                ANCHOR / "request_as_measured.json")
     after = build_as_measured(ANCHOR / "sm25-L_t3.dxf", ANCHOR / "request.json")
     recomputed = detect_translate_candidates(before, after, CHANGED_HANDLES)
-    assert len(recomputed) == 5
+    assert len(recomputed) == 3
     assert all(r.verdict == "unsigned" for r in recomputed)
     assert all(r.signed_by is None and r.signed_at is None for r in recomputed)
-    well_formed = {r.target.handle for r in recomputed if r.candidate_action is not None}
-    assert well_formed == {"13AC", "160A"}
+    well_formed = {r.target.handle: r.candidate_action for r in recomputed
+                   if r.candidate_action is not None}
+    assert set(well_formed) == {"13AD", "13AE"}
+    for action in well_formed.values():
+        assert action.field == "const" and action.delta_0p1mm == -30
     flagged = {r.target.handle for r in recomputed if r.candidate_action is None}
-    assert flagged == {"13AD", "13AE", "13AF"}
+    assert flagged == {"13AF"}
 
     _staged_am, staged_revisions, _staged_as_signed = read_facts_candidate(CASE)
     assert {r.id for r in staged_revisions.revisions} == {r.id for r in recomputed}

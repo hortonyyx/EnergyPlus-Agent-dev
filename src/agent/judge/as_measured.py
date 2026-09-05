@@ -76,16 +76,34 @@ NAMED one thing and HOLDING another is how that whole family of errors runs).
 as ``converter_readouts.jamb_cap_bands`` -- under a name that says what they
 are grouped from.
 
-## 0.1 mm integers, and why that is a REPRESENTATION change, ⛔ not a snap
+## TWO different quantities: storage UNIT (0.1 mm ints) · ingest RESOLUTION (1 mm)
 
-User 2026-08-29: coordinates are stored as integers in units of 0.1 mm.  ⛔ This
-is not a tolerance and ⛔ not an extra snapping pass -- the converter has already
-quantised; this is the *storage type*.  Floats cannot be compared bit-for-bit
-after a round trip, and F-98's family of "the two rulers disagree in the 12th
-decimal" problems is a property of the representation, not of the geometry.
-Every geometric number below is ``int``; ⛔ there is no float in the document
-outside ``converter_readouts``, where the converter's own records ride out
-VERBATIM (see below).  ``test_as_measured_facts_layer.py`` asserts exactly that.
+User 2026-08-29: coordinates are **stored** as integers in units of 0.1 mm.
+⛔ That half is not a tolerance and ⛔ not a snapping pass -- it is the
+*storage type*.  Floats cannot be compared bit-for-bit after a round trip, and
+F-98's family of "the two rulers disagree in the 12th decimal" problems is a
+property of the representation, not of the geometry.  Every geometric number
+below is ``int``; ⛔ there is no float in the document outside
+``converter_readouts``, where the converter's own records ride out VERBATIM
+(see below).  ``test_as_measured_facts_layer.py`` asserts exactly that.
+
+User 2026-09-05 (A-11, 「走乙」): **separately** from the storage type, the
+**ingest resolution** is 1 mm (:data:`INGEST_RESOLUTION_UNITS`) -- geometric
+coordinates are snapped to the nearest 1 mm grid point by :func:`_geom_units`
+BEFORE they enter the document.  That half IS a snap, deliberately: the
+converter's own quantisation leaves ±0.1 mm representation residue off the
+integer-millimetre grid (MEASURED on sm25 as-received: 74 of 2812 geometric
+integers), and the user has ruled that this residue belongs to the
+**measurement representation**, ⛔ not to ``drawing_error`` -- it must never
+reach the ``revisions`` ledger as a signed correction.  The two statements do
+not contradict each other: the storage unit says how fine a grid the document
+*can* express; the ingest resolution says how fine the values that actually
+enter it *are*.  ⛔ The snap owns ONLY the coordinate paths itemised in
+``_geom_units``' docstring -- verbatim converter readouts, the raw pre-snap
+``before_*`` observations, and non-coordinate quantities (lengths, areas,
+counts) are explicitly outside it, and :func:`scan_ingest_resolution_violations`
+is the exit scan that re-checks the whole serialised document against that
+boundary.
 
 ## ⛔ Nothing is silently re-measured from the drawing
 
@@ -137,6 +155,20 @@ VG_CFG = REPO_ROOT / "src/configs/correction.yaml"
 UNITS_PER_METRE = 10_000
 UNIT_LABEL = "0.1mm"
 
+#: ⭐ A-11 (user 2026-09-05, 「走乙」): the INGEST RESOLUTION, expressed in the
+#: document's own storage units -- 10 units == 1 mm.  This is the ONE
+#: declaration point for "gt 入库分辨率 = 1 mm" on the facts path; every
+#: snapping decision reads it through :func:`snap_to_ingest_resolution` /
+#: :func:`_geom_units`, ⛔ never a second literal.
+#:
+#: ⚠️ NOT to be confused with ``as_drawn/denominator.GROUP_QUANT`` (``= 3``,
+#: the ``round(const, 3)`` of the D3 grouping KEY).  That is a different
+#: quantity with a different unit (decimal metres of a grouping decision);
+#: they are not unified and must not be, absent an argument that they should
+#: always move together (dispatch A-11 §二).
+INGEST_RESOLUTION_UNITS: int = 10
+INGEST_RESOLUTION_LABEL: str = "1mm"
+
 
 class AsMeasuredUnavailable(RuntimeError):
     """⛔ Raised instead of returning a facts document that is quietly partial.
@@ -163,11 +195,221 @@ class AsMeasuredUnavailable(RuntimeError):
 def to_units(metres: float) -> int:
     """World metres -> 0.1 mm integer.  ⛔ One implementation, used everywhere.
 
+    ⚠️ A-11: this stays the PURE representation change (metres -> storage
+    integers), ⛔ with no snap inside -- a value already in 0.1 mm integers
+    must survive it bit-for-bit, which is exactly what
+    ``test_r2_to_units_is_the_declared_scale`` pins.  The 1 mm ingest
+    resolution is a SECOND, separate step (:func:`_geom_units`).
+
     ``round`` is banker's rounding: deterministic, and the half-way case is
     0.05 mm -- three orders of magnitude below anything the converter's own
     quantisation leaves behind.
     """
     return int(round(float(metres) * UNITS_PER_METRE))
+
+
+def snap_to_ingest_resolution(units: int) -> int:
+    """0.1 mm integer -> the nearest 1 mm grid point (A-11).
+
+    Pure integer arithmetic (``divmod``, no float division), so there is no
+    representation surprise at any magnitude the document can hold; the
+    tie-break at exactly 0.5 mm is banker's, matching :func:`to_units`' own
+    documented convention.
+
+    ⭐ IDENTITY, load-bearing (A-11 acceptance #2): a value already on the
+    grid is returned UNCHANGED -- snapping may move representation residue,
+    ⛔ never an on-grid value.
+    """
+    quotient, remainder = divmod(units, INGEST_RESOLUTION_UNITS)
+    twice = 2 * remainder
+    if twice > INGEST_RESOLUTION_UNITS or (
+            twice == INGEST_RESOLUTION_UNITS and quotient % 2):
+        quotient += 1
+    return quotient * INGEST_RESOLUTION_UNITS
+
+
+def _geom_units(metres: float) -> int:
+    """⭐ A-11: metres -> a storage integer that is ALSO on the 1 mm ingest
+    grid.  This is the ONE door every geometric coordinate walks through on
+    its way into the document; :func:`to_units` underneath stays the pure
+    representation change.
+
+    ⛔⛔ THE EXPLICIT EXTENSION OF "geometric coordinate" (A-11 boundary #1:
+    itemised here as call site -> document field, ⛔ not inferred from field
+    names).  Every call site of THIS function:
+
+      ``_face_line_records``       ``face_lines[*].const / .along_min / .along_max``
+                                   ``non_orthogonal_lines[*].p0 / .p1``
+      ``_jamb_cap_band_records``   (band face consts, used only as the
+                                   ``by_const`` lookup key against
+                                   ``face_lines[*].const`` -- not emitted)
+      ``_pair_face_lines_into_walls``
+                                   ``walls[*].face_lo / .face_hi /
+                                   .along_min / .along_max``
+      ``_split_const_groups``      ``converter_readouts.
+                                   face_groups_with_a_split_const[*].
+                                   group_const / .member_consts``
+      ``_opening_records``         ``openings[*].along_min / .along_max /
+                                   .cross_lo / .cross_hi`` (and the same
+                                   consts inside
+                                   ``unresolved_opening_carriers[*]``)
+      ``_footprint_record``        ``footprint.rings[*].points``
+      ``_axis_snap_records``       ``axis_snapped_lines[*].after_p0 /
+                                   .after_p1``
+
+    Everything geometric derived downstream (wall ``thickness``; boundary
+    ``cavity_const`` / ``span_lo`` / ``span_hi`` / ``p1`` / ``p2``; evidence
+    ``raw_face_const`` / ``opposite_face_const`` / ``exit_point`` /
+    ``footprint_edge_points``; ring-loss span consts) is computed FROM these
+    stored integers and inherits the grid -- :func:`scan_ingest_resolution_
+    violations` is the exit scan that re-checks all of it on the serialised
+    document.
+
+    ⛔ Explicitly NOT coordinates (unchanged by the snap -- the boundary is a
+    list, not a vibe; each entry also names where it is exempted in the scan):
+
+      ``axis_snapped_lines[*].before_p0 / .before_p1`` -- the RAW pre-snap
+        observation, the very evidence a human reviews on that row
+        (quantising it would falsify the record of how skew the stroke was);
+      ``axis_snapped_lines[*].minor_leg_units`` -- a LENGTH observation;
+      ``converter_readouts.diagnostics`` / ``.gates`` / ``.jamb_cap_bands``
+        -- the converter's own VERBATIM records (module rule: ⛔ nothing in
+        there is recomputed);
+      counts, indices, winding sides (``side`` / ``outward_normal``), areas
+        (``area_units2``), angles -- none of them is a position.
+    """
+    return snap_to_ingest_resolution(to_units(metres))
+
+
+#: ⭐ A-11 exit scan: the NON-coordinate integer paths of a serialised facts
+#: document, EXPLICITLY exempted from the 1 mm grid check, each with its
+#: reason.  ⛔ The scan (:func:`scan_ingest_resolution_violations`) checks
+#: EVERY integer in the document by default -- a future field is born
+#: CHECKED, and joining this table is a conscious act that must state what
+#: the quantity is.  This table IS the "configuration quantity" boundary of
+#: dispatch A-11 (#1/#3): what is not a coordinate gets listed, ⛔ nothing
+#: gets to be non-grid by being overlooked.
+#:
+#: Patterns are ``.``-separated path segments against the serialised
+#: document (``model_dump(mode="json")``); a ``*`` segment matches any list
+#: index; matching is exact otherwise.
+INGEST_NON_COORDINATE_PATHS: dict[str, str] = {
+    "schema_version":
+        "document schema metadata",
+    "units_per_metre":
+        "the storage-unit declaration (10000) -- a unit, not a coordinate",
+    "derivation.deriver_version":
+        "as_signed deriver version metadata",
+    "views[*].footprint.rings[*].polygon_index":
+        "a ring index into the footprint polygon list",
+    "views[*].boundary_edges[*].sequence":
+        "an edge's ordinal within its cavity",
+    "views[*].boundary_edges[*].side":
+        "a winding direction (-1/+1)",
+    "views[*].boundary_edges[*].evidence.outward_normal[*]":
+        "a direction pair (-1/+1 components)",
+    "views[*].boundary_edges[*].evidence.exit_point[*]":
+        "the ray-exit WITNESS, deliberately pushed one 0.1 mm unit off the "
+        "face it exits (``_boundary_exit_const``'s ``farthest + outward``) "
+        "so the covers test is not decided on a boundary -- snapping it "
+        "would change what the classifier saw, and the schema already "
+        "declares it 'a classifier witness only'",
+    "views[*].boundary_ring_losses[*].area_units2":
+        "an AREA (square units), not a position",
+    "views[*].boundary_ring_losses[*].owner_count":
+        "a count of owning wall groups",
+    "views[*].boundary_ring_losses[*].span.side":
+        "a winding direction (-1/+1)",
+    "views[*].converter_readouts.axis_snapped_lines[*].before_p0":
+        "RAW pre-snap observation -- evidence, quantising it falsifies it",
+    "views[*].converter_readouts.axis_snapped_lines[*].before_p1":
+        "RAW pre-snap observation -- evidence, quantising it falsifies it",
+    "views[*].converter_readouts.axis_snapped_lines[*].minor_leg_units":
+        "a LENGTH observation (how skew the stroke was), not a position",
+    "views[*].converter_readouts.dangles":
+        "converter readout count",
+    "views[*].converter_readouts.cuts":
+        "converter readout count",
+    "views[*].converter_readouts.invalid":
+        "converter readout count",
+    "views[*].converter_readouts.degenerate_line_count":
+        "converter readout count",
+    "views[*].converter_readouts.wall_lines_total":
+        "converter readout count",
+    "views[*].converter_readouts.degenerate_in_wall_lines":
+        "recomputed ledger count",
+    "views[*].converter_readouts.degenerate_line_handles":
+        "exempt SUBTREE -- handles are strings, listed for the boundary's sake",
+    "views[*].converter_readouts.diagnostics":
+        "exempt SUBTREE -- the converter's VERBATIM record (may contain "
+        "arbitrary integers in its own frames)",
+    "views[*].converter_readouts.gates":
+        "exempt SUBTREE -- the converter's VERBATIM record",
+    "views[*].converter_readouts.jamb_cap_bands":
+        "exempt SUBTREE -- the converter's VERBATIM record, in its native "
+        "millimetre floats",
+}
+
+
+def _iter_int_leaves(node: Any, prefix: tuple[str, ...] = ()):
+    """Yield ``(path, value)`` for every ``int`` leaf of a JSON-able tree.
+
+    ``bool`` is excluded explicitly (it is an ``int`` subclass in Python, and
+    a flag is never a coordinate); floats/strings/None are not ``int`` and
+    drop out on their own.  List indices are emitted as ``*`` so paths are
+    position-independent by construction.
+    """
+    if isinstance(node, bool):
+        return
+    if isinstance(node, int):
+        yield prefix, node
+    elif isinstance(node, dict):
+        for key in sorted(node):
+            yield from _iter_int_leaves(node[key], prefix + (str(key),))
+    elif isinstance(node, list):
+        for item in node:
+            yield from _iter_int_leaves(item, prefix + ("*",))
+
+
+def _path_matches(path: tuple[str, ...], pattern: str) -> bool:
+    """PREFIX match: the pattern's segments must match the path's first
+    ``len(segments)`` segments.  That is what makes an exempt SUBTREE
+    (``...converter_readouts.diagnostics[*]``) cover its arbitrarily deep
+    ``context`` -- while every leaf-shaped pattern in the table
+    (``side``, ``area_units2``, ...) matches only itself, because no such
+    leaf is ever a prefix of another field's path."""
+    segments: list[str] = []
+    for segment in pattern.split("."):
+        if segment.endswith("[*]"):       # "views[*]" == the literal "views"
+            segments.append(segment[:-3])  # then one wildcard index segment
+            segments.append("*")
+        else:
+            segments.append(segment)
+    if len(path) < len(segments):
+        return False
+    return all(seg == "*" or seg == part
+               for part, seg in zip(path, segments))
+
+
+def scan_ingest_resolution_violations(payload: dict) -> list[str]:
+    """⭐ A-11 exit scan: every integer of a serialised facts document
+    (``as_measured`` OR ``as_signed`` -- same shape) must lie on the 1 mm
+    ingest grid, unless its path is explicitly exempted in
+    :data:`INGEST_NON_COORDINATE_PATHS`.
+
+    Returns the offending paths (``path = value``); an empty list is
+    compliance.  ⛔ This is an EXIT check, not an entry narrowing: it does
+    not care HOW a value got into the document (builder, revision, hand
+    edit), only whether what is there NOW is on the grid.
+    """
+    out: list[str] = []
+    for path, value in _iter_int_leaves(payload):
+        if any(_path_matches(path, pattern)
+               for pattern in INGEST_NON_COORDINATE_PATHS):
+            continue
+        if value % INGEST_RESOLUTION_UNITS:
+            out.append(".".join(path) + f" = {value}")
+    return out
 
 
 def _axis_aligned(affine: Affine2D, view_id: str) -> tuple[float, float, float, float]:
@@ -987,8 +1229,8 @@ def _face_line_records(geo: P1PlanViewGeometry, sx: float, tx: float,
     degenerate = 0
     for handle, x0, y0, x1, y1 in geo.wall_lines:
         layer = geo.wall_line_layers.get(handle, "")
-        wx0, wx1 = to_units(sx * x0 + tx), to_units(sx * x1 + tx)
-        wy0, wy1 = to_units(sy * y0 + ty), to_units(sy * y1 + ty)
+        wx0, wx1 = _geom_units(sx * x0 + tx), _geom_units(sx * x1 + tx)
+        wy0, wy1 = _geom_units(sy * y0 + ty), _geom_units(sy * y1 + ty)
         if x0 != x1 and y0 != y1:
             skew.append(AsMeasuredNonOrthogonalLineV1(
                 id=handle, layer=layer, p0=[wx0, wy0], p1=[wx1, wy1]))
@@ -1035,11 +1277,11 @@ def _jamb_cap_band_records(geo: P1PlanViewGeometry, faces: list[AsMeasuredFaceLi
     missing: list[str] = []
     for band in sorted(geo.wall_bands, key=_band_sort_key):
         if band.axis == "x":               # runs along x, faces are y coords
-            lo = to_units(sy * band.face_lo_mm + ty)
-            hi = to_units(sy * band.face_hi_mm + ty)
+            lo = _geom_units(sy * band.face_lo_mm + ty)
+            hi = _geom_units(sy * band.face_hi_mm + ty)
         else:                              # runs along y, faces are x coords
-            lo = to_units(sx * band.face_lo_mm + tx)
-            hi = to_units(sx * band.face_hi_mm + tx)
+            lo = _geom_units(sx * band.face_lo_mm + tx)
+            hi = _geom_units(sx * band.face_hi_mm + tx)
         lo, hi = (lo, hi) if lo <= hi else (hi, lo)
         if not by_const.get((band.axis, lo)) or not by_const.get((band.axis, hi)):
             missing.append(band.band_id)
@@ -1092,9 +1334,9 @@ def _pair_face_lines_into_walls(
         _gap, j, b = best
         used |= {i, j}
         lo_t, hi_t = (a, b) if a["const_m"] <= b["const_m"] else (b, a)
-        face_lo, face_hi = to_units(lo_t["const_m"]), to_units(hi_t["const_m"])
-        along_min = to_units(max(a["lo_m"], b["lo_m"]))
-        along_max = to_units(min(a["hi_m"], b["hi_m"]))
+        face_lo, face_hi = _geom_units(lo_t["const_m"]), _geom_units(hi_t["const_m"])
+        along_min = _geom_units(max(a["lo_m"], b["lo_m"]))
+        along_max = _geom_units(min(a["hi_m"], b["hi_m"]))
         run_axis = "y" if a["axis"] == "x" else "x"          # ⚠️ the one flip
         walls.append(AsMeasuredWallV1(
             id=f"w_{run_axis}_{face_lo}_{face_hi}_{along_min}_{along_max}",
@@ -1122,7 +1364,7 @@ def _split_const_groups(targets: list[dict],
     """
     out: list[dict] = []
     for tgt in targets:
-        group_const = to_units(tgt["const_m"])
+        group_const = _geom_units(tgt["const_m"])
         members = sorted({by_id[h].const for h in tgt["handles"] if h in by_id})
         if any(const != group_const for const in members):
             out.append({"axis": "y" if tgt["axis"] == "x" else "x",
@@ -1951,15 +2193,15 @@ def _opening_records(geo: P1PlanViewGeometry, walls: list[AsMeasuredWallV1],
     unresolved: list[dict] = []
     for op in geo.openings:
         x0, y0, x1, y1 = op.rect_dxf_mm
-        wx = sorted((to_units(sx * x0 + tx), to_units(sx * x1 + tx)))
-        wy = sorted((to_units(sy * y0 + ty), to_units(sy * y1 + ty)))
+        wx = sorted((_geom_units(sx * x0 + tx), _geom_units(sx * x1 + tx)))
+        wy = sorted((_geom_units(sy * y0 + ty), _geom_units(sy * y1 + ty)))
         c0, c1 = op.cross_section_mm
         if op.axis == "x":
             along_min, along_max = wx
-            cross = sorted((to_units(sy * c0 + ty), to_units(sy * c1 + ty)))
+            cross = sorted((_geom_units(sy * c0 + ty), _geom_units(sy * c1 + ty)))
         else:
             along_min, along_max = wy
-            cross = sorted((to_units(sx * c0 + tx), to_units(sx * c1 + tx)))
+            cross = sorted((_geom_units(sx * c0 + tx), _geom_units(sx * c1 + tx)))
         candidates = [w for w in by_face.get((op.axis, cross[0], cross[1]), [])
                       if not (along_max < w.along_min or along_min > w.along_max)]
         carriers = _sorted_handles(w.id for w in candidates)
@@ -1991,12 +2233,12 @@ def _footprint_record(geo: P1PlanViewGeometry, sx: float, tx: float,
                 continue
             rings.append(AsMeasuredRingV1(
                 polygon_index=index, kind="exterior",
-                points=[[to_units(sx * x + tx), to_units(sy * y + ty)]
+                points=[[_geom_units(sx * x + tx), _geom_units(sy * y + ty)]
                         for x, y in exterior.coords]))
             for hole in part.interiors:
                 rings.append(AsMeasuredRingV1(
                     polygon_index=index, kind="interior",
-                    points=[[to_units(sx * x + tx), to_units(sy * y + ty)]
+                    points=[[_geom_units(sx * x + tx), _geom_units(sy * y + ty)]
                             for x, y in hole.coords]))
     return AsMeasuredFootprintV1(
         geom_type=str(poly.geom_type) if poly is not None else "None",
@@ -2039,10 +2281,13 @@ def _axis_snap_records(geo: P1PlanViewGeometry, sx: float, tx: float,
         scale = sx if snapped_axis == "x" else sy
         records.append(AsMeasuredAxisSnapV1(
             id=handle, layer=layer, snapped_axis=snapped_axis,
+            # ⛔ before_* / minor_leg_units stay RAW (to_units only): they are
+            # the pre-snap OBSERVATION this row exists to carry -- the A-11
+            # coordinate extension explicitly excludes them (see _geom_units).
             before_p0=[to_units(sx * bx0 + tx), to_units(sy * by0 + ty)],
             before_p1=[to_units(sx * bx1 + tx), to_units(sy * by1 + ty)],
-            after_p0=[to_units(sx * ax0 + tx), to_units(sy * ay0 + ty)],
-            after_p1=[to_units(sx * ax1 + tx), to_units(sy * ay1 + ty)],
+            after_p0=[_geom_units(sx * ax0 + tx), _geom_units(sy * ay0 + ty)],
+            after_p1=[_geom_units(sx * ax1 + tx), _geom_units(sy * ay1 + ty)],
             minor_leg_units=to_units(abs(scale) * minor_leg_mm),
             angle_deg=float(ctx["angle_deg"])))
     records.sort(key=lambda r: r.id)
@@ -2209,6 +2454,8 @@ def build_as_measured(dxf: Path, request_path: Path, *,
 
 __all__ = [
     "UNITS_PER_METRE", "UNIT_LABEL", "REQUEST_AS_MEASURED_ALLOWED_DELTA",
+    "INGEST_RESOLUTION_UNITS", "INGEST_RESOLUTION_LABEL",
+    "INGEST_NON_COORDINATE_PATHS",
     "AsMeasuredUnavailable", "AsMeasuredV1", "AsMeasuredViewV1",
     "AsMeasuredFaceLineV1", "AsMeasuredWallV1", "AsMeasuredOpeningV1",
     "AsMeasuredRingV1", "AsMeasuredFootprintV1",
@@ -2222,4 +2469,5 @@ __all__ = [
     "refresh_boundary_edges",
     "S0_INPUT_STAGE",
     "canonical_bytes", "content_sha256", "to_units",
+    "snap_to_ingest_resolution", "scan_ingest_resolution_violations",
 ]

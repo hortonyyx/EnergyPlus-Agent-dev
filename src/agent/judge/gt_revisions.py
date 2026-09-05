@@ -42,21 +42,37 @@ result is one line of arithmetic, re-validated by the SAME model
 so a translate that produces an ill-formed line fails LOUDLY, at
 :func:`derive_as_signed` time, rather than silently.
 
-⛔ MEASURED (this unit, sm25's 5-line R1 batch), and worth stating because it
+⛔ MEASURED on sm25's changed-handle batch, and worth stating because it
 contradicts the ledger's own illustrative example: a "move this wall over"
-translate is not what most real corrections look like.  Of the 5 changed
-DXF handles between ``sm25-L_t3_as_received.dxf`` and ``sm25-L_t3.dxf``
-(13AD 13AC 13AF 160A 13AE), only 2 (13AC, 160A) are a translate of an
-existing face line's own ``along_min``/``along_max`` (a ~0.2 mm endpoint
-trim).  The other 3 (13AD, 13AE, 13AF) are NON-ORTHOGONAL strokes in the
-as-received drawing (up to ~5.8 mm off axis) that become perfectly
-axis-aligned face lines in the signed one -- straightening a diagonal into an
-axis-aligned line is not expressible as "add a delta to one stored field",
-it is a different, well-defined operation this dispatch does not implement
-(①'s "遇到再加").  ``scripts/tool_scripts`` has no detector for it yet;
-those 3 candidates are produced with ``candidate_action=None`` and a
-``finding.detail`` that says why, rather than a wrong or approximate
-translate.
+translate is not what most real corrections look like.  The measured shape
+has MOVED TWICE since, and each move was a real change in what the machine
+diff can honestly express:
+
+* ②-1b (2026-08-29), 5 changed DXF handles between
+  ``sm25-L_t3_as_received.dxf`` and ``sm25-L_t3.dxf``
+  (13AD 13AC 13AF 160A 13AE): only 2 (13AC, 160A) were a translate of an
+  existing face line's own ``along_min``/``along_max`` (a ~0.2 mm endpoint
+  trim); the other 3 (13AD, 13AE, 13AF) were NON-ORTHOGONAL strokes in the
+  as-received drawing (up to ~5.8 mm off axis) and were reported with
+  ``candidate_action=None``.
+* ②-1b-S then admitted 13AD/13AE through the two USER-SIGNED axis-snap
+  gates, so they became real face lines on the as-received side too.
+* A-11 (2026-09-05, user 「走乙」) then snapped the ingest resolution to
+  1 mm, and the honest diff changed shape again, MEASURED on this tree:
+  13AC/160A's ~0.2 mm "difference" was pure representation residue and is
+  ABSORBED -- those two records are gone from the ledger (exactly the
+  user's ruling: 0.1 mm residue belongs to the measurement representation,
+  ⛔ never to a signed ``drawing_error``) -- while 13AD and 13AE now show
+  their REAL correction for the first time as a well-formed single-field
+  translate (``const -30``, i.e. 3.0 mm: the signed drawing moved those
+  two walls onto the position the as-received one missed it by).  13AF
+  alone remains ``candidate_action=None`` -- it is skewed too far for the
+  signed snap gates, so it is still absent from the as-received
+  ``face_lines``, and straightening a diagonal into an axis-aligned line
+  is still not expressible as "add a delta to one stored field" (①'s
+  "遇到再加").  ⚠️ A-11's snap sits at the INGEST door (``as_measured``);
+  it does NOT constrain a future signed translate's delta, which may
+  legitimately land off the 1 mm grid.
 
 ## Propagation scope (⛔ a named limitation, not an oversight)
 
