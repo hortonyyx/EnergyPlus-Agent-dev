@@ -87,7 +87,7 @@ def test_segment_domain_anchor_and_axis_half_signs():
     assert evaluate(diff, raw=raw, supplement=sup, axis='x') == 43000
     assert evaluate(replace(diff, direction='negative'), raw=raw, supplement=sup, axis='x') == -11000
     cfg = json.loads(sup)
-    cfg['declarations'] = [dict(axis='x', qualification='drawing_dimension', callout_id='W', kind='full', value_mm=220)]
+    cfg['declarations'] = [dict(axis='x', qualification='drawing_dimension', quantity='wall_thickness', callout_id='W', kind='full', value_mm=220)]
     thickness = OperandRef(digest(raw), 'declarations', 'declaration', 0)
     axis = Expression('axis_half_wall', ref('node', 1), (thickness,), 'positive', 'full')
     assert evaluate(axis, raw=raw, supplement=freeze(cfg), axis='x') == 17100
@@ -209,3 +209,12 @@ def test_real_plan_scope_and_declared_negative_y_direction():
     assert evaluate(expr, raw=raw, supplement=sup, axis='y') == 153400
     b = s.submit(response(s))
     assert len(s.consume(b.batch_id)) == 102
+
+
+def test_original_center_and_declared_width_derive_non_nodes():
+    raw, sup = fixture(values=(900, 2100, 4500))
+    n = lambda i: OperandRef(digest(raw), 'P', 'node', i)
+    center_minus_half_width = Expression('axis_half_span', n(2), (n(0), n(1)), 'negative')
+    assert evaluate(center_minus_half_width, raw=raw, supplement=sup, axis='x') == 25500
+    assert evaluate(replace(center_minus_half_width, direction='positive'), raw=raw, supplement=sup, axis='x') == 34500
+    assert 2550 not in json.loads(sup)['chains']['P']['cum_mm']

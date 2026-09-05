@@ -74,7 +74,7 @@ class OperandRef:
 
 @dataclass(frozen=True)
 class Expression:
-    operation: Literal["node", "anchored_sum", "anchored_diff", "axis_half_wall"]
+    operation: Literal["node", "anchored_sum", "anchored_diff", "axis_half_wall", "axis_half_span"]
     anchor: OperandRef
     operands: tuple[OperandRef, ...] = ()
     direction: Literal["positive", "negative"] = "positive"
@@ -266,7 +266,8 @@ def evaluate(expression: Expression, *, raw: bytes, supplement: bytes, axis: str
         if len(operands) != 1 or expression.thickness_kind not in ("full", "half"):
             raise TickClaimError("OPERATION_SIGNATURE_INVALID")
         value, decl = resolve(operands[0], "declaration")
-        if decl.get("kind") != expression.thickness_kind or value <= 0:
+        if (decl.get("kind") != expression.thickness_kind or value <= 0
+                or decl.get("quantity") != "wall_thickness"):
             raise TickClaimError("THICKNESS_DECLARATION_MISMATCH")
         if expression.thickness_kind == "full":
             if value % 2:
@@ -282,12 +283,16 @@ def evaluate(expression: Expression, *, raw: bytes, supplement: bytes, axis: str
                 [r.index for r in operands] != list(range(operands[0].index, operands[0].index + len(operands)))):
             raise TickClaimError("SEGMENTS_NOT_CONTIGUOUS")
         displacement = sum(resolve(r, "segment")[0] for r in operands)
-    elif op == "anchored_diff":
+    elif op in ("anchored_diff", "axis_half_span"):
         if len(operands) != 2 or operands[0].chain_id != operands[1].chain_id:
             raise TickClaimError("OPERATION_SIGNATURE_INVALID")
         lo, _ = resolve(operands[0], "node")
         hi, _ = resolve(operands[1], "node")
         displacement = hi - lo
+        if op == "axis_half_span":
+            if displacement % 2:
+                raise TickClaimError("CHAIN_HALF_SPAN_UNGRID")
+            displacement //= 2
     else:
         raise TickClaimError("OPERATION_SIGNATURE_INVALID")
     return anchor + sign * displacement
