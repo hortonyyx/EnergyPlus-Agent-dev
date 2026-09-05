@@ -4,11 +4,11 @@
 
 ## 1. 阶段与边界
 
-第一步由 `TickSession` 拥有，每张 reading 图各一实例：代码枚举整图证据和候选 → 同图模型返回 `TickResponse` → 代码落值、检查区间、冻结本次决定。第二步 `OpeningReview` 持有各图独立的预期批次 ID：复验当前事实 → 调用既有 B4 精确配对 → 模型返回身份取舍及整栋审查 → 代码产生四分类账和坐标。
+第一步由 `TickSession` 拥有：代码枚举整图证据和候选 → 同图模型返回 `TickResponse` → 代码落值、检查区间、冻结本次决定。第二步 `OpeningReview` 持有各图独立的预期批次 ID：复验当前事实 → 调用既有 B4 精确配对 → 模型返回身份取舍及整栋审查 → 代码产生四分类账和坐标。
 
 两阶段的新实现位于 `tick_claim.py` 与 `opening_adjudication.py`。现有 B4 算术/零容差判据/义务注册表保持原实现；新第二步实际调用它，输入 x、z 均从第一步重推导。B4 的历史低层 dict API 保留，本单的受约束消费入口是 `OpeningReview`，不是把那个低层函数宣称成已封装的新契约。旧 evidence bundle 没有加字段；既存 reading 字节和 bundle 哈希原样保留。新刻度证据层同时覆盖 x/z，不采用“x 新值 + z 旧裸值”的分流。
 
-这里交付子环节 API 与代码执行，不在本单接 `run_pipeline`、调用付费模型、重做 gt 或运行 sm25 端到端；这些属派工盘面的 E-a / J 等接线和验收工作。`CorrectedGeometryV3` 装配消费新结果时，应通过当前 `OpeningReview.consume`/`scoreable_openings` 获取，不把历史 JSON 当成当前有效批次。
+这里交付子环节 API 与代码执行，不在本单接 `run_pipeline`、调用付费模型、重做 gt 或运行 sm25 端到端；这些属派工盘面的 E-a / J 等接线和验收工作。
 
 ## 2. 冻结输入与全集来源
 
@@ -63,7 +63,7 @@ declarations: [{axis, callout_id, quantity: wall_thickness,
 
 所有 node/segment 的 axis 必须与当前边相同、source_sha 必须与当前原件相同。跨链 anchor 可以作为位置锚，但每个 sum/diff/span 的被求和/差链自身一致，且所有链已经显式变换到同图同轴；不暗假设两条不同链的累计原点都是世界原点。
 
-强制实现为 [`evaluate`](../../../../src/agent/correction/tick_claim.py#L223)，非声明、跨图、错轴、坏 ref 分别走 `OPERAND_NOT_DECLARED / OPERAND_CROSS_IMAGE / OPERAND_FRAME_MISMATCH / OPERAND_REF_MISSING`，不是自动二档。`OPERATION_SIGNATURE_INVALID`、`SEGMENTS_NOT_CONTIGUOUS` 也是输入拒绝；代码调用方修候选或 reading 补证后回第一步。真正“无可指认刻度”的二档由模型 `pixel` 明确裁定。
+强制实现为 [`evaluate`](../../../../src/agent/correction/tick_claim.py#L223)，非声明、跨图、错轴、坏 ref 分别走 `OPERAND_NOT_DECLARED / OPERAND_CROSS_IMAGE / OPERAND_FRAME_MISMATCH / OPERAND_REF_MISSING`，不是自动二档。`OPERATION_SIGNATURE_INVALID`、`SEGMENTS_NOT_CONTIGUOUS` 也是输入拒绝。真正“无可指认刻度”的二档由模型 `pixel` 明确裁定。
 
 **硬例**：链节点 `[0,1600,4300,7500]` 的 node1+node2 不属于段长签名，直接拒绝；合法 segment0+segment1 = 4300mm。不能先算成5900再靠区间门蒙混。数学上合法的2550/3450非节点结果由 `axis_half_span` 精确放行，无节点成员检查。
 
@@ -80,7 +80,7 @@ declarations: [{axis, callout_id, quantity: wall_thickness,
 
 存储/算术为0.1mm；二档读取 `load_core_tolerances().output_precision_m`（当前10mm），记录配置字段名和冻结的实际 u 值，以 Decimal ROUND_HALF_UP 规整。一档在 submit 和 consume 两个位置都直接 evaluate，不经该规整。gt 的1mm不在本模块消费，不改 gt；跨图配对精确相等与 gt 判分容差是不同职责。
 
-`TickBatch(batch_id, record: bytes)` 的 record 持久化 schema、packet_id、source_sha、image_id、generation、完整 response、出口声明、完整 rows。每行保存原像素 pointer/witness、完整选中 Candidate（含运算与操作数）、choice/reason、tier、代码值、debt_id/retired_debt_id。batch_id 是这些规范 JSON 字节的 sha256。`TickPacket` 同时保留原件和补证 bytes；调用方持久化时需一起保存这两份源及批次 record，不能只保存预览坐标。
+`TickBatch(batch_id, record: bytes)` 的 record 持久化 schema、packet_id、source_sha、image_id、generation、完整 response、出口声明、完整 rows。每行保存原像素 pointer/witness、完整选中 Candidate（含运算与操作数）、choice/reason、tier、代码值、debt_id/retired_debt_id。batch_id 是这些规范 JSON 字节的 sha256。`TickPacket` 同时保留原件和补证 bytes。
 
 `TickSession` 是当前批次持有者；第二步保留独立 expected_batch_id。`consume(expected_batch_id, batch=None)` 精确核当前身份、字节、packet及source，按选中表达式或原始像素重新计算，再校完整集合和结果。普通重新 finalize、换 ref/tier/元素、拿另一有效批次替换，均不能通过这个入口。**这个保证只覆盖给定当前持有者和独立预期 ID 的正常 API 消费，不声称 Python 对象不可被反射修改。**
 
@@ -127,7 +127,7 @@ whole_building_review=return_to_step_one 时按图 ID 回第一步，当前审�
 
 验证证明：本图来源与算术域成立、选择有账、集合完整、当前批次绑定、二档/推测显式、旧批次不能经新消费入口复用。模型是否认对刻度、是否选对墙房或对应洞口，仍是可被重裁的语义判断，不是哈希或整数等式能证明的事实。
 
-本单没有修改 gt、判分器、既有 facts 或签字 fixture；没有声称新增 JSON 会自动被现有评分服务识别。正式接线需消费这里的来源和当前出口语义；对 raw 历史记录绕开 API 的使用不在已验证保证内。跨进程自动恢复当前批次持有者、本楼通用拓扑重检、真实模型端到端质量不作为本单已完成事实。
+本单没有修改 gt、判分器、既有 facts 或签字 fixture；没有声称新增 JSON 会自动被现有评分服务识别。对 raw 历史记录绕开 API 的使用不在已验证保证内。跨进程自动恢复当前批次持有者、本楼通用拓扑重检、真实模型端到端质量不作为本单已完成事实。
 
 ---
 
