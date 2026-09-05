@@ -31,6 +31,21 @@ from src.agent.judge.tarch_converter_schema import (
     TarchConversionRequestV1,
 )
 from tests.answer_compiler_fixtures import synthetic_signed_facts
+# ⭐ A-11 rework-1 root cause B: the deferred-projection adjudication is
+# declared ONCE in tests/deferred_projection_ledger.py (F-153 form B = known
+# debt, who retires it, and the pinned count) — this file and
+# test_f156_ring_from_intersection.py both import it, so they cannot drift.
+from tests.deferred_projection_ledger import (
+    DEFERRED_PROJECTION_CODES,
+    KNOWN_DEFECT_CODES,
+    SM25_DEFERRED_CAVITY_COUNT,
+)
+from tests.deferred_projection_ledger import (
+    deferred_cavities as _deferred_cavities,
+)
+from tests.deferred_projection_ledger import (
+    failures_not_from_deferred_cavities as _failures_not_from_deferred_cavities,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 SM25_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
@@ -125,7 +140,7 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     # here).  Plus the two pre-existing ``..._unavailable`` parallel cavities
     # F-157 already owed.
     deferred = _deferred_cavities(audit)
-    assert len(deferred) == 4
+    assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT
     assert _failures_not_from_deferred_cavities(audit) == []
     assert not audit.passed  # F-157 owes two residuals; F-153 form B owes the endcap
     # ⭐ ②-1d rework3: the producer-written endcap loss (F-153 form B) is now
@@ -216,43 +231,12 @@ def test_r2_pairing_exhausts_both_directions_and_all_rotations_with_hard_limit()
 # ⛔ Not a cavity roster: membership is computed from THIS run's own
 # projected-ring failures, so it empties out by itself once F-157 lands.
 # --------------------------------------------------------------------------
-#: Both readings of the ONE deferred condition (answer-side basis switch part
-#: way along a single support line): either the projected ring is buildable and
-#: is not the zone, or the two bases make two adjacent projected supports
-#: parallel so no ring can be built.
-DEFERRED_PROJECTION_CODES = ("facts_projected_ring_is_not_the_converter_zone",
-                             "facts_projected_ring_unavailable")
-
-#: ⛔ Owned by another lock, ⛔ not an amnesty.  ②-1d rework3 made a
-#: producer-written ``registered_ring_loss`` fail-loud, so the honest sm25
-#: substrate now always carries one such red per converter zone parked in an
-#: endcap-loss cavity (F-153 form B, a known-unfixed defect).  Those reds belong
-#: to the F-153 form B lock in ``tests/test_o21d_exclusion_gap.py``, ⛔ not to the
-#: E2c/E3/E4/basis-mutation locks below, which must not be held hostage by a
-#: defect they do not own ([[invalidation-blast-radius-must-be-scoped]]).  When
-#: the F-153 fix lands the ledger empties and these stop occurring; nothing here
-#: changes.
-KNOWN_DEFECT_CODES = ("converter_zone_excluded_by_producer_written_ring_loss",)
-
-
-def _deferred_cavities(audit) -> set[tuple[str, str]]:
-    return {(item.split(":")[1], f"cavity:{item.split(':')[3]}")
-            for item in audit.structural_failures
-            if item.startswith(DEFERRED_PROJECTION_CODES)}
-
-
-def _failures_not_from_deferred_cavities(audit) -> list[str]:
-    deferred = _deferred_cavities(audit)
-    kept = []
-    for item in audit.structural_failures:
-        if item.startswith(KNOWN_DEFECT_CODES):
-            continue
-        parts = item.split(":")
-        named = ((parts[1], f"cavity:{parts[3]}")
-                 if len(parts) >= 4 and parts[2] == "cavity" else None)
-        if named not in deferred:
-            kept.append(item)
-    return kept
+# ⭐ A-11 rework-1 root cause B: every name below now comes from the ONE
+# declaration point (``tests/deferred_projection_ledger.py`` — the
+# adjudication of F-153 form B as known debt lives THERE, stated once).
+# This file previously carried its own copy and drifted out of sync with
+# ``test_f156_ring_from_intersection.py``, which is exactly how one substrate
+# came to read green here and red there.
 
 
 def _assert_structural_red(audit, expected_fragment: str) -> None:

@@ -45,10 +45,17 @@ CONVERSION_REPORT = (
     REPO_ROOT / "case_tests/test_baseline/gt" / CASE / "review/conversion_report.json")
 MIN_ROOM_AREA_M2 = 5.0
 
-#: Both readings of the one condition F-157 owns (the answer-side
-#: ``outer_skin``<->``wall_axis`` switch part way along a single support line).
-DEFERRED_PROJECTION_CODES = ("facts_projected_ring_is_not_the_converter_zone",
-                             "facts_projected_ring_unavailable")
+# ⭐ A-11 rework-1 root cause B: the deferred-projection adjudication is
+# declared ONCE in tests/deferred_projection_ledger.py (F-153 form B = known
+# debt, who retires it, and the pinned count).  This file used to carry its
+# own DEFERRED_PROJECTION_CODES and still asserted ``residuals == []`` below —
+# one substrate, two verdicts.  Both files import the SAME names now.
+from tests.deferred_projection_ledger import (  # noqa: E402
+    DEFERRED_PROJECTION_CODES,
+    SM25_DEFERRED_CAVITY_COUNT,
+    deferred_cavities,
+    failures_not_from_deferred_cavities,
+)
 
 
 @pytest.fixture(scope="module")
@@ -76,42 +83,53 @@ def _rings(view_json: dict) -> dict[str, list]:
             for cavity, edges in by_cavity.items()}
 
 
-def _deferred_cavities(audit) -> set[str]:
-    return {f"cavity:{item.split(':')[3]}"
-            for item in audit.structural_failures
-            if item.startswith(DEFERRED_PROJECTION_CODES)}
-
-
 # =========================================================================== #
 # Acceptance 1 -- zero-threshold ring identity, in BOTH directions
 # =========================================================================== #
 def test_projected_ring_identity_holds_with_no_tolerance_at_all(facts, report):
     """Every cavity that reaches the per-edge comparison lands on its zone
-    EXACTLY.  ⛔ Read the assertion: it is ``== 0``, not ``< something``.  The
-    clear-span ring and the zone are on different bases and differ by 1.0-3.5 m²
-    before projection, so a threshold here could only have been read off the
-    data it is judging."""
+    EXACTLY.  ⛔ Read the assertion: it is "residual of exactly nothing for
+    everyone outside the ONE declared ledger", not ``< something``.  The
+    clear-span ring and the zone are on different bases and differ by 1.0-3.5
+    m² before projection, so a threshold here could only have been read off
+    the data it is judging.
+
+    A-11 (1 mm ingest snap) moved BOTH sides of the comparison onto the same
+    1 mm grid: the old 286.8 m² endcap-loss cavity closed into two real rooms
+    (pairings 25 -> 27, paired edges 100 -> 108), whose rings surface the
+    F-153 form B endcap difference for the first time.  Those two cavities —
+    and only those, plus F-157's two — sit in the ONE deferred ledger declared
+    in ``tests/deferred_projection_ledger.py``.  The count is pinned:
+    one MORE unexplained projected-ring failure reddens here, so this is not
+    an amnesty and not a threshold."""
     audit = reconcile_boundary_basis(facts, report)
-    residuals = [item for item in audit.structural_failures
-                 if item.startswith(DEFERRED_PROJECTION_CODES[0])]
-    assert residuals == []          # nobody is merely "close enough"
+    deferred = deferred_cavities(audit)
+    assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT  # 2 F-157 + 2 F-153 form B
+    assert failures_not_from_deferred_cavities(audit) == []  # nobody else is
+    # merely "close enough"                                          -- ⛔ no band
     assert audit.mismatches == []
     # and the comparison really ran on real rooms, ⛔ not on an empty set
-    assert len(audit.pairings) == 25
-    assert audit.paired_edges == 100
+    assert len(audit.pairings) == 27
+    assert audit.paired_edges == 108
 
 
-def test_moving_one_converter_edge_by_a_tenth_of_a_millimetre_reddens(facts, report):
-    """Teeth for the criterion above, at the smallest representable step.
+def test_moving_one_converter_edge_by_one_millimetre_reddens(facts, report):
+    """Teeth for the criterion above, at the smallest step the comparison can
+    REPRESENT.
 
-    A 1-unit (0.1 mm) move of one converter zone edge must redden.  ⭐ This is
-    what makes ``== 0`` meaningful: if the gate tolerated anything at all, the
-    smallest possible perturbation would pass."""
+    A-11 (user-final) declared the ingest resolution 1 mm: zone vertices are
+    snapped onto the same 1 mm grid the facts live on before the projected
+    ring is compared.  A 0.1 mm move therefore vanishes at the grid — measured:
+    ``named == 0`` — which is the snap doing its job, ⛔ not a tolerance.  The
+    smallest perturbation the gate can still SEE is one grid step, 1 mm, and
+    THAT must redden: ⭐ this is what makes the zero-residual half of the
+    criterion above meaningful — if the gate tolerated anything at all, the
+    smallest representable perturbation would pass."""
     baseline = reconcile_boundary_basis(facts, report)
     target_zone = baseline.pairings[0].converter_zone_id
     raw = report.model_dump(mode="python")
     zone = next(item for item in raw["zones"] if item["zone_id"] == target_zone)
-    step = 1.0 / UNITS_PER_METRE
+    step = 10.0 / UNITS_PER_METRE  # 1 mm = one ingest-grid step (A-11)
     zone["polygon_m"]["exterior"]["vertices"] = [
         [point[0], point[1] + step] if index == 0 else point
         for index, point in enumerate(zone["polygon_m"]["exterior"]["vertices"])]
