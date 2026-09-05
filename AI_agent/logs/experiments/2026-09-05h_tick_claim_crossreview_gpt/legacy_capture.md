@@ -1,0 +1,885 @@
+# Independent evidence transcript
+
+Read-only commands; snapshots are explicitly identified. Exit 1 from a negative `rg` is retained.
+
+## E01 scope
+
+```sh
+pwd
+git rev-parse HEAD
+git diff --numstat ac9a0669..dc886036
+git diff --numstat dc886036 -- src tests
+```
+
+```text
+/tmp/tickrw2_review_gpt
+75f7732a4a7fa0529561b1533de0170ca7e7e91c
+373	0	AI_agent/logs/reviews/execution/2026-09-04u_tick_claim_design.md
+480	0	AI_agent/logs/reviews/execution/2026-09-05a_tick_claim_design_rework1.md
+495	0	AI_agent/logs/reviews/verdict/2026-09-04y_tick_claim_design_crossreview_gpt.md
+15	0	src/agent/correction/evidence_adapters.py
+25	0	src/agent/correction/evidence_contract.py
+351	81	src/agent/correction/opening_synthesis.py
+217	34	tests/test_b4_opening_synthesis.py
+50	0	tests/test_o22m2_evidence_contract.py
+3	0	tests/test_o22m4_wall_compiler.py
+725	0	tests/test_t4a_rework1_resolution_lock.py
+[exit 0]
+```
+
+## E02 previous findings verbatim
+
+```sh
+rg -n -A 12 '^### [BN]-[1-6]' AI_agent/logs/reviews/verdict/2026-09-04y_tick_claim_design_crossreview_gpt.md
+```
+
+```text
+48:### B-1 · 一档契约与 D4 合法域错误收窄为 `cum_mm` 节点
+49-
+50-**证据：** 设计 D2-b 第 123–134 行允许 `value_source="segment_sum"`，但又要求所有一档都有 `resolved_local_x_ref`，其含义被限定为“指向被认领的那个 `cum_mm` 节点”；`dimension_refs` 也被限定为 `calibration.x.cum_mm` 节点。D4 第 217–225 行进一步规定每条边必须是 `cum_mm` 成员。权威指南第 1038 行和第 1166 行允许“节点或由链算出来的值”。
+51-
+52-**影响：** 合法的一档输入会被误拒。例如链给出轴线 3000 mm 与洞口宽 900 mm，代码按已引用证据算出边界 2550/3450 mm；两边是链派生事实，却未必是 `cum_mm` 节点。当前 schema 既没有封闭运算表达式，也没有位置容纳多个操作数及其 ref。
+53-
+54-**必须修：** 把一档做成判别联合，至少区分 `chain_node` 与 `chain_derived`。`chain_derived` 必须携带封闭运算枚举、按角色标注的 operand refs/声明 ref 和可复算结果 ref/证书；代码在 0.1 mm 整数算术域重算，模型仍只选择候选/运算 ID。D4 的零阈值判据应是“引用存在且运算精确可复算”，不能是“结果一定在 cum 集合”。
+55-
+56:### B-2 · D4 失效条件没有列全，且缺少区间级不变量
+57-
+58-**正面结论：** 若前提明确限定为 `i < j`、`cum` 是同一条干净链的精确前缀和、两端确实引用 `cum[i]`/`cum[j]`，则
+59-`cum[j] - cum[i] = sum(values[i:j])` 成立；用整数算术和精确成员检查可做到零 epsilon。这部分论证成立。
+60-
+61-**不成立之处：** 它只证明“选到两个链节点后能得到连续段和”，不证明这两个节点界定该洞，也不覆盖合法的链派生边。作者列出的三类失效不全。
+62-
+63-**我补出的会判错输入：**
+64-
+65-- `lo` 与 `hi` 都认领同一个节点 0：两条边分别都是合法成员，D4 逐边检查全绿，但洞口宽度为 0；D2 只校验原始像素证据 `x_lo < x_hi`，没有校验认领后的两个 ref 仍严格有序。
+66-- `lo` 认到 6000、`hi` 认到 0：两边分别通过成员检查，但结果反向；D4 的公式暗含 `i < j`，契约未强制。
+67-- B-1 的 2550/3450 合法链派生边会被判红，是 false negative。
+68-
+--
+71:### B-3 · D5-c 确实把未签字判断挤到了“中点分流”
+72-
+73-**判定：是。** 它不是固定毫米常量，但仍是一个未签字的相对判断阈值：相邻 tick 间距的 1/2。Voronoi/中点分区会给除精确中点外的每个实数唯一最近 tick，因此没有“离所有 tick 都远”的结构出口。所谓“等距分界带”若只指中点，宽度为零、几乎永不触发；若真是一个带，就还缺一个带宽阈值。
+74-
+75-当前数据已直接反证它：East `O01` 两边 536.7/2164.6 mm 都处于 `[0, 3000)`，按 D5-c 都唯一归到 tick 0；这会自动产出 `[0, 0]`，而稿子自己又把该洞定为二档。D5-b 说“明确在段中可自动二档”，但没有任何结构判据把“段中”与“最近 tick 的唯一 Voronoi 区”区分开。
+76-
+77-**必须修：** 自动认领只能依赖已有的显式结构证据（例如 reading 已提供且可解析、角色闭合的 `dimension_refs`/witness 绑定）；凡需要用像素距离判断“是不是这个刻度”的情况都进入模型裁决，或在确有显式“该处无尺寸标注”证书时自动二档。不得再用最近邻/中点替代建筑语义判断。
+78-
+79:### B-4 · D6 还没有在类型/结构层成立
+80-
+81-**正面结论：** “raw claim 与 validated carrier 是不同类型”方向正确，且 hash 重算适合检查内容在传递中是否漂移。
+82-
+83-**为什么仍不成立：**
+84-
+85-1. 当前 `finalize_bundle` 是公开纯函数且在 `__all__` 中；改 `tick_ref`/tier 后重新 finalize 就会得到自洽新 hash。hash 是完整性校验，不是授权封印。
+86-2. “`SealedTickClaimsV1` 由 validator 产出、无公开构造器”只是目标句，没有说明构造能力如何不可获得。B2 返工 3 正在修的恰是：`frozen=True`、类型注解、最外层 `isinstance` 都挡不住公开构造器和鸭子元素。
+87-3. “没有坐标字段”并未冻结决定。第二步只要把 `tick_ref` 从 A 换成 B、或把 `tier` 换成 `pixel_only`，就已经改了第一步事实，无需写浮点坐标。
+88-
+89-**必须修：** D6 要给出可审的实际形态，例如构造时必须持有模块私有、从不导出/返回/存实例的 seal；或者第二步完全不信任 carrier 值，每次从其冻结引用及第一步裁决账重建。第二步入口只能接受该真封印类型，并且正反例要覆盖重 finalize、替换元素、替换 `tick_ref`/tier。
+90-
+91:### B-5 · §十五的裁决账、阶段隔离与颗粒度消费没有进入契约
+92-
+93-设计的 `OpeningEdgeTickClaimV1` 只记录结论和证据，不记录该结论来自哪个 `AutoActionV1` 或哪个 packet/response/item decision；因此 §15.2 要求的“谁在哪一步被判成什么”无法从结果结构闭合复算。现有 `CorrectionDecisionResponseV1` 又强制 `whole_building_review`，而 D3 声称响应侧“一字不改”；这无法在类型层保证第一步逐图独立。
+94-
+95-同时，二档只指回 536.7/2164.6 mm 原始像素字节，没有记录 pipeline 10 mm 声明点及规整后的确定结果/派生证书；一档若为 1935 mm，设计也没说明 10 mm 出口是保真、豁免还是变成 1940 mm。该冲突已由指南显式提出，不能留给施工方猜。
+96-
+97-**必须修：**
+98-
+99-- 让每条 claim 结构性绑定 auto rule/action hash 或 packet hash + response/decision hash；bundle 输出完整裁决账。
+100-- 给第一步独立的 phase 类型/判别联合，类型上不能携带第二步 `whole_building_review` finding；或给出同等强度的封闭约束。
+101-- 给二档增加“原始像素 ref → 使用的 pipeline 分辨率声明 ref → 代码规整结果”的可复算派生记录。
+102-- 对“一档链真值 vs 10 mm pipeline 出口”停报请用户/主控收口；未签字前不得自行选舍入或豁免。
+103-
+104:### B-6 · D7 对两条当前在飞线的描述已过期
+105-
+106-| 在飞线 | 设计稿是否覆盖 | 当前树里的真实改动面 | 对本方案的影响 |
+107-|---|---|---|---|
+108-| **B2 返工 3** | **只笼统写了“排在 B2 第三轮之后”，没有读到本轮门；不合格** | `2026-09-04w_B2_rework3.md` 明确改 `multifloor.py`，唯一阻断是 `ValidatedFloorLadder` 构造能力公开；要求真 seal/逐元素受封/从冻结字节重读 | D6 不能把 B2 称为“现成范式”；它仍在解决与本稿完全同形的公开构造问题。应待返工 3 过审后按其最终模式复用，并避免碰 `multifloor.py`。 |
+109-| **T4-a 返工 2** | **完全漏掉；稿子只写旧的 obligation/hash churn** | `2026-09-04x_T4a_rework2.md` 改 `opening_synthesis.py` 的 obligation resolver/binding，锁“成功解析输入集合 == live key 集合”，并禁止碰 B4 `affected_refs` 源绑定 | 本方案也要改 `opening_synthesis.py` 的 B4 输入，存在直接文件/语义碰撞。施工必须排在 T4-a 返工 2 合并并过审之后，重基线后保持其 resolver/binding 与 `affected_refs` 锁。 |
+110-
+111-设计稿 R1–R5 对旧一轮 hash churn、B4 裸 dict、既有重现性锁的识别仍然有价值；问题是风险清单没有更新到当前在飞形态。
+112-
+113-## 四、不阻断 findings
+114-
+115:### N-1 · “每个数字”自查远非全量，且至少两处分类错误
+116-
+117-设计自查只列了少量领域数，漏了数据数组、距离、反例数、分支估算、日期/版本/源码行号等大量数字。更重要的是：
+118-
+119-- `≤34 mm` 是派工方/指南选来分组的经验 cutoff，属于**既有判断值**，不是图纸声明值；虽未进入本方案生产判据，也不能标成“声明值”。
+120-- `0–1 条/立面` 是由 66/68 外推的成本估算，属于作者判断。
+121-- `6925` 是作者构造的反例输入，属于判断性示例。
+122-- “中点”虽然没写阿拉伯数字，隐含的 **1/2** 正是新增判断边界；不能以“数据自定义”把它归成无判断。
+123-
+124-本裁决 §六给出独立机械扫描及逐类判定。
+125-
+126:### N-2 · D4 把存储格点检查、链成员检查和“整数尺寸”混成了一件事
+127-
+128-`grid_units`/`grid_units_from_mm` 只证明值在 0.1 mm 存储格点上；它不会证明该值属于某个 `cum_mm` 集合。实测 `grid_units_from_mm(6925)` 正常返回 `69250`，而 `6925` 不在 East `cum_mm`。施工设计必须明确为“两道精确检查”，不能用“即”连接。
+129-
+130-此外，“合法区间宽度必是图纸整数”只是当前样本现象，不是定理；项目的 0.1 mm 表示本就允许小数毫米。真正能证明的是“宽度精确等于被引用尺寸段的整数域求和结果”，不保证十进制表面为整数。
+131-
+132-## 五、五处专项的正面结论
+133-
+134-### 5.1 D4 零阈值判据
+135-
+136-- **成立部分：** 对“两个有序、同源、直接节点型边界”这个窄子域，前缀和恒等式成立，精确整数域检查不需要 epsilon。
+137-- **总体判定：不成立。** 它不是全部一档的必要条件，也不是正确认领的充分条件；且失效条件没列全。至少新增“同节点塌缩”“反向节点”“合法链派生值非节点”三类。
+138-
+[exit 0]
+```
+
+## E03 design contract
+
+```sh
+rg -n 'OneTierValueV1|value_source:|node_ref:|operands:|recompute_cert_units:|role: Literal|evidence_ref:|dimension_refs: tuple|provenance:|auto_rule_id:|packet_hash:|decision_hash:|input_id.*同|符号由边角色|检查①|检查②|严格有序|_require_chain_closed|无 provenance|reject_all|whole_building_review|候选.*两路|推荐乙|B2 已定门|闭合 B-4|私有令牌|逐元素受封|从每条 claim|正反例必须' AI_agent/logs/reviews/execution/2026-09-05a_tick_claim_design_rework1.md
+```
+
+```text
+18:4. **第一步有独立响应类型**（结构上不携带第二步的 `whole_building_review`）+ **每条 claim 结构性绑定裁决账**（闭合 **B-5** 阶段隔离与裁决账）。
+19:5. **冻结靠真封印类型**（模块私有令牌 + 逐元素受封 + 第二步从冻结字节重建），复用 B2 返工 3 的最终范式（闭合 **B-4**）。
+107:- F-2 单源：`{source_ref, x_lo_ref, x_hi_ref, x_lo_witness_ref, x_hi_witness_ref}.input_id` 必须同一（同 z 的单源不变量）；`_payload_row_source_ids`（`:1103`）的 `elevation_opening_claims` 分支**加上这些 ref 的 input_id**（否则 F-2 源闭合会漏 x）。
+118:OneTierValueV1 = ChainNodeValueV1 | ChainDerivedValueV1     # discriminated on `value_source`
+121:    value_source: Literal["chain_node"]
+122:    node_ref:     ArtifactPointerV1        # -> /calibration/x/cum_mm/<k>（指认到的节点字节）
+126:    value_source: Literal["axis_plus_half_wall", "segment_span_diff", "segment_span_sum"]
+127:    operands:     tuple[DerivedOperandV1, ...]   # 每个操作数一个角色 + 一个冻结字节 ref
+128:    recompute_cert_units: int               # 代码在 0.1 mm 整数域重算的结果（grid units），供校验器复算比对
+132:    role: Literal["axis", "half_wall_thickness", "cum_lo", "cum_hi", "segment_len"]
+138:    evidence_ref:  ObservationRefV1          # 指回 D2-a 那条边的证据档（指认，⛔ 不作坐标）
+142:    tier_one_value: OneTierValueV1 | None    # 一档：判别联合；二档：None
+145:    dimension_refs: tuple[ArtifactPointerV1, ...]   # 指向 calibration.x.cum_mm 的具体节点/段
+147:    provenance:    ClaimProvenanceV1         # 自动 or 模型，见 D2-e
+161:- **区间级不变量**（闭合 B-2，见 D4-c）：一条洞口的 `lo`/`hi` 两条边 claim 必须**同源、角色互异、严格有序、非零宽**；这条**跨两条边**，不能只逐边查。
+210:    auto_rule_id: str      # 指向那次 AutoActionV1 的 rule_id / action_id（wall_compiler.py:333）
+214:    packet_hash:   Hex64   # 哪个 CorrectionDecisionPacketV1（decision_schema.py:182）
+216:    decision_hash: Hex64   # 模型那次响应的 canonical hash
+219:⇒ 从任一条 claim 结论**都能闭合复算**到「哪个自动规则 / 哪个 packet+item+decision 把它裁成这样」。bundle 输出**完整裁决账**（所有 claim 的 provenance 汇总）。⛔ 无 provenance 的 claim = 非法（互锁不变量）。
+230:- **候选 = 代码枚举的链节点/派生运算**。两路，**推荐乙**：
+232:  - (乙) **新增平行候选类型** `TickCandidateV1 {candidate_id: str, value: OneTierValueV1, preview_local_x_units: int}`，`OpenItemV1` 用**判别联合**承载候选。每候选可以是 `chain_node` 或 `chain_derived`（**含派生运算候选**，天然容纳 B-1 的 `axis_plus_half_wall`）。preview 由代码算。
+237:**病根（我核过）**：`CorrectionDecisionResponseV1`（`decision_schema.py:356`）**强制携带** `whole_building_review: WholeBuildingReviewV1`（`:366`，**必填、无默认**）。而 `WholeBuildingReviewV1`（`:335`）是**第二步（跨图空间推理）**的「整栋楼讲不讲得通」语义。第一步**逐图独立**（§15.3），结构上**不该能**产出第二步语义。上一稿说「响应侧一字不改、第一步让它填 accept」—— 那是**纪律不是阶段隔离**（GPT B-5#3 点名）。
+239:⇒ **第一步用独立响应类型**（结构上装不下 `whole_building_review`）：
+244:    packet_hash:     Hex64
+246:    # ⛔ 结构上【没有】whole_building_review 字段 —— 第一步永远产不出第二步语义
+250:    action:       Literal["select_candidate", "reject_all", "request_reperception"]
+255:- `select_candidate` + `candidate_id`（某 tick 候选的 id）⇒ **一档**（认这个候选，值来自候选的 `OneTierValueV1`）。
+256:- `reject_all` ⇒ **二档**（没有候选配得上，像素值站住）。
+262:2. **阶段隔离（B-5#3）**：第一步在**类型层**就没有 `whole_building_review` 这条路 —— ⛔ 不是「填 accept」的纪律，是**结构上填不了**。第二步的响应仍用 `CorrectionDecisionResponseV1`（它带 review）。两步响应类型**判别分开**。
+272:- **检查① · 引用存在且角色闭合**：claim 的 `tier_one_value` 引用的每个 ref（`node_ref` 或 `operands[*].ref`）**都能在冻结字节里解析到**，且角色齐备（`chain_node` 要 1 个节点 ref；`axis_plus_half_wall` 要 `axis` + `half_wall_thickness` 各 1；`segment_span_diff/sum` 要 `cum_lo` + `cum_hi` 或一组 `segment_len`）。
+273:- **检查② · 运算精确可复算**：代码在**声明的 0.1 mm 整数域**（`grid_units_from_mm`，`opening_synthesis.py:174`，round-trip 相等强制，`:180`）按 `value_source` 指定的**封闭运算**对 operands 重算：
+275:  - `axis_plus_half_wall`：结果 = `axis_units ± half_wall_units`（符号由边角色 lo/hi 定）。
+280:⭐ **关键分辨（N-2）**：`grid_units_from_mm` 只证明「值落在 0.1 mm 存储格点上」（实测 `grid_units_from_mm(6925)=69250` 正常返回，而 `6925` **不在** East `cum_mm`）—— 它**不**证明值属于某链集合。所以检查①（引用+角色）与检查②（运算重算）**是两件事**，⛔ 不能用「即」连接、⛔ 不能只用存储格点成员冒充链成员。此外「合法区间宽度必是图纸整数」只是**当前样本现象、不是定理**（0.1 mm 表示本就允许小数毫米）；真正能证的是「宽度精确等于被引用尺寸段的整数域求和」。
+286:- **拒伪造**：任何「编出来、链上算不出」的 x 当场红（`chain_node` 填 `6925` ⇒ `6925` 不是 cum 成员 ⇒ 检查①失败；`chain_derived` 填错运算 ⇒ 检查②重算对不上 `recompute_cert`）。这是零阈值给的**真保证**。
+295:2. **反向节点**：`lo` 认 6000、`hi` 认 0 ⇒ 两边分别通过成员检查，但**结果反向**。⇒ 区间级不变量强制 `lo_units < hi_units`（严格有序）。
+296:3. **合法链派生边被误判红（false negative）**：上一稿「结果必 ∈ cum 集合」会把 `2880`（`axis±半墙厚`）判红。⇒ D4-a 检查②的判据是「**运算精确可复算**」而非「结果在 cum」，放行 chain_derived。
+298:5. **链本身不闭合/被污染——判据地基塌了**：判据把 `cum_mm` 当权威合法集。前置门必须复用 `_require_chain_closed`（`evidence_adapters.py:564`，在 `:662` 调用；抽查 South/East `chain_closure_mm=0.0`）。这是判据的**前提**，不是判据能兜的。
+301:① **同源**（两条边的证据档 `input_id` 同一条立面链）· ② **角色互异**（一个 lo、一个 hi）· ③ **严格有序**（`lo_units < hi_units`）· ④ **非零宽** · ⑤ 若为 `chain_derived` 则各自**重算精确**。⇒ 失效 1/2 被 ③④ 挡、失效 3 被 D4-a② 放行、失效 4 交 D5、失效 5 交前置门。
+342:⇒ 代码把候选（相关 cum 节点 + 可能的派生运算）列进 `OpenItemV1`，模型 `select_candidate`（认某候选→一档）/ `reject_all`（→二档）/ `request_reperception`（重读）。`provenance=model`（带 packet+item+decision hash）。
+354:## D6 · 两步之间的冻结：真封印类型（⛔ 不是纪律；闭合 B-4）
+365:1. **构造时出示模块私有令牌**（B2 返工 3 §出路(a) 原话）：`SealedTickClaimsV1` 的构造**必须持有一个从不导出、从不返回、不存在于任何实例上的模块私有 seal 令牌**；`__all__` 里没有它、没有工厂返回它。⇒ 第二步**无法凭空铸造**封印载体。
+366:2. **逐元素受封**（B2 返工 3 §出路(b)）：装配入口**不只查最外层类型**，还**逐个元素**核每条 `OpeningEdgeTickClaimV1` 确实来自封印通道 —— 且**元素类型本身也不可公开构造**（否则等于「加一句检查」，B2 返工 3 明警）。
+367:3. **第二步从冻结字节重建、不信载体携带值**（B2 返工 3 §出路(c)）：第二步入口**不直接消费**载体里的 `tier_one_value` 数值，而是**从每条 claim 的冻结 ref + 第一步裁决账重新解析**一遍 —— 载体只当「一份可复算的索引」，改了载体里的值也没用，因为第二步照 ref 重算。
+369:**正反例必须覆盖**（B2 裁决同款要求）：① 重 finalize 后替换 → 拒 · ② 替换某个元素 → 拒 · ③ 把某条边的 `tick_ref`/`tier` 从 A 换 B → 拒。第二步入口**只接受**该真封印类型，⛔ 不接受裸 `OpeningEdgeTickClaimV1` 列表。
+407:| **R2 · B2 返工 3（已交件待审，⛔ 未合并）** | `2026-09-04w_B2_rework3.md`：改 `multifloor.py`，唯一阻断 = `ValidatedFloorLadder` **构造能力必须不可公开获得**（真 seal / 逐元素受封 / 从冻结字节重读）；⛔ 碰 `evidence_contract.py`/`opening_synthesis.py`/`evidence_adapters.py` | 本方案 **D6 的真封印正是同形问题**（validated carrier 类型层封印）。⇒ **D6 不能把 B2 称为「现成范式」** —— 它**还在解**同一道题。应**等 B2 返工 3 过审、按其最终封印形态复用**，⛔ 不各造一套、⛔ 施工不碰 `multifloor.py` |
+421:  72-75: (a) 真封印 模块私有令牌 从不导出/返回/存实例 · (b) 逐元素验证 元素类型本身不可公开构造
+467:| **B-1** 一档错收窄成 `cum_mm` 节点 | D2/D4 强制一档必是 cum 节点成员 | 一档改**判别联合** `chain_node \| chain_derived`；`chain_derived` 带**封闭运算枚举 + 角色化 operands + 可复算证书**（axis±半墙厚/分段相减/累加）| D2-b `OneTierValueV1`/`ChainDerivedValueV1`；D2-c `2880` 示例；§14.2b 行 1038/1166 |
+468:| **B-2** 失效条件不全 + 缺区间不变量 | D4 只列三类失效，逐边查 | 补**区间级不变量**（同源/角色/严格有序/非零宽/派生重算），失效补**同节点塌缩/反向节点/合法派生 false-negative** | D4-c 五条 + D2-b 区间不变量 |
+470:| **B-4** 冻结未在类型层成立 | finalize+hash 可重签、「无公开构造器」是目标句、可换 tick_ref | **真封印**：模块私有令牌 + 逐元素受封（元素类型本身不可公开构造）+ 第二步从冻结字节重建；正反例覆盖重finalize/换元素/换 tick | D6 三条 + 复用 B2 返工 3 §出路(a)(b)(c) |
+471:| **B-5** 裁决账/阶段隔离/颗粒度未进契约 | claim 不记来源、复用带 review 的响应、颗粒度冲突略过 | **裁决账** `ClaimProvenanceV1` 绑定；**第一步独立响应类型** `TickClaimResponseV1`（结构无 whole_building_review）；**颗粒度收口**（一档免疫格点，由 §14.2 推出）| D2-e + D3-b + 颗粒度收口节 |
+480:**D3 的候选枚举（甲/乙两路）与 `SymbolicCandidateV1` 的边界。** B-1..B-6 六条阻断我都有实测或类型层论证垫背（D5 三签名全量重量、D4 反例 `6925`、D6 复用 B2 已定门、颗粒度由 §14.2 推出）。但 **D3 把「认哪个刻度/哪个派生运算」表达成 `OpenItemV1` 的候选**这一步，我给了两路（甲复用 `SymbolicCandidateV1` / 乙新增 `TickCandidateV1` 判别联合）却**未实测**哪一路在真实 packet 里更省、更不易让 `SymbolicOperation`（现全是墙厚语义，`wall_compiler.py:119`）被刻度语义污染。乙路的判别联合更干净但要动 `OpenItemV1` 的候选载体类型；甲路少改类型但把两种语义混进一个枚举。**风险**：若施工时发现 `OpenItemV1.candidates` 的现有消费者（执行器成员校验、`UNKNOWN_RESPONSE_CANDIDATE`）对判别联合候选有隐含假设，乙路可能要连带改执行器。⇒ **施工前应先读一遍 `OpenItemV1.candidates` 的全部现有消费者**，确认判别联合候选不破坏执行器的成员校验，再定甲/乙。这是本稿唯一没有类型层或实测垫背、留给施工单先勘的选择点。
+[exit 0]
+```
+
+## E04 design claims and numeric table
+
+```sh
+rg -n 'South 全|North 全|West|MULTI|ALL_S1|自动一档|自动二档|全量重量命令|python3 -c|66/68 自动|已签字颗粒度|CodeToken.*约束|原料/实测|实测统计|反例/构造|颗粒度收口|直接推出|1940|关于.*二档|无坐标字段|R[1-5] ·|每个.*content_sha256|日期/commit|源码行号' AI_agent/logs/reviews/execution/2026-09-05a_tick_claim_design_rework1.md
+```
+
+```text
+20:6. **一档链真值 vs pipeline 10 mm 出口**：在设计层显式收口 —— **一档坐标免疫 10 mm 出口格点**，此结论**由已定死的 §14.2 推出**（坐标只能取自尺寸链），非新决策（闭合 **B-5** 颗粒度冲突，详见 §颗粒度收口）。
+47:- **§14.2（行 1015-1016）**：洞口边坐标**只能取自尺寸链节点**（或链算出的值）；**像素测量的唯一用途 = 指认，⛔ 永远不作坐标值落地**。⇒ 这是**颗粒度收口**（B-5）的权威依据。
+151:    output_precision_ref: ArtifactPointerV1  # 指向 pipeline 出口颗粒度【声明点】（10 mm，见颗粒度收口）
+317:| **1CHAIN-CONSEC** | `dimension_refs` = **同一条链的两个相邻段**（如 `C_top_fine_s2 + s3`）⇒ 共享边界 = **唯一一个 cum 内部节点** | South 全 14 边 · East 24/26 · West/North 多数 | **自动一档**（D5-a）|
+318:| **ALL_S1** | `dimension_refs` **全是 `_s1`**（多条链的开口段）⇒ 像素落在若干 6000/overall 段**内部**、无内部边界被引用 | **仅 East `O01` 两边**（d=535.8/2163.7mm）| **自动二档**（D5-a，`_s1` 证书）|
+319:| **MULTI** | `dimension_refs` 来自 ≥2 条链、共 4 段 ⇒ 需查它们是否**共同指认同一个内部节点** | North 全部 · West 部分 | **同一节点 ⇒ 自动一档；否则 ⇒ 惊动模型**（D5-b）|
+321:⭐ 实测：MULTI 的 North `O01` 两边 `nearest_tick_px` 经表映到 `1700 / 9700` ⇒ 宽 `8000`（正是派工方那条 `8039.0→8000`）。当前 fixture 里 MULTI 全部**共同指认同一节点** ⇒ 全自动一档；⚠️ **但「MULTI 一定同指」是数据巧合、⛔ 不是规则**（[[gate-teeth-direction-follows-fixture-inventory]]）—— 设计必须为「MULTI 指认分歧」留惊动模型的路，即使今天撞不上。
+324:# 全量重量命令（我自己跑过；三类签名的判定纯符号，⛔ 无毫米比较）
+325:python3 -c "... 扫 sm25_{south,east,north,west}_as_drawn.json 的 edge_witnesses 的 dimension_refs 链-段结构 ..."
+326:# 输出摘要：South 14/14=1CHAIN-CONSEC；East O01=ALL_S1 其余=1CHAIN-CONSEC；North 全 MULTI（均同指）；West 混合
+332:- **自动一档** ⟺ `nearest_tick_px` 经 `dimension_witnesses.x` 表解析到节点 N（**纯查表，无距离**），**且** N 被 `dimension_refs` **角色闭合**：存在某条链，其被引用的两个**相邻段**的共享边界 == N（1CHAIN-CONSEC 天然满足；MULTI 需两条链都指到**同一个** N）。⇒ 代码认成一档 `chain_node`（值 = N），记 `AutoActionV1`（带 `rule_id`，`:333` + 证据 ref），`provenance=auto`。
+333:- **自动二档** ⟺ `dimension_refs` **全是开口段**（`_s1`）、**无任何内部边界被引用**、`nearest_tick_px` 解析到链原点（ALL_S1 证书）⇒ 边**结构上落在某段内部、无刻度可认** ⇒ 代码认成二档 `pixel_only`，记 `AutoActionV1`，`provenance=auto`。
+337:⟺ **既非自动一档、也非自动二档**，即 witness **不角色闭合**：
+338:- MULTI 的两条链**指认到不同节点**（真「哪个刻度」歧义）；
+350:**省钱 + 少给模型乱动机会**：当前 fixture 66/68 自动（East `O01` 两边二档、其余全一档），模型每立面平均看 0–1 条边；且模型只能在**代码给定的候选**里选，⛔ 不能凭空移边。
+358:⛔ **上一稿的三条（finalize+hash / validated carrier「无公开构造器」/ 无坐标字段）不足以成立**（GPT B-4 逐条驳）：
+377:## 颗粒度收口：一档链真值 vs pipeline 10 mm 出口（闭合 B-5#5 —— **显式收口，不停报**）
+379:**问题**（指南 §15.9 已举、GPT B-5#5 要求处置）：若某一档链值不是 10 mm 整数倍（指南例：`1935 mm`），而 pipeline 出口按 10 mm 规整，会把 `1935 → 1940`，**用格点产物覆盖了图纸真值**。⛔ 不许因当前 fixture 恰全为 10 mm 整数倍就略过。
+381:**⭐ 我论证下来这条【能在设计层收口】，收口结论由已定死的 §14.2 直接推出，非新决策**：
+384:2. 若把 10 mm 出口格点作用到一档值上，落地的 `1940` **既不是链节点、也不是任何链运算的结果** —— 它是像素域格点吸出来的数。**这直接违反 §14.2。** ⇒ 逻辑上，一档值**必须免疫** 10 mm 出口格点，否则 §14.2 不成立。
+385:3. **§15.11 终裁**给了 10 mm 的身份：它是 **pipeline 出口**「**去浮点尾差的规整**」，服务的是**需要出干净数的那类值** —— 即**二档（纯像素）**。§15.11 推论 2 也明写 pipeline 出口与 gt 最大差半格 5 mm，判分必须**容差带**、⛔ 不许逐位相等。这些都是关于**二档/像素**出口的口径。
+391:| **一档** | **免疫 10 mm 出口格点**：坐标 = `tier_one_value` 的 ref/运算在 0.1 mm 整数域**精确落地**，⛔ 不经 10 mm snap | `OpeningEdgeTickClaimV1` **无坐标字段**（D2-b）⇒ 坐标由代码从 ref 现算、天然不过 snap；契约**显式声明**一档落地不消费 `output_precision` |
+406:| **R1 · T4-a 返工 2（已交件待审，⛔ 未合并）** | `2026-09-04x_T4a_rework2.md`：改 `opening_synthesis.py` 的 **obligation resolver/binding**，锁「**成功解析输入集合 == live key 集合**」（`opening_synthesis.py:338-365, 513-524`），且**明令 ⛔ 碰 B4 的 `affected_refs` 源绑定、⛔ 碰 `multifloor.py`** | 本方案也要改 `opening_synthesis.py` 的 **B4 输入**（把 `_elevation_openings` 从读裸 dict 改成读认领结果）⇒ **同文件直接碰撞**。⇒ 施工单**必须排在 T4-a 返工 2 合并过审之后**，重基线后**保持其 resolver/binding 与 `affected_refs` 锁不退化** |
+407:| **R2 · B2 返工 3（已交件待审，⛔ 未合并）** | `2026-09-04w_B2_rework3.md`：改 `multifloor.py`，唯一阻断 = `ValidatedFloorLadder` **构造能力必须不可公开获得**（真 seal / 逐元素受封 / 从冻结字节重读）；⛔ 碰 `evidence_contract.py`/`opening_synthesis.py`/`evidence_adapters.py` | 本方案 **D6 的真封印正是同形问题**（validated carrier 类型层封印）。⇒ **D6 不能把 B2 称为「现成范式」** —— 它**还在解**同一道题。应**等 B2 返工 3 过审、按其最终封印形态复用**，⛔ 不各造一套、⛔ 施工不碰 `multifloor.py` |
+408:| **R3 · 立面 bundle 既有哈希/锁** | `evidence_contract` 的 `finalize_bundle`（`:760`）/ `_sorted_bundle`（`:713`）/ `_payload_row_source_ids`（`:1103`），以及 `tarch_converter_reproducibility` 一类「同字节→同 bundle」锁 | 本方案给 `ElevationOpeningClaimV1` 加 x 四字段 + 两 witness ref，**进 `_sorted_bundle` dump** ⇒ **每个立面 bundle 的 `content_sha256` 变**。⇒ 施工须**重生成受影响立面产物基线 + 重签**，并核 `_payload_row_source_ids` elevation 分支同步加 x（否则 F-2 源闭合漏 x 的 input_id）|
+409:| **R4 · content_sha256 churn 与 T4-a 叠加** | T4-a 给 `EvidenceDebtV1` 加 `obligation` 字段同样翻每个 finalize 过的 bundle 的 `content_sha256` | 本方案的 x 四字段也翻 `content_sha256` ⇒ **两笔叠加**。⇒ 施工单**在 T4-a 合并后排、一次重算基线**，⛔ 别与 T4-a 并发各翻一次（重蹈 banner ⑥b「只翻搅一次哈希」）|
+410:| **R5 · B4 已合并主线 + docstring 依赖边** | `synthesize_openings` 从裸 dict 读 x、零容差配对（已合并、有锁）；改 `evidence_contract.py:544` docstring | 改 B4 输入 = 改已签字模块入口，属工程档、须派工换人审；docstring **⛔ 别写仓库根前缀的生产路径**（`affected_tests` 会建边，CLAUDE.md §8.5）|
+428:⚠️ **上一稿这份自查 GPT 判「远非全量、且至少两处分类错误」**。本次做全：机械扫描 + 逐类判定。⛔ 分类以**身份**为准（源码行号/日期/版本号 = **声明性定位符**，非领域判据）。
+432:| **已签字颗粒度** | `0.1 mm`（存储表示）· `1 mm`（gt 分辨率）· `10 mm`（pipeline 出口）| **声明值**（§15.11 终裁 + `DECLARED_GRID_UNITS_PER_M=10_000` / `_GRID_UNITS_PER_MM=10`）·⛔ 非本单新设 |
+433:| **既有代码类型约束** | `CodeToken` 无数字约束 · `ArtifactPointerV1` 四字段 · `Hex64` · 五种 effect · 三动作枚举 | **声明性/结构** ·引用既有类型（`decision_schema.py`），非本稿阈值 |
+434:| **原料/实测**（图纸画的 or 产物读的）| South cum `0,5000,6930,8730,9450,11250,14750,16550,17270,19070,21300,23100,25000`；East cum `0,6000,6740,7640,8740,9640,10360,11260,12740,13640,14360,15260,16740,17640,18360,19260,20000`；East `values_mm` 16 段；像素读数 `6921.9/8751.2/536.7/2164.6`；`mm_per_px≈13.6`；宽度 `1800/900/2400/8000/600/800`；`8039.0`；`chain_closure_mm=0.0` | **声明值/观察值**（图纸链 or 产物像素）·非本稿判据；`0.0` 进的是**精确相等** `==` 判据（零阈值，非容差）|
+435:| **实测统计（引用派工方，用于说明比例）** | `68` 条边 · `66` 自动 · `2` 离群 · 每立面 `0–1` 惊动 | ⚠️ `68/66/2` = **派工方实测的声明值**（我全量重量复现）；`0–1` = **由 66/68 外推的成本估算 = 判断**（作者估） |
+438:| **反例/构造示例** | `6925`（`grid_units_from_mm` 返回 69250 但不在 East cum，用于 N-2 反证）· `2880/3120`（`axis 3000 ± 半墙厚 120` 的 chain_derived 示例）· `240` 墙厚 | **判断/示例**（作者构造，用于论证），⛔ 非外部签字声明 |
+441:| **日期/commit/版本** | `2026-09-05/04/03/01`·`09.04/05`·`ac9a0669`·`5804ae4b`·`e9a45226` | **声明性身份**，非判据 |
+442:| **源码行号（我 grep 核过）** | `evidence_contract.py`: 170/190/531/544/553-556/559/564/609/662/704/713/760/821/1103/1215/1225/1650；`opening_synthesis.py`: 130/133/153/174/180/693/713/746/887/899；`decision_schema.py`: 170/174/182/190/192/208/220/335/356/366；`wall_compiler.py`: 119/217/225/227/296/304-309/318/333；T4-a: 338-365/513-524 | **声明性定位符** |
+471:| **B-5** 裁决账/阶段隔离/颗粒度未进契约 | claim 不记来源、复用带 review 的响应、颗粒度冲突略过 | **裁决账** `ClaimProvenanceV1` 绑定；**第一步独立响应类型** `TickClaimResponseV1`（结构无 whole_building_review）；**颗粒度收口**（一档免疫格点，由 §14.2 推出）| D2-e + D3-b + 颗粒度收口节 |
+[exit 0]
+```
+
+## E05 authority delta anchors
+
+```sh
+rg -n '^### 14\.|^### 15\.|只能取自|两个分辨率|最大差半格|二档不是|第一步.*逐图独立|每笔自带|本图一致性|有新的不一致|登记待确认|推测|输入.*reading|无歧义的自动|没.*落地' AI_agent/guides/reading_correction_split_guide.md
+```
+
+```text
+232:③ 代码：执行裁决 → 出几何 → 重跑一致性检查；还有新的不一致就回 ②（有限轮）
+977:### 14.1 ⭐⭐⭐ 整条链的分段（用户原话口径，⛔ 覆盖主控此前的「三种操作」讲法）
+1010:### 14.2 ⭐⭐⭐ 尺寸链优先：**像素是证据，不是坐标来源**
+1015:- **洞口边 / 轴线的坐标，只能取自尺寸链节点**（图纸自己画出来的毫米数）。
+1028:### 14.2b ⭐⭐⭐ 证据档位：**「尺寸链与像素对上」> 「只有像素」**（用户 2026-09-04 重申「本来就定了」）
+1049:### 14.3 主控 2026-09-04 全量实测（⛔ 不是转引）
+1069:### 14.4 ⭐ 图纸之间对不上时的四分类（用户 2026-09-04 定，已确认）
+1076:| **③** | **只有平面**（⭐ 这个方向**根本没有立面图**）| ⭐⭐ **本批先不做机制，纯靠模型推**（用户 2026-09-04 拍板）—— ⛔ 不建常见尺度参考表、⛔ 不写模数策略；模型推出来的**必须标记来源=推测**，⛔ 不混进成绩 |
+1078:### 14.5 ⇒ 目标态与现状标记
+1090:### 14.6 与 §十三.4「本批不预设模数」的对账（⭐ 已由用户拍板收口）
+1101:### 14.7 ⚠️⚠️ 出口颗粒度：**今天有三个数在打架**（主控 2026-09-04 实测，⛔ 未修）
+1122:### 15.1 一句话定位
+1127:### 15.2 输入 / 输出
+1131:| **输入** | reading 的 **①语义** + **②尺寸证据**（裸像素 · 尺寸链 · 每笔自带 `provenance` 证据档位 + `dimension_refs`）| ✅ 产物与门都已有 |
+1134:### 15.3 ⭐ 两步 × 三拍 的关系（**2026-09-04 用户已拍：对**）
+1136:- **两步 = 阶段**（2026-09-04 用户定）：**第一步 尺寸证据裁定**（逐图独立）→ **第二步 空间推理**（跨图）。
+1141:第一步 · 尺寸证据裁定（逐图独立，⛔ 跨图的事一件不做）
+1143:         无歧义的自动定下来【并记账】，只把真歧义送上去
+1145:  ③代码：落值（一档取链上的数 · 二档取像素）→ 重跑本图一致性检查 → 有新的不一致回②（有限轮）
+1152:  ③代码：执行裁决 → 出几何 → 重跑一致性检查 → 有新的不一致回②（有限轮）
+1160:### 15.4 第一步 · 尺寸证据裁定（逐图独立）
+1170:- ⭐ **两档都出值**，⛔ 二档不是失败、不是缺陷、不是债。
+1175:### 15.5 第二步 · 空间推理（跨图）
+1180:**②b 平面有立面无 ⇒ 只登记待用户确认** · **③ 只有平面 ⇒ 纯靠模型推、标记来源=推测**。
+1186:### 15.6 出口颗粒度（⛔ 不是步骤）
+1192:### 15.7 ⭐⭐⭐ 阈值总表 = [`skills/intake_pipeline/1_correction/A0_contract.md §4`](../../skills/intake_pipeline/1_correction/A0_contract.md)
+1213:### 15.8 现状标记（2026-09-04 主控核）
+1225:### 15.9 ✅ 三条已由用户 2026-09-04 拍板
+1240:### 15.11 ⛔⛔ 颗粒度：**主控当日自纠**（用户 2026-09-04 当场指出「gt 修正入库的分辨率不是定了 1 mm 吗」）
+1273:   ⭐ 改成：判分侧核对的是「**两个分辨率各自被显式声明、且各自被消费**」，⛔ **不是「两个数相等」**。
+1275:2. ⭐⭐ **pipeline 出口永远不可能逐位等于 gt**（最大差半格 = 5 mm）
+1278:3. ⚠️ **gt 侧的 1 mm 今天【没有落地】**（主控 2026-09-04 实测）：
+1288:### 15.10 ⭐⭐⭐ F 组的去向（用户 2026-09-04 拍板）
+1301:2. ⭐ **必须给模型合法出口**：允许它答「这一处我判不了，因为 X」⇒ 落进 §14.4②b 的**登记待确认**。
+[exit 0]
+```
+
+## E06 actual witness producer
+
+```sh
+rg -n 'def _nearest|min\(ticks|tick_map\[world\]|here = refs|here.append|t, d = _nearest|dimension_refs.*refs\[pool\]|round\(px, 1\)' AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/as_drawn_elev.py
+```
+
+```text
+63:def _nearest(ticks: list[float], px: float) -> tuple[float | None, float]:
+66:    t = min(ticks, key=lambda v: abs(v - px))
+90:            tick_map[world][str(round(px, 1))] = c["world_start_mm"] + c["direction"] * cum
+91:            here = refs[world].setdefault(round(px, 1), [])
+93:                here.append(f"{cid}_s{k}")
+95:                here.append(f"{cid}_s{k+1}")
+174:            t, d = _nearest(tk, px)
+178:                             "dimension_refs": refs[pool].get(round(t, 1), []) if t is not None else []}
+[exit 0]
+```
+
+## E07 D1 and carrier source
+
+```sh
+rg -n 'def adapt_as_drawn_elevation|z_low_ref=_pointer|z_high_ref=_pointer|elevation_opening_claims=' src/agent/correction/evidence_adapters.py
+rg -n 'class ElevationOpeningClaimV1|deliberately NOT|z_low_m:|z_low_ref:|z_high_m:|z_high_ref:|ELEVATION_Z_VALUE_DRIFTED|def finalize_bundle|_CFG =|class ArtifactPointerV1|class ObservationRefV1|json_pointer:' src/agent/correction/evidence_contract.py
+rg -n 'def _elevation_openings|for field in|def synthesize_openings|for oid, x_lo|world_lo = along_origin' src/agent/correction/opening_synthesis.py
+rg -n 'synthesize_openings\(' src scripts --glob '*.py'
+rg -l 'elevation_opening_claims' src
+```
+
+```text
+614:def adapt_as_drawn_elevation(
+709:            z_low_ref=_pointer(input_id, contract, sha, f"{base}/z_range_m/0"),
+711:            z_high_ref=_pointer(input_id, contract, sha, f"{base}/z_range_m/1"),
+834:        elevation_opening_claims=elev_openings,
+170:_CFG = ConfigDict(extra="forbid", strict=True)
+190:class ArtifactPointerV1(BaseModel):
+199:    json_pointer: JsonPointerStr
+202:class ObservationRefV1(ArtifactPointerV1):
+544:    protocol is deliberately NOT re-designed here (design §3.3); this layer
+555:class ElevationOpeningClaimV1(BaseModel):
+568:    The horizontal extent (``x_range_m``) is deliberately NOT here: B4 owns
+577:    z_low_m: float
+578:    z_low_ref: ArtifactPointerV1
+579:    z_high_m: float
+580:    z_high_ref: ArtifactPointerV1
+584:        if not self.z_low_m < self.z_high_m:
+784:def finalize_bundle(
+1674:                    "ELEVATION_Z_VALUE_DRIFTED_FROM_SOURCE",
+956:def _elevation_openings(doc: dict) -> tuple[tuple[str, float, float, float, float], ...]:
+976:        for field in ("x_range_m", "z_range_m"):
+1009:def synthesize_openings(
+1155:    for oid, x_lo, x_hi, z_lo, z_hi in _elevation_openings(elevation_doc):
+1167:        world_lo = along_origin_u + sign * lo_u
+src/agent/correction/opening_synthesis.py:1009:def synthesize_openings(
+src/agent/correction/evidence_contract.py
+src/agent/correction/evidence_adapters.py
+[exit 0]
+```
+
+## E08 chain gate full relevant lines
+
+```sh
+rg -n -A 43 '^def _require_chain_closed' src/agent/correction/evidence_adapters.py
+rg -n 'DECLARED_GRID_UNITS_PER_M =|_GRID_UNITS_PER_MM =|def grid_units_from_mm|unit / _GRID_UNITS_PER_MM' src/agent/correction/opening_synthesis.py
+```
+
+```text
+569:def _require_chain_closed(calibration: dict, input_id: str) -> None:
+570-    """Zero-threshold recompute of both calibration chains (⛔ not the
+571-    product's self-reported ``chain_closure_mm`` -- a recompute, so a
+572-    tampered self-report cannot vouch for itself).
+573-
+574-    Exact float equality on purpose: the three quantities are the same JSON
+575-    literals the producer derived each other from, so any difference is a
+576-    broken chain, never rounding.
+577-    """
+578-    for axis in ("x", "z"):
+579-        chain = calibration.get(axis)
+580-        if not isinstance(chain, dict):
+581-            raise EvidenceContractError(
+582-                "CALIBRATION_AXIS_MISSING",
+583-                {"input_id": input_id, "axis": axis},
+584-            )
+585-        values = chain.get("values_mm")
+586-        cum = chain.get("cum_mm")
+587-        overall = chain.get("overall_mm")
+588-        if (
+589-            not isinstance(values, list) or not values
+590-            or not isinstance(cum, list) or not cum
+591-            or any(
+592-                isinstance(v, bool) or not isinstance(v, (int, float))
+593-                for v in values
+594-            )
+595-        ):
+596-            raise EvidenceContractError(
+597-                "CALIBRATION_CHAIN_MALFORMED",
+598-                {"input_id": input_id, "axis": axis},
+599-            )
+600-        total = sum(values)
+601-        if total != cum[-1] or cum[-1] != overall:
+602-            raise EvidenceContractError(
+603-                "CALIBRATION_CHAIN_NOT_CLOSED",
+604-                {
+605-                    "input_id": input_id,
+606-                    "axis": axis,
+607-                    "sum_values_mm": total,
+608-                    "cum_mm_last": cum[-1],
+609-                    "overall_mm": overall,
+610-                },
+611-            )
+612-
+154:DECLARED_GRID_UNITS_PER_M = 10_000
+157:_GRID_UNITS_PER_MM = 10
+198:def grid_units_from_mm(value_mm: float, *, what: str) -> int:
+204:    if unit / _GRID_UNITS_PER_MM != value_mm:
+215:    return unit / _GRID_UNITS_PER_MM
+[exit 0]
+```
+
+## E09 model response and auto action constraints
+
+```sh
+rg -n -A 25 '^class AutoActionV1|^class OpenItemV1' src/agent/correction/wall_compiler.py
+rg -n 'CodeToken =|min_length=1, max_length=96|class CorrectionDecisionResponseV1|whole_building_review:|_CFG =|action: Literal|packet_hash:' src/agent/correction/decision_schema.py
+rg -n 'UNKNOWN_RESPONSE_CANDIDATE|item.candidates|whole_building_review|CorrectionDecisionResponseV1' src/agent/correction/decision_executor.py
+```
+
+```text
+296:class OpenItemV1(BaseModel):
+297-    """Something only a decision or a re-perception can close.  ⭐ There is
+298-    ⛔ no auto path: this compiler closes an item ONLY on an explicit
+299-    :class:`FixedDecisionV1`."""
+300-
+301-    model_config = _CFG
+302-
+303-    item_id: str
+304-    kind: Literal[
+305-        "thickness_resolution",
+306-        "axis_offset_undetermined",
+307-        "legacy_basis_unknown",
+308-        "legacy_trace_non_orthogonal",
+309-    ]
+310-    scope_entity_ids: tuple[str, ...]
+311-    phenomenon: str
+312-    source_refs: tuple[ArtifactPointerV1, ...]
+313-    candidates: tuple[SymbolicCandidateV1, ...]
+314-    why_not_auto_resolved: str
+315-    exclusions: tuple[str, ...] = ()
+316-
+317-
+318:class AutoActionV1(BaseModel):
+319-    """A code action taken without any model, with its rule id on the record
+320-    (design §6.1's auto table)."""
+321-
+322-    model_config = _CFG
+323-
+324-    action_id: str
+325-    kind: Literal[
+326-        "honor_non_wall_declaration",
+327-        "derive_two_face_midline",
+328-        "derive_band_midline",
+329-        "identity_axis_from_centerline_evidence",
+330-    ]
+331-    scope_entity_ids: tuple[str, ...]
+332-    source_refs: tuple[ArtifactPointerV1, ...]
+333-    rule_id: str
+334-
+335-
+336-class AmbiguousFaceAnalysisV1(BaseModel):
+337-    """The dependency analysis design §7.2 orders for every ambiguous face:
+338-    how many pair candidates it participates in (measured on the frozen
+339-    candidate graph), i.e. exactly how much wall topology is still
+340-    undecided on this one line."""
+341-
+342-    model_config = _CFG
+343-
+114:_CFG = ConfigDict(extra="forbid", strict=True)
+129:CodeToken = Annotated[
+131:    StringConstraints(pattern=r"^[A-Z][A-Z_]*$", min_length=1, max_length=96),
+182:    packet_hash: Hex64
+220:    action: Literal["select_candidate", "reject_all", "request_reperception"]
+356:class CorrectionDecisionResponseV1(BaseModel):
+364:    packet_hash: Hex64
+366:    whole_building_review: WholeBuildingReviewV1
+9:``CorrectionDecisionResponseV1`` values the caller supplies -- fixtures
+91:    CorrectionDecisionResponseV1,
+358:def decision_hash(response: CorrectionDecisionResponseV1) -> Hex64:
+423:    response: CorrectionDecisionResponseV1,
+453:                    "UNKNOWN_RESPONSE_CANDIDATE",
+469:    for finding in response.whole_building_review.findings:
+528:    responses: Sequence[CorrectionDecisionResponseV1] = (),
+529:    response_provider: "Callable[[CorrectionDecisionPacketV1], CorrectionDecisionResponseV1] | None" = None,
+650:        pending.extend(response.whole_building_review.findings)
+671:                       for f in response.whole_building_review.findings)
+702:    response: CorrectionDecisionResponseV1,
+727:        and response.whole_building_review.verdict == "accept"
+[exit 0]
+```
+
+## E10 raw data locations
+
+```sh
+rg -n -A 6 '14540|15740|1524.5|1525.0|C_top_fine_s2|C_bot_fine_s4' AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json
+rg -n -A 23 '"C_top_fine"|"C_bot_fine"' AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json
+```
+
+```text
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:76:        1525.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-77-        1712.5,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-78-        1889.5,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-79-        1942.5,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-80-        2119.5,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-81-        2284.5
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-82-      ],
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:135:      "mm_per_px": 13.555372141574015,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-136-      "residual_px": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-137-        0.288,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-138-        -0.221,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-139-        -0.018,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-140-        -0.289,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-141-        0.202,
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:149:      "m_per_px": 0.013555372141574014
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-150-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-151-    "mm_per_px": 13.555925,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-152-    "cross_axis_relative_deviation": 8.2e-05,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-153-    "world_zero_px": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-154-      440.6,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-155-      839.367
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:188:      "1524.5": 14700.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-189-      "1712.5": 17240.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-190-      "1889.5": 19640.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-191-      "1942.5": 20360.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-192-      "2119.5": 22760.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:193:      "1525.0": 14700.0
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-194-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-195-    "z": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-196-      "308.5": 7200.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-197-      "839.5": 0.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-198-      "574.0": 3600.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-199-      "337.5": 6800.0,
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:395:            "C_top_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-396-            "C_bot_fine_s1",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-397-            "C_bot_fine_s2"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-398-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-399-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-400-        "x1": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-401-          "measured_px": 1158,
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:406:            "C_top_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-407-            "C_top_fine_s3",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-408-            "C_bot_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-409-            "C_bot_fine_s3"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-410-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-411-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-412-        "z_low": {
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:467:            "C_top_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-468-            "C_bot_fine_s1",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-469-            "C_bot_fine_s2"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-470-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-471-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-472-        "x1": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-473-          "measured_px": 1158,
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:478:            "C_top_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-479-            "C_top_fine_s3",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-480-            "C_bot_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-481-            "C_bot_fine_s3"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-482-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-483-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-484-        "z_low": {
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:540:            "C_bot_fine_s4",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-541-            "C_bot_fine_s5"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-542-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-543-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-544-        "x1": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-545-          "measured_px": 1526,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:546:          "nearest_tick_px": 1525.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-547-          "distance_px": 1.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-548-          "distance_mm": 13.6,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-549-          "dimension_refs": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-550-            "C_bot_fine_s5",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-551-            "C_bot_fine_s6"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-552-          ]
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:610:            "C_bot_fine_s4",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-611-            "C_bot_fine_s5"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-612-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-613-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-614-        "x1": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-615-          "measured_px": 1526,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json:616:          "nearest_tick_px": 1525.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-617-          "distance_px": 1.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-618-          "distance_mm": 13.6,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-619-          "dimension_refs": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-620-            "C_bot_fine_s5",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-621-            "C_bot_fine_s6"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json-622-          ]
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json:187:      "1595.5": 14540.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json:188:      "1683.5": 15740.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-189-      "865.5": 4660.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-190-      "924.5": 5460.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-191-      "1233.5": 9640.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-192-      "1286.5": 10360.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-193-      "1621.5": 14900.0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-194-      "1681.0": 15700.0
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json:511:            "C_top_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-512-            "C_top_fine_s3",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json:513:            "C_bot_fine_s4",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-514-            "C_bot_fine_s5"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-515-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-516-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-517-        "x1": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-518-          "measured_px": 1421,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-519-          "nearest_tick_px": 1419.5,
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json:583:            "C_top_fine_s2",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-584-            "C_top_fine_s3",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json:585:            "C_bot_fine_s4",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-586-            "C_bot_fine_s5"
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-587-          ]
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-588-        },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-589-        "x1": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-590-          "measured_px": 1235,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json-591-          "nearest_tick_px": 1233.5,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json:12:  "primary_x_chain": "C_bot_fine",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-13-  "primary_z_chain": "C_left_sub",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-14-  "chains": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-15-    "C_top_overall": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-16-      "axis": "row",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-17-      "strip": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-18-        108,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-19-        130
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-20-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-21-      "values_mm": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-22-        25000
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-23-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-24-      "world_start_mm": 0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-25-      "direction": 1,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-26-      "ref_coord_m": 7.2
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-27-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json:28:    "C_top_fine": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-29-      "axis": "row",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-30-      "strip": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-31-        210,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-32-        232
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-33-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-34-      "values_mm": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-35-        1700,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-36-        8000,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-37-        300,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-38-        4100,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-39-        600,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-40-        2540,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-41-        2400,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-42-        720,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-43-        2400,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-44-        2240
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-45-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-46-      "world_start_mm": 0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-47-      "direction": 1,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-48-      "ref_coord_m": 7.2
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-49-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json:50:    "C_bot_fine": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-51-      "axis": "row",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-52-      "strip": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-53-        919,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-54-        941
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-55-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-56-      "values_mm": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-57-        1700,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-58-        8000,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-59-        300,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-60-        4100,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-61-        600,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-62-        2540,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-63-        2400,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-64-        720,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-65-        2400,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-66-        2240
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-67-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-68-      "world_start_mm": 0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-69-      "direction": 1,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-70-      "ref_coord_m": 0.0
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-71-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-72-    "C_bot_mid": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_north.json-73-      "axis": "row",
+--
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json:12:  "primary_x_chain": "C_bot_fine",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-13-  "primary_z_chain": "C_left_sub",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-14-  "chains": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-15-    "C_top_overall": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-16-      "axis": "row",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-17-      "strip": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-18-        130,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-19-        152
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-20-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-21-      "values_mm": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-22-        20000
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-23-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-24-      "world_start_mm": 0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-25-      "direction": 1,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-26-      "ref_coord_m": 7.2
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-27-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json:28:    "C_top_fine": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-29-      "axis": "row",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-30-      "strip": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-31-        232,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-32-        254
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-33-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-34-      "values_mm": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-35-        6000,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-36-        1840,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-37-        4320,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-38-        2380,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-39-        1200,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-40-        4260
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-41-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-42-      "world_start_mm": 0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-43-      "direction": 1,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-44-      "ref_coord_m": 7.2
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-45-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json:46:    "C_bot_fine": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-47-      "axis": "row",
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-48-      "strip": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-49-        942,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-50-        964
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-51-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-52-      "values_mm": [
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-53-        4660,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-54-        800,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-55-        540,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-56-        1840,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-57-        1800,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-58-        720,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-59-        1800,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-60-        2740,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-61-        800,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-62-        4300
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-63-      ],
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-64-      "world_start_mm": 0,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-65-      "direction": 1,
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-66-      "ref_coord_m": 0.0
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-67-    },
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-68-    "C_bot_mid": {
+AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/cfg_west.json-69-      "axis": "row",
+[exit 0]
+```
+
+## E11 no plan-only boundary in draft (expected exit 1)
+
+```sh
+rg -n '②b|只有平面|平面有立面无|推测|plan_only|unsupported|OUT_OF_SCOPE' AI_agent/logs/reviews/execution/2026-09-05a_tick_claim_design_rework1.md
+```
+
+```text
+[exit 1]
+```
+
+## E12 current mainline D7
+
+```sh
+git log -2 --oneline b4f0b348
+git diff --numstat dc886036 b4f0b348 -- src/agent/correction
+git show b4f0b348:AI_agent/plan.md | rg -n 'A-2.*免疫|T4-a.*obligation|B2 返工 3.*交件'
+git show b4f0b348:src/agent/correction/evidence_contract.py | rg -n 'class EvidenceDebt|obligation:|class ElevationOpeningClaim|deliberately NOT|def _sorted_bundle|def finalize_bundle|def _payload_row_source_ids'
+git show b4f0b348:src/agent/correction/opening_synthesis.py | rg -n '^def _resolve_backed_obligation|^def redemption_row_for_obligation|^def redeemable_debt_ids|executed.source.binds|^def synthesize_openings|^def _elevation_openings'
+git show b4f0b348:tests/test_t4a_rework1_resolution_lock.py | rg -n '^def test_|^class Test'
+```
+
+```text
+b4f0b348 09.05b_wrapup_fourth_leg (opening-alignment doctrine ratified; T4-a merged; suite 3819)
+bfd6419a 09.05a_merge_T4a_obligation_field (GLM cross-review APPROVE / 阻断 0 / 不阻断 3)
+15	0	src/agent/correction/evidence_adapters.py
+25	0	src/agent/correction/evidence_contract.py
+351	81	src/agent/correction/opening_synthesis.py
+405:| **T4-a** `obligation` 升正式字段 | ✅ **合并**（`bfd6419a`）· GLM 跨家族审 **APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 3**，独立复现 `3819` |
+406:| **B2 返工 3** | ⏳ **交件待审**（GLM 施工：闭包持有的 mint 封印 + 载体不携带 z、消费时重新派生）⛔ **必须改派 Claude** |
+428:| **A-2** | ⭐ **出口格点【免疫一档】** | 用户同日拍「同意」 | 防「10 mm 格点把 `1935` 碾成 `1940`」= 用格点产物覆盖图纸真值 |
+492:**A-1** 出口颗粒度收单一声明点 · **A-2** 出口格点免疫一档 · **A-3** C-4 基准差挪给模型 ·
+505:class EvidenceDebtV1(BaseModel):
+539:    obligation: DebtObligationV1 | None
+544:    protocol is deliberately NOT re-designed here (design §3.3); this layer
+555:class ElevationOpeningClaimV1(BaseModel):
+568:    The horizontal extent (``x_range_m``) is deliberately NOT here: B4 owns
+737:def _sorted_bundle(bundle: CorrectionEvidenceBundleV1) -> dict:
+784:def finalize_bundle(
+1127:def _payload_row_source_ids(member: str, row: object) -> set[str]:
+481:def redemption_row_for_obligation(obligation: str) -> tuple[str, DebtRedemption]:
+609:def _resolve_backed_obligation(obligation: str) -> tuple[str, DebtRedemption]:
+705:def redeemable_debt_ids(
+749:            executed.source.binds(ref) for ref in debt.affected_refs
+956:def _elevation_openings(doc: dict) -> tuple[tuple[str, float, float, float, float], ...]:
+1009:def synthesize_openings(
+138:def test_near_miss_obligations_are_refused_on_every_entry(label, probe):
+156:def test_healthy_control_the_exact_obligation_resolves_and_retires():
+196:def test_every_live_key_resolves_to_exactly_its_own_row():
+208:def test_retirement_never_follows_a_row_the_registry_does_not_hold():
+247:def test_demo_M1_normalisation_widening_would_turn_the_battery_red():
+276:def test_demo_M2_compat_table_widening_would_turn_the_battery_red():
+303:def test_demo_M3_one_to_many_prefix_resolver_would_turn_the_battery_red():
+339:def test_demo_M4_alias_key_widening_fires_the_debt_side_tooth():
+392:def test_demo_M5_carrier_swap_widening_fires_the_carrier_tooth():
+430:def test_demo_M6_redirect_widening_is_what_the_identity_pin_locks():
+606:def test_widened_seam_cannot_make_the_binding_back_a_non_key_input(label, make):
+670:def test_schema_bypassed_obligation_outside_the_domain_is_refused_loudly(
+689:def test_query_side_str_subclass_obligation_is_refused_at_the_exit():
+[exit 0]
+```
+
+## E13 in-flight design dependency
+
+```sh
+git show b4f0b348:AI_agent/logs/reviews/execution/2026-09-04w_B2_rework3_execution.md | sed -n '30,70p'
+git show b4f0b348:AI_agent/logs/reviews/execution/2026-09-04w_B2_rework3_execution.md | rg -n '闭包|逐元素|最薄弱|声称|依赖'
+rg -n '合法方向|模块私有令牌|逐元素|冻结字节|不能|⛔ 碰' AI_agent/logs/reviews/request/2026-09-04w_B2_rework3.md
+```
+
+```text
+`README.md` 与 `multifloor_wip.py` 前段，未复制任何代码段）。它的 `_LADDER_SEAL`
+是**模块级全局**——下划线全局仍可经 `m._LADDER_SEAL` 属性拿到，且它没处理
+`object.__new__` 绕构造器与事后字段替换。本轮**自己重新论证**后改用**闭包持牌**
+（令牌不是模块属性，比全局强一档），并叠加消费端重推导（草稿没有这层）。主控
+README 第 3 条点名「私有哨兵是不是又一个表面」——本轮的答复写在 §四：哨兵本身
+**不是承重层**，承重层是消费端全检；哨兵被 introspection 抠走也不放行任何 z。
+
+## 一、改了什么（选择的方向与论证）
+
+派工单 §一 给了三条合法方向，本席**走 (a)+(c) 的组合**，两层各自独立成墙：
+
+**(a) 真封印（入口）**：`ValidatedFloorLadder` 的构造器要求出示一个**只存在于
+工厂函数闭包里**的令牌（`multifloor.py:189-190`；⛔ 不是模块属性，比对在
+`:236-247`）。
+模块外拿不到这个名字 ⇒ 直接构造 / `dataclasses.replace` / 子类构造全部具名红
+（`LADDER_MINT_SEAL_REQUIRED` / `LADDER_SEALED_NO_SUBCLASS`）。
+
+**(c) 不信任载体携带的值（出口全检）**：上一轮声称走 (c) 却没生效，病根是
+`:384-417` 直接读 `level.z_floor_m`。本轮把 (c) **搬到消费边界**：
+- 载体**只存一个字段** `_artifact`（`:227`）——**不存在任何 z 携带状态**，
+  「换元素」这个攻击类别没有了对象（上一轮被击穿的那个 `_levels` 字段已删除）；
+- `__len__` / `__iter__` / `__getitem__`（`:297/:300/:303`）全部经
+  `_levels_of_carrier`（`:275-295`）→ `_levels_of`（`:368-388`）**每次读取重新
+  推导**：先 `validate_evidence_bundle`（`:382`，B3 同一道门复用，⛔ 不是第二份），
+  再 `_byte_z` 从冻结字节解析；
+- 装配处 `levels = tuple(ladder)`（`:508`）——装配消费的 levels **永远来自这次
+  调用中的重新推导**，⛔ 永远不是从实例状态读出来的值。
+
+两层为什么都要：(a) 挡得住「正常语言构造语义」下的一切铸造（含 replace、子类），
+但 `object.__new__` 绕过一切 `__init__`——**(c) 才是连它一起挡死的那层**：壳
+载体唯一能塞进去的 `_artifact` 在读取时过门，塞鸭子类型 → `LADDER_CARRIER_CORRUPT`，
+塞类型正确但漂移的真 artifact → `FLOOR_LEVEL_VALUE_DRIFTED_FROM_SOURCE`。
+反之只有 (c) 没有 (a)，复核方那段脚本会死在一个没有名字的属性错误上——
+(a) 给它一个具名的死法。
+
+`_mint_ladder` 退回纯层级铸造（返回 levels 元组，`_levels_of` 是唯一推导核心，
+derive / 读取 / 装配共用同一条路）；`derive_floor_ladder` 保持**急切过门**契约
+（`:407` 先 `_levels_of` 再 `_mint_sealed_ladder`，坏 artifact 在门口具名红，
+⛔ 不是懒推导）。
+
+**⚠️ 一处语义变化（如实报）**：`NONPOSITIVE_CEILING_HEIGHT`（装配边界检查）
+7:  - `173ed7ef` 核心：闭包封印 + 无 z 状态载体 + 消费端重推导（含两条旧测试按新语义改写）
+32:`object.__new__` 绕构造器与事后字段替换。本轮**自己重新论证**后改用**闭包持牌**
+42:工厂函数闭包里**的令牌（`multifloor.py:189-190`；⛔ 不是模块属性，比对在
+47:**(c) 不信任载体携带的值（出口全检）**：上一轮声称走 (c) 却没生效，病根是
+256:### 二#3 声称与强制逐句对账
+300:| 1 "cannot be populated from outside this module" | `:189-190` 令牌定义于闭包（⛔ 非模块属性）；`:236-247` `if _seal is not _LADDER_SEAL → LADDER_MINT_SEAL_REQUIRED`；`:229` 参数名对齐字段名使 replace 的 FIELD 名 kwargs 也进这道检查 | §二#1 + EXTRA_D 两形状 |
+308:未写进 docstring 的**不声称**项（同样重要）：没有声称「绝对不可构造」——
+309:`object.__new__` 壳的存在在句 1 里如实写明；没有声称「防 runtime introspection」
+310:（闭包抠牌 / 改模块全局 = 等价于改代码，见 §五）。
+324:- **(a)** 构造要求出示闭包令牌（`:236`）。模块外的名字空间里**不存在**这个绑定
+382:1. **runtime introspection**：闭包抠牌（`__closure__`）、改模块全局、monkeypatch
+392:## 五、最薄弱一处
+400:不必然踩中放宽的那个分支。次弱（同族）：闭包令牌可被 introspection 抠出，
+44:**全程没有 evidence artifact、没有冻结字节、没过字节门。**
+71:✅ **合法方向（自选，或提出等价第四条并论证）**：
+72:- **(a) 真封印**：构造时必须出示一个**从不导出、从不返回、不存在实例上**的模块私有令牌 ⇒
+74:- **(b) 逐元素验证**：装配边界不只查最外层类型，还**逐个元素**核它确实是受验证载体
+76:- **(c) 不信任载体携带的值**：装配时**从载体自带的冻结字节引用重新解析 z** ⇒ 伪造载体拿不出字节、必然失败。
+111:⛔ 碰 `src/agent/correction/evidence_contract.py` / `opening_synthesis.py` / `evidence_adapters.py`
+[exit 0]
+```
+
+## E14 granularity declaration and consumers
+
+```sh
+rg -n 'structural_snap_grid_m:|output_precision_m:|window_snap_grid_m:' src/configs/correction.yaml
+rg -n 'tol.structural_snap_grid_m|tol.window_snap_grid_m' src/agent/correction/deterministic.py
+```
+
+```text
+41:  structural_snap_grid_m: 0.010
+72:  output_precision_m: 0.010
+80:  window_snap_grid_m: 0.010
+282:    grid = tol.structural_snap_grid_m
+349:        canonical = _snap_to_grid(sum(values) / len(values), tol.structural_snap_grid_m)
+390:    grid = tol.structural_snap_grid_m
+1247:    wgrid = tol.window_snap_grid_m
+[exit 0]
+```
