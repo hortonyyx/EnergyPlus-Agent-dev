@@ -65,7 +65,7 @@ def test_four_categories_exact_elevation_register_and_inference():
     assert outcomes[1]['wall_id'] == 'S' and outcomes[1]['room_id'] == 'room'
     assert outcomes[2]['span_u'] is None and outcomes[2]['z_u'] is None
     assert outcomes[3]['source'] == 'inferred' and not outcomes[3]['score_eligible']
-    assert outcomes[3]['z_u'] == [8270, 23400]
+    assert outcomes[3]['z_u'] == [8300, 23400]
     assert len(review.scoreable_openings(result.result_id)) == 2
     assert len(json.loads(review.packet.record)['plan_facts']) == 8
 

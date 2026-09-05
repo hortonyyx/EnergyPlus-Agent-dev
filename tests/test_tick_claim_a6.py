@@ -138,7 +138,7 @@ def test_debt_supplement_reclaim_retirement():
     b = s.submit(TickResponse(packet_id=s.packet.packet_id, choices=choices))
     assert sum(f.debt_id is not None for f in s.consume(b.batch_id)) == 2
     s.reconsider('reading supplied named chains', supplement=sup)
-    picks = {e.edge_id: e.candidates[0].candidate_id for e in s.packet.edges[:2]}
+    picks = {e.edge_id: next(c.candidate_id for c in e.candidates if c.expression.anchor.index == i + 1) for i, e in enumerate(s.packet.edges[:2])}
     b2 = s.submit(response(s, picks))
     assert len([r for r in json.loads(b2.record)['rows'] if r['retired_debt_id']]) == 2
     assert_code('TICK_BATCH_INVALIDATED', lambda: s.consume(b.batch_id))
@@ -148,7 +148,7 @@ def test_debt_supplement_reclaim_retirement():
 def test_chain_values_immune_to_output_grid(boundary):
     raw, sup = fixture(values=(boundary, 2000, 3000))
     s = TickSession(raw, image_id='test', supplement=sup)
-    picks = {e.edge_id: e.candidates[0].candidate_id for e in s.packet.edges[:2]}
+    picks = {e.edge_id: next(c.candidate_id for c in e.candidates if c.expression.anchor.index == i + 1) for i, e in enumerate(s.packet.edges[:2])}
     b = s.submit(response(s, picks))
     facts = s.consume(b.batch_id)
     assert facts[0].value_u == boundary * 10
@@ -159,3 +159,53 @@ def test_response_has_no_cross_image_review_or_coordinate_fields():
         TickResponse(packet_id='x', choices=(), whole_building_review={})
     with pytest.raises(ValidationError):
         TickChoice(edge_id='x', action='pixel', reason='r', x=1.5)
+
+
+@pytest.mark.parametrize('first,second,total,key', [
+    (2600, 5200, 10400, 275.0),  # original R-2 collision
+    (1800, 3600, 7200, 318.5),  # NEW same-shape input A
+    (2150, 6450, 8600, 407.2),  # NEW same-shape input B
+])
+def test_collision_preserves_both_chain_identities_regardless_of_write_order(first, second, total, key):
+    raw, sup = fixture(values=(first, second-first, total-second))
+    doc, cfg = json.loads(raw), json.loads(sup)
+    doc['openings'][0]['edge_witnesses']['x0']['dimension_refs'] += ['Q_s1', 'Q_s2']
+    doc['openings'][0]['edge_witnesses']['x0']['nearest_tick_px'] = key
+    fingerprints = []
+    for flattened in (first, second):
+        doc['dimension_witnesses'] = {'x': {str(key): flattened}}
+        raw = freeze(doc)
+        cfg['source_sha'] = digest(raw)
+        cfg['chains']['Q'] = dict(values_mm=[second, total-second], cum_mm=[0, second, total],
+                                  overall_mm=total, axis='x', origin_mm=0, direction=1, qualification='drawing_dimension')
+        s = TickSession(raw, image_id='collision', supplement=freeze(cfg))
+        edge = s.packet.edges[0]
+        identities = {(c.expression.anchor.chain_id, c.expression.anchor.index, c.value_u) for c in edge.candidates}
+        fingerprints.append(identities)
+        assert {('P', 1, first*10), ('Q', 1, second*10)} <= identities
+        assert_code('TICK_BATCH_INVALIDATED', lambda: s.consume('not-decided'))
+    assert fingerprints[0] == fingerprints[1]
+
+
+def test_round_limit_cannot_resubmit_old_packet():
+    raw, sup = fixture()
+    s = TickSession(raw, image_id='test', supplement=sup, max_rounds=1)
+    r = response(s)
+    b = s.submit(r)
+    assert_code('REGISTER_PENDING_ROUND_LIMIT', lambda: s.reconsider('still wrong'))
+    assert_code('TICK_BATCH_INVALIDATED', lambda: s.consume(b.batch_id))
+    assert_code('REGISTER_PENDING_ROUND_LIMIT', lambda: s.submit(r))
+
+
+def test_real_plan_scope_and_declared_negative_y_direction():
+    raw = (BASE / 'out/sm25_1f_as_drawn.json').read_bytes()
+    sup = freeze_prototype_supplement(raw, (BASE / 'tools/cfg_1f_full.json').read_bytes())
+    s = TickSession(raw, image_id='plan', supplement=sup)
+    assert len(s.packet.edges) == 102
+    cfg = json.loads(sup)
+    primary_y = cfg['primary']['y']
+    assert cfg['chains'][primary_y]['direction'] == -1
+    expr = Expression('node', OperandRef(digest(raw), primary_y, 'node', 1))
+    assert evaluate(expr, raw=raw, supplement=sup, axis='y') == 153400
+    b = s.submit(response(s))
+    assert len(s.consume(b.batch_id)) == 102

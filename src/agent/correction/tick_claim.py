@@ -194,6 +194,8 @@ def freeze_prototype_supplement(raw: bytes, config_bytes: bytes) -> bytes:
         doc.get("facade_label") is not None and cfg.get("view_facade") != doc["facade_label"]
     ):
         raise TickClaimError("SUPPLEMENT_IMAGE_MISMATCH")
+    if "chains" not in cfg:
+        raise TickClaimError("SUPPLEMENT_CONFIG_MISSING_CHAINS")
     chains = {}
     vertical = "z" if doc["schema"] == "as_drawn_elevation_v0" else "y"
     for cid, ch in cfg["chains"].items():
@@ -351,6 +353,9 @@ def build_packet(raw: bytes, *, image_id: str, generation: int,
                 indices.add(0)  # candidate only; NOT an automatic origin claim
             if segments == {n}:
                 indices.add(n)
+            # The nominated boundary is only a hint. Let the model choose any
+            # node of that same declared chain, including a corrected identity.
+            indices.update(range(n + 1))
             for index in sorted(indices):
                 proposed.append(Expression("node", OperandRef(source_sha, cid, "node", index)))
         # Source without witnesses still offers its declared nodes for model review.
@@ -392,7 +397,8 @@ class TickSession:
                                     supplement=supplement, expressions=expressions)
         self._current: TickBatch | None = None
         self._history: list[bytes] = []
-        self._previous_debts: dict[str, str] = {}
+        self._previous_debts: dict[str, tuple[str, str]] = {}
+        self._blocked = False
         self._precision_u = units(Decimal(str(load_core_tolerances().output_precision_m)) * 1000)
         if self._precision_u <= 0:
             raise TickClaimError("OUTPUT_PRECISION_INVALID")
@@ -406,10 +412,13 @@ class TickSession:
         return tuple(self._history)
 
     def submit(self, response: TickResponse) -> TickBatch:
+        if self._blocked:
+            raise TickClaimError("REGISTER_PENDING_ROUND_LIMIT")
         if type(response) is not TickResponse or response.packet_id != self._packet.packet_id:
             raise TickClaimError("STALE_TICK_RESPONSE")
         if self._current is not None:
             raise TickClaimError("BATCH_ALREADY_DECIDED_USE_RECONSIDER")
+        response = TickResponse.model_validate(response.model_dump(mode="python"))
         choices = {c.edge_id: c for c in response.choices}
         if (len(choices) != len(response.choices) or
                 set(choices) != {e.edge_id for e in self._packet.edges}):
@@ -440,8 +449,10 @@ class TickSession:
                              pointer=edge.pointer, witness=json.loads(edge.witness),
                              candidate=asdict(candidate) if candidate else None,
                              choice=choice.model_dump(), debt_id=debt,
-                             retired_debt_id=self._previous_debts.get(edge.edge_id)
-                             if tier == "chain_backed" and not edge.missing_chains else None))
+                             retired_debt_id=self._previous_debts[edge.edge_id][0]
+                             if (tier == "chain_backed" and not edge.missing_chains
+                                 and edge.edge_id in self._previous_debts
+                                 and self._previous_debts[edge.edge_id][1] == self._packet.source_sha) else None))
         # Every interval is checked after the choices, including pixel rounding.
         by_id = {r["edge_id"]: r for r in rows}
         for eid, row in by_id.items():
@@ -474,9 +485,30 @@ class TickSession:
         record = json.loads(supplied.record)
         if record["packet_id"] != self._packet.packet_id or record["source_sha"] != digest(self._packet.source_bytes):
             raise TickClaimError("TICK_BATCH_SOURCE_MISMATCH")
-        return tuple(TickFact(r["edge_id"], r["axis"], r["value_u"], r["tier"],
-                              r["choice"]["candidate_id"], record["source_sha"], expected_batch_id,
-                              r["debt_id"]) for r in record["rows"])
+        edges = {e.edge_id: e for e in self._packet.edges}
+        if len(record["rows"]) != len(edges) or {r["edge_id"] for r in record["rows"]} != set(edges):
+            raise TickClaimError("TICK_DECISION_COVERAGE_MISMATCH")
+        facts = []
+        for row in record["rows"]:
+            edge = edges[row["edge_id"]]
+            if row["tier"] == "chain_backed":
+                selected = next((c for c in edge.candidates if c.candidate_id == row["choice"]["candidate_id"]), None)
+                if selected is None or asdict(selected) != row["candidate"]:
+                    # JSON changes operand tuples to arrays; compare canonical bytes.
+                    if selected is None or freeze(asdict(selected)) != freeze(row["candidate"]):
+                        raise TickClaimError("TICK_CHOICE_RECORD_MISMATCH")
+                value = evaluate(selected.expression, raw=self._packet.source_bytes,
+                                 supplement=self._packet.supplement_bytes, axis=edge.axis)
+            elif row["tier"] == "pixel_only":
+                value = int((Decimal(edge.raw_u) / self._precision_u).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * self._precision_u
+            else:
+                raise TickClaimError("TICK_TIER_INVALID")
+            if value != row["value_u"]:
+                raise TickClaimError("TICK_VALUE_RECOMPUTE_MISMATCH")
+            facts.append(TickFact(edge.edge_id, edge.axis, value, row["tier"],
+                                  row["choice"]["candidate_id"], record["source_sha"], expected_batch_id,
+                                  row["debt_id"]))
+        return tuple(facts)
 
     def reconsider(self, reason: str, *, raw: bytes | None = None,
                    supplement: bytes | None = None,
@@ -489,18 +521,21 @@ class TickSession:
         if not reason.strip():
             raise TickClaimError("RECONSIDERATION_REASON_REQUIRED")
         if self._current:
-            self._previous_debts.update({r["edge_id"]: r["debt_id"] for r in json.loads(self._current.record)["rows"] if r["debt_id"]})
+            self._previous_debts.update({r["edge_id"]: (r["debt_id"], self._packet.source_sha) for r in json.loads(self._current.record)["rows"] if r["debt_id"]})
         self._history.append(freeze(dict(event="RETURN_TO_STEP_ONE", reason=reason,
                                         invalidated=self._current.batch_id if self._current else None)))
         self._current = None  # invalidate BEFORE any possible retry failure
         self._generation += 1
         if self._generation >= self._max_rounds:
+            self._blocked = True
             raise TickClaimError("REGISTER_PENDING_ROUND_LIMIT")
         old = self._packet
         new_raw = old.source_bytes if raw is None else raw
         if json.loads(new_raw).get("image") != json.loads(old.source_bytes).get("image"):
             raise TickClaimError("SUPPLEMENT_IMAGE_MISMATCH")
         new_supplement = old.supplement_bytes if supplement is None else supplement
+        if not expressions and new_raw == old.source_bytes:
+            expressions = tuple((e.edge_id, c.expression) for e in old.edges for c in e.candidates)
         self._packet = build_packet(new_raw, image_id=old.image_id, generation=self._generation,
                                     supplement=new_supplement, expressions=expressions)
         return self._packet

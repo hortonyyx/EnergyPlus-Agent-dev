@@ -8,12 +8,13 @@ is used. Pure-model dimensional hypotheses remain explicitly unscoreable.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 import json
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.opening_synthesis import (
     ElevationSourceIdentity, synthesize_openings,
 )
@@ -147,6 +148,7 @@ class OpeningReview:
         self._facades, self._walls = facades, walls
         self._bindings = bindings
         self._result = None
+        self._precision_u = units(Decimal(str(load_core_tolerances().output_precision_m)) * 1000)
         facts = {f.edge_id: f for f in plan.consume(expected_plan_batch_id)}
         expected_ids = {eid[:-3] for eid in facts if eid.endswith(":lo")}
         if len({b.opening_id for b in bindings}) != len(bindings) or {b.opening_id for b in bindings} != expected_ids:
@@ -211,7 +213,8 @@ class OpeningReview:
         payload = dict(schema="opening_review_v1", plan_batch=expected_plan_batch_id,
                        plan_image_id=plan.packet.image_id,
                        plan_facts=[asdict(f) for f in facts.values()],
-                       bindings=[asdict(b) for b in bindings], walls=[asdict(w) for w in walls],
+                       output_precision_u=self._precision_u,
+                       bindings=[asdict(replace(b, line=self._plans[b.opening_id])) for b in bindings], walls=[asdict(w) for w in walls],
                        facades=facade_records,
                        openings=[dict(family=k[0], opening_id=k[1], span_u=v[0], z_u=v[1])
                                  for k, v in sorted(self._elevations.items())], exact=self._exact)
@@ -228,6 +231,7 @@ class OpeningReview:
         self._check_current()
         if type(response) is not SpatialResponse or response.packet_id != self.packet.packet_id:
             raise TickClaimError("STALE_SPATIAL_RESPONSE")
+        response = SpatialResponse.model_validate(response.model_dump(mode="python"))
         if self._result is not None:
             raise TickClaimError("SPATIAL_REVIEW_ALREADY_DECIDED")
         if not response.reason.strip():
@@ -269,8 +273,12 @@ class OpeningReview:
                 if exists:
                     raise TickClaimError("INFERENCE_REQUIRES_ABSENT_FACADE")
                 d = choice.inferred_dimensions
-                sill = binding.floor_origin_u + units(d.sill_above_floor_mm)
-                z = (sill, sill + units(d.height_mm))
+                def clean(value):
+                    return int((Decimal(value) / self._precision_u).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * self._precision_u
+                sill = clean(binding.floor_origin_u + units(d.sill_above_floor_mm))
+                z = (sill, clean(binding.floor_origin_u + units(d.sill_above_floor_mm) + units(d.height_mm)))
+                if z[0] >= z[1]:
+                    raise TickClaimError("REGISTER_INFERENCE_COLLAPSED_AT_OUTPUT_GRID")
                 classification, source, status = "③", "inferred", "resolved_inferred"
             else:
                 classification = "②b" if exists else "③"
