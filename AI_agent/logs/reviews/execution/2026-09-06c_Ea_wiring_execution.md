@@ -125,3 +125,46 @@ EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED: {'file': 'sm25_1f_as_drawn.json', 'contr
 A②的判定还包含施工方对“现成 A-6 可直接接入生产”的前提解释；本档明确暴露这一解释供主控判断，没有把“需要扩展 correction 源契约”包装成派工单已有的禁令。后续应先明确 v2 原 bytes 与完整 opening claims 的消费方案，再进行第一步配对测量。本轮不自行改 B4、reading、容差或已签字基线来绕过这个入口。
 
 B 层记录：用户消息要求 `git show --cached --numstat`；实际 Git 返回 `fatal: unrecognized argument: --cached`。按派工单 §五可用的 `git diff --cached --numstat` 查看同一暂存内容后提交，没有因此询问或停工。`AI_agent/plan.md` E-a 行仍写 B4 零生产调用者，按新派工单 §一已明确作废的旧读数处理，本轮没有修改计划文档。
+
+## 七、完整全量汇总与逐位闭合
+
+全量在证据提交 `a2687fcd` 后启动；期间仅提交本执行档和静态清点，源码与测试始终等于基点。实际命令如下，`tee` 保存完整输出，没有 `nohup` 或退出码文件：
+
+```sh
+set -o pipefail
+{ python -c "import src.agent.pipeline as p; print(p.__file__); import src.agent.correction.opening_adjudication as o; print(o.__file__)" && python -m pytest -q -n 6 -p no:cacheprovider; } 2>&1 | tee AI_agent/logs/experiments/2026-09-06c_Ea_wiring/full_suite.txt
+```
+
+[full_suite.txt](../../experiments/2026-09-06c_Ea_wiring/full_suite.txt) 第 1—2 行双导入哨兵、第 442 行完整汇总原文：
+
+```text
+/tmp/ea_wiring_astra/src/agent/pipeline.py
+/tmp/ea_wiring_astra/src/agent/correction/opening_adjudication.py
+3907 passed, 2 skipped, 13 xfailed, 211 warnings in 504.97s (0:08:24)
+```
+
+基点数量独立从已入库的 [full_suite_after_A6.txt](../../experiments/2026-09-06_authoritative_suite/full_suite_after_A6.txt) 第 445 行读取：`3907 passed, 2 skipped, 13 xfailed, 212 warnings in 908.51s (0:15:08)`。本轮 `git diff f4ee52da -- tests src case_tests` 为空，新增/删除/修改测试均为 **0**，没有把诊断 runner 计成测试。
+
+独立解析两份完整汇总后的结果见 [suite_closure.json](../../experiments/2026-09-06c_Ea_wiring/suite_closure.json)：
+
+| 结果位 | 基点 | 本轮新增 | 相加 | 本次全量 | 差额 |
+|---|---:|---:|---:|---:|---:|
+| passed | 3907 | 0 | 3907 | 3907 | 0 |
+| skipped | 2 | 0 | 2 | 2 | 0 |
+| xfailed | 13 | 0 | 13 | 13 | 0 |
+| failed | 0 | 0 | 0 | 0 | 0 |
+| 全部结果 | 3922 | 0 | 3922 | 3922 | 0 |
+
+**`3907 + 0 = 3907`；`3907 + 2 + 13 = 3922`。**本次全量绿只证明基点测试仍绿，不为未实施的 E-a 施工背书。
+
+warnings 的 **212 → 211** 也已单独核对：将两份 warning 区块的工作树路径、pytest 临时路径归一化后按区块作多重集合比较，只有基点的一条警告消失，没有新增警告区块。它是 `test_mep_idd_field_alignment.py::test_b2_prescan_reproduction` 报告 `smalloffice_23/4_mep/mep_output.json` 为未跟踪临时产物的 `B2: skipped 1 untracked 4_mep artifact(s) not part of this commit`，原文保留在 `suite_closure.json`。这里的 skipped 是警告文字，**不是 pytest 的 skipped 测试结果**；测试结果仍为 2 skipped，差额为 0。
+
+## 八、分段提交与证据完整性
+
+- `a2687fcd`：真实源入口诊断 runner 及完整 JSONL 原文。
+- `383dd6a3`：A②停报执行档、两个构造点及生产调用清点。
+- 最终交件提交：本档全量章节、逐位闭合 JSON 和完整全量 txt。`full_suite.txt` 因 `*.txt` 忽略规则采用 `git add -f`；其余均逐路径暂存，提交前检查 `git diff --cached --numstat`。
+
+12 份测量输入在诊断前后逐一 SHA256 不变，原文第 1、17 行完整保留。全量日志 SHA256 为 `0c5246c7568d46be6ce7f8031b8494fa8ca4aaa6fb09076ed6fcc05650ef1a7d`。源码、旧测试及 case 产物相对基点无差异；未把派工单或任何其他未跟踪文件收入提交。
+
+交件状态为 **A 层②停报**，不是 APPROVE，不是接线完成；尚未由 Claude 家族审查，未合并。
