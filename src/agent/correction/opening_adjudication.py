@@ -174,6 +174,8 @@ class OpeningReview:
                     binding.line.axis != wall.axis or binding.line.pos_m != wall.pos_m or
                     binding.line.half_thickness_m != wall.half_thickness_m):
                 raise TickClaimError("PLAN_HOST_BINDING_MISMATCH", oid)
+            if facts[f"{oid}:lo"].value_u >= facts[f"{oid}:hi"].value_u:
+                raise TickClaimError("TICK_PLAN_INTERVAL_NOT_ORDERED", oid)
             self._plans[oid] = replace(binding.line,
                                       along_lo_m=facts[f"{oid}:lo"].value_u / 10000,
                                       along_hi_m=facts[f"{oid}:hi"].value_u / 10000)

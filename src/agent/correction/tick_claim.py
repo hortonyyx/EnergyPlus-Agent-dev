@@ -397,6 +397,16 @@ def build_packet(raw: bytes, *, image_id: str, generation: int,
                       tuple(edges), raw, supplement, ("SAME_IMAGE_MODEL_REQUIRED",) if edges else ())
 
 
+def _require_ordered_intervals(rows: list[dict]) -> None:
+    by_id = {r["edge_id"]: r for r in rows}
+    for eid, row in by_id.items():
+        for low, high in ((":x0", ":x1"), (":z_low", ":z_high"), (":lo", ":hi")):
+            if eid.endswith(low):
+                if row["value_u"] >= by_id[eid[:-len(low)] + high]["value_u"]:
+                    raise TickClaimError("TICK_INTERVAL_NOT_ORDERED", eid)
+                break
+
+
 class TickSession:
     """Owner of the current per-image generation; all cross-image reads pass here."""
     def __init__(self, raw: bytes, *, image_id: str, supplement: bytes | None = None,
@@ -423,13 +433,10 @@ class TickSession:
     def history(self) -> tuple[bytes, ...]:
         return tuple(self._history)
 
-    def submit(self, response: TickResponse) -> TickBatch:
-        if self._blocked:
-            raise TickClaimError(self._blocked)
+    def _checked_choices(self, response: TickResponse) -> dict[str, TickChoice]:
+        """Same decision validation on submission and consumption; no state writes."""
         if type(response) is not TickResponse or response.packet_id != self._packet.packet_id:
             raise TickClaimError("STALE_TICK_RESPONSE")
-        if self._current is not None:
-            raise TickClaimError("BATCH_ALREADY_DECIDED_USE_RECONSIDER")
         response = TickResponse.model_validate(response.model_dump(mode="python"))
         choices = {c.edge_id: c for c in response.choices}
         if (len(choices) != len(response.choices) or
@@ -437,6 +444,11 @@ class TickSession:
             raise TickClaimError("TICK_DECISION_COVERAGE_MISMATCH")
         if any(c.action == "reperceive" for c in choices.values()):
             raise TickClaimError("RETURN_TO_READING")
+        return choices
+
+    def _decision_rows(self, choices: dict[str, TickChoice],
+                       previous_debts: dict[str, tuple[str, str]]) -> list[dict]:
+        """Rebuild all row fields from the packet and validated model choices."""
         rows = []
         for edge in self._packet.edges:
             choice = choices[edge.edge_id]
@@ -461,23 +473,48 @@ class TickSession:
                              pointer=edge.pointer, witness=json.loads(edge.witness),
                              candidate=asdict(candidate) if candidate else None,
                              choice=choice.model_dump(), debt_id=debt,
-                             retired_debt_id=self._previous_debts[edge.edge_id][0]
+                             retired_debt_id=previous_debts[edge.edge_id][0]
                              if (tier == "chain_backed" and not edge.missing_chains
-                                 and edge.edge_id in self._previous_debts
-                                 and self._previous_debts[edge.edge_id][1] == self._packet.source_sha) else None))
-        # Every interval is checked after the choices, including pixel rounding.
-        by_id = {r["edge_id"]: r for r in rows}
-        for eid, row in by_id.items():
-            high = None
-            if eid.endswith(":x0"):
-                high = eid[:-2] + "x1"
-            elif eid.endswith(":z_low"):
-                high = eid[:-5] + "z_high"
-            elif eid.endswith(":lo"):
-                high = eid[:-2] + "hi"
-            if high and row["value_u"] >= by_id[high]["value_u"]:
-                self.reconsider("INTERVAL_NOT_ORDERED")
-                raise TickClaimError("RETURN_TO_STEP_ONE_INTERVAL", eid)
+                                 and edge.edge_id in previous_debts
+                                 and previous_debts[edge.edge_id][1] == self._packet.source_sha) else None))
+        return rows
+
+    def _retirement_context(self, current_record: bytes) -> dict[str, tuple[str, str]]:
+        """Read the ledger before this commit; do not retire a debt a second time.
+
+        submit removes retired entries from _previous_debts. Replaying that
+        mutable post-commit map would wrongly reject a legitimate retirement.
+        Only return events make a prior batch's debts available for retirement.
+        """
+        debts, last = {}, None
+        for raw in self._history:
+            if raw == current_record:
+                break
+            entry = json.loads(raw)
+            if entry.get("schema") == "tick_batch_v1":
+                last = entry
+                for row in entry["rows"]:
+                    if row["retired_debt_id"]:
+                        debts.pop(row["edge_id"], None)
+            elif (entry.get("event") == "RETURN_TO_STEP_ONE" and last is not None
+                  and entry.get("invalidated") == digest(freeze(last))):
+                debts.update({r["edge_id"]: (r["debt_id"], last["source_sha"])
+                              for r in last["rows"] if r["debt_id"]})
+        return debts
+
+    def submit(self, response: TickResponse) -> TickBatch:
+        if self._blocked:
+            raise TickClaimError(self._blocked)
+        if type(response) is not TickResponse or response.packet_id != self._packet.packet_id:
+            raise TickClaimError("STALE_TICK_RESPONSE")
+        if self._current is not None:
+            raise TickClaimError("BATCH_ALREADY_DECIDED_USE_RECONSIDER")
+        rows = self._decision_rows(self._checked_choices(response), self._previous_debts)
+        try:
+            _require_ordered_intervals(rows)
+        except TickClaimError as exc:
+            self.reconsider("INTERVAL_NOT_ORDERED")
+            raise TickClaimError("RETURN_TO_STEP_ONE_INTERVAL", exc.detail) from exc
         record = freeze(dict(schema="tick_batch_v1", packet_id=response.packet_id,
                              source_sha=self._packet.source_sha, image_id=self._packet.image_id,
                              generation=self._generation, response=response.model_dump(),
@@ -497,33 +534,51 @@ class TickSession:
         supplied = current if batch is None else batch
         if type(supplied) is not TickBatch or supplied.batch_id != expected_batch_id or supplied.record != current.record or digest(supplied.record) != expected_batch_id:
             raise TickClaimError("TICK_BATCH_NOT_CURRENT_DECISION")
-        record = json.loads(supplied.record)
-        if record["packet_id"] != self._packet.packet_id or record["source_sha"] != digest(self._packet.source_bytes):
+        if self._blocked:
+            raise TickClaimError(self._blocked)
+        try:
+            record = json.loads(supplied.record)
+            rows = record["rows"]
+            row_ids = [r["edge_id"] for r in rows]
+            if type(rows) is not list or any(type(eid) is not str for eid in row_ids):
+                raise TypeError("rows must be a list of identified records")
+        except (ValueError, KeyError, TypeError) as exc:
+            raise TickClaimError("TICK_BATCH_RECORD_INVALID") from exc
+        if record.get("packet_id") != self._packet.packet_id or record.get("source_sha") != digest(self._packet.source_bytes):
             raise TickClaimError("TICK_BATCH_SOURCE_MISMATCH")
+        metadata = dict(schema="tick_batch_v1", image_id=self._packet.image_id,
+                        generation=self._packet.generation,
+                        output_precision=dict(config_field="output_precision_m", units=self._precision_u))
+        if freeze({k: record.get(k) for k in metadata}) != freeze(metadata):
+            raise TickClaimError("TICK_BATCH_METADATA_MISMATCH")
         edges = {e.edge_id: e for e in self._packet.edges}
-        if len(record["rows"]) != len(edges) or {r["edge_id"] for r in record["rows"]} != set(edges):
+        if len(rows) != len(edges) or set(row_ids) != set(edges):
             raise TickClaimError("TICK_DECISION_COVERAGE_MISMATCH")
-        facts = []
-        for row in record["rows"]:
-            edge = edges[row["edge_id"]]
-            if row["tier"] == "chain_backed":
-                selected = next((c for c in edge.candidates if c.candidate_id == row["choice"]["candidate_id"]), None)
-                if selected is None or asdict(selected) != row["candidate"]:
-                    # JSON changes operand tuples to arrays; compare canonical bytes.
-                    if selected is None or freeze(asdict(selected)) != freeze(row["candidate"]):
-                        raise TickClaimError("TICK_CHOICE_RECORD_MISMATCH")
-                value = evaluate(selected.expression, raw=self._packet.source_bytes,
-                                 supplement=self._packet.supplement_bytes, axis=edge.axis)
-            elif row["tier"] == "pixel_only":
-                value = int((Decimal(edge.raw_u) / self._precision_u).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * self._precision_u
-            else:
-                raise TickClaimError("TICK_TIER_INVALID")
-            if value != row["value_u"]:
+        try:
+            row_response = TickResponse.model_validate_json(freeze(dict(
+                packet_id=record["packet_id"], choices=[r["choice"] for r in rows])))
+            response = TickResponse.model_validate_json(freeze(record["response"]))
+        except (ValueError, TypeError, KeyError) as exc:
+            raise TickClaimError("TICK_BATCH_RESPONSE_INVALID") from exc
+        row_choices = self._checked_choices(row_response)
+        rebuilt = self._decision_rows(row_choices, self._retirement_context(supplied.record))
+        by_id = {r["edge_id"]: r for r in rows}
+        for row in rebuilt:
+            actual = by_id[row["edge_id"]]
+            if freeze(actual.get("value_u")) != freeze(row["value_u"]):
                 raise TickClaimError("TICK_VALUE_RECOMPUTE_MISMATCH")
-            facts.append(TickFact(edge.edge_id, edge.axis, value, row["tier"],
-                                  row["choice"]["candidate_id"], record["source_sha"], expected_batch_id,
-                                  row["debt_id"]))
-        return tuple(facts)
+            if freeze(actual) != freeze(row):
+                raise TickClaimError("TICK_ROW_RECOMPUTE_MISMATCH", row["edge_id"])
+        _require_ordered_intervals(rebuilt)
+        choices = self._checked_choices(response)
+        if freeze({k: v.model_dump() for k, v in choices.items()}) != freeze(
+                {k: v.model_dump() for k, v in row_choices.items()}):
+            raise TickClaimError("TICK_BATCH_RESPONSE_MISMATCH")
+        if set(record) != {"packet_id", "source_sha", "response", "rows", *metadata}:
+            raise TickClaimError("TICK_BATCH_RECORD_INVALID")
+        return tuple(TickFact(r["edge_id"], r["axis"], r["value_u"], r["tier"],
+                              r["choice"]["candidate_id"], record["source_sha"], expected_batch_id,
+                              r["debt_id"]) for r in rebuilt)
 
     def reconsider(self, reason: str, *, raw: bytes | None = None,
                    supplement: bytes | None = None,
