@@ -18,6 +18,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from src.agent.correction.config import load_core_tolerances
+from src.agent.reading.as_drawn.schema import SCHEMA as PLAN_V2_SCHEMA
+
+# Historical-only branch: the ONLY v0 plan producer is the 2026-08-23
+# experiment, never production reading. Keep its bytes readable, not canonical.
+HISTORICAL_PLAN_V0_PRODUCER = (
+    "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/as_drawn.py"
+)
 
 
 class TickClaimError(ValueError):
@@ -155,31 +162,117 @@ class TickFact:
     debt_id: str | None
 
 
+def require_v2_plan(raw: bytes, *, image_id: str) -> dict:
+    """Validate the native source, including the selection this consumer needs.
+
+    The classifier's public decisions stay unchanged. In particular an honest
+    empty model selection is a legal reading product, but cannot drive this
+    opening workflow. No candidate graph is ever used to invent a selection.
+    """
+    from src.agent.reading.vector_contract import (
+        CONTRACT_AS_DRAWN_PLAN, classify_vector_json,
+    )
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
+
+    doc = json.loads(raw)
+    decision = classify_vector_json(doc)
+    if decision.contract_id != CONTRACT_AS_DRAWN_PLAN:
+        raise TickClaimError("TICK_PLAN_MALFORMED_DECLARED_CONTRACT", decision.reason)
+    hyp = doc["hypotheses"]
+    if not hyp.get("pairs") or hyp.get("pairs_status") != "SELECTED":
+        raise TickClaimError("TICK_PLAN_MODEL_SELECTION_REQUIRED", hyp.get("pairs_status"))
+    # Reuse the existing full graph/reference/five-way disposition gate.
+    adapt_as_drawn_plan(raw, input_id=image_id, floor_ref=image_id)
+    faces = {f["id"]: f for f in doc["observations"]["face_lines"]}
+    candidates = {(p["face_a"], p["face_b"]): p for p in hyp["pair_candidates"]}
+    for pair in hyp["pairs"]:
+        if ({k: v for k, v in pair.items() if k != "source"}
+                != candidates.get((pair["face_a"], pair["face_b"]))):
+            raise TickClaimError("TICK_PLAN_SELECTED_PAIR_DRIFT")
+    seen = set()
+    for opening in hyp["opening_candidates"]:
+        key = opening["face_line"], opening["gap_index"]
+        gap = faces[key[0]]["gaps"][key[1]]
+        if key in seen:
+            raise TickClaimError("TICK_PLAN_GAP_DUPLICATED", opening["id"])
+        seen.add(key)
+        if any(opening[k] != gap[k] for k in ("span_m", "len_m", "len_px", "ink_by_family")):
+            raise TickClaimError("TICK_PLAN_OPENING_GAP_DRIFT", opening["id"])
+        if not opening["span_m"][0] < opening["span_m"][1]:
+            raise TickClaimError("TICK_PLAN_INTERVAL_NOT_ORDERED", opening["id"])
+    expected = {(f["id"], i) for f in faces.values() for i in range(len(f["gaps"]))}
+    if seen != expected:
+        raise TickClaimError("TICK_PLAN_GAP_COVERAGE_MISMATCH")
+    if not set(hyp.get("opening_types") or {}) <= {o["id"] for o in hyp["opening_candidates"]}:
+        raise TickClaimError("TICK_PLAN_OPENING_TYPE_UNKNOWN_ID")
+    return doc
+
+
+def _native_chains(doc: dict) -> dict[str, dict]:
+    """Arithmetic operands from v2's declarations, retaining each chain ID.
+
+    This computes prefix sums, not a reading-format conversion. Neither wall
+    pairing nor gap identity participates in this arithmetic.
+    """
+    try:
+        declarations = doc["declarations"]["chains"]
+        if not isinstance(declarations, dict) or not declarations:
+            raise TickClaimError("TICK_PLAN_DIMENSION_CHAINS_MISSING")
+        records = {}
+        for cid, ch in declarations.items():
+            if (ch["axis"] not in ("row", "col") or type(ch["direction"]) is not int
+                    or ch["direction"] not in (-1, 1)):
+                raise TickClaimError("CHAIN_FRAME_INVALID", cid)
+            vals = ch["values_mm"]
+            if not isinstance(vals, list) or any(type(v) not in (int, float) for v in vals):
+                raise TickClaimError("CHAIN_RECORD_INVALID", cid)
+            nodes = [0]
+            for value in vals:
+                nodes.append(nodes[-1] + units(value))
+            records[cid] = dict(axis="x" if ch["axis"] == "row" else "y",
+                                values_mm=vals, cum_mm=[v / 10 for v in nodes],
+                                overall_mm=nodes[-1] / 10, origin_mm=ch["world_start_mm"],
+                                direction=ch["direction"], qualification="drawing_dimension")
+            require_chain(records[cid])
+            units(ch["world_start_mm"])
+        return records
+    except (KeyError, TypeError) as exc:
+        raise TickClaimError("TICK_PLAN_DIMENSION_CHAINS_MISSING") from exc
+
+
 def _chain_records(raw: bytes, supplement: bytes | None) -> dict[str, dict]:
     doc = json.loads(raw)
+    native = doc.get("schema") == PLAN_V2_SCHEMA
+    records = _native_chains(doc) if native else {}
+    calibration = doc["observations"].get("calibration") if native else doc.get("calibration", {})
+    if not isinstance(calibration, dict):
+        raise TickClaimError("CALIBRATION_MISSING")
     # Check every calibration chain even when a supplemental declaration is used.
-    for ch in doc.get("calibration", {}).values():
+    for ch in calibration.values():
         if isinstance(ch, dict) and "values_mm" in ch:
             require_chain(ch)
     if supplement is None:
-        return {}
+        return records
     cfg = json.loads(supplement)
     # The reading supplement is explicitly bound to these source bytes and image.
     if (cfg.get("source_sha") != digest(raw) or cfg.get("image") != doc.get("image")
             or cfg.get("schema") != "tick_reading_supplement_v1"):
         raise TickClaimError("SUPPLEMENT_SOURCE_MISMATCH")
-    records = cfg["chains"]
-    for cid, ch in records.items():
+    additional = cfg["chains"]
+    for cid, ch in additional.items():
         require_chain(ch)
         if ch.get("axis") not in ("x", "y", "z") or ch.get("direction") not in (-1, 1):
             raise TickClaimError("CHAIN_FRAME_INVALID", cid)
         units(ch["origin_mm"])
         if ch.get("qualification") != "drawing_dimension":
             raise TickClaimError("OPERAND_NOT_DECLARED", cid)
+        if cid in records and records[cid] != ch:
+            raise TickClaimError("SUPPLEMENT_DECLARATION_CONFLICT", cid)
+    records = {**records, **additional}
     for axis, cid in cfg.get("primary", {}).items():
-        if cid not in records or axis not in doc["calibration"]:
+        if cid not in records or axis not in calibration:
             raise TickClaimError("PRIMARY_CHAIN_IDENTITY_MISSING", cid)
-        original = doc["calibration"][axis]
+        original = calibration[axis]
         if (records[cid]["axis"] != axis or
                 require_chain(records[cid]) != require_chain(original)):
             raise TickClaimError("PRIMARY_CHAIN_SOURCE_MISMATCH", cid)
@@ -220,23 +313,40 @@ def freeze_prototype_supplement(raw: bytes, config_bytes: bytes) -> bytes:
     return result
 
 
-def evaluate(expression: Expression, *, raw: bytes, supplement: bytes, axis: str) -> int:
+def evaluate(expression: Expression, *, raw: bytes, supplement: bytes | None, axis: str) -> int:
     """All results are positions in the source image's declared local axis frame.
 
     Sum/diff first produce displacement, then explicitly add/subtract at anchor.
     The sign never comes from an opening edge's low/high role.
     """
-    chains = _chain_records(raw, supplement)
-    cfg = json.loads(supplement)
+    return _evaluate(expression, axis=axis, context=_expression_context(raw, supplement))
+
+
+def _expression_context(raw: bytes, supplement: bytes | None) -> tuple:
+    return (_chain_records(raw, supplement),
+            json.loads(supplement) if supplement is not None else {},
+            json.loads(raw), digest(raw))
+
+
+def _evaluate(expression: Expression, *, axis: str, context: tuple) -> int:
+    chains, cfg, doc, source_sha = context
     if type(expression) is not Expression or expression.direction not in ("positive", "negative"):
         raise TickClaimError("OPERATION_SIGNATURE_INVALID")
 
     def resolve(ref: OperandRef, domain: str) -> tuple[int, dict]:
-        if type(ref) is not OperandRef or ref.source_sha != digest(raw):
+        if type(ref) is not OperandRef or ref.source_sha != source_sha:
             raise TickClaimError("OPERAND_CROSS_IMAGE")
         if ref.domain != domain or type(ref.index) is not int or ref.index < 0:
             raise TickClaimError("OPERAND_REF_DOMAIN", domain)
         if domain == "declaration":
+            if ref.chain_id == "/declarations/thickness_callouts_mm":
+                if doc.get("schema") != PLAN_V2_SCHEMA:
+                    raise TickClaimError("OPERAND_REF_DOMAIN")
+                try:
+                    value = doc["declarations"]["thickness_callouts_mm"][ref.index]
+                except (KeyError, IndexError, TypeError) as exc:
+                    raise TickClaimError("OPERAND_REF_MISSING") from exc
+                return units(value), dict(kind="full", quantity="wall_thickness")
             if ref.chain_id != "declarations":
                 raise TickClaimError("OPERAND_REF_DOMAIN")
             try:
@@ -314,7 +424,19 @@ def _raw_edges(doc: dict):
             for axis, names in (("x", ("x0", "x1")), ("z", ("z_low", "z_high"))):
                 for j, name in enumerate(names):
                     yield f"{oid}:{name}", axis, opening[f"{axis}_range_m"][j], f"/openings/{i}/{axis}_range_m/{j}", opening.get("edge_witnesses", {}).get(name, {})
+    elif doc.get("schema") == PLAN_V2_SCHEMA:
+        faces = {f["id"]: f for f in doc["observations"]["face_lines"]}
+        for i, opening in enumerate(doc["hypotheses"]["opening_candidates"]):
+            face = faces[opening["face_line"]]
+            axis = "y" if face["constant_world_axis"] == "x" else "x"
+            for j, role in enumerate(("lo", "hi")):
+                witness = dict(face_line=opening["face_line"], gap_index=opening["gap_index"],
+                               ink_by_family=opening["ink_by_family"],
+                               dimension_witnesses=doc["observations"].get("dimension_witnesses"))
+                yield (f"{opening['id']}:{role}", axis, opening["span_m"][j],
+                       f"/hypotheses/opening_candidates/{i}/span_m/{j}", witness)
     elif doc.get("schema") == "as_drawn_plan_v0":
+        # Historical-only producer registered by HISTORICAL_PLAN_V0_PRODUCER.
         seen = set()
         for i, band in enumerate(doc["wall_bands"]):
             if band["id"] in seen:
@@ -333,8 +455,12 @@ def build_packet(raw: bytes, *, image_id: str, generation: int,
                  expressions: tuple[tuple[str, Expression], ...] = ()) -> TickPacket:
     raw = bytes(raw)
     supplement = bytes(supplement) if supplement is not None else None
+    if json.loads(raw).get("schema") == PLAN_V2_SCHEMA:
+        require_v2_plan(raw, image_id=image_id)
     chains = _chain_records(raw, supplement)
     source_sha = digest(raw)
+    context = (chains, json.loads(supplement) if supplement is not None else {},
+               json.loads(raw), source_sha)
     edges = []
     extra = {}
     for eid, expr in expressions:
@@ -379,7 +505,7 @@ def build_packet(raw: bytes, *, image_id: str, generation: int,
         proposed.extend(extra.pop(eid, []))
         unique = {}
         for expr in proposed:
-            value = evaluate(expr, raw=raw, supplement=supplement, axis=axis)
+            value = _evaluate(expr, axis=axis, context=context)
             cid = digest(freeze({"edge": eid, "expression": asdict(expr)}))
             unique[cid] = Candidate(cid, expr, value)
         candidates = tuple(unique[k] for k in sorted(unique))
@@ -450,6 +576,7 @@ class TickSession:
                        previous_debts: dict[str, tuple[str, str]]) -> list[dict]:
         """Rebuild all row fields from the packet and validated model choices."""
         rows = []
+        context = _expression_context(self._packet.source_bytes, self._packet.supplement_bytes)
         for edge in self._packet.edges:
             choice = choices[edge.edge_id]
             candidates = {c.candidate_id: c for c in edge.candidates}
@@ -458,8 +585,7 @@ class TickSession:
             if choice.action == "select":
                 if candidate is None:
                     raise TickClaimError("UNKNOWN_TICK_CANDIDATE", edge.edge_id)
-                value = evaluate(candidate.expression, raw=self._packet.source_bytes,
-                                 supplement=self._packet.supplement_bytes, axis=edge.axis)
+                value = _evaluate(candidate.expression, axis=edge.axis, context=context)
                 tier = "chain_backed"
             else:
                 if choice.action == "pixel_pending_evidence":
