@@ -2,9 +2,12 @@
 
 ## 〇 分工与对象
 
-- **施工方**：`gpt-6-astra`（GPT 家族）· **你 = 复核方，GLM 家族**（⛔ 谁写谁不批，⛔ 不得 GPT）
+- **施工方**：`gpt-6-astra`（GPT 家族）· **你 = 复核方，Claude 家族**（⛔ 谁写谁不批，⛔ 不得 GPT）
+  > ⚠️ **2026-09-06 改派**：本单原派 GLM，其席位启动即撞 **5 小时额度上限**（429，零产出零丢失，
+  > 北京时间 01:57 恢复 ≈ 3.2h）⇒ 改派 Claude。**复核要求一字未改**，只换家族。
 - **被审对象**：`/tmp/ea2_astra` 的 `363844b3..cbf1acfa`（**10 个提交**）
 - **你的工作目录**：`/tmp/ea2_review_glm`（已按被审 HEAD 建好，detached）
+  ⚠️ 目录名里的 `glm` 是**改派前留下的历史名**，⛔ 与你是哪个家族无关，别据此判断分工。
 - **原始派工单**：`AI_agent/logs/reviews/request/2026-09-06d_Ea2_source_contract_dispatch.md`
 - **施工方交件**：`AI_agent/logs/reviews/execution/2026-09-06d_Ea2_source_contract_execution.md`
 
@@ -89,7 +92,7 @@
 
 ## 三 交裁决
 
-`AI_agent/logs/reviews/verdict/2026-09-06g_Ea2_crossreview_glm.md`，必须含：
+`AI_agent/logs/reviews/verdict/2026-09-06g_Ea2_crossreview_claude.md`，必须含：
 
 - **裁决**：`APPROVE` / `APPROVE-WITH-FINDINGS` / `REWORK`，**阻断 N / 不阻断 M**
 - **§2.1 你两套口径的独立枚举结果 + 三方差集 + 去重后的决定数**（⭐ 头号）
