@@ -108,11 +108,42 @@
 ⇒ ⭐ 又一次印证「[[rework-review-needs-the-same-shape-input]]：交件自带的证据覆盖了哪一半」——
 committed 的锁只签了一条面线，**恰好没碰到「签一堵墙」这个真实动作**。
 
+### ⭐⭐⭐ 而真正的病灶不是「忘了更新墙」—— 是**声明的范围与实际的门画的不是同一条线**
+
+`gt_revisions.py` 的模块 docstring **自己声明过**这个限制（⇒ ⛔ 别把它当「没想到」）：
+
+> `derive_as_signed` updates ONLY the targeted face line's named field. It does NOT re-run wall
+> pairing, does not touch `walls`/`openings` … **A translate large enough to change which face
+> lines pair into a wall**, or to move an opening's carrier, **is out of this unit's scope**.
+
+**声明的边界 = 「大到会改变配对的」平移出范围。**
+主控实测**实际的边界**（扫 13AD 上的 delta，其余两条签 `as_designed`）：
+
+| delta | 0.1 → 0.4 mm | **0.5 mm 起** |
+|---|---|---|
+| 结果 | ✅ 通过 | ⛔ `as_signed_wall_face_hi_disagrees_with_its_face_lines` |
+
+⚠️ 那个 0.5 mm **不是常数**，是「这条线的 `const` 离最近的毫米格边界还有多远」（F-140 已写明，位置相关，实测 0.1–0.9 mm）。
+
+⇒ ⭐⭐⭐ **能通过的那一档，恰好是项目已经裁定【永远不许签成 `drawing_error`】的那一档。**
+A-11 那次用户拍板说得很清楚：**0.1 mm 级的差是测量表示残差，⛔ 绝不能签成画图错误**
+（`gt_revisions.py:63-65` 逐字记着这句）。
+
+| | 能过门的 | 允许签的 |
+|---|---|---|
+| 幅度 | **< 半个毫米格** | **≥ 一个真实画图错误**（本例 3.0 mm）|
+
+**两条带互不相交。** ⇒ ⛔ **对任何一条【已配对成墙】的面线，`drawing_error` 这条路今天在实践上是关死的**
+—— 不是「碰到大的平移才关」，而是**每一次合法的修订都关**。
+⭐ 这正是 [[gate-measures-a-proxy-not-the-thing-it-guards]] 的形状：F-137 那道门量的是
+「墙的自述数字还对不对」（一个代理量），而它要守的是「别悄悄产出自相矛盾的 `walls` 块」；
+**代理量红了，但要守的那件事本来可以靠【一起更新 `walls`】来满足。**
+
 ## 4. 一起量出来的四个洞（全部实测，⛔ 非推断）
 
 | 编号 | 洞 | 证据 |
 |---|---|---|
-| **G-a-d1** | **`derive_as_signed` 不更新 `walls`** ⇒ 任何真实签字都被 F-137 门拒 | §3 的 A/B 两格 |
+| **G-a-d1** | ⭐ **不是「忘了更新 `walls`」，是【声明的范围】与【实际的门】画的不是同一条线** ——docstring 声明「大到会改变配对的平移出范围」，实际是**任何跨毫米格的平移都被拒**（本例 ≥0.5 mm，位置相关）；而能过门的 <0.5 mm 恰好是项目已裁定**永远不许签成 `drawing_error`** 的表示残差 ⇒ **两条带互不相交，配对面线上的 `drawing_error` 实践上关死** | §3 的 A/B 两格 + delta 扫描表 |
 | **G-a-d2** | **旋转类修订无法表达** ⇒ `rev-13af` 永远签不了；13AD/13AE 就算能签也签的是错误的量 | §2 |
 | **G-a-d3** | **没有任何 CLI 能写 / 签 `revisions.json`** | `revisions.json` 唯一写者 = `gt_facts_staging.py:273`（产**未签**草案）；`scripts/tool_scripts/gt_review_sign.py` 签的是 **review bundle**（`tarch_review_bundle`），不是台账；唯一建库入口在 `logs/experiments/2026-09-01c_f156v3_baseline/rebuild_sm25_facts_staging.py`（实验脚本，且已陈旧）|
 | **G-a-d4** | **`CompiledAnswerV1` 在 `answer_compiler.py` 之外零消费者**，`gt.json` 仍走老路径 | `grep -rn CompiledAnswerV1 src/ scripts/` 全部落在 `answer_compiler.py` 内 |
