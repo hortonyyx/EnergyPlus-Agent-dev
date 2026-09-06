@@ -37,19 +37,36 @@ WORKTREE="${1:?usage: seat_gpt.sh <worktree-dir> <prompt-file> [log-file] [model
 PROMPT_FILE="${2:?usage: seat_gpt.sh <worktree-dir> <prompt-file> [log-file] [model]}"
 LOG_FILE="${3:-${WORKTREE}/.seat/seat.log}"
 MODEL="${4:-gpt-5.6-sol}"
+# ⭐⭐⭐ 2026-09-06: reasoning effort must be passed EXPLICITLY — the default is
+# per-model, not global.  Measured that day: the older gpt-5.x seats all banner
+# `reasoning effort: high`, but a `gpt-6-astra` seat launched by this very
+# script bannered `low`.  A big construction block at `low` is a silently
+# degraded seat: it does not error, it just thinks less.  ⛔ Never rely on the
+# default.  Same lesson as `codex exec resume` silently resetting effort to
+# `low` (AI_agent memory: codex-resume-resets-reasoning-effort).
+EFFORT="${CODEX_EFFORT:-xhigh}"
 
 [[ -d "$WORKTREE" ]]    || { echo "no such worktree dir: $WORKTREE" >&2; exit 2; }
 [[ -f "$PROMPT_FILE" ]] || { echo "no such prompt file: $PROMPT_FILE" >&2; exit 2; }
 mkdir -p "$(dirname "$LOG_FILE")"
 
 cd "$WORKTREE"
-nohup codex exec -m "$MODEL" --sandbox danger-full-access --skip-git-repo-check \
+nohup codex exec -m "$MODEL" -c model_reasoning_effort="$EFFORT" \
+    --sandbox danger-full-access --skip-git-repo-check \
     < "$PROMPT_FILE" > "$LOG_FILE" 2>&1 &
 PID=$!
-sleep 5
+sleep 8
 if ! kill -0 "$PID" 2>/dev/null; then
-    echo "⛔ seat died within 5s — log says:" >&2
+    echo "⛔ seat died within 8s — log says:" >&2
     cat "$LOG_FILE" >&2
     exit 1
 fi
-echo "gpt seat launched: pid=${PID}  model=${MODEL}  cwd=${WORKTREE}  log=${LOG_FILE}"
+echo "gpt seat launched: pid=${PID}  model=${MODEL}  effort=${EFFORT}  cwd=${WORKTREE}  log=${LOG_FILE}"
+# ⭐ Read the banner back — asking for an effort is not the same as getting it.
+BANNER="$(grep -m1 -i 'reasoning effort:' "$LOG_FILE" || true)"
+echo "banner says: ${BANNER:-(not printed yet)}"
+case "$BANNER" in
+    *"$EFFORT"*) ;;
+    "")          echo "⚠️  banner not out yet — re-check with: grep -i 'reasoning effort:' $LOG_FILE" >&2 ;;
+    *)           echo "⛔ EFFORT MISMATCH — asked ${EFFORT}, got: ${BANNER}" >&2 ;;
+esac
