@@ -1,0 +1,65 @@
+[
+  {
+    "guard": "E-a-1",
+    "source": "src/agent/correction/opening_adjudication.py",
+    "old": "    def _check_current(self):\n        self._plan.consume(self._plan_batch)\n        for facade in self._facades:\n            if facade.session is not None:\n                facade.session.consume(facade.expected_batch_id)\n",
+    "new": "    def _check_current(self):\n        pass  # mutation: treat the cached review as current\n",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_E-a-1 tests/test_ea2_opening_pipeline.py::test_ea1_pipeline_rejects_stale_batch",
+    "summary": "1 failed in 3.48s",
+    "log": "red_E-a-1.log"
+  },
+  {
+    "guard": "E-a-2",
+    "source": "src/agent/pipeline.py",
+    "old": "    review.persist(archive, expected_result_id)",
+    "new": "    archive.mkdir(parents=True, exist_ok=True)  # mutation: preview-only output",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_E-a-2 tests/test_ea2_opening_pipeline.py::test_ea2_pipeline_archive_rebuilds_every_batch_byte_for_byte",
+    "summary": "1 failed in 3.50s",
+    "log": "red_E-a-2.log"
+  },
+  {
+    "guard": "E-a-3",
+    "source": "src/agent/pipeline.py",
+    "old": "def run_opening_adjudication(geometry,",
+    "new": "def _ea_mutation_legacy_caller():\n    synthesize_openings(elevation_doc={})\n\n\ndef run_opening_adjudication(geometry,",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_E-a-3 tests/test_ea2_opening_pipeline.py::test_ea3_no_production_call_to_historical_dict_api",
+    "summary": "1 failed in 3.36s",
+    "log": "red_E-a-3.log"
+  },
+  {
+    "guard": "E-a-4",
+    "source": "src/agent/correction/tick_claim.py",
+    "old": "    if not hyp.get(\"pairs\") or hyp.get(\"pairs_status\") != \"SELECTED\":",
+    "new": "    if False and (not hyp.get(\"pairs\") or hyp.get(\"pairs_status\") != \"SELECTED\"):",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_E-a-4 tests/test_ea2_native_tick.py::test_ea4_model_selection_required",
+    "summary": "4 failed in 2.94s",
+    "log": "red_E-a-4.log"
+  },
+  {
+    "guard": "E-a-5",
+    "source": "src/agent/correction/tick_claim.py",
+    "old": "    if decision.contract_id != CONTRACT_AS_DRAWN_PLAN:",
+    "new": "    if False and decision.contract_id != CONTRACT_AS_DRAWN_PLAN:",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_E-a-5 tests/test_ea2_native_tick.py::test_ea5_missing_hypotheses_named_refusal",
+    "summary": "2 failed in 2.71s",
+    "log": "red_E-a-5.log"
+  },
+  {
+    "guard": "visibility",
+    "source": "src/agent/correction/opening_adjudication.py",
+    "old": "    def _require_visible(self, binding, span_u):\n",
+    "new": "    def _require_visible(self, binding, span_u):\n        if binding.family == \"South\" and binding.line.pos_m != min(\n                p[1] for p in json.loads(self._geometry_bytes)[\"floors\"][0][\"footprint\"][\"vertices\"]):\n            raise TickClaimError(\"MUTATION_BBOX_EXTREME\")\n",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_visibility tests/test_ea2_opening_pipeline.py::test_recessed_visible_wall_is_not_replaced_by_bbox_extreme",
+    "summary": "1 failed in 3.27s",
+    "log": "red_visibility.log"
+  },
+  {
+    "guard": "A-6-d1",
+    "source": "src/agent/correction/tick_claim.py",
+    "old": "                if values[0] >= values[1]:",
+    "new": "                if False and values[0] >= values[1]:",
+    "command": "TMPDIR=/var/tmp/ea2_astra_pytest python -m pytest -q -n 6 -p no:cacheprovider --basetemp=/var/tmp/ea2_astra_pytest/mutation_A-6-d1 tests/test_ea2_opening_pipeline.py::test_elevation_consumer_rechecks_order_when_upstream_guard_is_bypassed",
+    "summary": "1 failed in 3.48s",
+    "log": "red_A-6-d1.log"
+  }
+]

@@ -1,0 +1,33 @@
+bringing up nodes...
+bringing up nodes...
+
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_elevation_consumer_rechecks_order_when_upstream_guard_is_bypassed ____
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x75ff62701790>
+
+    def test_elevation_consumer_rechecks_order_when_upstream_guard_is_bypassed(monkeypatch):
+        from test_tick_claim_a6 import fixture
+        raw,_=fixture();s=TickSession(raw,image_id='legacy');b=s.submit(response(s))
+        facts=list(s.consume(b.batch_id));facts[0]=replace(facts[0],value_u=facts[1].value_u)
+        monkeypatch.setattr(s,'consume',lambda expected:tuple(facts))
+>       assert_code('TICK_ELEVATION_INTERVAL_NOT_ORDERED',lambda:s.elevation_document(b.batch_id))
+
+tests/test_ea2_opening_pipeline.py:187: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'TICK_ELEVATION_INTERVAL_NOT_ORDERED'
+fn = <function test_elevation_consumer_rechecks_order_when_upstream_guard_is_bypassed.<locals>.<lambda> at 0x75ffc146c0e0>
+
+    def assert_code(code, fn):
+>       with pytest.raises(TickClaimError) as e:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'src.agent.correction.tick_claim.TickClaimError'>
+
+tests/test_tick_claim_a6.py:42: Failed
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_ea2_opening_pipeline.py::test_elevation_consumer_rechecks_order_when_upstream_guard_is_bypassed
+1 failed in 3.48s

@@ -1,0 +1,42 @@
+bringing up nodes...
+bringing up nodes...
+
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_recessed_visible_wall_is_not_replaced_by_bbox_extreme __________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/var/tmp/ea2_astra_pytest/mutation_visibility/popen-gw0/test_recessed_visible_wall_is_0')
+
+    def test_recessed_visible_wall_is_not_replaced_by_bbox_extreme(tmp_path):
+        def stepped(geom):
+            geom=geom.model_copy(deep=True)
+            geom.floors[0].footprint.vertices=[(.5,-.5),(1.5,-.5),(1.5,.5),
+                                               (7.5,.5),(7.5,5.5),(.5,5.5)]
+            return geom
+>       geom,review,result,*_=setup_review(geometry_transform=stepped)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ea2_opening_pipeline.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ea2_opening_pipeline.py:108: in setup_review
+    review=OpeningReview(plan=plan,expected_plan_batch_id=plan_batch.batch_id,bindings=(binding,),
+src/agent/correction/opening_adjudication.py:208: in __init__
+    self._require_visible(binding, (facts[f"{oid}:lo"].value_u, facts[f"{oid}:hi"].value_u))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <src.agent.correction.opening_adjudication.OpeningReview object at 0x77eff799f0b0>
+binding = PlanBinding(opening_id='L0g0', family='South', wall_id='wall_4ccf2739d701d4cc389af4c5ba85a93d5b2f1dc9b8ea3807f174bf823..., pos_m=0.5, along_lo_m=2.0, along_hi_m=4.0, half_thickness_m=0.5, kind='opening', origin_id='L0g0'), floor_origin_u=0)
+span_u = (20000, 40000)
+
+    def _require_visible(self, binding, span_u):
+        if binding.family == "South" and binding.line.pos_m != min(
+                p[1] for p in json.loads(self._geometry_bytes)["floors"][0]["footprint"]["vertices"]):
+>           raise TickClaimError("MUTATION_BBOX_EXTREME")
+E           src.agent.correction.tick_claim.TickClaimError: MUTATION_BBOX_EXTREME: None
+
+src/agent/correction/opening_adjudication.py:329: TickClaimError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_ea2_opening_pipeline.py::test_recessed_visible_wall_is_not_replaced_by_bbox_extreme
+1 failed in 3.27s
