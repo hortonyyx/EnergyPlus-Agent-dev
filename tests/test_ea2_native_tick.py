@@ -43,6 +43,11 @@ def test_ea4_model_selection_required(pairs,status):
     doc = plan_doc()
     if pairs != 'keep':
         doc['hypotheses']['pairs'] = pairs
+        # Even with complete alternate accounting, absence is not zero walls.
+        doc['hypotheses']['non_wall_face_lines'] = {
+            f['id']: 'fixture alternate complete accounting' for f in doc['observations']['face_lines']}
+        for bucket in ('unpaired_wall_faces', 'solid_band_walls', 'ambiguous_face_lines'):
+            doc['hypotheses'][bucket] = {}
     doc['hypotheses']['pairs_status'] = status
     # Classifier behavior must stay legal/ADAPT even when this consumer refuses.
     assert classify_vector_json(doc).contract_id == 'as_drawn_plan'
@@ -156,3 +161,19 @@ def test_archive_changed_source_cannot_pass_just_by_preserving_batch_json(tmp_pa
     path.write_bytes(path.read_bytes()+b' ')
     assert_code('TICK_ARCHIVE_BYTES_MISMATCH',
                 lambda: verify_tick_archive(tmp_path/'archive',expected_batch_id=batch.batch_id))
+
+
+def test_archive_rehashed_manifest_cannot_launder_changed_source(tmp_path):
+    from src.agent.correction.tick_claim import verify_tick_archive
+    raw=freeze(plan_doc());session=TickSession(raw,image_id='rehash-probe')
+    batch=session.submit(response(session));folder=tmp_path/'archive'
+    session.persist(folder,batch.batch_id)
+    changed=raw+b' '
+    (folder/'source.bin').write_bytes(changed)
+    manifest=json.loads((folder/'manifest.json').read_bytes())
+    manifest['files']['source.bin']=digest(changed)
+    (folder/'manifest.json').write_bytes(freeze(manifest))
+    # Native operand references still bind the original source hash, even
+    # though the manifest's outer checksum has been recomputed by the attacker.
+    assert_code('OPERAND_CROSS_IMAGE',
+                lambda: verify_tick_archive(folder,expected_batch_id=batch.batch_id))

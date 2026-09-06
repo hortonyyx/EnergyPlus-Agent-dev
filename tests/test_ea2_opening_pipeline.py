@@ -35,9 +35,11 @@ def native_document():
         f.update(id=f'L{i}',axis=axis,constant_world_axis='y' if axis=='row' else 'x',
                  pos_m=float(pos),pos_px=float(pos*10),edges_m=[pos-.01,pos+.01],
                  support_cols_px=[pos*10,pos*10+1],support_width_m=.02)
-        runs=[[0,2],[4,extent]] if i<2 else [[0,extent]]
-        f.update(runs_m=runs,runs_px=[[a*10,b*10] for a,b in runs],
-                 ink_coverage_per_run=[1.0]*len(runs), covered_px=sum(b-a for a,b in runs)*10,
+        # Wall-axis intersections terminate exactly at the adjacent midlines;
+        # extending to the outer skins would create eight dangling endpoints.
+        runs=[[.5,2],[4,extent-.5]] if i<2 else [[.5,extent-.5]]
+        f.update(runs_m=runs,runs_px=[[int(a*10),int(b*10)] for a,b in runs],
+                 ink_coverage_per_run=[1.0]*len(runs), covered_px=int(sum(b-a for a,b in runs)*10),
                  support_px=extent*10)
         g=deepcopy(gap_template)
         g.update(lo_px=20,hi_px=40,len_px=20,span_m=[2.,4.],len_m=2.)
@@ -70,7 +72,7 @@ def native_document():
 
 
 def setup_review(*, mutate_choices=None, mutate_binding=None, geometry_transform=None):
-    plan_art=adapt_as_drawn_plan(freeze(native_document()),input_id='native-plan',floor_ref='1f')
+    plan_art=adapt_as_drawn_plan(freeze(native_document()),input_id='1f',floor_ref='1f')
     plan=TickSession.from_artifact(plan_art)
     plan_batch=plan.submit(response(plan))
     comp=compile_wall_ir(plan_art,profile='strict')
@@ -183,3 +185,60 @@ def test_elevation_consumer_rechecks_order_when_upstream_guard_is_bypassed(monke
     facts=list(s.consume(b.batch_id));facts[0]=replace(facts[0],value_u=facts[1].value_u)
     monkeypatch.setattr(s,'consume',lambda expected:tuple(facts))
     assert_code('TICK_ELEVATION_INTERVAL_NOT_ORDERED',lambda:s.elevation_document(b.batch_id))
+
+
+def test_recessed_visible_wall_is_not_replaced_by_bbox_extreme(tmp_path):
+    def stepped(geom):
+        geom=geom.model_copy(deep=True)
+        geom.floors[0].footprint.vertices=[(.5,-.5),(1.5,-.5),(1.5,.5),
+                                           (7.5,.5),(7.5,5.5),(.5,5.5)]
+        return geom
+    geom,review,result,*_=setup_review(geometry_transform=stepped)
+    assert min(y for x,y in geom.floors[0].footprint.vertices)==-.5
+    assert review._bindings[0].line.pos_m==.5
+    product=pipeline.run_opening_adjudication(geom,review=review,
+                    expected_result_id=result.result_id,out_dir=tmp_path)
+    assert product.windows[0].span==[2.,4.]
+
+
+def test_hidden_wall_cannot_be_exported_as_facade():
+    def occluded(geom):
+        geom=geom.model_copy(deep=True)
+        geom.floors[0].footprint.vertices=[(.5,-.5),(7.5,-.5),(7.5,5.5),(.5,5.5)]
+        return geom
+    assert_code('OPENING_HOST_NOT_VISIBLE',lambda:setup_review(geometry_transform=occluded))
+
+
+def test_run_correction_routes_real_projection_through_live_review(tmp_path):
+    from src.agent.correction.decision_executor import build_decision_packet, decision_hash
+    from src.agent.correction.decision_schema import CorrectionDecisionResponseV1, ItemDecisionV1
+    from src.agent.correction.multifloor import derive_floor_ladder
+
+    vector=tmp_path/'reading';vector.mkdir()
+    (tmp_path/'correction').mkdir()
+    raw=freeze(native_document());(vector/'1f.json').write_bytes(raw)
+    art=adapt_as_drawn_plan(raw,input_id='1f',floor_ref='1f')
+    comp=compile_wall_ir(art,profile='strict')
+    p0=build_decision_packet(comp,bundle=art,round_index=0)
+    picks=tuple(FixedDecisionV1(item_id=i.item_id,candidate_id=i.candidates[0].candidate_id)
+                for i in p0.open_items)
+    first=CorrectionDecisionResponseV1(packet_hash=p0.packet_hash,
+        item_decisions=tuple(ItemDecisionV1(item_id=d.item_id,action='select_candidate',
+            candidate_id=d.candidate_id,reason_code='EA_FIXTURE_MODEL_CHOICE') for d in picks),
+        whole_building_review={'verdict':'accept'})
+    p1=build_decision_packet(compile_wall_ir(art,profile='strict',decisions=picks),
+                             bundle=art,round_index=1,previous_decision_hashes=(decision_hash(first),))
+    responses=[first,CorrectionDecisionResponseV1(packet_hash=p1.packet_hash,
+                                                   whole_building_review={'verdict':'accept'})]
+    ladder=derive_floor_ladder(adapt_as_drawn_elevation(_synthetic_bytes([3000.]),
+                                                        input_id='levels',facade_ref='South'))
+    kwargs=dict(vector_dir=vector,testdata_text='',out_dir=tmp_path/'correction',evidence_chain=True,
+                evidence_chain_product='1f.json',evidence_chain_profile='strict',
+                evidence_chain_fixed_responses=responses,evidence_chain_level=ladder[0])
+    geom=pipeline.run_correction(**kwargs)
+    _,review,result,_,_,elev,_=setup_review(geometry_transform=lambda _:geom)
+    actual=pipeline.run_correction(**kwargs,opening_review=review,expected_opening_result_id=result.result_id)
+    assert len(actual.windows)==1
+    elev.reconsider('actual run_correction stale batch probe')
+    assert_code('TICK_BATCH_INVALIDATED',lambda:pipeline.run_correction(
+        **kwargs,opening_review=review,expected_opening_result_id=result.result_id))
