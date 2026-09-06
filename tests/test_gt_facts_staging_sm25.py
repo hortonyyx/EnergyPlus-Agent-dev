@@ -51,20 +51,33 @@ def test_1_as_measured_matches_the_as_received_build_bit_for_bit():
     assert content_sha256(staged_as_measured) == content_sha256(fresh)
 
 
-def test_6_the_five_line_worklist_is_all_unsigned_with_two_well_formed_candidates():
+def test_6_the_worklist_is_all_unsigned_and_matches_the_a11_shape():
     """Verification #6: the待签清单 is machine-produced (recomputed here from
-    scratch, not merely re-read) and every verdict is unsigned."""
+    scratch, not merely re-read) and every verdict is unsigned.
+
+    ⚠️ A-11 (2026-09-05) moved this shape, MEASURED: with the 1 mm ingest
+    snap in place, 13AC/160A's ~0.2 mm "difference" was pure representation
+    residue and is absorbed (their records are GONE -- the user's ruling
+    that residue belongs to the measurement representation, ⛔ never to a
+    signed ``drawing_error``), while 13AD/13AE -- admitted as face lines by
+    the ②-1b-S snap gates -- now surface their REAL correction as a
+    well-formed single-field translate (const -30, i.e. 3.0 mm).  13AF
+    remains inexpressible as a translate (still absent from the
+    as-received face_lines).  See gt_revisions.py's module docstring."""
     before = build_as_measured(ANCHOR / "sm25-L_t3_as_received.dxf",
                                ANCHOR / "request_as_measured.json")
     after = build_as_measured(ANCHOR / "sm25-L_t3.dxf", ANCHOR / "request.json")
     recomputed = detect_translate_candidates(before, after, CHANGED_HANDLES)
-    assert len(recomputed) == 5
+    assert len(recomputed) == 3
     assert all(r.verdict == "unsigned" for r in recomputed)
     assert all(r.signed_by is None and r.signed_at is None for r in recomputed)
-    well_formed = {r.target.handle for r in recomputed if r.candidate_action is not None}
-    assert well_formed == {"13AC", "160A"}
+    well_formed = {r.target.handle: r.candidate_action for r in recomputed
+                   if r.candidate_action is not None}
+    assert set(well_formed) == {"13AD", "13AE"}
+    for action in well_formed.values():
+        assert action.field == "const" and action.delta_0p1mm == -30
     flagged = {r.target.handle for r in recomputed if r.candidate_action is None}
-    assert flagged == {"13AD", "13AE", "13AF"}
+    assert flagged == {"13AF"}
 
     _staged_am, staged_revisions, _staged_as_signed = read_facts_candidate(CASE)
     assert {r.id for r in staged_revisions.revisions} == {r.id for r in recomputed}
@@ -88,17 +101,45 @@ def test_3_a_hand_tampered_integer_in_the_staged_as_signed_is_caught(tmp_path):
         verify_as_signed_reproduction(as_measured, revisions, tampered)
 
 
-def test_3_hand_tampering_a_revisions_action_moves_as_signed_and_its_hash(tmp_path):
-    """Since the staged ledger is all-unsigned (no ``action`` anywhere yet),
-    this signs the 13AC candidate by hand (in memory only) to prove the
-    mutation direction has real teeth on THIS document, not only on the
-    synthetic fixture."""
+def test_3_signing_the_real_const_candidate_is_refused_by_the_wall_face_gate(tmp_path):
+    """⚠️ A-11 finding, locked: the ledger's real const-direction candidate
+    (rev-13ad, ``const -30``) CANNOT be signed as a single-field translate --
+    ``derive_as_signed``'s wall/face-line consistency gate refuses it loudly,
+    because moving one face off its wall's ``face_hi`` would leave a
+    ``walls`` block quietly disagreeing with the face lines it names.  A
+    3.0 mm wall move needs the compiler-layer re-pairing (②-1c), ⛔ not a
+    silent single-field apply.  (Pre-A-11 the signable record was
+    rev-13ac's ~0.2 mm ALONG-axis trim, which never touched a wall face --
+    and which the 1 mm snap has since absorbed.)"""
     as_measured, revisions, as_signed = read_facts_candidate(CASE)
     raw = revisions.model_dump(mode="json")
-    entry = next(r for r in raw["revisions"] if r["id"] == "rev-13ac")
+    entry = next(r for r in raw["revisions"] if r["id"] == "rev-13ad")
     assert entry["candidate_action"] is not None
     entry["verdict"] = "drawing_error"
     entry["action"] = entry["candidate_action"]
+    entry["signed_by"] = "test"
+    entry["signed_at"] = "2026-08-29T00:00:00Z"
+    signed_ledger = RevisionsLedgerV1.model_validate(raw)
+    with pytest.raises(AsSignedReproductionError,
+                       match="as_signed_wall_face_hi_disagrees_with_its_face_lines"):
+        derive_as_signed(as_measured, signed_ledger)
+
+
+def test_3_hand_tampering_a_revisions_action_moves_as_signed_and_its_hash(tmp_path):
+    """The staged ledger is all-unsigned (no ``action`` anywhere yet); this
+    signs a WELL-FORMED along-axis translate by hand (in memory only) to
+    prove the mutation direction has real teeth on THIS document, not only
+    on the synthetic fixture.  The along axis is chosen deliberately: it
+    trims a face line's end without moving it off its wall's face, so it is
+    the one kind of action the current deriver can apply without the
+    consistency gate correctly refusing (see the sibling test above for
+    the const-direction refusal)."""
+    as_measured, revisions, as_signed = read_facts_candidate(CASE)
+    raw = revisions.model_dump(mode="json")
+    entry = next(r for r in raw["revisions"] if r["id"] == "rev-13ad")
+    entry["verdict"] = "drawing_error"
+    entry["action"] = {"kind": "translate", "field": "along_min",
+                       "delta_0p1mm": -10}
     entry["signed_by"] = "test"
     entry["signed_at"] = "2026-08-29T00:00:00Z"
     signed_ledger = RevisionsLedgerV1.model_validate(raw)

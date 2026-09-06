@@ -12,6 +12,10 @@ from src.agent.judge.as_drawn.denominator import (
     denominator,
     denominator_from_facts,
 )
+from src.agent.judge.as_measured import (
+    UNITS_PER_METRE,
+    snap_to_ingest_resolution,
+)
 from src.agent.judge.as_drawn.reading_grade import grade
 from src.agent.judge.as_measured import AsMeasuredViewV1
 from src.agent.judge.gt_facts_staging import read_facts_candidate
@@ -29,6 +33,27 @@ VG_CFG = REPO_ROOT / "src/configs/correction.yaml"
 def _freeze(items):
     return sorted(json.dumps(item, sort_keys=True, separators=(",", ":"))
                   for item in items)
+
+
+def _metres_on_ingest_grid(value: float) -> float:
+    """A-11: the facts side stores coordinates on the 1 mm ingest grid; the
+    live denominator works in raw metres off the DXF.  The identity this file
+    locks is "the adapter reproduces the live question book", and after A-11
+    that identity holds ON THE GRID -- so the LIVE side is projected onto the
+    same declared grid before the comparison, ⛔ not compared with a
+    tolerance."""
+    units = round(float(value) * UNITS_PER_METRE)
+    return snap_to_ingest_resolution(units) / UNITS_PER_METRE
+
+
+def _grid_metres(item):
+    if isinstance(item, float):
+        return _metres_on_ingest_grid(item)
+    if isinstance(item, list):
+        return [_grid_metres(entry) for entry in item]
+    if isinstance(item, dict):
+        return {key: _grid_metres(value) for key, value in item.items()}
+    return item
 
 
 def _perfect_reading(denominator_doc):
@@ -65,7 +90,7 @@ def test_facts_adapter_reproduces_the_live_as_received_question_book_and_score(v
     frozen = denominator_from_facts(view, request)
 
     for key in ("targets", "allowed_not_required", "opening_targets"):
-        assert _freeze(frozen[key]) == _freeze(live[key])
+        assert _freeze(frozen[key]) == _freeze(_grid_metres(live[key]))
     assert frozen["ledger"] == live["ledger"]
     reading = _perfect_reading(live)
     assert grade(reading, frozen)["scores"] == grade(reading, live)["scores"]

@@ -14,6 +14,7 @@ from src.agent.judge.answer_compiler import (
     _support_vertices,
     read_facts_for_compilation,
 )
+from src.agent.judge.as_measured import snap_to_ingest_resolution
 from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
 from tests.answer_compiler_fixtures import synthetic_signed_facts
 
@@ -82,15 +83,22 @@ def test_1b_real_sm25_reproduces_every_projectable_form_b_zone_and_names_unsigne
             polygon = Polygon(zone.vertices)
             representative = polygon.representative_point()
             matches = []
+            # ⭐ A-11: the answer side now projects onto the 1 mm ingest
+            # grid (as_measured._geom_units), so the EXPECTED side -- read
+            # off the gt answer root's own floating-point metres -- is put
+            # on the same grid before the vertex-for-vertex comparison.
+            # ⛔ Not a tolerance: still an exact set equality.
             for expected in gt_floor[view.floor_id]["zones"]:
                 expected_polygon = Polygon([
-                    (round(x * UNITS), round(y * UNITS))
+                    tuple(snap_to_ingest_resolution(round(coordinate * UNITS))
+                          for coordinate in (x, y))
                     for x, y in expected["polygon"]["exterior"]["vertices"]])
                 if expected_polygon.contains(representative):
                     matches.append(expected)
             assert len(matches) == 1
             expected_vertices = {
-                (round(x * UNITS), round(y * UNITS))
+                tuple(snap_to_ingest_resolution(round(coordinate * UNITS))
+                      for coordinate in (x, y))
                 for x, y in matches[0]["polygon"]["exterior"]["vertices"]}
             assert set(map(tuple, zone.vertices)) == expected_vertices
             checked += 1

@@ -38,10 +38,12 @@ from pydantic import Field, model_validator
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
-from .as_measured import (UNITS_PER_METRE, AsMeasuredBoundaryEdgeV1,
+from .as_measured import (INGEST_RESOLUTION_UNITS, UNITS_PER_METRE,
+                          AsMeasuredBoundaryEdgeV1,
                           AsMeasuredOpeningV1, AsMeasuredV1,
                           AsMeasuredViewV1, AsMeasuredWallV1,
-                          BoundaryConditionEvidenceV1)
+                          BoundaryConditionEvidenceV1,
+                          snap_to_ingest_resolution)
 from .gt_revisions import (AsSignedV1, RevisionsLedgerV1,
                            revisions_content_sha256,
                            verify_as_signed_reproduction)
@@ -978,6 +980,23 @@ def _world_point_to_units(point: list[float]) -> tuple[int, int]:
             round(float(point[1]) * UNITS_PER_METRE))
 
 
+def _world_point_to_ingest_grid(point: list[float]) -> tuple[int, int]:
+    """⭐ A-11 (user 2026-09-05, 「走乙」): converter-side geometry enters the
+    basis reconciliation on the SAME 1 mm ingest grid the facts layer snaps
+    to (:func:`src.agent.judge.as_measured._geom_units`).  Without this, the
+    zero-threshold identity ``projected facts ring == converter zone`` would
+    be polluted by a ±0.1 mm representation band (MEASURED on sm25: two
+    zones showed a symmetric difference of exactly 157600 units² -- a
+    0.1 mm strip around a ~16 m perimeter -- that vanished the moment both
+    sides were on the grid), and a real geometric difference could no longer
+    be told apart from storage noise.  ⛔ This does NOT change what the
+    converter measured -- it changes which grid the RECONCILIATION compares
+    on, so the zero threshold keeps measuring geometry, not representation.
+    """
+    x, y = _world_point_to_units(point)
+    return (snap_to_ingest_resolution(x), snap_to_ingest_resolution(y))
+
+
 def _undirected_segment_residual(
         facts_edge: AsMeasuredBoundaryEdgeV1,
         converter_points: tuple[tuple[int, int], tuple[int, int]]) -> float:
@@ -1199,7 +1218,7 @@ def reconcile_boundary_basis(
                 converter_by_floor.get(view.floor_id, []),
                 key=lambda item: item.zone_id):
             zone_polygon = Polygon([
-                _world_point_to_units(point)
+                _world_point_to_ingest_grid(point)
                 for point in zone.polygon_m.exterior.vertices])
             if (zone_polygon.is_empty or not zone_polygon.is_valid
                     or zone_polygon.area <= 0):
@@ -1304,7 +1323,7 @@ def reconcile_boundary_basis(
                 continue
             representative = facts_polygon.representative_point()
             zone_polygons = [
-                (zone, Polygon([_world_point_to_units(point)
+                (zone, Polygon([_world_point_to_ingest_grid(point)
                                 for point in zone.polygon_m.exterior.vertices]))
                 for zone in converter_by_floor.get(view.floor_id, [])]
             # ⭐ A cavity that spans MORE than one answer zone is not a room
@@ -1368,7 +1387,8 @@ def reconcile_boundary_basis(
                 continue
 
             converter_segments = [
-                (_world_point_to_units(edge.p1), _world_point_to_units(edge.p2))
+                (_world_point_to_ingest_grid(edge.p1),
+                 _world_point_to_ingest_grid(edge.p2))
                 for edge in zone.edges]
             hypotheses: list[BoundaryPairingHypothesisV1] = []
             count = len(facts_edges)

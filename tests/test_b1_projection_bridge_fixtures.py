@@ -129,18 +129,51 @@ def test_smix_thicknesses_are_the_mandated_mix():
     assert _reconcile(env, smix_truth_zones()).green
 
 
-# ── fixture 1: the 0.1 mm remainder, defective (52401) AND fixed (52400) ───── #
-B1_WALL = "w_x_99430_100630_52401_88800"  # t=120 mm, midline y=100030
+# ── fixture 1: the 0.1 mm remainder, defective (+1) AND fixed (+0) ─────────── #
+#: B-1's wall, pinned by its DXF face-line HANDLES.  ⛔ The id string this
+#: suite used before (``w_x_99430_100630_52401_88800``) has the coordinates
+#: stamped into it, so A-11's 1 mm ingest snap renamed the wall to
+#: ``..._52400_...`` and the id lookup silently matched NOTHING: the defect
+#: was never injected and the assertion read a no-op as a fixture (rework-1
+#: root cause A).  A handle is the DXF entity's own identity -- A-11 moves
+#: coordinates, ⛔ never handles -- so this anchor does not shadow the very
+#: thing being snapped ([[gate-measures-a-proxy-not-the-thing-it-guards]]).
+B1_WALL_FACE_LINES = (("13AE",), ("13AD",))   # (face_line_ids_lo, face_line_ids_hi)
+#: fixture 5's removed wall, same anchor discipline (its pre-A11 id
+#: ``w_y_50000_52400_121599_140000`` snapped ``121599 -> 121600``).
+W2_WALL_FACE_LINES = (("136F",), ("1371",))
+
+
+def _wall_by_face_lines(view: dict, face_lines):
+    """Locate ONE wall by its (lo, hi) face-line handle tuples and PROVE the
+    hit: a lookup matching nothing (or several walls) fails LOUDLY here, ⛔
+    never degrades into a silent no-op further down.  Walls without face
+    lines (the synthetic ghost probe) simply do not match."""
+    lo_ids, hi_ids = face_lines
+    hits = [w for w in view["walls"]
+            if tuple(w.get("face_line_ids_lo", ())) == lo_ids
+            and tuple(w.get("face_line_ids_hi", ())) == hi_ids]
+    assert len(hits) == 1, (
+        f"face-line lookup {face_lines} matched {len(hits)} walls "
+        f"(expected exactly 1) -- the fixture is broken, not the data")
+    return hits[0]
+
+
+def _restamp_wall_id(wall: dict) -> None:
+    """Re-derive the coordinate-stamped id from the (mutated) fields, so the
+    label stays consistent with the geometry it names (the producer's own
+    id rule, single-sourced here instead of hand-written literals)."""
+    wall["id"] = (f"w_{wall['axis']}_{wall['face_lo']}_{wall['face_hi']}"
+                  f"_{wall['along_min']}_{wall['along_max']}")
 
 
 def _f1_with_endpoint_remainder(remainder_units: int):
     facts = _facts()
     view = next(v for v in facts["views"] if v["view_id"] == "plan-F1")
     view = copy.deepcopy(view)
-    for w in view["walls"]:
-        if w["id"] == B1_WALL:
-            w["along_min"] = 52400 + remainder_units
-            w["id"] = f"w_x_99430_100630_{52400 + remainder_units}_88800"
+    wall = _wall_by_face_lines(view, B1_WALL_FACE_LINES)
+    wall["along_min"] += remainder_units
+    _restamp_wall_id(wall)
     return view, facts["units_per_metre"]
 
 
@@ -186,8 +219,10 @@ def test_fixture2_two_unit_remainder_still_red():
     """|52402 − 51200| = 1202 > 1200 + 1: the tolerance must NOT eat a real
     anomaly — the extension stays off, two signed rooms merge, and the gt
     reconciliation goes red on counts AND on the unmatched pair."""
-    assert abs(52402 - 51200) == 1202 > 1200 + 1  # the criterion, mechanically
     view, upm = _f1_with_endpoint_remainder(2)
+    moved = _wall_by_face_lines(view, B1_WALL_FACE_LINES)["along_min"]
+    assert abs(moved - 51200) == 1202 > 1200 + 1  # the criterion, mechanically,
+    # read off the CONSTRUCTED wall -- proof the +2 remainder was really injected
     lines, resolution = cut_lines_from_as_measured_view(view, units_per_metre=upm)
     env = project_cut_lines(
         lines, resolution_m=resolution,
@@ -255,23 +290,21 @@ def test_fixture4_dropped_opening_two_redundant_channels():
 
 
 # ── fixture 5: a removed wall with (at most) no geometric signature ────────── #
+def _drop_w2(view):
+    """Remove W2 (located by face-line handles — its pre-A11 id carried the
+    ``121599`` remainder the snap rewrote) and PROVE it was found."""
+    drop = _wall_by_face_lines(view, W2_WALL_FACE_LINES)
+    return {**view, "walls": [w for w in view["walls"] if w is not drop]}
+
+
 def test_fixture5_removed_wall_red_at_reconciliation_only():
-    """W2's measured shape: removing w_y_50000_52400_121599_140000 loses a
-    room while the probe-era dangling-end detector read ZERO.  This
-    bridge's detector is no worse (it may catch more), but the assertion
-    that matters is the one the failure semantics hand to the judge: the
-    gt reconciliation MUST go red — the bridge alone never certifies
-    completeness."""
-    env = bridge_sm25(
-        "plan-F1",
-        mutate=lambda view: {
-            **view,
-            "walls": [
-                w for w in view["walls"]
-                if w["id"] != "w_y_50000_52400_121599_140000"
-            ],
-        },
-    )
+    """W2's measured shape: removing the y-wall on face band 50000–52400,
+    along 121.6–140.0 m loses a room while the probe-era dangling-end
+    detector read ZERO.  This bridge's detector is no worse (it may catch
+    more), but the assertion that matters is the one the failure semantics
+    hand to the judge: the gt reconciliation MUST go red — the bridge alone
+    never certifies completeness."""
+    env = bridge_sm25("plan-F1", mutate=_drop_w2)
     assert env.face_count == 13
     report = _reconcile(env, load_gt_zones(GT, "F1"))
     assert not report.green
@@ -534,9 +567,9 @@ def test_4b_counts_equalised_attack_red_only_on_2_and_3():
     input — pinned here so the blindness is measured, not asserted."""
     def kill_extension(view):
         view = copy.deepcopy(view)
-        for w in view["walls"]:
-            if w["id"] == B1_WALL:
-                w["along_min"] = 52402  # 2 units out: extension stays off
+        wall = _wall_by_face_lines(view, B1_WALL_FACE_LINES)
+        wall["along_min"] += 2  # 2 units out: extension stays off
+        _restamp_wall_id(wall)
         return view
 
     view, upm = _f1_ghost()
