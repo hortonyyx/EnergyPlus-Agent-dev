@@ -124,7 +124,7 @@ python -m pytest -q -n 6 -p no:cacheprovider
 
 ⛔ 不许留占位符。⛔ 不许把施工方的读数当自己的读数。
 ⚠️ `.gitignore:258` 有 `*.txt`，新增 txt 证据必须 `git add -f`，否则**静默丢件**。
-⛔ `git add -A`；逐路径 add，commit 前看 `git show --cached --numstat`。
+⛔ `git add -A`；逐路径 add，commit 前看 `git diff --cached --numstat`。
 ⛔ `pip install -e .` 或任何写 `site-packages` 的命令。
 ⭐ **分段提交**：每完成一个可独立描述的子目标就提一次（本轮已有席位三次中途死亡，靠分段提交零丢失）。
 

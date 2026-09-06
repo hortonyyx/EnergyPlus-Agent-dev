@@ -95,7 +95,7 @@ python -m pytest -q -n 6 -p no:cacheprovider
   `3877 + 你新增的条数 = 新读数`，差一条都要说明差在哪。
   ⚠️ 预期你补的这道锁**不会打红任何现有测试**（复核方已论证）；**若真打红了，那本身是重要发现，要写清**。
 - ⛔ `pip install -e .` 或任何写 `site-packages` 的命令。
-- ⛔ `git add -A`；逐路径 add，commit 前看 `git show --cached --numstat`。
+- ⛔ `git add -A`；逐路径 add，commit 前看 `git diff --cached --numstat`。
 - ⚠️ `.gitignore:258` 有 `*.txt`，新增 txt 证据必须 `git add -f`，否则**静默丢件**。
 - ⭐⭐⭐ **必须分段提交**：⚠️ 你在上一单里**三次**撞 `Selected model is at capacity` 退出，
   **三次都发生在活干完之后**，靠分段提交才一行代码没丢。这次照做。

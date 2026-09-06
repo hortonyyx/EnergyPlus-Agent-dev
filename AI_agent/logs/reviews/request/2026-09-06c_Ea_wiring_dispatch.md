@@ -107,7 +107,7 @@ python -m pytest -q -n 6 -p no:cacheprovider
 - **基线是 `3907`**（主树权威全量，逐位闭合 `3907+2+13=3922` 差额 0）。
   逐位闭合**你自己数**：`3907 + 你新增的条数 = 新读数`，差一条都要说明差在哪。
 - ⛔ `pip install -e .` 或任何写 `site-packages` 的命令。
-- ⛔ `git add -A`；逐路径 add，commit 前看 `git show --cached --numstat`。
+- ⛔ `git add -A`；逐路径 add，commit 前看 `git diff --cached --numstat`。
 - ⚠️ `.gitignore:258` 有 `*.txt`，新增 txt 证据必须 `git add -f`，否则**静默丢件**。
 - ⭐⭐⭐ **必须分段提交** —— 09-05 你在 A-6 那单里**三次**撞 provider 容量退出，
   **三次都在活干完之后**，靠分段提交才一行代码没丢。
