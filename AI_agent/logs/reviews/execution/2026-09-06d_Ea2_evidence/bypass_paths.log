@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0 -- /opt/venv/bin/python
+rootdir: /tmp/ea2_astra
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+created: 6/6 workers
+6 workers [2 items]
+
+scheduling tests via LoadScheduling
+
+tests/test_ea2_native_tick.py::test_archive_rehashed_manifest_cannot_launder_changed_source 
+tests/test_ea2_opening_pipeline.py::test_pipeline_never_treats_historical_json_as_current_review 
+[gw0] [ 50%] PASSED tests/test_ea2_opening_pipeline.py::test_pipeline_never_treats_historical_json_as_current_review 
+[gw1] [100%] PASSED tests/test_ea2_native_tick.py::test_archive_rehashed_manifest_cannot_launder_changed_source 
+
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+============================== 2 passed in 4.81s ===============================

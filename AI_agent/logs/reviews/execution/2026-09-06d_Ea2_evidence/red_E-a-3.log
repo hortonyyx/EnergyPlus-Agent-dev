@@ -1,0 +1,22 @@
+bringing up nodes...
+bringing up nodes...
+
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_ea3_no_production_call_to_historical_dict_api ______________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_ea3_no_production_call_to_historical_dict_api():
+        scan=subprocess.run(['grep','-rnE',r'\bsynthesize_openings\s*\(','--include=*.py','src','scripts'],
+                            cwd=ROOT,capture_output=True,text=True)
+        assert scan.returncode in (0,1),scan.stderr
+        calls=[line for line in scan.stdout.splitlines() if 'def synthesize_openings(' not in line]
+>       assert not calls,calls
+E       AssertionError: ['src/agent/pipeline.py:1348:    synthesize_openings(elevation_doc={})']
+E       assert not ['src/agent/pipeline.py:1348:    synthesize_openings(elevation_doc={})']
+
+tests/test_ea2_opening_pipeline.py:151: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_ea2_opening_pipeline.py::test_ea3_no_production_call_to_historical_dict_api
+1 failed in 3.36s

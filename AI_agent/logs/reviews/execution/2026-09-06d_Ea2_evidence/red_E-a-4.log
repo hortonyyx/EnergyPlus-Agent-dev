@@ -1,0 +1,179 @@
+bringing up nodes...
+bringing up nodes...
+
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+______ test_ea4_model_selection_required[None-ABSENT_NO_MODEL_SELECTION] _______
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+pairs = None, status = 'ABSENT_NO_MODEL_SELECTION'
+
+    @pytest.mark.parametrize('pairs,status', [([], 'SELECTED'), (None, 'ABSENT_NO_MODEL_SELECTION'),
+                                            ('keep', 'SELECTED_INCOMPLETE'), ('keep', None)])
+    def test_ea4_model_selection_required(pairs,status):
+        doc = plan_doc()
+        if pairs != 'keep':
+            doc['hypotheses']['pairs'] = pairs
+            # Even with complete alternate accounting, absence is not zero walls.
+            doc['hypotheses']['non_wall_face_lines'] = {
+                f['id']: 'fixture alternate complete accounting' for f in doc['observations']['face_lines']}
+            for bucket in ('unpaired_wall_faces', 'solid_band_walls', 'ambiguous_face_lines'):
+                doc['hypotheses'][bucket] = {}
+        doc['hypotheses']['pairs_status'] = status
+        # Classifier behavior must stay legal/ADAPT even when this consumer refuses.
+        assert classify_vector_json(doc).contract_id == 'as_drawn_plan'
+>       assert_code('TICK_PLAN_MODEL_SELECTION_REQUIRED',
+                    lambda: TickSession(freeze(doc), image_id='plan'))
+
+tests/test_ea2_native_tick.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tick_claim_a6.py:43: in assert_code
+    fn()
+tests/test_ea2_native_tick.py:55: in <lambda>
+    lambda: TickSession(freeze(doc), image_id='plan'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/agent/correction/tick_claim.py:545: in __init__
+    self._packet = build_packet(raw, image_id=image_id, generation=0,
+src/agent/correction/tick_claim.py:460: in build_packet
+    require_v2_plan(raw, image_id=image_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+raw = b'{"declarations":{"chains":{"C_bot_coarse":{"axis":"row","direction":1,"ref_coord_m":0.0,"values_mm":[5000,8000,7940,...spread":140.7}],"ink_px":114849,"merge_dist":0.3,"min_share":0.005,"unassigned_pct":0.0}},"schema":"as_drawn_plan_v2"}'
+
+    def require_v2_plan(raw: bytes, *, image_id: str) -> dict:
+        """Validate the native source, including the selection this consumer needs.
+    
+        The classifier's public decisions stay unchanged. In particular an honest
+        empty model selection is a legal reading product, but cannot drive this
+        opening workflow. No candidate graph is ever used to invent a selection.
+        """
+        from src.agent.reading.vector_contract import (
+            CONTRACT_AS_DRAWN_PLAN, classify_vector_json,
+        )
+        from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
+    
+        doc = json.loads(raw)
+        decision = classify_vector_json(doc)
+        if decision.contract_id != CONTRACT_AS_DRAWN_PLAN:
+            raise TickClaimError("TICK_PLAN_MALFORMED_DECLARED_CONTRACT", decision.reason)
+        hyp = doc["hypotheses"]
+        if False and (not hyp.get("pairs") or hyp.get("pairs_status") != "SELECTED"):
+            raise TickClaimError("TICK_PLAN_MODEL_SELECTION_REQUIRED", hyp.get("pairs_status"))
+        # Reuse the existing full graph/reference/five-way disposition gate.
+        adapt_as_drawn_plan(raw, input_id=image_id, floor_ref=image_id)
+        faces = {f["id"]: f for f in doc["observations"]["face_lines"]}
+        candidates = {(p["face_a"], p["face_b"]): p for p in hyp["pair_candidates"]}
+>       for pair in hyp["pairs"]:
+                    ^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not iterable
+
+src/agent/correction/tick_claim.py:189: TypeError
+_________________ test_ea4_model_selection_required[keep-None] _________________
+[gw4] linux -- Python 3.12.13 /opt/venv/bin/python
+
+pairs = 'keep', status = None
+
+    @pytest.mark.parametrize('pairs,status', [([], 'SELECTED'), (None, 'ABSENT_NO_MODEL_SELECTION'),
+                                            ('keep', 'SELECTED_INCOMPLETE'), ('keep', None)])
+    def test_ea4_model_selection_required(pairs,status):
+        doc = plan_doc()
+        if pairs != 'keep':
+            doc['hypotheses']['pairs'] = pairs
+            # Even with complete alternate accounting, absence is not zero walls.
+            doc['hypotheses']['non_wall_face_lines'] = {
+                f['id']: 'fixture alternate complete accounting' for f in doc['observations']['face_lines']}
+            for bucket in ('unpaired_wall_faces', 'solid_band_walls', 'ambiguous_face_lines'):
+                doc['hypotheses'][bucket] = {}
+        doc['hypotheses']['pairs_status'] = status
+        # Classifier behavior must stay legal/ADAPT even when this consumer refuses.
+        assert classify_vector_json(doc).contract_id == 'as_drawn_plan'
+>       assert_code('TICK_PLAN_MODEL_SELECTION_REQUIRED',
+                    lambda: TickSession(freeze(doc), image_id='plan'))
+
+tests/test_ea2_native_tick.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'TICK_PLAN_MODEL_SELECTION_REQUIRED'
+fn = <function test_ea4_model_selection_required.<locals>.<lambda> at 0x75f78e97fec0>
+
+    def assert_code(code, fn):
+>       with pytest.raises(TickClaimError) as e:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'src.agent.correction.tick_claim.TickClaimError'>
+
+tests/test_tick_claim_a6.py:42: Failed
+______________ test_ea4_model_selection_required[pairs0-SELECTED] ______________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+pairs = [], status = 'SELECTED'
+
+    @pytest.mark.parametrize('pairs,status', [([], 'SELECTED'), (None, 'ABSENT_NO_MODEL_SELECTION'),
+                                            ('keep', 'SELECTED_INCOMPLETE'), ('keep', None)])
+    def test_ea4_model_selection_required(pairs,status):
+        doc = plan_doc()
+        if pairs != 'keep':
+            doc['hypotheses']['pairs'] = pairs
+            # Even with complete alternate accounting, absence is not zero walls.
+            doc['hypotheses']['non_wall_face_lines'] = {
+                f['id']: 'fixture alternate complete accounting' for f in doc['observations']['face_lines']}
+            for bucket in ('unpaired_wall_faces', 'solid_band_walls', 'ambiguous_face_lines'):
+                doc['hypotheses'][bucket] = {}
+        doc['hypotheses']['pairs_status'] = status
+        # Classifier behavior must stay legal/ADAPT even when this consumer refuses.
+        assert classify_vector_json(doc).contract_id == 'as_drawn_plan'
+>       assert_code('TICK_PLAN_MODEL_SELECTION_REQUIRED',
+                    lambda: TickSession(freeze(doc), image_id='plan'))
+
+tests/test_ea2_native_tick.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'TICK_PLAN_MODEL_SELECTION_REQUIRED'
+fn = <function test_ea4_model_selection_required.<locals>.<lambda> at 0x775349ef82c0>
+
+    def assert_code(code, fn):
+>       with pytest.raises(TickClaimError) as e:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'src.agent.correction.tick_claim.TickClaimError'>
+
+tests/test_tick_claim_a6.py:42: Failed
+_________ test_ea4_model_selection_required[keep-SELECTED_INCOMPLETE] __________
+[gw2] linux -- Python 3.12.13 /opt/venv/bin/python
+
+pairs = 'keep', status = 'SELECTED_INCOMPLETE'
+
+    @pytest.mark.parametrize('pairs,status', [([], 'SELECTED'), (None, 'ABSENT_NO_MODEL_SELECTION'),
+                                            ('keep', 'SELECTED_INCOMPLETE'), ('keep', None)])
+    def test_ea4_model_selection_required(pairs,status):
+        doc = plan_doc()
+        if pairs != 'keep':
+            doc['hypotheses']['pairs'] = pairs
+            # Even with complete alternate accounting, absence is not zero walls.
+            doc['hypotheses']['non_wall_face_lines'] = {
+                f['id']: 'fixture alternate complete accounting' for f in doc['observations']['face_lines']}
+            for bucket in ('unpaired_wall_faces', 'solid_band_walls', 'ambiguous_face_lines'):
+                doc['hypotheses'][bucket] = {}
+        doc['hypotheses']['pairs_status'] = status
+        # Classifier behavior must stay legal/ADAPT even when this consumer refuses.
+        assert classify_vector_json(doc).contract_id == 'as_drawn_plan'
+>       assert_code('TICK_PLAN_MODEL_SELECTION_REQUIRED',
+                    lambda: TickSession(freeze(doc), image_id='plan'))
+
+tests/test_ea2_native_tick.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'TICK_PLAN_MODEL_SELECTION_REQUIRED'
+fn = <function test_ea4_model_selection_required.<locals>.<lambda> at 0x7e8bb7257ec0>
+
+    def assert_code(code, fn):
+>       with pytest.raises(TickClaimError) as e:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'src.agent.correction.tick_claim.TickClaimError'>
+
+tests/test_tick_claim_a6.py:42: Failed
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_ea2_native_tick.py::test_ea4_model_selection_required[None-ABSENT_NO_MODEL_SELECTION]
+FAILED tests/test_ea2_native_tick.py::test_ea4_model_selection_required[keep-None]
+FAILED tests/test_ea2_native_tick.py::test_ea4_model_selection_required[pairs0-SELECTED]
+FAILED tests/test_ea2_native_tick.py::test_ea4_model_selection_required[keep-SELECTED_INCOMPLETE]
+4 failed in 2.94s
