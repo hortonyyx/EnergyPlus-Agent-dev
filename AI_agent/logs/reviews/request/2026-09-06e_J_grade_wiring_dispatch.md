@@ -3,7 +3,7 @@
 ## 〇 状态与分工
 
 - **施工方**：**GLM**（`scripts/glm_code.sh`，默认 `glm-5.3`）· **审**：**Claude 家族**（⛔ 不得同族自审）
-- **基点**：主线 HEAD `8c66e3fd`（⭐ 必须用这个）
+- **基点**：主线 HEAD `363844b3`（⭐ 必须用这个）
 - **工作目录**：`/tmp/j_grade_glm`（`wt/09.06e_j_grade`）
 - ⚠️ **同期有另一条线在飞**（E-a′，`gpt-6-astra`，动 `src/agent/correction/`）
   ⇒ **跑测一律 `-n 6`**，且 ⛔ **不许碰 `src/agent/correction/` 与 `src/agent/pipeline.py`**。
