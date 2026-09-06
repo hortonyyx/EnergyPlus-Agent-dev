@@ -62,13 +62,13 @@ orchestrator 当时判读为「病灶更窄 = 一个护栏类型选错」——*
 （用户令「这条线上的开发都先读这份指南」）。
 凡不服务这三条的工作**一律登记进 [plan.md](plan.md) 不做**（同 §0.1）。
 
-> ⭐ **此刻在哪（2026-09-06 · 第六程 · 进行中）**：**B1 / B3 / F-158 / B4 / T4-a / B2 / A-11 七条线在主线**，
-> 权威全量 **`3863 passed / 0 failed`**（`3863+2+13=3878` 逐位闭合 = 独立 collect，`.pth` 前后哨兵同值且指主树）。
-> ✅ **本程已合并**：**A-11 gt 按 1 mm 规整入库**（跨家族审 `APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 2`）。
-> ⏳ **在飞**：**A-6 返工 1**（`gpt-6-astra`；⛔ 只做阻断②「跨行不变量在 `consume()` 没重检」，
-> ⭐ 题已从【例子】提到【类】= 逐项回答「`submit()` 每项检查 `consume()` 重做了没有」）。
-> ⭐ **A-6 阻断① 已由主控销账** ⇒ 变成 `plan.md` E-a 行的 **E-a-1/2/3** 三条可查验收项（⚠️ 今天零流量，是未来的保险丝）。
-> ⇒ **挡路新单 4 个**（**A-6**〔在飞，返工中〕 · E-a · J-判分改造 · E-c）
+> ⭐ **此刻在哪（2026-09-06 · 第六程 · 已收工）**：**B1 / B3 / F-158 / B4 / T4-a / B2 / A-11 / A-6 八条线在主线**，
+> 权威全量 **`3907 passed / 0 failed`**（`3907+2+13=3922` 逐位闭合 = 独立 collect，`.pth` 前后哨兵同值且指主树）。
+> ✅ **本程合并两条**：**A-11 gt 按 1 mm 规整入库** · **A-6 刻度认领整条线**（A-6a+A-6b，含返工 1）——
+> 两条都是跨家族审 `APPROVE-WITH-FINDINGS / 阻断 0`。
+> ⭐⭐⭐ **本程最大的方法论收获**：**返工题从【修这个例子】提到【枚举这一类】** ——
+> 复核方按症状只找到 1 个洞，逐项枚举找出**另外 6 个**（详见 §2 第六程 banner ④）。
+> ⇒ ⭐ **挡路新单只剩 2 个**（**E-a 端到端接线** · **J-判分改造**），⛔ **两者都不再有前置阻塞**
 > + **两处卡用户**（G-a gt 人签台账 · E-b 跑前配置拍板）。
 > ⛔⛔ **三条最要紧的 debt**：**F-1 生产帧【平面几何】零 gt 对账** · **F-7 绑定校验量声明不量载荷** ·
 > **A-11-d2 `SM25_DEFERRED_CAVITY_COUNT` 是代理量**（下次任一成因变化前必须先拆 per-code）。
@@ -259,8 +259,11 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 > **⭐⭐⭐ 2026-09-06【第六程】banner（当前唯一口径）**
 >
-> ### ① ⭐⭐⭐ 收口读数：**权威全量 `3863 passed / 2 skipped / 13 xfailed / 0 failed`**（主树，17m45s）
-> 逐位闭合 **`3863 + 2 + 13 = 3878`** = 独立 `--collect-only` 实测 3878，**差额 0**；
+> ### ① ⭐⭐⭐ 收口读数：**权威全量 `3907 passed / 2 skipped / 13 xfailed / 0 failed`**（主树，15m08s）
+> 逐位闭合 **`3907 + 2 + 13 = 3922`** = 独立 `--collect-only` 实测 3922，**差额 0**；
+> ⭐ **合并前的预测与实测逐位吻合**：`3863`（A-11 后）`+ 27`（A-6 整块）`+ 17`（A-6 返工）`= 3907`。
+> （本日跑了两次权威全量：A-11 合并后 `3863`、A-6 合并后 `3907`，两次哨兵均前后同值。）
+> 〔以下为第一次（`3863`）的对账，保留备查〕
 > `.pth` 前后哨兵同值 `58f547fa…` 且均指主树，`m.__file__` 前后均落主树；跑测全程 `git status` 空、HEAD 未变。
 > **三方读数一致**（A-11 施工席 / 跨家族复核方独立复算 / 本次主树权威 **全部 3863**）。
 > 原文 → [`logs/experiments/2026-09-06_authoritative_suite/`](logs/experiments/2026-09-06_authoritative_suite/README.md)。
@@ -279,7 +282,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 已写进 `plan.md` 的 E-a 行成为 **E-a-1 / E-a-2 / E-a-3** 三条可查验收项 ——
 > ⭐ 判定依据是 `grep … src/agent/pipeline.py` **零命中** ⇒ **缺口是真的，删句没消除它、只是让它从文档里消失**。
 > ⚠️ 三条**今天零流量**，是**未来的保险丝**，⛔ 引用时别读成「已经在保护」。
-> **阻断② 在飞**（`gpt-6-astra` 返工，`/tmp/a6_tickclaim_astra`）。
+> **阻断② 已返工并过审合并**（`gpt-6-astra` 返工 → Claude 跨家族审 `APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 2`，合并 `d5675286`）。见 ④。
 >
 > ### ④ ⭐⭐⭐ 阻断② 的形状 = **入口检查了、出口没有对称地重做**（本批那条口径的第二形态）
 > `submit()` 的跨行顺序检查（`tick_claim.py:469-478`）是这批数据**唯一一次**被验证顺序的机会；
@@ -289,6 +292,10 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⭐ 复核方按「**反查哪个方向没有锁**」给出判据：把该检查搬进 `consume()` 对合法批次是**无操作**、
 > **不会打红任何现有测试** ⇒ **不存在「加了就会红」的理由挡着这把锁**。
 > ⇒ **返工单把题从【例子】提到【类】**：要逐项回答「`submit()` 每项检查，`consume()` 各自重做了没有」，那张对照表就是交付物。
+> **⭐⭐⭐ 结果证明这个提法值回票价**：施工方交回 **17 项表**，除复核方按症状找到的那 1 项外，**另外 6 项 `consume()` 从未重做** —— 响应类型/`packet_id` 对应 · `reperceive` 不能冻结为事实 · 补证债必须有 `missing_chains` · `debt_id` 生成 · `retired_debt_id` 条件 · 逐行来源字段。新增 17 条测试、**零既有测试被改动**（`3877 + 17 = 3894`，差额 0）。
+> **复核方用两套互不依赖口径独立枚举**（A：逐行标号 `submit()` 全文得 A1–A18；B：⭐ 不依赖阅读顺序，取 `submit()`/`consume()` 各自能抛的**具名 code 集合求差集**）——**两套完全收敛且与 17 项表逐项映射，零遗漏零多余。**
+> ⭐ 施工方标为「结构上不必重做」的 #3/#16/#17 也全部实测证实，其中 **#17 的理由是可证伪的**（「拿提交后活字典重放会误拒合法批次」）⇒ 复核方用**直接替换法**验了，确实会误拒；**#16 自称「未新增封印或私有名字屏障」也实测证实**：伪造赋值仍赋得进去、在**出口**被拒 ⇒ **是出口全检**。
+> ⛔ **结转 A-6-d1**：`opening_adjudication.py` 只对 **PLAN 侧**装配点加了第二层拦截，**ELEVATION 侧 `_elevation_document()` 没有对称的第二层**。今天两侧同被主锁挡住 ⇒ 不是缺口；⚠️ **但主锁若被未来重构悄悄削弱（正是本单的病根形状），PLAN 侧立刻红、ELEVATION 侧不会。**
 >
 > ### ⑤ ⭐⭐ A-6 审的**正面发现**（⛔ 别只记 REWORK）
 > 把 B2 已证的五类攻击原样打过来：`__class__` 重赋值**被逐字节内容比对挡住** ——
@@ -306,8 +313,9 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⇒ 那条被文档写死的调用路径**从来走不通**；已 `git update-index --chmod=+x` 落库（本仓 `core.fileMode=false`，
 > 光 `chmod` 换棵树就没了）。
 >
-> ### ⑧ ⭐ **下程第一件事**：收 A-6 返工 1 → **交 Claude 家族复核**（⛔ 不得 GPT），过审即合并；
-> 然后 **E-a 端到端接线**（单已备，⭐ 验收表里已多出 E-a-1/2/3 三条）· **J 判分改造**（A-11 已合并，前置解除）。
+> ### ⑧ ⭐ **下程第一件事**：**E-a 端到端接线**（单已备；⭐ 验收表本程新长出 **E-a-1/2/3** 三条 = A-6 删句留下的接线缺口销账处）
+> 与 **J 判分改造**（前置 A-11 已合并，阻塞解除）。⭐ **挡路新单只剩这 2 个，且都无前置阻塞。**
+> ⚠️ **两处仍卡用户**：**G-a**（sm25 gt 人签台账，⛔ 机器不能自己签）· **E-b**（跑 reading 用哪个模型、抽几次）。
 
 ### 2.1 最近节点索引
 
@@ -317,7 +325,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
-| **2026-09-06 第六程** | ✅ **A-11「gt 按 1 mm 规整入库」合并**（Claude 审 `APPROVE-WITH-FINDINGS/阻断0/不阻断2`；⭐ 三条复核全过，含**换同形输入仍走不通**）⇒ **权威全量 `3863`**（逐位闭合 `3863+2+13=3878` = 独立 collect，差额 0）· ⛔ **A-6 整条线被判 `REWORK/阻断2/不阻断3`**：**阻断①**（删句留下的接线缺口只活在散文里，`grep src/agent/pipeline.py` 零命中）**已由主控销账进 `plan.md` E-a-1/2/3**；**阻断②** = ⭐⭐⭐ **`submit()` 检查了、`consume()` 没对称重做** ⇒ **倒置的假区间一路静默流进洞口几何**，已派 astra 返工且**题从【例子】提到【类】** · ⭐⭐ **正面发现**：`__class__` 重赋值被**逐字节内容比对**（⛔ 不是 `isinstance`）挡住、比 B2 更强；`freeze()` canonical 无坍缩 · ⭐⭐⭐ **分段提交正面证明**：astra 三次撞 provider 容量**都在活干完之后**，只丢 commit、**一行代码没丢**（⭐ 容量≠额度，探针可续）· ⛔ **A-11-d2** `SM25_DEFERRED_CAVITY_COUNT=4` 被反例坐实是**代理量** · ⚠️ 两坑：`codex exec resume` **静默把 effort 降到 `low`** · 五个启动器缺 `+x` 致文档写死的调用路径从未成立 | [A-11 裁决](logs/reviews/verdict/2026-09-05l_A11_rework1_crossreview_claude.md) · [A-6 裁决](logs/reviews/verdict/2026-09-05m_A6_tick_claim_block_crossreview_claude.md) · [A-6 返工单](logs/reviews/request/2026-09-06a_A6_rework1_dispatch.md) · [权威全量](logs/experiments/2026-09-06_authoritative_suite/README.md) |
+| **2026-09-06 第六程** | ✅ **A-11「gt 按 1 mm 规整入库」合并**（Claude 审 `APPROVE-WITH-FINDINGS/阻断0/不阻断2`；⭐ 三条复核全过，含**换同形输入仍走不通**）⇒ **权威全量 `3863`**（逐位闭合 `3863+2+13=3878` = 独立 collect，差额 0）· ✅ **A-6 刻度认领整条线合并**（先判 `REWORK/阻断2`：**阻断①** 删句留下的接线缺口只活在散文里〔`grep src/agent/pipeline.py` 零命中〕**已由主控销账进 `plan.md` E-a-1/2/3**；**阻断②** = ⭐⭐⭐ **`submit()` 检查了、`consume()` 没对称重做** ⇒ 倒置的假区间静默流进洞口几何）⇒ **权威全量 `3907`**（`3863+27+17`，逐位闭合 `3907+2+13=3922` 差额 0）· ⭐⭐⭐ **本程方法论收获：返工题从【修这个例子】提到【枚举这一类】** —— 复核方按症状只找到 1 个洞，逐项枚举找出**另外 6 个** `consume()` 从未重做的检查；复核方再用**两套互不依赖口径**（逐行标号 / 具名 code 集合求差集）独立枚举，**零遗漏零多余** · ⛔ **A-6-d1** 防御深度不对称（PLAN 侧有第二层拦截、ELEVATION 侧没有；主锁若被未来重构削弱，只有 PLAN 侧会红）· ⭐⭐ **正面发现**：`__class__` 重赋值被**逐字节内容比对**（⛔ 不是 `isinstance`）挡住、比 B2 更强；`freeze()` canonical 无坍缩 · ⭐⭐⭐ **分段提交正面证明**：astra 三次撞 provider 容量**都在活干完之后**，只丢 commit、**一行代码没丢**（⭐ 容量≠额度，探针可续）· ⛔ **A-11-d2** `SM25_DEFERRED_CAVITY_COUNT=4` 被反例坐实是**代理量** · ⚠️ 两坑：`codex exec resume` **静默把 effort 降到 `low`** · 五个启动器缺 `+x` 致文档写死的调用路径从未成立 · ⭐ **挡路新单 5 → 2**（只剩 E-a / J-判分改造，且都无前置阻塞）|  [A-11 裁决](logs/reviews/verdict/2026-09-05l_A11_rework1_crossreview_claude.md) · [A-6 裁决](logs/reviews/verdict/2026-09-05m_A6_tick_claim_block_crossreview_claude.md) · [A-6 返工单](logs/reviews/request/2026-09-06a_A6_rework1_dispatch.md) · [A-6 返工裁决](logs/reviews/verdict/2026-09-06b_A6_rework1_crossreview_claude.md) · [独立枚举](logs/experiments/2026-09-06b_A6_rework1_crossreview_claude/independent_submit_consume_enumeration.md) · [权威全量](logs/experiments/2026-09-06_authoritative_suite/README.md) |
 | **2026-09-05 第五程** | ⭐⭐ **模型家族扩编**（GPT 最高档=`gpt-6-astra`，⛔ 要 CLI ≥0.153 已升 0.153.4 · GLM 新增 `glm-5.3-flash`，⭐ **识图 6/6 全对而 `glm-5.3` 静默降级**、`glm-5v-turbo` 被套餐挡死）· ✅ **B2 返工 3 合并**（Claude 审 `APPROVE/阻断0`，⭐ **五条自造攻击里三条绕过入口封印、全被出口全检接住**）⇒ **权威全量 `3850`**（逐位闭合 `3819+31`）· ⛔ **设计稿返工 1 被 astra 判 REWORK/阻断5**（⭐ 实测 6 条自动一档边落在非主链、构造不出 `node_ref`；链前置门只验总长；`ArtifactPointerV1` 非 frozen）· ⭐⭐ **主控自查**：J-6 四条里**三条是过期账**、F-89 转为 J-3 验收项（新判分器**零立面维度**）⇒ 挡路单 6→5；A-11 量出 **74 个非 1 mm 值**、**用户拍板走乙**（转换器加规整，⛔ 不做 74 条人签）· ⛔ 自错两条：`.gitignore` 静默吞证据 · 跑测途中启席位翻 `.pth` | [B2 裁决](logs/reviews/verdict/2026-09-05d_B2_rework3_crossreview_claude.md) · [设计稿裁决](logs/reviews/verdict/2026-09-05e_tick_claim_design_rework1_crossreview_gpt.md) · [自查读数](logs/experiments/2026-09-05g_orchestrator_readouts/README.md) · [名册探针](logs/experiments/2026-09-05_model_roster_probe/README.md) |
 | **2026-09-05 收工（第四程）** | ⭐⭐⭐ **用户把洞口对齐 / correction 目标态整条口径拍定**（尺寸链优先·像素只作指认 · 证据两档都出值 · 四分类 · 两步各跑一遍三拍 · **gt 1 mm / pipeline 出口 10 mm / 存 0.1 mm 整数** · `GAP_*` 与基准差降级为**给模型的参考** · **判分入闸：第一次跑=跑通＋判出分**）⇒ 全档进 [指南 §十四/§十五](guides/reading_correction_split_guide.md) · ⭐⭐ **主控实测**：立面 68 条洞口边 66 条 ≤34 mm、认领后宽度**全变图纸整数**，平面侧弱（102 个端点仅 44 个）⇒ **两侧不对称是结构性的**；B4 配对**零生产调用者**；gt 侧 1 mm **尚未落地** · ✅ **T4-a 合并**（GLM 审 `APPROVE/阻断0`），**权威全量 `3819 passed / 0 failed`**（`3778+3+28+10`，`.pth` 前后同值）· ⏳ B2 返工3 与设计稿返工1 待审 · ⭐⭐⭐ **四条线的阻断是同一形状：判据量的是【代理量】**（`isinstance`≠过了字节门 · 像不像活键≠能否解析成功 · 链节点≠链能给出的值）⇒ 有效解只有**类型层不存在** / **出口全检** · ⛔ 派工方错：**建树基点早于自己当天写的口径**，靠跨家族审的 delta 核对救回 · ⚠️ **GPT 席位被 provider 安全过滤拦死两次**、零产出 | [T4-a 裁决](logs/reviews/verdict/2026-09-05c_T4a_rework2_crossreview_glm.md) · [设计稿裁决](logs/reviews/verdict/2026-09-04y_tick_claim_design_crossreview_gpt.md) · [B2 裁决](logs/reviews/verdict/2026-09-04p_B2_rework2_crossreview_gpt.md) · [排期盘面](plan.md) |
 | **2026-09-04 收工** | ⭐⭐⭐ **B4 一轮返工后 `APPROVE/阻断0` 并合并** ⇒ **B1/B3/F-158/B4 四条线全在主线，权威全量 `3778`**（逐位闭合 `3717+31+5+3+20+2`）· ✅ **T4-a 债义务字段做完待审**（⭐ 施工方 A 层停报**推翻了派工方的时机理由**：基点上没有 B4 ⇒ 现在做半个会让哈希**翻搅两次**；已先合并 B4 再重派，只翻搅一次）· ⛔ **B2 两轮均 REWORK 且同形 = 改表面不改类型层可达性**（把类改私有 ⇒ 复核方**根本不用碰那个私有类**；换结构判据 ⇒ 自报「唯一可达」**当场被同结构反例证否**）· ⭐ **主控以 judge 身份做完 B2 的 z 梯子 gt 对账**（层数逐位相等、标高准到 **0.155 像素**，残差归 reading）⛔ 但只对了 z 一个维度，F-1 原样挂着 · ⛔⛔ **派工方本程自己错七条**，⭐ 其中**三条同形=判据测不到要守的性质** | [B4 裁决](logs/reviews/verdict/2026-09-03am_B4_rework1_crossreview_claude.md) · [B2 裁决](logs/reviews/verdict/2026-09-04d_B2_rework1_crossreview_gpt.md) · [T4-a 停报](logs/reviews/execution/2026-09-04b_T4a_execution.md) · [z 梯子对账](logs/reviews/verdict/2026-09-03an_B2_gt_reconciliation_judge.md) |
