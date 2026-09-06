@@ -2047,6 +2047,52 @@ def _typed_score_input_paths(run_dir: Path) -> tuple[Path, Path, Path | None]:
     return meta / "view_manifest.json", meta / "judge_score_bindings.json", meta / "judge_completeness_overlay.json"
 
 
+def _grade_as_drawn_reading_branch(case: str, attempt_dir: Path, document, output) -> dict | None:
+    """J §2.1: route an attempt to the as-drawn judges BY PRODUCT CONTRACT.
+
+    Returns the graded dict (same keys the typed path returns) when ANY view
+    of the flat output declares an as-drawn contract, else ``None`` so the
+    caller keeps today's path.  The routing decision itself lives in
+    ``flow_wiring`` (one classifier, reused read-only); this function only
+    feeds it the case's signed-inputs root and the gt the typed layer already
+    loaded — ⛔ no second gt read, ⛔ no filename sniffing here.
+    """
+    from src.agent.judge.as_drawn.flow_wiring import (
+        AS_DRAWN_CONTRACTS, grade_as_drawn_attempt, split_output_by_contract,
+    )
+
+    decisions = split_output_by_contract(output)
+    if not any(d.contract_id in AS_DRAWN_CONTRACTS for d in decisions.values()):
+        return None
+    gt_dict = json.loads(document.model_dump_json())   # the loaded gt, as raw
+    gt_sources = _REPO_ROOT / "case_tests/test_baseline/gt_sources" / case
+    bundle = grade_as_drawn_attempt(output, gt=gt_dict, gt_sources_dir=gt_sources,
+                                    attempt_dir=attempt_dir)
+    criteria = []
+    for view in bundle["views"]:
+        scores = view.get("scores") or {}
+        if "E1_openings_placed_and_sized_pct" in scores:      # elevation view
+            criteria.append({
+                "id": f"e1_placed_sized_{view['view_id']}",
+                "name": "elevation openings placed and sized",
+                "passed": scores["E1_openings_placed_and_sized_pct"] >= 60.0,
+                "readout": scores["E1_openings_placed_and_sized_pct"]})
+        elif "C1_C2_targets_drawn_pct" in scores:              # plan view
+            criteria.append({
+                "id": f"c1_c2_drawn_{view['view_id']}",
+                "name": "plan targets drawn",
+                "passed": scores["C1_C2_targets_drawn_pct"] >= 60.0,
+                "readout": scores["C1_C2_targets_drawn_pct"]})
+    png = next((view["grade_png"] for view in bundle["views"]
+                if view.get("grade_png")), None)
+    return {
+        "score_vs_gt": str(attempt_dir / "score_vs_gt.json"),
+        "grade": png,
+        "score_vs_gt_bundle_schema": bundle["schema"],
+        "score_criteria": criteria,
+    }
+
+
 def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, document, *,
                                    gt_file: Path, manifest: RunManifest, grade: GradeConfig,
                                    run_profile: str = "exploratory") -> dict:
@@ -2074,6 +2120,16 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     output_text = output_path.read_text(encoding="utf-8")
     output = json.loads(output_text)
     if stage == "0_reading":
+        # ⭐ J wiring (2026-09-06): a view whose DECLARED contract is an
+        # as-drawn product grades on the as-drawn judges (denominator +
+        # reading_grade for plans, elevation_targets + elevation_grade for
+        # facades) — decided by vector_contract's per-file classifier, ⛔ not
+        # by filename, ⛔ not by a second classifier.  Every other shape keeps
+        # today's typed/legacy path untouched (the old scorer still serves
+        # historical runs; new and old coexist, the PRODUCT's contract routes).
+        as_drawn = _grade_as_drawn_reading_branch(case, attempt_dir, document, output)
+        if as_drawn is not None:
+            return as_drawn
         # F-75: accept BOTH living reading product layouts. output_hash below is
         # taken from output_text (the file bytes), so normalizing the in-memory
         # object here changes no identity.
