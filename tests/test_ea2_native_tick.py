@@ -101,3 +101,58 @@ def test_v0_producer_is_explicitly_historical_and_still_readable():
     session=TickSession(raw,image_id='history')
     assert session.packet.source_bytes==raw
     assert all(e.pointer.startswith('/wall_bands/') for e in session.packet.edges)
+
+
+def test_bundle_identity_and_snapshot_are_the_session_source():
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
+    raw=(OUT/'sm25_1f_v2.json').read_bytes()
+    art=adapt_as_drawn_plan(raw,input_id='manifest-plan-slot',floor_ref='1f')
+    session=TickSession.from_artifact(art)
+    assert session.packet.image_id==art.bundle.source_artifacts[0].input_id
+    assert session.packet.source_sha==art.bundle.source_artifacts[0].source_output_sha256
+    art.bundle.source_artifacts.clear()
+    assert session.evidence_artifact().bundle.source_artifacts[0].input_id=='manifest-plan-slot'
+
+
+def archived_session(tmp_path):
+    from test_tick_claim_a6 import fixture
+    raw,sup=fixture()
+    session=TickSession(raw,image_id='archive',supplement=sup)
+    session.submit(response(session))
+    session.reconsider('test later generation too')
+    batch=session.submit(response(session))
+    session.persist(tmp_path/'archive',batch.batch_id)
+    return session,batch,raw,sup
+
+
+def test_archive_rebuilds_original_channels_and_current_generation(tmp_path):
+    from src.agent.correction.tick_claim import verify_tick_archive, TickBatch
+    session,batch,raw,sup=archived_session(tmp_path)
+    folder=tmp_path/'archive'
+    assert (folder/'source.bin').read_bytes()==raw
+    assert (folder/'supplement.bin').read_bytes()==sup
+    assert (folder/'batch.json').read_bytes()==batch.record
+    replay=verify_tick_archive(folder,expected_batch_id=batch.batch_id)
+    assert type(replay) is TickBatch and replay==batch
+    session.persist(folder,batch.batch_id)  # identical archive is idempotent
+    session.reconsider('audit bytes must not confer current authority')
+    assert verify_tick_archive(folder,expected_batch_id=batch.batch_id)==batch
+    assert_code('TICK_BATCH_INVALIDATED',lambda: session.persist(folder,batch.batch_id))
+
+
+@pytest.mark.parametrize('name',['source.bin','supplement.bin','batch.json','packet.json','history.json'])
+def test_archive_missing_member_is_loud(tmp_path,name):
+    from src.agent.correction.tick_claim import verify_tick_archive
+    _,batch,_,_=archived_session(tmp_path)
+    (tmp_path/'archive'/name).unlink()
+    assert_code('TICK_ARCHIVE_INCOMPLETE',
+                lambda: verify_tick_archive(tmp_path/'archive',expected_batch_id=batch.batch_id))
+
+
+def test_archive_changed_source_cannot_pass_just_by_preserving_batch_json(tmp_path):
+    from src.agent.correction.tick_claim import verify_tick_archive
+    _,batch,_,_=archived_session(tmp_path)
+    path=tmp_path/'archive'/'source.bin'
+    path.write_bytes(path.read_bytes()+b' ')
+    assert_code('TICK_ARCHIVE_BYTES_MISMATCH',
+                lambda: verify_tick_archive(tmp_path/'archive',expected_batch_id=batch.batch_id))

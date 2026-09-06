@@ -12,6 +12,7 @@ from dataclasses import asdict, dataclass
 from decimal import Decimal, ROUND_HALF_UP
 import hashlib
 import json
+from pathlib import Path
 import re
 from typing import Literal
 
@@ -546,10 +547,76 @@ class TickSession:
         self._current: TickBatch | None = None
         self._history: list[bytes] = []
         self._previous_debts: dict[str, tuple[str, str]] = {}
+        self._evidence_bytes: bytes | None = None
         self._blocked: str | None = None
         self._precision_u = units(Decimal(str(load_core_tolerances().output_precision_m)) * 1000)
         if self._precision_u <= 0:
             raise TickClaimError("OUTPUT_PRECISION_INVALID")
+
+    @classmethod
+    def from_artifact(cls, artifact, *, supplement: bytes | None = None,
+                      expressions: tuple[tuple[str, Expression], ...] = (), max_rounds: int = 3):
+        """Production identity comes from the checked bundle, never a hand echo."""
+        from src.agent.correction.evidence_contract import validate_evidence_bundle
+        validate_evidence_bundle(artifact)
+        if len(artifact.bundle.source_artifacts) != 1 or len(artifact.frozen_sources) != 1:
+            raise TickClaimError("TICK_SINGLE_IMAGE_ARTIFACT_REQUIRED")
+        meta = artifact.bundle.source_artifacts[0]
+        source = artifact.frozen_sources[0]
+        if source.artifact != meta:
+            raise TickClaimError("TICK_ARTIFACT_SOURCE_MISMATCH")
+        session = cls(source.raw_bytes, image_id=meta.input_id, supplement=supplement,
+                      expressions=expressions, max_rounds=max_rounds)
+        session._evidence_bytes = artifact.model_dump_json().encode()
+        return session
+
+    def evidence_artifact(self):
+        """Return a fresh validated snapshot, not caller-owned mutable lists."""
+        from src.agent.correction.evidence_contract import (
+            CorrectionEvidenceBundleArtifactV1, validate_evidence_bundle,
+        )
+        if self._evidence_bytes is None:
+            raise TickClaimError("TICK_SOURCE_ARTIFACT_REQUIRED")
+        artifact = CorrectionEvidenceBundleArtifactV1.model_validate_json(self._evidence_bytes)
+        validate_evidence_bundle(artifact)
+        meta = artifact.bundle.source_artifacts[0]
+        if meta.input_id != self.packet.image_id or meta.source_output_sha256 != digest(self.packet.source_bytes):
+            raise TickClaimError("TICK_ARTIFACT_SOURCE_MISMATCH")
+        return artifact
+
+    def persist(self, directory: Path, expected_batch_id: str) -> None:
+        """Immutable audit archive; it grants no current-session authority.
+
+        Both original byte channels and the exact batch record travel together.
+        A missing supplement is explicitly declared, never replaced with a
+        manufactured reading. Write the manifest last so a partial write is loud.
+        """
+        self.consume(expected_batch_id)
+        packet = self.packet
+        files = {
+            "source.bin": packet.source_bytes,
+            "batch.json": self._current.record,
+            "packet.json": freeze(dict(
+                packet_id=packet.packet_id, image_id=packet.image_id, generation=packet.generation,
+                expressions=[(e.edge_id, asdict(c.expression)) for e in packet.edges for c in e.candidates])),
+            "history.json": freeze([r.decode() for r in self.history]),
+        }
+        if packet.supplement_bytes is not None:
+            files["supplement.bin"] = packet.supplement_bytes
+        manifest = freeze(dict(schema="tick_archive_v1", batch_id=expected_batch_id,
+                               supplement_present=packet.supplement_bytes is not None,
+                               files={name: digest(raw) for name, raw in files.items()}))
+        directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, raw in {**files, "manifest.json": manifest}.items():
+            path = directory / name
+            if path.exists():
+                if path.read_bytes() != raw:
+                    raise TickClaimError("TICK_ARCHIVE_IMMUTABLE", name)
+            else:
+                with path.open("xb") as stream:
+                    stream.write(raw)
+        verify_tick_archive(directory, expected_batch_id=expected_batch_id)
 
     @property
     def packet(self) -> TickPacket:
@@ -737,3 +804,45 @@ class TickSession:
                                     supplement=new_supplement, expressions=expressions)
         self._blocked = None
         return self._packet
+
+
+def verify_tick_archive(directory: Path, *, expected_batch_id: str) -> TickBatch:
+    """Rebuild packet and decision bytes from disk, returning audit data ONLY.
+
+    No loader returns a live TickSession: yesterday's self-consistent archive
+    cannot make an invalidated batch current in a geometry assembly.
+    """
+    directory = Path(directory)
+    try:
+        manifest = json.loads((directory / "manifest.json").read_bytes())
+        required = {"source.bin", "batch.json", "packet.json", "history.json"}
+        if manifest.get("supplement_present") is True:
+            required.add("supplement.bin")
+        elif manifest.get("supplement_present") is not False:
+            raise TickClaimError("TICK_ARCHIVE_MANIFEST_INVALID")
+        if (manifest.get("schema") != "tick_archive_v1" or manifest.get("batch_id") != expected_batch_id
+                or set(manifest["files"]) != required):
+            raise TickClaimError("TICK_ARCHIVE_MANIFEST_INVALID")
+        files = {name: (directory / name).read_bytes() for name in required}
+        if any(digest(raw) != manifest["files"][name] for name, raw in files.items()):
+            raise TickClaimError("TICK_ARCHIVE_BYTES_MISMATCH")
+        packet = json.loads(files["packet.json"])
+        expressions = tuple((eid, Expression(
+            operation=e["operation"], anchor=OperandRef(**e["anchor"]),
+            operands=tuple(OperandRef(**r) for r in e["operands"]),
+            direction=e["direction"], thickness_kind=e["thickness_kind"]))
+            for eid, e in packet["expressions"])
+        session = TickSession(files["source.bin"], image_id=packet["image_id"],
+                              supplement=files.get("supplement.bin"), expressions=expressions)
+        session._generation = packet["generation"]
+        session._packet = build_packet(files["source.bin"], image_id=packet["image_id"],
+                                       generation=packet["generation"],
+                                       supplement=files.get("supplement.bin"), expressions=expressions)
+        if session.packet.packet_id != packet["packet_id"]:
+            raise TickClaimError("TICK_ARCHIVE_PACKET_MISMATCH")
+        session._current = TickBatch(digest(files["batch.json"]), files["batch.json"])
+        session._history = [r.encode() for r in json.loads(files["history.json"])]
+        session.consume(expected_batch_id)
+        return session._current
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise TickClaimError("TICK_ARCHIVE_INCOMPLETE") from exc
