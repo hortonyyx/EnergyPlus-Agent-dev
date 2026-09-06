@@ -62,18 +62,21 @@ orchestrator 当时判读为「病灶更窄 = 一个护栏类型选错」——*
 （用户令「这条线上的开发都先读这份指南」）。
 凡不服务这三条的工作**一律登记进 [plan.md](plan.md) 不做**（同 §0.1）。
 
-> ⭐ **此刻在哪（2026-09-06 · 第六程 · 已收工）**：**B1 / B3 / F-158 / B4 / T4-a / B2 / A-11 / A-6 八条线在主线**，
-> 权威全量 **`3907 passed / 0 failed`**（`3907+2+13=3922` 逐位闭合 = 独立 collect，`.pth` 前后哨兵同值且指主树）。
-> ✅ **本程合并两条**：**A-11 gt 按 1 mm 规整入库** · **A-6 刻度认领整条线**（A-6a+A-6b，含返工 1）——
-> 两条都是跨家族审 `APPROVE-WITH-FINDINGS / 阻断 0`。
-> ⭐⭐⭐ **本程最大的方法论收获**：**返工题从【修这个例子】提到【枚举这一类】** ——
-> 复核方按症状只找到 1 个洞，逐项枚举找出**另外 6 个**（详见 §2 第六程 banner ④）。
-> ⇒ **挡路新单 2 个**：**J-判分改造**（⭐ **无阻塞，下轮直接开**）·
-> **E-a 端到端接线**（⛔ **阻断中** —— 09-06 实测「这是接线」的前提不成立，见 banner ⑨，**需先拍源契约口径**）。
-> + **两处卡用户**（G-a gt 人签台账〔⭐ 按你 08-28 定的，排在这批改造完之后，⛔ 不是现在等你签〕 · E-b 跑前配置拍板）。
-> ⛔⛔ **三条最要紧的 debt**：**F-1 生产帧【平面几何】零 gt 对账** · **F-7 绑定校验量声明不量载荷** ·
-> **A-11-d2 `SM25_DEFERRED_CAVITY_COUNT` 是代理量**（下次任一成因变化前必须先拆 per-code）。
-> ⭐ **下程第一件事见 §2 第六程 banner ⑧。**
+> ⭐ **此刻在哪（2026-09-06 · 第七程 · 已收工）**：**B1 / B3 / F-158 / B4 / T4-a / B2 / A-11 / A-6 / J / E-a′ 十条线在主线**，
+> 权威全量 **`3989 passed / 0 failed`**（`3989+2+13=4004` 逐位闭合 = 独立 collect **差额 0**；
+> ⭐ 与跑前预测 `3907+47+35` **逐位吻合**；哨兵前后同值且 `.pth` 指主树 →
+> [读数档](logs/experiments/2026-09-06b_authoritative_suite/README.md)）。
+> ✅ **本程合并两条**：**J 判分接线 + 补立面** · **E-a′ 源契约对齐**（改吃生产格式 `as_drawn_plan_v2`）——
+> 两条都是 Claude 跨家族审 `APPROVE-WITH-FINDINGS / 阻断 0`。
+> ⭐⭐⭐ **本程最大的方法论收获**：**两次复核都是在【交件自己没走过的那一半】上抓到东西的**
+> （详见 §2 第七程 banner ③）⇒ **「交件自带的证据覆盖了哪一半」= 复核的头号提问。**
+> ⇒ **挡路新单 0 个**；**下程第一件事 = E-b 产出新格式产物**，⚠️ **需先拍配置**（reading 用哪个模型、抽几次）。
+> + **仍卡用户**：G-a gt 人签台账（⭐ 按你 08-28 定的，排在这批改造完之后，⛔ 不是现在等你签）。
+> ⛔⛔ **三条最要紧的 debt**：**F-1 生产帧【平面几何】零 gt 对账**（⭐ **本程新增子项 E-a′-d2**：
+> `pair_candidates` 374/303/1185 vs `pairs` 22/21/8，**绝大多数候选测量无任何门验真伪**）·
+> **F-7 绑定校验量声明不量载荷** · **A-11-d2 `SM25_DEFERRED_CAVITY_COUNT` 是代理量**。
+> ⚠️ **别读错的两条**：**J-3-d1 新判分路径今天【零流量】**（是保险丝、⛔ 不是通车的路）·
+> **E-a′-d1 202 行消费表去重后只有 26 个决定**（完备度单位是 26、⛔ 不是 202）。
 
 ### 0.1 唯一判断法则
 
@@ -262,7 +265,9 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 > **⭐⭐⭐ 2026-09-06【第七程】banner（当前唯一口径）**
 >
-> ### ① ✅✅ **本程合并两条线，闸④⑤ 同时推进**
+> ### ① ✅✅ **本程合并两条线，闸④⑤ 同时推进** —— 权威全量 **`3989 passed / 2 skipped / 13 xfailed / 0 failed`**
+> （主树，14m29s，`-n auto`；逐位闭合 `3989+2+13=4004` = 独立 collect **差额 0**；⭐ 与跑前预测 `3907+47+35` 逐位吻合；
+> 哨兵前后同值：HEAD `14edd219` 未变 · 工作树两次均 0 · `.pth` md5 相同且指主树 → [读数档](logs/experiments/2026-09-06b_authoritative_suite/README.md)）
 > **J 判分接线 + 补立面**（`743a1536`，GLM 施工 → Claude 审 `APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 2`）·
 > **E-a′ 源契约对齐**（`512498e1`，astra 施工 → Claude 审 `APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 1`）。
 >
@@ -308,7 +313,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
-| **2026-09-06 第七程** | ✅✅ **合并两条线**：**J 判分接线+补立面**（`743a1536`，GLM 施工→Claude 审 `阻断0/不阻断2`）· **E-a′ 源契约对齐**（`512498e1`，astra 施工→Claude 审 `阻断0/不阻断1`）· ⭐⭐⭐ **E-a 题面被主控实测推翻**：两格式面线**逐条同一**（49/49、46/46 <0.6px）⇒ 同一次测量、51vs85 只是粒度差；真病根 = **A-6 认了一个没有生产产出方的格式**（`src/` 里 `wall_bands` 只读不写）⇒ **用户拍板走【甲】：吃 v2、⛔ 不写转换层** · ⭐⭐⭐ **两次复核都在【交件没走过的那一半】上抓到东西**（A-6-d1 变红证据只覆盖 x 轴、z 轴由复核方自造；复核方**拒用被测代码自带的 `verify_tick_archive` 自证**，改裸 `hashlib` 重建 `batch_id`；J 的第三条复核自造**合成 gt** 3 层/跨 F2+F3/5:2 非对称）· ⚠️⚠️ **J-3-d1 新判分路径【零流量】**（47 条里仅 2 条摸到生产接线点、且不经 `flow` CLI ⇒ **是保险丝不是通车的路**）· ⚠️ **E-a′-d1 计数单位选错**（202 行表去重后只有 **26 个决定**，⛔ 别把 202 当完备性证书）· ⛔⛔ **E-a′-d2 归入 F-1**：`pair_candidates`(374/303/1185) vs `pairs`(22/21/8)，**绝大多数候选测量无任何门验真伪** · ⚠️ 三运维坑：**`seat_gpt.sh` 从不传 effort 而默认值按模型**（astra 全新启动 = `low`，历史 gpt-5.x 全 `high`）已改为显式传+回读横幅 · GLM 撞 5 小时上限（⭐ 重置是**北京时间**，3.2h 非 11.2h）改派 Claude · ⛔ **复核 worktree 天生读不到复核单**，复核方从 staging 陈旧副本读到过期版 |  [J 裁决](logs/reviews/verdict/2026-09-06f_J_crossreview_claude.md) · [E-a′ 裁决](logs/reviews/verdict/2026-09-06g_Ea2_crossreview_claude.md) · [E-a′ 派工单](logs/reviews/request/2026-09-06d_Ea2_source_contract_dispatch.md) · [E-a′ 交件](logs/reviews/execution/2026-09-06d_Ea2_source_contract_execution.md) |
+| **2026-09-06 第七程** | ⇒ **权威全量 `3989`**（逐位闭合 `3989+2+13=4004` = 独立 collect，差额 0；⭐ 与预测 `3907+47+35` 吻合）· ✅✅ **合并两条线**：**J 判分接线+补立面**（`743a1536`，GLM 施工→Claude 审 `阻断0/不阻断2`）· **E-a′ 源契约对齐**（`512498e1`，astra 施工→Claude 审 `阻断0/不阻断1`）· ⭐⭐⭐ **E-a 题面被主控实测推翻**：两格式面线**逐条同一**（49/49、46/46 <0.6px）⇒ 同一次测量、51vs85 只是粒度差；真病根 = **A-6 认了一个没有生产产出方的格式**（`src/` 里 `wall_bands` 只读不写）⇒ **用户拍板走【甲】：吃 v2、⛔ 不写转换层** · ⭐⭐⭐ **两次复核都在【交件没走过的那一半】上抓到东西**（A-6-d1 变红证据只覆盖 x 轴、z 轴由复核方自造；复核方**拒用被测代码自带的 `verify_tick_archive` 自证**，改裸 `hashlib` 重建 `batch_id`；J 的第三条复核自造**合成 gt** 3 层/跨 F2+F3/5:2 非对称）· ⚠️⚠️ **J-3-d1 新判分路径【零流量】**（47 条里仅 2 条摸到生产接线点、且不经 `flow` CLI ⇒ **是保险丝不是通车的路**）· ⚠️ **E-a′-d1 计数单位选错**（202 行表去重后只有 **26 个决定**，⛔ 别把 202 当完备性证书）· ⛔⛔ **E-a′-d2 归入 F-1**：`pair_candidates`(374/303/1185) vs `pairs`(22/21/8)，**绝大多数候选测量无任何门验真伪** · ⚠️ 三运维坑：**`seat_gpt.sh` 从不传 effort 而默认值按模型**（astra 全新启动 = `low`，历史 gpt-5.x 全 `high`）已改为显式传+回读横幅 · GLM 撞 5 小时上限（⭐ 重置是**北京时间**，3.2h 非 11.2h）改派 Claude · ⛔ **复核 worktree 天生读不到复核单**，复核方从 staging 陈旧副本读到过期版 |  [J 裁决](logs/reviews/verdict/2026-09-06f_J_crossreview_claude.md) · [E-a′ 裁决](logs/reviews/verdict/2026-09-06g_Ea2_crossreview_claude.md) · [E-a′ 派工单](logs/reviews/request/2026-09-06d_Ea2_source_contract_dispatch.md) · [E-a′ 交件](logs/reviews/execution/2026-09-06d_Ea2_source_contract_execution.md) |
 | **2026-09-06 第六程** | ✅ **A-11「gt 按 1 mm 规整入库」合并**（Claude 审 `APPROVE-WITH-FINDINGS/阻断0/不阻断2`；⭐ 三条复核全过，含**换同形输入仍走不通**）⇒ **权威全量 `3863`**（逐位闭合 `3863+2+13=3878` = 独立 collect，差额 0）· ✅ **A-6 刻度认领整条线合并**（先判 `REWORK/阻断2`：**阻断①** 删句留下的接线缺口只活在散文里〔`grep src/agent/pipeline.py` 零命中〕**已由主控销账进 `plan.md` E-a-1/2/3**；**阻断②** = ⭐⭐⭐ **`submit()` 检查了、`consume()` 没对称重做** ⇒ 倒置的假区间静默流进洞口几何）⇒ **权威全量 `3907`**（`3863+27+17`，逐位闭合 `3907+2+13=3922` 差额 0）· ⭐⭐⭐ **本程方法论收获：返工题从【修这个例子】提到【枚举这一类】** —— 复核方按症状只找到 1 个洞，逐项枚举找出**另外 6 个** `consume()` 从未重做的检查；复核方再用**两套互不依赖口径**（逐行标号 / 具名 code 集合求差集）独立枚举，**零遗漏零多余** · ⛔ **A-6-d1** 防御深度不对称（PLAN 侧有第二层拦截、ELEVATION 侧没有；主锁若被未来重构削弱，只有 PLAN 侧会红）· ⭐⭐ **正面发现**：`__class__` 重赋值被**逐字节内容比对**（⛔ 不是 `isinstance`）挡住、比 B2 更强；`freeze()` canonical 无坍缩 · ⭐⭐⭐ **分段提交正面证明**：astra 三次撞 provider 容量**都在活干完之后**，只丢 commit、**一行代码没丢**（⭐ 容量≠额度，探针可续）· ⛔ **A-11-d2** `SM25_DEFERRED_CAVITY_COUNT=4` 被反例坐实是**代理量** · ⚠️ 两坑：`codex exec resume` **静默把 effort 降到 `low`** · 五个启动器缺 `+x` 致文档写死的调用路径从未成立 · ⭐ **挡路新单 5 → 2**（只剩 E-a / J-判分改造，且都无前置阻塞）|  [A-11 裁决](logs/reviews/verdict/2026-09-05l_A11_rework1_crossreview_claude.md) · [A-6 裁决](logs/reviews/verdict/2026-09-05m_A6_tick_claim_block_crossreview_claude.md) · [A-6 返工单](logs/reviews/request/2026-09-06a_A6_rework1_dispatch.md) · [A-6 返工裁决](logs/reviews/verdict/2026-09-06b_A6_rework1_crossreview_claude.md) · [独立枚举](logs/experiments/2026-09-06b_A6_rework1_crossreview_claude/independent_submit_consume_enumeration.md) · [权威全量](logs/experiments/2026-09-06_authoritative_suite/README.md) |
 | **2026-09-05 第五程** | ⭐⭐ **模型家族扩编**（GPT 最高档=`gpt-6-astra`，⛔ 要 CLI ≥0.153 已升 0.153.4 · GLM 新增 `glm-5.3-flash`，⭐ **识图 6/6 全对而 `glm-5.3` 静默降级**、`glm-5v-turbo` 被套餐挡死）· ✅ **B2 返工 3 合并**（Claude 审 `APPROVE/阻断0`，⭐ **五条自造攻击里三条绕过入口封印、全被出口全检接住**）⇒ **权威全量 `3850`**（逐位闭合 `3819+31`）· ⛔ **设计稿返工 1 被 astra 判 REWORK/阻断5**（⭐ 实测 6 条自动一档边落在非主链、构造不出 `node_ref`；链前置门只验总长；`ArtifactPointerV1` 非 frozen）· ⭐⭐ **主控自查**：J-6 四条里**三条是过期账**、F-89 转为 J-3 验收项（新判分器**零立面维度**）⇒ 挡路单 6→5；A-11 量出 **74 个非 1 mm 值**、**用户拍板走乙**（转换器加规整，⛔ 不做 74 条人签）· ⛔ 自错两条：`.gitignore` 静默吞证据 · 跑测途中启席位翻 `.pth` | [B2 裁决](logs/reviews/verdict/2026-09-05d_B2_rework3_crossreview_claude.md) · [设计稿裁决](logs/reviews/verdict/2026-09-05e_tick_claim_design_rework1_crossreview_gpt.md) · [自查读数](logs/experiments/2026-09-05g_orchestrator_readouts/README.md) · [名册探针](logs/experiments/2026-09-05_model_roster_probe/README.md) |
 | **2026-09-05 收工（第四程）** | ⭐⭐⭐ **用户把洞口对齐 / correction 目标态整条口径拍定**（尺寸链优先·像素只作指认 · 证据两档都出值 · 四分类 · 两步各跑一遍三拍 · **gt 1 mm / pipeline 出口 10 mm / 存 0.1 mm 整数** · `GAP_*` 与基准差降级为**给模型的参考** · **判分入闸：第一次跑=跑通＋判出分**）⇒ 全档进 [指南 §十四/§十五](guides/reading_correction_split_guide.md) · ⭐⭐ **主控实测**：立面 68 条洞口边 66 条 ≤34 mm、认领后宽度**全变图纸整数**，平面侧弱（102 个端点仅 44 个）⇒ **两侧不对称是结构性的**；B4 配对**零生产调用者**；gt 侧 1 mm **尚未落地** · ✅ **T4-a 合并**（GLM 审 `APPROVE/阻断0`），**权威全量 `3819 passed / 0 failed`**（`3778+3+28+10`，`.pth` 前后同值）· ⏳ B2 返工3 与设计稿返工1 待审 · ⭐⭐⭐ **四条线的阻断是同一形状：判据量的是【代理量】**（`isinstance`≠过了字节门 · 像不像活键≠能否解析成功 · 链节点≠链能给出的值）⇒ 有效解只有**类型层不存在** / **出口全检** · ⛔ 派工方错：**建树基点早于自己当天写的口径**，靠跨家族审的 delta 核对救回 · ⚠️ **GPT 席位被 provider 安全过滤拦死两次**、零产出 | [T4-a 裁决](logs/reviews/verdict/2026-09-05c_T4a_rework2_crossreview_glm.md) · [设计稿裁决](logs/reviews/verdict/2026-09-04y_tick_claim_design_crossreview_gpt.md) · [B2 裁决](logs/reviews/verdict/2026-09-04p_B2_rework2_crossreview_gpt.md) · [排期盘面](plan.md) |
