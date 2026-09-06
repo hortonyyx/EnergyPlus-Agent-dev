@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 from decimal import Decimal, ROUND_HALF_UP
 import json
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -17,11 +18,11 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.facade_convention import world_axis
 from src.agent.correction.opening_synthesis import (
-    ElevationSourceIdentity, synthesize_openings,
+    synthesize_current_openings,
 )
 from src.agent.correction.projection_bridge import CutLineV1
 from src.agent.correction.tick_claim import (
-    TickClaimError, TickSession, digest, freeze, units,
+    PLAN_V2_SCHEMA, TickClaimError, TickSession, digest, freeze, units, require_v2_plan,
 )
 
 FAMILIES = frozenset(("South", "North", "East", "West"))
@@ -45,6 +46,27 @@ class FacadeInput:
     expected_batch_id: str | None
     mirrored: bool | None = None
     local_x_positive: str | None = None
+
+
+class PlanCandidateChoice(BaseModel):
+    """Model accounting for every native face gap; no implicit deduplication.
+
+    `bind` names a window to assemble; doors and undecided gaps can be registered
+    without manufacturing a WindowV3. `same_opening` is explicit model identity,
+    checked against the already selected wall, never inferred from overlap.
+    """
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    candidate_id: str
+    action: Literal["bind", "same_opening", "not_opening", "register"]
+    target_id: str | None = None
+    reason: str
+
+    @model_validator(mode="after")
+    def shape(self):
+        if ((self.action == "same_opening") != (self.target_id is not None)
+                or not self.reason.strip()):
+            raise ValueError("PLAN_CANDIDATE_CHOICE_SHAPE")
+        return self
 
 
 class InferredDimensions(BaseModel):
@@ -120,15 +142,8 @@ class SpatialResult:
 
 
 def _elevation_document(session: TickSession, expected: str) -> dict:
-    facts = {f.edge_id: f for f in session.consume(expected)}
-    doc = json.loads(session.packet.source_bytes)
-    if doc["schema"] != "as_drawn_elevation_v0":
-        raise TickClaimError("ELEVATION_TICK_SOURCE_REQUIRED")
-    for opening in doc["openings"]:
-        oid = opening["id"]
-        for axis, names in (("x", ("x0", "x1")), ("z", ("z_low", "z_high"))):
-            opening[f"{axis}_range_m"] = [facts[f"{oid}:{n}"].value_u / 10000 for n in names]
-    return doc
+    # A-6-d1's symmetric consumer guard lives on this current-session method.
+    return session.elevation_document(expected)
 
 
 class OpeningReview:
@@ -139,13 +154,15 @@ class OpeningReview:
     """
     def __init__(self, *, plan: TickSession, expected_plan_batch_id: str,
                  bindings: tuple[PlanBinding, ...], facades: tuple[FacadeInput, ...],
-                 walls: tuple[CutLineV1, ...]):
+                 walls: tuple[CutLineV1, ...], candidate_choices: tuple[PlanCandidateChoice, ...] = (),
+                 wall_compilation=None, geometry=None, floor_id: str | None = None):
         bindings, facades, walls = tuple(bindings), tuple(facades), tuple(walls)
         if (type(plan) is not TickSession or any(type(f) is not FacadeInput for f in facades)
                 or any(type(b) is not PlanBinding for b in bindings)):
             raise TickClaimError("TICK_SESSION_REQUIRED")
         plan_doc = json.loads(plan.packet.source_bytes)
-        if plan_doc["schema"] != "as_drawn_plan_v0":
+        self._native = plan_doc["schema"] == PLAN_V2_SCHEMA
+        if not self._native and plan_doc["schema"] != "as_drawn_plan_v0":
             raise TickClaimError("PLAN_TICK_SOURCE_REQUIRED")
         self._plan, self._plan_batch = plan, expected_plan_batch_id
         self._facades, self._walls = facades, walls
@@ -154,12 +171,20 @@ class OpeningReview:
         self._precision_u = units(Decimal(str(load_core_tolerances().output_precision_m)) * 1000)
         facts = {f.edge_id: f for f in plan.consume(expected_plan_batch_id)}
         expected_ids = {eid[:-3] for eid in facts if eid.endswith(":lo")}
+        native_record = None
+        self._geometry_bytes, self._floor_id = None, floor_id
+        if self._native:
+            expected_ids, native_record = self._native_scope(
+                plan, bindings, walls, candidate_choices, wall_compilation, geometry, floor_id,
+                expected_ids)
+        elif candidate_choices or wall_compilation is not None or geometry is not None:
+            raise TickClaimError("NATIVE_PLAN_SOURCE_REQUIRED")
         if len({b.opening_id for b in bindings}) != len(bindings) or {b.opening_id for b in bindings} != expected_ids:
             raise TickClaimError("PLAN_TOPOLOGY_COVERAGE_MISMATCH")
         if len(facades) != len(FAMILIES) or {f.family for f in facades} != FAMILIES:
             raise TickClaimError("FACADE_AVAILABILITY_MANIFEST_INCOMPLETE")
         wall_index = {w.origin_id: w for w in walls}
-        if len(wall_index) != len(walls):
+        if not self._native and len(wall_index) != len(walls):
             raise TickClaimError("WALL_ID_DUPLICATE")
         self._plans = {}
         for binding in bindings:
@@ -179,6 +204,8 @@ class OpeningReview:
             self._plans[oid] = replace(binding.line,
                                       along_lo_m=facts[f"{oid}:lo"].value_u / 10000,
                                       along_hi_m=facts[f"{oid}:hi"].value_u / 10000)
+            if self._native:
+                self._require_visible(binding, (facts[f"{oid}:lo"].value_u, facts[f"{oid}:hi"].value_u))
         self._elevations, self._exact, self._availability = {}, {}, {}
         facade_records = []
         image_ids = {plan.packet.image_id}
@@ -195,14 +222,11 @@ class OpeningReview:
             doc = _elevation_document(facade.session, facade.expected_batch_id)
             if doc["facade_label"] != facade.family:
                 raise TickClaimError("FACADE_SOURCE_FAMILY_MISMATCH")
-            result = synthesize_openings(
-                elevation_doc=doc, walls=walls,
+            result = synthesize_current_openings(
+                session=facade.session, expected_batch_id=facade.expected_batch_id, walls=walls,
                 plan_openings=tuple(self._plans[b.opening_id] for b in bindings if b.family == facade.family),
                 mirrored=facade.mirrored, local_x_positive=facade.local_x_positive,
-                elevation_source=ElevationSourceIdentity(
-                    input_id=facade.session.packet.image_id,
-                    source_contract_id=doc["schema"],
-                    source_output_sha256=facade.session.packet.source_sha))
+                historical=not self._native)
             # B4 exact equality remains unchanged. Keep all openings, even unmatched.
             for opening in doc["openings"]:
                 world = [result.along_origin_u + result.sign * units(Decimal(str(x)) * 1000)
@@ -225,8 +249,89 @@ class OpeningReview:
                        facades=facade_records,
                        openings=[dict(family=k[0], opening_id=k[1], span_u=v[0], z_u=v[1])
                                  for k, v in sorted(self._elevations.items())], exact=self._exact)
+        if self._native:
+            payload["native_plan"] = native_record
         record = freeze(payload)
         self._packet = SpatialPacket(digest(record), record)
+
+    def _native_scope(self, plan, bindings, walls, choices, compilation, geometry, floor_id, all_ids):
+        from src.agent.correction.wall_compiler import WallCompilationV1, FixedDecisionV1, compile_wall_ir
+        from src.agent.correction.projection_bridge import cut_lines_from_wall_compilation
+        from src.agent.correction.schema import CorrectedGeometryV3
+        from src.agent.correction.facade_visibility import materialize_floor_facade_segments, VisibilityTolerances
+
+        doc = require_v2_plan(plan.packet.source_bytes, image_id=plan.packet.image_id)
+        artifact = plan.evidence_artifact()
+        if type(compilation) is not WallCompilationV1:
+            raise TickClaimError("PLAN_WALL_COMPILATION_REQUIRED")
+        rebuilt = compile_wall_ir(artifact, profile="strict", decisions=tuple(
+            FixedDecisionV1(item_id=d.item_id, candidate_id=d.candidate_id)
+            for d in compilation.applied_decisions))
+        if rebuilt.model_dump() != compilation.model_dump() or rebuilt.open_items:
+            raise TickClaimError("PLAN_WALL_COMPILATION_NOT_CURRENT")
+        expected_walls, _ = cut_lines_from_wall_compilation(rebuilt.walls, ())
+        if tuple(walls) != expected_walls:
+            raise TickClaimError("PLAN_WALL_LINES_NOT_FROM_SOURCE")
+        if type(geometry) is not CorrectedGeometryV3:
+            raise TickClaimError("OPENING_GEOMETRY_REQUIRED")
+        geom = CorrectedGeometryV3.model_validate(geometry.model_dump())
+        floors = [f for f in geom.floors if f.id == floor_id]
+        if len(floors) != 1:
+            raise TickClaimError("OPENING_FLOOR_UNKNOWN")
+        floor = floors[0]
+        self._geometry_bytes = freeze(geom.model_dump(mode="json"))
+        self._floor_origin_u = units(Decimal(str(floor.z_floor)) * 1000)
+        self._floor_top_u = self._floor_origin_u + units(Decimal(str(floor.ceiling_height)) * 1000)
+        tol = load_core_tolerances()
+        self._visible_segments = materialize_floor_facade_segments(geom, floor, tolerances=VisibilityTolerances(
+            depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m))
+        choices = tuple(PlanCandidateChoice.model_validate(c.model_dump()) for c in choices)
+        by_id = {c.candidate_id: c for c in choices}
+        if len(by_id) != len(choices) or set(by_id) != all_ids:
+            raise TickClaimError("PLAN_CANDIDATE_DECISION_COVERAGE_MISMATCH")
+        primary = {c.candidate_id for c in choices if c.action == "bind"}
+        owners = {r.observation_id: w.wall_id for w in rebuilt.walls for r in w.source_refs}
+        openings = {o["id"]: o for o in doc["hypotheses"]["opening_candidates"]}
+        # Wall ownership is derived from the source's selected pairs/four buckets
+        # through the existing compiler, not from a second pairing algorithm.
+        for binding in bindings:
+            if binding.opening_id not in primary:
+                raise TickClaimError("PLAN_TOPOLOGY_COVERAGE_MISMATCH")
+            face = openings[binding.opening_id]["face_line"]
+            if owners.get(face) != binding.wall_id:
+                raise TickClaimError("PLAN_HOST_NOT_SELECTED_SOURCE_WALL", binding.opening_id)
+            if (binding.room_id not in {c.id for c in floor.cells}
+                    or binding.floor_origin_u != self._floor_origin_u):
+                raise TickClaimError("PLAN_ROOM_FLOOR_BINDING_MISMATCH", binding.opening_id)
+            # This output carrier is WindowV3. A declared door is registered,
+            # not silently turned into a window by the assembly code.
+            if (doc["hypotheses"].get("opening_types") or {}).get(binding.opening_id) != "window":
+                raise TickClaimError("PLAN_WINDOW_CLASSIFICATION_REQUIRED", binding.opening_id)
+        for choice in choices:
+            if choice.action != "same_opening":
+                continue
+            face = openings[choice.candidate_id]["face_line"]
+            target = openings.get(choice.target_id)
+            if (choice.target_id not in primary or target is None or owners.get(face) is None
+                    or owners.get(face) != owners.get(target["face_line"])):
+                raise TickClaimError("PLAN_ALIAS_NOT_SAME_SELECTED_WALL", choice.candidate_id)
+        return primary, dict(source_artifact=artifact.bundle.source_artifacts[0].model_dump(),
+                             compilation_sha=rebuilt.content_sha256, floor_id=floor_id,
+                             geometry_sha=digest(self._geometry_bytes),
+                             candidate_choices=[c.model_dump() for c in choices],
+                             source_hypotheses=doc["hypotheses"],
+                             source_declarations=doc["declarations"])
+
+    def _require_visible(self, binding, span_u):
+        axis = world_axis(binding.family)
+        lo, hi = (v / 10000 for v in span_u)
+        across = 1 if axis == "x" else 0
+        for segment in self._visible_segments:
+            if (segment.facade_family == binding.family and segment.p1[across] == binding.line.pos_m
+                    and any(v.lo <= lo < hi <= v.hi for v in segment.visible_intervals)):
+                return
+        raise TickClaimError("OPENING_HOST_NOT_VISIBLE", binding.opening_id)
 
     @property
     def packet(self) -> SpatialPacket:
@@ -298,6 +403,10 @@ class OpeningReview:
             else:
                 classification = "②b" if exists else "③"
                 span = None  # registration creates no opening geometry
+            if self._native and span is not None:
+                self._require_visible(binding, span)
+                if z is not None and not self._floor_origin_u <= z[0] < z[1] <= self._floor_top_u:
+                    raise TickClaimError("OPENING_FLOOR_HEIGHT_MISMATCH", oid)
             if response.whole_building_review == "register":
                 status, eligible = "registered_whole_building_review", False
             outcomes.append(OpeningOutcome(oid, family, classification, status, binding.wall_id,
@@ -319,3 +428,40 @@ class OpeningReview:
         """Current-batch export excludes guesses and pending decisions."""
         result = self.consume(expected_result_id)
         return tuple(r for r in json.loads(result.record)["outcomes"] if r["score_eligible"])
+
+    def assemble_geometry(self, geometry, expected_result_id: str):
+        """Only live review authority can add windows to the frozen base geometry."""
+        from src.agent.correction.schema import CorrectedGeometryV3, WindowV3
+        result = self.consume(expected_result_id)
+        rows = self.scoreable_openings(expected_result_id)
+        if not self._native or freeze(geometry.model_dump(mode="json")) != self._geometry_bytes:
+            raise TickClaimError("OPENING_GEOMETRY_NOT_REVIEWED")
+        geom = CorrectedGeometryV3.model_validate(geometry.model_dump())
+        if any(w.floor_id == self._floor_id for w in geom.windows):
+            raise TickClaimError("OPENING_GEOMETRY_ALREADY_POPULATED")
+        for row in rows:
+            geom.windows.append(WindowV3(
+                id=f"{self._floor_id}:{row['plan_opening_id']}", floor_id=self._floor_id,
+                facade=row["family"], room=row["room_id"],
+                span=[v / 10000 for v in row["span_u"]], z=[v / 10000 for v in row["z_u"]]))
+        geom.corrections.append(dict(kind="opening_adjudication", result_id=result.result_id,
+                                     packet_id=self.packet.packet_id,
+                                     outcomes=json.loads(result.record)["outcomes"],
+                                     native_plan=json.loads(self.packet.record)["native_plan"]))
+        return CorrectedGeometryV3.model_validate(geom.model_dump())
+
+    def persist(self, directory: Path, expected_result_id: str):
+        result = self.consume(expected_result_id)
+        directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=True)
+        self._plan.persist(directory / self._plan_batch, self._plan_batch)
+        for facade in self._facades:
+            if facade.session is not None:
+                facade.session.persist(directory / facade.expected_batch_id, facade.expected_batch_id)
+        for name, raw in (("spatial_packet.json", self.packet.record), ("spatial_result.json", result.record)):
+            path = directory / name
+            if path.exists() and path.read_bytes() != raw:
+                raise TickClaimError("OPENING_ARCHIVE_IMMUTABLE", name)
+            if not path.exists():
+                with path.open("xb") as stream:
+                    stream.write(raw)

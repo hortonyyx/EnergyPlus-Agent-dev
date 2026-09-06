@@ -1006,7 +1006,7 @@ def _require_lines(
 
 
 # ── the synthesis itself ────────────────────────────────────────────────────── #
-def synthesize_openings(
+def _synthesize_checked_document(
     *,
     elevation_doc: dict,
     walls: Sequence[CutLineV1],
@@ -1239,6 +1239,43 @@ def synthesize_openings(
     )
 
 
+def synthesize_openings(*, elevation_doc: dict, walls: Sequence[CutLineV1],
+                        plan_openings: Sequence[CutLineV1], mirrored: bool,
+                        local_x_positive: str, evidence_debts: Sequence[EvidenceDebtV1] = (),
+                        elevation_source: ElevationSourceIdentity | None = None) -> OpeningSynthesisV1:
+    """Historical low-level dict API; production callers use current tick sessions."""
+    return _synthesize_checked_document(
+        elevation_doc=elevation_doc, walls=walls, plan_openings=plan_openings,
+        mirrored=mirrored, local_x_positive=local_x_positive,
+        evidence_debts=evidence_debts, elevation_source=elevation_source)
+
+
+def synthesize_current_openings(*, session, expected_batch_id, walls, plan_openings,
+                                mirrored, local_x_positive, historical=False):
+    """B4's production entry: current numbers and independently checked identity.
+
+    Historical tick sessions can still be reviewed, but without a declared
+    evidence artifact they redeem NO debt. Identity is never hand-assembled
+    from the caller's image name or the edited preview document.
+    """
+    from src.agent.correction.tick_claim import TickClaimError, TickSession
+    if type(session) is not TickSession:
+        raise TickClaimError("TICK_SESSION_REQUIRED")
+    doc = session.elevation_document(expected_batch_id)
+    identity, debts = None, ()
+    if not historical:
+        artifact = session.evidence_artifact()
+        meta = artifact.bundle.source_artifacts[0]
+        identity = ElevationSourceIdentity(
+            input_id=meta.input_id, source_contract_id=meta.source_contract_id,
+            source_output_sha256=meta.source_output_sha256)
+        debts = tuple(artifact.bundle.evidence_debts)
+    return _synthesize_checked_document(
+        elevation_doc=doc, walls=walls, plan_openings=plan_openings,
+        mirrored=mirrored, local_x_positive=local_x_positive,
+        evidence_debts=debts, elevation_source=identity)
+
+
 __all__ = [
     "DECLARED_GRID_UNITS_PER_M",
     "DEBT_REDEMPTION_REGISTRY",
@@ -1256,4 +1293,5 @@ __all__ = [
     "redemption_row_for_premise",
     "span_equality_gate",
     "synthesize_openings",
+    "synthesize_current_openings",
 ]

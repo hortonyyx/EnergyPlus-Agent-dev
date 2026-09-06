@@ -1344,6 +1344,30 @@ def run_correction_evidence_chain(
     return outcome
 
 
+def run_opening_adjudication(geometry, *, review, expected_result_id: str,
+                             out_dir: Path, profile: str = "strict"):
+    """Assemble CURRENT reviewed openings and persist their complete byte chain.
+
+    This is also the final opening link of run_correction's evidence route.
+    Historical JSON is audit data, not current-session authority. Only a strict
+    result can leave this entry for the judge.
+    """
+    from src.agent.correction.opening_adjudication import OpeningReview
+    from src.agent.correction.tick_claim import TickClaimError
+    if type(review) is not OpeningReview:
+        raise TickClaimError("CURRENT_OPENING_REVIEW_REQUIRED")
+    if profile != "strict":
+        raise TickClaimError("OPENING_JUDGE_STRICT_REQUIRED")
+    # assemble_geometry calls consume/scoreable_openings, including each live
+    # TickSession's independent expected batch ID, before adding any WindowV3.
+    assembled = review.assemble_geometry(geometry, expected_result_id)
+    archive = Path(out_dir) / "opening_batches" / expected_result_id
+    review.persist(archive, expected_result_id)
+    (Path(out_dir) / "opening_geometry.json").write_text(
+        assembled.model_dump_json(indent=2), encoding="utf-8")
+    return assembled
+
+
 def run_correction(
     vector_dir: Path,
     testdata_text: str,
@@ -1364,6 +1388,8 @@ def run_correction(
     evidence_chain_round_budget: int = 3,
     evidence_chain_fixed_responses: "Sequence[CorrectionDecisionResponseV1] | None" = None,
     evidence_chain_level: "object | None" = None,
+    opening_review=None,
+    expected_opening_result_id: str | None = None,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -1399,6 +1425,10 @@ def run_correction(
     from src.agent.correction.parse import correction_target, parse_correction_draw
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     target = target or correction_target(capability_profile)
+    if (opening_review is None) != (expected_opening_result_id is None):
+        raise ValueError("opening review and expected result ID must travel together")
+    if opening_review is not None and not evidence_chain:
+        raise ValueError("opening review requires the evidence-chain route")
     if evidence_chain:
         if evidence_chain_product is None:
             raise ValueError(
@@ -1493,6 +1523,10 @@ def run_correction(
                 f"{Path(out_dir) / _EVIDENCE_CHAIN_PROJECTION_NAME} has "
                 f"{len(envelope.dangling_end_debts)} dangling-end debt(s)"
             )
+        if opening_review is not None:
+            return run_opening_adjudication(
+                envelope.geometry, review=opening_review, expected_result_id=expected_opening_result_id,
+                out_dir=out_dir, profile=evidence_chain_profile)
         return envelope.geometry
     # F-97 (F-c, B-03): classify and FILE THE LEDGER FIRST -- before the reading
     # evidence preflight below, which parses `*_view.json` and dies on a

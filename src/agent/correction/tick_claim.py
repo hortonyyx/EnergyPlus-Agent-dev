@@ -618,6 +618,20 @@ class TickSession:
                     stream.write(raw)
         verify_tick_archive(directory, expected_batch_id=expected_batch_id)
 
+    def elevation_document(self, expected_batch_id: str) -> dict:
+        facts = {f.edge_id: f for f in self.consume(expected_batch_id)}
+        doc = json.loads(self.packet.source_bytes)
+        if doc["schema"] != "as_drawn_elevation_v0":
+            raise TickClaimError("ELEVATION_TICK_SOURCE_REQUIRED")
+        for opening in doc["openings"]:
+            for axis, names in (("x", ("x0", "x1")), ("z", ("z_low", "z_high"))):
+                values = [facts[f"{opening['id']}:{n}"].value_u for n in names]
+                # A-6-d1: the same consumer-side lo<hi guard as the plan side.
+                if values[0] >= values[1]:
+                    raise TickClaimError("TICK_ELEVATION_INTERVAL_NOT_ORDERED", opening["id"])
+                opening[f"{axis}_range_m"] = [v / 10000 for v in values]
+        return doc
+
     @property
     def packet(self) -> TickPacket:
         return self._packet
