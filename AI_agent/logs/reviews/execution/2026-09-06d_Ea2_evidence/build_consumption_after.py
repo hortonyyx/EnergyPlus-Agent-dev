@@ -1,0 +1,132 @@
+"""Render the complete before/after inventory without dropping deferred fields."""
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+paths = json.loads((HERE / 'field_paths.json').read_text())
+
+
+def row(p):
+    if p == 'schema':
+        return ('生产类型、分类器、TickSession 原生分支',
+                '已消费；导入 schema.SCHEMA；require_v2_plan 复用原分类器，缺 hypotheses 走已命名拒绝',
+                '非免消费；不匹配、畸形注册值或歧义均不能借 legacy 键回退；分类器公开行为未改。')
+    if p in ('image', 'image_label'):
+        return ('reading 图像声明；bundle 身份绑定；审计',
+                '原字段保留；image 参与补件同源检查；运行身份由 from_artifact 取 source_artifacts[0]，不是标签',
+                '标签结构上不决定几何；错误标签留在源 bytes，当前无图像内容真伪检查；不能替换 bundle 的 input_id/source_output_sha256。')
+    if p == 'declarations':
+        return ('reading 声明、刻度表达式及墙编译器',
+                '已分项消费尺寸链和厚度；完整声明同时写入 native_plan/source_declarations',
+                '非整体免消费；执行操作数由 TickSession 核原点/方向/正段/闭合/源哈希；图框等非操作数的语义缺口见各子行。')
+    if p.startswith('declarations.chains') and not p.endswith('.ref_coord_m'):
+        return ('tick_claim._native_chains、evaluate；刻度认领模型',
+                '已原生取链 ID、axis、direction、values_mm、world_start_mm；计算前缀和供模型选节点，无墙配对转换',
+                '非免消费；缺链、错轴/方向、非正段、未闭合或跨源引用由命名 TickClaimError 接住；候选近邻不会自动成为事实。')
+    if p == 'declarations.thickness_callouts_mm':
+        return ('墙编译器的模型候选；刻度 full/half-wall 表达式',
+                '已消费；原生 JSON pointer + source_sha 定位完整厚度；只有显式表达式/模型决策才用于算术',
+                '非免消费；域/索引/哈希/正厚度/半厚网格检查在 evaluate；不按厚度另配墙；原文字是否读对仍由 reading/模型负责。')
+    if p.startswith('declarations.'):
+        return ('reading 定标/转录；模型复核声明',
+                '结构上不直接产生洞口端点；完整保留在源 bytes 与 native_plan/source_declarations',
+                '错误图框、声明零点、ref_coord 或备注可进审计；本链不重做像素定标，也不验证这些 Any 字段真伪。坐标只取经认领的源 *_m/带链身份的操作数。')
+    if p == 'hypotheses':
+        return ('证据适配器、墙编译器、TickSession、OpeningReview',
+                '已消费并完整留在空间复核 packet；选中对、四桶、逐 gap 裁决各有门',
+                '非免消费；源契约门与全引用/全处置门先行；每个候选须 bind/same_opening/not_opening/register，不能静默漏项。')
+    if any(p.startswith('hypotheses.' + b) for b in (
+            'non_wall_face_lines', 'unpaired_wall_faces', 'solid_band_walls', 'ambiguous_face_lines')):
+        return ('证据适配器、现有墙编译器；洞口宿主判定',
+                '已消费四类处置；strict 重编译并比较完整结果及 wall cut lines；通过 source_refs 找候选面所属墙',
+                '非免消费；引用/重复/覆盖在证据门，未解 open_items 在 OpeningReview 拦截；不成墙的面不能冒充已选宿主，理由文本只保留不猜义。')
+    if p.startswith('hypotheses.family_roles'):
+        return ('reading 感知模型；洞口模型复核墨色角色',
+                '结构上不按色彩统计直接生成窗；完整传入 native_plan/source_hypotheses 供复核',
+                '这是生产类型登记的 deferred Any；坏值仍能进入复核 packet，无本链语义拦截。代码不按此字段分类/重配；实体必须有显式候选处置，窗还须源 opening_types=window。')
+    if p.startswith('hypotheses.opening_candidates') and p != 'hypotheses.opening_candidates_basis':
+        if '.ink_by_family' in p or p.endswith(('.len_m', '.len_px')):
+            return ('reading 量具、刻度/洞口复核模型；require_v2_plan 核冗余副本',
+                    '已核类型并逐项比较被引用 face.gaps 的同名值；墨迹进 Edge.witness 与 native_plan，长度不替代端点',
+                    '不以统计阈值生成洞口；两份同时伪造的同值测量仍可到模型，当前不重采像素。几何宽度来自被认领两端，不把 len_m/墨色当答案。')
+        return ('TickSession 原生边全集；OpeningReview 候选/宿主/身份裁决',
+                '已逐候选读 id、face_line、gap_index、span_m；两端保留原生 pointer；全 gap 一一覆盖；逐项模型处置',
+                '非免消费；未知面/索引由证据门，重复/漏 gap、副本漂移、倒区间由 TickSession；宿主仅取选中墙，别名必须显式指定同墙 primary。')
+    if p in ('hypotheses.opening_types', 'hypotheses.opening_types.*'):
+        return ('感知模型的门/窗/非洞口命名；实体裁决',
+                '已消费；未知 candidate ID 拒绝；bind 输出 WindowV3 要求源类型 window；其他候选显式登记/判非洞口',
+                '非免消费；PLAN_WINDOW_CLASSIFICATION_REQUIRED 拦未定类型/门冒充窗；本载体不装配门。模型语义误判不是代码用尺寸/墨色阈值补判。')
+    if p.startswith('hypotheses.pair_candidates') and p != 'hypotheses.pair_candidates_basis':
+        return ('证据适配器核完整候选图；模型复核备选',
+                '已遍历全部端点引用；类型门覆盖每条候选；选中项与候选测量逐项相等；全图进 native_plan',
+                '结构上不从候选图生成配对；未知面由证据门接住，数值仅作复核提示。未选候选的像素统计真伪不在本链重测；本链不增加选择阈值、不自动重配。')
+    if p == 'hypotheses.pairs_status':
+        return ('TickSession 与 OpeningReview 原生入口',
+                '已消费；只有非空 pairs 且状态 SELECTED 能继续',
+                '非免消费；TICK_PLAN_MODEL_SELECTION_REQUIRED 即时拒绝缺席、空或未完成，不把它们当零墙。')
+    if p.startswith('hypotheses.pairs') and p != 'hypotheses.pairs_note':
+        return ('证据适配器读取模型选中对；原有墙编译器与宿主绑定',
+                '已消费原生选中对；副本除 source 外须与候选完全相等；墙面 source_refs 绑定 gap，墙宽由面位置重算',
+                '非免消费；悬空/异轴/重复/处置不闭合由证据门；选中副本漂移在 TickSession 拦截；spacing/overlap/厚度标签不驱动新配对；来源文字真伪无代码判官。')
+    if p.startswith('hypotheses.'):
+        return ('源审计；洞口裁决模型理解方法与来源',
+                '结构上不解释自然语言生成几何；这些 basis/source/note 字段完整进入 native_plan/source_hypotheses',
+                '坏备注可进复核 packet，当前无自然语言真伪门；任何备注都不能绕过 SELECTED、宿主、逐候选处置、当前批次及端点操作数校验。')
+    if p.startswith('ledger'):
+        return ('reading 账目审计；裁决核实际集合',
+                '结构上不取汇总生成洞口；保留原 bytes；实际候选/面/墙集合另行遍历、闭合',
+                '错误汇总仍留在冻结源，无专门 ledger 语义拦截；不能控制候选全集或批次 ID；不得以这些计数替代实际集合，这一 Any 缺口明确保留。')
+    if p == 'observations':
+        return ('生产类型/证据门；墙编译器；TickSession',
+                '已读 face_lines 及 calibration；dimension_witnesses 留作提示；所有通道源 bytes 一起归档',
+                '非整体免消费；几何与引用由下列具体门接住；palette/components 等 deferred 通道不因已保存就被宣称验证。')
+    if p.startswith('observations.calibration'):
+        math_fields = ('values_mm', 'cum_mm', 'overall_mm')
+        if p.endswith(math_fields) or p in ('observations.calibration', 'observations.calibration.x', 'observations.calibration.y'):
+            return ('reading 定标；TickSession._chain_records/require_chain',
+                    '已消费原生 observations.calibration；对含 values_mm 的链重做正段、域长、总长和前缀和闭合',
+                    '非整体免消费；坏算术链走命名拒绝；权威可选节点取保留 ID 的 declarations.chains，不能拿无链 ID 的测量映射代替。未带 values_mm 的遥测对象仅保留。')
+        return ('reading 像素定标；模型对测量质量的复核',
+                '结构上不重拟合像素坐标；原字段在 source.bin 原样保存，原点/方向权威来自 declarations.chains',
+                '坏残差/比例/匹配点等可进入源审计，当前不重做 reading 量具校验；它们不升级 evidence tier，pixel_only 仍由显式认领与既有输出网格约束。')
+    if p.startswith('observations.dimension_witnesses'):
+        return ('刻度认领模型的测量提示；不能代替有链 ID 的操作数',
+                '已将完整原生 map 放入各 Edge.witness；不从丢失 chain ID 的映射反推节点身份',
+                '结构上不直接用于 evaluate；坏 map 可到模型提示，当前无 map 语义门；可执行候选只从 declarations.chains 与源哈希定位，模型仍须逐端认领。')
+    if p.startswith('observations.face_lines'):
+        suffix=p.removeprefix('observations.face_lines[]')
+        if '.gaps' in suffix:
+            if suffix.endswith(('.lo_px', '.hi_px')):
+                return ('reading 空档量具；模型像素复核',
+                        '类型已核；原字段保留在源 bytes；本链不由像素边另算洞口米坐标',
+                        '结构上不重复量像素；两像素端的真伪仍到 reading/模型，当前无重测拦截；候选端点须与源 gap.span_m 一致并通过 lo<hi。')
+            return ('证据门核 gap 索引；TickSession 核候选副本与全 gap 覆盖',
+                    '已消费 gap 容器及 span_m/len_m/len_px/ink_by_family；所有 gap 必须恰有一个候选且副本相等',
+                    '非整体免消费；错索引、漏 gap、重复、漂移、倒区间分别命名拒绝；墨迹数字共同误测不会被本链重采像素发现，进入模型提示而非阈值分类。')
+        if suffix in ('', '.id', '.axis', '.constant_world_axis', '.pos_m', '.edges_m', '.runs_m', '.runs_m[]') or p == 'observations.face_lines':
+            return ('证据引用门、墙编译器；TickSession 的世界轴与宿主绑定',
+                    '已消费；完整面索引与选中对/四桶闭合；墙编译器读面位置/边/段，TickSession 由 constant_world_axis 取沿线轴',
+                    '非免消费；重复/悬空/异轴引用由证据门，未解墙决策及非本源 cut lines 在 Review 拦截；轴或位置误测仍可能保持内部一致，本链不替 reading 重测。')
+        return ('reading 像素量具；证据引用及墙复核审计',
+                '生产类型逐字段核形状；适配器保留 support_cols_px/runs_px 等证据指针；源 bytes 完整落盘',
+                '结构上不靠覆盖率/像素宽阈值配墙或分类；这些测量的真伪及跨字段数值关系不在本链全面重算，坏值可到证据/模型审计；墙宿主仍受选中对和处置门约束。')
+    if p.startswith(('observations.ink_palette', 'observations.components_by_family')):
+        return ('reading 墨迹分组量具；感知模型的测量背景',
+                '结构上不据调色板/连通域生成洞口；原样保存在 TickPacket/source.bin，未把保存冒充语义消费',
+                '生产类型已登记 deferred Any；坏值可进源审计，当前无本链语义拦截。代码不取颜色/形状阈值判墙判窗，gap 的墨迹副本另见逐项复核行。')
+    raise AssertionError(('unclassified field', p))
+
+
+header = '''# E-a′ 施工后完整消费对照表
+
+202 行，逐项沿用已受理的开工枚举：生产 assemble/schema 与三份真实产物路径并集；含容器，`[]` 是数组元素，`*` 是动态键。每行均区分执行取数、模型提示和仅保留；「当前无语义拦截」是明示缺口，不算已闭环。生产类型的 DEFERRED_CHANNELS 没有被本单偷偷改成全校验。
+
+代码索引：`tick_claim.require_v2_plan/_native_chains/_raw_edges/from_artifact/persist/verify_tick_archive`；`opening_adjudication.OpeningReview._native_scope/_require_visible/assemble_geometry`；`opening_synthesis.synthesize_current_openings`；`pipeline.run_opening_adjudication/run_correction`。所有枚举字段都随原始 source bytes 入批次哈希并落盘；下表的“模型 packet”只指实际进入 Edge.witness 或 native_plan 的字段，不表示已调用真人/在线模型验证了内容。
+
+| 生产格式的字段 | 谁该消费它 | 现在消费了吗 | 若「结构上不必」——被绕过后坏数据流到哪、谁接住 |
+|---|---|---|---|
+'''
+rows = [f'| `{p}` | ' + ' | '.join(row(p)) + ' |' for p in paths]
+assert len(rows) == len(set(paths)) == 202
+(HERE / 'consumption_after.md').write_text(header + '\n'.join(rows) + '\n', encoding='utf-8')
+print('consumption_after.md: 202 / 202 paths, no missing row')
