@@ -310,16 +310,18 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⚠️ **两处卡用户**：**E-b**（跑 reading 用哪个模型、抽几次）· **G-a**（sm25 gt 人签台账 ——
 > ⭐ **按用户 08-28 定的排在「这批改造完之后」，⛔ 不是现在等签**；理由是「现在属于改造阶段很多都还是测试」）。
 >
-> ### ⑨ ⛔⛔ **E-a 被 A 层停报打回：「这是接线」这个前提不成立**（第 70 次停报，⭐ 又是派工方的题错）
-> 实测**没有任何一份平面产物同时被两边接受**：`sm25_*f_v2.json`（`as_drawn_plan`）pipeline **✅** / A-6 **❌ `TICK_SOURCE_CONTRACT_UNSUPPORTED`**；
-> `sm25_*f_as_drawn.json`（`as_drawn_plan_v0`）pipeline **❌ `EVIDENCE_CHAIN_SOURCE_CONTRACT_UNWIRED`** / A-6 **✅**。
-> ⭐ **已排除「只是标签不同」**：两套洞口全集来源不同路径，**1F 51 对 85、2F 45 对 87，ID 交集均为空**
-> ⇒ **是两个不同的洞口全集**，⛔ 不能改名/按序替换接通。⇒ **这是源契约对齐，⛔ 不是接线**，
-> **下轮开 J 之前先拍**：甲 让 A-6 支持 v2 原 bytes · 乙 把 v0 接进证据链 · 丙 先查清 51 vs 85 的差从哪来。
-> ⛔⛔ **主控一条断言被实测推翻**：我写「A-6 之后立面 `x_range_m` 由链档 mm 值出、不再是像素外推」——**错**，
+> ### ⑨ ⛔⛔ **E-a：停报对（确实不是接线），但停报单的【题面】也错了 —— 09-06 主控实测改写**
+> 停报实测成立：**没有平面产物同时被两边接受**（v2 ⇒ pipeline ✅ / A-6 ❌ `TICK_SOURCE_CONTRACT_UNSUPPORTED`；v0 ⇒ 恰好反过来）。
+> ⛔ **但「两个不同的洞口全集」这个定性被主控自量推翻**：两格式的面线**逐条同一**（1F **49/49**、2F **46/46**，<0.6 px）
+> ⇒ **同一张图的同一次测量**；51 vs 85 是**粒度**差（每堵墙 vs 每条面线，一墙两面）。⭐ **ID 交集为空 ≠ 不同全集**（[[proxy-mistaken-for-the-thing]]）。
+> ⭐⭐⭐ **真病根**（[`vector_contract.py:74-79`](../src/agent/reading/vector_contract.py#L74) 自陈）：**`as_drawn_plan_v0` 唯一产出方是 08-23 实验原型**
+> （`src/` 里 `wall_bands` **只读不写**），而 A-6（`tick_claim.py:317` / `opening_adjudication.py:148`）**只认它**。
+> ⭐ **v2 是严格超集**：`pair_candidates` 374（⛔ 无阈值）+ `pairs` 22（**模型配的**）+ `opening_candidates` 85 + 四类兜底
+> ⇒ 正是[指南 §一](guides/reading_correction_split_guide.md)「配对归模型」；v0 那 23 堵墙是**代码按 `[240,120]` 配的**（= 08-23 换掉的机制）。
+> ⇒ ⭐⭐⭐ **09-06 用户拍板走【甲】：改 A-6 去吃生产格式**，⛔ 不写转换层。
+> ⛔⛔ **主控另一条断言被实测推翻**：我写「A-6 之后立面 `x_range_m` 由链档 mm 值出、不再是像素外推」——**错**：
 > `tick_claim.py:458` **只在显式 `select` 时**产 `chain_backed`，显式 `pixel` 仍产 `pixel_only`。⭐ **候选出现 ≠ 认领完成。**
-> ⭐ 施工方保持 `pair_count=null` + `BLOCKED_BEFORE_OPENING_REVIEW`，⛔ **没把未测得填成 0**。
-> B 层（我的错，已修 5 份单）：`git show` 不接 `--cached`，正确是 `git diff --cached --numstat`。
+> ⭐ 施工方保持 `pair_count=null` + `BLOCKED_BEFORE_OPENING_REVIEW`，⛔ **没把未测得填成 0**。B 层（我的错，已修 5 份单）：`git show` 不接 `--cached`。
 
 ### 2.1 最近节点索引
 
