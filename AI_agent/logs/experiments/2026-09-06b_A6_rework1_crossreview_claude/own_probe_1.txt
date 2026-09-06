@@ -1,0 +1,7 @@
+module under test: /tmp/a6rw1_review_claude/src/agent/correction/tick_claim.py
+P:run0:lo legitimate candidate values (u): [0, 10000, 20000, 30000]
+P:run0:hi legitimate candidate values (u): [0, 10000, 20000, 30000]
+legit rows (lo, hi): 10000 20000
+direct `_current = <forged TickBatch>` assignment: succeeded (no error)
+consume() REJECTED forged plan-schema batch: TICK_INTERVAL_NOT_ORDERED
+PASS: real TickSession.consume() (not the opening_adjudication redundant check, not a monkeypatch) rejects a PLAN-schema lo>=hi forgery by name.

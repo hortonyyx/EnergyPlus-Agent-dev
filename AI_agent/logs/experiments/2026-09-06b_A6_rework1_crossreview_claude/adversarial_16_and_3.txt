@@ -1,0 +1,16 @@
+module under test: /tmp/a6rw1_review_claude/src/agent/correction/tick_claim.py
+legit batch committed: 44c4919194f0d7487e423070f728874232b0744fa3dec3e8f5c7a09be865076e
+
+--- item #16: plain attribute assignment, no minter, no private constructor ---
+assignment executed without raising: True
+isinstance(_current, TickBatch) before=True after=True (type gate alone would ACCEPT this forgery)
+consume() REJECTED at the CONTENT gate: TICK_VALUE_RECOMPUTE_MISMATCH
+CONFIRMED: the block is content-level (full-row recompute), not a type/identity seal --
+matches the docstring's own claim ('ordinary API encapsulation, not a defence against
+Python reflection'): reflection still WORKS, the numbers just don't survive.
+
+--- item #3: current corrupted by an 'ordinary bug' outside submit(), correct type ---
+consume() REJECTED the corrupted-by-ordinary-bug current: TICK_BATCH_SOURCE_MISMATCH
+CONFIRMED: item #3's consume-side counterpart holds -- a same-typed but wrong-content
+_current (as an ordinary bug, not a submit() call, would produce) is caught by the
+full content checks, not by any type gate (which would have passed it).
