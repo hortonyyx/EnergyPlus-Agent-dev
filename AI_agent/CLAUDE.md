@@ -304,12 +304,11 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **三次都发生在活干完之后**（实现+契约+证据 / 全量+README / 执行档 248 行且已 `git add`），每次只丢 `git commit`
 > 这一个动作 ⇒ **一行代码没丢**。⭐ **容量 ≠ 额度**：探针当场 `PROBE_OK` 即可续，⛔ 别当额度耗尽改派。
 >
-> ### ⑦ ⚠️ 两条运维坑（本程实撞）
-> **`codex exec resume` 静默把 reasoning effort 重置为 `low`**（原会话是 `xhigh`），只在启动横幅印一行、不报错
-> ⇒ 续会话必须显式 `-c model_reasoning_effort=`，且**选项要放在 `resume` 之前** ·
-> **五个席位启动器在 git 里都是 `100644`**，而 `seat_claude.sh` 头部写明宿主按 `Bash(scripts/seat_claude.sh:*)` 放行
-> ⇒ 那条被文档写死的调用路径**从来走不通**；已 `git update-index --chmod=+x` 落库（本仓 `core.fileMode=false`，
-> 光 `chmod` 换棵树就没了）。
+> ### ⑦ ⚠️ 三条运维坑（本程实撞，均已修）
+> **`codex exec resume` 静默把 reasoning effort 重置为 `low`**（只在启动横幅印一行、不报错）⇒ 续会话必须显式
+> `-c model_reasoning_effort=`，且**选项要放在 `resume` 之前** · **五个席位启动器在 git 里都是 `100644`**
+> ⇒ `seat_claude.sh` 头部写死的 `Bash(scripts/seat_claude.sh:*)` 调用路径**从来走不通**（已 `git update-index --chmod=+x`；
+> 本仓 `core.fileMode=false`，光 `chmod` 换棵树就没了） · **`git show` 不接 `--cached`**，正确是 `git diff --cached --numstat`。
 >
 > ### ⑧ ⭐ **下程第一件事**：**J 判分改造**（前置 A-11 已合并，⭐ **无阻塞**）。
 > ⚠️ **E-a 先别派** —— 见 ⑨，它需要先拍一个口径。
