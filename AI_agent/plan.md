@@ -433,7 +433,7 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 | # | 事 | 状态 | 备注 |
 |---|---|---|---|
-| **A-11** | **gt 按 1 mm 规整入库** | ❌ 未施工，⭐ **口径已定** | ⭐⭐⭐ **用户 2026-09-05 拍板「走乙」= 在转换器出 `as_measured` 之前加一道入库前 1 mm 规整**，⛔ **不做 74 条人签修正**（那会把 0.1 mm 表示残差定性成 `drawing_error`）。主控实测（[读数](logs/experiments/2026-09-05g_orchestrator_readouts/A11_gt_1mm_measurement.md)）：**新事实层** 2812 个几何整数里 **74 个不是 1 mm 整数倍**（`face_lines` 46 · `walls` 11 · `openings` 10 · 证据类 7），偏移几乎全是 **±0.1 mm 贴整毫米**；1 mm 今天只活在 `denominator.GROUP_QUANT` 的分组量上。⛔ 规整只作用于几何坐标（旧层有 5 个 `/generator/tolerances/*` 会被误伤）；⭐ 必须同时改 `as_measured.py:79-81` 那句「⛔ not a snap」 |
+| **A-11** | **gt 按 1 mm 规整入库** | ✅ **已合并**（2026-09-06，`3ca8abda`；返工 1 经 Claude 跨家族审 APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 2）| ⭐⭐⭐ **用户 2026-09-05 拍板「走乙」= 在转换器出 `as_measured` 之前加一道入库前 1 mm 规整**，⛔ **不做 74 条人签修正**（那会把 0.1 mm 表示残差定性成 `drawing_error`）。主控实测（[读数](logs/experiments/2026-09-05g_orchestrator_readouts/A11_gt_1mm_measurement.md)）：**新事实层** 2812 个几何整数里 **74 个不是 1 mm 整数倍**（`face_lines` 46 · `walls` 11 · `openings` 10 · 证据类 7），偏移几乎全是 **±0.1 mm 贴整毫米**；1 mm 今天只活在 `denominator.GROUP_QUANT` 的分组量上。⛔ 规整只作用于几何坐标（旧层有 5 个 `/generator/tolerances/*` 会被误伤）；⭐ 必须同时改 `as_measured.py:79-81` 那句「⛔ not a snap」。<br>⭐⭐ **合并时结转的两条不阻断**（[裁决书](logs/reviews/verdict/2026-09-05l_A11_rework1_crossreview_claude.md)）：<br>　**A-11-d1** `_wall_by_face_lines` 的 DXF handle 锚在「**旧 handle 被转移给另一堵真实存在的墙**」这一子场景下**仍会静默指错墙**（1 hit 指错对象，⛔ 不是 0-hit no-op）—— handle 消失 / handle 冲突两种已变异验证确实响亮。**下次触碰该 helper 时**补一条廉价的第二特征校验（`axis`/`face_lo`/`face_hi`），把这个方向也变成能观测的信号。<br>　**A-11-d2** ⛔⛔ `SM25_DEFERRED_CAVITY_COUNT = 4` **被独立反例坐实是代理量**：构造 `3×F-157 + 1×form B`，**总数仍是 4、锁不红**。⇒ **硬排期约束：下一次任一成因（F-157 / F-153 form B）单独发生变化【之前】**，必须先拆成 per-code 两个钉，且**拆分必须同时 touch 两个消费者文件**（只在声明点加常量而无人引用 = 摆设）。否则那次变化的「退休」或「再扩大」会被这个代理量悄悄吞掉。同族 [[proxy-mistaken-for-the-thing]] |
 | **G-a** | **sm25 gt 整份重做重签** | ❌ | ⭐⭐ **需要用户参与** —— `revisions` 是**人签台账**，⛔ 机器不能自己签 |
 | **G-b** | 顺序 | —— | 用户 08-29：**先修 gt（A-11）再重做 sm25 的 gt（G-a）**，⛔ 不能并行 |
 
@@ -441,7 +441,7 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 | # | 事 | 状态 | 备注 |
 |---|---|---|---|
-| **E-a** | **B5 端到端接线** | ❌ | ⭐ 实测：**B4 配对模块今天零生产调用者** ⇒ 接线就是这一单。⭐ 单里两条已写死：**交 judge 必须以 strict 进入** · **身份从 bundle 的 `source_artifacts[0]` 提取，⛔ 不许手拼** |
+| **E-a** | **B5 端到端接线** | ❌ | ⭐ 实测：**B4 配对模块今天零生产调用者** ⇒ 接线就是这一单。⭐ 单里两条已写死：**交 judge 必须以 strict 进入** · **身份从 bundle 的 `source_artifacts[0]` 提取，⛔ 不许手拼**。<br>⭐⭐⭐ **2026-09-06 新增三条验收项（= A-6 阻断① 的销账处）** —— 来源：A-6 施工方按「指不到强制行就删句」这条合法出口，从契约里删掉了三句**只能由接线方兑现**的承诺（[裁决书 §一](logs/reviews/verdict/2026-09-05m_A6_tick_claim_block_crossreview_claude.md)判定 **(b)**：缺口是真的、但删掉后只活在执行档散文里，`grep -rn "tick_claim|opening_adjudication|TickSession|OpeningReview" src/agent/pipeline.py` **零命中**）：<br>　**E-a-1**（原 C:11）`CorrectedGeometryV3` 装配消费洞口结果时**必须**走 `OpeningReview.consume`/`scoreable_openings`，⛔ **不许把历史 JSON 当成当前有效批次** —— 验收 = 一条走真实入口的锁，喂一份过期 batch 必须红。<br>　**E-a-2**（原 C:83）持久化时**必须**一起落 `TickPacket` 的两份源 bytes 与 `TickBatch.record`，⛔ **不许只存预览坐标** —— 验收 = 从落盘件能逐字节重建 `batch_id`。<br>　**E-a-3**（原 C:130）接线后**旧 B4 低层 dict API 必须没有生产调用者** —— 验收 = 一条 `grep` 锁（同 F-107 的写法）。<br>⚠️ 这三条**今天零流量**（新 API 尚未接线），是**未来的保险丝**；⛔ 引用时别读成「已经在保护」。同族 [[absence-conflates-causes-in-observables]] |
 | **E-b** | **产出新格式产物** | ❌ | ⚠️ **需先拍配置**（用哪个模型跑 reading、抽几次）|
 | **E-c** | **F-1** 生产帧平面几何零 gt 对账 | ❌ | ⚠️ 09-04 那份 z 梯子对账**只对了 z 一个维度**，⛔ 不能宣称已对账 |
 
