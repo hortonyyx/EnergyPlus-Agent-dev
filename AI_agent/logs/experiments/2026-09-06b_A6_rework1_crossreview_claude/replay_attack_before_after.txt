@@ -1,0 +1,24 @@
+======================================================================
+BEFORE (94e899e5): module = <git show 94e899e5:src/agent/correction/tick_claim.py>
+======================================================================
+O02:x0 legitimate candidate values (u): [0, 10000, 20000, 30000]
+O02:x1 legitimate candidate values (u): [0, 10000, 20000, 30000]
+legit submit() rows (x0,x1): [('O02:x0', 10000), ('O02:x1', 20000)]
+FORGED consume() result: x0=30000 x1=0  inverted=True
+CONFIRMED: consume() accepts an interval-INVERTED chain-backed batch.
+
+current tree module: /tmp/a6rw1_review_claude/src/agent/correction/tick_claim.py
+======================================================================
+AFTER (current tree): module = /tmp/a6rw1_review_claude/src/agent/correction/tick_claim.py
+======================================================================
+O02:x0 legitimate candidate values (u): [0, 10000, 20000, 30000]
+O02:x1 legitimate candidate values (u): [0, 10000, 20000, 30000]
+legit submit() rows (x0,x1): [('O02:x0', 10000), ('O02:x1', 20000)]
+consume() REJECTED forged batch: TICK_INTERVAL_NOT_ORDERED
+
+======================================================================
+SUMMARY
+======================================================================
+before: ACCEPTED None
+after:  REJECTED TICK_INTERVAL_NOT_ORDERED
+PASS: before accepted the inverted interval, after rejects it by name.

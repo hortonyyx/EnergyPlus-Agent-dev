@@ -1,0 +1,19 @@
+PROBE_OBJECT 6ffb1429:AI_agent/logs/experiments/2026-09-05m_A6_tick_claim_crossreview_claude/attack_probe_2_chain_reorder.py
+ORIGINAL_SHA256 3d30afde38df3340a4f7657f7ceff735eb76c8e8af9e57f8d1c62515929015d1
+IMPORT /tmp/a6_tickclaim_astra/src/agent/correction/tick_claim.py
+IMPORT /tmp/a6_tickclaim_astra/src/agent/correction/opening_adjudication.py
+ONLY_RELOCATION /tmp/a6_review_claude -> /tmp/a6_tickclaim_astra (2 occurrences)
+======================================================================
+ATTACK 1b (refined v2): chain-backed candidate cross-wire -> inverted interval
+======================================================================
+O02:x0 legitimate candidate values (u): [0, 10000, 20000, 30000]
+O02:x1 legitimate candidate values (u): [0, 10000, 20000, 30000]
+legit submit() rows (x0,x1): [('O02:x0', 10000), ('O02:x1', 20000)]
+consume() REJECTED forged batch: TICK_INTERVAL_NOT_ORDERED
+
+======================================================================
+Downstream cascade check: does OpeningReview reject lo>=hi spans?
+======================================================================
+180:                                       along_lo_m=facts[f"{oid}:lo"].value_u / 10000,
+181:                                       along_hi_m=facts[f"{oid}:hi"].value_u / 10000)
+273:                 self._plans[oid].along_lo_m, self._plans[oid].along_hi_m))

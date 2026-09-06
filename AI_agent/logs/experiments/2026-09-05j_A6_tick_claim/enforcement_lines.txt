@@ -1,0 +1,56 @@
+src/agent/correction/opening_adjudication.py:31:class PlanBinding:
+src/agent/correction/opening_adjudication.py:42:class FacadeInput:
+src/agent/correction/opening_adjudication.py:50:class InferredDimensions(BaseModel):
+src/agent/correction/opening_adjudication.py:61:    def positive_height(self):
+src/agent/correction/opening_adjudication.py:67:class OpeningChoice(BaseModel):
+src/agent/correction/opening_adjudication.py:76:    def shape(self):
+src/agent/correction/opening_adjudication.py:84:class SpatialResponse(BaseModel):
+src/agent/correction/opening_adjudication.py:94:class SpatialPacket:
+src/agent/correction/opening_adjudication.py:100:class OpeningOutcome:
+src/agent/correction/opening_adjudication.py:116:class SpatialResult:
+src/agent/correction/opening_adjudication.py:122:def _elevation_document(session: TickSession, expected: str) -> dict:
+src/agent/correction/opening_adjudication.py:134:class OpeningReview:
+src/agent/correction/opening_adjudication.py:140:    def __init__(self, *, plan: TickSession, expected_plan_batch_id: str,
+src/agent/correction/opening_adjudication.py:143:        bindings, facades, walls = tuple(bindings), tuple(facades), tuple(walls)
+src/agent/correction/opening_adjudication.py:230:    def packet(self) -> SpatialPacket:
+src/agent/correction/opening_adjudication.py:233:    def _check_current(self):
+src/agent/correction/opening_adjudication.py:239:    def submit(self, response: SpatialResponse) -> SpatialResult:
+src/agent/correction/opening_adjudication.py:310:    def consume(self, expected_result_id: str) -> SpatialResult:
+src/agent/correction/opening_adjudication.py:316:    def scoreable_openings(self, expected_result_id: str) -> tuple[dict, ...]:
+src/agent/correction/tick_claim.py:23:class TickClaimError(ValueError):
+src/agent/correction/tick_claim.py:24:    def __init__(self, code: str, detail: object = None):
+src/agent/correction/tick_claim.py:29:def freeze(value: object) -> bytes:
+src/agent/correction/tick_claim.py:34:def digest(raw: bytes) -> str:
+src/agent/correction/tick_claim.py:38:def units(mm: object) -> int:
+src/agent/correction/tick_claim.py:47:def require_chain(chain: dict) -> tuple[int, ...]:
+src/agent/correction/tick_claim.py:67:class OperandRef:
+src/agent/correction/tick_claim.py:76:class Expression:
+src/agent/correction/tick_claim.py:83:    def __post_init__(self):
+src/agent/correction/tick_claim.py:89:class Candidate:
+src/agent/correction/tick_claim.py:96:class Edge:
+src/agent/correction/tick_claim.py:106:class TickChoice(BaseModel):
+src/agent/correction/tick_claim.py:114:    def choice_shape(self):
+src/agent/correction/tick_claim.py:122:class TickResponse(BaseModel):
+src/agent/correction/tick_claim.py:129:class TickPacket:
+src/agent/correction/tick_claim.py:141:class TickBatch:
+src/agent/correction/tick_claim.py:147:class TickFact:
+src/agent/correction/tick_claim.py:158:def _chain_records(raw: bytes, supplement: bytes | None) -> dict[str, dict]:
+src/agent/correction/tick_claim.py:189:def freeze_prototype_supplement(raw: bytes, config_bytes: bytes) -> bytes:
+src/agent/correction/tick_claim.py:223:def evaluate(expression: Expression, *, raw: bytes, supplement: bytes, axis: str) -> int:
+src/agent/correction/tick_claim.py:234:    def resolve(ref: OperandRef, domain: str) -> tuple[int, dict]:
+src/agent/correction/tick_claim.py:275:            raise TickClaimError("THICKNESS_DECLARATION_MISMATCH")
+src/agent/correction/tick_claim.py:298:                raise TickClaimError("CHAIN_HALF_SPAN_UNGRID")
+src/agent/correction/tick_claim.py:305:def _raw_edges(doc: dict):
+src/agent/correction/tick_claim.py:331:def build_packet(raw: bytes, *, image_id: str, generation: int,
+src/agent/correction/tick_claim.py:334:    raw = bytes(raw)
+src/agent/correction/tick_claim.py:370:            indices.update(range(n + 1))
+src/agent/correction/tick_claim.py:400:class TickSession:
+src/agent/correction/tick_claim.py:402:    def __init__(self, raw: bytes, *, image_id: str, supplement: bytes | None = None,
+src/agent/correction/tick_claim.py:419:    def packet(self) -> TickPacket:
+src/agent/correction/tick_claim.py:423:    def history(self) -> tuple[bytes, ...]:
+src/agent/correction/tick_claim.py:426:    def submit(self, response: TickResponse) -> TickBatch:
+src/agent/correction/tick_claim.py:464:                             retired_debt_id=self._previous_debts[edge.edge_id][0]
+src/agent/correction/tick_claim.py:489:            if row["retired_debt_id"]:
+src/agent/correction/tick_claim.py:493:    def consume(self, expected_batch_id: str, batch: TickBatch | None = None) -> tuple[TickFact, ...]:
+src/agent/correction/tick_claim.py:528:    def reconsider(self, reason: str, *, raw: bytes | None = None,
+src/agent/correction/tick_claim.py:543:        self._blocked = "REGISTER_PENDING_READING_INPUT"

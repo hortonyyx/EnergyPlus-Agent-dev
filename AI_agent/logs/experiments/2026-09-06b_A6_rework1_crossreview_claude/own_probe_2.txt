@@ -1,0 +1,28 @@
+module under test: /tmp/a6rw1_review_claude/src/agent/correction/tick_claim.py
+======================================================================
+Part 1: forge retired_debt_id across a generation boundary
+======================================================================
+gen0 debt_id for A:x0: 6cc4fc5a5c3cdbdf66fcda60d528ca214fba1334146edd95ffe1729b666e254f
+gen1 A:x0 retired_debt_id: 6cc4fc5a5c3cdbdf66fcda60d528ca214fba1334146edd95ffe1729b666e254f  (should equal gen0 debt: True)
+gen2 A:x0 retired_debt_id (legit, should be None): None
+consume() REJECTED double-retirement-across-generations forgery: TICK_ROW_RECOMPUTE_MISMATCH
+
+======================================================================
+Part 2: falsify/verify GPT's claim about the post-commit map directly
+======================================================================
+Claim (execution doc item #17): 'if consume() replayed the already-popped
+post-commit _previous_debts map instead of _retirement_context, it would
+wrongly reject a LEGITIMATE retirement'. Testing this by monkeypatching
+_retirement_context to return the live self._previous_debts instead.
+legit batch1b retired_debt_id present: True
+naive post-commit-map consume(): REJECTED TICK_ROW_RECOMPUTE_MISMATCH  <-- false rejection of a LEGITIMATE batch
+real _retirement_context consume(): ACCEPTED, 4 facts
+
+======================================================================
+SUMMARY
+======================================================================
+naive (post-commit map) outcome on a LEGITIMATE retiring batch: REJECTED TICK_ROW_RECOMPUTE_MISMATCH
+real (_retirement_context replay) outcome on the same batch: ACCEPTED
+PASS: GPT's claim is CONFIRMED BY DIRECT SUBSTITUTION -- the naive approach
+really does misfire on this exact legitimate batch; _retirement_context is not
+cosmetic, and the cross-generation double-retirement forgery is independently caught.
