@@ -42,8 +42,9 @@ TAU_AXIS_MM = 1.0     # 现行入口卡（dxf_axis_alignment_tolerance_m）
 QUANT_MM = 0.1        # q = tau_node / 10 —— 真正的噪声地板
 DEV_MAX_MM = AXIS_SNAP_MAX_DEVIATION_M * 1000.0
 
-BUCKETS = ("精确正交", "浮点噪声 <1e-6mm", "1e-6 ~ q(0.1mm)",
-           "⭐ q ~ tau_axis(1mm) 缝里", "tau_axis ~ 10mm 今天就吸附", "真斜线 >10mm 或 >1°")
+BUCKETS = ("退化线（长度 < q，无方向可言）", "精确正交", "浮点噪声 <1e-6mm",
+           "1e-6 ~ q(0.1mm)", "⭐ q ~ tau_axis(1mm) 缝里",
+           "tau_axis ~ 10mm 今天就吸附", "真斜线 >10mm 或 >1°")
 
 
 def _resolve_by_hash(anchor: pathlib.Path, want_sha256: str) -> pathlib.Path | None:
@@ -65,8 +66,17 @@ def _in_box(point, box) -> bool:
 
 
 def _classify(dx: float, dy: float) -> tuple[str, float, float, float]:
+    """⚠️ 退化线必须在算角度【之前】判掉。
+
+    ⛔ 主控第一版探针的 bug：对 13DC（两端点相距 1.2e-10 mm 的退化线）算
+    ``atan2(7.3e-12, 1.2e-10)`` 得到 **3.47°**，于是把它误报成「真斜线」。
+    噪声比噪声，比出来的角度没有意义 —— 长度低于量化步长就没有方向可言。
+    """
     minor, major = min(dx, dy), max(dx, dy)
-    angle = math.degrees(math.atan2(minor, major)) if major else 0.0
+    length = math.hypot(dx, dy)
+    if length < QUANT_MM:
+        return "退化线（长度 < q，无方向可言）", major, minor, 0.0
+    angle = math.degrees(math.atan2(minor, major))
     if minor == 0.0:
         return "精确正交", major, minor, angle
     if minor > DEV_MAX_MM or angle > AXIS_SNAP_MAX_ANGLE_DEG:
