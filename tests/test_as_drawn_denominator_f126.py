@@ -3,7 +3,7 @@
 ⭐⭐ These are the FIRST tests this module has ever had.  MEASURED before writing
 them (2026-08-29): ``grep -rln "as_drawn.denominator" tests/`` returned nothing,
 so "the whole suite is green" carried exactly zero protection for
-``src/agent/judge/as_drawn/denominator.py`` -- the file that decides what a
+``src.agent.judge.as_drawn.denominator`` -- the file that decides what a
 reading is scored against.
 
 The defect being locked: fed a DXF that the upstream converter refuses (source
@@ -12,26 +12,18 @@ hash gate ``tarch_input_source_hash_mismatch``, severity BLOCK),
 BLOCK diagnostic entirely -- its return dict had nowhere to put it.  A zero
 denominator then looks, in the artifact, exactly like "the product is perfect".
 
-⚠️ FIXTURE DIRECTION, the thing that decides whether these locks have teeth
-([[gate-teeth-direction-follows-fixture-inventory]]): a lock is only as sharp as
-the inventory its fixture holds IN THE DIRECTION OF THE DEFECT.  MEASURED on the
-two real DXFs that ship side by side in ``gt_sources/sm25-L_anchor/``:
-
-    fixture                            targets  BLOCK diags  non-orthogonal
-    sm25-L_t3.dxf        (signed)      110/106  none         0   <-- no teeth for L4
-    ..._as_received.dxf  (as signed)   0        1 (hash)     0   <-- geometry never runs
-    ..._as_received.dxf  (re-signed)   >0       2+1          1   <-- L4's inventory
-
-So L4 deliberately does NOT use the signed drawing: it has zero discarded
-non-orthogonal strokes, and a lock asserting ``len(list) == count`` would read
-``0 == 0`` and pass against code that never builds the list at all.  L4 asserts
-``> 0`` as well, on the one fixture measured to carry the inventory.
-
-⛔ No DXF is written anywhere by this file.  The re-signed request is built in
-``tmp_path`` from the shipped one; ``gt_sources/`` and ``gt/`` are answer roots.
+G-c closed the real as-received joints and admitted 13AF as a face.  L4's
+old non-orthogonal/free-end inventory is gone.  L4 now copies the drawing into
+``tmp_path`` and adds an isolated sub-q stroke straddling a quantization cell
+boundary.  Tier 0 admits it without rotation; its quantized endpoints remain
+non-orthogonal, so the denominator must itemise it.  Its free ends also supply
+the success-path BLOCK diagnostic.  A >5-degree stroke would be dropped in S1
+and could not exercise this downstream list.  The original answer roots are
+only read; the new DXF and hash-declaring request live in ``tmp_path``.
 """
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -48,6 +40,7 @@ from src.agent.judge.as_drawn.denominator import (
 from src.agent.judge.tarch_converter_schema import (
     TarchConversionRequestV1,
     compute_request_sha256,
+    resolve_converter_tooling,
 )
 
 ANCHOR = Path(__file__).resolve().parents[1] / (
@@ -87,11 +80,9 @@ def anchor_present() -> None:
 def _resigned_request(tmp_path: Path, dxf: Path) -> Path:
     """A request in ``tmp_path`` that legitimately declares ``dxf``'s own hash.
 
-    ⭐ This is how L4 gets past the S0 source-hash gate WITHOUT forging a trust
-    root: nothing about the drawing is edited, and nothing is written into the
-    protected answer roots -- the request is re-signed, in a temp dir, so the
-    converter will actually run its geometry on a drawing whose inventory of
-    non-orthogonal strokes was measured to be non-empty.
+    The request names the supplied DXF's actual bytes, including when L4 has
+    constructed a temporary copy with an extra stroke.  Both edited files
+    stay in the temporary directory; the shipped answer roots are only read.
     """
     raw = json.loads(REQUEST.read_text())
     raw["source_dxf_sha256"] = hashlib.sha256(dxf.read_bytes()).hexdigest()
@@ -217,49 +208,59 @@ def test_l3_diagnostics_ride_out_on_both_paths(anchor_present, capsys):
 # L4 -- discarded non-orthogonal strokes are itemised, not just counted
 # --------------------------------------------------------------------------- #
 def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_path):
-    """⛔ The fixture must HOLD the inventory, or the lock has no teeth.
+    """Rebuild the downstream discard and BLOCK-on-success samples.
 
-    Signed drawing: ``excluded_non_orthogonal == 0`` (measured) -- against it,
-    ``len(items) == count`` is ``0 == 0`` and passes on code that never builds
-    the list.  So this uses the re-signed as-received drawing, measured to carry
-    exactly one discarded stroke, and asserts NON-EMPTINESS first.
-
-    ⭐ F-C (F-126 cross-review, 2026-08-29): this test is ALSO the pin -- until
-    now unlabelled -- on the POLICY that ``denominator()`` RETURNS when BLOCK
-    diagnostics ride alongside a NON-empty denominator.  ⚠️ ②-1b-S UPDATE
-    (2026-08-29): it used to feed the fixture measured to produce 108 targets
-    together with ``tarch_wall_nonorthogonal`` x2 + ``tarch_wall_free_end`` x1
-    (all BLOCK) -- dispatch ②-1b-S R1 changed the S1 non-orthogonal action
-    from unconditional drop to "snap the short leg to zero when within the
-    (⛔⛔ placeholder, pending sign-off) admission threshold", and this
-    fixture's two ``tarch_wall_nonorthogonal`` strokes (13AD/13AE, minor leg
-    ~5.81 mm) are now admitted via snap -- ``geo.wall_lines`` no longer omits
-    them and the S1-level ``tarch_wall_nonorthogonal`` BLOCK no longer fires
-    for this fixture at all.  Only ``tarch_wall_free_end`` (a S4/G5 BLOCK,
-    unrelated mechanism, unaffected by R1) remains.  The POLICY this test pins
-    (BLOCK-alongside-non-empty-denominator still returns normally) still
-    applies -- it is exercised on one fewer BLOCK code now, not on zero.
-    Read literally, "any BLOCK => fail loudly" (the F-126 dispatch's R2) would
-    make THIS fixture raise and this test go red -- deliberately: the scope
-    note in ``denominator.py`` owns the distinction (F-126 fixed the silence,
-    not the policy), and changing the policy should have to come through
-    here, in the open.
-
-    ⭐ F-B (same review): the BLOCK codes must SURVIVE the success path.  A
-    "successful run doesn't need its BLOCK diagnostics" trim (keep INFO only)
-    passes every other lock in this file: L3's success-path assertions run on
-    the SIGNED drawing, whose diagnostics are all INFO, so filtering them
-    changes nothing there.  Only this fixture holds BLOCK-on-success inventory.
+    A 0.6*q deviation is tier 0, but its endpoints at 0.2*q and 0.8*q
+    round to adjacent q cells.  This constructs the input shape D1 owns,
+    without changing a gate or relying on the repaired 13AF stroke.
+    The same assertions are exercised with missing items/diagnostics and
+    corrupted frame data, so a broken passthrough demonstrably reddens.
     """
-    request_path = _resigned_request(tmp_path, AS_RECEIVED_DXF)
-    result = denominator(AS_RECEIVED_DXF, request_path, "plan-F1")
+    clean = denominator(AS_RECEIVED_DXF, _resigned_request(tmp_path, AS_RECEIVED_DXF),
+                        "plan-F1")
+    assert clean["excluded_non_orthogonal_segments"] == []
+    assert not [d for d in clean["diagnostics"] if d["severity"] == "BLOCK"]
+    dxf, request_path, handle = _l4_nonorthogonal_fixture(tmp_path)
+    result = denominator(dxf, request_path, "plan-F1")
+    _assert_l4_itemisation(result, request_path, handle)
+    for defect in ("items", "block", "frame", "handle"):
+        damaged = deepcopy(result)
+        if defect == "items":
+            damaged["excluded_non_orthogonal_segments"] = []
+        elif defect == "block":
+            damaged["diagnostics"] = [d for d in damaged["diagnostics"]
+                                      if d["severity"] != "BLOCK"]
+        elif defect == "frame":
+            damaged["excluded_non_orthogonal_segments"][0]["length_m"] += 1
+        else:
+            damaged["excluded_non_orthogonal_segments"][0]["handle"] = "WRONG"
+        with pytest.raises(AssertionError):
+            _assert_l4_itemisation(damaged, request_path, handle)
 
-    # ⭐ F-B: the (now single) BLOCK code measured on this fixture still rides
-    # out in ``diagnostics`` -- exactly this set, so a trim to INFO-only, a
-    # rename, or a swallowed code all fail here.
+
+def _l4_nonorthogonal_fixture(tmp_path):
+    import ezdxf
+    from src.agent.judge.tarch_normalize import _tols_from
+
+    request = TarchConversionRequestV1.model_validate_json(REQUEST.read_text())
+    repo = Path(__file__).resolve().parents[1]
+    tooling = resolve_converter_tooling(repo / "src" / "configs" / "judge_gt.yaml",
+                                        repo / "src" / "configs" / "correction.yaml")
+    q = _tols_from(tooling, request.metres_per_unit).quant_native
+    doc = ezdxf.readfile(AS_RECEIVED_DXF)
+    line = doc.modelspace().add_line((-36000, 20000 + 0.2*q),
+                                     (-35000, 20000 + 0.8*q),
+                                     dxfattribs={"layer": "WALL"})
+    path = tmp_path / "l4_subquant_noise.dxf"
+    doc.saveas(path)
+    return path, _resigned_request(tmp_path, path), line.dxf.handle
+
+
+def _assert_l4_itemisation(result, request_path, handle):
+    assert result["targets"], "BLOCK must ride alongside a nonempty denominator"
     assert {d["code"] for d in result["diagnostics"] if d["severity"] == "BLOCK"} == {
         "tarch_wall_free_end"}
-
+    assert {item["handle"] for item in result["excluded_non_orthogonal_segments"]} == {handle}
     items = result["excluded_non_orthogonal_segments"]
     count = result["ledger"]["excluded_non_orthogonal"]
 
@@ -283,9 +284,7 @@ def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_p
         # ⭐ F-C: the two frames must agree ON THE SAME STROKE.  Each frame
         # separately can look healthy while the metres side lies -- an affine
         # or rounding regression hits exactly this new path, and the signed
-        # drawing holds ZERO inventory here, so L1 cannot see it.  MEASURED:
-        # implied scale = length_m / |Δdxf| = 0.0009999986 == declared
-        # metres_per_unit 0.001 (residual 1.7e-07 m on the 0.12 m stroke).
+        # drawing holds ZERO inventory here, so L1 cannot see it.
         dxf_len = math.hypot(item["p1_dxf"][0] - item["p0_dxf"][0],
                              item["p1_dxf"][1] - item["p0_dxf"][1])
         assert abs(item["length_m"] - dxf_len * metres_per_unit) < 1e-3
@@ -294,8 +293,8 @@ def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_p
 def test_l4b_signed_drawing_has_no_non_orthogonal_inventory(anchor_present):
     """⭐ The premise L4 rests on, asserted rather than assumed
     ([[regression-case-must-prove-its-own-premise]]): if the signed drawing ever
-    grows a diagonal stroke, L4's "use the other fixture" reasoning changes, and
-    this is the test that says so.
+    grows a downstream non-orthogonal stroke, this control says so; L4's
+    negative inventory is constructed independently in a temporary copy.
     """
     result = denominator(SIGNED_DXF, REQUEST, "plan-F1")
     assert result["ledger"]["excluded_non_orthogonal"] == 0

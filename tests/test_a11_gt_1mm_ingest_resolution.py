@@ -1,7 +1,7 @@
 """A-11 (user 2026-09-05, 「走乙」): the gt facts INGEST RESOLUTION is 1 mm.
 
 Two statements that must stay distinct (the module docstring of
-``src/agent/judge/as_measured.py`` now carries both):
+``src.agent.judge.as_measured`` now carries both):
 
   * STORAGE unit  = 0.1 mm integers -- a representation choice (user
     2026-08-29), ⛔ not a snap;
@@ -42,6 +42,7 @@ conscious act; that is exactly what pinning them buys.
 from __future__ import annotations
 
 from collections import Counter
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -278,6 +279,48 @@ def test_external_quantities_are_bit_identical(snapped_as_received,
     those live outside the boundary subtrees."""
     snapped = snapped_as_received.model_dump(mode="json")
     plain = plain_as_received.model_dump(mode="json")
+    _assert_external_quantities_identical(snapped, plain)
+
+    # The sort key includes snapped coordinates.  Order can change while
+    # every identity is preserved.  A permutation is an explicit green control.
+    permuted = deepcopy(snapped)
+    permuted["views"][0]["face_lines"].reverse()
+    _assert_external_quantities_identical(permuted, plain)
+
+    # Rebuilt negative stock: each identity component, missing and duplicate
+    # records, and the view identity must all redden the SAME criterion.
+    for field, value in (("id", "DEADFACE"), ("layer", "WRONG_LAYER"),
+                         ("axis", "y" if snapped["views"][0]["face_lines"][0]["axis"] == "x" else "x")):
+        damaged = deepcopy(snapped)
+        damaged["views"][0]["face_lines"][0][field] = value
+        with pytest.raises(AssertionError, match="identity strings moved"):
+            _assert_external_quantities_identical(damaged, plain)
+    for operation in ("drop", "duplicate", "view"):
+        damaged = deepcopy(snapped)
+        faces = damaged["views"][0]["face_lines"]
+        if operation == "drop":
+            faces.pop()
+        elif operation == "duplicate":
+            faces.append(deepcopy(faces[0]))
+        else:
+            damaged["views"][0]["view_id"] = "wrong-view"
+        with pytest.raises(AssertionError, match="identity strings moved"):
+            _assert_external_quantities_identical(damaged, plain)
+
+
+def _assert_external_quantities_identical(snapped, plain):
+    """Compare identities by view/handle, retaining multiplicity, not position.
+
+    G-c changes coordinates, and therefore the face sort order, in the two
+    builds.  The identity tuple itself does not change.  Counter equality
+    rejects dropped/duplicated faces as well as changed handle/layer/axis/view.
+    """
+    def identities(payload):
+        return (Counter(view["view_id"] for view in payload["views"]),
+                Counter((view["view_id"], face["id"], face["layer"], face["axis"])
+                        for view in payload["views"] for face in view["face_lines"]))
+
+    assert identities(snapped) == identities(plain), "identity strings moved"
 
     def external_leaves(payload) -> Counter:
         return Counter(
@@ -290,14 +333,6 @@ def test_external_quantities_are_bit_identical(snapped_as_received,
 
     assert external_leaves(snapped) == external_leaves(plain), \
         "an exempt quantity outside the boundary derivation moved"
-
-    for snapped_view, plain_view in zip(snapped["views"], plain["views"]):
-        assert [(f["id"], f["layer"], f["axis"])
-                for f in snapped_view["face_lines"]] == \
-               [(f["id"], f["layer"], f["axis"])
-                for f in plain_view["face_lines"]], "identity strings moved"
-        assert snapped_view["view_id"] == plain_view["view_id"]
-
 
 # ── acceptance #5: max move reported honestly ───────────────────────────────── #
 def test_max_coordinate_move_is_within_half_a_millimetre(snapped_as_received,
