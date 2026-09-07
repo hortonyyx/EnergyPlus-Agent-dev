@@ -8,38 +8,17 @@ Three things are locked, one per section below:
   R3  the document is reproducible BIT FOR BIT across fresh processes, ⛔ with
       no ``PYTHONHASHSEED`` propping it up
 
-⚠️ FIXTURE DIRECTION ([[gate-teeth-direction-follows-fixture-inventory]]).  The
-two DXFs that ship side by side in ``gt_sources/sm25-L_anchor/`` do NOT have the
-same inventory, and the difference is exactly where this unit lives:
+G-c (2026-09-07) closed the as-received drawing's joints.  Its geometry
+inventory now matches the signed drawing; the audit retains three tier-1
+snaps (13AD/13AE/13AF).  The old 10 mm / 1-degree thresholds are historical:
+the current ladder uses q, half the request's minimum wall thickness, and
+5 degrees.  Real non-orthogonal rows and BLOCK diagnostics have disappeared.
 
-    fixture                        wall_lines  non-orth  BLOCK        S4 dangles
-    sm25-L_t3.dxf      (signed)    225          0        none         0
-    ..._as_received.dxf            225          1        1 code       8
-
-⚠️ ②-1b-S UPDATE (2026-08-29): the ``wall_lines_total=223``/``2 codes``/
-``4 dangles`` row above is the PRE-snap reading.  Dispatch ②-1b-S R1 changed
-S1's non-orthogonal action from unconditional drop to "snap the short leg to
-zero when it is within ``AXIS_SNAP_MAX_DEVIATION_M``, else still drop"; F-147
-added a second, ANDed ``AXIS_SNAP_MAX_ANGLE_DEG`` gate and both thresholds are
-now SIGNED (user, 2026-08-30: 10 mm / 1.0°) -- 13AD/13AE (minor leg ~5.81 mm,
-0.091°, i.e. inside BOTH signed gates) are now admitted
-via snap rather than S1-discarded, so ``s1_nonorthogonal_discarded_handles``
-is empty and ``wall_lines_total``/``face_lines`` grew by 2.  ``tarch_wall_free_
-end``/S4 dangles going 4->8 is a REAL, expected topology consequence of
-admitting two previously-absent segments whose along-axis endpoints do not
-happen to coincide with a perpendicular wall's own quantized position --
-⛔ NOT a regression this dispatch introduces or is scoped to fix (S4 junction
-resolution is untouched code; ``tarch_wall_free_end`` was ALREADY a BLOCK on
-this un-retouched drawing before this change, per
-``_refuse_if_the_ruler_never_measured``'s own docstring, so no previously
--green gate went red).  See the ②-1b-S execution report's "阈值" section for
-the full measurement.
-
-⇒ ⛔ A lock written only against the signed drawing is blind in every direction
-this unit cares about: it has no skew stroke to itemise, no content-level BLOCK
-to carry out, and no failing gate to record.  The as-received drawing is the one
-with the stock, so it is the primary fixture here and the signed drawing is kept
-as the CONTRAST (F-129's measured difference), ⛔ not as the subject.
+The negative inventory is therefore constructed: sub-millimetre skew rows
+exercise RAW evidence, tier-2 records exercise arbitration, and a temporary
+orphan stroke exercises BLOCK diagnostics on a successful facts build.  Each
+snap record is removed individually so the larger list cannot replace the
+single-missing-entry sample with a multiple-deletion sample.
 
 ⛔ Nothing here writes into ``gt_sources/`` or ``gt/``.  Everything derived is
 built in ``tmp_path``.
@@ -131,12 +110,31 @@ EXPECTED = {
     # ring LOSS on the unsnapped build now closes into a ring, 83 -> 91
     # edges on as-received F1).  Everything else in this table is UNCHANGED
     # by the snap.
-    ("as_received", "plan-F1"): {"face_lines": 224, "walls": 55, "openings": 31,
-                                 "wall_lines_total": 225, "non_orthogonal": 1,
-                                 "dangles": 8, "gates_failed": ["G5"],
-                                 "block_codes": ["tarch_wall_free_end"],
+    # ⭐⭐⭐ G-c (2026-09-07, the four-tier ladder + the anchor-end rule): this
+    # row is now IDENTICAL to ("signed", "plan-F1") in every column.  ⛔ That is
+    # not a copy-paste slip, it is the unit's whole claim: the as-received
+    # drawing's one crooked wall is recovered to the geometry the signed
+    # drawing has, bit for bit, so every count, gate, BLOCK code and histogram
+    # converges.  MEASURED deltas from the pre-ladder row, each with its cause:
+    #   face_lines 224 -> 225  (13AF used to fall between ``tau_axis`` and the
+    #     exact-equality face-line test and vanish from BOTH tables; it is now
+    #     a real face line)
+    #   non_orthogonal 1 -> 0  (same stroke, same reason)
+    #   dangles 8 -> 0, gates_failed ["G5"] -> [], block_codes
+    #     ["tarch_wall_free_end"] -> []  (the west end cap now closes onto the
+    #     two faces it caps -- the anchor rule moves their west ends and the
+    #     cap FOLLOWS, so S4 has no free end left to report)
+    #   jamb_cap_bands 44 -> 45  (13AF is 120 mm long and inside the declared
+    #     thickness range, so it is a cap the S2 pass can finally see)
+    # ⛔ The one thing that still separates the two drawings is the snap
+    # ledger, which is exactly what it exists for -- see
+    # ``test_r2_the_as_received_drawing_differs_from_the_signed_one_as_f129_measured``.
+    ("as_received", "plan-F1"): {"face_lines": 225, "walls": 55, "openings": 31,
+                                 "wall_lines_total": 225, "non_orthogonal": 0,
+                                 "dangles": 0, "gates_failed": [],
+                                 "block_codes": [],
                                  "thickness_mm": {120: 28, 240: 27},
-                                 "jamb_cap_bands": 44,
+                                 "jamb_cap_bands": 45,
                                  "bands_missing_a_face_line": 9,
                                  "split_const_groups": 0},
     ("as_received", "plan-F2"): {"face_lines": 222, "walls": 53, "openings": 30,
@@ -348,19 +346,33 @@ def test_r2_the_as_received_drawing_differs_from_the_signed_one_as_f129_measured
 
     f1_a, f1_s = view(as_received_doc, "plan-F1"), view(signed_doc, "plan-F1")
     assert f1_a.model_dump(mode="json") != f1_s.model_dump(mode="json")
-    # the three handles F-129 names: two SNAPPED (⭐ ②-1b-S R1, was "never
-    # collected" pre-snap), one collected but skew (a different mechanism,
-    # untouched by R1 -- see the module docstring's ②-1b-S UPDATE note)
-    rejected = sorted(h for d in f1_a.converter_readouts.diagnostics
-                      if d["code"] == "tarch_wall_nonorthogonal" for h in d["handles"])
-    assert rejected == [], "13AD/13AE are now snapped, not S1-discarded"
-    assert sorted(s.id for s in f1_a.converter_readouts.axis_snapped_lines) == ["13AD", "13AE"]
+
+    # ⭐⭐⭐ G-c (2026-09-07): WHAT still differs is now the interesting part.
+    # The ladder recovers the as-received geometry to the signed one, so
+    # ⛔ every geometric table below is EQUAL -- and the ONE remaining
+    # difference is the snap ledger.  That is precisely the property the ledger
+    # was built for (GLM's R2 demand): "被吸附过" and "本来就是正的" must never
+    # look the same.  ⛔ If this ever collapses to full equality, the record has
+    # lost the fact that one of these drawings was retouched by the converter.
+    for field in ("face_lines", "walls", "openings", "footprint",
+                  "boundary_edges", "boundary_ring_losses"):
+        assert (f1_a.model_dump(mode="json")[field]
+                == f1_s.model_dump(mode="json")[field]), field
+    assert sorted(s.id for s in f1_a.converter_readouts.axis_snapped_lines) == [
+        "13AD", "13AE", "13AF"]
+    assert not f1_s.converter_readouts.axis_snapped_lines, (
+        "the signed drawing has no skew to snap -- all three are already exact")
+    # one rigid-body rotation of 329 arcsec: all three read the same angle
     assert all(0.091 <= s.angle_deg <= 0.092
                for s in f1_a.converter_readouts.axis_snapped_lines)
-    assert not f1_s.converter_readouts.axis_snapped_lines, (
-        "the signed drawing has no skew to snap -- both lines are already exact")
-    assert [n.id for n in f1_a.converter_readouts.non_orthogonal_lines] == ["13AF"]
-    assert not f1_s.converter_readouts.non_orthogonal_lines
+    # ⛔ and nothing was refused on either drawing, on any tier:
+    for doc_view in (f1_a, f1_s):
+        rejected = sorted(h for d in doc_view.converter_readouts.diagnostics
+                          if d["code"] == "tarch_wall_nonorthogonal"
+                          for h in d["handles"])
+        assert rejected == []
+        assert doc_view.converter_readouts.non_orthogonal_lines == []
+        assert doc_view.converter_readouts.axis_snap_arbitrations == []
 
 
 def test_r2_every_wall_thickness_recomputes_from_its_two_stored_faces(
@@ -551,23 +563,27 @@ def test_r4_the_wider_s1_identity_is_real_on_as_received_plan_f1(as_received_doc
 
     ⚠️ ②-1b-S UPDATE: this used to read 223 in ``wall_lines_total`` with
     13AD/13AE itemized in ``s1_nonorthogonal_discarded_handles`` (both S1
-    -discarded, pre-snap).  Dispatch ②-1b-S R1 now ADMITS both via the snap
-    path (minor leg ~5.81 mm and 0.091° off-axis, inside BOTH signed gates
-    ``AXIS_SNAP_MAX_DEVIATION_M`` = 10 mm and ``AXIS_SNAP_MAX_ANGLE_DEG`` =
-    1.0°, signed by the user 2026-08-30) instead of discarding them, so they move
-    INTO ``wall_lines_total`` and ``s1_nonorthogonal_discarded_handles`` is
-    now empty; only 13DC (zero-length, a different mechanism, out of this
-    dispatch's scope) is still itemized outside ``wall_lines_total``.  ⚠️
-    MUST use as-received, not signed: on the signed drawing both lines are
-    already exact (no snap needed), so this identity's numbers there differ
-    again (``wall_lines_total==225``, no snapped/discarded handles at all).
+    -discarded, pre-snap).  Dispatch ②-1b-S R1 ADMITTED both via the snap
+    path instead of discarding them, so they moved INTO ``wall_lines_total``
+    and ``s1_nonorthogonal_discarded_handles`` became empty.
+
+    ⚠️ G-c UPDATE (2026-09-07): ``wall_lines_total`` is UNCHANGED at 225 --
+    ⭐ and that is the point worth reading.  13AF was already inside
+    ``wall_lines_total`` before the ladder (it reached ``geo.wall_lines`` as a
+    SKEW stroke, which is a different population from the S1 discards); what
+    the ladder changed is that it is now axis-aligned there, so it also
+    becomes a ``face_lines`` entry instead of a ``non_orthogonal_lines`` one.
+    ⇒ this identity moves not at all, and the snap list gains one handle.
+
+    ⚠️ MUST use as-received, not signed: on the signed drawing all three lines
+    are already exact (no snap needed), so the snap list there is empty.
     """
     view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
     r = view.converter_readouts
     assert len(r.all_wall_handles) == 226
     assert r.wall_lines_total == 225
     assert r.s1_nonorthogonal_discarded_handles == []
-    assert sorted(s.id for s in r.axis_snapped_lines) == ["13AD", "13AE"]
+    assert sorted(s.id for s in r.axis_snapped_lines) == ["13AD", "13AE", "13AF"]
     assert r.degenerate_line_handles == ["13DC"]
     assert r.degenerate_line_count == 1
     assert (len(r.all_wall_handles)
@@ -612,21 +628,35 @@ def test_r4_consumed_wall_handles_field_is_gone(as_received_doc):
 # ②-1b-S R1/R2/R3 -- the snap list ("吸附清单") is real, real data holds two
 # entries, and the ledger it feeds has teeth (⛔ delete an entry -> must go red)
 # =========================================================================== #
-def test_o21bs_the_real_snap_list_has_exactly_the_two_known_handles(as_received_doc):
-    """⭐ Acceptance 1: 13AD/13AE (minor leg ~5.81 mm, dispatch's own example)
-    are itemised in the snap list on the real as-received sm25 plan-F1, and
-    each entry carries every field R2/F-148 demands (handle, before, axis,
-    magnitude, and angle)."""
+def test_o21bs_the_real_snap_list_has_exactly_the_three_known_handles(as_received_doc):
+    """⭐ Acceptance 1: the real as-received sm25 plan-F1 snap list, and every
+    field R2/F-148 demands on each entry (handle, before, axis, magnitude,
+    angle).
+
+    ⚠️ G-c UPDATE (2026-09-07): THREE handles, ⛔ not two.  13AF joins them --
+    it is the same wall's 120 mm west end cap, tilted by the same 329 arcsec
+    rotation, and it used to fall into the gap between the snap branch's old
+    ``tau_axis`` entrance (1 mm) and the face-line classifier's exact-equality
+    test, so it was refused by both and appeared in neither table.  The ladder
+    enters on ``q`` (0.1 mm), which is the real noise floor.
+    """
     view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
-    snapped = view.converter_readouts.axis_snapped_lines
-    assert sorted(s.id for s in snapped) == ["13AD", "13AE"]
-    for s in snapped:
-        assert s.snapped_axis == "y"
+    snapped = {s.id: s for s in view.converter_readouts.axis_snapped_lines}
+    assert sorted(snapped) == ["13AD", "13AE", "13AF"]
+    for s in snapped.values():
         assert s.before_p0 != s.before_p1          # was genuinely skew before
-        assert s.after_p0[1] == s.after_p1[1]       # is exactly axis-aligned after
+        assert s.angle_deg == pytest.approx(0.0914, abs=5e-4)
+    for handle in ("13AD", "13AE"):                # the two long faces
+        s = snapped[handle]
+        assert s.snapped_axis == "y"
+        assert s.after_p0[1] == s.after_p1[1]       # exactly axis-aligned after
         assert 55 <= s.minor_leg_units <= 60, (     # ~5.81 mm == 58 units of 0.1mm
             "minor_leg_units drifted away from the measured ~5.81 mm skew")
-        assert s.angle_deg == pytest.approx(0.0914, abs=5e-4)
+    cap = snapped["13AF"]                           # the end cap
+    assert cap.snapped_axis == "x"
+    assert cap.after_p0[0] == cap.after_p1[0]
+    assert cap.minor_leg_units == 2, (              # 0.1915 mm -> 2 units of 0.1 mm
+        "the end cap's skew is ~0.19 mm -- the value that used to disappear")
 
 
 def test_f148_snap_list_angle_is_required_and_bound_to_its_diagnostic(as_received_doc):
@@ -650,13 +680,17 @@ def test_o21bs_deleting_a_snap_entry_turns_the_ledger_red(as_received_doc):
     real orthogonal stroke) is untouched -- only its itemisation entry in
     ``axis_snapped_lines`` is removed, proving the CROSS-COUNT check (not
     just "the list is non-empty") is what has teeth here."""
-    raw = as_received_doc.model_dump(mode="json")
-    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    original = as_received_doc.model_dump(mode="json")
+    view = next(v for v in original["views"] if v["view_id"] == "plan-F1")
     snapped = view["converter_readouts"]["axis_snapped_lines"]
-    assert len(snapped) == 2, "premise: the fixture really holds 2 entries"
-    view["converter_readouts"]["axis_snapped_lines"] = snapped[:1]   # drop one
-    with pytest.raises(ValueError, match="as_measured_axis_snapped_ledger_broken"):
-        AsMeasuredV1.model_validate(raw)
+    assert len(snapped) == 3, "premise: the fixture really holds 3 entries"
+    for removed in snapped:
+        raw = copy.deepcopy(original)
+        target = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+        target["converter_readouts"]["axis_snapped_lines"] = [
+            row for row in snapped if row["id"] != removed["id"]]
+        with pytest.raises(ValueError, match="as_measured_axis_snapped_ledger_broken"):
+            AsMeasuredV1.model_validate(raw)
 
 
 def test_o21bs_a_snapped_handle_must_be_a_real_face_line(as_received_doc):
@@ -680,8 +714,7 @@ def test_o21bs_a_snapped_handle_must_be_a_real_face_line(as_received_doc):
 
 def test_o21bs_a_handle_cannot_be_both_snapped_and_s1_discarded(as_received_doc):
     """Admitted and refused are mutually exclusive outcomes for one stroke --
-    the same 13AF (already a real face-line-adjacent skew handle in this
-    fixture, see F-129) cannot ALSO claim to have been S1-discarded."""
+    a real tier-1 snap entry cannot ALSO claim to have been S1-discarded."""
     raw = as_received_doc.model_dump(mode="json")
     view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
     handle = view["converter_readouts"]["axis_snapped_lines"][0]["id"]
@@ -690,29 +723,37 @@ def test_o21bs_a_handle_cannot_be_both_snapped_and_s1_discarded(as_received_doc)
         AsMeasuredV1.model_validate(raw)
 
 
-def test_r2_readouts_are_the_converters_own_numbers(as_received_doc):
-    """⛔ Carried, ⛔ not recomputed: compared against a fresh P1 run.
+def test_r2_readouts_are_the_converters_own_numbers(as_received_doc, tmp_path):
+    """Compare readouts against P1 on both clean and constructed BLOCK stock.
 
-    ⭐ Including the BLOCK diagnostics on a SUCCESSFUL path -- F-B measured that
-    filtering those out passed an entire suite, because nothing looked.
+    G-c removed every real BLOCK from the as-received drawing.  Comparing
+    only that drawing no longer detects a producer that strips all BLOCKs.
+    An isolated axial stroke supplies a real free-end diagnostic and G5 red,
+    while the nonempty geometry still builds facts successfully.
     """
-    import shutil
-    import tempfile
-
+    from tests.test_as_drawn_denominator_consistency_readout import (
+        _as_received_with_an_orphan_segment)
     from src.agent.judge.tarch_normalize import run_p1_plan_view
 
-    request = TarchConversionRequestV1.model_validate_json(
-        AS_MEASURED_REQUEST.read_text(encoding="utf-8"))
-    tooling = load_gt_tooling_config(REPO / "src/configs/judge_gt.yaml",
-                                     REPO / "src/configs/correction.yaml")
-    view_intent = next(v for v in request.plan_views if v.id == "plan-F1")
-    with tempfile.TemporaryDirectory() as tmp:
-        staged = Path(tmp) / AS_RECEIVED_DXF.name
-        shutil.copy2(AS_RECEIVED_DXF, staged)
-        geo = run_p1_plan_view(staged, request, view_intent, tooling)
-
+    geo, view_intent = _geo_for("plan-F1")
     view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
-    readouts = view.converter_readouts
+    _assert_converter_readouts_match(view.converter_readouts, geo)
+
+    dxf, request_path = _as_received_with_an_orphan_segment(tmp_path)
+    request = TarchConversionRequestV1.model_validate_json(request_path.read_text())
+    tooling = load_gt_tooling_config(REPO / "src" / "configs" / "judge_gt.yaml",
+                                     REPO / "src" / "configs" / "correction.yaml")
+    intent = next(v for v in request.plan_views if v.id == "plan-F1")
+    blocked_geo = run_p1_plan_view(dxf, request, intent, tooling)
+    assert any(d.severity == "BLOCK" for d in blocked_geo.diagnostics)
+    assert blocked_geo.dangles > 0
+    blocked_view = build_view(blocked_geo, intent.world_from_source_m,
+                              t_max_m=max(request.wall_thickness_range_m))
+    assert blocked_view.face_lines and blocked_view.walls
+    _assert_converter_readouts_match(blocked_view.converter_readouts, blocked_geo)
+
+
+def _assert_converter_readouts_match(readouts, geo):
     assert (readouts.dangles, readouts.cuts, readouts.invalid) == (
         geo.dangles, geo.cuts, geo.invalid)
     assert readouts.degenerate_line_count == geo.degenerate_line_count
@@ -1032,9 +1073,9 @@ def test_r1_pairing_every_collected_face_line_puts_the_ghost_walls_back():
     """
     geo, view_intent = _geo_for("plan-F1")
     view = build_view(geo, view_intent.world_from_source_m, t_max_m=T_MAX_M)
-    # ⭐ ②-1b-S R1: 224, not 222 -- 13AD/13AE are now snapped in (see the
-    # module docstring's ②-1b-S UPDATE note); still as-received plan-F1
-    assert len(view.face_lines) == 224
+    # ⭐ ②-1b-S R1 admitted 13AD/13AE (222 -> 224); ⭐ G-c admitted 13AF as
+    # well (224 -> 225).  Still as-received plan-F1.
+    assert len(view.face_lines) == 225
     every_stroke = [{"axis": "y" if f.axis == "x" else "x",   # ⚠️ into DEN's frame
                      "const_m": f.const / am.UNITS_PER_METRE,
                      "lo_m": f.along_min / am.UNITS_PER_METRE,
@@ -1315,3 +1356,181 @@ def test_b1_content_sha256_covers_the_fingerprint_field(as_received_doc):
     raw = as_received_doc.model_dump(mode="json")
     raw["converter_implementation_fingerprint"] = "0" * 64
     assert content_sha256(AsMeasuredV1.model_validate(raw)) != before
+
+
+# =========================================================================== #
+# ⭐⭐⭐ G-c / A-11-d3 (2026-09-07) -- the exemption the A-11 argument stopped
+# one field-family short of.
+#
+# ⛔⛔ WHY THIS SECTION IS SYNTHETIC, stated so nobody reads it as a
+# convenience: after the ladder landed there is NO real specimen left.  13AF
+# used to be the corpus' only ``non_orthogonal_lines`` row and it is now a
+# proper face line, so ``non_orthogonal_lines`` is EMPTY on every view of both
+# cases (measured).  An empty table cannot demonstrate that its rows keep their
+# resolution -- so the stock has to be built.  ⭐ "The table is empty" is
+# exactly the reason to build a fixture, ⛔ never a reason to skip.
+# =========================================================================== #
+class _StubGeo:
+    """The two attributes ``_face_line_records`` reads, and nothing else."""
+
+    def __init__(self, wall_lines):
+        self.wall_lines = wall_lines
+        self.wall_line_layers = {row[0]: "WALL" for row in wall_lines}
+
+
+def test_gc_a11d3_a_non_orthogonal_row_keeps_its_sub_millimetre_evidence():
+    """⭐ The row's ONLY claim is "this stroke is neither horizontal nor
+    vertical".  If both endpoints are snapped onto the 1 mm ingest grid that
+    claim can become unreadable on its own record -- which is what happened to
+    13AF: stored ``p0=[52400, 100660]`` / ``p1=[52400, 99460]``, two identical
+    x, from a drawing that has 52400.742 and 52398.827.
+
+    Here the same shape is built deliberately: a stroke leaning by 0.1 mm.
+    ⛔ Under the pre-fix ``_geom_units`` both x collapse to one value and the
+    row contradicts itself; the exemption keeps them apart.
+    """
+    #   sx/sy = 0.001 (native millimetres -> world metres), tx/ty = 0 -- the
+    #   corpus' own frame, so a native mm becomes 10 storage units of 0.1 mm.
+    skew = [("AAAA", 5240.0, 10060.0, 5240.1, 9946.0)]
+    faces, non_orthogonal, _degenerate = am._face_line_records(
+        _StubGeo(skew), 0.001, 0.0, 0.001, 0.0)
+    assert faces == []
+    assert len(non_orthogonal) == 1
+    row = non_orthogonal[0]
+    # ⭐ the two x are DIFFERENT -- the lean survived storage
+    assert row.p0[0] != row.p1[0]
+    assert row.p1[0] - row.p0[0] == 1        # 0.1 mm, one storage unit
+    # ⛔ and they are NOT on the 1 mm ingest grid, which is the whole point:
+    assert row.p0[0] % am.INGEST_RESOLUTION_UNITS or row.p1[0] % am.INGEST_RESOLUTION_UNITS
+    # the counterfactual, computed the way the code did before the fix:
+    assert (am._geom_units(0.001 * 5240.0) == am._geom_units(0.001 * 5240.1)), (
+        "premise: the pre-fix quantisation really did collapse these two")
+
+
+def test_gc_a11d3_the_exit_scan_exempts_that_row_and_would_flag_it_otherwise(
+        as_received_doc, monkeypatch):
+    """⭐⭐ The other half, and the one that proves the exemption is what is
+    doing the work: inject an off-grid ``non_orthogonal_lines`` row into a real
+    serialised document and scan it twice -- once with the exemption table as
+    shipped (must be silent) and once with the two new entries REMOVED (must
+    name both paths).  ⛔ Without the second half this test could not tell "the
+    scan exempts it" from "the scan never looked".
+    """
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    assert view["converter_readouts"]["non_orthogonal_lines"] == [], (
+        "premise: the ladder left this table empty on the real corpus")
+    view["converter_readouts"]["non_orthogonal_lines"] = [
+        {"id": "AAAA", "layer": "WALL", "p0": [52401, 100659], "p1": [52399, 99459]}]
+
+    assert am.scan_ingest_resolution_violations(raw) == []
+
+    without = dict(am.INGEST_NON_COORDINATE_PATHS)
+    for path in ("views[*].converter_readouts.non_orthogonal_lines[*].p0",
+                 "views[*].converter_readouts.non_orthogonal_lines[*].p1"):
+        assert without.pop(path, None) is not None, (
+            f"premise: {path} really is in the shipped exemption table")
+    monkeypatch.setattr(am, "INGEST_NON_COORDINATE_PATHS", without)
+    flagged = am.scan_ingest_resolution_violations(raw)
+    prefix = "views.*.converter_readouts.non_orthogonal_lines.*."
+    assert sorted(flagged) == sorted([
+        prefix + "p0.* = 52401", prefix + "p0.* = 100659",
+        prefix + "p1.* = 52399", prefix + "p1.* = 99459",
+    ]), flagged
+
+
+# =========================================================================== #
+# ⭐⭐ G-c -- the TIER-2 arbitration ledger.  Empty on both real cases (every
+# real skew stroke lands on tier 1, which is the outcome the user asked for),
+# so its teeth are demonstrated on built stock, ⛔ not asserted from emptiness.
+# =========================================================================== #
+def _with_a_tier2_row(raw):
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    readouts = view["converter_readouts"]
+    readouts["diagnostics"].append({
+        "code": "tarch_wall_nonorthogonal", "severity": "BLOCK",
+        "stage": "S1_QUANTIZE", "action_code": "tarch_wall_nonorthogonal",
+        "handles": ["BBBB"], "points_dxf_mm": [[0.0, 0.0], [1000.0, 20.0]],
+        "context": {"ladder_tier": 2, "refused_by": ["deviation_over_cap"],
+                    "angle_deg": 1.1458, "minor_leg_mm": 20.0,
+                    "major_leg_mm": 1000.0, "length_mm": 1000.2,
+                    "deviation_limit_mm": 6.0, "cap_mm": 6.0}})
+    readouts["axis_snap_arbitrations"] = [
+        {"id": "BBBB", "layer": "WALL", "ladder_tier": 2,
+         "reason": "deviation_over_cap", "p0": [0, 0], "p1": [10000, 200],
+         "deviation_units": 200, "deviation_limit_units": 60, "cap_units": 60,
+         "angle_deg": 1.1458}]
+    return raw
+
+
+def test_gc_the_arbitration_row_validates_and_carries_what_a_signer_needs(
+        as_received_doc):
+    doc = AsMeasuredV1.model_validate(_with_a_tier2_row(
+        as_received_doc.model_dump(mode="json")))
+    view = next(v for v in doc.views if v.view_id == "plan-F1")
+    row = view.converter_readouts.axis_snap_arbitrations[0]
+    assert (row.id, row.ladder_tier, row.reason) == (
+        "BBBB", 2, "deviation_over_cap")
+    # ⭐ the two numbers that say WHY it could not be done automatically, and
+    # ⛔ they are lengths, so they are exempt from the ingest grid:
+    assert row.deviation_units > row.cap_units
+    assert am.scan_ingest_resolution_violations(doc.model_dump(mode="json")) == []
+
+
+def test_gc_deleting_an_arbitration_row_turns_the_ledger_red(as_received_doc):
+    """⭐⭐ The same self-proof the snap list already has, for the new list:
+    quietly emptying it must be impossible.  ⛔ Otherwise "改判据顺手把红掉的
+    锁拆了" applies to the arbitration ledger itself."""
+    raw = _with_a_tier2_row(as_received_doc.model_dump(mode="json"))
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    view["converter_readouts"]["axis_snap_arbitrations"] = []
+    with pytest.raises(ValueError,
+                       match="as_measured_axis_snap_arbitration_ledger_broken"):
+        AsMeasuredV1.model_validate(raw)
+
+
+def test_gc_an_arbitration_row_cannot_disagree_with_its_diagnostic(as_received_doc):
+    """Angle and reason both bound, ⛔ not just the handle set -- a row that
+    keeps the id but rewrites what happened is the same forgery one field in."""
+    raw = _with_a_tier2_row(as_received_doc.model_dump(mode="json"))
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    view["converter_readouts"]["axis_snap_arbitrations"][0]["angle_deg"] = 2.0
+    with pytest.raises(
+            ValueError,
+            match="as_measured_axis_snap_arbitration_angle_disagrees_with_diagnostic"):
+        AsMeasuredV1.model_validate(raw)
+
+    raw = _with_a_tier2_row(as_received_doc.model_dump(mode="json"))
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    view["converter_readouts"]["axis_snap_arbitrations"][0]["reason"] = (
+        "both_ends_anchored_suspected_true_slant")
+    with pytest.raises(
+            ValueError,
+            match="as_measured_axis_snap_arbitration_reason_disagrees_with_diagnostic"):
+        AsMeasuredV1.model_validate(raw)
+
+
+def test_gc_tier3_does_not_enter_the_arbitration_ledger(as_received_doc):
+    """⛔ A genuine diagonal is not a suspected drafting error, so it must NOT
+    cost a person anything.  A tier-3 diagnostic with no row is valid; ⭐ and a
+    row claiming that tier-3 handle is refused."""
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    view["converter_readouts"]["diagnostics"].append({
+        "code": "tarch_wall_nonorthogonal", "severity": "BLOCK",
+        "stage": "S1_QUANTIZE", "action_code": "tarch_wall_nonorthogonal",
+        "handles": ["CCCC"], "points_dxf_mm": [[0.0, 0.0], [100.0, 100.0]],
+        "context": {"ladder_tier": 3, "refused_by": ["angle_beyond_envelope"],
+                    "angle_deg": 45.0, "minor_leg_mm": 100.0,
+                    "major_leg_mm": 100.0, "length_mm": 141.4,
+                    "deviation_limit_mm": 30.0, "cap_mm": 30.0}})
+    AsMeasuredV1.model_validate(raw)          # must not raise
+
+    view["converter_readouts"]["axis_snap_arbitrations"] = [
+        {"id": "CCCC", "layer": "WALL", "ladder_tier": 2,
+         "reason": "angle_beyond_envelope", "p0": [0, 0], "p1": [1000, 1000],
+         "deviation_units": 1000, "deviation_limit_units": 300,
+         "cap_units": 300, "angle_deg": 45.0}]
+    with pytest.raises(ValueError,
+                       match="as_measured_axis_snap_arbitration_ledger_broken"):
+        AsMeasuredV1.model_validate(raw)

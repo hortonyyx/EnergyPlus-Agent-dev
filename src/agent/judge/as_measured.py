@@ -239,7 +239,6 @@ def _geom_units(metres: float) -> int:
     names).  Every call site of THIS function:
 
       ``_face_line_records``       ``face_lines[*].const / .along_min / .along_max``
-                                   ``non_orthogonal_lines[*].p0 / .p1``
       ``_jamb_cap_band_records``   (band face consts, used only as the
                                    ``by_const`` lookup key against
                                    ``face_lines[*].const`` -- not emitted)
@@ -272,6 +271,22 @@ def _geom_units(metres: float) -> int:
         observation, the very evidence a human reviews on that row
         (quantising it would falsify the record of how skew the stroke was);
       ``axis_snapped_lines[*].minor_leg_units`` -- a LENGTH observation;
+      ``non_orthogonal_lines[*].p0 / .p1`` -- ⭐ SAME REASON, added
+        2026-09-07 (A-11-d3).  This row's whole claim is "this stroke is
+        neither horizontal nor vertical", and the 1 mm grid was ERASING the
+        evidence for it: 13AF went in as ``p0=[52400, 100660]`` /
+        ``p1=[52400, 99460]`` -- two IDENTICAL x, i.e. a row asserting
+        skewness while displaying a perfectly vertical line (raw ezdxf:
+        52400.742 -> 52398.827, a 0.1915 mm lean).  ⛔ The original A-11
+        argument was made for ``axis_snapped_lines[*].before_*`` and stops
+        one field-family short of its own scope: BOTH are the raw pre-
+        treatment observation, ⛔ neither is a position anything is placed
+        at.  These strokes are dropped from ``face_lines`` by construction,
+        so no downstream geometry is computed from them;
+      ``axis_snap_arbitrations[*].deviation_units / .deviation_limit_units /
+        .cap_units`` -- LENGTH observations (how far the flattening would
+        have moved the face, and the ceilings it was measured against),
+        ⛔ not positions;
       ``converter_readouts.diagnostics`` / ``.gates`` / ``.jamb_cap_bands``
         -- the converter's own VERBATIM records (module rule: ⛔ nothing in
         there is recomputed);
@@ -326,6 +341,23 @@ INGEST_NON_COORDINATE_PATHS: dict[str, str] = {
         "RAW pre-snap observation -- evidence, quantising it falsifies it",
     "views[*].converter_readouts.axis_snapped_lines[*].minor_leg_units":
         "a LENGTH observation (how skew the stroke was), not a position",
+    "views[*].converter_readouts.non_orthogonal_lines[*].p0":
+        "RAW pre-snap observation -- evidence, quantising it falsifies it",
+    "views[*].converter_readouts.non_orthogonal_lines[*].p1":
+        "RAW pre-snap observation -- evidence, quantising it falsifies it",
+    "views[*].converter_readouts.axis_snap_arbitrations[*].p0":
+        "RAW pre-decision observation -- evidence, quantising it falsifies it",
+    "views[*].converter_readouts.axis_snap_arbitrations[*].p1":
+        "RAW pre-decision observation -- evidence, quantising it falsifies it",
+    "views[*].converter_readouts.axis_snap_arbitrations[*].deviation_units":
+        "a LENGTH observation (how far the flattening would move the face), "
+        "not a position",
+    "views[*].converter_readouts.axis_snap_arbitrations[*].deviation_limit_units":
+        "a LENGTH observation (this stroke's tier-1 ceiling), not a position",
+    "views[*].converter_readouts.axis_snap_arbitrations[*].cap_units":
+        "a LENGTH observation (half the thinnest declared wall), not a position",
+    "views[*].converter_readouts.axis_snap_arbitrations[*].ladder_tier":
+        "the ladder tier this stroke landed on (2), not a position",
     "views[*].converter_readouts.dangles":
         "converter readout count",
     "views[*].converter_readouts.cuts":
@@ -686,15 +718,69 @@ class AsMeasuredBoundaryRingLossV1(_StrictModel):
 class AsMeasuredNonOrthogonalLineV1(_StrictModel):
     """A collected stroke that is neither horizontal nor vertical.
 
-    ⭐ It exists (measured: 1 in as-received ``plan-F1``; F-129) and it cannot be
-    a constant-coordinate face line.  ⛔ So it is NAMED here rather than dropped:
-    "the record has no such wall" and "the record silently refused this wall"
-    must not look the same ([[absence-conflates-causes-in-observables]]).
+    ⭐ It exists (measured: 1 in as-received ``plan-F1`` before 2026-09-07; 0
+    after the ladder landed -- that stroke, 13AF, is now a real face line) and
+    it cannot be a constant-coordinate face line.  ⛔ So it is NAMED here
+    rather than dropped: "the record has no such wall" and "the record
+    silently refused this wall" must not look the same
+    ([[absence-conflates-causes-in-observables]]).
+
+    ⭐⭐ ``p0``/``p1`` are RAW (``to_units``), ⛔ NOT on the 1 mm ingest grid --
+    A-11-d3, fixed 2026-09-07.  Quantising them falsified the row: 13AF was
+    stored with both endpoints at x=52400 while the drawing has 52400.742 and
+    52398.827, i.e. the row asserted "not axis-aligned" and displayed a
+    perfectly vertical line.  Same exemption and same wording as
+    ``AsMeasuredAxisSnapV1.before_p0``/``before_p1``; the reason was already
+    written down for that family and simply had not been applied to this one.
     """
     id: DxfHandle
     layer: HumanLabel
-    p0: list[int] = Field(min_length=2, max_length=2)   # 0.1 mm world
+    #: ⛔ RAW 0.1 mm world, ⛔ NOT ingest-grid -- see the class docstring.
+    p0: list[int] = Field(min_length=2, max_length=2)
     p1: list[int] = Field(min_length=2, max_length=2)
+
+
+class AsMeasuredAxisSnapArbitrationV1(_StrictModel):
+    """⭐⭐⭐ One stroke the ladder REFUSED TO DECIDE (tier 2) -- it is inside
+    the 5° envelope, so it may well be a drafting slip, but flattening it is
+    ⛔ not the machine's call.  This row is what a human arbitrates.
+
+    ⭐ Why a separate list from ``non_orthogonal_lines`` and from
+    ``s1_nonorthogonal_discarded_handles``: those two say a stroke did not
+    become a face line.  ⛔ They do not say WHY, and "a genuine 45° diagonal"
+    (tier 3) and "a 0.4° wall we could have straightened but must not" (tier 2)
+    are completely different findings that were previously the same absence.
+
+    ``reason`` is the ladder's own verdict word, verbatim from the converter:
+
+      ``deviation_over_cap``          inside 5°, but flattening would move the
+                                      face by more than half the thinnest
+                                      declared wall ⇒ it could change WHICH
+                                      wall this face belongs to
+      ``both_ends_anchored_...``      BOTH ends sit on already-straight
+                                      strokes ⇒ the drawing means this line to
+                                      run between two settled points ⇒ suspect
+                                      a REAL slant, ⛔ do not flatten
+      ``anchor_undecidable_and_observable``
+                                      neither end is anchored AND the three
+                                      candidate answers do NOT collapse to one
+                                      stored value ⇒ the choice is visible in
+                                      the product, so a person makes it
+
+    ⛔ ``deviation_units`` / ``deviation_limit_units`` / ``cap_units`` are
+    LENGTH observations, not positions -- exempt from the ingest grid for the
+    same reason ``minor_leg_units`` is (see ``_geom_units``).
+    """
+    id: DxfHandle
+    layer: HumanLabel
+    ladder_tier: int = Field(ge=2, le=2)
+    reason: HumanLabel
+    p0: list[int] = Field(min_length=2, max_length=2)   # RAW 0.1 mm world
+    p1: list[int] = Field(min_length=2, max_length=2)
+    deviation_units: StrictNonNegativeInt      # how far the flattening would move it
+    deviation_limit_units: StrictNonNegativeInt   # this stroke's tier-1 ceiling
+    cap_units: StrictNonNegativeInt            # half the thinnest declared wall
+    angle_deg: StrictFiniteFloat = Field(ge=0.0, le=90.0)
 
 
 class AsMeasuredAxisSnapV1(_StrictModel):
@@ -779,6 +865,18 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
     #: that never failed the S1 "both legs > tau_axis" test at all).  See
     #: ``AsMeasuredAxisSnapV1``.
     axis_snapped_lines: list[AsMeasuredAxisSnapV1] = Field(default_factory=list)
+    #: ⭐⭐⭐ G-c (2026-09-07): strokes the ladder sent to a HUMAN (tier 2) --
+    #: inside the 5° envelope, so ⛔ not "a diagonal, out of scope", but the
+    #: machine ⛔ may not straighten them by itself.  ⛔ A DIFFERENT population
+    #: again from all three lists above.  MEASURED on both in-corpus cases:
+    #: EMPTY -- every real skew stroke lands on tier 1 and is fixed without a
+    #: signature, which is exactly the outcome the user asked for ("正交吸附和
+    #: 按毫米分辨率吸附不用签字，直接修正就可以").  ⛔ An empty list is
+    #: therefore NOT evidence the tier has no teeth; the synthetic fixtures in
+    #: ``tests/test_tarch_converter_p1_geometry.py`` are, because the corpus
+    #: contains ZERO real slants to exercise it with.
+    axis_snap_arbitrations: list[AsMeasuredAxisSnapArbitrationV1] = Field(
+        default_factory=list)
     unresolved_opening_carriers: list[JsonDict] = Field(default_factory=list)
     #: ⛔ ②-1a-R: the converter's ``wall_bands``, carried VERBATIM and under a
     #: name that says what they are grouped from -- JAMB CAPS (S2), ⛔ NOT wall
@@ -837,6 +935,39 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
                 raise ValueError(
                     "as_measured_axis_snapped_angle_disagrees_with_diagnostic: "
                     f"{row.id} row={row.angle_deg} diagnostic={diag_angles[row.id]}")
+        return self
+
+    @model_validator(mode="after")
+    def _arbitration_ledger_has_teeth(self):
+        """⭐ The same self-proof, for the tier-2 list: deleting a row from
+        ``axis_snap_arbitrations`` must go RED.
+
+        ``diagnostics`` is a VERBATIM, independently-populated carry of the
+        converter's own records; this list is built by a SEPARATE pass over
+        that same population.  ⛔ Without this the arbitration list could be
+        quietly emptied and the document would still validate -- which is the
+        precise shape of "改判据顺手把红掉的锁拆了".
+        """
+        tier2 = [d for d in self.diagnostics
+                 if d.get("code") == "tarch_wall_nonorthogonal"
+                 and (d.get("context") or {}).get("ladder_tier") == 2]
+        expected = {h for d in tier2 for h in d.get("handles", [])}
+        rows = [row.id for row in self.axis_snap_arbitrations]
+        if len(rows) != len(set(rows)) or set(rows) != expected:
+            raise ValueError(
+                "as_measured_axis_snap_arbitration_ledger_broken: "
+                f"rows={sorted(rows)} tier2_diagnostics={sorted(expected)}")
+        by_handle = {h: d for d in tier2 for h in d.get("handles", [])}
+        for row in self.axis_snap_arbitrations:
+            context = by_handle[row.id].get("context") or {}
+            if row.angle_deg != float(context.get("angle_deg")):
+                raise ValueError(
+                    "as_measured_axis_snap_arbitration_angle_disagrees_with_diagnostic: "
+                    f"{row.id} row={row.angle_deg} diagnostic={context.get('angle_deg')}")
+            if [row.reason] != list(context.get("refused_by") or []):
+                raise ValueError(
+                    "as_measured_axis_snap_arbitration_reason_disagrees_with_diagnostic: "
+                    f"{row.id} row={row.reason} diagnostic={context.get('refused_by')}")
         return self
 
 
@@ -1232,8 +1363,16 @@ def _face_line_records(geo: P1PlanViewGeometry, sx: float, tx: float,
         wx0, wx1 = _geom_units(sx * x0 + tx), _geom_units(sx * x1 + tx)
         wy0, wy1 = _geom_units(sy * y0 + ty), _geom_units(sy * y1 + ty)
         if x0 != x1 and y0 != y1:
+            # ⛔ RAW (``to_units`` only), ⛔ NOT ``_geom_units``: A-11-d3.  This
+            # row's ONLY claim is "neither horizontal nor vertical", and the
+            # 1 mm ingest grid was collapsing exactly the coordinate pair that
+            # carries it -- 13AF stored both x as 52400 while the drawing has
+            # 52400.742 / 52398.827.  Same exemption, same reason, same wording
+            # as ``axis_snapped_lines[*].before_*``; see ``_geom_units``.
             skew.append(AsMeasuredNonOrthogonalLineV1(
-                id=handle, layer=layer, p0=[wx0, wy0], p1=[wx1, wy1]))
+                id=handle, layer=layer,
+                p0=[to_units(sx * x0 + tx), to_units(sy * y0 + ty)],
+                p1=[to_units(sx * x1 + tx), to_units(sy * y1 + ty)]))
             continue
         if x0 == x1 and y0 == y1:
             degenerate += 1
@@ -2294,6 +2433,48 @@ def _axis_snap_records(geo: P1PlanViewGeometry, sx: float, tx: float,
     return records
 
 
+def _axis_snap_arbitration_records(geo: P1PlanViewGeometry, sx: float, tx: float,
+                                   sy: float, ty: float
+                                   ) -> list[AsMeasuredAxisSnapArbitrationV1]:
+    """⭐ Itemize the ladder's TIER-2 refusals -- the strokes a human, ⛔ not
+    the machine, has to decide about.
+
+    Built by a SEPARATE pass over ``geo.diagnostics`` (the same population
+    ``_readout_records`` carries verbatim), which is what gives
+    ``_arbitration_ledger_has_teeth`` something independent to compare against.
+
+    ⛔ Tier 3 (``angle_beyond_envelope``) is deliberately NOT here: a real
+    diagonal is not a suspected drafting error and there is nothing for a
+    person to arbitrate.  Both tiers still raise the same fail-closed
+    ``tarch_wall_nonorthogonal`` BLOCK and both are still dropped; ⭐ the tier
+    is what tells them apart, and it is on the diagnostic's own context.
+    """
+    records: list[AsMeasuredAxisSnapArbitrationV1] = []
+    for d in geo.diagnostics:
+        if str(getattr(d.code, "value", d.code)) != "tarch_wall_nonorthogonal":
+            continue
+        ctx = d.context or {}
+        if ctx.get("ladder_tier") != 2:
+            continue
+        handle = str(d.source_entity_handles[0])
+        (px0, py0), (px1, py1) = d.source_points_dxf_mm
+        # the deviation is measured on the SNAPPED axis, so it scales with that
+        # axis' own factor -- the same rule ``_axis_snap_records`` uses.
+        scale = abs(sx) if abs(px1 - px0) <= abs(py1 - py0) else abs(sy)
+        records.append(AsMeasuredAxisSnapArbitrationV1(
+            id=handle, layer=geo.wall_line_layers.get(handle, ""),
+            ladder_tier=2, reason=str((ctx.get("refused_by") or [""])[0]),
+            # ⛔ RAW, like every other pre-treatment observation in this file.
+            p0=[to_units(sx * px0 + tx), to_units(sy * py0 + ty)],
+            p1=[to_units(sx * px1 + tx), to_units(sy * py1 + ty)],
+            deviation_units=to_units(scale * float(ctx["minor_leg_mm"])),
+            deviation_limit_units=to_units(scale * float(ctx["deviation_limit_mm"])),
+            cap_units=to_units(scale * float(ctx["cap_mm"])),
+            angle_deg=float(ctx["angle_deg"])))
+    records.sort(key=lambda r: r.id)
+    return records
+
+
 def _readout_records(geo: P1PlanViewGeometry) -> tuple[list[dict], list[dict]]:
     """Diagnostics + gates, VERBATIM.  ⛔ Nothing here is recomputed or filtered.
 
@@ -2383,6 +2564,7 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
     openings, unresolved = _opening_records(geo, walls, sx, tx, sy, ty)
     diagnostics, gates = _readout_records(geo)
     axis_snapped = _axis_snap_records(geo, sx, tx, sy, ty)
+    arbitrations = _axis_snap_arbitration_records(geo, sx, tx, sy, ty)
     view = AsMeasuredViewV1(
         view_id=geo.view_id, floor_id=geo.floor_id,
         face_lines=faces, walls=walls, openings=openings,
@@ -2398,6 +2580,7 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
             degenerate_in_wall_lines=degenerate,
             all_wall_handles=_sorted_handles(geo.all_wall_handles),
             non_orthogonal_lines=skew,
+            axis_snap_arbitrations=arbitrations,
             axis_snapped_lines=axis_snapped,
             unresolved_opening_carriers=unresolved,
             jamb_cap_bands=bands,
@@ -2461,7 +2644,8 @@ __all__ = [
     "AsMeasuredRingV1", "AsMeasuredFootprintV1",
     "BoundaryConditionEvidenceV1", "AsMeasuredBoundaryEdgeV1",
     "AsMeasuredBoundaryFailureSpanV1", "AsMeasuredBoundaryRingLossV1",
-    "AsMeasuredNonOrthogonalLineV1", "AsMeasuredAxisSnapV1", "AsMeasuredConverterReadoutsV1",
+    "AsMeasuredNonOrthogonalLineV1", "AsMeasuredAxisSnapV1",
+    "AsMeasuredAxisSnapArbitrationV1", "AsMeasuredConverterReadoutsV1",
     "assert_request_is_pure_source_swap", "derive_as_measured_request",
     "request_file_bytes", "AS_RECEIVED_ID_SUFFIX",
     "build_as_measured", "build_view", "derive_boundary_edges",

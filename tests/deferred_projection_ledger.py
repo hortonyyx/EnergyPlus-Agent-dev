@@ -12,16 +12,20 @@ here and define nothing of their own.
 
 ═══ THE ADJUDICATION (2026-09-05, A-11 rework-1) ═══
 
-F-153 form B IS a known debt of this batch — ⛔ NOT a new error exposed by
-the 1 mm ingest snap.  Measured, not narrated (both sides of the swap):
+F-153 form B RETIRED with G-c (2026-09-07).  The ladder anchors the snap
+at the shared joint endpoint instead of the midpoint; the joints close and
+the projected rings equal their converter zones bit-for-bit.  Its per-cause
+readout is now zero.  F-157 remains deferred, one unavailable cavity per plan.
+
+Historical adjudication: F-153 form B was existing debt, not an error created
+by the 1 mm ingest snap.  The two earlier representations were:
 
 * PRE-A11  (basepoint c7c6831a): the B-1 wall sits at ``along_min=52401``
   (0.1 mm off its siblings), the cavity behind it cannot ring, and the
   producer writes ONE ledger entry — ``endcap_const_not_a_measured_parallel_face``,
   ``span.const=52401``, ``area_units2=2868321200`` (28.683212 m²).  That
-  producer-written loss is locked fail-loud by ``tests/test_o21d_exclusion_gap.py``
-  ("the sole surviving ledger entry is F-153 form B ... delta=1").
-* POST-A11 (this tree): the snap moves the wall to ``52400``, the 286.8 m²
+  producer-written loss is locked fail-loud by ``tests/test_o21d_exclusion_gap.py``.
+* POST-A11, BEFORE G-c: the snap moves the wall to ``52400``, the 286.8 m²
   cavity closes into two REAL rooms, their rings become buildable — and the
   SAME endcap geometry difference becomes COMPARABLE for the first time,
   surfacing as two ``facts_projected_ring_is_not_the_converter_zone`` rows
@@ -38,9 +42,9 @@ plan, pre-A11 debt, untouched by the snap.
 
 WHO RETIRES WHAT, AND WHEN:
 
-* the two F-153 form B rows retire when the upstream converter endcap
-  geometry fix lands — the projected ring then equals the zone bit-for-bit
-  and the rows stop being emitted;
+* the two F-153 form B rows have retired with G-c's joint-anchored snap and
+  shared-endpoint propagation; the projected ring equals the zone bit-for-bit
+  and the producer no longer emits those rows;
 * the two F-157 rows retire when the basis-switch fix lands;
 * membership below is computed from EACH RUN's own structural failures
   (⛔ not a roster baked in here), so the ledger empties BY ITSELF as the
@@ -89,8 +93,8 @@ DEFERRED_PROJECTION_CODES = (
 #: ⛔ Owned by another lock, ⛔ not an amnesty.  ②-1d rework3 made a
 #: producer-written ``registered_ring_loss`` fail-loud, so an honest sm25
 #: substrate carries one such red per converter zone parked in an endcap-loss
-#: cavity (F-153 form B, a known-unfixed defect — see the adjudication
-#: above).  Those reds belong to the F-153 form B lock in
+#: cavity.  A-11 already emptied the real loss inventory; constructed losses
+#: still exercise this rule.  Those reds belong to the loss lock in
 #: ``tests/test_o21d_exclusion_gap.py``, ⛔ not to the E2c/E3/E4/basis locks,
 #: which must not be held hostage by a defect they do not own.
 KNOWN_DEFECT_CODES = (
@@ -107,8 +111,9 @@ F153_FORM_B_CODE = "facts_projected_ring_is_not_the_converter_zone"
 #: way along a single support line, one cavity per plan.
 SM25_DEFERRED_F157_UNAVAILABLE_COUNT = 2
 #: F-153 form B: the converter endcap geometry difference, surfaced by the
-#: A-11 1 mm ingest snap as two symmetric-difference rows on plan-F1.
-SM25_DEFERRED_F153_FORM_B_COUNT = 2
+#: A-11 1 mm ingest snap as two symmetric-difference rows on plan-F1, retired
+#: by G-c's joint-anchored snap and shared-endpoint propagation.
+SM25_DEFERRED_F153_FORM_B_COUNT = 0
 
 #: ⛔ DERIVED, never an independent literal: the total is the sum of its
 #: parts by construction, so it cannot stay green while the composition
