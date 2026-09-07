@@ -872,3 +872,114 @@ def test_new_files_never_touch_gt():
         assert gt_module_slash not in text, name
         assert gt_loader not in text, name
         assert gt_dir not in text, name
+
+
+# ── W-1 rework BLK-A (2026-09-07): the channel-split debt is FILED, not narrated ── #
+
+def _snap_declared_plan_doc() -> dict:
+    """The minimal plan product whose OWN declarations the snap tolerance
+    derives from (``read_plan_calibration_declaration`` reads exactly these):
+    per-axis calibration chains with a self-report that matches the recomputed
+    max residual, plus positive wall-thickness callouts."""
+    return {
+        "observations": {
+            "calibration": {
+                axis: {
+                    "mm_per_px": 3.0,
+                    "residual_px": [0.5, -0.25, 0.125],
+                    "max_abs_residual_px": 0.5,
+                }
+                for axis in ("x", "y")
+            }
+        },
+        "declarations": {"thickness_callouts_mm": [200.0]},
+    }
+
+
+def _materialized_plan_run(root: Path, name: str, **overrides):
+    """A plan run whose product REALLY exists on disk (the wiring re-reads it
+    after the chains to derive the snap tolerance)."""
+    vector_dir = root / "v0"
+    vector_dir.mkdir(parents=True, exist_ok=True)
+    (vector_dir / f"{name}.json").write_text(
+        json.dumps(_snap_declared_plan_doc()), encoding="utf-8"
+    )
+    fields = {
+        "vector_dir": vector_dir,
+        "product_filename": f"{name}.json",
+        "out_dir": root / "out" / name,
+    }
+    fields.update(overrides)
+    return pipeline.MultiFloorPlanRun(**fields)
+
+
+def test_new_leg_files_the_channel_split_debt(monkeypatch, tmp_path):
+    """Lock ① (rework BLK-A): walking the new leg FILES the window
+    channel-split debt — the identifier exists as a filed JSON artifact on
+    disk, ⛔ not only inside docstrings.  Under the default exploratory chain
+    profile it is a FLAG, and the walk completes."""
+    made: list[str] = []
+
+    def _fake_chain(*args, **kwargs):
+        made.append(f"f{len(made)}")
+        return _square_floor(made[-1], _RECT)
+
+    monkeypatch.setattr(pipeline, "run_correction", _fake_chain)
+    art = _elevation([2900.0, 3300.0])
+    debt_path = tmp_path / "1_correction" / "evidence_debt.json"
+    runs = [
+        _materialized_plan_run(tmp_path, "p0"),
+        _materialized_plan_run(tmp_path, "p1"),
+    ]
+    pipeline.run_multifloor_correction(art, runs, evidence_debt_path=debt_path)
+    filed = json.loads(debt_path.read_text(encoding="utf-8"))
+    items = [d for d in filed["debts"]
+             if d["check_id"] == "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER"]
+    assert items, "the channel-split debt must be FILED on the new leg"
+    assert items[0]["disposition"] == "flag"
+    assert items[0]["evidence"]["evidence_chain_profile"] == "exploratory"
+    assert filed["source_stage"] == "1_correction"
+
+
+def test_strict_profile_blocks_the_channel_split_after_filing(monkeypatch, tmp_path):
+    """Lock ② (rework BLK-A): under a STRICT chain profile the channel-split
+    debt BLOCKS — and it blocks (a) AFTER the debt is filed, so the refusal
+    is auditable on disk, and (b) BEFORE any chain runs, so a strict refusal
+    costs no chain budget (the fake run_correction must never fire)."""
+    fired: list[dict] = []
+
+    def _must_not_fire(*args, **kwargs):
+        fired.append(kwargs)
+        raise AssertionError("a strict refusal must precede every chain run")
+
+    monkeypatch.setattr(pipeline, "run_correction", _must_not_fire)
+    art = _elevation([2900.0, 3300.0])
+    debt_path = tmp_path / "evidence_debt.json"
+    runs = [
+        _materialized_plan_run(tmp_path, "p0", profile="strict"),
+        _materialized_plan_run(tmp_path, "p1", profile="strict"),
+    ]
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        pipeline.run_multifloor_correction(art, runs, evidence_debt_path=debt_path)
+    assert exc.value.code == "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER"
+    assert not fired
+    # the block itself is auditable: the debt hit the disk BEFORE the raise
+    filed = json.loads(debt_path.read_text(encoding="utf-8"))
+    item = next(d for d in filed["debts"]
+                if d["check_id"] == "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER")
+    assert item["disposition"] == "block"
+    assert item["evidence"]["evidence_chain_profile"] == "strict"
+
+
+def test_mixed_plan_run_profiles_refuse_loudly(tmp_path):
+    """A leg whose floors would run under DIFFERENT chain profiles has no
+    single filed account — loud ``PLAN_RUN_PROFILE_MIXED``, ⛔ not a silent
+    pick of either word."""
+    art = _elevation([2900.0, 3300.0])
+    runs = [
+        _materialized_plan_run(tmp_path, "p0", profile="exploratory"),
+        _materialized_plan_run(tmp_path, "p1", profile="strict"),
+    ]
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        pipeline.run_multifloor_correction(art, runs)
+    assert exc.value.code == "PLAN_RUN_PROFILE_MIXED"

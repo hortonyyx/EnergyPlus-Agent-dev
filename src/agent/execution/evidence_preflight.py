@@ -246,6 +246,77 @@ def write_evidence_debt(path: Path, debt: EvidenceDebt) -> None:
     path.write_text(debt.model_dump_json(indent=2), encoding="utf-8")
 
 
+# ── W-1 T2-⑤ / rework BLK-A (2026-09-07): the as_drawn leg's channel-split debt ── #
+WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID = "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER"
+#: The evidence-chain profile axis this debt's disposition is decided on —
+#: the CHAIN's own axis (``decision_executor``'s Literal), ⛔ not RunProfile.
+_CHAIN_PROFILE_AXIS = frozenset({"exploratory", "strict"})
+
+
+def window_evidence_channel_split_debt(*, chain_profile: str) -> EvidenceDebt:
+    """The as_drawn leg's window-evidence channel split, as a FILED debt.
+
+    W-1 T2-⑤ (ratified 2026-09-07i) accepted that on the evidence-chain leg
+    the window evidence travels as the chain's ``opening_claims`` while the
+    legacy pen-stroke window ledger stays empty — under the explicit
+    condition that the absence is a RECORDED fact, ⛔ never a silent
+    emptiness.  This factory IS that record (rework BLK-A, 2026-09-07l: for
+    a while the identifier existed only in two docstrings — zero code, so
+    the acceptance premise was false on disk).
+
+    Disposition follows the EVIDENCE-CHAIN profile axis the wiring runs
+    under: ``exploratory`` flags it, ``strict`` blocks it (the wiring fails
+    closed AFTER filing, so the refusal itself is auditable).  The ledger's
+    own ``run_profile`` field speaks the READING-debt policy axis
+    (RunProfile); the two axes share only the word "exploratory".  The
+    chain's word travels VERBATIM in ``evidence["evidence_chain_profile"]``
+    and the field gets the same-side RunProfile ("exploratory" permissive /
+    "regression" non-permissive) — a recorded translation, ⛔ not a second
+    debt mechanism.
+    """
+    if chain_profile not in _CHAIN_PROFILE_AXIS:
+        raise ValueError(
+            "chain_profile must be one of the evidence-chain axis words "
+            f"{sorted(_CHAIN_PROFILE_AXIS)}, got {chain_profile!r}"
+        )
+    item = EvidenceDebtItem(
+        check_id=WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
+        canonical_check_id=WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
+        view=None,
+        status="fail",
+        layer="cross_check",
+        disposition=(
+            Disposition.FLAG.value
+            if chain_profile == "exploratory"
+            else Disposition.BLOCK.value
+        ),
+        message=(
+            "the as_drawn evidence-chain leg carries its window evidence on "
+            "the chain (opening_claims); the legacy pen-stroke window ledger "
+            "is an ACCOUNTED empty set — the channel split is this filed "
+            "debt, ⛔ never a silent emptiness"
+        ),
+        evidence={
+            "evidence_chain_profile": chain_profile,
+            "channel": "window_evidence",
+            "on_chain": "opening_claims",
+            "on_ledger": 0,
+            "reason": "as_drawn products carry no pen strokes, so the legacy "
+            "ledger gate has no teeth on this leg (ratified 2026-09-07i "
+            "T2-⑤, under this filed-debt condition)",
+        },
+        scope="view_global",
+        offender_ids=[],
+    )
+    return EvidenceDebt(
+        run_profile=(
+            "exploratory" if chain_profile == "exploratory" else "regression"
+        ),
+        source_stage="1_correction",
+        debts=[item],
+    )
+
+
 def load_evidence_debt(path: Path) -> EvidenceDebt | None:
     if not path.exists():
         return None

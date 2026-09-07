@@ -52,10 +52,12 @@ from src.agent.correction.vocab import (
     retry_guidance_for_correction,
 )
 from src.agent.execution.evidence_preflight import (
+    WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
     EvidenceDebt,
     compute_evidence_debt_from_vector_dir,
     compute_reading_report_from_vector_dir,
     project_evidence_debt,
+    window_evidence_channel_split_debt,
     write_evidence_debt,
 )
 from src.agent.llm import load_llm_section, resolve_llm_config_path
@@ -1636,11 +1638,33 @@ class MultiFloorPlanRun(NamedTuple):
     round_budget: int = 3
 
 
+def _unified_chain_profile(
+    plan_runs: "Sequence[MultiFloorPlanRun]",
+) -> str:
+    """The ONE evidence-chain profile all ``plan_runs`` agree on.
+
+    A mixed-profile ``plan_runs`` (one floor exploratory, another strict) is a
+    loud ``PLAN_RUN_PROFILE_MIXED`` refusal: the per-floor chains would run
+    under different debt policies and no single filed account could describe
+    the leg.  An empty ``plan_runs`` yields the axis default (the ladder-count
+    gate owns that refusal).
+    """
+    from src.agent.correction.multifloor import MultiFloorAssemblyError
+
+    profiles = sorted({run.profile for run in plan_runs})
+    if len(profiles) > 1:
+        raise MultiFloorAssemblyError(
+            "PLAN_RUN_PROFILE_MIXED", {"profiles": profiles}
+        )
+    return profiles[0] if profiles else "exploratory"
+
+
 def run_multifloor_correction(
     elevation_evidence: "CorrectionEvidenceBundleArtifactV1",
     plan_runs: "Sequence[MultiFloorPlanRun]",
     *,
     snap_ledger_path: "Path | None" = None,
+    evidence_debt_path: "Path | None" = None,
 ) -> "CorrectedGeometryV3":
     """B2 wiring: derive the storey ladder from the frozen elevation evidence,
     run the 1_correction evidence chain once per plan product with the DERIVED
@@ -1663,6 +1687,15 @@ def run_multifloor_correction(
     unreachable from here.  Neuter the derivation and this call fails loudly
     (``FLOOR_PLAN_COUNT_MISMATCH``) — ⛔ it never falls back to a caller-declared
     z.
+
+    ⭐ W-1 rework BLK-A (2026-09-07l): walking this leg FILES the window
+    channel-split debt (``WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER``) — the
+    acceptance premise of T2-⑤ is a fact on disk, ⛔ not a docstring.  It is
+    registered BEFORE any chain runs (a strict refusal must cost no chain
+    budget) and filed BEFORE the strict refusal raises, so the block itself
+    is auditable.  ``evidence_debt_path`` (production wiring always passes
+    it) is where the ledger lands — the SAME filename the legacy leg files,
+    so downstream readers (flow, report assembly, validation) see one shape.
 
     ``plan_runs`` is ground-up: ``plan_runs[i]`` is projected onto derived rung
     ``i``.  A plan-product count that disagrees with the derived storey count is
@@ -1687,6 +1720,33 @@ def run_multifloor_correction(
         read_plan_calibration_declaration,
         snap_footprints_to_reference,
     )
+
+    # W-1 rework BLK-A (2026-09-07l): the window-evidence channel split is a
+    # FILED fact on this leg, ⛔ never a silent emptiness.  Filed FIRST (before
+    # the ladder and every chain) so the debt exists on disk whatever happens
+    # next; a mixed-profile plan_runs is a loud refusal here — no single
+    # account could describe a leg whose floors ran under different policies.
+    chain_profile = _unified_chain_profile(plan_runs)
+    channel_split_debt = window_evidence_channel_split_debt(
+        chain_profile=chain_profile
+    )
+    if evidence_debt_path is not None:
+        write_evidence_debt(Path(evidence_debt_path), channel_split_debt)
+    if channel_split_debt.blocking:
+        raise MultiFloorAssemblyError(
+            WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
+            {
+                "evidence_chain_profile": chain_profile,
+                "filed_at": (
+                    str(evidence_debt_path)
+                    if evidence_debt_path is not None
+                    else None
+                ),
+                "reason": "strict evidence-chain profile blocks the window "
+                "channel split (legacy ledger empty by ratified T2-⑤); the "
+                "debt is filed and the wiring fails closed",
+            },
+        )
 
     # B-1/B-2: derive_floor_ladder consumes the SEALED carrier and runs B3's
     # value↔byte gate (validate_evidence_bundle) as its FIRST act, BEFORE any
