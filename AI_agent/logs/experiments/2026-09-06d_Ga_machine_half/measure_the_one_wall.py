@@ -120,3 +120,55 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# --------------------------------------------------------------------------- #
+# ⭐ 2026-09-07 追加：题面翻转那一轮的两处实测（接头对账 + 阈值缝）
+# 跑法： python …/measure_the_one_wall.py --reframe
+# --------------------------------------------------------------------------- #
+def reframe() -> None:
+    stored = json.loads((FACTS / "as_measured.json").read_text(encoding="utf-8"))
+    view = stored["views"][0]
+    by_id = {f["id"]: f for f in view["face_lines"]}
+
+    print("=" * 78)
+    print("⑤ 接头对账 —— 光看 as_measured 自己，这堵墙和邻墙对得上吗")
+    print("=" * 78)
+    for wall_face, neighbour in (("13AD", "13AC"), ("13AE", "160A")):
+        f, g = by_id.get(wall_face), by_id.get(neighbour)
+        if f is None or g is None:
+            print(f"  {wall_face}/{neighbour}: 有一条不在 face_lines 里")
+            continue
+        gap = min(abs(f["const"] - g["along_min"]), abs(f["const"] - g["along_max"]))
+        # ⭐ 接头是否成立 = 这条水平面线的 const 落不落在竖线的【端点】上，
+        # ⛔ 不是「两条线在 x 上有没有重叠」（那只说明它们相交，不说明接得上）。
+        at_end = f["const"] in (g["along_min"], g["along_max"])
+        inside = g["along_min"] < f["const"] < g["along_max"]
+        shape = ("✅ 正好在端点" if at_end
+                 else "⛔ 穿过去了(端点变成了 T 形交叉)" if inside
+                 else "⛔ 够不着(留了个缝)")
+        print(f"  {neighbour}: along=[{g['along_min']},{g['along_max']}] const={g['const']}")
+        print(f"  {wall_face}: const={f['const']}"
+              f"  ⇒ 距 {neighbour} 最近端点 {gap} 单位 = {gap / 10:.1f} mm   {shape}")
+
+    print()
+    print("=" * 78)
+    print("⑥ 13AF 掉进的那条缝：两个阈值在 (0, 1mm) 上互相不认")
+    print("=" * 78)
+    from src.agent.judge import tarch_normalize as tn
+    (rx0, _), (rx1, _) = _endpoints(*_load("sm25-L_t3_as_received.dxf",
+                                           "request_as_measured.json"), "13AF")
+    skew_mm = abs(rx1 - rx0) / 10.0
+    print(f"  13AF 实际歪斜            = {skew_mm:.4f} mm")
+    print(f"  吸附分支进入条件         = 两条腿都 > tau_axis (= 1 mm)"
+          f"   ⇒ {skew_mm:.4f} <= 1 ⇒ 【不进分支】")
+    print(f"  两道吸附门（进了才用得上）= <= {tn.AXIS_SNAP_MAX_DEVIATION_M * 1000:.0f} mm"
+          f" 且 <= {tn.AXIS_SNAP_MAX_ANGLE_DEG:.0f}°  （13AF 两项都合格，但根本没走到）")
+    print("  面线分类判据             = x0 == x1 【精确相等、零容差】 ⇒ 【不算面线】")
+    discarded = view["converter_readouts"]["s1_nonorthogonal_discarded_handles"]
+    print(f"  佐证 s1_nonorthogonal_discarded_handles = {len(discarded)} 条 {discarded}"
+          "  ⇒ 从来没有任何一条被吸附门拒绝过")
+
+
+if __name__ == "__main__" and "--reframe" in sys.argv:
+    reframe()
