@@ -257,12 +257,29 @@ if dx_raw > tau_axis and dy_raw > tau_axis:      # tau_axis = 1 mm ⇐ 就是它
 
 ⇒ ⭐⭐⭐ **三条全部落在档 1 ⇒ `revisions` 台账清空 ⇒ G-a 的「签字那半」当场收工，⛔ 不用用户签任何东西。**
 
-#### ⚠️ 仍要用户拍板的一件事
+#### ✅ 用户已拍板：**10 mm 正式作废**（2026-09-07）
 
-`AXIS_SNAP_MAX_DEVIATION_M = 10 mm` 是**用户 2026-08-30 签过字的**，
-而阶梯里它的位置被 `CAP`（30 mm，派生值）取代了。
-⇒ **要么把 10 mm 正式作废、要么把 CAP 定成 10 mm**（后者会让 13AD/13AE 落进档 2 仲裁）。
-⛔ 主控不替用户动已签字的数。
+> 原话：「**10mm作废吧，就都按现在的推进就行**」
+
+⇒ 阶梯按上述形态落地，`CAP`（半个最薄墙厚，30 mm，派生值）取代 `AXIS_SNAP_MAX_DEVIATION_M` 的位置。
+
+⛔⛔ **但作废它【不是删一行】** —— 主控清点，**11 条测试函数直接钉着这个毫米门的行为**：
+
+| 文件 | 条数 |
+|---|---|
+| `tests/test_tarch_converter_p1_geometry.py` | **9** |
+| `tests/test_as_measured_facts_layer.py` | 1 |
+| `tests/test_as_drawn_denominator_consistency_readout.py` | 1 |
+
+其中两条尤其要当心：
+
+- **`test_f147_acceptance_1b_the_signed_10mm_deviation_value_has_teeth`**
+  —— 它**整个存在理由**就是「这个已签字的 10 mm 有牙」，前提随作废**直接消失**。
+- **`test_f147_acceptance_2_short_slant_passes_the_mm_gate_and_the_angle_gate_stops_it`**
+  —— 它的前提随 **1° → 5°** 直接改变（原本被角度门拦下的短斜线，现在可能过）。
+
+⇒ **派工单写死：这 11 条必须【按阶梯重新推导它各自钉的是什么】，⛔ 不许删、⛔ 不许弱化。**
+否则就落进「改判据顺手把红掉的锁拆了」这个经典形状。
 
 ### ⇒ 对本单的后果
 
