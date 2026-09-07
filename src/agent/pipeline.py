@@ -1639,6 +1639,8 @@ class MultiFloorPlanRun(NamedTuple):
 def run_multifloor_correction(
     elevation_evidence: "CorrectionEvidenceBundleArtifactV1",
     plan_runs: "Sequence[MultiFloorPlanRun]",
+    *,
+    snap_ledger_path: "Path | None" = None,
 ) -> "CorrectedGeometryV3":
     """B2 wiring: derive the storey ladder from the frozen elevation evidence,
     run the 1_correction evidence chain once per plan product with the DERIVED
@@ -1665,11 +1667,25 @@ def run_multifloor_correction(
     ``plan_runs`` is ground-up: ``plan_runs[i]`` is projected onto derived rung
     ``i``.  A plan-product count that disagrees with the derived storey count is
     a loud ``FLOOR_PLAN_COUNT_MISMATCH`` (T4), raised BEFORE any chain runs.
+
+    ⭐ W-1 T2-④ (2026-09-07, verdict 2026-09-07i BLK-1): between the chains and
+    assembly, the per-floor footprints are snapped to the ground floor's ring
+    through ``multifloor.snap_footprints_to_reference`` — a tolerance FULLY
+    derived from the plan products' own calibration/thickness declarations
+    (⛔ zero invented constants; see that function for the derivation).  An
+    over-tolerance floor passes through UNTOUCHED so assembly's existing
+    ``PER_FLOOR_FOOTPRINT_MISMATCH`` fires unchanged.  ``snap_ledger_path``
+    (production wiring always passes it) is where the account lands — written
+    UNCONDITIONALLY, ``applied`` true or false, so the ledger is a positive
+    record, ⛔ not an absence that conflates "no snap needed" with "the snap
+    never ran".
     """
     from src.agent.correction.multifloor import (
         MultiFloorAssemblyError,
         assemble_multifloor_geometry,
         derive_floor_ladder,
+        read_plan_calibration_declaration,
+        snap_footprints_to_reference,
     )
 
     # B-1/B-2: derive_floor_ladder consumes the SEALED carrier and runs B3's
@@ -1703,6 +1719,29 @@ def run_multifloor_correction(
             evidence_chain_level=level,
         )
         geometries.append(geom)
+    # W-1 T2-④: the snap tolerance is derived from the SAME plan products the
+    # chains just consumed (each one's OWN declared calibration residuals and
+    # wall-thickness callouts), re-read here read-only.
+    plan_docs: list = []
+    for run in plan_runs:
+        raw = (Path(run.vector_dir) / run.product_filename).read_bytes()
+        plan_docs.append(json.loads(raw.decode("utf-8")))
+    declarations = [
+        read_plan_calibration_declaration(
+            doc, input_id=Path(run.product_filename).stem
+        )
+        for doc, run in zip(plan_docs, plan_runs)
+    ]
+    geometries, snap_account = snap_footprints_to_reference(
+        geometries, declarations
+    )
+    if snap_ledger_path is not None:
+        snap_path = Path(snap_ledger_path)
+        snap_path.parent.mkdir(parents=True, exist_ok=True)
+        snap_path.write_text(
+            json.dumps(snap_account.to_payload(), indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
     return assemble_multifloor_geometry(ladder, geometries)
 
 

@@ -66,6 +66,7 @@ constant is written into this module — the acceptance greps for exactly that).
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -78,7 +79,7 @@ from src.agent.correction.evidence_contract import (
     validate_evidence_bundle,
 )
 from src.agent.correction.geometry_validator import check_zstack
-from src.agent.correction.schema import CorrectedGeometryV3, FloorV3
+from src.agent.correction.schema import CorrectedGeometryV3, FootprintRing, FloorV3
 
 
 class MultiFloorAssemblyError(RuntimeError):
@@ -408,6 +409,365 @@ def derive_floor_ladder(
     return _mint_sealed_ladder(elevation_evidence)
 
 
+# ── W-1 T2-④ / BLK-1 (2026-09-07): the cross-floor footprint snap ──────────── #
+#
+# WHAT THIS IS: an explicit, tolerance-gated snap step between the per-floor
+# chains and ``assemble_multifloor_geometry``.  Measured on sm25 (T1 probe,
+# ``2026-09-07h_w1_t1_probe``): the two plan products are calibrated
+# INDEPENDENTLY (each from its own dimension witnesses), so the same wall edge
+# lands ~7-12 mm apart in the two floors' world coordinates, and assembly's
+# zero-tolerance fingerprint comparison rejects it as a "setback".  That is a
+# calibration residual, not a drawing error — per the user's 2026-09-07 domain
+# ruling ("吸附/分辨率残差 = 机器直接修，真·画错才签字") it is machine-fix
+# territory, ⛔ never a human-signing item.
+#
+# THE TOLERANCE IS FULLY DERIVED (verdict BLK-1, 2026-09-07i): ⛔ no invented
+# constant, ⛔ no ``max(<derived>, <literal>)`` floor.  Both limbs of
+#
+#     tolerance = min(noise_bound, cap)
+#
+# are read from the plan products' OWN declarations:
+#
+#   noise_bound = hypot(bx_ref + bx_up, by_ref + by_up)
+#       where b_axis = mm_per_px_axis × max|residual_px|_axis / 1000
+#       — ``observations.calibration.{x,y}`` is the product's own per-axis
+#       least-squares calibration; ``residual_px`` are the per-tick fit
+#       residuals, and the max is RECOMPUTED from them (⛔ not read off the
+#       self-reported ``max_abs_residual_px`` — a recompute, though the
+#       declared summary is cross-checked and a drift is a named red).  Each
+#       drawing independently calibrated ⇒ comparing a point across two
+#       drawings compounds BOTH bounds per axis; the distance then combines
+#       the two axes Euclideanly.
+#
+#   cap = min(thinnest declared wall of ref, of upper) / 2
+#       from ``declarations.thickness_callouts_mm`` — the SAME semantics as
+#       the same-day ladder CAP (``tarch_normalize._axis_snap_cap_native``:
+#       half the thinnest wall the source itself declares).  Absorbing a
+#       displacement larger than half a wall stops being "straighten the
+#       representation" and becomes "WHICH design is this" — that is not this
+#       step's call, and it is exactly what trips the existing loud
+#       ``PER_FLOOR_FOOTPRINT_MISMATCH`` instead.
+#
+# ⚠ The production as_drawn chain is floating-point metres, NOT quantised, so
+# ``projection_bridge.resolution_from_units_per_metre``'s granularity (the
+# fixture world's ``units_per_metre``) is 0.0 here and CANNOT be a tolerance
+# source on this leg — its own docstring (N-3) requires the production caller
+# to REDECLARE the granularity source, which is exactly what the calibration
+# declarations above are.
+#
+# MATCHING SHAPE (measured, same probe): the two floors' rings carry DIFFERENT
+# numbers of collinear subdivision vertices (94 vs 86 on sm25) — the wall-end
+# jogs land at different along-edge positions in the two drawings — so per-
+# vertex correspondence is structurally impossible.  The snap is therefore
+# gated on the SYMMETRIC Hausdorff distance between the two rings as point
+# sets: every vertex of either ring must lie within the tolerance of the
+# OTHER ring's boundary polyline.  Within tolerance ⇒ the upper floor's ring
+# is replaced VERBATIM by the reference ring (bitwise-identical ⇒ assembly's
+# fingerprint comparison passes exactly, ⛔ not "approximately"); over
+# tolerance ⇒ this step does NOTHING and ``assemble_multifloor_geometry``'s
+# existing ``PER_FLOOR_FOOTPRINT_MISMATCH`` fires unchanged — a real setback
+# is never swallowed.  ⚠ Replacing the ring does NOT touch the floor's cells:
+# they keep their own drawing's coordinates (the schema enforces no
+# cell-in-footprint containment), leaving them ~the same residual off the
+# adopted ring, inside the same declared bound.
+
+
+@dataclass(frozen=True)
+class PlanCalibrationDeclaration:
+    """One plan product's own tolerance-bearing declarations, as consumed by
+    :func:`footprint_snap_tolerance_m`.  ``input_id`` names the product for
+    error messages only."""
+
+    input_id: str
+    bound_x_m: float
+    bound_y_m: float
+    cap_m: float
+
+
+def read_plan_calibration_declaration(
+    doc: dict, *, input_id: str
+) -> PlanCalibrationDeclaration:
+    """Derive one plan product's snap inputs from ITS OWN declared quantities.
+
+    Loud, never defaulted (BLK-1): a product that does not declare its
+    calibration or its wall-thickness callouts cannot have a tolerance derived
+    for it, and an invented default here would be exactly the retired
+    ``max(..., 0.05)`` shape in a new coat.  (A precedent for defaulting
+    exists elsewhere — ``validator/checks/as_drawn.py`` defaults a missing
+    callout list to ``[240]`` — ⛔ this step deliberately does NOT follow it:
+    that consumer grades, this one displaces geometry.)
+    """
+    calibration = (doc.get("observations") or {}).get("calibration")
+    if not isinstance(calibration, dict):
+        raise MultiFloorAssemblyError(
+            "PLAN_CALIBRATION_MISSING",
+            {"input_id": input_id, "reason": "no observations.calibration declared"},
+        )
+    bounds: list[float] = []
+    for axis in ("x", "y"):
+        chain = calibration.get(axis)
+        if not isinstance(chain, dict):
+            raise MultiFloorAssemblyError(
+                "PLAN_CALIBRATION_AXIS_MISSING",
+                {"input_id": input_id, "axis": axis},
+            )
+        mm_per_px = chain.get("mm_per_px")
+        residual_px = chain.get("residual_px")
+        if (isinstance(mm_per_px, bool) or not isinstance(mm_per_px, (int, float))
+                or float(mm_per_px) <= 0.0):
+            raise MultiFloorAssemblyError(
+                "PLAN_CALIBRATION_SCALE_INVALID",
+                {"input_id": input_id, "axis": axis, "mm_per_px": mm_per_px},
+            )
+        if (not isinstance(residual_px, list) or not residual_px
+                or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                       for v in residual_px)):
+            raise MultiFloorAssemblyError(
+                "PLAN_CALIBRATION_RESIDUAL_MALFORMED",
+                {"input_id": input_id, "axis": axis},
+            )
+        # ⭐ recompute, ⛔ never trust the self-reported summary (the summary
+        # is checked for drift right after — a tampered self-report dies here).
+        recomputed_max = max(abs(float(v)) for v in residual_px)
+        declared_max = chain.get("max_abs_residual_px")
+        if (isinstance(declared_max, bool) or not isinstance(declared_max, (int, float))
+                or abs(recomputed_max - float(declared_max)) > 0.0):
+            raise MultiFloorAssemblyError(
+                "PLAN_CALIBRATION_RESIDUAL_SUMMARY_DRIFT",
+                {
+                    "input_id": input_id,
+                    "axis": axis,
+                    "declared_max_abs_residual_px": declared_max,
+                    "recomputed_max_abs_residual_px": recomputed_max,
+                },
+            )
+        bounds.append(float(mm_per_px) * recomputed_max / 1000.0)
+    callouts = (doc.get("declarations") or {}).get("thickness_callouts_mm")
+    if (not isinstance(callouts, list) or not callouts
+            or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                   or float(v) <= 0.0 for v in callouts)):
+        raise MultiFloorAssemblyError(
+            "PLAN_THICKNESS_CALLOUTS_MISSING",
+            {
+                "input_id": input_id,
+                "reason": "no positive declarations.thickness_callouts_mm — "
+                          "the snap CAP has no declared source and must not "
+                          "be defaulted",
+            },
+        )
+    return PlanCalibrationDeclaration(
+        input_id=input_id,
+        bound_x_m=bounds[0],
+        bound_y_m=bounds[1],
+        cap_m=(min(float(v) for v in callouts) / 2.0) / 1000.0,
+    )
+
+
+def footprint_snap_tolerance_m(
+    reference: PlanCalibrationDeclaration,
+    upper: PlanCalibrationDeclaration,
+) -> float:
+    """``min(noise_bound, cap)`` — both limbs derived, zero literals.
+
+    The noise limb compounds the two drawings' independently-calibrated
+    per-axis bounds (sum per axis, Euclidean across axes); the cap limb is
+    half the thinnest wall EITHER compared drawing declares (the ladder-CAP
+    semantics).  The ``min`` mirrors ``_axis_snap_deviation_limit``'s
+    ``min(angle-envelope, CAP)``: beyond either limb this is not a
+    representation fix, and the existing assembly gate owns the refusal.
+    """
+    noise = math.hypot(reference.bound_x_m + upper.bound_x_m,
+                       reference.bound_y_m + upper.bound_y_m)
+    cap = min(reference.cap_m, upper.cap_m)
+    return min(noise, cap)
+
+
+def _ring_points(floor: FloorV3) -> list[tuple[float, float]]:
+    """The footprint ring as an OPEN vertex cycle (duplicate tail removed)."""
+    pts = [(float(x), float(y)) for x, y in floor.footprint.vertices]
+    if pts and pts[0] == pts[-1]:
+        pts.pop()
+    return pts
+
+
+def _point_to_segment_distance(
+    p: tuple[float, float], a: tuple[float, float], b: tuple[float, float]
+) -> float:
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length_sq = dx * dx + dy * dy
+    if length_sq == 0.0:
+        return math.hypot(p[0] - a[0], p[1] - a[1])
+    t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / length_sq
+    t = max(0.0, min(1.0, t))
+    return math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy))
+
+
+def _directed_hausdorff_m(
+    points: Sequence[tuple[float, float]], ring: Sequence[tuple[float, float]]
+) -> float:
+    """Max over ``points`` of the distance to the nearest SEGMENT of ``ring``
+    (nearest-segment, ⛔ not nearest-vertex: the rings carry different
+    collinear-subdivision granularity, so the nearest point of the other ring
+    is usually mid-segment)."""
+    segs = list(zip(ring, list(ring[1:]) + [ring[0]]))
+    worst = 0.0
+    for p in points:
+        d = min(_point_to_segment_distance(p, a, b) for a, b in segs)
+        if d > worst:
+            worst = d
+    return worst
+
+
+@dataclass(frozen=True)
+class FootprintSnapRecord:
+    """One non-reference floor's snap decision, with the full derivation."""
+
+    floor_index: int
+    floor_id: str
+    input_id: str
+    action: str  # "identical" | "snapped" | "refused"
+    hausdorff_upper_to_reference_m: float
+    hausdorff_reference_to_upper_m: float
+    tolerance_m: float
+    noise_bound_m: float
+    cap_m: float
+    bbox_shift_m: dict
+
+
+@dataclass(frozen=True)
+class FootprintSnapAccount:
+    """The wiring-side ledger payload (``footprint_snap_ledger.json``)."""
+
+    schema: str = "footprint_snap_ledger_v1"
+    applied: bool = False
+    records: tuple[FootprintSnapRecord, ...] = ()
+
+    def to_payload(self) -> dict:
+        return {
+            "schema": self.schema,
+            "applied": self.applied,
+            "records": [
+                {
+                    "floor_index": r.floor_index,
+                    "floor_id": r.floor_id,
+                    "input_id": r.input_id,
+                    "action": r.action,
+                    "hausdorff_upper_to_reference_m": r.hausdorff_upper_to_reference_m,
+                    "hausdorff_reference_to_upper_m": r.hausdorff_reference_to_upper_m,
+                    "tolerance_m": r.tolerance_m,
+                    "tolerance_derivation": {
+                        "noise_bound_m": r.noise_bound_m,
+                        "cap_m": r.cap_m,
+                    },
+                    "bbox_shift_m": r.bbox_shift_m,
+                }
+                for r in self.records
+            ],
+        }
+
+
+def snap_footprints_to_reference(
+    single_floor_geometries: Sequence[CorrectedGeometryV3],
+    declarations: Sequence[PlanCalibrationDeclaration],
+) -> tuple[tuple[CorrectedGeometryV3, ...], FootprintSnapAccount]:
+    """Gate each upper floor's footprint against the GROUND floor's.
+
+    Reference = ``single_floor_geometries[0]`` (``plan_runs[0]``, ground-up
+    order is the caller contract).  For each upper floor, in declaration
+    order (``declarations[i]`` pairs with ``single_floor_geometries[i]``):
+
+      * already fingerprint-identical → ``identical`` (nothing consumed, no
+        debt; the tolerance is still DERIVED and recorded — the derivation
+        runs on every multi-floor path, so a product that stops declaring its
+        calibration is caught here even on a coincidentally-matching pair);
+      * symmetric Hausdorff ≤ tolerance → ``snapped``: the floor's ring is
+        replaced verbatim by the reference ring and its geometry bbox
+        re-stamped from the reference (the record carries the displacement
+        actually absorbed);
+      * over tolerance → ``refused``: returned UNTOUCHED, so
+        ``assemble_multifloor_geometry``'s existing zero-tolerance comparison
+        raises ``PER_FLOOR_FOOTPRINT_MISMATCH`` — the loud refusal is that
+        gate's, ⛔ never swallowed here.
+
+    Single-floor input: no cross-floor comparison exists; the account records
+    the no-op (``applied=False``) and nothing is derived.
+    """
+    if len(single_floor_geometries) != len(declarations):
+        raise MultiFloorAssemblyError(
+            "SNAP_DECLARATION_COUNT_MISMATCH",
+            {
+                "n_geometries": len(single_floor_geometries),
+                "n_declarations": len(declarations),
+            },
+        )
+    if len(single_floor_geometries) < 2:
+        return tuple(single_floor_geometries), FootprintSnapAccount()
+
+    out: list[CorrectedGeometryV3] = [single_floor_geometries[0]]
+    reference = single_floor_geometries[0]
+    ref_ring = _ring_points(reference.floors[0])
+    ref_decl = declarations[0]
+    records: list[FootprintSnapRecord] = []
+    applied = False
+    for index in range(1, len(single_floor_geometries)):
+        geom = single_floor_geometries[index]
+        decl = declarations[index]
+        floor = geom.floors[0]
+        upper_ring = _ring_points(floor)
+        tolerance = footprint_snap_tolerance_m(ref_decl, decl)
+        noise = math.hypot(ref_decl.bound_x_m + decl.bound_x_m,
+                           ref_decl.bound_y_m + decl.bound_y_m)
+        cap = min(ref_decl.cap_m, decl.cap_m)
+        if _footprint_fingerprint(floor) == _footprint_fingerprint(
+            reference.floors[0]
+        ):
+            records.append(FootprintSnapRecord(
+                floor_index=index, floor_id=floor.id, input_id=decl.input_id,
+                action="identical", hausdorff_upper_to_reference_m=0.0,
+                hausdorff_reference_to_upper_m=0.0, tolerance_m=tolerance,
+                noise_bound_m=noise, cap_m=cap,
+                bbox_shift_m={"x_m": 0.0, "y_m": 0.0},
+            ))
+            out.append(geom)
+            continue
+        upper_to_ref = _directed_hausdorff_m(upper_ring, ref_ring)
+        ref_to_upper = _directed_hausdorff_m(ref_ring, upper_ring)
+        if max(upper_to_ref, ref_to_upper) > tolerance:
+            records.append(FootprintSnapRecord(
+                floor_index=index, floor_id=floor.id, input_id=decl.input_id,
+                action="refused", hausdorff_upper_to_reference_m=upper_to_ref,
+                hausdorff_reference_to_upper_m=ref_to_upper,
+                tolerance_m=tolerance, noise_bound_m=noise, cap_m=cap,
+                bbox_shift_m={"x_m": 0.0, "y_m": 0.0},
+            ))
+            out.append(geom)
+            continue
+        snapped_floor = floor.model_copy(update={
+            "footprint": FootprintRing(
+                vertices=[[x, y] for x, y in ref_ring]
+            ),
+        })
+        snapped_geom = geom.model_copy(update={
+            "floors": [snapped_floor],
+            "footprint_x": [float(v) for v in reference.footprint_x],
+            "footprint_y": [float(v) for v in reference.footprint_y],
+        })
+        applied = True
+        records.append(FootprintSnapRecord(
+            floor_index=index, floor_id=floor.id, input_id=decl.input_id,
+            action="snapped", hausdorff_upper_to_reference_m=upper_to_ref,
+            hausdorff_reference_to_upper_m=ref_to_upper,
+            tolerance_m=tolerance, noise_bound_m=noise, cap_m=cap,
+            bbox_shift_m={
+                "x_m": abs(float(geom.footprint_x[0]) - float(reference.footprint_x[0])),
+                "y_m": abs(float(geom.footprint_y[0]) - float(reference.footprint_y[0])),
+            },
+        ))
+        out.append(snapped_geom)
+    account = FootprintSnapAccount(applied=applied, records=tuple(records))
+    return tuple(out), account
+
+
 def _footprint_fingerprint(floor: FloorV3):
     """A rotation/reflection-invariant fingerprint of one floor's footprint.
 
@@ -600,6 +960,12 @@ def assemble_multifloor_geometry(
 __all__ = [
     "MultiFloorAssemblyError",
     "ValidatedFloorLadder",
+    "FootprintSnapAccount",
+    "FootprintSnapRecord",
+    "PlanCalibrationDeclaration",
     "assemble_multifloor_geometry",
     "derive_floor_ladder",
+    "footprint_snap_tolerance_m",
+    "read_plan_calibration_declaration",
+    "snap_footprints_to_reference",
 ]

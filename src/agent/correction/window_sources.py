@@ -1070,15 +1070,24 @@ def _check_floor_order(manifest: ViewManifest, producer: CorrectedGeometryV3,
         raise WindowResolverInputError("floor_ref_window_mismatch", category="model_draw_error")
 
 
-def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
-                                          raw_view_manifest_bytes: bytes,
-                                          raw_reading_artifacts: Mapping[str, bytes],
-                                          elevation_direction_facts: tuple[ElevationDirectionFactV1, ...]) -> VerifiedWindowResolverInputs:
+def _assemble_verified_resolver_inputs(
+    *, producer_draw: CorrectedGeometryV3, manifest: ViewManifest,
+    rows: tuple[SourceWindowV1, ...], facts: tuple[ElevationDirectionFactV1, ...],
+    raw_view_manifest_bytes: bytes, raw_reading_artifacts: Mapping[str, bytes],
+) -> VerifiedWindowResolverInputs:
+    """The CANONICAL assembly half of ``build_verified_window_resolver_inputs``
+    (W-1 T2-⑤, 2026-09-07): everything from the producer preflight onward, as
+    one pure function of (producer, manifest, rows, facts, raw bytes).
+
+    Extracted — not copied — so the legacy builder and the as_drawn builder
+    (``build_verified_window_inputs_as_drawn``) mint the SAME carrier type
+    through the SAME fingerprint rules (producer-draw canonical bytes, claim
+    links, floor order, content hash): one definition of "what a verified
+    window-inputs marker is", two catalog/fact sources.  ⛔ No behavior change
+    for the legacy path — its assembly is this function, byte for byte.
+    """
     producer = CorrectedGeometryV3.model_validate(producer_draw.model_dump(mode="json"))
     _producer_preflight(producer)
-    manifest = _parse_manifest(raw_view_manifest_bytes)
-    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
-    facts = _check_direction_facts(manifest, elevation_direction_facts, raw_reading_artifacts)
     links = _claim_links(producer, rows, manifest)
     _check_floor_order(manifest, producer, rows, links)
     producer_bytes = canonical_json_bytes(producer.model_dump(mode="json"))
@@ -1100,6 +1109,157 @@ def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
     return VerifiedWindowResolverInputs(inputs=inputs, raw_inputs_bytes=raw_inputs,
         producer_draw_canonical_bytes=producer_bytes, raw_view_manifest_bytes=raw_view_manifest_bytes,
         raw_reading_artifacts=tuple((key, raw_reading_artifacts[key]) for key in sorted(raw_reading_artifacts)))
+
+
+def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
+                                          raw_view_manifest_bytes: bytes,
+                                          raw_reading_artifacts: Mapping[str, bytes],
+                                          elevation_direction_facts: tuple[ElevationDirectionFactV1, ...]) -> VerifiedWindowResolverInputs:
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    facts = _check_direction_facts(manifest, elevation_direction_facts, raw_reading_artifacts)
+    return _assemble_verified_resolver_inputs(
+        producer_draw=producer_draw, manifest=manifest, rows=rows, facts=facts,
+        raw_view_manifest_bytes=raw_view_manifest_bytes,
+        raw_reading_artifacts=raw_reading_artifacts,
+    )
+
+
+# ── the as_drawn leg's window-inputs builder (W-1 T2-⑤, 2026-09-07) ────────── #
+def derive_manifest_direction_facts_as_drawn(
+    *,
+    raw_view_manifest_bytes: bytes,
+    raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[ElevationDirectionFactV1, ...]:
+    """``derive_manifest_direction_facts`` for as_drawn elevation products.
+
+    Same manifest-side rule (fail-closed on anything but a ``building_axis``
+    elevation with a declared ``building_view_direction``), but the flip fields
+    come from the product's OWN shape: an ``as_drawn_elevation_v0`` declares a
+    ``facade_label`` (the B3 semantic slot) and NO facade-mirror object, so the
+    ``(mirrored, local_x_positive)`` pair is the no-declaration default of
+    ``_resolve_facade_flip_fields(None)`` — applied, ⛔ never inferred from
+    ink.  The emptiness that matters downstream is carried as data on the fact
+    (``resolution_source="manifest_building_axis"``), and the wiring-side debt
+    ``WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER`` accounts for the channel split.
+    """
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    facts: list[ElevationDirectionFactV1] = []
+    for entry in manifest.required_entries():
+        if entry.view_type != "elevation":
+            continue
+        if entry.direction_semantics != "building_axis" or entry.building_view_direction is None:
+            raise WindowResolverInputError(
+                "direction_fact_invalid",
+                {"input_id": entry.input_id, "reason": "verified_orientation_sidecar_required"},
+                category="input_integrity_error",
+            )
+        try:
+            doc = json.loads(raw_reading_artifacts[entry.input_id].decode("utf-8"))
+        except (KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise WindowResolverInputError(
+                "direction_fact_invalid", {"input_id": entry.input_id, "artifact": "reading"}, category="input_integrity_error"
+            ) from exc
+        # The as_drawn contract's own identity fields — a product that does not
+        # declare which facade it is cannot be given a direction fact.
+        facade_label = doc.get("facade_label") if isinstance(doc, dict) else None
+        if not isinstance(facade_label, str) or not facade_label:
+            raise WindowResolverInputError(
+                "direction_fact_invalid",
+                {"input_id": entry.input_id, "reason": "as_drawn_facade_label_missing"},
+                category="input_integrity_error",
+            )
+        mirrored, local_x_positive = _resolve_facade_flip_fields(None)
+        facts.append(ElevationDirectionFactV1(
+            input_id=entry.input_id,
+            resolved_building_direction=entry.building_view_direction,
+            resolution_source="manifest_building_axis",
+            mirrored=mirrored,
+            local_x_positive=local_x_positive,
+            orientation_output_hash=None,
+            adapter_version=None,
+            view_manifest_sha256=manifest.content_sha256,
+        ))
+    return tuple(sorted(facts, key=lambda fact: fact.input_id))
+
+
+def _check_direction_facts_as_drawn(
+    manifest: ViewManifest, facts: tuple[ElevationDirectionFactV1, ...],
+    raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[ElevationDirectionFactV1, ...]:
+    """``_check_direction_facts``'s manifest-side rules, as_drawn flip source.
+
+    A producer-minted fact tuple is re-checked against the manifest (coverage,
+    hash, ``manifest_building_axis`` semantics) exactly as the legacy check
+    does; the only deliberate difference is the flip-field source — the legacy
+    check re-reads ``reading.facade`` through ``parse_reading_view``, which on
+    an as_drawn product silently parses to an empty shell (measured, T1 B2),
+    so this check instead pins the no-declaration defaults the as_drawn
+    derivation itself applies.  A drifted fact (tampered tuple) still dies by
+    name.
+    """
+    expected = {entry.input_id: entry for entry in manifest.required_entries() if entry.view_type == "elevation"}
+    got = {fact.input_id: fact for fact in facts}
+    if len(got) != len(facts) or set(got) != set(expected):
+        raise WindowResolverInputError("direction_fact_invalid", {"declared": sorted(got), "required": sorted(expected)}, category="input_integrity_error")
+    out = []
+    for input_id, entry in expected.items():
+        fact = got[input_id]
+        if fact.view_manifest_sha256 != manifest.content_sha256:
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "view_manifest_sha256"}, category="input_integrity_error")
+        if fact.resolution_source == "manifest_building_axis":
+            if (entry.direction_semantics != "building_axis" or
+                    fact.resolved_building_direction != entry.building_view_direction or
+                    fact.orientation_output_hash is not None or fact.adapter_version is not None):
+                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id}, category="input_integrity_error")
+        else:
+            raise WindowResolverInputError(
+                "direction_fact_invalid",
+                {"input_id": input_id, "reason": "as_drawn_leg_has_no_orientation_sidecar"},
+                category="input_integrity_error",
+            )
+        mirrored, local_x_positive = _resolve_facade_flip_fields(None)
+        if fact.mirrored != mirrored or fact.local_x_positive != local_x_positive:
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "as_drawn_flip_defaults"}, category="input_integrity_error")
+        out.append(fact)
+    return tuple(sorted(out, key=lambda item: item.input_id))
+
+
+def build_verified_window_inputs_as_drawn(
+    *,
+    producer_draw: CorrectedGeometryV3,
+    raw_view_manifest_bytes: bytes,
+    raw_reading_artifacts: Mapping[str, bytes],
+) -> VerifiedWindowResolverInputs:
+    """The as_drawn evidence-chain leg's LEGAL EMPTY SET of window sources.
+
+    ⭐ Why empty is the honest catalog here (W-1 T2-⑤, verdict 2026-09-07i):
+    the new leg's windows travel as the chain's ``opening_claims``
+    (evidence-chain channel, decided by the model's adjudication rounds), ⛔
+    NOT as legacy ``pen=="window"`` ledger strokes — and the projection
+    producer emits ``windows=[]``, so the producer and the catalog AGREE (no
+    window, no ledger row).  The emptiness is ACCOUNTED, ⛔ never silent: the
+    wiring registers ``WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER`` (exploratory
+    FLAG / strict blocks) so the channel split is a recorded fact, and
+    ``_claim_links`` still hard-fails any producer that draws a window while
+    this catalog is empty (a cited source that does not exist is a named
+    ``model_draw_error``) — the empty set cannot launder a window in.
+
+    Same canonical assembly as the legacy builder (one fingerprint rule, ⛔ no
+    second marker definition); only the catalog and the direction-fact source
+    are this leg's.
+    """
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    facts = derive_manifest_direction_facts_as_drawn(
+        raw_view_manifest_bytes=raw_view_manifest_bytes,
+        raw_reading_artifacts=raw_reading_artifacts,
+    )
+    facts = _check_direction_facts_as_drawn(manifest, facts, raw_reading_artifacts)
+    return _assemble_verified_resolver_inputs(
+        producer_draw=producer_draw, manifest=manifest, rows=(), facts=facts,
+        raw_view_manifest_bytes=raw_view_manifest_bytes,
+        raw_reading_artifacts=raw_reading_artifacts,
+    )
 
 
 def verify_window_resolver_inputs_artifact(

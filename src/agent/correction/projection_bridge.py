@@ -787,6 +787,62 @@ def _cells_from_faces(
     return cells
 
 
+def _corner_only_ring(
+    ring: Sequence[tuple[float, float]],
+) -> tuple[tuple[float, float], ...]:
+    """Drop EXACTLY collinear subdivision vertices from a closed ring.
+
+    ⭐ W-1 (2026-09-07, measured on sm25): the partition-derived footprint
+    ring carries a vertex at every wall-end landing on the outer skin —
+    collinear points along straight edges, 94 vertices on sm25's ground
+    floor where the building has 8 corners.  The correction contract's ring
+    validator (``parse._ring_checks`` → ``validate_cell_polygon``) refuses
+    edges below ``min_edge_length_m`` (0.1 m), and those jogs measure
+    21–49 mm ⇒ an as-is ring is structurally unpassable downstream.
+
+    Removing a vertex whose neighbours it lies EXACTLY in line with
+    (cross-product == 0.0, ⛔ no tolerance band) is lossless by
+    construction — the polyline's geometry, bbox and perimeter are
+    bit-identical (verified on sm25: 94 → 8 vertices, perimeter 89.0625 m
+    unchanged to the last float bit).  A vertex that is NOT exactly
+    collinear is a real corner of the arrangement and is kept even if the
+    edge it creates is short — ⛔ this helper is not an edge-length filter.
+    """
+    pts = [(float(x), float(y)) for x, y in ring]
+    if pts and pts[0] == pts[-1]:
+        pts.pop()
+    if len(pts) < 3:
+        return tuple(pts)
+    out: list[tuple[float, float]] = []
+    for i, point in enumerate(pts):
+        prev = pts[i - 1]
+        nxt = pts[(i + 1) % len(pts)]
+        cross = ((point[0] - prev[0]) * (nxt[1] - point[1])
+                 - (point[1] - prev[1]) * (nxt[0] - point[0]))
+        if cross != 0.0:
+            out.append(point)
+    if len(out) < 3:
+        # Degenerate guard: a ring whose every vertex is collinear is not a
+        # ring — refuse rather than emit a 2-point "polygon".  (Unreachable
+        # through the partition, which only emits bounded faces.)
+        raise ProjectionBridgeError(
+            "FOOTPRINT_RING_DEGENERATE",
+            {"n_input_vertices": len(pts), "n_corners": len(out)},
+        )
+    # W-1 (same probe): the partition emits a CW ring; the correction
+    # contract's canonical form demands CCW exterior rings
+    # (``validate_cell_polygon``: "polygon exterior ring must be CCW").
+    # Reversing the vertex order is lossless (same shape, same bbox).
+    area2 = sum(
+        out[i][0] * out[(i + 1) % len(out)][1]
+        - out[(i + 1) % len(out)][0] * out[i][1]
+        for i in range(len(out))
+    )
+    if area2 < 0.0:
+        out.reverse()
+    return tuple(out)
+
+
 def project_cut_lines(
     cut_lines: Sequence[CutLineV1],
     *,
@@ -829,7 +885,11 @@ def project_cut_lines(
         extension.lines, resolution_m=resolution_m, origin_label=origin_label
     )
     cells = _cells_from_faces(partition.faces, floor_id=floor_id)
-    fp = partition.footprint_ring
+    # W-1: the emitted ring is the CORNER-ONLY outline — collinear wall-end
+    # subdivision vertices are dropped (exactly, zero tolerance; see
+    # ``_corner_only_ring``).  Lossless for the shape, and the only form the
+    # downstream ring validator accepts.
+    fp = _corner_only_ring(partition.footprint_ring)
     xs = [p[0] for p in fp]
     ys = [p[1] for p in fp]
     floor = FloorV3(
