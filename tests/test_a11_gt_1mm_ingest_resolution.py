@@ -23,21 +23,20 @@ Dispatch ``2026-09-05g_A11_gt_1mm`` acceptance mapping (§三, rule-shaped):
            the snap does not own, compared bit-for-bit plain vs snapped)
   #4  the criterion can go RED
         -> test_the_scan_goes_red_when_the_snap_is_removed (monkeypatch the
-           one door shut, rebuild, the scan must report -- pinned to the
-           dispatch's own measured baseline: 74 violations in the
-           orchestrator's four buckets, 100 under this file's wider
-           everything-is-checked-by-default extension)
+           one door shut, rebuild, the scan must report every off-grid
+           coordinate occurrence independently enumerated from the facts)
   #5  max move reported honestly -- asserted ≤ 0.5 mm here
         -> test_max_coordinate_move_is_within_half_a_millimetre
   #7  staged trio re-emitted and reproducible is covered by
         ``test_gt_facts_staging_sm25.py`` (bit-for-bit rebuild) + this file's
         ``test_staged_trio_scans_green``.
 
-⛔ The violation counts below (100 total / 74 in the orchestrator's buckets)
-are RED-direction fixture inventory -- the count of what the UNSNAPPED build
-of the committed sm25 fixture produces.  They move only if the fixture DXF
-changes or the snap's coordinate extension changes, both of which must be a
-conscious act; that is exactly what pinning them buys.
+The pinned inventory is the current unsnapped drawing under the current
+ladder and coordinate-ownership rules, not a historical dispatch's number.
+It counts off-grid INTEGER COORDINATE OCCURRENCES, not face lines.  The
+explicit facts-field enumeration below is independent of the exit scanner's
+integer walker and exemption table; exact path/value multiplicities must
+agree as well as the readout buckets.
 """
 from __future__ import annotations
 
@@ -66,18 +65,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SM25 = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
 SM24 = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm24_anchor"
 
-#: The orchestrator's four measured buckets (dispatch §三#1): face_lines 46 ·
-#: walls 11 · openings 10 · evidence-class 7 (evidence consts + member_consts
-#: + ring-loss span consts) = 74.
-BUCKETS = {"face_lines": 46, "walls": 11, "openings": 10, "evidence": 7}
-#: Derived coordinate violations the orchestrator's table did not itemise
-#: (boundary edge p1/p2/span_lo/span_hi, loss-span p1/p2 + nearest-face
-#: delta, evidence footprint_edge_points, non-orthogonal endpoints,
-#: axis-snap after-points, footprint ring points).
-DERIVED_VIOLATIONS = 26
-#: The same unsnapped build under THIS file's exit scan (every integer
-#: checked by default): the four buckets above plus the derived paths.
-TOTAL_UNSAPPED_VIOLATIONS = 100
+#: G-c inventory, derived from facts fields by _unsnapped_coordinate_inventory:
+#: face fields: F1 (12 const + 15 min + 15 max) + F2 (2 + 2 + 2) = 48;
+#: wall endpoints 10; opening endpoints 10; boundary face witnesses 4 plus
+#: split-group member consts 4 = evidence 8.  See the test docstring for derived.
+BUCKETS = {"face_lines": 48, "walls": 10, "openings": 10, "evidence": 8}
+DERIVED_VIOLATIONS = 28
+TOTAL_UNSAPPED_VIOLATIONS = 104
 
 
 def _bucket_of(path: str) -> str:
@@ -105,9 +99,8 @@ def snapped_as_received():
 @pytest.fixture(scope="module")
 def plain_as_received():
     """The SAME build with the snap's one door monkeypatched shut
-    (``_geom_units -> to_units``) -- i.e. what the tree produced before
-    A-11, proven bit-for-bit identical to the committed pre-A-11 staged
-    file by ``test_gt_facts_staging_sm25.test_1_...``'s counterpart below."""
+    (``_geom_units -> to_units``).  It retains the CURRENT ladder, including
+    joint propagation.  It is not a reproduction of historical pre-A11 bytes."""
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(as_measured, "_geom_units", to_units)
         return build_as_measured(SM25 / "sm25-L_t3_as_received.dxf",
@@ -211,17 +204,76 @@ def test_staged_trio_scans_green():
 
 # ── acceptance #4: the criterion can go RED ─────────────────────────────────── #
 def test_the_scan_goes_red_when_the_snap_is_removed(plain_as_received):
-    """Shut the one door (the plain fixture already did) and the exit scan
-    MUST report -- pinned to the dispatch's own measured baseline."""
+    """Pin current unsnapped coordinate inventory, derived before scanning.
+
+    13AF contributes two off-grid endpoints after following 13AD/13AE's
+    relocated joints (99401/100601); its const 52400 is on grid.  Thus the
+    face bucket is coordinate occurrences, not a count of walls or strokes.
+    Direct fields give F1: 12+15+15, F2: 2+2+2 = 48.  Wall endpoints give
+    10, opening endpoints 10, evidence gives 4 boundary face witnesses plus
+    4 split-group member consts = 8.  Derived: boundary endpoints/spans 8,
+    footprint-edge evidence coordinates 6, snap after-points 6, footprint
+    ring coordinates 8 = 28.  Total: 48+10+10+8+28 = 104.
+
+    The executable derivation enumerates typed facts fields, without calling
+    the scanner, its integer walker or its exemption matcher.  Exact
+    path/value MULTISETS must match, so an omitted coordinate cannot be
+    cancelled by counting another twice.  Literal readouts also keep a future
+    geometry change visible and require a conscious re-derivation.
+    """
+    expected = _unsnapped_coordinate_inventory(plain_as_received)
+    expected_buckets = Counter()
+    for item, count in expected.items():
+        expected_buckets[_bucket_of(item.rsplit(" = ", 1)[0])] += count
+    assert expected_buckets == {**BUCKETS, "derived": DERIVED_VIOLATIONS}
+    assert expected.total() == TOTAL_UNSAPPED_VIOLATIONS
     violations = scan_ingest_resolution_violations(
         plain_as_received.model_dump(mode="json"))
     assert violations, "a criterion that cannot go red is not a criterion"
-    buckets = Counter(_bucket_of(v.rsplit(" = ", 1)[0]) for v in violations)
-    for bucket, expected in BUCKETS.items():
-        assert buckets[bucket] == expected, \
-            f"{bucket}: {buckets[bucket]} != dispatch baseline {expected}"
-    assert buckets["derived"] == DERIVED_VIOLATIONS
-    assert len(violations) == TOTAL_UNSAPPED_VIOLATIONS
+    assert Counter(violations) == expected
+
+
+def _unsnapped_coordinate_inventory(document):
+    """An explicit facts-field oracle for this fixture's coordinate inventory.
+
+    Empty loss/carrier inventories are stated premises.  If they change,
+    extend this derivation instead of silently ignoring the new field family.
+    """
+    found = Counter()
+
+    def leaf(path, value):
+        if isinstance(value, list):
+            for item in value:
+                leaf(path + ".*", item)
+        elif value is not None and value % INGEST_RESOLUTION_UNITS:
+            found[f"{path} = {value}"] += 1
+
+    def fields(record, path, names):
+        for name in names.split():
+            leaf(path + "." + name, getattr(record, name))
+
+    for view in document.views:
+        assert view.boundary_ring_losses == []
+        assert view.converter_readouts.unresolved_opening_carriers == []
+        for face in view.face_lines:
+            fields(face, "views.*.face_lines.*", "const along_min along_max")
+        for wall in view.walls:
+            fields(wall, "views.*.walls.*", "face_lo face_hi thickness along_min along_max")
+        for opening in view.openings:
+            fields(opening, "views.*.openings.*", "along_min along_max cross_lo cross_hi")
+        for edge in view.boundary_edges:
+            fields(edge, "views.*.boundary_edges.*", "cavity_const span_lo span_hi p1 p2")
+            fields(edge.evidence, "views.*.boundary_edges.*.evidence",
+                   "raw_face_const opposite_face_const thickness_units footprint_edge_points")
+        for ring in view.footprint.rings:
+            leaf("views.*.footprint.rings.*.points", ring.points)
+        for snap in view.converter_readouts.axis_snapped_lines:
+            fields(snap, "views.*.converter_readouts.axis_snapped_lines.*", "after_p0 after_p1")
+        for group in view.converter_readouts.face_groups_with_a_split_const:
+            for name in ("group_const", "member_consts"):
+                leaf("views.*.converter_readouts.face_groups_with_a_split_const.*." + name,
+                     group[name])
+    return found
 
 
 def test_the_exemption_table_cannot_rot_onto_a_coordinate():
