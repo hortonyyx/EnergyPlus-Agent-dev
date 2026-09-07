@@ -37,11 +37,18 @@ from tests.answer_compiler_fixtures import synthetic_signed_facts
 # test_f156_ring_from_intersection.py both import it, so they cannot drift.
 from tests.deferred_projection_ledger import (
     DEFERRED_PROJECTION_CODES,
+    F153_FORM_B_CODE,
+    F157_UNAVAILABLE_CODE,
     KNOWN_DEFECT_CODES,
     SM25_DEFERRED_CAVITY_COUNT,
+    SM25_DEFERRED_F153_FORM_B_COUNT,
+    SM25_DEFERRED_F157_UNAVAILABLE_COUNT,
 )
 from tests.deferred_projection_ledger import (
     deferred_cavities as _deferred_cavities,
+)
+from tests.deferred_projection_ledger import (
+    deferred_cavities_by_code as _deferred_cavities_by_code,
 )
 from tests.deferred_projection_ledger import (
     failures_not_from_deferred_cavities as _failures_not_from_deferred_cavities,
@@ -141,6 +148,13 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     # F-157 already owed.
     deferred = _deferred_cavities(audit)
     assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT
+    # ⭐⭐⭐ A-11-d2: the sum alone cannot tell WHICH cause moved -- 3 F-157 +
+    # 1 F-153 form B totals 4 just as honestly as 2 + 2 does.  Each cause is
+    # pinned on its own, so the failing line names the cause that changed.
+    assert (len(_deferred_cavities_by_code(audit, F157_UNAVAILABLE_CODE))
+            == SM25_DEFERRED_F157_UNAVAILABLE_COUNT)
+    assert (len(_deferred_cavities_by_code(audit, F153_FORM_B_CODE))
+            == SM25_DEFERRED_F153_FORM_B_COUNT)
     assert _failures_not_from_deferred_cavities(audit) == []
     assert not audit.passed  # F-157 owes two residuals; F-153 form B owes the endcap
     # ⭐ ②-1d rework3: the producer-written endcap loss (F-153 form B) is now

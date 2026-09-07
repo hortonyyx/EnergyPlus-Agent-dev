@@ -44,9 +44,31 @@ WHO RETIRES WHAT, AND WHEN:
 * the two F-157 rows retire when the basis-switch fix lands;
 * membership below is computed from EACH RUN's own structural failures
   (⛔ not a roster baked in here), so the ledger empties BY ITSELF as the
-  fixes land.  ``SM25_DEFERRED_CAVITY_COUNT`` is a pinned READOUT: when a
-  fix lands it reddens (4 → 2 → 0), which is the readout lock doing its
-  job — update the count here, once, in the same commit as the fix.
+  fixes land.  The pinned READOUTS redden when a fix lands, which is the
+  readout lock doing its job — update them here, once, in the same commit
+  as the fix.
+
+═══ WHY THE READOUT IS PINNED PER CAUSE, ⛔ NOT AS ONE SUM (A-11-d2) ═══
+
+The A-11 rework-1 cross-review carried ONE non-blocking finding against this
+module and registered it with a hard schedule constraint: a single summed
+pin ``SM25_DEFERRED_CAVITY_COUNT == 4`` is a PROXY for the thing it claims
+to guard.  Measured, ⛔ not argued — the reviewer built the counterexample
+and ran it: a composition of ``3 × F-157 + 1 × F-153 form B`` still totals
+4, so the sum stays green while BOTH causes have moved.  The docstring here
+asserted a stronger invariant ("2 of each") than the code checked ("4 in
+total"); that gap is the definition of a proxy quantity.
+
+The registered constraint was: **before either cause changes on its own, the
+pin must be split per code, and the split must touch both consumer files**
+(a constant declared here but referenced by nobody is an ornament, not a
+lock).  This module now does that:
+
+* each cause carries its OWN pinned readout, so a change is attributable —
+  the failing assertion names which cause moved;
+* ``SM25_DEFERRED_CAVITY_COUNT`` is DERIVED from the two, so the total can
+  no longer drift away from the parts it is supposed to summarise;
+* both consumers assert all three, against real sm25 data.
 
 ⛔ This is not an amnesty.  Every cavity NOT in this ledger must still show
 a residual of exactly zero — that half of each consumer's assertion is
@@ -75,22 +97,56 @@ KNOWN_DEFECT_CODES = (
     "converter_zone_excluded_by_producer_written_ring_loss",
 )
 
-#: The pinned readout on the current honest sm25 substrate: 4 deferred
-#: cavities = 2 × F-157 (``..._unavailable``) + 2 × F-153 form B
-#: (``..._is_not_the_converter_zone``).  Every consumer asserts THIS number
-#: from THIS module, so the two files cannot drift apart again.  When an
-#: upstream fix lands this count drops and the pins redden — update it here,
-#: once, in the same commit as the fix.
-SM25_DEFERRED_CAVITY_COUNT = 4
+#: The two codes, named individually so a pin can be stated PER CAUSE.
+F157_UNAVAILABLE_CODE = "facts_projected_ring_unavailable"
+F153_FORM_B_CODE = "facts_projected_ring_is_not_the_converter_zone"
+
+#: Pinned readouts on the current honest sm25 substrate, ONE PER CAUSE
+#: (A-11-d2 — see the adjudication above for why a single sum is a proxy).
+#: F-157: the answer-side ``outer_skin`` ←→ ``wall_axis`` basis switch part
+#: way along a single support line, one cavity per plan.
+SM25_DEFERRED_F157_UNAVAILABLE_COUNT = 2
+#: F-153 form B: the converter endcap geometry difference, surfaced by the
+#: A-11 1 mm ingest snap as two symmetric-difference rows on plan-F1.
+SM25_DEFERRED_F153_FORM_B_COUNT = 2
+
+#: ⛔ DERIVED, never an independent literal: the total is the sum of its
+#: parts by construction, so it cannot stay green while the composition
+#: moves underneath it (which is exactly what the counterexample above did
+#: to the old hand-written ``= 4``).  Kept because both consumers also pin
+#: the total, and a change in total is the cheaper thing to read first.
+SM25_DEFERRED_CAVITY_COUNT = (
+    SM25_DEFERRED_F157_UNAVAILABLE_COUNT + SM25_DEFERRED_F153_FORM_B_COUNT)
+
+
+def deferred_cavities_by_code(audit, code: str) -> set[tuple[str, str]]:
+    """(view_id, cavity:<opaque>) for ONE deferred cause.
+
+    This is the half the old summed readout could not see: it answers "how
+    many of THIS cause", so a composition change reddens the assertion that
+    names the cause that moved, ⛔ instead of cancelling out inside a total.
+    """
+    if code not in DEFERRED_PROJECTION_CODES:
+        raise ValueError(
+            f"{code!r} is not a declared deferred-projection code; "
+            f"the declaration point is DEFERRED_PROJECTION_CODES in this "
+            f"module and nowhere else")
+    return {(item.split(":")[1], f"cavity:{item.split(':')[3]}")
+            for item in audit.structural_failures
+            if item.startswith(code)}
 
 
 def deferred_cavities(audit) -> set[tuple[str, str]]:
     """(view_id, cavity:<opaque>) for every projected-ring failure this batch
     defers.  Computed from THIS audit's own failures — ⛔ not a roster, so it
-    empties by itself once the underlying defects are fixed."""
-    return {(item.split(":")[1], f"cavity:{item.split(':')[3]}")
-            for item in audit.structural_failures
-            if item.startswith(DEFERRED_PROJECTION_CODES)}
+    empties by itself once the underlying defects are fixed.
+
+    ⛔ The whole is assembled FROM the per-cause parts (single parse point),
+    so "total" and "per cause" cannot be computed by two drifting rules.
+    """
+    parts = [deferred_cavities_by_code(audit, code)
+             for code in DEFERRED_PROJECTION_CODES]
+    return set().union(*parts)
 
 
 def failures_not_from_deferred_cavities(audit) -> list[str]:

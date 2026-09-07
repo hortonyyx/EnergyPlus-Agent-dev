@@ -52,8 +52,13 @@ MIN_ROOM_AREA_M2 = 5.0
 # one substrate, two verdicts.  Both files import the SAME names now.
 from tests.deferred_projection_ledger import (  # noqa: E402
     DEFERRED_PROJECTION_CODES,
+    F153_FORM_B_CODE,
+    F157_UNAVAILABLE_CODE,
     SM25_DEFERRED_CAVITY_COUNT,
+    SM25_DEFERRED_F153_FORM_B_COUNT,
+    SM25_DEFERRED_F157_UNAVAILABLE_COUNT,
     deferred_cavities,
+    deferred_cavities_by_code,
     failures_not_from_deferred_cavities,
 )
 
@@ -105,6 +110,14 @@ def test_projected_ring_identity_holds_with_no_tolerance_at_all(facts, report):
     audit = reconcile_boundary_basis(facts, report)
     deferred = deferred_cavities(audit)
     assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT  # 2 F-157 + 2 F-153 form B
+    # ⭐⭐⭐ A-11-d2: the total ALONE is a proxy -- a composition of 3 F-157 +
+    # 1 F-153 form B also totals 4, so both causes can move while the sum sits
+    # still (the cross-reviewer built and ran that counterexample).  Pin each
+    # cause SEPARATELY, so a change reddens the assertion that names it.
+    assert (len(deferred_cavities_by_code(audit, F157_UNAVAILABLE_CODE))
+            == SM25_DEFERRED_F157_UNAVAILABLE_COUNT)
+    assert (len(deferred_cavities_by_code(audit, F153_FORM_B_CODE))
+            == SM25_DEFERRED_F153_FORM_B_COUNT)
     assert failures_not_from_deferred_cavities(audit) == []  # nobody else is
     # merely "close enough"                                          -- ⛔ no band
     assert audit.mismatches == []
