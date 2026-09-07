@@ -39,28 +39,31 @@
 | 包 | 内容 | 来源 | 状态 |
 |---|---|---|---|
 | **①-1** | **F-95** 顶点规范化收窄为有序简单环（= C2 非方形那半的本体）| [我方] | ✅ **收口** —— GLM 跨家族审 **APPROVE / 0 阻断**（08-27），4 条不阻断 findings 已分流 |
-| **①-2** | **G1** ⇒ **派生审计件的可读 API + 机械复现门** | [用户]口径12 + [sol]#1 | ⏳ **返工已交件** `ef41a39`（**整张豁免清单已删**，全量 3046）· **⛔ 未过审** |
+| **①-2** | **G1** ⇒ **派生审计件的可读 API + 机械复现门** | [用户]口径12 + [sol]#1 | ✅ **已合并**（2026-09-07 通查更正：`ef41a39` **早已在主线祖先**，`git merge-base --is-ancestor` 为真；`gt_raw_layer.py:538 verify_raw_layer_reproduction` 在跑）。⛔ **旧标记「未过审」作废** |
 | **①-2′** | ⭐⭐⭐ **VS：sm25-F1「裁判事实包垂直切片」五步** | [sol] 08-27 | ✅✅ **五步做完四步、第 2 步已过审**（2026-08-27 夜后半场）：<br>**1 还原核对签字 candidate** ✅ —— ⛔ **并推翻了 F-111 的前提**（见下）<br>**2 签字输入落进 case-owned 路径** ✅ **过审** `60cc4ca`（GLM **APPROVE-WITH-FINDINGS / 0 阻断 / 4 不阻断**；主控权威全量 **3130 passed / 13 xfailed / 0 failed** 带 `.pth` 前后哨兵；复核方独立全量同读数）<br>**3 未参与拟合特征做原点 holdout（逐点形式）** ✅ —— 24 点 / 96 条逐边，**max 0.85 px**、最差 RMS 0.396 px、逐组偏置 ≤0.21 px、采样窗四档扫描**完全持平** → [实验档](logs/experiments/2026-08-27d_judge_ruler_pointwise_holdout/README.md)<br>**4 以产品 `*_px` 做一次像素判分** ✅ · **5 判别实验** ✅ ⭐⭐⭐ **通过** → 见下方 §②-1 的排期含义 → [实验档](logs/experiments/2026-08-27c_pixel_space_reading_grade/README.md) |
 | ~~①-3~~ | ~~**G2** 墙面线落盘 + 不规整清单~~ | [用户]口径12 | ⛔ **暂缓扩面**（sol：模数格点政策未签字前，「两种读法第一份清单相同」判早了）|
 | ~~①-4~~ | ~~**G3** 判分侧标定归裁判~~ | [sol]#2 | ⇒ **并入 ①-2′ 的第 2–5 步**（它本就该排在 G2 之前）|
 | **①-5** | **语义升格成正式答案字段并计分**（配对 · 门窗身份 · 墨族角色 · **「我认不出来」这个声明本身**）| [用户]口径11 | ⏭ ⭐ **改**：**判分侧的字段与语义先冻结（属 ①）**，producer 侧实现随 ②（sol 指出原写法与四步次序冲突）|
-| **①-6** | **F-89** 一张立面跨两层就整份丢 | [我方] | ⏸ **本日改判为挂起** —— 真缺陷，但那段代码服务 legacy reading 契约，② 要换掉它（见本日 §三）|
+| **①-6** | **F-89** 一张立面跨两层就整份丢 | [我方] | ✅ **已修**（2026-09-07 通查：② 确实把它换掉了 —— `judge/as_drawn/elevation_grade.py:46` 明写「跨两层**整面判**、⛔ 禁按楼层过滤」，锁在 `tests/test_elevation_grade.py`）。⛔ 旧标记「挂起」作废 |
 | **①-7** | **F-98** 判分对浮点末位敏感 | [我方] | 观察项，随判分侧改动一并评估 |
 
 #### 第 ② 步「按新方案改造 reading + correction 的 harness（一体改）」
 
-> ⭐⭐⭐ **2026-08-28 盘面更正：sol 那 6 条阻断已经解掉一多半，下方 ②-1 行里「6 条阻断」的写法已滞后。**
+> ⭐⭐⭐ **2026-09-07 第九程【拿代码通查】更正：sol 那 6 条阻断只剩 1 条真没做。**
+> ⛔ 下方所有「6 条阻断挡着 ②-1」的写法**已作废** —— 逐条读数与证据在
+> [通查对账档](logs/experiments/2026-09-07f_plan_reality_audit/README.md)。
 >
-> | sol 返工条 | 真实状态（2026-08-28 核） |
-> |---|---|
-> | **④** affine 双端 · plan controls 证据语义 · 类型门与标定门分开 | ✅ **2/3 已解**（`dc8821b` B4-① + `2757cb6` B4-②a）；剩 plan controls（**F-125**）要重签 ⇒ **随 gt 重做** |
-> | **⑥** 作废半径 = 依赖闭包 | 🔶 **口径已定**（08-29 用户拍 + 08-28 用户拍「**允许局部计分**」）· ⛔ 施工未做 |
-> | **③** authority root 与 as-received 观测根分名 | 🔶 **方案已成文**（事实层三截）+ ✅ **08-28 用户裁定：`as_measured` 从 as-received 图出，那 5 条线进 `revisions`** |
-> | **②** 定义真正投影前的 `ReferenceFactsV1` | 🔶 **08-28 实质推进** —— 投影前事实形态已定（面线两条 + 厚度 + 沿墙区间），扩张 = **偏移支撑线求交**，是派生器的一步（**F-134**）|
-> | **①** facts compiler 外部获授权指纹锚 | ⛔ **未做**（落库方案 §七 已标明）· 与 **F-D** 同族 |
-> | **⑤** 新增 edge `boundary_condition` | ⛔ **未做**（= **F-121**）|
+> | sol 返工条 | 旧标记 | **2026-09-07 实测** |
+> |---|---|---|
+> | **①** facts 编译器外部获授权指纹锚 | ⛔ 未做 | ⛔ **确实未做**（= **F-149**，`verify_as_signed_reproduction` 只自比 `content_sha256`、不读外部锚）|
+> | **②** 投影前 `ReferenceFactsV1` | 🔶 施工未做 | ✅ **已落地，换了名字** = **`AsMeasured*V1` 家族**（`as_measured.py:468-823`）；`grep ReferenceFactsV1` 零命中 |
+> | **③** authority root 与 as-received 分名 | 🔶 方案已成文 | ✅ **已落地**（`as_measured.py:1221 derive_as_measured_request`）|
+> | **④** affine 双端空间合同 | ✅ 2/3 | ✅ **全落地**（独立模块 `src/agent/judge/affine_space.py`）|
+> | **⑤** 新增 edge `boundary_condition` | ⛔ 未做（F-121）| ✅ **已落地**（`as_measured.py:624` · `answer_compiler.py:125`）|
+> | **⑥** 作废半径 = 依赖闭包 | 🔶 施工未做 | ✅ **已落地**（`certifier.py:75 dependency_closure` + `DEPENDENCY_CLOSURE_VERSION`）|
 >
-> ⇒ ⭐ **实际剩：①⑤ 完全没动，②③⑥ 各差一段施工。⛔ 都是 sol 已给具体处方的施工活，不是还要讨论的架构问题。**
+> ⇒ ⭐⭐⭐ **架构侧不再挡路。剩下的唯一一条是 ① = F-149**，且它有**硬排期约束**（见 F-149 行）：
+> 外部锚必须与「facts 进答案根」同期落地，⛔ 不许先 promote 后补锚；**今天答案根零 facts ⇒ 它零真实流量。**
 > ⇒ ⭐⭐⭐ 且 08-29 已确认「**gt 的活与 ②-1 是同一件事**」⇒ **做事实层落库 = 做 ②-1**，⛔ 不用等 gt 那边。
 >
 > **⏭ ②-1 拆单（2026-08-28 orchestrator 排，用户已授权「按应该的顺序推进」）**
@@ -81,11 +84,20 @@
 
 | 包 | 内容 | 来源 | 状态 |
 |---|---|---|---|
-| **②-0** | **F-97** correction 只吃**声明过的契约**，未声明的**响亮失败** + 消费对账 | [我方] | ⏳ **返工已交件** `f2a8ccf`（三条阻断全修，全量 3070）· **⛔ 未过审** |
-| **②-1** | **冻结出模形式** + **`ReferenceFactsV1` + 单一确定性 `AnswerCompiler(profile)`**（同一份 facts 同时派生 axis 投影 · exterior 投影 · 像素描图分母 · 不规整事实表；run config 只选哪个是正式成绩，⛔ 不让证据阈值选形式；metamorphic 门：两投影只差声明的 t/2、往返可恢复、缺资料整份 `unprojectable`）| [用户]口径2 + [sol] 08-27 第三形态 | ⏭ **② 的第 1 号包**。⭐⭐⭐ **①-2′ 的读数到了，定形依据已具备**：**像素空间判别实验通过**（七行标定扰动描图分逐位不动，而同一次跑里米制列照样动）⇒ **「描图分挪进像素空间」从「待验证的通过条件」变成「已验证可行」**，且**不需要重写判分器**（`grade()` 打分路径实测单位无关，两侧一起换单位即可）；⛔ 投影是**整层事务**，任一必需墙边不可派生就整份响亮 NA，⛔ 不许逐轴保留原样<br><br>⛔⛔ **2026-08-28 架构评审结果：sol 对抗审 = REWORK / 6 条阻断，⛔ 现在不能开工。** 流程 = 我出题面 → GLM 共同出案（[稿](logs/reviews/verdict/2026-08-28_joint_architecture_glm_design.md)）→ sol 对抗审（[裁决](logs/reviews/verdict/2026-08-28_joint_architecture_sol_review.md)）。**六条阻断 → F-121 · F-122 · F-123 · F-124 · F-125 · 作废半径**。⭐ **施工前最小返工清单（sol 给，6 条）**：① facts 编译器要**外部获授权指纹锚**，画清输入/实现/facts 谁签谁 · ② 定义**真正投影前**的 `ReferenceFactsV1`，⛔ 不许直接复制 `ZoneEdgeReportV1.p1/p2/basis` · ③ **authority root 与 as-received 观测根分名**，并裁定 sm25 那 5 条线修订属于哪层 · ④ affine 改 **domain/codomain 双端空间合同**（⛔ 单个 `source_unit` 表达不了），标定门与类型门**拆两门** · ⑤ 新增 edge **`boundary_condition`**（⛔ 非 zone `role`、⛔ 不吃 `basis`）+ 投影前证据 · ⑥ **作废半径 = 依赖闭包**（⛔ 不是「层」也不是「边」）写进 AnswerCompiler 契约，再写「缺一边」夹具预期。<br>✅ **不阻断且保留**：Q11 先于换单位排期（sol 确认）· facts 纯派生无人工通道 + 版本入答案键 · 「缺一条边」分辨力夹具 + `unprojectable` 坐标零泄漏 · 往返门降权为冗余数值门 |
-| **②-2** | correction 改成吃「**带原始引用的多形态墙证据**」（六形态：paired_faces / solid_band / single_face / axis_trace / ambiguous / non_wall）· **并改掉提示词里那两句 `wall-centerline`** | [用户] + [GPT 08-25 证伪] | ⏭ 一体改本体 |
-| **②-3** | **F-87** 门窗身份逐洞口外置（「认」还有一块留在评分器里）| [我方] | ⏭ 随 ②-1/②-2 |
-| **②-4** | **墙厚**：优先双通道（像素+标注）· 像素单通道兜底 · **浮点吸附归 correction** · **吸附分辨率跟 gt 走**（gt 声明 → 跑前抄进配置 → 判分侧核对一致，不一致响亮失败）| [用户]口径8/9 | ⏭ 随 ②-2；⚠️ **那个分辨率参数目前没有名字、没人签字** |
+| **②-0** | **F-97** correction 只吃**声明过的契约**，未声明的**响亮失败** + 消费对账 | [我方] | ✅ **已合并**（2026-09-07 通查更正：`f2a8ccf` **早已在主线祖先**；`reading/vector_contract.py` 的 `Disposition` / `classify_vector_json` 在生产路径上跑）。⛔ **旧标记「未过审」作废** |
+| **②-1** | **冻结出模形式** + **`ReferenceFactsV1` + 单一确定性 `AnswerCompiler(profile)`** | [用户]口径2 + [sol] 08-27 | ✅✅ **已落地并在跑**（2026-09-07 拿代码通查，⛔ 旧标记「⏭ 第 1 号包 / ⛔⛔ 现在不能开工」**整格作废**）：<br>　`judge/answer_compiler.py:100 OutputProfile{FORM_A_AXIS, FORM_B_EXTERIOR_SKIN}`（= 08-29 用户裁定的两形式）· `:365 class AnswerCompiler` 纯编译器、profile 显式传入 ⛔ 不由证据选 · `dependency_closure_version` 入答案键。<br>　事实层落地名 = **`AsMeasured*V1` 家族**（`as_measured.py:468-823`），⛔ **不叫 `ReferenceFactsV1`** —— 名字没兑现、东西兑现了。<br>　⭐ **08-28 那轮 sol 对抗审的 6 条阻断，实测只剩 ① 一条**（见本节上方更正表）⇒ **架构侧不再挡路**。<br>　⏭ **仍挂着的**：**F-149**（外部授权指纹锚 = sol 条 ①，硬排期约束见 F-149 行）· **F-150**（scrub 锁形态选窄）· **F-134**（接头延伸规则只活在 docstring）。<br>　📎 逐条证据 → [通查对账档](logs/experiments/2026-09-07f_plan_reality_audit/README.md) |
+| **②-2** | correction 改成吃「**带原始引用的多形态墙证据**」· 并改掉提示词里那两句 `wall-centerline` | [用户] + [GPT 08-25 证伪] | 🟡 **大部分已落地**（2026-09-07 拿代码通查，⛔ 旧标记「⏭ 一体改本体」不准确）：<br>　✅ **as-drawn → correction 已接线**：`pipeline.py:1049-1127` 按**分类器判定**分派 `adapt_as_drawn_plan` / `adapt_as_drawn_elevation`（⛔ 不按文件名），旧口径「两套 schema 完全不通、零接线」**是 08-25 的旧状态、已作废**。<br>　✅ **证据链完整**：`run_correction_evidence_chain`（source_read→adapt→compile→model→loop→project，任一环失败点名、⛔ 无静默回退）。<br>　✅ **真模型端到端跑通过一次**（2026-09-02，deepseek-v4-pro，185.8 s / 2 轮 / success，⛔ 非 fixed_responses）→ [实验档](logs/experiments/2026-09-02b_m7_evidence_chain_run/README.md)。<br>　🟡 **六形态只有 5 个**：`paired_faces` / `solid_band` / `single_face` / `ambiguous` / `non_wall` 在 `evidence_contract.py`；**`axis_trace` 全 src 零命中**，且 `tests/test_o22m4_wall_compiler.py:805` 明写 legacy 外皮 trace **不应**成为 axis_trace ⇒ **疑似有意去掉，但这个决定没人登记** ⇒ ⏭ **补登记或补实现，二选一**。<br>　🟡 **两句 `wall-centerline` 仍在**（`pipeline.py:405/408`），但它们属 **legacy 腿**（`_build_correction_messages`）⇒ **新链不用它们**（`wall_compiler.py:115` 反而有 `IDENTITY_BAN = "IDENTITY_AS_CENTERLINE"`）⇒ **随 legacy 腿退役一并删，⛔ 不是一体改的阻塞项**。 |
+| **②-3** | **F-87** 门窗身份逐洞口外置（「认」还有一块留在评分器里）| [我方] | ⛔ **确实未做**（2026-09-07 通查：全 src 只有 `judge/as_drawn/reading_grade.py:21` 一句注释提及，无实现）· ⏭ 随 ②-2 |
+| **②-4** | **墙厚**：优先双通道（像素+标注）· 像素单通道兜底 · **浮点吸附归 correction** · **吸附分辨率跟 gt 走** | [用户]口径8/9 | 🟡 **分辨率那半已落地**（2026-09-07 通查：`answer_compiler.py:46/983/997 snap_to_ingest_resolution` = A-11 的 1 mm 入库规整，⛔ 旧注「没有名字、没人签字」作废）· ⏭ **墙厚双通道那半仍未做**，随 ②-2 |
+
+#### ⭐⭐⭐ 真缺口（2026-09-07 通查产出）：**实现有了、跑通过了，生产入口没接**
+
+| 单 | 内容 | 状态 |
+|---|---|---|
+| **W-1** ⭐⭐⭐ | **把 `flow` CLI 接到新腿上** —— 今天三个入口只有一个走新链：<br>`pipeline.py:1692 run_multifloor_correction → evidence_chain=True` ✅ 新腿 ·<br>`pipeline.py:2344 run_pipeline` ⛔ 旧腿 · `run_stage.py:457 flow CLI` ⛔ 旧腿。<br>而 `run_multifloor_correction` 的**唯一调用者是 `tests/test_b2_multifloor_assembly.py`** ⇒ **生产零调用、CLI 零接线**。<br>⇒ **今天要走新路跑一个 case，只能手写脚本直调**（09-02 那次就是这么跑的），`flow` 到不了。 | ⏭ **建议排在最前** —— 它是 ③「产出新方案的产物」的**字面前提** |
+| **W-2** | 补 **J-3-d1** 欠的那条锁：经 `_grade_typed_attempt_artifacts` **真入口**的端到端判分锁。<br>⭐ **前置已解除**：J-3-d1 原文写「E-a′ 落地后必须回来补」，而 **E-a′ 已于第七程合并（`512498e1`）** —— 没人回来做。 | ⏭ 随 W-1（W-1 通了才喂得出真实输入）|
+
+⛔ **注意这两条都【不是架构问题】**，是接线与补锁。sol 六条阻断只剩 ① 那一条属架构侧。
 
 #### 第 ③④ 步
 
