@@ -356,6 +356,12 @@ _PRESCAN_GREEN = {
     "sm21_anchor/run_2026-08-14_accept_D",
     "sm21_anchor/run_2026-08-14_accept_E",
     "sm21_anchor/run_2026-08-14_accept_F",
+    # run_t1_legacy_full (W-1 T1, committed 67d4bdd0 2026-09-07): the R0-clone
+    # legacy full run the T1 probe continued.  Classified GREEN from the real
+    # gate's own reading, not by assumption (rework RED-3, 2026-09-07p):
+    # mep.idd_field_alignment = PASS, 0 offenders — 4_mep ran deterministic
+    # (deterministic_pass) on the accepted legacy geometry.
+    "sm25-L_anchor/run_t1_legacy_full",
 }
 
 
