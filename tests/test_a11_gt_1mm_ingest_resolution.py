@@ -294,7 +294,11 @@ def test_the_exemption_table_cannot_rot_onto_a_coordinate():
         ("views", "0", "boundary_edges", "5", "evidence",
          "footprint_edge_points", "*", "1"),
         ("views", "0", "boundary_ring_losses", "0", "span", "const"),
-        ("views", "0", "non_orthogonal_lines", "0", "p1", "0"),
+        # G-c makes non_orthogonal endpoints RAW/exempt; the former path
+        # also omitted converter_readouts and never named a schema field.
+        # Keep the coordinate tooth on the real second POST-snap endpoint.
+        ("views", "0", "converter_readouts", "axis_snapped_lines", "0",
+         "after_p1", "0"),
         ("views", "0", "converter_readouts", "axis_snapped_lines", "0",
          "after_p0", "1"),
         ("views", "0", "converter_readouts",

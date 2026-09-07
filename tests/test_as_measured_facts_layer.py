@@ -8,38 +8,17 @@ Three things are locked, one per section below:
   R3  the document is reproducible BIT FOR BIT across fresh processes, ⛔ with
       no ``PYTHONHASHSEED`` propping it up
 
-⚠️ FIXTURE DIRECTION ([[gate-teeth-direction-follows-fixture-inventory]]).  The
-two DXFs that ship side by side in ``gt_sources/sm25-L_anchor/`` do NOT have the
-same inventory, and the difference is exactly where this unit lives:
+G-c (2026-09-07) closed the as-received drawing's joints.  Its geometry
+inventory now matches the signed drawing; the audit retains three tier-1
+snaps (13AD/13AE/13AF).  The old 10 mm / 1-degree thresholds are historical:
+the current ladder uses q, half the request's minimum wall thickness, and
+5 degrees.  Real non-orthogonal rows and BLOCK diagnostics have disappeared.
 
-    fixture                        wall_lines  non-orth  BLOCK        S4 dangles
-    sm25-L_t3.dxf      (signed)    225          0        none         0
-    ..._as_received.dxf            225          1        1 code       8
-
-⚠️ ②-1b-S UPDATE (2026-08-29): the ``wall_lines_total=223``/``2 codes``/
-``4 dangles`` row above is the PRE-snap reading.  Dispatch ②-1b-S R1 changed
-S1's non-orthogonal action from unconditional drop to "snap the short leg to
-zero when it is within ``AXIS_SNAP_MAX_DEVIATION_M``, else still drop"; F-147
-added a second, ANDed ``AXIS_SNAP_MAX_ANGLE_DEG`` gate and both thresholds are
-now SIGNED (user, 2026-08-30: 10 mm / 1.0°) -- 13AD/13AE (minor leg ~5.81 mm,
-0.091°, i.e. inside BOTH signed gates) are now admitted
-via snap rather than S1-discarded, so ``s1_nonorthogonal_discarded_handles``
-is empty and ``wall_lines_total``/``face_lines`` grew by 2.  ``tarch_wall_free_
-end``/S4 dangles going 4->8 is a REAL, expected topology consequence of
-admitting two previously-absent segments whose along-axis endpoints do not
-happen to coincide with a perpendicular wall's own quantized position --
-⛔ NOT a regression this dispatch introduces or is scoped to fix (S4 junction
-resolution is untouched code; ``tarch_wall_free_end`` was ALREADY a BLOCK on
-this un-retouched drawing before this change, per
-``_refuse_if_the_ruler_never_measured``'s own docstring, so no previously
--green gate went red).  See the ②-1b-S execution report's "阈值" section for
-the full measurement.
-
-⇒ ⛔ A lock written only against the signed drawing is blind in every direction
-this unit cares about: it has no skew stroke to itemise, no content-level BLOCK
-to carry out, and no failing gate to record.  The as-received drawing is the one
-with the stock, so it is the primary fixture here and the signed drawing is kept
-as the CONTRAST (F-129's measured difference), ⛔ not as the subject.
+The negative inventory is therefore constructed: sub-millimetre skew rows
+exercise RAW evidence, tier-2 records exercise arbitration, and a temporary
+orphan stroke exercises BLOCK diagnostics on a successful facts build.  Each
+snap record is removed individually so the larger list cannot replace the
+single-missing-entry sample with a multiple-deletion sample.
 
 ⛔ Nothing here writes into ``gt_sources/`` or ``gt/``.  Everything derived is
 built in ``tmp_path``.
@@ -701,13 +680,17 @@ def test_o21bs_deleting_a_snap_entry_turns_the_ledger_red(as_received_doc):
     real orthogonal stroke) is untouched -- only its itemisation entry in
     ``axis_snapped_lines`` is removed, proving the CROSS-COUNT check (not
     just "the list is non-empty") is what has teeth here."""
-    raw = as_received_doc.model_dump(mode="json")
-    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    original = as_received_doc.model_dump(mode="json")
+    view = next(v for v in original["views"] if v["view_id"] == "plan-F1")
     snapped = view["converter_readouts"]["axis_snapped_lines"]
     assert len(snapped) == 3, "premise: the fixture really holds 3 entries"
-    view["converter_readouts"]["axis_snapped_lines"] = snapped[:1]   # drop one
-    with pytest.raises(ValueError, match="as_measured_axis_snapped_ledger_broken"):
-        AsMeasuredV1.model_validate(raw)
+    for removed in snapped:
+        raw = copy.deepcopy(original)
+        target = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+        target["converter_readouts"]["axis_snapped_lines"] = [
+            row for row in snapped if row["id"] != removed["id"]]
+        with pytest.raises(ValueError, match="as_measured_axis_snapped_ledger_broken"):
+            AsMeasuredV1.model_validate(raw)
 
 
 def test_o21bs_a_snapped_handle_must_be_a_real_face_line(as_received_doc):
@@ -731,8 +714,7 @@ def test_o21bs_a_snapped_handle_must_be_a_real_face_line(as_received_doc):
 
 def test_o21bs_a_handle_cannot_be_both_snapped_and_s1_discarded(as_received_doc):
     """Admitted and refused are mutually exclusive outcomes for one stroke --
-    the same 13AF (already a real face-line-adjacent skew handle in this
-    fixture, see F-129) cannot ALSO claim to have been S1-discarded."""
+    a real tier-1 snap entry cannot ALSO claim to have been S1-discarded."""
     raw = as_received_doc.model_dump(mode="json")
     view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
     handle = view["converter_readouts"]["axis_snapped_lines"][0]["id"]
@@ -741,29 +723,37 @@ def test_o21bs_a_handle_cannot_be_both_snapped_and_s1_discarded(as_received_doc)
         AsMeasuredV1.model_validate(raw)
 
 
-def test_r2_readouts_are_the_converters_own_numbers(as_received_doc):
-    """⛔ Carried, ⛔ not recomputed: compared against a fresh P1 run.
+def test_r2_readouts_are_the_converters_own_numbers(as_received_doc, tmp_path):
+    """Compare readouts against P1 on both clean and constructed BLOCK stock.
 
-    ⭐ Including the BLOCK diagnostics on a SUCCESSFUL path -- F-B measured that
-    filtering those out passed an entire suite, because nothing looked.
+    G-c removed every real BLOCK from the as-received drawing.  Comparing
+    only that drawing no longer detects a producer that strips all BLOCKs.
+    An isolated axial stroke supplies a real free-end diagnostic and G5 red,
+    while the nonempty geometry still builds facts successfully.
     """
-    import shutil
-    import tempfile
-
+    from tests.test_as_drawn_denominator_consistency_readout import (
+        _as_received_with_an_orphan_segment)
     from src.agent.judge.tarch_normalize import run_p1_plan_view
 
-    request = TarchConversionRequestV1.model_validate_json(
-        AS_MEASURED_REQUEST.read_text(encoding="utf-8"))
-    tooling = load_gt_tooling_config(REPO / "src/configs/judge_gt.yaml",
-                                     REPO / "src/configs/correction.yaml")
-    view_intent = next(v for v in request.plan_views if v.id == "plan-F1")
-    with tempfile.TemporaryDirectory() as tmp:
-        staged = Path(tmp) / AS_RECEIVED_DXF.name
-        shutil.copy2(AS_RECEIVED_DXF, staged)
-        geo = run_p1_plan_view(staged, request, view_intent, tooling)
-
+    geo, view_intent = _geo_for("plan-F1")
     view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
-    readouts = view.converter_readouts
+    _assert_converter_readouts_match(view.converter_readouts, geo)
+
+    dxf, request_path = _as_received_with_an_orphan_segment(tmp_path)
+    request = TarchConversionRequestV1.model_validate_json(request_path.read_text())
+    tooling = load_gt_tooling_config(REPO / "src" / "configs" / "judge_gt.yaml",
+                                     REPO / "src" / "configs" / "correction.yaml")
+    intent = next(v for v in request.plan_views if v.id == "plan-F1")
+    blocked_geo = run_p1_plan_view(dxf, request, intent, tooling)
+    assert any(d.severity == "BLOCK" for d in blocked_geo.diagnostics)
+    assert blocked_geo.dangles > 0
+    blocked_view = build_view(blocked_geo, intent.world_from_source_m,
+                              t_max_m=max(request.wall_thickness_range_m))
+    assert blocked_view.face_lines and blocked_view.walls
+    _assert_converter_readouts_match(blocked_view.converter_readouts, blocked_geo)
+
+
+def _assert_converter_readouts_match(readouts, geo):
     assert (readouts.dangles, readouts.cuts, readouts.invalid) == (
         geo.dangles, geo.cuts, geo.invalid)
     assert readouts.degenerate_line_count == geo.degenerate_line_count
