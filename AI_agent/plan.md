@@ -134,7 +134,7 @@
 
 | 单 | 内容 | 状态 |
 |---|---|---|
-| **W-1** ⭐⭐⭐ | **把 `flow` CLI 接到新腿上** —— 今天三个入口只有一个走新链：<br>`pipeline.py:1692 run_multifloor_correction → evidence_chain=True` ✅ 新腿 ·<br>`pipeline.py:2344 run_pipeline` ⛔ 旧腿 · `run_stage.py:457 flow CLI` ⛔ 旧腿。<br>而 `run_multifloor_correction` 的**唯一调用者是 `tests/test_b2_multifloor_assembly.py`** ⇒ **生产零调用、CLI 零接线**。<br>⇒ **今天要走新路跑一个 case，只能手写脚本直调**（09-02 那次就是这么跑的），`flow` 到不了。 | ⏭ **建议排在最前** —— 它是 ③「产出新方案的产物」的**字面前提** |
+| **W-1** ⭐⭐⭐ | **把 `flow` CLI 接到新腿上** —— 今天三个入口只有一个走新链：<br>`pipeline.py:1692 run_multifloor_correction → evidence_chain=True` ✅ 新腿 ·<br>`pipeline.py:2344 run_pipeline` ⛔ 旧腿 · `run_stage.py:457 flow CLI` ⛔ 旧腿。<br>而 `run_multifloor_correction` 的**唯一调用者是 `tests/test_b2_multifloor_assembly.py`** ⇒ **生产零调用、CLI 零接线**。<br>⇒ **今天要走新路跑一个 case，只能手写脚本直调**（09-02 那次就是这么跑的），`flow` 到不了。 | 🟡 **施工中断（GLM 撞额度）** —— 半成品抢救落库 `9d79dfe7`（分支 `wt/09.07h_w1_flow`）。✅🔬 **已实测**：足迹跨层吸附 + 角点环**已落地已接线**，BLK-1 解除（容差 20.6435 mm，管事的是 noise 支）。⛔ **仍未做**：`run_pipeline`/`flow` **一行没接**（正题）· 窗输入构建器**零调用者**（死代码）· 债 `WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER` **只在 docstring 零在代码** · **零测试**。⛔ 全量在该分支上 **3 红**（三条全真、无假红）。复核 = `reviews/verdict/2026-09-07l_*` |
 | **W-2** | 补 **J-3-d1** 欠的那条锁：经 `_grade_typed_attempt_artifacts` **真入口**的端到端判分锁。<br>⭐ **前置已解除**：J-3-d1 原文写「E-a′ 落地后必须回来补」，而 **E-a′ 已于第七程合并（`512498e1`）** —— 没人回来做。 | ⏭ 随 W-1（W-1 通了才喂得出真实输入）|
 
 ⛔ **注意这两条都【不是架构问题】**，是接线与补锁。sol 六条阻断只剩 ① 那一条属架构侧。
