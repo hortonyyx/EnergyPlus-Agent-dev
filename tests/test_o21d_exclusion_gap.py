@@ -17,13 +17,12 @@ rework3 splits the two authors:
 * ``registered_ring_loss`` -> ⛔ FAIL-LOUD.  Every producer-written loss is its
   own NAMED structural failure
   (``converter_zone_excluded_by_producer_written_ring_loss:<view>:<cavity>:``
-  ``<zone>:reason=<r>:area_units2=<a>``).  On the real sm25 substrate the sole
-  surviving ledger entry is F-153 form B -- a wall coordinate 0.1 mm off its
-  three siblings that keeps a fully enclosed real room from ringing (verified
-  three ways in this batch's dispatch: 28.683212 m², wall
-  ``w_x_99430_100630_52401_88800``, delta=1) -- so reddening it is CORRECT, and
-  the red clears itself the moment that upstream defect is fixed (the producer
-  then emits a ring and writes no loss).  ⛔ No cavity id or area is baked in.
+  ``<zone>:reason=<r>:area_units2=<a>``).  The historical sm25 loss was
+  F-153 form B: a wall coordinate 0.1 mm off its siblings prevented a real
+  room from ringing.  A-11 already cleared that producer-written loss
+  inventory; G-c subsequently retired the projected-ring difference.  The
+  live-loss loop may therefore be empty.  Constructed losses below retain
+  the fail-loud rule's negative samples.  ⛔ No cavity id or area is baked in.
   This is the '哪个方向没有锁' rule from memory: the answer was '加了就会红', so
   the defect itself was blocking the lock.
 * ``below_request_area_threshold`` -> INDEPENDENTLY provable and by design
@@ -44,8 +43,8 @@ rework3 splits the two authors:
   SECOND independently parsed document rather than a literal, so it stays true
   while the number moves and exists only to make the movement visible.
 
-⭐ Scope of every green anchor.  On the real substrate the audit already carries
-the F-153 form B fail-loud reds and F-157's two deferred projection reds, so a
+⭐ Scope of every green anchor.  On the current real substrate the audit carries
+F-157's two deferred projection reds; constructed losses add fail-loud reds, so a
 test may ⛔ NOT assert global cleanliness or ``audit.passed`` as its tooth -- that
 would make every lock a hostage of a defect it does not own
 ([[acceptance-bar-must-not-be-written-from-the-result]],

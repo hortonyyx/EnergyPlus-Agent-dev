@@ -156,11 +156,12 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     assert (len(_deferred_cavities_by_code(audit, F153_FORM_B_CODE))
             == SM25_DEFERRED_F153_FORM_B_COUNT)
     assert _failures_not_from_deferred_cavities(audit) == []
-    assert not audit.passed  # F-157 owes two residuals; F-153 form B owes the endcap
+    assert not audit.passed  # F-157 still owes its two unavailable rings
     # ⭐ ②-1d rework3: the producer-written endcap loss (F-153 form B) is now
     # fail-loud, ⛔ no longer a silent exclusion.  No exclusion survives on the
-    # honest substrate; the endcap surfaces as a NAMED red owned by the F-153
-    # form B lock in ``tests/test_o21d_exclusion_gap.py``, ⛔ not asserted here
+    # honest substrate: A-11 cleared the loss inventory, then G-c retired the
+    # projected-ring difference.  Constructed losses remain fail-loud in
+    # ``tests/test_o21d_exclusion_gap.py``, not asserted here
     # ([[invalidation-blast-radius-must-be-scoped]]).
     assert audit.exclusions == []
     assert Counter((row.facts_boundary_condition, row.converter_basis)

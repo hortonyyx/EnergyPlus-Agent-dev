@@ -102,14 +102,14 @@ def test_projected_ring_identity_holds_with_no_tolerance_at_all(facts, report):
     A-11 (1 mm ingest snap) moved BOTH sides of the comparison onto the same
     1 mm grid: the old 286.8 m² endcap-loss cavity closed into two real rooms
     (pairings 25 -> 27, paired edges 100 -> 108), whose rings surface the
-    F-153 form B endcap difference for the first time.  Those two cavities —
-    and only those, plus F-157's two — sit in the ONE deferred ledger declared
-    in ``tests/deferred_projection_ledger.py``.  The count is pinned:
+    F-153 form B endcap difference for the first time.  G-c's joint-anchored
+    snap has since retired that difference; only F-157's unavailable cavities
+    remain in ``tests/deferred_projection_ledger.py``.  Each cause is pinned:
     one MORE unexplained projected-ring failure reddens here, so this is not
     an amnesty and not a threshold."""
     audit = reconcile_boundary_basis(facts, report)
     deferred = deferred_cavities(audit)
-    assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT  # 2 F-157 + 2 F-153 form B
+    assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT  # remaining F-157 debt
     # ⭐⭐⭐ A-11-d2: the total ALONE is a proxy -- a composition of 3 F-157 +
     # 1 F-153 form B also totals 4, so both causes can move while the sum sits
     # still (the cross-reviewer built and ran that counterexample).  Pin each
