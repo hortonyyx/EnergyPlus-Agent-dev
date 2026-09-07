@@ -94,8 +94,15 @@ git rebase fde2f24c        # 主线 HEAD，含 883d4e51「拆钉」
 
 两条 = `test_f156_ring_from_intersection.py::test_projected_ring_identity_holds_with_no_tolerance_at_all`
 与 `test_boundary_condition_facts.py::test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches`。
-rebase 前是 `assert 2 == 4`（`SM25_DEFERRED_CAVITY_COUNT`，看不出是哪一支变的）。
-rebase 后主线已把它拆成 per-cause 两个钉 ⇒ **红的那条会指名 `SM25_DEFERRED_F153_FORM_B_COUNT`**。
+⛔⛔ **派工方勘误（2026-09-07，实测后改，⛔ 原文是错的）**：我原先写「rebase 后红的那条**会指名**
+`SM25_DEFERRED_F153_FORM_B_COUNT`」。**实测不是**：rebase 后两条仍然先红在**总数行**
+`assert len(deferred) == SM25_DEFERRED_CAVITY_COUNT` ⇒ `assert 2 == 4`，
+**per-code 那两行根本没被求值**（pytest 在首个失败断言处停）。
+⭐ 这正是 GLM 拆钉裁决的**不阻断-3**（已登记 `plan.md` **G-d3**「派生总数使『钉错』的信号最先落在总数行」）——
+**我登记完半小时后就在本单里违反了它。** 记一笔：**写下自检 ≠ 执行自检。**
+
+⇒ **归因路径（这才是拆分真正提供的东西）**：总数行红 ⇒ **你去读两个 per-code 钉与实际数据的对账**，
+就能看出是 **F-153 form B 那一支 2→0**、F-157 没动。⛔ 不是「红的那行会自己写出是哪一支」。
 
 **已经查实的事实（⛔ 不需要你重新论证，但你可以证伪）**：
 - **变的是 F-153 form B 那一支：2 → 0。F-157 那一支纹丝不动（2 → 2，同样两个 cavity id）。**
