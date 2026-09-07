@@ -1,4 +1,4 @@
-# 派工单 · W-1：把 `flow` CLI 接到新腿
+# 派工单 · W-1：**让一个 case 能完整跑通端到端（零手搓）**
 
 > **施工 = GLM**（`scripts/glm_code.sh`，默认 `glm-5.3`）· **复核 = Claude 家族 orchestrator**（用户 2026-09-07 指定）
 > **档位 = 工程档**（碰 `src/agent/pipeline` 内核 + `scripts/`）⇒ gate① + **全量绿**是硬验收。
@@ -10,11 +10,16 @@
 
 ---
 
-## 〇之二 本单的目的（一句话）
+## 〇之二 ⭐⭐⭐ 本单的验收就是一句话（用户 2026-09-07 原话）
 
-⭐⭐⭐ **让 `flow` 能把一个 case 完整走完新腿** —— 这是用户定的下一步
-「**修到完整做一个 case（gt+pipeline），然后跑一次**」的**唯一前置**。
-⛔ 本单**不是**去补齐架构、⛔ 不是去清欠债。**做到能跑能读为止。**
+> **「修到可以完整跑端到端就行（整个架构通，别需要现手搓），别的风险欠债跑完一次再修。」**
+
+⇒ **验收 = 拿一个 case，从 0_reading 一路走到出分，全程走【标准入口】，⛔ 不需要现场手写任何脚本。**
+⛔ 本单**不是**「把 `flow` 接到新腿」这一处接线 —— 那只是**我已经找到的其中一个断点**。
+**这条路上还有几处要手搓，是你要去找的。**
+
+⚠️⚠️ **派工方的范围曾写窄过**：本单第一版只写了 correction 那一处接线，
+被用户当场纠正为「整个架构通」。⇒ ⭐ **你要扫的是整条路，⛔ 不是我列的那几条。**
 
 ## 一 在哪、审什么
 
@@ -60,18 +65,33 @@ python -c "import src.agent.pipeline as m; print(m.__file__)"   # 必须落在 /
 
 ## 三 任务
 
-### T1 · 先摸清现状，⛔ 不要先动手
+### T1 · ⭐⭐⭐ 端到端【手搓点普查】，⛔ 不要先动手
 
-产出一份**接线现状说明**（写进交件），至少回答：
-1. `flow` 从 `rdir` 拿到哪些产物？怎么区分平面/立面？**今天有没有层序概念**？
-2. 跑一遍现有 case（用仓库里已有的 case_tests 数据），记下**今天的行为基线**。
-3. `run_multifloor_correction` 要的两样东西，在 `flow` 上下文里**各自从哪来**：
-   - `elevation_evidence: CorrectionEvidenceBundleArtifactV1`（**带冻结字节的封装载体**）
-   - `plan_runs: Sequence[MultiFloorPlanRun]`（**自下而上排序**，`plan_runs[i]` → 第 i 级）
+**试着用标准入口把一个 case 从头走到尾**（`case_tests/` 里已有数据，建议 sm25），
+**每撞到一处「必须现场手写脚本/手拷文件/手填参数才能往下走」的地方就记一条**。
+
+产出一张**手搓点清单**（写进交件），每条给：**在哪一段 · 撞到什么 · 今天只能怎么绕 · 最小修法**。
+
+⭐ **派工方已经找到的三条（起点，⛔ 不是全集）**：
+
+| # | 段 | 现状（主控实测） |
+|---|---|---|
+| A | **0_reading** | `flow` 的 0_reading 是 **MANUAL**（`run_stage.py:340` 逐字：「validate the already-produced view JSONs (no LLM)」）⇒ 产物要先在外面产好。⭐ **标准产出器是有的**：`scripts/tool_scripts/reading_toolbox.py build <cfg> <out>` 会落盘。⚠️ **但缺「给一个 case 产齐所有视图」的编排**，且那个 `cfg` 从哪来我没查。<br>⚠️ 09-02 那次用的产物是**从实验目录逐字节拷贝**的（`logs/experiments/2026-08-23_as_drawn_reading_prototype/out/`，该档明写「**全程探索档：未改 `src/`**」）—— **那就是一次手搓。** |
+| B | **1_correction** | `flow` 不走新腿：`run_stage.py:457 run_correction(...)` **不传 `evidence_chain`** ⇒ 走 legacy。新腿 `run_multifloor_correction` **生产零调用者**（唯一调用者是测试）。 |
+| C | **下游** | `CorrectedGeometryV3` **确实被 `output_coordinates.py` 消费**（`:311` `model_validate_json`）⇒ 这一段**可能是通的**，⚠️ 但**我没有真跑过**，你要验。 |
+
+⇒ **⛔ 别停在这三条。** gt 侧（`gt_from_dxf` → `gt_review_build` → `gt_review_sign` → `gt_promote`）、
+判分与出报告（`flow --record`）、`4_mep`、`5_intakeoutput` 都要走一遍，**撞到就记**。
+
+⭐ 顺带记下**今天的行为基线**（legacy 路径跑现有 case 的读数），T3 之后要对账。
+
+⚠️ `run_multifloor_correction` 要的两样东西，请在清单里单列它们在 `flow` 上下文的来源：
+`elevation_evidence: CorrectionEvidenceBundleArtifactV1`（**带冻结字节的封装载体**）·
+`plan_runs: Sequence[MultiFloorPlanRun]`（**自下而上排序**，`plan_runs[i]` → 第 i 级）。
 
 ### T2 · ⭐⭐⭐ 出方案，交主控拍板后再施工
 
-**⛔ 不要直接改代码。** 先在交件里给出方案，至少覆盖：
+**⛔ 不要直接改代码。** 针对 T1 清单里的**每一条手搓点**给最小修法，并至少覆盖：
 
 - **怎么选腿**：⭐ 本仓库的既有口径是「**路由由分类器判定，⛔ 永不按文件名**」
   （`pipeline.py:1049` 逐字写着）。你的方案要**沿用同一口径**，⛔ 不要引入 `--new-leg` 这类开关，
@@ -105,11 +125,13 @@ python -c "import src.agent.pipeline as m; print(m.__file__)"   # 必须落在 /
 
 ## 四 硬验收
 
-1. ⭐⭐⭐ **旧 case 行为逐位不变** —— 用 T1 记下的基线对账，⛔ 不许「差不多」。
-2. **新腿真的通电**：给出一条**经 `flow` CLI**（⛔ 不是手搭调用）跑到 `run_correction_evidence_chain` 的证据。
-3. **全量 0 failed**（`-n 6`），跑前跑后各核一次 `python -c "import src.agent.pipeline as m; print(m.__file__)"`。
+1. ⭐⭐⭐ **一条命令序列，从 0_reading 走到出分，全程标准入口、零现场手写脚本** ——
+   把那串命令**逐字**写进交件，任何人照抄能重跑。**这是本单唯一的总验收。**
+2. ⭐⭐⭐ **旧 case 行为逐位不变** —— 用 T1 记下的基线对账，⛔ 不许「差不多」。
+3. **新腿真的通电**：给出一条**经 `flow` CLI**（⛔ 不是手搭调用）跑到 `run_correction_evidence_chain` 的证据。
+4. **全量 0 failed**（`-n 6`），跑前跑后各核一次 `python -c "import src.agent.pipeline as m; print(m.__file__)"`。
    ⭐ **主控参照基线 = `4009 passed / 0 failed / 2 skipped / 13 xfailed`**（主树 `60cbda94`）。
-4. 静默回退**不存在**：构造一个「该走新腿但缺立面证据」的输入，确认它**响亮失败**、⛔ 不是悄悄走旧腿。
+5. 静默回退**不存在**：构造一个「该走新腿但缺立面证据」的输入，确认它**响亮失败**、⛔ 不是悄悄走旧腿。
 
 ---
 
@@ -129,10 +151,11 @@ python -c "import src.agent.pipeline as m; print(m.__file__)"   # 必须落在 /
 
 **A 类 · 承重前提错 ⇒ 立刻停**：
 1. 自检 `__file__` 落点不对。
-2. **产物里找不到「层序」的自声明来源**（§三 T2 第二点）—— 那说明本单缺一个前置。
-3. 你发现**接新腿必然改变旧 case 行为**（即验收 1 结构上做不到）。
-4. 主控 §二 左栏那五条读数里，**有任何一条你复现不出**。
-5. 你认为本单**题面**就不对。
+2. **产物里找不到「层序」的自声明来源**（§三 T2）—— 那说明本单缺一个前置。
+3. **你判定「零手搓端到端」在本单范围内结构上做不到**（例如缺的东西远超接线量级）—— ⭐ 这正是要停下报的，⛔ 别硬做。
+4. 你发现**接新腿必然改变旧 case 行为**（即验收 2 结构上做不到）。
+5. 主控 §二 左栏那五条读数里，**有任何一条你复现不出**。
+6. 你认为本单**题面**就不对。
 
 **B 类 · 外围错 ⇒ 记录并继续**：行号/数字对不上 · 你对某个细节的判断与我不同。
 
@@ -144,7 +167,7 @@ python -c "import src.agent.pipeline as m; print(m.__file__)"   # 必须落在 /
 
 写到 `/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/reviews/execution/2026-09-07h_W1_flow_wiring_execution.md`：
 
-1. **T1 接线现状说明**（含今天的行为基线，原始命令与输出）。
+1. **T1 手搓点清单**（每条：在哪一段 · 撞到什么 · 今天只能怎么绕 · 最小修法）+ 今天的行为基线。
 2. **T2 方案** —— ⭐ **写完就停下等主控拍板**，⛔ 不要直接进 T3。
 3. T3 的改动 + 每条验收的原始命令与输出。
 4. **最薄弱的一处**：你自己最没把握的判断是什么、它错了会怎样。
