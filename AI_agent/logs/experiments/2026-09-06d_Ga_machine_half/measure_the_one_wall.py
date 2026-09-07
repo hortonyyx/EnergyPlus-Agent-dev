@@ -162,8 +162,11 @@ def reframe() -> None:
     print(f"  13AF 实际歪斜            = {skew_mm:.4f} mm")
     print(f"  吸附分支进入条件         = 两条腿都 > tau_axis (= 1 mm)"
           f"   ⇒ {skew_mm:.4f} <= 1 ⇒ 【不进分支】")
-    print(f"  两道吸附门（进了才用得上）= <= {tn.AXIS_SNAP_MAX_DEVIATION_M * 1000:.0f} mm"
-          f" 且 <= {tn.AXIS_SNAP_MAX_ANGLE_DEG:.0f}°  （13AF 两项都合格，但根本没走到）")
+    # ⚠️ 09-06 那一轮的两道门 = 10 mm / 1.0°；两者在 09-07 都已被 G-c 阶梯取代
+    # （10 mm 作废，角度 1.0°→5.0°）⇒ 这里写死当时的值，⛔ 不从生产模块读，
+    # 否则本脚本复现不出 09-06 的读数。
+    print(f"  两道吸附门（进了才用得上）= <= 10 mm"
+          f" 且 <= 1°  （13AF 两项都合格，但根本没走到）")
     print("  面线分类判据             = x0 == x1 【精确相等、零容差】 ⇒ 【不算面线】")
     discarded = view["converter_readouts"]["s1_nonorthogonal_discarded_handles"]
     print(f"  佐证 s1_nonorthogonal_discarded_handles = {len(discarded)} 条 {discarded}"
