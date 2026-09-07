@@ -471,6 +471,88 @@ def _anchor_candidates_are_indistinguishable(sx0: float, sy0: float,
     return len(set(stored)) == 1, stored
 
 
+def _endpoint_relocations(
+        staged: list[tuple[str, str, float, float, float, float]],
+        verdicts: dict[str, "_LadderVerdict | None"], q: float
+        ) -> dict[tuple[tuple[int, int], str], float]:
+    """⭐⭐⭐ THE OTHER HALF OF THE ANCHOR RULE: flattening a stroke about one
+    end MOVES the other end, and every stroke that shared that point has to
+    come along.
+
+    ⛔ WHY THIS IS NOT OPTIONAL, measured on the corpus (sm25-L as-received,
+    plan-F1, west end of the 120 mm partition).  13AD/13AE are flattened about
+    their EAST ends, which drops their WEST ends by 5.81 mm.  13AF is the west
+    end cap; its two endpoints ARE those two west ends.  Without this step
+    13AF keeps the pre-flattening y values and the corner tears open:
+
+        13AD.const 100600  vs  13AF.along_max 100660   ⇒ 6.0 mm gap
+        13AE.const  99400  vs  13AF.along_min  99460   ⇒ 6.0 mm gap
+
+    -- i.e. the fix for the EAST joints would have manufactured a WEST tear
+    twice the size of the 3.0 mm one it set out to close.  With this step both
+    corners close at 0, matching the signed drawing bit for bit.
+    ⭐ Same lesson as the midpoint bug one level up: a treatment that reads one
+    stroke at a time cannot see what that stroke is attached to.
+
+    **The rule**, and the two guards that keep it from doing harm:
+
+    1. A relocation is recorded ONLY for an endpoint a tier-1 flattening
+       actually moved, keyed by that point on the ``q`` grid -- the converter's
+       own node identity, ⛔ not a new tolerance.
+    2. ⛔ If two flattenings would send one node to two different places ON THE
+       SAME AXIS the entry is DROPPED, not guessed: an ambiguous node keeps
+       today's behaviour rather than acquiring an invented one.  ⭐ Two moves
+       on DIFFERENT axes are ⛔ not a conflict -- they are complementary, and
+       the corpus needs exactly that: at the west corner 13AD moves the node
+       in y while 13AF moves the same node in x, and each is followed by the
+       other.  (Measured: keying the conflict test per NODE instead of per
+       (node, axis) drops both and the corner stays 6.0 mm torn.)
+    3. A neighbour follows only when the moved axis is that neighbour's ALONG
+       axis (:func:`_apply_relocation`).  ⭐ That is what makes following
+       structurally unable to bend anything: moving a point along a stroke's
+       own direction changes its length, ⛔ never its straightness.  It is
+       also why a stroke never follows its OWN proposal: a flattening moves a
+       node on the stroke's CONST axis, which is never its along axis.
+
+    Returns ``{(node_key, moved_axis): new_coordinate}``.
+    """
+    proposals: dict[tuple[tuple[int, int], str], set[float]] = {}
+    for handle, _layer, sx0, sy0, sx1, sy1 in staged:
+        verdict = verdicts.get(handle)
+        if verdict is None or verdict.tier != 1:
+            continue
+        nx0, ny0, nx1, ny1, snapped_axis = _snap_short_leg_to_axis(
+            sx0, sy0, sx1, sy1, anchor=verdict.anchor or "mid")
+        for (ox, oy), (mx, my) in (((sx0, sy0), (nx0, ny0)), ((sx1, sy1), (nx1, ny1))):
+            moved = mx if snapped_axis == "x" else my
+            if moved == (ox if snapped_axis == "x" else oy):
+                continue                      # the anchored end: it did not move
+            key = ((round(ox / q), round(oy / q)), snapped_axis)
+            proposals.setdefault(key, set()).add(moved)
+    return {key: next(iter(values)) for key, values in proposals.items()
+            if len(values) == 1}
+
+
+def _apply_relocation(raw_point: tuple[float, float],
+                      current: tuple[float, float], along_axis: str,
+                      relocations: dict[tuple[tuple[int, int], str], float],
+                      q: float) -> tuple[float, float]:
+    """Move ``current`` onto a relocated node, but ⛔ ONLY along ``along_axis``.
+
+    ⭐ The axis guard is the whole safety argument: this stroke's along axis is
+    the direction it RUNS in, so shifting an endpoint there can only lengthen
+    or shorten it.  Touching the other axis would tilt it -- i.e. would
+    manufacture exactly the defect the ladder exists to remove -- so a node
+    that moved on this stroke's CONST axis is simply not followed, and the
+    stroke keeps the behaviour it had before this rule existed.
+    """
+    key = ((round(raw_point[0] / q), round(raw_point[1] / q)), along_axis)
+    if key not in relocations:
+        return current
+    moved = relocations[key]
+    return (moved, current[1]) if along_axis == "x" else (current[0], moved)
+
+
 @dataclass(frozen=True)
 class _LadderVerdict:
     """One stroke's place on the ladder.  ``tier`` is 1/2/3 (tier 0 never
@@ -850,11 +932,19 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
             key = (round(point[0] / q), round(point[1] / q))
             axial_neighbours_at.setdefault(key, set()).add(handle)
 
-    # ⭐⭐ PASS 2 -- grade each stroke on the ladder, then the unchanged S1/S2 body.
+    # ⭐⭐ PASS 2 -- grade every staged stroke on the ladder.
+    verdicts: dict[str, _LadderVerdict | None] = {}
+    for handle, _layer, sx0, sy0, sx1, sy1 in staged:
+        verdicts[handle] = _ladder_verdict(handle, sx0, sy0, sx1, sy1, tols=tols,
+                                           cap_native=cap_native,
+                                           axial_neighbours_at=axial_neighbours_at)
+
+    # ⭐⭐ PASS 3 -- THE JOINT FOLLOWS THE END THAT MOVED.
+    relocations = _endpoint_relocations(staged, verdicts, q)
+
+    # ⭐⭐ PASS 4 -- apply, then the unchanged S1/S2 body.
     for handle, layer, sx0, sy0, sx1, sy1 in staged:
-        verdict = _ladder_verdict(handle, sx0, sy0, sx1, sy1, tols=tols,
-                                  cap_native=cap_native,
-                                  axial_neighbours_at=axial_neighbours_at)
+        verdict = verdicts[handle]
         snapped: tuple[tuple[float, float], tuple[float, float], str,
                        _LadderVerdict] | None = None
         if verdict is not None and verdict.tier != 1:
@@ -879,11 +969,19 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
                                        "anchor_candidates_stored":
                                            verdict.stored_candidates}))
             continue
+        raw_p0, raw_p1 = (sx0, sy0), (sx1, sy1)
         if verdict is not None:
-            before_p0, before_p1 = (sx0, sy0), (sx1, sy1)
             sx0, sy0, sx1, sy1, snapped_axis = _snap_short_leg_to_axis(
                 sx0, sy0, sx1, sy1, anchor=verdict.anchor or "mid")
-            snapped = (before_p0, before_p1, snapped_axis, verdict)
+            snapped = (raw_p0, raw_p1, snapped_axis, verdict)
+        # ⭐ the along-axis endpoints follow any node this stroke shares with a
+        # flattening that MOVED that node (see :func:`_endpoint_relocations`).
+        along_axis = "x" if abs(sx1 - sx0) >= abs(sy1 - sy0) else "y"
+        (sx0, sy0), (sx1, sy1) = (
+            _apply_relocation(raw_p0, (sx0, sy0), along_axis, relocations, q),
+            _apply_relocation(raw_p1, (sx1, sy1), along_axis, relocations, q))
+        if snapped is not None:
+            snapped = (raw_p0, raw_p1, snapped[2], verdict)
         x0, y0 = _quantize(sx0, q), _quantize(sy0, q)
         x1, y1 = _quantize(sx1, q), _quantize(sy1, q)
         if snapped is not None:
