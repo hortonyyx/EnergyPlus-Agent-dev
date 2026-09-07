@@ -208,3 +208,107 @@ def finalize_correction_draw(
         prepared_candidate_identity=prepared_identity,
         annotation_basis=tuple(annotation_basis_sink),
     )
+
+
+def finalize_as_drawn_chain_geometry(
+    geom: CorrectedGeometry,
+    *,
+    verified_window_inputs: VerifiedWindowResolverInputs,
+    target: CorrectionTarget,
+    tol: CoreTolerances | None = None,
+) -> FinalizeResult:
+    """The as_drawn evidence-chain leg's finalize (W-1 T2-⑤ / rework BLK-B).
+
+    ``finalize_correction_draw`` above is the LEGACY leg's transaction and
+    stays byte-identical; its first half (``extract_authoritative_envelope``
+    over a legacy ``ReadingView`` directory + ``apply_deterministic_core``)
+    is semantically inapplicable here — an as_drawn product silently parses
+    to an empty ReadingView shell (measured, T1 B2) and the chain's geometry
+    has ALREADY been through the projection bridge's own deterministic core.
+    What the v3 artifact still needs from the finalize transaction is the
+    second half, and this function is exactly that half, shared shape for
+    shared shape:
+
+    * Vg: ``materialize_all_facade_segments`` on the chain-final ring (the
+      ONLY writer of ``facade_segments`` — the bridge emits ``[]`` and
+      ``derive_feature_state_claims`` refuses an unpopulated list);
+    * the typed final validation boundary (``validate_final_corrected_
+      geometry`` — the same ruler the legacy leg applies, ⛔ not a relaxed
+      copy: a chain product whose cells violate it is a chain-quality red,
+      not something this finalize hides);
+    * the empty-but-verified window accounts: ``resolve_window_hosts`` +
+      ``derive_window_evidence_ledger`` over the LEGAL EMPTY SET built by
+      ``build_verified_window_inputs_as_drawn`` (producer ``windows=[]`` ⇒
+      empty claims/evidence, accounts matching the product — the channel
+      split itself is the FILED ``WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER``
+      debt, ⛔ never a silent emptiness).
+    """
+    tol = tol or load_core_tolerances()
+    geom = ensure_corrected_geometry(geom)
+    if str(geom.schema_version) != "3":
+        raise ValueError("as_drawn chain finalize requires a v3 geometry")
+    if target.schema_version != "3":
+        raise ValueError("as_drawn chain finalize requires a v3 target")
+    # Vg (same rule as the legacy transaction): the facade-segment write runs
+    # on the final ring, strictly before the typed validation boundary.
+    visibility_tol = VisibilityTolerances(
+        depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+        endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+    )
+    segments = materialize_all_facade_segments(geom, tolerances=visibility_tol)
+    geom = geom.model_copy(update={"facade_segments": list(segments)})
+    try:
+        window_host_claims = resolve_window_hosts(
+            geom, verified_inputs=verified_window_inputs, tolerances=tol,
+            commit=False,
+        )
+        geom = apply_window_host_resolutions(
+            geom, claims=window_host_claims,
+            verified_inputs=verified_window_inputs, tolerances=tol,
+        )
+    except WindowDirectionBindingError as exc:
+        raise WindowHostResolutionError(
+            map_direction_binding_error(
+                exc, geom=geom, verified_inputs=verified_window_inputs,
+                phase="final",
+            ),
+            phase="final",
+            context=exc.context,
+        ) from exc
+    geom = validate_final_corrected_geometry(geom)
+    feature_state_claims = derive_feature_state_claims(target, geom)
+    output_bytes = serialize_correction_output(geom)
+    output_sha256 = hashlib.sha256(output_bytes).hexdigest()
+    feature_states_bytes = serialize_feature_states(FeatureStatesArtifactV1(
+        output_sha256=output_sha256, claims=feature_state_claims,
+    ))
+    prepared_identity = PreparedCandidateIdentity(
+        output_bytes=output_bytes,
+        output_sha256=output_sha256,
+        feature_states_bytes=feature_states_bytes,
+        feature_states_sha256=hashlib.sha256(feature_states_bytes).hexdigest(),
+    )
+    try:
+        window_evidence = derive_window_evidence_ledger(
+            geom, host_claims=window_host_claims,
+            verified_inputs=verified_window_inputs,
+            candidate_identity=prepared_identity, tolerances=tol,
+        )
+    except WindowDirectionBindingError as exc:
+        raise WindowHostResolutionError(
+            map_direction_binding_error(
+                exc, geom=geom, verified_inputs=verified_window_inputs,
+                phase="final",
+            ),
+            phase="final",
+            context=exc.context,
+        ) from exc
+    return FinalizeResult(
+        geom=geom,
+        audit_payload={"corrections": geom.corrections, "conflicts": geom.conflicts, "unsupported": geom.unsupported},
+        feature_state_claims=feature_state_claims,
+        window_host_claims=window_host_claims,
+        window_evidence_ledger=window_evidence,
+        verified_window_resolver_inputs=verified_window_inputs,
+        prepared_candidate_identity=prepared_identity,
+    )
