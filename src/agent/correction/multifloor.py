@@ -441,12 +441,13 @@ def derive_floor_ladder(
 #
 #   cap = min(thinnest declared wall of ref, of upper) / 2
 #       from ``declarations.thickness_callouts_mm`` — the SAME semantics as
-#       the same-day ladder CAP (``tarch_normalize._axis_snap_cap_native``:
-#       half the thinnest wall the source itself declares).  Absorbing a
-#       displacement larger than half a wall stops being "straighten the
-#       representation" and becomes "WHICH design is this" — that is not this
-#       step's call, and it is exactly what trips the existing loud
-#       ``PER_FLOOR_FOOTPRINT_MISMATCH`` instead.
+#       the same-day ladder CAP ruling (half the thinnest wall the source
+#       itself declares; 2026-09-07 user ruling: ⛔ never a hard-coded
+#       constant, the two cases both declare 0.06 m and baking that in would
+#       freeze it).  Absorbing a displacement larger than half a wall stops
+#       being "straighten the representation" and becomes "WHICH design is
+#       this" — that is not this step's call, and it is exactly what trips
+#       the existing loud ``PER_FLOOR_FOOTPRINT_MISMATCH`` instead.
 #
 # ⚠ The production as_drawn chain is floating-point metres, NOT quantised, so
 # ``projection_bridge.resolution_from_units_per_metre``'s granularity (the
@@ -455,13 +456,17 @@ def derive_floor_ladder(
 # to REDECLARE the granularity source, which is exactly what the calibration
 # declarations above are.
 #
-# MATCHING SHAPE (measured, same probe): the two floors' rings carry DIFFERENT
-# numbers of collinear subdivision vertices (94 vs 86 on sm25) — the wall-end
-# jogs land at different along-edge positions in the two drawings — so per-
-# vertex correspondence is structurally impossible.  The snap is therefore
+# MATCHING SHAPE: the rings arrive here as CORNER-ONLY rings (the projection
+# bridge's ``_corner_only_ring`` drops collinear subdivisions upstream, so
+# both sm25 floors enter with 8 vertices each).  The snap is nonetheless
 # gated on the SYMMETRIC Hausdorff distance between the two rings as point
-# sets: every vertex of either ring must lie within the tolerance of the
-# OTHER ring's boundary polyline.  Within tolerance ⇒ the upper floor's ring
+# sets — Hausdorff is chosen precisely so this step does NOT depend on the
+# two rings having equal vertex counts, a property the upstream producer is
+# free to change (a future producer that keeps its collinear subdivisions,
+# or whose wall-end jogs land at different along-edge positions per drawing,
+# would make per-vertex correspondence structurally impossible again).
+# Every vertex of either ring must lie within the tolerance of the OTHER
+# ring's boundary polyline.  Within tolerance ⇒ the upper floor's ring
 # is replaced VERBATIM by the reference ring (bitwise-identical ⇒ assembly's
 # fingerprint comparison passes exactly, ⛔ not "approximately"); over
 # tolerance ⇒ this step does NOTHING and ``assemble_multifloor_geometry``'s

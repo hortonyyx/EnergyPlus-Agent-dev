@@ -1185,7 +1185,6 @@ def derive_manifest_direction_facts_as_drawn(
 
 def _check_direction_facts_as_drawn(
     manifest: ViewManifest, facts: tuple[ElevationDirectionFactV1, ...],
-    raw_reading_artifacts: Mapping[str, bytes],
 ) -> tuple[ElevationDirectionFactV1, ...]:
     """``_check_direction_facts``'s manifest-side rules, as_drawn flip source.
 
@@ -1197,6 +1196,12 @@ def _check_direction_facts_as_drawn(
     so this check instead pins the no-declaration defaults the as_drawn
     derivation itself applies.  A drifted fact (tampered tuple) still dies by
     name.
+
+    ⚠ This check deliberately consumes NO reading artifacts (no
+    ``raw_reading_artifacts`` parameter — rework N-2, 2026-09-07l): unlike
+    the legacy check, whose flip fields are READ from the products, this
+    leg's flip fields are pinned defaults, so a product-bytes parameter here
+    would only fake the impression that artifacts were consumed.
     """
     expected = {entry.input_id: entry for entry in manifest.required_entries() if entry.view_type == "elevation"}
     got = {fact.input_id: fact for fact in facts}
@@ -1254,7 +1259,7 @@ def build_verified_window_inputs_as_drawn(
         raw_view_manifest_bytes=raw_view_manifest_bytes,
         raw_reading_artifacts=raw_reading_artifacts,
     )
-    facts = _check_direction_facts_as_drawn(manifest, facts, raw_reading_artifacts)
+    facts = _check_direction_facts_as_drawn(manifest, facts)
     return _assemble_verified_resolver_inputs(
         producer_draw=producer_draw, manifest=manifest, rows=(), facts=facts,
         raw_view_manifest_bytes=raw_view_manifest_bytes,
