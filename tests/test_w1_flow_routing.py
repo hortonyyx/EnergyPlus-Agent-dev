@@ -1,0 +1,309 @@
+"""W-1 T3 rework S4 — the flow entry routes 1_correction by the classifier.
+
+WHAT THIS FILE LOCKS (dispatch 2026-09-07p S4 / wip-review BLK-C):
+
+1. a full-legacy product set routes to the legacy leg (the existing
+   behavior, byte-identical);
+2. a full as_drawn product set (plan products at plan slots, elevation
+   products at elevation slots) routes to the new leg AND the new-leg draw
+   runs end-to-end through the flow's standard (result, report) shape —
+   gate① zero blocking;
+3. every bad shape is LOUD (ratified T2-⑦ table): a legacy/as_drawn mix, an
+   as_drawn product at the wrong slot, as_drawn plans with ZERO elevations —
+   ⛔ never a silent fall back to the legacy leg;
+4. the chain-profile translation: permissive RunProfiles ride the chain's
+   "exploratory"; the strict side rides "strict" (where the S1 debt blocks
+   by ratified design).
+"""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts" / "tool_scripts"))
+
+from run_stage import (  # noqa: E402
+    _draw_correction_as_drawn,
+    _make_policy,
+    _w1_route_correction,
+)
+from src.agent.correction.schema import CorrectedGeometryV3  # noqa: E402
+
+_AS_DRAWN_OUT = (
+    REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+)
+_LEGACY_RUN = REPO / "case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2"
+_MANIFEST_SRC = _LEGACY_RUN / "_run" / "view_manifest.json"
+
+# manifest input_id -> as_drawn product file in the 08-23 prototype dir
+_AS_DRAWN_PRODUCTS = {
+    "1f_view": "sm25_1f_v2.json",
+    "2f_view": "sm25_2f_v2.json",
+    "East_view": "sm25_east_as_drawn.json",
+    "North_view": "sm25_north_as_drawn.json",
+    "South_view": "sm25_south_as_drawn.json",
+    "West_view": "sm25_west_as_drawn.json",
+}
+
+
+def _stage_as_drawn_run(tmp_path: Path, *, drop_elevations: bool = False) -> Path:
+    """A run dir whose frozen manifest and 0_reading stage hold the as_drawn
+    products under their manifest expected_output_id names."""
+    run_dir = tmp_path / "run_x"
+    rdir = run_dir / "0_reading"
+    rdir.mkdir(parents=True)
+    (run_dir / "_run").mkdir(parents=True)
+    (run_dir / "_run" / "view_manifest.json").write_bytes(_MANIFEST_SRC.read_bytes())
+    for input_id, name in _AS_DRAWN_PRODUCTS.items():
+        if drop_elevations and input_id.endswith(("East_view", "North_view", "South_view", "West_view")):
+            continue
+        (rdir / f"{input_id}.json").write_bytes(
+            (_AS_DRAWN_OUT / name).read_bytes()
+        )
+    return run_dir
+
+
+def test_legacy_product_set_routes_to_the_legacy_leg():
+    assert _w1_route_correction(
+        _LEGACY_RUN / "0_reading", _LEGACY_RUN
+    ) == "legacy"
+
+
+def test_as_drawn_product_set_routes_to_the_new_leg(tmp_path):
+    run_dir = _stage_as_drawn_run(tmp_path)
+    assert _w1_route_correction(run_dir / "0_reading", run_dir) == "as_drawn"
+
+
+def test_no_manifest_run_keeps_its_existing_legacy_leg(tmp_path):
+    run_dir = _stage_as_drawn_run(tmp_path)
+    (run_dir / "_run" / "view_manifest.json").unlink()
+    assert _w1_route_correction(run_dir / "0_reading", run_dir) == "legacy"
+
+
+def test_mixed_contracts_refuse_loudly(tmp_path):
+    run_dir = _stage_as_drawn_run(tmp_path)
+    # swap ONE elevation slot back to a legacy reading view
+    legacy_src = _LEGACY_RUN / "0_reading" / "East_view.json"
+    (run_dir / "0_reading" / "East_view.json").write_bytes(legacy_src.read_bytes())
+    with pytest.raises(SystemExit) as exc:
+        _w1_route_correction(run_dir / "0_reading", run_dir)
+    assert "CORRECTION_MIXED_CONTRACTS" in str(exc.value)
+
+
+def test_wrong_slot_refuses_loudly(tmp_path):
+    run_dir = _stage_as_drawn_run(tmp_path)
+    # an as_drawn PLAN product parked at an elevation slot
+    (run_dir / "0_reading" / "East_view.json").write_bytes(
+        (_AS_DRAWN_OUT / "sm25_1f_v2.json").read_bytes()
+    )
+    with pytest.raises(SystemExit) as exc:
+        _w1_route_correction(run_dir / "0_reading", run_dir)
+    assert "CORRECTION_MIXED_CONTRACTS" in str(exc.value)
+
+
+def test_zero_elevations_refuse_loudly(tmp_path):
+    """as_drawn plans with ZERO as_drawn elevations — the ratified table's
+    ELEVATION_EVIDENCE_MISSING shape (the elevation slots hold LEGACY
+    products, i.e. genuinely no as_drawn ladder source)."""
+    run_dir = _stage_as_drawn_run(tmp_path)
+    for view in ("East_view", "North_view", "South_view", "West_view"):
+        (run_dir / "0_reading" / f"{view}.json").write_bytes(
+            (_LEGACY_RUN / "0_reading" / f"{view}.json").read_bytes()
+        )
+    with pytest.raises(SystemExit) as exc:
+        _w1_route_correction(run_dir / "0_reading", run_dir)
+    assert "ELEVATION_EVIDENCE_MISSING" in str(exc.value)
+
+
+def _square_two_storey() -> CorrectedGeometryV3:
+    """assembled through the REAL assemble_multifloor_geometry (z re-stamped
+    from the derived ladder) — a raw hand-z geometry would false-red the
+    z-stack invariant exactly like a broken chain would."""
+    from src.agent.correction.multifloor import (
+        assemble_multifloor_geometry,
+        derive_floor_ladder,
+    )
+
+    ladder = derive_floor_ladder(_east_evidence())
+    rect = [[0.0, 0.0], [6.0, 0.0], [6.0, 4.0], [0.0, 4.0]]
+    floors = []
+    for fid in ("1f", "2f"):
+        floors.append({
+            "id": fid, "name": fid, "z_floor": 999.0,
+            "ceiling_height": 999.0,
+            "footprint": {"vertices": rect},
+            "cells": [{
+                "id": f"{fid}-c0", "x": [0.0, 6.0], "y": [0.0, 4.0],
+                "polygon": rect,
+            }],
+        })
+    raw = CorrectedGeometryV3(
+        schema_version="3",
+        footprint_x=[0.0, 6.0],
+        footprint_y=[0.0, 4.0],
+        floors=floors,
+        windows=[],
+        facade_segments=[],
+    )
+    single = [
+        CorrectedGeometryV3(
+            schema_version="3",
+            footprint_x=[0.0, 6.0],
+            footprint_y=[0.0, 4.0],
+            floors=[floor],
+            windows=[],
+            facade_segments=[],
+        )
+        for floor in raw.floors
+    ]
+    return assemble_multifloor_geometry(ladder, single)
+
+
+def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
+    """The routed flow draw is LIVE: run_multifloor_correction (mocked to a
+    clean assembled v3 — the chain itself is S7's end-to-end exercise) →
+    legal empty window inputs → finalize → gate① zero blocking, in the
+    standard (result, report) shape the StageRunner archives."""
+    import src.agent.pipeline as pipeline
+
+    seen: dict = {}
+
+    def _fake_mfc(evidence, plan_runs, *, snap_ledger_path=None,
+                  evidence_debt_path=None):
+        seen["plan_runs"] = list(plan_runs)
+        seen["snap"] = snap_ledger_path
+        seen["debt"] = evidence_debt_path
+        # what the real wiring does: FILE the channel-split debt first
+        from src.agent.execution.evidence_preflight import (
+            window_evidence_channel_split_debt,
+            write_evidence_debt,
+        )
+
+        write_evidence_debt(
+            evidence_debt_path,
+            window_evidence_channel_split_debt(
+                chain_profile=plan_runs[0].profile
+            ),
+        )
+        return _square_two_storey()
+
+    monkeypatch.setattr(pipeline, "run_multifloor_correction", _fake_mfc)
+    import run_stage
+
+    monkeypatch.setattr(
+        run_stage,
+        "_w1_cross_check_elevation_ladders",
+        lambda entries, rdir: _east_evidence(),
+    )
+    run_dir = _stage_as_drawn_run(tmp_path)
+    policy = _make_policy(capability_profile="orthogonal_polygon",
+                          run_profile="exploratory")
+    result, rep = _draw_correction_as_drawn(run_dir, None, False, policy)
+    # the flow's standard shape
+    assert result.window_host_claims is not None
+    assert not rep.blocking(), [
+        (r.check_id, r.message) for r in rep.blocking()
+    ]
+    # storey order came from the manifest's declared floor_ref
+    assert [r.product_filename for r in seen["plan_runs"]] == [
+        "1f_view.json", "2f_view.json"
+    ]
+    # the S1/S2 ledgers landed where the flow expects them
+    assert seen["snap"].name == "footprint_snap_ledger.json"
+    assert seen["debt"].name == "evidence_debt.json"
+    assert (run_dir / "1_correction" / "evidence_debt.json").exists()
+    filed = json.loads(
+        (run_dir / "1_correction" / "evidence_debt.json").read_text("utf-8")
+    )
+    assert any(
+        d["check_id"] == "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER"
+        for d in filed["debts"]
+    )
+
+
+def test_strict_run_profile_rides_the_chain_strict_side(tmp_path, monkeypatch):
+    import src.agent.pipeline as pipeline
+
+    seen: dict = {}
+
+    def _fake_mfc(evidence, plan_runs, *, snap_ledger_path=None,
+                  evidence_debt_path=None):
+        seen["profiles"] = [r.profile for r in plan_runs]
+        # reproduce the REAL wiring's strict behavior (S1): file the debt,
+        # then fail closed on it
+        from src.agent.correction.multifloor import MultiFloorAssemblyError
+        from src.agent.execution.evidence_preflight import (
+            WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
+            window_evidence_channel_split_debt,
+            write_evidence_debt,
+        )
+
+        debt = window_evidence_channel_split_debt(
+            chain_profile=plan_runs[0].profile
+        )
+        if evidence_debt_path is not None:
+            write_evidence_debt(evidence_debt_path, debt)
+        if debt.blocking:
+            raise MultiFloorAssemblyError(
+                WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
+                {"evidence_chain_profile": plan_runs[0].profile},
+            )
+        return _square_two_storey()
+
+    monkeypatch.setattr(pipeline, "run_multifloor_correction", _fake_mfc)
+    import run_stage
+
+    monkeypatch.setattr(
+        run_stage,
+        "_w1_cross_check_elevation_ladders",
+        lambda entries, rdir: _east_evidence(),
+    )
+    run_dir = _stage_as_drawn_run(tmp_path)
+    policy = _make_policy(capability_profile="orthogonal_polygon",
+                          run_profile="golden")
+    with pytest.raises(Exception) as exc:
+        _draw_correction_as_drawn(run_dir, None, False, policy)
+    # the strict chain profile is what the S1 debt blocks on
+    assert seen["profiles"] == ["strict", "strict"]
+    assert "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER" in str(exc.value)
+
+
+def _east_evidence():
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
+
+    return adapt_as_drawn_elevation(
+        (_AS_DRAWN_OUT / "sm25_east_as_drawn.json").read_bytes(),
+        input_id="East_view",
+        facade_ref="East",
+    )
+
+
+def test_real_products_do_disagree_strictly(tmp_path):
+    """STOP-REPORT LOCK (S4, 2026-09-07p): the four REAL sm25 elevation
+    products agree on the rung COUNT (4x2 storeys) but NOT on the z values
+    (z_floor spread 1.0/4.7 mm, ceiling spread up to 13.5 mm — independent
+    per-drawing annotation/calibration).  The T2 dispatch text's strict
+    criterion (equal z sequences) therefore REDS on real data, while the
+    ratification letter's "green" reading measured the rung count and the
+    East face only.  Until the orchestrator re-rules, this lock pins that
+    the strict check STAYS loud — ⛔ nobody may quietly loosen it while the
+    report is in flight."""
+    import run_stage
+    from src.agent.execution.view_manifest import ViewManifest
+
+    run_dir = _stage_as_drawn_run(tmp_path)
+    manifest = ViewManifest.model_validate_json(
+        (run_dir / "_run" / "view_manifest.json").read_text("utf-8")
+    )
+    elevation_entries = [
+        e for e in manifest.required_entries() if e.view_type == "elevation"
+    ]
+    with pytest.raises(SystemExit) as exc:
+        run_stage._w1_cross_check_elevation_ladders(
+            elevation_entries, run_dir / "0_reading"
+        )
+    assert "ELEVATION_LADDER_DISAGREEMENT" in str(exc.value)

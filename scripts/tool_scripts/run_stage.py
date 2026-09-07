@@ -414,6 +414,240 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
     return out, rep
 
 
+def _w1_route_correction(rdir: Path, run_dir: Path) -> str | None:
+    """W-1 T2-① (ratified 2026-09-07i): pick the 1_correction leg by the
+    CLASSIFIER's verdict over the on-disk 0_reading products, ⛔ never by
+    file name.  Returns "legacy" | "as_drawn", or exits LOUDLY on every
+    shape the ratification table names (mixed / missing-elevation / unknown
+    contract / missing product) — a silent fallback to the legacy leg would
+    keep the new leg's outages invisible forever.
+
+    No frozen view manifest (a pre-manifest standalone run) → the legacy leg,
+    which is those runs' EXISTING behavior — the as_drawn leg is structurally
+    unreachable without the manifest (floor_ref IS its storey order), so this
+    is not a fallback, it is the only leg that run shape has ever had.
+    """
+    from src.agent.execution.run_meta import run_meta_path
+    from src.agent.execution.view_manifest import ViewManifest
+    from src.agent.reading.vector_contract import classify_vector_json
+
+    mpath = run_meta_path(run_dir, "view_manifest.json")
+    if not mpath.exists():
+        return "legacy"
+    manifest = ViewManifest.model_validate_json(mpath.read_text("utf-8"))
+    contracts: dict[str, str] = {}
+    for entry in manifest.required_entries():
+        path = rdir / f"{entry.expected_output_id}.json"
+        if not path.exists():
+            raise SystemExit(
+                f"CORRECTION_PRODUCT_MISSING: manifest entry {entry.input_id} "
+                f"has no product at {path}"
+            )
+        decision = classify_vector_json(json.loads(path.read_text("utf-8")))
+        contracts[entry.input_id] = decision.contract_id
+    as_drawn = {"as_drawn_plan", "as_drawn_elevation_v0"}
+    got = set(contracts.values())
+    if got <= {"reading_view_legacy"}:
+        return "legacy"
+    if not got <= as_drawn | {"reading_view_legacy"}:
+        # unknown / unwired contract — loud, with the classifier's verdicts
+        raise SystemExit(
+            "CORRECTION_MIXED_CONTRACTS: unknown/unwired contract in "
+            f"0_reading: {sorted(contracts.items())}"
+        )
+    plan_ids = {
+        e.input_id for e in manifest.required_entries() if e.view_type == "plan"
+    }
+    elevation_ids = {
+        e.input_id
+        for e in manifest.required_entries()
+        if e.view_type == "elevation"
+    }
+    plan_contracts = {contracts[i] for i in plan_ids}
+    elevation_contracts = {contracts[i] for i in elevation_ids}
+    # the RATIFIED table's specific shape first: as_drawn plans with ZERO
+    # as_drawn elevations has no ladder source at all — that is the more
+    # precise answer than "mix" for why this run cannot take the new leg
+    if plan_contracts == {"as_drawn_plan"} and (
+        "as_drawn_elevation_v0" not in elevation_contracts
+    ):
+        raise SystemExit(
+            "ELEVATION_EVIDENCE_MISSING: as_drawn plan products with ZERO "
+            "as_drawn elevation products — the storey ladder has no source; "
+            "⛔ never a silent fall back to the legacy leg"
+        )
+    # every remaining mix (a legacy product beside as_drawn ones, an as_drawn
+    # product at the wrong slot's kind, ...) is CORRECTION_MIXED_CONTRACTS
+    if plan_contracts != {"as_drawn_plan"} or elevation_contracts != {
+        "as_drawn_elevation_v0"
+    }:
+        raise SystemExit(
+            "CORRECTION_MIXED_CONTRACTS: legacy/as_drawn mix or a product at "
+            f"the wrong slot kind in 0_reading: {sorted(contracts.items())}"
+        )
+    return "as_drawn"
+
+
+def _w1_cross_check_elevation_ladders(
+    elevation_entries, rdir: Path
+):
+    """T2-③ (ratified strict version): every elevation product adapts and
+    derives its own storey ladder; the z sequences must AGREE.
+
+    ⚠️ STOP-REPORT NOTE (2026-09-07p, S4): measured on the four REAL sm25
+    products, the rung COUNT agrees everywhere (4×2 storeys) but the z
+    values scatter — z_floor spread 1.0 mm (F1) / 4.7 mm (F2), ceiling
+    spread up to 13.5 mm — each drawing is independently annotated and
+    calibrated.  The T2 dispatch text's criterion (bitwise-equal z
+    sequences) therefore REDS on real data, while the ratification letter's
+    "green on real data" reading measured the rung COUNT and the East face
+    only.  This function keeps the STRICT text until the orchestrator
+    re-rules; the lock that pins this behavior is
+    tests/test_w1_flow_routing.py::test_real_products_do_disagree_strictly.
+    """
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
+    from src.agent.correction.multifloor import derive_floor_ladder
+
+    elevation_evidence = None
+    z_reference = None
+    z_by_face: dict = {}
+    for entry in elevation_entries:
+        raw = (rdir / f"{entry.expected_output_id}.json").read_bytes()
+        doc = json.loads(raw.decode("utf-8"))
+        facade_label = doc.get("facade_label") if isinstance(doc, dict) else None
+        artifact = adapt_as_drawn_elevation(
+            raw,
+            input_id=entry.input_id,
+            facade_ref=(
+                facade_label
+                if isinstance(facade_label, str) and facade_label
+                else entry.input_id
+            ),
+        )
+        z_seq = tuple(
+            (round(level.z_floor_m, 6), round(level.ceiling_height_m, 6))
+            for level in derive_floor_ladder(artifact)
+        )
+        if not z_seq:
+            raise SystemExit(
+                f"ELEVATION_LADDER_EMPTY: {entry.input_id} derived zero storeys"
+            )
+        z_by_face[entry.input_id] = z_seq
+        if z_reference is None:
+            z_reference, elevation_evidence = z_seq, artifact
+        elif z_seq != z_reference:
+            raise SystemExit(
+                "ELEVATION_LADDER_DISAGREEMENT: elevation products disagree "
+                f"on the storey z sequence: {z_by_face!r}"
+            )
+    return elevation_evidence
+
+
+def _draw_correction_as_drawn(
+    run_dir: Path,
+    expected_zones,
+    relied,
+    policy: RunPolicy,
+):
+    """The as_drawn evidence-chain leg (W-1 T2-②③⑤, ratified 2026-09-07i).
+
+    Storey order comes from the FROZEN manifest's declared ``floor_ref``
+    (⛔ never parsed from file names); the storey ladder is derived from the
+    SEALED elevation evidence and CROSS-CHECKED across every elevation
+    product (T2-③ strict version); the chains, the footprint snap, the
+    channel-split debt ledger, the legal-empty-set window inputs and the
+    finalize half are the pieces landed in S1/S2/S3 — this function only
+    wires them in the flow's standard (result, report) shape so the SAME
+    StageRunner writer archives the attempt.
+    """
+    from src.agent.correction.finalize import finalize_as_drawn_chain_geometry
+    from src.agent.correction.parse import correction_target
+    from src.agent.correction.window_sources import (
+        build_verified_window_inputs_as_drawn,
+    )
+    from src.agent.execution.evidence_preflight import load_evidence_debt
+    from src.agent.execution.run_meta import run_meta_path
+    from src.agent.execution.view_manifest import ViewManifest
+    from src.agent.pipeline import MultiFloorPlanRun, run_multifloor_correction
+    from src.validator.checks.correction import check_correction
+
+    s1 = run_dir / "1_correction"
+    s1.mkdir(parents=True, exist_ok=True)
+    rdir = run_dir / "0_reading"
+    mpath = run_meta_path(run_dir, "view_manifest.json")
+    raw_manifest_bytes = mpath.read_bytes()
+    manifest = ViewManifest.model_validate_json(mpath.read_text("utf-8"))
+    entries = manifest.required_entries()
+    plan_entries = sorted(
+        (e for e in entries if e.view_type == "plan"), key=lambda e: e.floor_ref
+    )
+    elevation_entries = [e for e in entries if e.view_type == "elevation"]
+
+    # chain profile: the evidence-chain axis word (exploratory/strict).  The
+    # permissive RunProfiles ride the chain's exploratory; the strict side of
+    # RunProfile rides "strict" — where the FILED channel-split debt (S1)
+    # blocks by ratified design, ⛔ not silently.
+    chain_profile = (
+        "strict"
+        if policy.run_profile not in ("exploratory", "dev")
+        else "exploratory"
+    )
+    plan_runs = [
+        MultiFloorPlanRun(
+            vector_dir=rdir,
+            product_filename=f"{e.expected_output_id}.json",
+            out_dir=s1 / f"floor_{e.floor_ref}",
+            profile=chain_profile,
+        )
+        for e in plan_entries
+    ]
+
+    # T2-③ strict: every elevation derives its own ladder and the z sequences
+    # must agree (see _w1_cross_check_elevation_ladders' stop-report note)
+    elevation_evidence = _w1_cross_check_elevation_ladders(
+        elevation_entries, rdir
+    )
+
+    geom = run_multifloor_correction(
+        elevation_evidence,
+        plan_runs,
+        snap_ledger_path=s1 / "footprint_snap_ledger.json",
+        evidence_debt_path=s1 / "evidence_debt.json",
+    )
+    evidence_debt = load_evidence_debt(s1 / "evidence_debt.json")
+
+    target = correction_target(policy.capability_profile)
+    vwi = build_verified_window_inputs_as_drawn(
+        producer_draw=geom,
+        raw_view_manifest_bytes=raw_manifest_bytes,
+        raw_reading_artifacts={
+            entry.input_id: (rdir / f"{entry.expected_output_id}.json").read_bytes()
+            for entry in entries
+        },
+    )
+    result = finalize_as_drawn_chain_geometry(
+        geom, verified_window_inputs=vwi, target=target
+    )
+    # gate①: the SAME check_correction the legacy leg uses (expected_zone_
+    # total etc. all passed through).  The legacy leg's extra pre-gate
+    # ``correction_draw_issues`` layer is deliberately not duplicated here:
+    # its z-stack/coverage content is already enforced twice on this leg
+    # (``assemble_multifloor_geometry``'s own checks + the invariants inside
+    # ``check_correction``).
+    rep = check_correction(
+        result.geom,
+        window_host_proof=result.window_host_claims,
+        window_evidence=result.window_evidence_ledger,
+        expected_zone_total=expected_zones,
+        relied_on_testdata=relied,
+        capability_profile=policy.capability_profile,
+        run_profile=policy.run_profile,
+        evidence_debt=evidence_debt,
+        verified_window_inputs=vwi,
+    )
+    return result, rep
+
+
 def _draw_correction(
     run_dir: Path,
     testdata_text: str,
@@ -440,6 +674,12 @@ def _draw_correction(
     )
 
     verify_reading_stage_root_against_accepted_attempt(run_dir, rdir)
+    # W-1 T2-①: route by the classifier BEFORE the legacy body runs — the
+    # legacy leg below stays byte-identical for every legacy product set.
+    if _w1_route_correction(rdir, run_dir) == "as_drawn":
+        return _draw_correction_as_drawn(
+            run_dir, expected_zones, relied, policy
+        )
     # Inner retry handles ONLY schema/format robustness; semantic draw quality is
     # gate①'s job (so a content-bad draw is counted + filed, not silently re-drawn
     # inside the LLM call, bypassing the per-stage budget — review 2026-06-19 High-2).
