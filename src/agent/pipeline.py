@@ -31,6 +31,7 @@ and parse it ourselves.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections.abc import Callable, Sequence
@@ -809,6 +810,14 @@ _UNSET_VALIDATOR = object()
 _EVIDENCE_CHAIN_ROUTE_NAME = "evidence_chain_route.json"
 _EVIDENCE_CHAIN_FAILURE_NAME = "evidence_chain_failure.json"
 _EVIDENCE_CHAIN_OUTCOME_NAME = "decision_loop_outcome.json"
+#: W-1 rework BLK-E (2026-09-07l): per-floor record of the product bytes this
+#: chain run froze and consumed (``{"schema", "product_filename",
+#: "source_bytes_sha256"}``), filed INSIDE ``out_dir`` so per-floor chain runs
+#: do NOT overwrite each other (the route record above is run-level
+#: last-writer-wins by ``run_meta_path``'s design).  The multifloor wiring
+#: reconciles its own post-chain re-read against THIS hash before deriving
+#: the snap tolerance from it.
+_EVIDENCE_CHAIN_SOURCE_RECORD_NAME = "chain_source_record.json"
 #: B1 wiring: the projection bridge's whole product, filed next to the
 #: outcome.  ⛔ The bare geometry never travels as the product without
 #: this envelope (design §四: hash 对不上 / envelope 丢失 ⇒ 投影失败).
@@ -1093,6 +1102,38 @@ def run_correction_evidence_chain(
     except OSError as exc:
         _record_evidence_chain_failure(out_dir, "source_read", exc)
         raise
+    # W-1 rework BLK-E (2026-09-07l): the hash of THE bytes this chain run
+    # froze and consumed, filed on the route so a downstream re-reader (the
+    # multifloor wiring's snap-tolerance derivation) can reconcile its own
+    # read against the chain's input — ⛔ the second read is authorized by
+    # THIS hash or it is a named red, never an unverified derivation source.
+    source_bytes_sha256 = hashlib.sha256(raw).hexdigest()
+    if out_dir is not None:
+        # per-floor sidecar (the route record is run-level last-writer-wins,
+        # so it cannot anchor a multi-floor reconciliation alone)
+        record_path = Path(out_dir) / _EVIDENCE_CHAIN_SOURCE_RECORD_NAME
+        try:
+            record_path.parent.mkdir(parents=True, exist_ok=True)
+            record_path.write_text(
+                json.dumps(
+                    {
+                        "schema": "chain_source_record_v1",
+                        "product_filename": product_filename,
+                        "source_bytes_sha256": source_bytes_sha256,
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+        except OSError:
+            # best-effort like the route record: a hostile run dir must not
+            # turn a named chain failure into a bare filesystem error.  The
+            # WIRING's reconciliation owns the loud missing-record red.
+            logger.warning(
+                "evidence chain: could not file the source record under %s",
+                Path(out_dir),
+            )
 
     # -- adapt: parse, classify, and let the classifier's verdict pick the
     #    adapter (never the file name) --------------------------------------- #
@@ -1309,6 +1350,13 @@ def run_correction_evidence_chain(
     route = {
         "route": "evidence_chain",
         "source_file": product_filename,
+        # W-1 rework BLK-E: sha256 of the frozen bytes the chain CONSUMED —
+        # the reconciliation anchor for any downstream re-reader of the same
+        # product (see the snap-tolerance derivation in
+        # run_multifloor_correction).  ⚠ deliberately NOT named like the
+        # envelope's ``source_resolved_sha256`` (that one is the wall
+        # compilation's content hash, a different object).
+        "source_bytes_sha256": source_bytes_sha256,
         "contract": decision.contract_id,
         "adapter": adapter_name,
         "profile": profile,
@@ -1779,12 +1827,58 @@ def run_multifloor_correction(
             evidence_chain_level=level,
         )
         geometries.append(geom)
-    # W-1 T2-④: the snap tolerance is derived from the SAME plan products the
-    # chains just consumed (each one's OWN declared calibration residuals and
-    # wall-thickness callouts), re-read here read-only.
+    # W-1 T2-④ + rework BLK-E (2026-09-07l): the snap tolerance is derived
+    # from the SAME plan products the chains just consumed (each one's OWN
+    # declared calibration residuals and wall-thickness callouts), re-read
+    # here read-only.  ⭐ The re-read is AUTHORIZED per floor by the chain's
+    # own filed record (``chain_source_record.json`` carries the sha256 of
+    # the bytes that chain froze): a byte that does not match the record the
+    # chain left is a named ``PLAN_PRODUCT_BYTES_DRIFTED_FROM_CHAIN`` red,
+    # ⛔ never an unverified derivation source.  (Why a hash-reconciled
+    # re-read and not a chain-returned doc: run_correction's return type is
+    # the geometry — threading a second return channel through it would
+    # touch every caller, and the envelope/outcome schemas are versioned
+    # contracts; the per-floor sidecar adds the anchor with ZERO contract
+    # churn.  ⚠ note the envelope's ``source_resolved_sha256`` is the WALL
+    # COMPILATION's content hash, a different object — it cannot anchor
+    # product bytes.)
     plan_docs: list = []
     for run in plan_runs:
-        raw = (Path(run.vector_dir) / run.product_filename).read_bytes()
+        record_path = Path(run.out_dir) / _EVIDENCE_CHAIN_SOURCE_RECORD_NAME
+        try:
+            record = json.loads(record_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise MultiFloorAssemblyError(
+                "CHAIN_SOURCE_RECORD_MISSING",
+                {
+                    "run": run.product_filename,
+                    "record_path": str(record_path),
+                    "reason": "the per-floor chain run must file the record of "
+                    "the bytes it consumed (wiring rework BLK-E)",
+                },
+            ) from exc
+        try:
+            raw = (Path(run.vector_dir) / run.product_filename).read_bytes()
+        except OSError as exc:
+            raise MultiFloorAssemblyError(
+                "PLAN_PRODUCT_BYTES_DRIFTED_FROM_CHAIN",
+                {
+                    "run": run.product_filename,
+                    "reason": "product file unreadable at reconciliation time",
+                },
+            ) from exc
+        actual_sha = hashlib.sha256(raw).hexdigest()
+        if actual_sha != record.get("source_bytes_sha256"):
+            raise MultiFloorAssemblyError(
+                "PLAN_PRODUCT_BYTES_DRIFTED_FROM_CHAIN",
+                {
+                    "run": run.product_filename,
+                    "declared_by_chain": record.get("source_bytes_sha256"),
+                    "reconciled_read": actual_sha,
+                    "reason": "the snap tolerance must derive from the bytes "
+                    "the chain actually consumed — these are not them",
+                },
+            )
         plan_docs.append(json.loads(raw.decode("utf-8")))
     declarations = [
         read_plan_calibration_declaration(

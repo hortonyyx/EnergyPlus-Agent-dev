@@ -227,6 +227,15 @@ def test_route_direction_1_new_format_plan_takes_the_as_drawn_adapter(tmp_path):
     assert route["response_source"].startswith("fixed_responses")
     assert route["outcome_success"] == outcome.success
     assert route["exit_reason"] == outcome.exit_reason
+    # W-1 rework BLK-E: a COMPLETED chain's route record names the sha256 of
+    # the product bytes it consumed — same value as the per-floor sidecar
+    # (``chain_source_record.json``), which is the reconciliation anchor the
+    # multifloor wiring re-read is authorized by.
+    import hashlib
+
+    assert route["source_bytes_sha256"] == hashlib.sha256(
+        (Path(vector_dir) / "sm25_2f_v2.json").read_bytes()
+    ).hexdigest()
 
 
 def test_route_direction_2_legacy_view_takes_the_legacy_adapter(tmp_path):

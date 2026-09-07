@@ -40,6 +40,7 @@ tests — and it keeps the whole file gt-free.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -323,10 +324,15 @@ def test_run_multifloor_has_no_z_parameter():
     )
 
 
-def test_wiring_feeds_the_derived_z_into_the_chain(monkeypatch):
+def test_wiring_feeds_the_derived_z_into_the_chain(monkeypatch, tmp_path):
     """Behavioural half of T5 + T1: run_multifloor_correction calls
     run_correction with ``evidence_chain=True`` and the byte-validated level of
-    each DERIVED rung — captured here, ⛔ never a caller-declared value."""
+    each DERIVED rung — captured here, ⛔ never a caller-declared value.
+
+    The fake chain ALSO files the per-floor source record the REAL chain files
+    at source_read (rework BLK-E): the wiring's post-chain re-read of the plan
+    products is reconciled against that record, so the fixture materializes
+    the products on disk just like production."""
     art = _elevation([2900.0, 3300.0])  # storeys: (0, 2.9), (2.9, 3.3)
     ladder = derive_floor_ladder(art)
     seen: list[dict] = []
@@ -335,12 +341,13 @@ def test_wiring_feeds_the_derived_z_into_the_chain(monkeypatch):
         seen.append(kwargs)
         assert kwargs["evidence_chain"] is True
         fid = f"f{len(seen) - 1}"
+        _file_chain_source_record({**kwargs, "vector_dir": args[0]})
         return _square_floor(fid, _RECT)
 
     monkeypatch.setattr(pipeline, "run_correction", _fake_run_correction)
     runs = [
-        pipeline.MultiFloorPlanRun(Path("v0"), "p0.json", Path("o0")),
-        pipeline.MultiFloorPlanRun(Path("v1"), "p1.json", Path("o1")),
+        _materialized_plan_run(tmp_path, "p0"),
+        _materialized_plan_run(tmp_path, "p1"),
     ]
     geom = pipeline.run_multifloor_correction(art, runs)
     fed = [
@@ -913,6 +920,27 @@ def _materialized_plan_run(root: Path, name: str, **overrides):
     return pipeline.MultiFloorPlanRun(**fields)
 
 
+def _file_chain_source_record(chain_kwargs: dict) -> None:
+    """What the REAL chain does at source_read (rework BLK-E): file the
+    per-floor record of the bytes it consumed, keyed by the sha256 of the
+    product file as it stands AT CHAIN TIME."""
+    out_dir = Path(chain_kwargs["out_dir"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+    raw = (
+        Path(chain_kwargs["vector_dir"]) / chain_kwargs["evidence_chain_product"]
+    ).read_bytes()
+    (out_dir / "chain_source_record.json").write_text(
+        json.dumps(
+            {
+                "schema": "chain_source_record_v1",
+                "product_filename": chain_kwargs["evidence_chain_product"],
+                "source_bytes_sha256": hashlib.sha256(raw).hexdigest(),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_new_leg_files_the_channel_split_debt(monkeypatch, tmp_path):
     """Lock ① (rework BLK-A): walking the new leg FILES the window
     channel-split debt — the identifier exists as a filed JSON artifact on
@@ -922,6 +950,7 @@ def test_new_leg_files_the_channel_split_debt(monkeypatch, tmp_path):
 
     def _fake_chain(*args, **kwargs):
         made.append(f"f{len(made)}")
+        _file_chain_source_record({**kwargs, "vector_dir": args[0]})
         return _square_floor(made[-1], _RECT)
 
     monkeypatch.setattr(pipeline, "run_correction", _fake_chain)
@@ -983,3 +1012,93 @@ def test_mixed_plan_run_profiles_refuse_loudly(tmp_path):
     with pytest.raises(MultiFloorAssemblyError) as exc:
         pipeline.run_multifloor_correction(art, runs)
     assert exc.value.code == "PLAN_RUN_PROFILE_MIXED"
+
+
+# ── W-1 rework BLK-E (2026-09-07): the tolerance derives from the chain's bytes ── #
+
+def test_reconciled_read_passes_and_derives(tmp_path, monkeypatch):
+    """Sanity half of the BLK-E lock: when the on-disk product still IS what
+    the chain consumed (hashes agree), the reconciliation is invisible — the
+    walk completes and the tolerance derivation gets its docs.  (Without this
+    green half, the drift lock below could be red for the wrong reason.)"""
+    art = _elevation([2900.0])
+    run = _materialized_plan_run(tmp_path, "p0")
+    _file_chain_source_record(
+        {
+            "out_dir": run.out_dir,
+            "vector_dir": run.vector_dir,
+            "evidence_chain_product": run.product_filename,
+        }
+    )
+    monkeypatch.setattr(
+        pipeline, "run_correction", lambda *a, **k: _square_floor("f0", _RECT)
+    )
+    geom = pipeline.run_multifloor_correction(art, [run])
+    assert [f.id for f in geom.floors] == ["f0"]
+
+
+def test_drifted_product_bytes_are_a_named_red(tmp_path, monkeypatch):
+    """Lock ① (rework BLK-E): a product file that changed between the chain's
+    freeze and the wiring's re-read is a NAMED red — the snap tolerance must
+    derive from the bytes the chain actually consumed, ⛔ never from an
+    unverified second read."""
+    art = _elevation([2900.0])
+    run = _materialized_plan_run(tmp_path, "p0")
+
+    def _chain_then_swap(*args, **kwargs):
+        _file_chain_source_record({**kwargs, "vector_dir": args[0]})
+        # the bytes mutate AFTER the chain froze them — exactly the window
+        # BLK-E closes
+        (run.vector_dir / run.product_filename).write_text(
+            json.dumps(_snap_declared_plan_doc(), indent=1), encoding="utf-8"
+        )
+        return _square_floor("f0", _RECT)
+
+    monkeypatch.setattr(pipeline, "run_correction", _chain_then_swap)
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        pipeline.run_multifloor_correction(art, [run])
+    assert exc.value.code == "PLAN_PRODUCT_BYTES_DRIFTED_FROM_CHAIN"
+    assert exc.value.detail["run"] == "p0.json"
+
+
+def test_missing_source_record_is_a_named_red(tmp_path, monkeypatch):
+    """A chain run that filed NO record of its consumed bytes leaves the
+    re-read unanchorable — a named ``CHAIN_SOURCE_RECORD_MISSING`` red, ⛔ not
+    a silent unverified derive."""
+    art = _elevation([2900.0])
+    run = _materialized_plan_run(tmp_path, "p0")
+    monkeypatch.setattr(
+        pipeline, "run_correction", lambda *a, **k: _square_floor("f0", _RECT)
+    )
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        pipeline.run_multifloor_correction(art, [run])
+    assert exc.value.code == "CHAIN_SOURCE_RECORD_MISSING"
+
+
+def test_chain_files_the_source_record_at_source_read(tmp_path):
+    """The ANCHOR half: the chain itself files ``chain_source_record.json``
+    per floor at the source_read freeze — before adapt, before the loop — so
+    even a chain that dies at the next link leaves the record of what it
+    consumed.  (A deliberately unparseable product: the chain must raise at
+    adapt, and STILL have filed the record.)"""
+    from src.agent.correction.evidence_contract import EvidenceContractError
+
+    vector_dir = tmp_path / "v0"
+    vector_dir.mkdir()
+    (vector_dir / "p0.json").write_bytes(b"not-json-at-all")
+    out_dir = tmp_path / "out" / "p0"
+    with pytest.raises(Exception):
+        pipeline.run_correction_evidence_chain(
+            vector_dir, "p0.json", out_dir=out_dir
+        )
+    record = json.loads(
+        (out_dir / "chain_source_record.json").read_text(encoding="utf-8")
+    )
+    assert record["source_bytes_sha256"] == hashlib.sha256(
+        b"not-json-at-all"
+    ).hexdigest()
+    # ⚠️ the run-level ROUTE record is only written when the chain runs to its
+    # end — this chain died at adapt, so the per-floor sidecar above is the
+    # ONLY surviving record, which is exactly why the reconciliation anchor
+    # is the sidecar, ⛔ not the route (route-key lock lives where a chain
+    # completes: test_o22m7's route-direction tests).
