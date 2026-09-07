@@ -20,7 +20,9 @@ continuation witness codes are P2 — see delivery note.)
 """
 from __future__ import annotations
 
+import dataclasses
 import hashlib
+import math
 import shutil
 from pathlib import Path
 from types import SimpleNamespace
@@ -484,16 +486,34 @@ def test_staging_discipline_rejects_protected_source():
 
 
 # =========================================================================== #
-# dispatch ②-1b-S R1 -- S1 "drop" -> "snap the short leg or still drop if
-# genuinely diagonal".  ⭐ F-147 (2026-08-30) made the admission TWO gates
-# ANDed (deviation ≤ 10 mm AND angle ≤ 1.0°), both USER-SIGNED.
+# ⭐⭐⭐ G-c (2026-09-07) -- THE FOUR-TIER LADDER replaces the two ANDed gates.
+#
+# What the user defined, verbatim:
+#   "这种正交吸附和按毫米分辨率吸附我理解是不用签字的，直接修正就可以，
+#    需要签字的是像之前上下墙体出现对齐错误的这类真『画错』问题"
+#   "长度越长容差应该越大一些…最大定到 5 度吧"   (长度 = the stroke's own length)
+#   "按阶梯定一个方案，综合长度和角度；超出的才升级到需要人签字的仲裁"
+#   "10mm作废吧，就都按现在的推进就行"
+#
+#   tier 0  deviation <= q (0.1 mm)               never enters the branch
+#   tier 1  deviation <= min(len·tan5°, CAP)      flattened about the ANCHOR END
+#   tier 2  inside 5° but over CAP, or the        refused AND itemised for a
+#           anchor end is undecidable-and-        HUMAN (arbitration)
+#           visible
+#   tier 3  angle > 5°                            a real diagonal, refused
+#
+# ⛔ THE 10 mm CEILING (``AXIS_SNAP_MAX_DEVIATION_M``) IS RETIRED.  Its job is
+# now done by ``CAP`` = half the REQUEST'S OWN thinnest declared wall, derived
+# per request -- so the tests below move it by declaring a different
+# ``wall_thickness_range_m``, which exercises the derivation as well as the
+# comparison.  ⛔ Nothing here monkeypatches ``tn.AXIS_SNAP_MAX_ANGLE_DEG``:
+# ``from X import Y`` binds via the parent package attribute, not
+# ``sys.modules``, and patching the wrong object has already manufactured a
+# band of false-red in this repo.  ``_Tols``/``_tols_from`` expose the angle as
+# a keyword; that is the injection port.
 #
 # ⭐ Unit-level, not through the full DXF/S0/S3/S4 pipeline: ``_collect_walls``
-# is what implements the decision, and its inputs (``plan_view.wall_selector``,
-# ``request.wall_thickness_range_m``, a ``_Tols`` with a CONTROLLED
-# ``axis_snap_max_m``) are cheap to build directly -- this is what lets test 3
-# below prove the threshold is a real parameter and not a number baked into
-# the ``if``.
+# is what implements the decision and its inputs are cheap to build directly.
 # =========================================================================== #
 def _one_line_msp(dx_mm: float, dy_mm: float, *, x0: float = 1000.0, y0: float = 1000.0):
     """A bare ezdxf modelspace holding exactly one WALL line, endpoints
@@ -505,95 +525,6 @@ def _one_line_msp(dx_mm: float, dy_mm: float, *, x0: float = 1000.0, y0: float =
     return msp
 
 
-def _collect_with_snap_threshold(dx_mm: float, dy_mm: float, *, axis_snap_max_m: float,
-                                 tau_axis_m: float = 0.001):
-    """Call ``tn._collect_walls`` directly with a hand-built, fully controlled
-    ``_Tols`` -- ⭐ this is the "parameterized, not hardcoded in an if" proof:
-    the SAME code path is exercised twice with two different threshold values
-    below (test 3) and the admitted/refused outcome flips with it."""
-    plan_view = SimpleNamespace(wall_selector=TarchEntitySelectorV1(
-        entity_types=["LINE"], layers=["WALL"]))
-    request = SimpleNamespace(wall_thickness_range_m=[0.06, 0.50])
-    tols = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=tau_axis_m,
-                    topo_area_m2=1e-6, axis_snap_max_m=axis_snap_max_m)
-    msp = _one_line_msp(dx_mm, dy_mm)
-    diags: list = []
-    clip = (0.0, 0.0, 1000.0 + abs(dx_mm) + 10.0, 1000.0 + abs(dy_mm) + 10.0)
-    collect = tn._collect_walls(msp, plan_view, request, clip, tols, diags)
-    return collect, diags
-
-
-def test_axis_snap_admits_a_line_within_the_threshold_and_itemises_it():
-    """Minor leg 3 mm, major leg 2000 mm, threshold 6 mm (the ②-1b-S
-    placeholder) -> ADMITTED: no ``tarch_wall_nonorthogonal``, one
-    ``tarch_wall_axis_snapped``, and the line reaches ``wall_lines``."""
-    collect, diags = _collect_with_snap_threshold(2000.0, 3.0, axis_snap_max_m=0.006)
-    codes = [d.code for d in diags]
-    assert "tarch_wall_nonorthogonal" not in codes
-    assert codes.count("tarch_wall_axis_snapped") == 1
-    assert len(collect.wall_lines) == 1
-    handle, x0, y0, x1, y1 = collect.wall_lines[0]
-    # ⭐ the short leg (y) is zeroed -- the line is now EXACTLY axis-aligned
-    assert y0 == y1
-    # ⭐ the long leg (x) endpoints are the dispatch's fixed design constraint:
-    # untouched by the snap (⛔ not the pending-sign-off part)
-    assert (x0, x1) == (pytest.approx(1000.0), pytest.approx(3000.0))
-    snapped = next(d for d in diags if d.code == "tarch_wall_axis_snapped")
-    assert snapped.context["snapped_axis"] == "y"
-    assert snapped.context["minor_leg_mm"] == pytest.approx(3.0)
-    # ⭐ before_p0/before_p1's LONG-leg coordinate equals the raw input exactly
-    # -- the along-wall span is bit-for-bit unmoved by the snap
-    assert snapped.context["before_p0"][0] == pytest.approx(1000.0)
-    assert snapped.context["before_p1"][0] == pytest.approx(3000.0)
-
-
-def test_axis_snap_still_refuses_a_genuine_diagonal_beyond_the_threshold():
-    """Minor leg 20 mm, threshold 6 mm -> UNCHANGED behaviour: still refused,
-    still ``tarch_wall_nonorthogonal``, still absent from ``wall_lines`` --
-    the exact pre-②-1b-S outcome for anything beyond the admission line."""
-    collect, diags = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.006)
-    codes = [d.code for d in diags]
-    assert codes.count("tarch_wall_nonorthogonal") == 1
-    assert "tarch_wall_axis_snapped" not in codes
-    assert collect.wall_lines == []
-
-
-def test_axis_snap_threshold_is_a_real_parameter_not_hardcoded():
-    """⭐⭐ Acceptance 4's teeth: the SAME 20 mm-skew line is refused under one
-    threshold value and admitted under another -- proving the comparison
-    reads a passed-in value, not a number written into the ``if``."""
-    refused, diags_lo = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.006)
-    assert refused.wall_lines == []
-    assert any(d.code == "tarch_wall_nonorthogonal" for d in diags_lo)
-
-    admitted, diags_hi = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.030)
-    assert len(admitted.wall_lines) == 1
-    assert any(d.code == "tarch_wall_axis_snapped" for d in diags_hi)
-    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
-
-
-# =========================================================================== #
-# F-147 (2026-08-30) -- the SECOND, ANGLE gate.  Acceptance ①..⑤.
-#
-# ⭐⭐⭐ Why an angle gate exists at all: the SAME millimetre number means a
-# ~120x different angle depending on how long the stroke is.  6 mm on the real
-# 3640 mm stroke 13AD is 0.094° (hand tremor); 6 mm on a 30 mm stroke is
-# 11.310° (an unmistakable diagonal).  An absolute-millimetre threshold is
-# therefore the wrong SHAPE for this decision, and no amount of tightening it
-# recovers the dimension it cannot see.  ⛔ Hence a new gate, not a new number.
-#
-# ⛔ Every test below drives the thresholds through ``_Tols``/``_tols_from``
-# keyword arguments -- the injection port the production code provides.
-# ⛔ NOTHING here monkeypatches ``tn.AXIS_SNAP_MAX_*``: ``from X import Y``
-# binds via the parent package attribute, not ``sys.modules``, and patching
-# the wrong object has already manufactured a band of false-red in this repo.
-# =========================================================================== #
-SM25_AS_RECEIVED = (REPO /
-    "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3_as_received.dxf")
-SM25_AS_MEASURED_REQUEST = (REPO /
-    "case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json")
-
-
 def _two_line_msp(specs, *, layer: str = "WALL"):
     """A bare modelspace holding one WALL line per ``(x0, y0, x1, y1)`` spec."""
     doc = ezdxf.new("R2010")
@@ -603,19 +534,34 @@ def _two_line_msp(specs, *, layer: str = "WALL"):
     return msp
 
 
-def _collect_lines(specs, *, axis_snap_max_m: float = tn.AXIS_SNAP_MAX_DEVIATION_M,
-                   axis_snap_max_angle_deg: float = tn.AXIS_SNAP_MAX_ANGLE_DEG,
-                   tau_axis_m: float = 0.001):
-    """``_collect_walls`` on N hand-built lines with BOTH gates controlled.
+#: ⭐ The declared thickness range whose CAP is 30 mm -- the value BOTH real
+#: in-corpus requests derive today (``wall_thickness_range_m[0] = 0.06``).
+#: ⛔ It is a fixture INPUT here, never an expectation: ``_cap_mm`` recomputes
+#: it from the same declaration the production code reads.
+CORPUS_THICKNESS_M = (0.06, 0.50)
 
-    Defaults are the PRODUCTION constants, so a test that overrides exactly one
-    keyword is measuring exactly one gate.
+
+def _cap_mm(thickness_range_m) -> float:
+    """CAP as the production code derives it, ⛔ not as a literal."""
+    return thickness_range_m[0] * 1000.0 / 2.0
+
+
+def _collect_lines(specs, *, thickness_range_m=CORPUS_THICKNESS_M,
+                   axis_snap_max_angle_deg: float = tn.AXIS_SNAP_MAX_ANGLE_DEG,
+                   tau_axis_m: float = 0.001, node_join_m: float = 0.001):
+    """``_collect_walls`` on N hand-built lines, with the request's declared
+    thickness (⇒ CAP) and the angle envelope both controlled.
+
+    Defaults are the PRODUCTION angle and the CORPUS thickness declaration, so
+    a test that overrides exactly one keyword is measuring exactly one thing.
+    ``metres_per_unit=0.001`` ⇒ the native unit is the millimetre, so every
+    number in these fixtures reads directly as mm.
     """
     plan_view = SimpleNamespace(wall_selector=TarchEntitySelectorV1(
         entity_types=["LINE"], layers=["WALL"]))
-    request = SimpleNamespace(wall_thickness_range_m=[0.06, 0.50])
-    tols = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=tau_axis_m,
-                    topo_area_m2=1e-6, axis_snap_max_m=axis_snap_max_m,
+    request = SimpleNamespace(wall_thickness_range_m=list(thickness_range_m))
+    tols = tn._Tols(metres_per_unit=0.001, node_join_m=node_join_m,
+                    axis_align_m=tau_axis_m, topo_area_m2=1e-6,
                     axis_snap_max_angle_deg=axis_snap_max_angle_deg)
     msp = _two_line_msp(specs)
     diags: list = []
@@ -624,6 +570,41 @@ def _collect_lines(specs, *, axis_snap_max_m: float = tn.AXIS_SNAP_MAX_DEVIATION
     clip = (min(xs) - 10.0, min(ys) - 10.0, max(xs) + 10.0, max(ys) + 10.0)
     collect = tn._collect_walls(msp, plan_view, request, clip, tols, diags)
     return collect, diags
+
+
+def _collect_one(dx_mm: float, dy_mm: float, **kwargs):
+    """ONE line from (1000, 1000), with ⛔ NO neighbour at either end.
+
+    ⭐ Read the consequence before using this: with no neighbour, the anchor
+    rule cannot resolve, so a visible deviation lands on TIER 2 by design
+    ("锚端定不了且该选择在产物里看得出来").  That is the right fixture for the
+    tier-2c and tier-3 cases and the WRONG one for anything that should be
+    auto-flattened -- use :func:`_collect_anchored` for those.
+    """
+    return _collect_lines([(1000.0, 1000.0, 1000.0 + dx_mm, 1000.0 + dy_mm)],
+                          **kwargs)
+
+
+def _collect_anchored(dx_mm: float, dy_mm: float, *, post: float = 200.0,
+                      **kwargs):
+    """A skew face PLUS an already-straight post sharing its FAR endpoint.
+
+    ⭐ This is the corpus' own shape (13AD's east end is held by the straight
+    13AC), and it is what lets the anchor rule resolve to ``p1`` -- so these
+    fixtures exercise the tier-1 path the real drawing takes.  The post is
+    exactly vertical, so it never enters the ladder itself and contributes no
+    diagnostic of its own.
+    """
+    x1, y1 = 1000.0 + dx_mm, 1000.0 + dy_mm
+    return _collect_lines([(1000.0, 1000.0, x1, y1), (x1, y1, x1, y1 - post)],
+                          **kwargs)
+
+
+def _face_lines_of(collect, post: float = 200.0):
+    """The staged strokes that are NOT the anchoring post."""
+    return [row for row in collect.wall_lines
+            if not (row[1] == row[3] and abs(row[4] - row[2]) == pytest.approx(
+                post, abs=0.5))]
 
 
 def _refusal(diags):
@@ -641,206 +622,731 @@ def _admission(diags):
 
 
 # --------------------------------------------------------------------------- #
-# ① REAL hand tremor -- ⛔ not synthetic: handle 13AD on the as-received sm25
-#    drawing, the only such stroke that exists anywhere in the corpus.
+# LOCK 1 (was ``test_axis_snap_admits_a_line_within_the_threshold_and_itemises_it``)
+#   pinned: "minor leg inside the ceiling ⇒ admitted, short leg zeroed, long
+#            leg untouched, itemised once"
+#   now pins: the SAME outcome, plus the ladder tier that produced it and the
+#            fact that the ceiling it was measured against is the DERIVED CAP.
 # --------------------------------------------------------------------------- #
-def test_f147_acceptance_1_real_tremor_13ad_is_admitted_by_both_gates(tmp_path):
-    """13AD: 5.8084 mm out over a 3639.9 mm run = 0.091°.  Inside BOTH signed
-    gates, so it snaps -- and the diagnostic now carries BOTH readings, which
-    is what makes the two-gate decision auditable by the human who signs the
-    snap list.  ⭐ Real drawing, run through ``run_p1_plan_view``."""
+def test_gc_lock1_tier1_admits_and_itemises_with_the_derived_ceiling():
+    """3 mm out over a 2000 mm run = 0.086°: inside the 5° envelope and inside
+    the 30 mm CAP the corpus thickness declaration derives ⇒ tier 1."""
+    collect, diags = _collect_anchored(2000.0, 3.0)
+    codes = [d.code for d in diags]
+    assert "tarch_wall_nonorthogonal" not in codes
+    assert codes.count("tarch_wall_axis_snapped") == 1
+    faces = _face_lines_of(collect)
+    assert len(faces) == 1
+    _handle, x0, y0, x1, y1 = faces[0]
+    # ⭐ the short leg (y) is zeroed -- the line is now EXACTLY axis-aligned
+    assert y0 == y1
+    # ⭐ the long leg (x) endpoints are the fixed design constraint: untouched
+    assert (x0, x1) == (pytest.approx(1000.0), pytest.approx(3000.0))
+    ctx = _admission(diags)
+    assert ctx["ladder_tier"] == 1
+    assert ctx["snapped_axis"] == "y"
+    assert ctx["minor_leg_mm"] == pytest.approx(3.0)
+    # ⭐ the ceiling it was compared against is the request's own CAP, ⛔ not a
+    # module constant: this stroke is long enough that CAP is the binding limb.
+    assert ctx["cap_mm"] == pytest.approx(_cap_mm(CORPUS_THICKNESS_M))
+    assert ctx["deviation_limit_mm"] == pytest.approx(ctx["cap_mm"])
+    # ⭐ before_p0/before_p1's LONG-leg coordinate equals the raw input exactly
+    assert ctx["before_p0"][0] == pytest.approx(1000.0)
+    assert ctx["before_p1"][0] == pytest.approx(3000.0)
+
+
+# --------------------------------------------------------------------------- #
+# LOCK 2 (was ``test_axis_snap_still_refuses_a_genuine_diagonal_beyond_the_threshold``)
+#   pinned: "beyond the millimetre ceiling ⇒ still refused, still absent from
+#            wall_lines" -- i.e. the pre-②-1b-S outcome survives.
+#   now pins: that outcome survives AND is no longer anonymous -- a stroke
+#            refused for being over CAP is TIER 2 (a human decides), which is a
+#            different finding from tier 3, and the record says which.
+# --------------------------------------------------------------------------- #
+def test_gc_lock2_over_cap_is_still_refused_and_is_named_arbitration():
+    """20 mm out over 2000 mm = 0.573°: the ANGLE says yes (0.573 < 5), so the
+    only thing that can refuse it is CAP.  With a 12 mm thinnest wall declared,
+    CAP = 6 mm and 20 mm is over it ⇒ refused, dropped, and itemised as tier 2
+    -- ⛔ NOT silently discarded and ⛔ not mislabelled a diagonal."""
+    collect, diags = _collect_one(2000.0, 20.0, thickness_range_m=(0.012, 0.50))
+    codes = [d.code for d in diags]
+    assert codes.count("tarch_wall_nonorthogonal") == 1
+    assert "tarch_wall_axis_snapped" not in codes
+    assert collect.wall_lines == []
+    ctx = _refusal(diags)
+    assert ctx["ladder_tier"] == 2
+    assert ctx["refused_by"] == ["deviation_over_cap"]
+    assert ctx["angle_deg"] == pytest.approx(0.5729, abs=1e-3)
+    # ⭐ the load-bearing half: the ENVELOPE said yes.
+    assert ctx["angle_deg"] <= ctx["axis_snap_max_angle_deg"]
+    assert ctx["cap_mm"] == pytest.approx(6.0)
+
+
+# --------------------------------------------------------------------------- #
+# LOCK 3 (was ``test_axis_snap_threshold_is_a_real_parameter_not_hardcoded``)
+#   pinned: "the same 20 mm stroke flips between two hand-passed threshold
+#            values ⇒ the comparison reads a parameter, not a baked number."
+#   now pins: strictly more -- the same stroke flips between two REQUESTS that
+#            differ only in ``wall_thickness_range_m``, so the DERIVATION is
+#            exercised too, ⛔ not just the comparison.  This is the executable
+#            form of "⛔ CAP must not be a module constant" (invariant #6).
+# --------------------------------------------------------------------------- #
+def test_gc_lock3_cap_is_derived_per_request_not_baked_in():
+    spec_dx, spec_dy = 2000.0, 20.0        # 0.573°, well inside the envelope
+    refused, diags_thin = _collect_anchored(spec_dx, spec_dy,
+                                            thickness_range_m=(0.012, 0.50))
+    assert _face_lines_of(refused) == []
+    assert _refusal(diags_thin)["refused_by"] == ["deviation_over_cap"]
+
+    admitted, diags_thick = _collect_anchored(spec_dx, spec_dy,
+                                              thickness_range_m=(0.060, 0.50))
+    assert len(_face_lines_of(admitted)) == 1
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_thick)
+    assert _admission(diags_thick)["ladder_tier"] == 1
+    # ⭐ and the two CAPs the two requests derived are the two halves:
+    assert _cap_mm((0.012, 0.50)) == 6.0 and _cap_mm((0.060, 0.50)) == 30.0
+    assert not hasattr(tn, "AXIS_SNAP_MAX_DEVIATION_M"), (
+        "the 10 mm module ceiling is retired (user 2026-09-07); reintroducing "
+        "it would put an absolute millimetre number back in front of a "
+        "per-request derivation")
+
+
+# =========================================================================== #
+# The real drawing.  ⭐ Not synthetic: handles 13AD/13AE/13AF on the as-received
+# sm25 drawing are the ONLY off-axis strokes anywhere in the corpus (measured:
+# 1 degenerate / 262 exact / 314 float-noise / 3 skew / 0 real slants across
+# all three plan views of both cases).
+# =========================================================================== #
+SM25_AS_RECEIVED = (REPO /
+    "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3_as_received.dxf")
+SM25_AS_MEASURED_REQUEST = (REPO /
+    "case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json")
+
+
+def _sm25_as_received_geometry(tmp_path):
     request = TarchConversionRequestV1.model_validate_json(
         SM25_AS_MEASURED_REQUEST.read_text(encoding="utf-8"))
     view = next(v for v in request.plan_views if v.id == "plan-F1")
     staged = tmp_path / SM25_AS_RECEIVED.name
     shutil.copy2(SM25_AS_RECEIVED, staged)
-    geo = tn.run_p1_plan_view(staged, request, view,
-                              resolve_converter_tooling(GT_CONFIG, VG_CONFIG))
+    return tn.run_p1_plan_view(staged, request, view,
+                               resolve_converter_tooling(GT_CONFIG, VG_CONFIG))
 
+
+# --------------------------------------------------------------------------- #
+# LOCK 4 (was ``test_f147_acceptance_1_real_tremor_13ad_is_admitted_by_both_gates``)
+#   pinned: "13AD/13AE are admitted and the diagnostic carries BOTH signed
+#            readings" -- the two-gate decision is auditable.
+#   now pins: the LADDER's decision is auditable -- tier, both readings, AND
+#            (new, load-bearing) WHICH END it was anchored about.  ⭐ 13AF joins
+#            the list: it used to fall between ``tau_axis`` and exact equality
+#            and vanish from every table.
+# --------------------------------------------------------------------------- #
+def test_gc_lock4_real_tremor_all_three_strokes_are_tier1_and_auditable(tmp_path):
+    geo = _sm25_as_received_geometry(tmp_path)
     snapped = {d.source_entity_handles[0]: d.context for d in geo.diagnostics
                if d.code == "tarch_wall_axis_snapped"}
-    assert set(snapped) == {"13AD", "13AE"}, sorted(snapped)
+    assert set(snapped) == {"13AD", "13AE", "13AF"}, sorted(snapped)
     assert not any(d.code == "tarch_wall_nonorthogonal" for d in geo.diagnostics)
 
-    ctx = snapped["13AD"]
-    assert ctx["minor_leg_mm"] == pytest.approx(5.8084, abs=5e-4)
-    # ⭐ R3: the angle reading, which did not exist before F-147
-    assert ctx["angle_deg"] == pytest.approx(0.0914, abs=5e-4)
-    assert ctx["angle_deg"] < tn.AXIS_SNAP_MAX_ANGLE_DEG
-    assert ctx["minor_leg_mm"] < tn.AXIS_SNAP_MAX_DEVIATION_M * 1000.0
-    # ⭐ and 13AD's own numbers prove the "same mm, 120x the angle" point that
-    # motivated the gate: 5.81 mm reads as 0.09° ONLY because the run is long.
-    assert snapped["13AE"]["angle_deg"] == pytest.approx(0.0914, abs=5e-4)
+    for handle in ("13AD", "13AE", "13AF"):
+        ctx = snapped[handle]
+        assert ctx["ladder_tier"] == 1
+        # one rigid-body rotation: all three read the SAME angle
+        assert ctx["angle_deg"] == pytest.approx(0.0914, abs=5e-4)
+        assert ctx["minor_leg_mm"] <= ctx["deviation_limit_mm"]
+
+    # ⭐ the long faces: the anchor rule found the end shared with an
+    # already-straight neighbour (13AC / 160A), ⛔ not the midpoint.
+    for handle in ("13AD", "13AE"):
+        assert snapped[handle]["anchor_end"] == "p1"
+        assert snapped[handle]["anchor_reason"] == (
+            "p1_shares_a_point_with_an_already_axial_stroke")
+        assert snapped[handle]["minor_leg_mm"] == pytest.approx(5.8084, abs=5e-4)
+    # ⭐ the 120 mm end cap: BOTH its neighbours are crooked, so no end anchors
+    # it -- and the three candidate answers collapse to ONE stored value, so
+    # the choice is not representable and ⛔ must not cost a human anything.
+    cap_ctx = snapped["13AF"]
+    assert cap_ctx["anchor_end"] == "mid"
+    assert cap_ctx["anchor_reason"] == "anchor_choice_not_representable"
+    assert len(set(cap_ctx["anchor_candidates_stored"])) == 1
+    assert cap_ctx["minor_leg_mm"] == pytest.approx(0.1915, abs=5e-4)
+    # ⭐ and the short stroke is where the ANGLE limb binds, not CAP:
+    assert cap_ctx["deviation_limit_mm"] == pytest.approx(10.4986, abs=1e-3)
+    assert cap_ctx["deviation_limit_mm"] < cap_ctx["cap_mm"]
 
 
-# --------------------------------------------------------------------------- #
-# ①b The SIGNED 10 mm VALUE ITSELF has teeth.
-#     ⭐ Added beyond the dispatch's five: the mutation matrix measured that
-#     reverting 6 mm -> 10 mm left every other fixture GREEN, i.e. R1's value
-#     change was landing unguarded.  The corpus has no stroke in the 6-10 mm
-#     band, so the fixture has to supply one -- that absence is exactly why
-#     nothing else could see this direction.
-# --------------------------------------------------------------------------- #
-def test_f147_acceptance_1b_the_signed_10mm_deviation_value_has_teeth():
-    """2000 mm run, 8 mm out = 0.229°.  The ANGLE gate says yes either way, so
-    this stroke's verdict is decided by the deviation value ALONE: admitted
-    under the signed 10 mm, refused under the old unsigned 6 mm placeholder.
-
-    ⛔ The main claim below runs on the PRODUCTION default (no keyword passed),
-    so it goes red if anyone edits ``AXIS_SNAP_MAX_DEVIATION_M`` back down.
+def test_gc_lock4b_the_anchor_rule_closes_the_joints_the_midpoint_split(tmp_path):
+    """⭐⭐ THE VARIABILITY PROOF for lock 4, and the acceptance G-c-1 asks for:
+    flip the anchor back to the midpoint and the joints re-open by exactly the
+    3.0 mm the ledger used to carry.  ⛔ This is measured on the real drawing
+    through the real ``_collect_walls``, not asserted from the docstring.
     """
-    spec = [(1000.0, 1000.0, 3000.0, 1008.0)]
-    admitted, diags = _collect_lines(spec)            # ⭐ production constants
+    geo = _sm25_as_received_geometry(tmp_path)
+    lines = {h: (x0, y0, x1, y1) for h, x0, y0, x1, y1 in geo.wall_lines}
+    # 13AD is horizontal at const y; 13AC is vertical and ends on it.
+    assert lines["13AD"][1] == lines["13AD"][3]           # flattened
+    assert lines["13AD"][1] == min(lines["13AC"][1], lines["13AC"][3])
+    assert lines["13AE"][1] == max(lines["160A"][1], lines["160A"][3])
+    # the west end cap followed the ends that moved -- ⛔ no torn corner:
+    assert sorted((lines["13AF"][1], lines["13AF"][3])) == sorted(
+        (lines["13AE"][1], lines["13AD"][1]))
+
+    # ⇒ the counterfactual: the midpoint answer, recomputed from the SAME raw
+    # endpoints the converter recorded, is 2.90 mm away from the anchored one.
+    ctx = next(d.context for d in geo.diagnostics
+               if d.code == "tarch_wall_axis_snapped"
+               and d.source_entity_handles[0] == "13AD")
+    raw_anchor = ctx["before_p1"][1]                 # the end the rule chose
+    midpoint_const = (ctx["before_p0"][1] + ctx["before_p1"][1]) / 2.0
+    assert abs(midpoint_const - raw_anchor) == pytest.approx(
+        ctx["minor_leg_mm"] / 2.0)                   # half the skew, by definition
+    assert abs(midpoint_const - raw_anchor) == pytest.approx(2.9042, abs=1e-3)
+    # ⭐ and on the 1 mm ingest grid that half-skew becomes exactly the 3.0 mm
+    # (``const -30``) the revisions ledger used to ask a human to sign off.
+    # sm25's native unit IS the millimetre, so these two steps are the same
+    # chain a real coordinate walks.
+    tols_sm25 = tn._Tols(metres_per_unit=0.001, node_join_m=0.001,
+                         axis_align_m=0.001, topo_area_m2=1e-6)
+    stored = lambda v: tn._quantize(tn._quantize(v, tols_sm25.quant_native),
+                                    tols_sm25.ingest_grid_native)
+    assert abs(stored(midpoint_const) - stored(raw_anchor)) == pytest.approx(3.0)
+
+
+# --------------------------------------------------------------------------- #
+# LOCK 5 (was ``test_f147_acceptance_1b_the_signed_10mm_deviation_value_has_teeth``)
+#   pinned: "the SIGNED 10 mm value itself has teeth" -- an 8 mm stroke is
+#            admitted under 10 mm and refused under the old 6 mm placeholder.
+#   ⛔ THAT PREMISE IS GONE: the user retired the 10 mm value on 2026-09-07, so
+#            there is no longer a signed millimetre number for this test to
+#            defend.  ⭐ The QUESTION it existed to answer survives intact --
+#            "is the deviation ceiling load-bearing, or is it decorative?" --
+#            and the answer is now measured against CAP.  The fixture is kept
+#            in the same band (8 mm on a 2000 mm run) because that band still
+#            has no real specimen in the corpus, which is why the original test
+#            had to supply one.
+# --------------------------------------------------------------------------- #
+def test_gc_lock5_the_deviation_ceiling_still_has_teeth_now_as_cap():
+    """2000 mm run, 8 mm out = 0.229°.  The ENVELOPE says yes either way, so
+    this stroke's verdict is decided by the deviation ceiling ALONE."""
+    spec_dx, spec_dy = 2000.0, 8.0
+    admitted, diags = _collect_anchored(spec_dx, spec_dy)   # corpus CAP = 30 mm
     ctx = _admission(diags)
-    assert len(admitted.wall_lines) == 1
+    assert len(_face_lines_of(admitted)) == 1
+    assert ctx["ladder_tier"] == 1
     assert ctx["minor_leg_mm"] == pytest.approx(8.0)
     assert ctx["angle_deg"] == pytest.approx(0.2292, abs=1e-3)
 
-    # the pre-F-147 placeholder refused exactly this, on the deviation gate:
-    refused, diags_6mm = _collect_lines(spec, axis_snap_max_m=0.006)
-    assert refused.wall_lines == []
-    assert _refusal(diags_6mm)["refused_by"] == ["deviation_mm"]
+    # a request that declares a 12 mm thinnest wall derives CAP = 6 mm, and
+    # refuses exactly this stroke -- on the ceiling, ⛔ not on the angle:
+    refused, diags_thin = _collect_anchored(spec_dx, spec_dy,
+                                            thickness_range_m=(0.012, 0.50))
+    assert _face_lines_of(refused) == []
+    thin_ctx = _refusal(diags_thin)
+    assert thin_ctx["refused_by"] == ["deviation_over_cap"]
+    assert thin_ctx["angle_deg"] <= thin_ctx["axis_snap_max_angle_deg"]
+
+
+def test_gc_lock5b_the_retired_10mm_ceiling_is_not_silently_still_in_force():
+    """⭐ The other half of lock 5's retirement: prove the 10 mm number is not
+    merely deleted from sight but actually out of the decision.  A 12 mm
+    deviation is REFUSED by the old ceiling and ADMITTED by today's ladder on
+    the corpus declaration (12 <= CAP 30, 0.34° <= 5°)."""
+    admitted, diags = _collect_anchored(2000.0, 12.0)
+    assert len(_face_lines_of(admitted)) == 1
+    ctx = _admission(diags)
+    assert ctx["minor_leg_mm"] == pytest.approx(12.0)
+    assert ctx["minor_leg_mm"] > 10.0        # ⛔ the retired ceiling would refuse
+    assert ctx["ladder_tier"] == 1
 
 
 # --------------------------------------------------------------------------- #
-# ② SHORT slanted stroke -- the millimetre gate WOULD LET THIS THROUGH.
-#    This single fixture is the whole reason the angle gate exists.
+# LOCK 6 (was ``test_f147_acceptance_2_short_slant_passes_the_mm_gate_and_the
+#          _angle_gate_stops_it``)
+#   pinned: "60 mm long, 5 mm out = 4.764°: the millimetre gate SAID YES, and
+#            the stroke is refused ONLY because the 1.0° angle gate exists."
+#   ⛔ ITS PREMISE MOVED with 1.0° -> 5.0°: 4.764° is now INSIDE the envelope
+#            and this fixture is admitted.  ⭐ What the test was really pinning
+#            -- "on a short stroke the deviation ceiling is blind and only the
+#            angle can refuse" -- is unchanged and is pinned here at the NEW
+#            envelope, with the fixture moved to straddle 5.0° instead of 1.0°.
+#            ⛔ Both sides are kept: just-inside AND just-outside.
 # --------------------------------------------------------------------------- #
-def test_f147_acceptance_2_short_slant_passes_the_mm_gate_and_the_angle_gate_stops_it():
-    """60 mm long, 5 mm out = 4.764°.  5 mm is comfortably inside the 10 mm
-    signed deviation gate, so the PRE-F-147 code would have snapped this
-    obvious little diagonal into an axis-aligned wall.  ⭐ It is refused only
-    because the angle gate exists, and the refusal NAMES that gate."""
-    collect, diags = _collect_lines([(1000.0, 1000.0, 1060.0, 1005.0)])
-    ctx = _refusal(diags)
-    assert collect.wall_lines == []
-    assert not any(d.code == "tarch_wall_axis_snapped" for d in diags)
-    assert ctx["angle_deg"] == pytest.approx(4.7636, abs=1e-3)
-    # ⭐⭐ the load-bearing half: the millimetre gate SAID YES here.
-    assert ctx["minor_leg_mm"] == pytest.approx(5.0)
-    assert ctx["minor_leg_mm"] <= ctx["axis_snap_max_native"]
-    # ⇒ so the ONLY reason it was refused is the angle gate:
-    assert ctx["refused_by"] == ["angle_deg"]
+def test_gc_lock6_on_a_short_stroke_only_the_angle_can_refuse():
+    """60 mm long.  5.00 mm out = 4.764° (inside) and 5.30 mm out = 5.046°
+    (outside).  ⭐ In BOTH cases the deviation is far under the 30 mm CAP, so
+    CAP is structurally incapable of separating them -- exactly the dimension
+    an absolute millimetre ceiling cannot see, and the reason the envelope is
+    an angle."""
+    admitted, diags_in = _collect_anchored(60.0, 5.0)
+    in_ctx = _admission(diags_in)
+    assert len(_face_lines_of(admitted)) == 1
+    assert in_ctx["ladder_tier"] == 1
+    assert in_ctx["angle_deg"] == pytest.approx(4.7636, abs=1e-3)
+    assert in_ctx["angle_deg"] <= tn.AXIS_SNAP_MAX_ANGLE_DEG
+
+    refused, diags_out = _collect_anchored(60.0, 5.3)
+    out_ctx = _refusal(diags_out)
+    assert _face_lines_of(refused) == []
+    assert not any(d.code == "tarch_wall_axis_snapped" for d in diags_out)
+    assert out_ctx["angle_deg"] == pytest.approx(5.0480, abs=1e-3)
+    assert out_ctx["ladder_tier"] == 3
+    assert out_ctx["refused_by"] == ["angle_beyond_envelope"]
+    # ⭐⭐ the load-bearing half, unchanged in spirit: the DEVIATION ceiling
+    # said yes to the refused one.  ⇒ the ONLY thing that refused it is the
+    # angle envelope.
+    assert out_ctx["minor_leg_mm"] == pytest.approx(5.3)
+    assert out_ctx["minor_leg_mm"] <= out_ctx["cap_mm"]
 
 
 # --------------------------------------------------------------------------- #
-# ③ 45° control -- both gates refuse.
+# LOCK 7 (was ``test_f147_acceptance_3_forty_five_degrees_is_refused_by_both_gates``)
+#   pinned: "a 45° line is refused, and the record shows BOTH gates said no --
+#            'refused' must never be confused with 'refused for the reason I
+#            assumed'."
+#   now pins: the same discrimination, one tier up -- a 45° line is TIER 3 and
+#            ⛔ explicitly NOT arbitration.  ⭐ That distinction is new and is
+#            the one that matters: tier 2 costs a human's time, tier 3 must not.
 # --------------------------------------------------------------------------- #
-def test_f147_acceptance_3_forty_five_degrees_is_refused_by_both_gates():
-    """1000 mm x 1000 mm.  Not a subtle case; it is here so that "refused" is
-    never confused with "refused for the reason I assumed" -- the record shows
-    BOTH gates said no, which is a different observation from ② and from ⑤b."""
-    collect, diags = _collect_lines([(1000.0, 1000.0, 2000.0, 2000.0)])
+def test_gc_lock7_forty_five_degrees_is_tier3_and_never_reaches_a_human():
+    collect, diags = _collect_one(1000.0, 1000.0)
     ctx = _refusal(diags)
     assert collect.wall_lines == []
     assert ctx["angle_deg"] == pytest.approx(45.0)
     assert ctx["minor_leg_mm"] == pytest.approx(1000.0)
-    assert ctx["refused_by"] == ["deviation_mm", "angle_deg"]
+    assert ctx["ladder_tier"] == 3
+    assert ctx["refused_by"] == ["angle_beyond_envelope"]
+    # ⭐ it is over CAP too (1000 mm >> 30 mm) -- and the ladder still calls it
+    # tier 3, ⛔ not tier 2: the envelope is tested FIRST on purpose, because a
+    # genuine diagonal is not a suspected drafting error.
+    assert ctx["minor_leg_mm"] > ctx["cap_mm"]
 
 
 # --------------------------------------------------------------------------- #
-# ④ ⛔⛔ KNOWN SIGNED RISK -- ⛔ NOT a correctness expectation.
+# LOCK 8 (was ``test_f147_signed_1deg_admits_the_0p39deg_slanted_wall_KNOWN_
+#          SIGNED_RISK``)
+#   pinned: ⛔⛔ A COST THE USER KNOWINGLY ACCEPTED at 1.0°, ⛔ not a
+#            correctness expectation: a real 0.394° slanted wall is admitted,
+#            both faces snap to their own midlines, and the pairing step
+#            MANUFACTURES a wall that is not on the drawing.
+#   now pins: THE SAME COST, at the wider 5.0° envelope -- ⛔ the change did not
+#            reduce it -- plus what does and does not bound it now.  ⭐ Kept as
+#            a PRICE tag, ⛔ still not a verified behaviour.
 # --------------------------------------------------------------------------- #
-def test_f147_signed_1deg_admits_the_0p39deg_slanted_wall_KNOWN_SIGNED_RISK():
-    """⛔⛔ THIS TEST PINS A COST THE USER KNOWINGLY ACCEPTED.  ⛔ It does NOT
-    assert that the behaviour is correct, and ⛔ nobody should read it as
-    evidence that this case was verified to be right.
+def test_gc_lock8_five_degrees_still_admits_the_0p39deg_slanted_wall_KNOWN_RISK():
+    """⛔⛔ THIS TEST PINS A COST, ⛔ NOT A CORRECTNESS CLAIM.
 
-    What it pins: the cross-reviewer's negative sample -- a REAL gently
-    slanted wall, two faces 800 mm long, each 5.5 mm out (0.394°), 120 mm
-    apart.  Under the signed 1.0° gate BOTH faces are admitted and each is
-    snapped to its own midline; the pair therefore stays exactly 120 mm apart
-    and looks like a perfectly ordinary orthogonal wall to everything
-    downstream.  On the real as-received drawing this is what took walls
-    55 -> 56: ⛔ a wall that is not on the drawing.  Same defect family as
-    this project's 33 fabricated walls.
+    The cross-reviewer's negative sample: two faces 800 mm long, each 5.5 mm
+    out (0.394°), 120 mm apart.  Under 1.0° both were admitted, each snapped to
+    its own midline, the pair stayed exactly 120 mm apart and looked like an
+    ordinary orthogonal wall to everything downstream -- on the real drawing
+    that took walls 55 -> 56, ⛔ a wall that is not on the drawing.  ⭐ 5.0°
+    admits a strictly WIDER angular band, so ⛔ the 2026-09-07 change does not
+    reduce this cost by itself.
 
-    ⭐ At 0.25° the same input is REFUSED (asserted below, so this test also
-    records what the alternative would have bought).  The admissible interval
-    was only (0.091°, 0.394°): one real tremor on one side, one synthetic
-    slant on the other.  0.25°/0.3° were recommended.  The user was told the
-    consequence, restated it, and chose 1.0° -- "签，角度调到 1 度吧"
-    (2026-08-30, F-143).  This test exists so the next reader sees a PRICE,
-    ⛔ not a verified behaviour.
-
-    ⭐ The compensating control is the last gate, unchanged and outside this
-    file: a human reads ``axis_snapped_lines`` line by line when signing
-    ``revisions``.  Both faces below appear on that list, with their angles.
+    ⭐⭐ MEASURED HERE, and it is the part a reader should not miss: the ladder
+    narrows the sample in a way the angle never could.  This sample as the
+    cross-reviewer built it -- two faces with NOTHING attached to either end --
+    no longer reaches the fabrication at all: with no anchor end and a visibly
+    different answer, both faces are refused to a HUMAN (tier 2).  ⛔ The cost
+    is NOT gone: attach a straight stroke to one end of each face (the shape
+    the real corpus has) and the anchor rule resolves, both are flattened, and
+    the phantom 120 mm wall is back.  BOTH halves are pinned below so nobody
+    can read either one as the whole story.
     """
     faces = [(1000.0, 1000.0, 1800.0, 1005.5),      # 800 mm run, 5.5 mm out
              (1000.0, 1120.0, 1800.0, 1125.5)]      # its partner, 120 mm away
-    collect, diags = _collect_lines(faces)
 
+    # --- half 1: the sample AS BUILT is now caught, ⛔ not fabricated --------
+    isolated, diags_isolated = _collect_lines(faces)
+    assert isolated.wall_lines == []
+    caught = [d for d in diags_isolated if d.code == "tarch_wall_nonorthogonal"]
+    assert len(caught) == 2
+    for d in caught:
+        assert d.context["ladder_tier"] == 2
+        assert d.context["refused_by"] == ["anchor_undecidable_and_observable"]
+        assert d.context["angle_deg"] == pytest.approx(0.3939, abs=1e-3)
+        assert d.context["angle_deg"] <= tn.AXIS_SNAP_MAX_ANGLE_DEG
+
+    # --- half 2: ⛔ THE COST, still there, on the shape the corpus has -------
+    anchored = faces + [(1800.0, 1005.5, 1800.0, 1105.5),
+                        (1800.0, 1125.5, 1800.0, 1225.5)]
+    collect, diags = _collect_lines(anchored)
     snaps = [d for d in diags if d.code == "tarch_wall_axis_snapped"]
     assert len(snaps) == 2, [d.code for d in diags]
     assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags)
     for d in snaps:
         assert d.context["angle_deg"] == pytest.approx(0.3939, abs=1e-3)
-        assert d.context["angle_deg"] <= tn.AXIS_SNAP_MAX_ANGLE_DEG
+        assert d.context["ladder_tier"] == 1
+        assert d.context["anchor_end"] == "p1"
 
-    # ⛔ the actual harm, made visible: two snapped midlines, still 120 mm
-    # apart -- i.e. indistinguishable from a genuine 120 mm wall.
+    # ⛔ the actual harm, made visible: two snapped faces, still 120 mm apart
+    # -- i.e. indistinguishable from a genuine 120 mm wall.
     ys = sorted({round(y0, 6) for _h, _x0, y0, _x1, y1 in collect.wall_lines
                  if y0 == y1})
     assert len(ys) == 2 and ys[1] - ys[0] == pytest.approx(120.0, abs=0.05)
 
-    # ⭐ and the counterfactual the user was shown before signing: 0.25° refuses it.
-    refused, diags_025 = _collect_lines(faces, axis_snap_max_angle_deg=0.25)
-    assert refused.wall_lines == []
-    assert [d.code for d in diags_025].count("tarch_wall_nonorthogonal") == 2
-    assert all(d.context["refused_by"] == ["angle_deg"]
-               for d in diags_025 if d.code == "tarch_wall_nonorthogonal")
+    # ⭐ and the OTHER bound the ladder adds, measured: declare a 10 mm thinnest
+    # wall (CAP = 5 mm) and the same anchored pair goes to a human instead.
+    refused, diags_thin = _collect_lines(anchored, thickness_range_m=(0.010, 0.50))
+    tier2 = [d for d in diags_thin if d.code == "tarch_wall_nonorthogonal"]
+    assert len(tier2) == 2
+    assert all(d.context["ladder_tier"] == 2 for d in tier2)
+    assert all(d.context["refused_by"] == ["deviation_over_cap"] for d in tier2)
 
 
 # --------------------------------------------------------------------------- #
-# ⑤ Each gate has teeth ON ITS OWN.  ⛔ "both had to move" would not count.
+# LOCK 9 (was ``test_f147_acceptance_5a_widening_only_the_angle_gate_flips_a_case``)
+#   pinned: "ONLY the angle knob moves and the verdict moves with it ⇒ the
+#            angle gate is load-bearing by itself."
+#   now pins: the same, unchanged in shape -- the angle is still one of the
+#            ladder's two limits and it is still independently load-bearing.
+#            ⭐ The flip points are re-measured for the ladder (a stroke the 1°
+#            envelope refuses is tier 3; the 10° envelope makes it tier 1).
 # --------------------------------------------------------------------------- #
-def test_f147_acceptance_5a_widening_only_the_angle_gate_flips_a_case():
-    """Same 60 mm / 5 mm stroke as ②.  ⛔ The millimetre gate is left at the
-    production value throughout -- ONLY ``axis_snap_max_angle_deg`` moves, and
-    the verdict moves with it.  ⇒ the angle gate is load-bearing by itself."""
-    refused, diags_lo = _collect_lines([(1000.0, 1000.0, 1060.0, 1005.0)],
-                                       axis_snap_max_angle_deg=1.0)
-    assert refused.wall_lines == []
-    assert _refusal(diags_lo)["refused_by"] == ["angle_deg"]
+def test_gc_lock9_moving_only_the_angle_envelope_flips_a_case():
+    """Same 60 mm / 5 mm stroke as lock 6.  ⛔ The request's declared thickness
+    (⇒ CAP) is left at the corpus value throughout -- ONLY the envelope moves."""
+    refused, diags_lo = _collect_anchored(60.0, 5.0, axis_snap_max_angle_deg=1.0)
+    assert _face_lines_of(refused) == []
+    lo_ctx = _refusal(diags_lo)
+    assert lo_ctx["refused_by"] == ["angle_beyond_envelope"]
+    assert lo_ctx["ladder_tier"] == 3
+    assert lo_ctx["cap_mm"] == pytest.approx(_cap_mm(CORPUS_THICKNESS_M))
 
-    admitted, diags_hi = _collect_lines([(1000.0, 1000.0, 1060.0, 1005.0)],
-                                        axis_snap_max_angle_deg=10.0)
-    assert len(admitted.wall_lines) == 1
-    assert _admission(diags_hi)["angle_deg"] == pytest.approx(4.7636, abs=1e-3)
+    admitted, diags_hi = _collect_anchored(60.0, 5.0, axis_snap_max_angle_deg=10.0)
+    assert len(_face_lines_of(admitted)) == 1
+    hi_ctx = _admission(diags_hi)
+    assert hi_ctx["angle_deg"] == pytest.approx(4.7636, abs=1e-3)
+    assert hi_ctx["ladder_tier"] == 1
     assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
 
 
-def test_f147_acceptance_5b_widening_only_the_deviation_gate_flips_a_different_case():
-    """A LONG stroke: 2000 mm run, 20 mm out = 0.573°.  ⭐ The angle gate says
-    YES to this one (0.573° < 1.0°) at the production value, which is left
-    untouched here -- ONLY ``axis_snap_max_m`` moves.  ⇒ the millimetre gate
-    is load-bearing by itself, and ⛔ the two gates are not redundant: ② and
-    this case are refused by DIFFERENT gates, so neither gate could be deleted
-    without letting one of them through."""
-    spec = [(1000.0, 1000.0, 3000.0, 1020.0)]
-    refused, diags_lo = _collect_lines(spec, axis_snap_max_m=0.010)
-    assert refused.wall_lines == []
-    ctx = _refusal(diags_lo)
-    assert ctx["angle_deg"] == pytest.approx(0.5729, abs=1e-3)
-    # ⭐ the angle gate SAID YES; only the millimetre gate refused.
-    assert ctx["angle_deg"] <= ctx["axis_snap_max_angle_deg"]
-    assert ctx["refused_by"] == ["deviation_mm"]
+# --------------------------------------------------------------------------- #
+# LOCK 10 (was ``test_f147_acceptance_5b_widening_only_the_deviation_gate_flips
+#           _a_different_case``)
+#   pinned: "ONLY the millimetre knob moves and a DIFFERENT case flips ⇒ the
+#            two gates are not redundant; neither could be deleted."
+#   now pins: the identical claim with CAP in the millimetre gate's place --
+#            and ⭐ the non-redundancy is now demonstrable in BOTH directions in
+#            one function, which the original could only do across two files'
+#            worth of fixtures.
+# --------------------------------------------------------------------------- #
+def test_gc_lock10_the_envelope_and_the_cap_are_not_redundant():
+    """Two strokes, each refused by exactly one of the two limits, ⛔ with the
+    OTHER limit saying yes in each case.
 
-    admitted, diags_hi = _collect_lines(spec, axis_snap_max_m=0.030)
-    assert len(admitted.wall_lines) == 1
-    assert _admission(diags_hi)["minor_leg_mm"] == pytest.approx(20.0)
-    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
+      long  = 2000 mm run, 20 mm out = 0.573°  -> the envelope says YES,
+                                                  CAP(6 mm) says no
+      short =   60 mm run,  5.3 mm out = 5.046° -> CAP says YES,
+                                                  the envelope says no
+
+    ⇒ deleting either limit would let one of these through, so neither is
+    redundant.  ⭐ And they land on DIFFERENT tiers, which is itself the point:
+    over-CAP is a question for a person, over-envelope is not.
+    """
+    long_refused, long_diags = _collect_anchored(2000.0, 20.0,
+                                                 thickness_range_m=(0.012, 0.50))
+    long_ctx = _refusal(long_diags)
+    assert _face_lines_of(long_refused) == []
+    assert long_ctx["refused_by"] == ["deviation_over_cap"]
+    assert long_ctx["ladder_tier"] == 2
+    assert long_ctx["angle_deg"] <= long_ctx["axis_snap_max_angle_deg"]
+
+    short_refused, short_diags = _collect_anchored(60.0, 5.3,
+                                                   thickness_range_m=(0.012, 0.50))
+    short_ctx = _refusal(short_diags)
+    assert _face_lines_of(short_refused) == []
+    assert short_ctx["refused_by"] == ["angle_beyond_envelope"]
+    assert short_ctx["ladder_tier"] == 3
+    assert short_ctx["minor_leg_mm"] <= short_ctx["cap_mm"]
+
+    # and each is ADMITTED once its own refusing limit is moved, ⛔ with the
+    # other left at the value it already had:
+    long_ok, _ = _collect_anchored(2000.0, 20.0, thickness_range_m=(0.060, 0.50))
+    assert len(_face_lines_of(long_ok)) == 1
+    short_ok, _ = _collect_anchored(60.0, 5.3, thickness_range_m=(0.012, 0.50),
+                                    axis_snap_max_angle_deg=10.0)
+    assert len(_face_lines_of(short_ok)) == 1
 
 
-def test_axis_snap_along_axis_endpoints_survive_bit_for_bit_through_quantize():
-    """⭐ Acceptance 3, at the unit level: the along-wall (major-axis)
-    endpoints that end up in ``wall_lines`` are EXACTLY the same value
-    quantizing the raw, un-snapped major-axis coordinates would have produced
-    -- the snap contributes ZERO extra movement on that axis."""
+# --------------------------------------------------------------------------- #
+# LOCK 11 (was ``test_axis_snap_along_axis_endpoints_survive_bit_for_bit
+#           _through_quantize``)
+#   pinned: "the snap contributes ZERO extra movement on the along axis."
+#   now pins: the SAME invariant for the snap itself, ⛔ but no longer as an
+#            unconditional property of the stage -- because G-c added a
+#            mechanism that DOES move along-axis endpoints (a node relocation,
+#            when the stroke shares a point another stroke's flattening moved).
+#            ⭐ So the lock is split: unchanged when nothing shares the node,
+#            and the companion below proves the exception is real, ⛔ not a
+#            loophole nobody measured.
+# --------------------------------------------------------------------------- #
+def test_gc_lock11_the_snap_alone_never_moves_an_along_axis_endpoint():
     tols_ref = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=0.001,
                         topo_area_m2=1e-6)
-    collect, _ = _collect_with_snap_threshold(2000.0, 3.0, axis_snap_max_m=0.006)
-    _, x0, _, x1, _ = collect.wall_lines[0]
+    collect, _ = _collect_anchored(2000.0, 3.0)
+    _, x0, _, x1, _ = _face_lines_of(collect)[0]
     assert x0 == tn._quantize(1000.0, tols_ref.quant_native)
     assert x1 == tn._quantize(3000.0, tols_ref.quant_native)
+
+
+def test_gc_lock11b_an_along_axis_endpoint_DOES_follow_a_relocated_node():
+    """⭐⭐ The exception, on a fixture that reproduces the corpus' west corner
+    in miniature: a long face flattened about its RIGHT end drops its LEFT end,
+    and the end cap sharing that left point comes with it.
+
+    ⛔ Without this the two would tear apart -- measured on the real drawing as
+    a 6.0 mm gap, i.e. twice the 3.0 mm this unit set out to close.
+
+    ⭐ The cap is drawn 0.19 mm out of plumb ON PURPOSE, exactly as 13AF is:
+    a perfectly straight cap would ANCHOR the face's left end too, the face
+    would have two anchors, and the fixture would be measuring tier 2 instead.
+    """
+    face = (1000.0, 1000.0, 3000.0, 1003.0)      # 2000 mm run, 3 mm out
+    cap = (1000.0, 1000.0, 1000.19, 880.0)       # 120 mm cap, 0.19 mm out
+    post = (3000.0, 1003.0, 3000.0, 1503.0)      # straight: anchors the face
+    collect, diags = _collect_lines([face, cap, post])
+    lines = {h: (x0, y0, x1, y1) for h, x0, y0, x1, y1 in collect.wall_lines}
+    snapped = {d.source_entity_handles[0]: d.context for d in diags
+               if d.code == "tarch_wall_axis_snapped"}
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags)
+    assert len(snapped) == 2                      # the face and the cap
+
+    face_handle = next(h for h, c in snapped.items() if c["snapped_axis"] == "y")
+    cap_handle = next(h for h, c in snapped.items() if c["snapped_axis"] == "x")
+    assert snapped[face_handle]["anchor_end"] == "p1"
+    assert snapped[cap_handle]["anchor_reason"] == "anchor_choice_not_representable"
+
+    # the face was anchored about its RIGHT end -> its const is the right y
+    face_line = lines[face_handle]
+    assert face_line[1] == face_line[3] == pytest.approx(1003.0)
+    # ⭐ and the cap's shared (top) endpoint FOLLOWED it, ⛔ instead of staying
+    # at the pre-flattening 1000.0 -- i.e. the corner closes at 0.
+    cap_line = lines[cap_handle]
+    assert max(cap_line[1], cap_line[3]) == pytest.approx(1003.0)
+    assert max(cap_line[1], cap_line[3]) == face_line[1]
+
+
+# =========================================================================== #
+# ⭐⭐⭐ G-c-6 -- ONE FIXTURE PER TIER, each with BOTH sides of its boundary.
+#
+# ⛔ WHY THIS SECTION IS THE HEAVIEST PART OF THE UNIT: the corpus contains
+# ZERO real slants (measured sweep: 1 degenerate / 262 exact / 314 float-noise /
+# 3 skew / 0 slants).  ⇒ tiers 2 and 3 -- the REFUSING directions -- have no
+# natural specimen at all, so without synthetic fixtures the new ladder would
+# be toothless in precisely the direction that matters.
+# =========================================================================== #
+def _tier_of(diags) -> int:
+    """0 = nothing recorded; else the ladder tier the record names."""
+    for d in diags:
+        if d.code in ("tarch_wall_axis_snapped", "tarch_wall_nonorthogonal"):
+            return int(d.context["ladder_tier"])
+    return 0
+
+
+def test_gc6_tier0_boundary_at_q_noise_is_not_recorded_at_all():
+    """⭐ Both sides of ``q`` = 0.1 mm.  ⛔ Under it there must be NO record of
+    any kind: quantization erases the deviation anyway, and a 314-entry noise
+    list would drown the one entry a human should look at."""
+    #   just inside the noise floor: 0.09 mm out over 2000 mm  (q = 0.1)
+    quiet, diags_quiet = _collect_anchored(2000.0, 0.09)
+    assert _tier_of(diags_quiet) == 0
+    assert [d.code for d in diags_quiet] == []
+    assert len(_face_lines_of(quiet)) == 1
+    #   just outside it: 0.11 mm -- now it is a tier-1 admission WITH a record
+    loud, diags_loud = _collect_anchored(2000.0, 0.11)
+    assert _tier_of(diags_loud) == 1
+    assert _admission(diags_loud)["minor_leg_mm"] == pytest.approx(0.11)
+    assert len(_face_lines_of(loud)) == 1
+
+
+def test_gc6_tier1_boundary_is_cap_on_a_long_stroke():
+    """⭐ Both sides of the tier-1 ceiling where CAP binds.  2000 mm run,
+    corpus CAP = 30 mm."""
+    cap = _cap_mm(CORPUS_THICKNESS_M)
+    inside, diags_in = _collect_anchored(2000.0, cap)          # exactly at CAP
+    assert _tier_of(diags_in) == 1
+    assert len(_face_lines_of(inside)) == 1
+    assert _admission(diags_in)["deviation_limit_mm"] == pytest.approx(cap)
+    outside, diags_out = _collect_anchored(2000.0, cap + 0.1)   # one q past it
+    assert _tier_of(diags_out) == 2
+    assert _face_lines_of(outside) == []
+    assert _refusal(diags_out)["refused_by"] == ["deviation_over_cap"]
+
+
+def test_gc6_tier1_boundary_is_the_angle_on_a_short_stroke():
+    """⭐ Both sides of the tier-1 ceiling where the ANGLE binds instead --
+    the other side of the crossing at ``CAP / tan5°`` = 343 mm.  100 mm run:
+    the ceiling is 100·tan5° = 8.75 mm, far under the 30 mm CAP."""
+    limit = tn._axis_snap_deviation_limit(100.0, _cap_mm(CORPUS_THICKNESS_M),
+                                          tn.AXIS_SNAP_MAX_ANGLE_DEG)
+    assert limit == pytest.approx(8.7489, abs=1e-3)          # ⇒ the angle binds
+    inside, diags_in = _collect_anchored(100.0, 8.7)          # 4.9722°
+    assert _tier_of(diags_in) == 1 and len(_face_lines_of(inside)) == 1
+    outside, diags_out = _collect_anchored(100.0, 8.8)        # 5.0291°
+    assert _tier_of(diags_out) == 3 and _face_lines_of(outside) == []
+
+
+def test_gc6_tier2a_long_stroke_inside_the_envelope_but_over_cap():
+    """⭐⭐ THE RISK FACE OF THE 5° CHANGE, and the格 the dispatch calls out:
+    a stroke can be well inside 5° and still be asked to move a very long way,
+    because 5° of a long run is a lot of millimetres.  10 m run at 4° is
+    699 mm -- 23 CAPs.  ⛔ That must reach a human, not be flattened."""
+    over, diags_over = _collect_anchored(10_000.0, 699.0)
+    ctx = _refusal(diags_over)
+    assert _face_lines_of(over) == []
+    assert ctx["ladder_tier"] == 2
+    assert ctx["refused_by"] == ["deviation_over_cap"]
+    assert ctx["angle_deg"] == pytest.approx(3.9985, abs=1e-3)
+    assert ctx["angle_deg"] < tn.AXIS_SNAP_MAX_ANGLE_DEG     # ⭐ envelope said yes
+    assert ctx["deviation_limit_mm"] == pytest.approx(_cap_mm(CORPUS_THICKNESS_M))
+    # the just-passing side of the SAME boundary, same stroke length:
+    under, diags_under = _collect_anchored(10_000.0, 30.0)
+    assert _tier_of(diags_under) == 1 and len(_face_lines_of(under)) == 1
+
+
+def test_gc6_tier2b_both_ends_anchored_is_a_suspected_real_slant():
+    """⭐⭐ The other tier-2 door, and the one the anchor rule opens: a skew
+    stroke whose BOTH ends sit on already-straight strokes.  Then it is ⛔ not
+    a slipped endpoint -- the drawing means it to run between two settled
+    points -- so flattening it would be inventing geometry."""
+    #   a 1000 mm skew face, 5 mm out, with a straight post at EACH end
+    both = [(1000.0, 1000.0, 2000.0, 1005.0),
+            (1000.0, 1000.0, 1000.0, 900.0),
+            (2000.0, 1005.0, 2000.0, 905.0)]
+    collect, diags = _collect_lines(both)
+    refusals = [d for d in diags if d.code == "tarch_wall_nonorthogonal"]
+    assert len(refusals) == 1
+    ctx = refusals[0].context
+    assert ctx["ladder_tier"] == 2
+    assert ctx["refused_by"] == ["both_ends_anchored_suspected_true_slant"]
+    assert ctx["angle_deg"] == pytest.approx(0.2865, abs=1e-3)
+    assert ctx["minor_leg_mm"] <= ctx["cap_mm"]     # ⭐ neither limit refused it
+    assert len(collect.wall_lines) == 2             # only the two straight posts
+
+    # ⛔ THE OTHER SIDE, and the whole reason the rule says "a neighbour that is
+    # ITSELF straight": drop ONE post and the very same skew face is tier 1,
+    # anchored at the end that still has a straight neighbour.
+    one = [both[0], both[1]]
+    collect_one_post, diags_one = _collect_lines(one)
+    assert _tier_of(diags_one) == 1
+    assert _admission(diags_one)["anchor_end"] == "p0"
+    assert len(collect_one_post.wall_lines) == 2
+
+
+def test_gc6_tier2c_unanchored_and_visibly_different_goes_to_a_human():
+    """⭐⭐ The zero-threshold observability rule, BOTH sides.
+
+    Neither end anchored.  The question is only ever "do the three candidate
+    answers land on the same STORED value" -- ⛔ never "are they closer than
+    some number".
+
+      visible  : a 2000 mm face 8 mm out -> anchor-p0 / anchor-p1 / midpoint
+                 land 8 mm apart = 8 ingest cells ⇒ a person decides
+      invisible: the same shape 0.2 mm out -> all three land on ONE cell
+                 ⇒ ⛔ nobody is asked, the midpoint is taken, tier 1
+    """
+    visible, diags_visible = _collect_one(2000.0, 8.0, node_join_m=0.001)
+    ctx = _refusal(diags_visible)
+    assert visible.wall_lines == []
+    assert ctx["ladder_tier"] == 2
+    assert ctx["refused_by"] == ["anchor_undecidable_and_observable"]
+    assert len(set(ctx["anchor_candidates_stored"])) > 1
+
+    invisible, diags_invisible = _collect_one(2000.0, 0.2, node_join_m=0.001)
+    inv_ctx = _admission(diags_invisible)
+    assert len(invisible.wall_lines) == 1
+    assert inv_ctx["ladder_tier"] == 1
+    assert inv_ctx["anchor_end"] == "mid"
+    assert inv_ctx["anchor_reason"] == "anchor_choice_not_representable"
+    assert len(set(inv_ctx["anchor_candidates_stored"])) == 1
+
+
+def test_gc6_tier3_boundary_is_the_signed_five_degrees():
+    """⭐ Both sides of the user-signed envelope, on a stroke short enough that
+    CAP cannot possibly be what decides it (⇒ the flip is attributable)."""
+    inside, diags_in = _collect_anchored(200.0, 17.4)     # 4.9722°
+    assert _tier_of(diags_in) == 1 and len(_face_lines_of(inside)) == 1
+    assert _admission(diags_in)["angle_deg"] < tn.AXIS_SNAP_MAX_ANGLE_DEG
+
+    outside, diags_out = _collect_anchored(200.0, 17.6)   # 5.0291°
+    ctx = _refusal(diags_out)
+    assert _face_lines_of(outside) == []
+    assert ctx["ladder_tier"] == 3
+    assert ctx["angle_deg"] > tn.AXIS_SNAP_MAX_ANGLE_DEG
+    assert ctx["minor_leg_mm"] <= ctx["cap_mm"]      # ⭐ CAP said yes to both
+
+
+# =========================================================================== #
+# ⭐ The ladder's arithmetic, and the "no fourth threshold" invariant.
+# =========================================================================== #
+def test_gc_ladder_limit_table_matches_the_shape_the_user_asked_for():
+    """⭐ "长度越长容差应该越大一些" AND "长线上小角度已经很显眼" are BOTH true,
+    on opposite sides of the crossing at ``CAP / tan5°``.  ⛔ Measured from the
+    production helper, not from a table copied into a docstring."""
+    cap = _cap_mm(CORPUS_THICKNESS_M)
+    limit = lambda length: tn._axis_snap_deviation_limit(
+        length, cap, tn.AXIS_SNAP_MAX_ANGLE_DEG)
+    # short-stroke region: the ceiling grows LINEARLY with length
+    assert limit(120.0) == pytest.approx(10.4986, abs=1e-3)
+    assert limit(240.0) == pytest.approx(20.9973, abs=1e-3)
+    assert limit(240.0) == pytest.approx(2 * limit(120.0))
+    # the crossing, and beyond it the ceiling is flat at CAP
+    crossing = cap / math.tan(math.radians(tn.AXIS_SNAP_MAX_ANGLE_DEG))
+    assert crossing == pytest.approx(342.9, abs=0.1)
+    for length in (1000.0, 3640.0, 10_000.0):
+        assert limit(length) == pytest.approx(cap)
+    # ⇒ the EFFECTIVE angle therefore tightens automatically on long strokes
+    assert math.degrees(math.asin(limit(3640.0) / 3640.0)) == pytest.approx(0.472, abs=1e-3)
+    assert math.degrees(math.asin(limit(10_000.0) / 10_000.0)) == pytest.approx(0.172, abs=1e-3)
+
+
+def test_gc_ladder_limit_first_limb_is_subsumed_by_the_angle_envelope():
+    """⚠️ A MEASURED PROPERTY, recorded so nobody reads more into
+    ``min(len·tan5°, CAP)`` than is there: the envelope is tested FIRST, and
+    ``deviation = len·sin(angle)``, so any stroke that reaches the ceiling
+    already satisfies the first limb.  ⇒ inside the envelope the binding limb
+    is ALWAYS CAP.  The two formulations differ only on (5.0000°, 5.0191°]."""
+    boundary = math.degrees(math.asin(math.tan(math.radians(
+        tn.AXIS_SNAP_MAX_ANGLE_DEG))))
+    assert boundary == pytest.approx(5.0191, abs=1e-3)
+    for angle in (0.1, 1.0, 3.0, 4.999):
+        length = 100.0
+        deviation = length * math.sin(math.radians(angle))
+        assert deviation < length * math.tan(math.radians(tn.AXIS_SNAP_MAX_ANGLE_DEG))
+
+
+def test_gc_ingest_grid_is_tau_node_not_a_fourth_threshold():
+    """⭐⭐⭐ THE "no fourth threshold" LOCK.  The observability rule rounds its
+    three candidates onto the facts layer's 1 mm ingest grid, and the converter
+    reaches that grid as ``tau_node`` -- ``q``'s own parent, ⛔ not a new
+    number.  The two definitions live in two modules; this makes their equality
+    a CHECKED invariant instead of a coincidence that silently rots.
+    """
+    from src.agent.judge.as_measured import (INGEST_RESOLUTION_UNITS,
+                                             UNITS_PER_METRE)
+    facts_grid_m = INGEST_RESOLUTION_UNITS / UNITS_PER_METRE
+    tols = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=0.001,
+                    topo_area_m2=1e-6)
+    assert tols.ingest_grid_native == pytest.approx(facts_grid_m / 0.001)
+    assert tols.ingest_grid_native == tols.node_join_native
+    assert tols.quant_native == pytest.approx(tols.ingest_grid_native / 10.0)
+
+
+def test_gc_the_ladder_holds_exactly_three_numbers():
+    """⛔ The unit's hard constraint, made executable: ``q`` (derived), ``CAP``
+    (derived per request) and ``5.0°`` (user-signed).  A fourth module-level
+    threshold in this file's snap surface is the thing to catch."""
+    assert tn.AXIS_SNAP_MAX_ANGLE_DEG == 5.0
+    #: ⭐ PUBLIC module-level numbers only: a leading underscore marks the two
+    #: unrelated internals (a DXF header epoch and a z-band equality guard),
+    #: ⛔ neither of which the snap surface reads.
+    module_numbers = {name for name, value in vars(tn).items()
+                      if name.isupper() and not name.startswith("_")
+                      and isinstance(value, (int, float))
+                      and not isinstance(value, bool)}
+    assert module_numbers == {"AXIS_SNAP_MAX_ANGLE_DEG"}, sorted(module_numbers)
+    # ⭐ and CAP really is per-request, ⛔ not on the module or on ``_Tols``:
+    assert not any("cap" in name.lower() for name in vars(tn) if name.isupper())
+    assert "cap" not in " ".join(f.name for f in dataclasses.fields(tn._Tols)).lower()
