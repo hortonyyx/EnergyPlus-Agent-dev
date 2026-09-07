@@ -160,3 +160,98 @@ as_drawn 版**故意不读**、改钉 `_resolve_facade_flip_fields(None)` 的默
 2. ⭐ **每完成一段就提交** —— 上一轮 T3 段没执行分段提交纪律，634 行差点全丢。
 3. 总验收不变：**一串命令序列，从 `0_reading` 到出分，全程标准入口、零现场手写脚本，
    逐字写进交件、任何人照抄能重跑。**
+
+---
+
+# 附录 A · 全量读数 + 两处主控自更正（2026-09-07 主控实测，晚于正文）
+
+## A.1 全量：**3 failed / 4006 passed / 2 skipped / 13 xfailed**（512 s，`-n 6`）
+
+树 = `/tmp/w1_flow_glm` @ `9d79dfe7`；自检 `src.agent.__file__` 落在本树内。
+主线基线是 **4009 全绿** ⇒ `4006 + 3 = 4009`，**正好三条翻红，零条消失**。
+
+⭐ **三条全是本抢救件造成的，且三条全是真红 —— 没有一条是假红。**逐条查因：
+
+### RED-1 `test_b2_multifloor_assembly::test_wiring_feeds_the_derived_z_into_the_chain`
+
+```
+src/agent/pipeline.py:1727: raw = (Path(run.vector_dir) / run.product_filename).read_bytes()
+E  FileNotFoundError: 'v0/p0.json'
+```
+
+表面是「既有测试用的假路径不存在」，⭐ **但它撞出的是一处设计问题，见 A.3 的 BLK-E。**
+
+### RED-2 `test_gt_discipline::test_executors_do_not_reference_gt`
+
+```
+E  executors / gate① capstone must not reference gt:
+   ["src/agent/correction/multifloor.py: contains 'tarch_normalize'"]
+```
+
+`multifloor.py:444` 的注释里写了 gt 侧模块名 `tarch_normalize._axis_snap_cap_native`，
+而全仓有一条硬纪律：**执行侧文件不许引用 gt**（连注释里都不行）。
+
+⚠️ **这一条有我的责任**：BLK-1 要求「引用同日阶梯的先例」，席位就把 gt 侧的模块名抄进了
+执行侧代码。⇒ 修法是**描述那条先例的语义**（「半个最薄声明墙厚」）而**不点名 gt 侧模块**。
+
+### RED-3 `test_mep_idd_field_alignment::test_b2_prescan_reproduction`
+
+```
+E  Failed: sm25-L_anchor/run_t1_legacy_full: tracked but not classified in prescan fixture table
+```
+
+T1（`67d4bdd0`）把一份新的 e2e run **提交进了版本库**（主线无此目录 ⇒ 分支新增），
+而该锁要求**每一份被跟踪的 `4_mep` 产物都必须在 prescan 表里有分类**。
+⇒ **锁按设计工作了**：新增产物没登记入账 = 红。修法是补登记，⛔ 不是放宽锁。
+
+## A.2 ⛔ 两处**主控自更正**（正文里那两个数是【转引】的，不是【量】的）
+
+### 更正 1 · 余量不是 1.7~3×，实测是 **1.43×**
+
+正文 §一 写「实测残差 7~12 mm ⇒ 余量 1.7~3×」—— 那个 7~12 mm 是**转引施工方交件**的。
+我拿探针产物**自己量**了门真正比较的那个量（对称 Hausdorff）：
+
+```
+原始环 94 vs 86: 2f→1f 12.6500 mm | 1f→2f 14.4335 mm | 对称 14.4335 mm ✅ 在容差内
+角点环  8 vs  8: 2f→1f  7.4500 mm | 1f→2f 14.4335 mm | 对称 14.4335 mm ✅ 在容差内
+容差 20.6435 mm ⇒ 余量 1.43×
+```
+
+⚠️ **1.43× 是薄的。** 换一份标定一致性稍差的图，这一步就会 `refused`、整跑变红。
+⛔ 这不是缺陷（拒绝路径本来就该在那），但**是一条要登记的风险**：
+容差由两图各自的标定残差决定，而**那两个量与「两图实际差多少」没有因果绑定** ——
+它们同源但不同量。⇒ 建议 T3 后补一条：**吸附读数（对称 Hausdorff / 容差）落进账本**，
+这样余量变薄是**可观测的**，⛔ 不是等到某天突然红了才发现。
+
+⭐ 同型 [[verify-the-number-before-writing-it-into-a-load-bearing-place]]：
+**审阅稿里的数也是承重位置。** 这是我今天第二次栽在「转引施工方的数」上（第一次 = BLK-A）。
+
+### 更正 2 · `_corner_only_ring` 的无损性 —— 我独立验过了，**成立**，且比它自己声称的更强
+
+施工方注释只声称了 1 层（「94 → 8，周长 89.0625 到最后一个浮点位不变」）。
+我**两层都验**：
+
+```
+floor_1: 94 → 8 顶点 | 周长 89.0625 → 89.0625 | 浮点完全相等 True
+floor_2: 86 → 8 顶点 | 周长 88.9974 → 88.9974 | 浮点完全相等 True
+```
+
+⇒ 正文 N-1 说的「叙述滞后」**同时被这组读数坐实**：吸附拿到的确实是 **8 vs 8**，
+⛔ 不是注释里说的 94 vs 86。
+
+## A.3 ⛔ 新增阻断 BLK-E · **容差是从【第二次读盘】派生的，而不是从链真正消费的字节**
+
+`pipeline.py:1727` 在**链跑完之后**，按 `vector_dir / product_filename` **重新读一遍**
+plan 产物，用这第二次读到的字节去派生容差。而链自己消费产物时已经解析并记录了
+`projection_envelope.source_resolved_sha256`（探针产物里确有此字段）。
+
+⇒ **同一份产物被读了两次，而没有任何东西对账这两次读到的是不是同一批字节。**
+按 [[cache-in-front-of-a-gate-is-a-second-entrance]] 的形状：
+**判据前面多出一个入口，而那个入口没人看着。**
+
+⚠️ 后果不是理论上的：位移几何的容差如果来自与链**不同**的字节，
+那么「机器可以直接吸附」这个授权就建立在一份**没被验证是同一份**的声明上。
+
+**要求**：容差的派生输入改为**链自己解析出来的那份**（或最低限度：
+把第二次读到的字节 hash 与 `source_resolved_sha256` 对账，不一致即具名红）。
+⭐ 顺带这也自然修掉 RED-1 —— 那条测试之所以红，正是因为多了这条**磁盘依赖**。
