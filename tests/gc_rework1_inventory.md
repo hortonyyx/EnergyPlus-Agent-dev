@@ -17,7 +17,7 @@
 | `test_a11_gt_1mm_ingest_resolution.py::test_the_declaration_point` | 单位声明、枚举网格值、半格两侧 | 构造值独立于CAD负样本 | 无需动 |
 | `test_a11_gt_1mm_ingest_resolution.py::test_snap_is_the_identity_on_grid_values` | 单位声明、枚举网格值、半格两侧 | 构造值独立于CAD负样本 | 无需动 |
 | `test_a11_gt_1mm_ingest_resolution.py::test_snap_bankers_rounding_and_bounds` | 单位声明、枚举网格值、半格两侧 | 构造值独立于CAD负样本 | 无需动 |
-| `test_answer_compiler_profiles.py::test_1b_real_sm25_reproduces_every_projectable_form_b_zone_and_names_unsigned_na` | 原rev-13ad/ae/af及受影响房间 | 真实台账消失；在真实faces上重建三条unsigned，并由clean边依赖推导受影响集合 | 需重建负样本；T2已完成 |
+| `test_answer_compiler_profiles.py::test_1b_real_sm25_reproduces_every_projectable_form_b_zone_and_names_unsigned_na` | 原rev-13ad/ae/af及受影响房间 | 真实台账消失；在真实faces上重建三条unsigned；request名单和独立pairings钉完整性，clean边依赖推导受影响集合 | 需重建负样本；T2已完成 |
 | `test_answer_compiler_profiles.py::test_1a_fully_signed_synthetic_ledger_reproduces_the_known_target_bit_for_bit` | synthetic_signed_facts的房间、签字action、退化support反例 | 合成库存独立构造，不读取已清空真实台账 | 无需动 |
 | `test_answer_compiler_profiles.py::test_6a_axis_profile_deduplicates_a_collapsed_step_and_counterfactual_is_red` | synthetic_signed_facts的房间、签字action、退化support反例 | 合成库存独立构造，不读取已清空真实台账 | 无需动 |
 | `test_answer_compiler_profiles.py::test_6b_one_wall_support_cannot_switch_basis_mid_span` | synthetic_signed_facts的房间、签字action、退化support反例 | 合成库存独立构造，不读取已清空真实台账 | 无需动 |

@@ -14,11 +14,12 @@ from src.agent.judge.answer_compiler import (
     _merge_projected_spans,
     _support_vertices,
     read_facts_for_compilation,
+    reconcile_boundary_basis,
 )
 from src.agent.judge.as_measured import snap_to_ingest_resolution
 from src.agent.judge.gt_revisions import derive_as_signed
 from tests.test_gt_facts_staging_sm25 import _synthetic_unsigned_record
-from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
+from src.agent.judge.tarch_converter_schema import ConversionReportV1, TarchConversionRequestV1
 from tests.answer_compiler_fixtures import synthetic_signed_facts
 
 REPO = Path(__file__).resolve().parents[1]
@@ -72,6 +73,18 @@ def test_1b_real_sm25_reproduces_every_projectable_form_b_zone_and_names_unsigne
     compiler = AnswerCompiler(OutputProfile.FORM_B_EXTERIOR_SKIN)
     answer = compiler.compile(signed, ledger, request)
     assert answer.unresolved_revisions == []
+    _assert_room_inventory(answer, signed, request)
+    for defect in ("drop", "unproject"):
+        damaged = answer.model_copy(deep=True)
+        view = damaged.views[0]
+        zone = next(item for item in view.zones if item.vertices is not None)
+        if defect == "drop":
+            view.zones.remove(zone)
+        else:
+            zone.vertices = None
+            zone.edges = []
+        with pytest.raises(AssertionError):
+            _assert_room_inventory(damaged, signed, request)
     _assert_projectable_zones_match_gt(answer)
 
     handles = {"13AD", "13AE", "13AF"}
@@ -113,6 +126,29 @@ def _assert_no_unsigned_geometry(answer):
     assert answer.unresolved_revisions == [], "unsigned revisions remain"
     assert not any(record.rule == "unsigned_revision"
                    for view in answer.views for zone in view.zones for record in zone.na)
+
+
+def _assert_room_inventory(answer, signed, request):
+    """Room completeness comes from the request and independent ring audit.
+
+    Checking only surviving polygons could miss a compiler that drops rooms.
+    The request supplies ALL room identities; the stored converter report
+    reconciled against facts supplies the projectable subset independently of
+    this answer's counts and NA flags.
+    """
+    assert {view.view_id for view in answer.views} == {view.id for view in request.plan_views}
+    for view in answer.views:
+        intent = next(item.zone_intent for item in request.plan_views if item.id == view.view_id)
+        assert len(view.zones) == intent.expected_count
+        assert {zone.zone_id for zone in view.zones} == {entry.zone_id for entry in intent.entries}
+    report = ConversionReportV1.model_validate_json(
+        (SM25_GT.parent / "review" / "conversion_report.json").read_text())
+    audit = reconcile_boundary_basis(signed, report)
+    expected = {(pair.view_id, pair.converter_zone_id) for pair in audit.pairings}
+    assert expected, "independent projectable-room inventory must be nonempty"
+    actual = {(view.view_id, zone.zone_id) for view in answer.views
+              for zone in view.zones if zone.vertices is not None}
+    assert actual == expected, "projectable room inventory moved"
 
 
 def _assert_projectable_zones_match_gt(answer):
