@@ -33,8 +33,12 @@ REPO = pathlib.Path(__file__).resolve().parents[4]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from src.agent.judge.tarch_normalize import (  # noqa: E402
-    AXIS_SNAP_MAX_ANGLE_DEG, AXIS_SNAP_MAX_DEVIATION_M)
+# ⚠️ 2026-09-07 起，生产代码里 `AXIS_SNAP_MAX_DEVIATION_M`(10 mm) 已作废、
+# `AXIS_SNAP_MAX_ANGLE_DEG` 已由 1.0° 改为 5.0°（G-c 阶梯）。本脚本复现的是
+# **09-06 那一轮的读数**，它的分桶用的就是当时那两个数 ⇒ 这里写成本地常量，
+# ⛔ 不再从生产模块 import，否则脚本会跟着新口径漂移、复现不出原读数。
+AXIS_SNAP_MAX_ANGLE_DEG = 1.0        # 08-30 签、09-07 已被 5.0° 取代
+AXIS_SNAP_MAX_DEVIATION_M = 0.010    # 08-30 签、09-07 已作废
 
 SOURCES = REPO / "case_tests/test_baseline/gt_sources"
 

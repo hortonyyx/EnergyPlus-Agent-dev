@@ -9,18 +9,16 @@ only**:
   S1  coordinate quantize   ``q = tau_node/10`` (a derived value); G2 conservation
                         (quantize may denoise but never merge two coords > tau_node
                         apart); zero-length (degenerate) lines bookkept as INFO;
-                        a stroke whose two legs both exceed ``tau_axis`` is
-                        SNAPPED onto its dominant axis (short leg -> zero) when
-                        the short leg is within ``AXIS_SNAP_MAX_DEVIATION_M``
-                        (10 mm) AND the stroke's angle off-axis is within
-                        ``AXIS_SNAP_MAX_ANGLE_DEG`` (1.0°) -- ⭐ TWO gates,
-                        ANDed, both SIGNED BY THE USER 2026-08-30 (F-143,
-                        landed by F-147; ⛔ the angle gate did not exist
-                        before F-147) -- and itemised as
-                        ``tarch_wall_axis_snapped`` (INFO) carrying BOTH
-                        readings; failing EITHER gate it is still refused,
-                        as ``tarch_wall_nonorthogonal`` (BLOCK), whose
-                        context now NAMES the gate(s) that refused it
+                        an off-axis stroke is graded by the FOUR-TIER LADDER
+                        (:func:`_ladder_verdict`, user-defined 2026-09-07):
+                        tier 0 (minor leg <= ``q``) never enters the branch;
+                        tier 1 is flattened about its ANCHOR END and itemised
+                        as ``tarch_wall_axis_snapped`` (INFO); tier 2 is
+                        refused AND itemised for human arbitration; tier 3
+                        (angle > ``AXIS_SNAP_MAX_ANGLE_DEG``, 5.0°) is a
+                        genuine diagonal, refused as before.  Both refusing
+                        tiers raise ``tarch_wall_nonorthogonal`` (BLOCK)
+                        whose context NAMES the tier and the reason
   S2  wall collect + jamb-cap identification  the short cross-section lines are
                         thickness evidence kind #2 (``wall_cap_or_opening_jamb``);
                         the legal thickness *range* is a sanity bound only, never
@@ -47,21 +45,28 @@ Hard disciplines enforced here (dispatch §2 / plan §2):
      measured jamb cap or a source-bound pair of parallel WALL LINE faces; the
      [t_min, t_max] range is a sanity filter, not a source.  No
      ``DEFAULT_WALL_THICKNESS`` / ``MAX_WALL_PAIR_DISTANCE`` constant.
-  3. non-exact-orthogonal — axis-ness is decided by ``|dx|,|dy| <= tau_axis``,
-     never by float ``==`` (D: walls deviate up to 1.31e-10 mm); a stroke that
-     fails this may still be admitted by the SNAP path above rather than
-     dropped, but the decision is still a named threshold, never a re-run of
-     float ``==``.
+  3. non-exact-orthogonal — axis-ness is decided against ``q``, never by float
+     ``==`` (D: walls deviate up to 1.31e-10 mm); a stroke that fails this may
+     still be admitted by the LADDER above rather than dropped, but the
+     decision is still a named, derived quantity, never a re-run of float
+     ``==``.  ⭐ Until 2026-09-07 the ladder's entrance read ``tau_axis``
+     (1 mm) while the downstream face-line classifier read exact equality;
+     a stroke between the two (measured: exactly one in the whole corpus,
+     13AF at 0.1915 mm) was refused by BOTH and vanished.  ``q`` is the real
+     noise floor, and it is what the entrance reads now.
   4. no fabricated tolerance — every threshold is read from ``judge_gt.yaml`` via
      :func:`resolve_converter_tooling`; the quantization step is derived
-     (``tau_node/10``), not a config key.  ⛔ ONE declared exception:
-     ``AXIS_SNAP_MAX_DEVIATION_M`` and ``AXIS_SNAP_MAX_ANGLE_DEG`` are
-     plain module constants, not ``judge_gt.yaml`` keys — deliberately.
-     Their VALUES are signed (user, 2026-08-30, F-143/F-147), but signing a
-     value is not the same act as admitting a KEY into that schema: its
-     serialized form is baked into every already-signed gt.json's content
-     hash, so a new key there retroactively invalidates signed answers (see
-     the constants' own docstrings for the empirical proof).
+     (``tau_node/10``), not a config key.  The ladder introduces NO new
+     configuration: its deviation ceiling ``CAP`` is derived PER REQUEST from
+     that request's own ``wall_thickness_range_m[0]`` (:func:`_axis_snap_cap_
+     native`) and its observability grid is ``tau_node``.  ⛔ ONE declared
+     exception: ``AXIS_SNAP_MAX_ANGLE_DEG`` is a plain module constant, not a
+     ``judge_gt.yaml`` key — deliberately.  Its VALUE is signed (user,
+     2026-09-07, superseding 2026-08-30's 1.0°), but signing a value is not
+     the same act as admitting a KEY into that schema: its serialized form is
+     baked into every already-signed gt.json's content hash, so a new key
+     there retroactively invalidates signed answers (see the constant's own
+     docstring for the empirical proof).
   5. gt isolation — this module is judge-side.  Tianzheng layer names, block-name
      prefixes and the view-frame convention are read ONLY from the request's
      :class:`TarchDialectRulesV1` / selectors, never from a module constant.
@@ -100,79 +105,75 @@ from .tarch_converter_schema import (
     compute_source_map_sha256, derive_quantization_step,
     diagnostic_spec)
 
-#: ⭐⭐⭐ SIGNED BY THE USER 2026-08-30 (F-143 → landed by F-147).
-#: ⛔ No longer a placeholder: the user was shown the distribution and the
-#: risk (below) and chose these two values verbatim -- "签，角度调到 1 度吧".
+#: ⭐⭐⭐ SIGNED BY THE USER 2026-09-07, superseding the 1.0° signed
+#: 2026-08-30 (F-143 → landed by F-147).  Verbatim: "长度越长容差应该越大一些…
+#: 最大定到 5 度吧" and "按阶梯定一个方案，综合长度和角度；超出的才升级到需要
+#: 人签字的仲裁".
 #:
-#: What it decides: once a collected wall-line stroke's two legs (|dx|, |dy|)
-#: BOTH exceed ``tau_axis`` (``dxf_axis_alignment_tolerance_m``, 1 mm -- i.e. it
-#: is not already axis-aligned within measurement noise), this value is the
-#: FIRST of TWO gates (see ``AXIS_SNAP_MAX_ANGLE_DEG`` for the second, and
-#: ``_collect_walls`` for the AND) between "drawn crooked" (admit: snap the
-#: SHORT leg to zero, see ``_snap_short_leg_to_axis``) and "a real diagonal
-#: line" (still refused, unchanged ``tarch_wall_nonorthogonal`` BLOCK + drop).
+#: What it decides: it is the OUTER ENVELOPE of the ladder
+#: (:func:`_ladder_verdict`).  A stroke whose off-axis angle exceeds it is a
+#: GENUINE DIAGONAL (tier 3) -- refused as ``tarch_wall_nonorthogonal``
+#: (BLOCK) and dropped, exactly as before.  Everything at or under it is a
+#: candidate for automatic flattening (tier 1) or for human arbitration
+#: (tier 2); which of the two is decided by ``CAP`` and by the anchor-end
+#: rule, ⛔ neither of which is a new threshold (see
+#: :func:`_axis_snap_cap_native` and :func:`_anchor_end`).
 #:
-#: ⭐ Why it exists as a SEPARATE constant and not a new key on
-#: ``judge_gt.yaml`` / ``GtExtractionTolerancesV1``: EMPIRICALLY VERIFIED
-#: (②-1b-S execution report) that adding even an OPTIONAL field with a
-#: default to that schema flips ``gt_hash_content_mismatch`` on the real
-#: SIGNED ``sm25-L_anchor/gt.json`` -- that schema's serialized form is baked
-#: into every already-signed gt.json's ``content_sha256``.  Signing the VALUE
-#: (what the user did) is not the same act as admitting the KEY into that
-#: trust root (which would invalidate already-signed hashes), so it stays
-#: here, exactly as ``MERGE_M`` in ``as_drawn/denominator.py`` is a plain
-#: declared module constant rather than a ``judge_gt.yaml`` key.
-#:
-#: ⭐ Evidence the user was shown before signing: the only two instances in
-#: the whole in-scope corpus (sm24_anchor signed, sm25-L_anchor signed,
-#: sm25-L_anchor as-received -- ``sm21_anchor`` ships no ``request.json`` and
-#: is not converted through this path at all, see
-#: ``tests/test_affine_magnitude_gate.py::UNSIGNED_ANCHORS``) are sm25
-#: as-received ``plan-F1`` handles 13AD (minor leg 5.8084 mm, 0.091°) and
-#: 13AE (5.8087 mm, 0.091°) -- one physical drafting slip, two faces.
-#: 10 mm admits both with margin and is a round 0.1 mm-grid number.
-AXIS_SNAP_MAX_DEVIATION_M = 0.010
-
-#: ⭐⭐⭐ SIGNED BY THE USER 2026-08-30 (F-143 → landed by F-147) -- the SECOND
-#: admission gate, ANDed with ``AXIS_SNAP_MAX_DEVIATION_M`` in ``_collect_walls``.
-#:
-#: ⭐⭐ Why an ANGLE gate had to exist at all, and why tightening the
-#: millimetre one could not substitute for it: **the same millimetre number
+#: ⭐⭐ Why an ANGLE and not a millimetre count: **the same millimetre number
 #: means a ~120x different angle depending on the stroke's length**.  6 mm on
 #: the 3640 mm stroke 13AD is 0.094° (obvious hand-tremor); 6 mm on a 30 mm
-#: stroke is 11.310° (an unmistakable diagonal).  An absolute-millimetre
-#: threshold is therefore the WRONG SHAPE for this decision: it is
-#: simultaneously too permissive on long strokes (a gentle slant sails
-#: through) and too twitchy on short ones.  The angle gate is the dimension
-#: the millimetre gate structurally cannot see.  ⛔ That is why this is a new
-#: gate rather than a smaller value for the old one.
+#: stroke is 11.310° (an unmistakable diagonal).  Measuring the ANGLE is also
+#: what makes the user's "容差随长度增长" come out for free: the admissible
+#: deviation is ``length · tan(angle)``, which grows with length by
+#: construction -- ⛔ no second, length-dependent formula is needed.
 #:
-#: ⛔⛔ SIGNED RESIDUAL RISK, recorded because it is real and was accepted
-#: with full knowledge, ⛔ NOT because it is believed to be correct:
-#: **1.0° admits the cross-reviewer's 0.39° gently-slanted wall**.  That
-#: negative sample was built end-to-end on an as-received copy: two faces,
-#: 800 mm long, each 5.5 mm out, 120 mm apart -- both faces snap to their
-#: midlines, the pair stays exactly 120 mm apart, and the pairing step
-#: therefore MANUFACTURES a wall that does not exist on the drawing
-#: (walls 55 -> 56).  This is the same defect family as the project's 33
-#: fabricated walls.  0.25° would refuse it.  The admissible interval was
-#: only ``(0.091°, 0.394°)`` -- one real tremor on one side, one synthetic
-#: slant on the other -- and 0.25°/0.3° were recommended.  The user restated
-#: the consequence and still chose 1.0°.
-#: ⭐ The compensating control is the LAST gate: every admission emits
-#: ``tarch_wall_axis_snapped`` and the facts transport copies BOTH
-#: ``minor_leg_mm`` and ``angle_deg`` onto its corresponding itemised
-#: ``axis_snapped_lines`` row.  The signer can therefore review the two signed
-#: gate readings on the row itself instead of joining it to diagnostics by
-#: handle (F-148).
-#: See ``tests/test_tarch_converter_p1_geometry.py``'s
-#: ``..._KNOWN_SIGNED_RISK`` test for the executable form of this paragraph.
-AXIS_SNAP_MAX_ANGLE_DEG = 1.0
+#: ⛔⛔ WHAT THE 08-30 → 09-07 CHANGE COSTS, recorded because it is real and
+#: was accepted with full knowledge, ⛔ NOT because it is believed harmless:
+#: 1.0° already admitted the cross-reviewer's 0.394° gently-slanted wall (two
+#: 800 mm faces, each 5.5 mm out, 120 mm apart) -- both faces snapped, the
+#: pair stayed 120 mm apart, and the pairing step MANUFACTURED a wall that is
+#: not on the drawing.  5.0° admits a strictly WIDER band than 1.0° did, so
+#: that cost is not reduced by this change; it is bounded instead by ``CAP``,
+#: which refuses (to tier 2, for a human) any flattening that would move a
+#: face by more than half the thinnest declared wall -- i.e. far enough to
+#: change WHICH WALL the face belongs to.  On the 800 mm/5.5 mm sample the
+#: deviation is 5.5 mm, well under a 30 mm CAP, so ⛔ that sample is still
+#: admitted; see
+#: ``tests/test_tarch_converter_p1_geometry.py``'s ``..._KNOWN_SIGNED_RISK``
+#: test, which pins it at the NEW angle and is the executable form of this
+#: paragraph.
+#:
+#: ⭐ Why this stays a module constant rather than a ``judge_gt.yaml`` key:
+#: EMPIRICALLY VERIFIED (②-1b-S execution report) that adding even an
+#: OPTIONAL field with a default to ``GtExtractionTolerancesV1`` flips
+#: ``gt_hash_content_mismatch`` on the real SIGNED ``sm25-L_anchor/gt.json``
+#: -- that schema's serialized form is baked into every already-signed
+#: gt.json's ``content_sha256``.  Signing the VALUE (what the user did) is
+#: not the same act as admitting the KEY into that trust root.
+#:
+#: ⭐ The compensating control is the LAST gate: every tier-1 admission emits
+#: ``tarch_wall_axis_snapped`` and the facts transport copies ``minor_leg_mm``,
+#: ``angle_deg``, the ladder's own ``deviation_limit_mm``, and WHICH END it
+#: was anchored about onto the itemised ``axis_snapped_lines`` row (F-148).
+AXIS_SNAP_MAX_ANGLE_DEG = 5.0
+
+#: ⛔⛔ ``AXIS_SNAP_MAX_DEVIATION_M = 0.010`` (10 mm) WAS HERE AND IS RETIRED
+#: (user, 2026-09-07: "10mm作废吧，就都按现在的推进就行").  ⛔ Do not
+#: reintroduce it.  It was signed 2026-08-30 as an absolute millimetre
+#: ceiling, and it is mathematically incompatible with "容差随长度增长":
+#: ``10 mm / tan(5°) = 114 mm``, so on ANY stroke longer than 114 mm the 5°
+#: envelope would have been dead and the millimetre number would have kept
+#: deciding everything.  Its job -- "don't displace a face so far that it
+#: stops belonging to its own wall" -- is now done by ``CAP``
+#: (:func:`_axis_snap_cap_native`), which is DERIVED PER REQUEST from that
+#: request's declared ``wall_thickness_range_m[0]`` instead of being a
+#: module-level number, and which sends the over-cap stroke to a human
+#: (tier 2) instead of silently dropping it.
 
 
 # --------------------------------------------------------------------------- #
 # Tolerance bundle — the only thresholds, all from judge_gt.yaml
-# (+ AXIS_SNAP_MAX_DEVIATION_M above, deliberately NOT from judge_gt.yaml)
+# (+ AXIS_SNAP_MAX_ANGLE_DEG above, deliberately NOT from judge_gt.yaml)
 # --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class _Tols:
@@ -181,13 +182,12 @@ class _Tols:
     node_join_m: float           # tau_node   (quantize base, node merge)
     axis_align_m: float          # tau_axis   (orthogonality)
     topo_area_m2: float          # tau_area   (area conservation)
-    #: ⭐ Signed 2026-08-30 (F-143/F-147) — see ``AXIS_SNAP_MAX_DEVIATION_M``.
-    axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M
-    #: ⭐ Signed 2026-08-30 (F-143/F-147) — see ``AXIS_SNAP_MAX_ANGLE_DEG``.
+    #: ⭐ Signed 2026-09-07 — see ``AXIS_SNAP_MAX_ANGLE_DEG``.
     #: ⛔ Scale-free by construction: an angle needs no ``metres_per_unit``
-    #: conversion, which is precisely the property the millimetre gate lacks
+    #: conversion, which is precisely the property a millimetre gate lacks
     #: (hence no ``_native`` sibling property below).
     axis_snap_max_angle_deg: float = AXIS_SNAP_MAX_ANGLE_DEG
+
     @property
     def node_join_native(self) -> float:
         return self.node_join_m / self.metres_per_unit
@@ -197,63 +197,353 @@ class _Tols:
         return self.axis_align_m / self.metres_per_unit
 
     @property
-    def axis_snap_max_native(self) -> float:
-        return self.axis_snap_max_m / self.metres_per_unit
-
-    @property
     def quant_native(self) -> float:
         # q = tau_node / 10, expressed in the DXF native unit (mm for sm24).
         return self.node_join_native / 10.0
 
-def _tols_from(tooling, metres_per_unit: float, _legacy_unused: float | None = None,
-              *, axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M,
-              axis_snap_max_angle_deg: float = AXIS_SNAP_MAX_ANGLE_DEG) -> _Tols:
-    """⭐ Both snap thresholds are INJECTABLE keyword parameters, on purpose.
+    @property
+    def ingest_grid_native(self) -> float:
+        """⭐ The grid a coordinate is FINALLY stored on by the facts layer
+        (``as_measured.INGEST_RESOLUTION_UNITS`` / ``UNITS_PER_METRE`` =
+        10/10000 m = 1 mm), expressed in this drawing's native unit.
 
-    A test that needs to widen exactly one of the two gates passes it here and
-    exercises the real production code path.  ⛔ It must NOT monkeypatch the
+        ⛔ NOT a new threshold: it is ``tau_node`` itself (``node_join_m``),
+        and ``q`` above is ``tau_node/10`` — so this is ``q``'s own parent,
+        the coarser of the two, ⛔ not a third number.  It is used by ONE
+        decision, :func:`_anchor_candidates_are_indistinguishable`, which
+        asks "would a reader of the STORED document be able to tell these
+        candidates apart at all".  The equality of the two definitions is a
+        cross-module invariant, ⛔ not an assumption: it is locked by
+        ``tests/test_tarch_converter_p1_geometry.py``'s
+        ``test_gc_ingest_grid_is_tau_node_not_a_fourth_threshold``, which
+        goes red the day either side moves.
+        """
+        return self.node_join_native
+
+
+def _tols_from(tooling, metres_per_unit: float, _legacy_unused: float | None = None,
+              *, axis_snap_max_angle_deg: float = AXIS_SNAP_MAX_ANGLE_DEG) -> _Tols:
+    """⭐ The ladder's angle envelope is an INJECTABLE keyword parameter, on
+    purpose.
+
+    A test that needs to move exactly that gate passes it here and exercises
+    the real production code path.  ⛔ It must NOT monkeypatch the
     module-level constant instead: ``from X import Y`` binds through the PARENT
     PACKAGE attribute, not ``sys.modules``, and that mistake has already
     produced a whole band of false-red "DID NOT RAISE" in this repo.  The
     object under test provides its own injection port; ⛔ no stand-in needed.
+
+    ⭐ The ladder's OTHER limit, ``CAP``, has no keyword here on purpose: it is
+    derived per request from ``wall_thickness_range_m[0]``
+    (:func:`_axis_snap_cap_native`), so a test moves it by declaring a
+    different thickness range on the request -- which exercises the derivation
+    as well as the comparison.  ⛔ A module-level CAP would have baked the two
+    in-corpus cases' 0.06 m into a constant (invariant #6).
     """
     t = tooling.tolerances
     return _Tols(metres_per_unit=metres_per_unit,
                  node_join_m=t.dxf_node_join_tolerance_m,
                  axis_align_m=t.dxf_axis_alignment_tolerance_m,
                  topo_area_m2=t.dxf_topology_area_tolerance_m2,
-                 axis_snap_max_m=axis_snap_max_m,
                  axis_snap_max_angle_deg=axis_snap_max_angle_deg)
 
 
-def _snap_short_leg_to_axis(sx0: float, sy0: float, sx1: float, sy1: float
+#: Which endpoint's off-axis coordinate survives a tier-1 flattening.
+#: ``"p0"``/``"p1"`` = the stroke's own first/second endpoint (the ANCHOR END,
+#: chosen by :func:`_anchor_end` from the drawing's own topology);
+#: ``"mid"`` = their midpoint, used ONLY when the anchor end cannot be
+#: determined AND the choice is provably invisible in the stored document.
+AnchorEnd = Literal["p0", "p1", "mid"]
+
+
+def _snap_short_leg_to_axis(sx0: float, sy0: float, sx1: float, sy1: float,
+                            *, anchor: AnchorEnd = "mid"
                             ) -> tuple[float, float, float, float, str]:
     """Zero out the SHORT leg of a (dx, dy) pair; the LONG leg's endpoints are
     never touched.  Returns ``(sx0', sy0', sx1', sy1', snapped_axis)``.
 
-    ⛔ NOT part of the pending-sign-off threshold (dispatch ②-1b-S §二 R1's
-    "另一条设计约束" is stated as fixed, not up for signature): only WHICH
-    lines get snapped is pending; HOW a snap is done is fixed by the dispatch
-    to "snap the short leg to zero, never move the long-leg-direction
-    endpoints, never change the along-wall interval".
+    ⛔ "Snap the short leg to zero, never move the long-leg-direction
+    endpoints, never change the along-wall interval" is a fixed design
+    constraint, ⛔ not a tunable.
 
     ``snapped_axis`` names the axis whose coordinate was collapsed to one
     shared value -- "x" if x0/x1 were made equal (the wall now runs along y),
-    "y" if y0/y1 were made equal (runs along x).  The shared value is the
-    MIDPOINT of the two raw endpoints on that axis: the dispatch fixes "zero
-    the short leg" but not which of the two original values survives, and the
-    midpoint is the only symmetric choice (no arbitrary bias toward whichever
-    endpoint the DXF happened to list first) that still satisfies both fixed
-    constraints -- it moves neither long-leg-direction coordinate (so the
-    along-wall span in ``along_min``/``along_max`` is bit-for-bit unchanged)
-    and it does not touch which axis the wall runs along.
+    "y" if y0/y1 were made equal (runs along x).
+
+    ⭐⭐⭐ WHICH VALUE SURVIVES is ``anchor``, and until 2026-09-07 it was
+    unconditionally the MIDPOINT.  That was wrong, and the user named why:
+    "像这种歪线大概率是一端在 cad 的吸附问题，可能吸错了，一般是一端错，
+    不能取中点来改".  The error is CONCENTRATED AT ONE END, so averaging it
+    over both ends corrupts the end that was right.  ⛔ Measured on the one
+    real instance in the corpus: 13AD's east end reads ``100600.554`` which is
+    bit-for-bit the signed drawing's value, and the midpoint moved it to
+    ``100629.596`` -- 3.0 mm off, splitting BOTH of that wall's joints with
+    its neighbours.
+
+    ⭐ The old docstring justified the midpoint as "the only symmetric choice
+    (no arbitrary bias toward whichever endpoint the DXF happened to list
+    first)".  That reasoning weighed exactly three candidates -- first
+    endpoint / second endpoint / midpoint -- and **the endpoint shared with
+    another stroke was not among them**.  It is not arbitrary at all: it is
+    fixed by the drawing's own topology (:func:`_anchor_end`).
     """
     dx, dy = abs(sx1 - sx0), abs(sy1 - sy0)
     if dx <= dy:
-        mid_x = (sx0 + sx1) / 2.0
-        return mid_x, sy0, mid_x, sy1, "x"
-    mid_y = (sy0 + sy1) / 2.0
-    return sx0, mid_y, sx1, mid_y, "y"
+        shared_x = {"p0": sx0, "p1": sx1, "mid": (sx0 + sx1) / 2.0}[anchor]
+        return shared_x, sy0, shared_x, sy1, "x"
+    shared_y = {"p0": sy0, "p1": sy1, "mid": (sy0 + sy1) / 2.0}[anchor]
+    return sx0, shared_y, sx1, shared_y, "y"
+
+
+# --------------------------------------------------------------------------- #
+# ⭐⭐⭐ The four-tier ladder (user-defined 2026-09-07).
+#
+#   "这种正交吸附和按毫米分辨率吸附我理解是不用签字的，直接修正就可以，
+#    需要签字的是像之前上下墙体出现对齐错误的这类真『画错』问题"
+#   "长度越长容差应该越大一些…最大定到 5 度吧"  (长度 = the skew stroke's OWN
+#    total length, ⛔ not the deviation distance)
+#   "按阶梯定一个方案，综合长度和角度；超出的才升级到需要人签字的仲裁"
+#
+#   tier 0  deviation <= q                      quantization erases it anyway
+#                                               ⇒ ⛔ never enters the branch,
+#                                                 ⛔ never recorded
+#   tier 1  deviation <= min(len·tan5°, CAP)    machine flattens it about the
+#           AND an anchor end is decidable      anchor end; ⛔ NO signature
+#   tier 2  angle <= 5° but deviation > CAP;    refused AND itemised for a
+#           or the anchor end is undecidable    HUMAN to arbitrate
+#           and that choice is VISIBLE
+#   tier 3  angle > 5°                          a real diagonal, refused as
+#                                               before (⛔ not arbitration --
+#                                               it is not "suspected drawing
+#                                               error", it IS a diagonal)
+#
+# ⭐ Exactly THREE numbers exist in the whole ladder and ⛔ none of them is new:
+#   q     = tau_node/10   (``_Tols.quant_native``, already the quantize step)
+#   CAP   = half the request's own thinnest declared wall  (per request)
+#   5.0°  = ``AXIS_SNAP_MAX_ANGLE_DEG``                     (user-signed)
+# --------------------------------------------------------------------------- #
+def _axis_snap_cap_native(request: TarchConversionRequestV1, tols: _Tols) -> float:
+    """``CAP`` -- the ladder's absolute deviation ceiling, in native units.
+
+    ⭐⭐ DERIVED PER REQUEST from that request's own declared
+    ``wall_thickness_range_m[0]``: half the THINNEST wall the request says the
+    drawing contains.  ⛔ Deliberately NOT a module constant: both in-corpus
+    requests happen to declare ``0.06`` today, and writing ``30 mm`` here
+    would bake that coincidence into the converter (invariant #6 -- ⛔ no
+    baked building assumption).
+
+    ⭐ What the semantic is, and why half a wall and not some round number:
+    the flattening MOVES A FACE.  Move it by more than half the thinnest wall
+    and the face can cross its own wall's centreline -- at which point the
+    question is no longer "how do I straighten this line" but "WHICH WALL DOES
+    THIS FACE BELONG TO", i.e. a change of design, ⛔ not a change of
+    representation.  That is a decision for a human (tier 2), which is exactly
+    where a stroke over this ceiling is sent.
+
+    ⛔ It is NOT a noise floor (that is ``q``) and ⛔ NOT an envelope (that is
+    the angle).  It is the point past which flattening stops being lossless in
+    the only sense that matters downstream: wall membership.
+    """
+    return (request.wall_thickness_range_m[0] / 2.0) / tols.metres_per_unit
+
+
+def _axis_snap_deviation_limit(length_native: float, cap_native: float,
+                               max_angle_deg: float) -> float:
+    """Tier 1's deviation ceiling for a stroke of this length:
+    ``min(length · tan(max_angle), CAP)``.
+
+    ⭐ The first limb is where the user's "长度越长容差应该越大一些" comes
+    from -- and it comes for free, because measuring an ANGLE already means
+    the admissible deviation scales with length.  ⛔ No separate
+    length-dependent formula is needed or wanted.
+
+    ⭐ The two limbs cross at ``CAP / tan(max_angle)`` (30 mm / tan 5° =
+    343 mm with today's requests).  Below that length the ANGLE decides and
+    the ceiling grows linearly; above it ``CAP`` decides and the EFFECTIVE
+    angle tightens automatically (5.000° at 0.12 m, 0.472° at 3.64 m,
+    0.172° at 10 m).  Both of the user's two statements -- "longer ⇒ more
+    tolerance" and "on a long wall even a small angle is glaring" -- are
+    therefore true at once, on different sides of that crossing.
+
+    ⚠️ MEASURED PROPERTY, recorded so nobody reads more into the first limb
+    than is there: :func:`_ladder_verdict` refuses ``angle > max_angle``
+    BEFORE consulting this ceiling, and ``deviation = length·sin(angle)``, so
+    for every stroke that reaches here ``deviation <= length·sin(max_angle) <
+    length·tan(max_angle)`` already holds.  ⇒ once inside the envelope, the
+    binding limb is ALWAYS ``CAP``.  The first limb is kept because it is the
+    ladder's shape as the user defined it and because it is what makes the
+    crossing point computable; it is ⛔ not dead weight, but it is ⛔ not the
+    thing that refuses anything either.  The two forms differ only on
+    ``(5.0000°, 5.0191°]`` -- see
+    ``test_gc_ladder_limit_first_limb_is_subsumed_by_the_angle_envelope``.
+    """
+    return min(length_native * math.tan(math.radians(max_angle_deg)), cap_native)
+
+
+def _stroke_is_already_axial(sx0: float, sy0: float, sx1: float, sy1: float,
+                             q: float) -> bool:
+    """Is this stroke axis-aligned as far as the pipeline is concerned?
+
+    ⭐ Defined as "it does not enter the ladder at all", i.e. its minor leg is
+    at or under the quantization step ``q``.  ⛔ Deliberately the SAME test
+    the ladder's entrance uses, so the two can never disagree about what
+    "already straight" means -- an orthogonal neighbour is exactly a stroke
+    the ladder has no opinion about.
+    """
+    return min(abs(sx1 - sx0), abs(sy1 - sy0)) <= q
+
+
+def _anchor_end(handle: str, p0: tuple[float, float], p1: tuple[float, float],
+                axial_neighbours_at: dict[tuple[int, int], set[str]],
+                q: float) -> tuple[AnchorEnd | None, str]:
+    """⭐⭐⭐ WHICH END WAS DRAWN RIGHT -- from the drawing's own topology,
+    ⛔ zero parameters.
+
+    User's domain reading (2026-09-07): "像这种歪线大概率是一端在 cad 的吸附
+    问题，可能吸错了，一般是一端错，不能取中点来改".  If one end failed to
+    snap in the CAD editor, the OTHER end did snap -- and a snapped end is
+    visible as a shared endpoint with another stroke.
+
+    **The rule**: an end is ANCHORED iff it shares its point with another
+    stroke that is ITSELF already axial.
+
+    ⛔⛔ "itself already axial" cannot be dropped.  MEASURED: without it,
+    13AD's west end also qualifies (its neighbour 13AF shares the point) and
+    the rule degenerates to "both ends anchored" -- an answer, but the wrong
+    one, since 13AF is part of the same crooked wall.  With it the answer is
+    unique on all three real strokes.
+
+    Returns ``(anchor, reason)`` where ``anchor`` is ``"p0"``/``"p1"`` when
+    exactly one end is anchored and ``None`` when zero or both are (the
+    ``reason`` string names which of those two it was -- ⛔ they are
+    different situations and lead to different ladder tiers).
+
+    ⭐ Endpoint coincidence is decided on the ``q`` grid -- the converter's own
+    node identity, ⛔ not a new tolerance.
+    """
+    def key(point: tuple[float, float]) -> tuple[int, int]:
+        return (round(point[0] / q), round(point[1] / q))
+
+    at_p0 = axial_neighbours_at.get(key(p0), frozenset()) - {handle}
+    at_p1 = axial_neighbours_at.get(key(p1), frozenset()) - {handle}
+    if at_p0 and not at_p1:
+        return "p0", "p0_shares_a_point_with_an_already_axial_stroke"
+    if at_p1 and not at_p0:
+        return "p1", "p1_shares_a_point_with_an_already_axial_stroke"
+    if at_p0 and at_p1:
+        return None, "both_ends_anchored"
+    return None, "neither_end_anchored"
+
+
+def _anchor_candidates_are_indistinguishable(sx0: float, sy0: float,
+                                             sx1: float, sy1: float,
+                                             q: float, ingest_grid: float
+                                             ) -> tuple[bool, list[float]]:
+    """⭐⭐⭐ "Would anybody be able to SEE which end we anchored?" -- ⛔ a
+    zero-threshold test, ⛔ not a comparison against a tolerance.
+
+    Takes the three candidate surviving off-axis coordinates (anchor p0 /
+    anchor p1 / midpoint), pushes each through the SAME two-step chain a real
+    coordinate walks -- quantize to ``q``, then snap to the facts layer's
+    1 mm ingest grid -- and asks whether all three land on the SAME stored
+    value.  If they do, the choice between them is not representable in the
+    document at all, so ⛔ there is no reason to escalate it to a person; the
+    midpoint (the symmetric choice) is taken and the stroke stays in tier 1.
+
+    ⭐ The converse matters just as much and is why this is not a loophole:
+    on a LONG stroke the same ambiguity IS visible (13AD's east anchor vs its
+    midpoint differ by 3.0 mm = 30 ingest cells), and such a stroke is
+    escalated.  One rule, no threshold, and it separates "a choice nobody can
+    observe" from "a choice that changes the answer" by itself.
+
+    ⛔ It is deliberately NOT written as ``|a - b| < something``: a tolerance
+    would be a fourth number nobody signed, and it would be measuring a proxy
+    (how far apart the candidates are) instead of the thing being guarded
+    (whether the product can tell them apart).
+
+    Returns ``(indistinguishable, stored_values)``; ``stored_values`` is
+    itemised onto the record so the claim is auditable, ⛔ not just asserted.
+    """
+    dx, dy = abs(sx1 - sx0), abs(sy1 - sy0)
+    raw = ((sx0, sx1) if dx <= dy else (sy0, sy1))
+    candidates = [raw[0], raw[1], (raw[0] + raw[1]) / 2.0]
+    stored = [_quantize(_quantize(value, q), ingest_grid) for value in candidates]
+    return len(set(stored)) == 1, stored
+
+
+@dataclass(frozen=True)
+class _LadderVerdict:
+    """One stroke's place on the ladder.  ``tier`` is 1/2/3 (tier 0 never
+    reaches here -- it does not enter the branch)."""
+    tier: int
+    reason: str
+    anchor: AnchorEnd | None
+    minor_leg: float
+    major_leg: float
+    length: float
+    angle_deg: float
+    deviation_limit: float
+    cap: float
+    stored_candidates: list[float] | None = None
+
+
+def _ladder_verdict(handle: str, sx0: float, sy0: float, sx1: float, sy1: float,
+                    *, tols: _Tols, cap_native: float,
+                    axial_neighbours_at: dict[tuple[int, int], set[str]]
+                    ) -> _LadderVerdict | None:
+    """Grade one off-axis stroke on the four-tier ladder.  ``None`` = tier 0
+    (the stroke never enters the branch -- ⛔ no record, nothing happens).
+
+    ⭐ The order of the tests is load-bearing and is the ladder's own order:
+    envelope first (is this even plausibly a drafting slip?), then ceiling
+    (is straightening it still a representation change?), then the anchor
+    (do we know which end to keep?).
+    """
+    q = tols.quant_native
+    dx, dy = abs(sx1 - sx0), abs(sy1 - sy0)
+    minor_leg, major_leg = min(dx, dy), max(dx, dy)
+    length = math.hypot(dx, dy)
+    # tier 0 -- at or under the quantization step there is nothing to decide:
+    # ⭐ this ALSO covers the degenerate stroke (length < q has no direction at
+    # all, and ``atan2(noise, noise)`` would invent one -- measured: 13DC's two
+    # endpoints are 1.2e-10 mm apart and a naive probe called it a 3.47° slant).
+    if minor_leg <= q or length <= q:
+        return None
+    angle_deg = math.degrees(math.atan2(minor_leg, major_leg))
+    limit = _axis_snap_deviation_limit(length, cap_native,
+                                       tols.axis_snap_max_angle_deg)
+    common = dict(minor_leg=minor_leg, major_leg=major_leg, length=length,
+                  angle_deg=angle_deg, deviation_limit=limit, cap=cap_native)
+    # tier 3 -- outside the user-signed envelope: a real diagonal, ⛔ not a
+    # drafting slip, ⛔ not an arbitration candidate.
+    if angle_deg > tols.axis_snap_max_angle_deg:
+        return _LadderVerdict(tier=3, reason="angle_beyond_envelope",
+                              anchor=None, **common)
+    # tier 2a -- inside the envelope but the move would exceed half the
+    # thinnest declared wall ⇒ it could change wall membership ⇒ a human.
+    if minor_leg > limit:
+        return _LadderVerdict(tier=2, reason="deviation_over_cap",
+                              anchor=None, **common)
+    anchor, anchor_reason = _anchor_end(handle, (sx0, sy0), (sx1, sy1),
+                                        axial_neighbours_at, q)
+    if anchor is not None:
+        return _LadderVerdict(tier=1, reason=anchor_reason, anchor=anchor, **common)
+    # tier 2b -- BOTH ends are anchored to already-straight strokes.  Then the
+    # stroke is not a slipped endpoint at all: it is a line the drawing means
+    # to run between two settled points.  ⛔ Do not flatten it; a human decides.
+    if anchor_reason == "both_ends_anchored":
+        return _LadderVerdict(tier=2, reason="both_ends_anchored_suspected_true_slant",
+                              anchor=None, **common)
+    # neither end anchored -- ask whether the choice is even observable.
+    indistinguishable, stored = _anchor_candidates_are_indistinguishable(
+        sx0, sy0, sx1, sy1, q, tols.ingest_grid_native)
+    if indistinguishable:
+        return _LadderVerdict(tier=1, reason="anchor_choice_not_representable",
+                              anchor="mid", stored_candidates=stored, **common)
+    # tier 2c -- nobody can say which end is right AND the answer visibly
+    # differs.  ⛔ Guessing here is exactly the midpoint mistake, one level up.
+    return _LadderVerdict(tier=2, reason="anchor_undecidable_and_observable",
+                          anchor=None, stored_candidates=stored, **common)
 
 
 # --------------------------------------------------------------------------- #
@@ -503,12 +793,13 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
                    clip: tuple[float, float, float, float], tols: _Tols,
                    diags: list[ConversionDiagnosticV1]) -> _WallCollect:
     q = tols.quant_native
-    tau_axis = tols.axis_align_native
     wall_layers = set(plan_view.wall_selector.layers)
     wall_types = set(plan_view.wall_selector.entity_types)
     # wall thickness sanity range (native units); a FILTER, never a thickness source.
     t_min = request.wall_thickness_range_m[0] / tols.metres_per_unit
     t_max = request.wall_thickness_range_m[1] / tols.metres_per_unit
+    # ⭐ the ladder's ceiling, DERIVED from this request (⛔ never a constant).
+    cap_native = _axis_snap_cap_native(request, tols)
 
     wall_lines: list[tuple[str, float, float, float, float]] = []
     wall_line_layers: dict[str, str] = {}
@@ -521,6 +812,13 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
     source_x: dict[float, list[float]] = {}
     source_y: dict[float, list[float]] = {}
 
+    # ⭐⭐ PASS 1 -- gather the in-frame strokes RAW.  The ladder's anchor-end
+    # rule is a statement about the drawing's TOPOLOGY ("which of my two ends
+    # is shared with a stroke that is itself straight"), so ⛔ it cannot be
+    # answered while looking at one entity at a time.  Iteration order is
+    # preserved into pass 2 so ``wall_lines`` comes out in exactly the order
+    # it did before, bit for bit.
+    staged: list[tuple[str, str, float, float, float, float]] = []
     for e in msp:
         if e.dxf.layer not in wall_layers:
             continue
@@ -538,47 +836,54 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
         if not (_point_strictly_inside(sx0, sy0, clip) and _point_strictly_inside(sx1, sy1, clip)):
             continue
         all_handles.add(e.dxf.handle)
-        # S1 orthogonality (non-exact): both legs > tau_axis means the stroke
-        # is not already axis-aligned within measurement noise.  ⭐ dispatch
-        # ②-1b-S R1 turned the unconditional drop into an admission decision;
-        # ⭐⭐⭐ F-147 (user sign-off 2026-08-30) makes that decision TWO GATES
-        # ANDed together, because one millimetre number means a ~120x
-        # different angle depending on stroke length (see
-        # ``AXIS_SNAP_MAX_ANGLE_DEG`` for the measured 0.094° / 11.310° pair):
-        #     admit  <=>  minor_leg <= axis_snap_max_native
-        #                 AND degrees(atan2(minor_leg, major_leg)) <= angle_max
-        # ⛔ Refusing is not silent any more: which gate said no is recorded,
-        # because two different reasons were previously collapsed into the
-        # same absence.
-        dx_raw, dy_raw = abs(sx1 - sx0), abs(sy1 - sy0)
-        snapped: tuple[tuple[float, float], tuple[float, float], str, float, float] | None = None
-        if dx_raw > tau_axis and dy_raw > tau_axis:
-            minor_leg = min(dx_raw, dy_raw)
-            major_leg = max(dx_raw, dy_raw)
-            # ⭐ Scale-free: the ratio is in native units on BOTH sides, so no
-            # ``metres_per_unit`` conversion can go missing here.
-            angle_deg = math.degrees(math.atan2(minor_leg, major_leg))
-            mm_gate_ok = minor_leg <= tols.axis_snap_max_native
-            angle_gate_ok = angle_deg <= tols.axis_snap_max_angle_deg
-            if mm_gate_ok and angle_gate_ok:
-                before_p0, before_p1 = (sx0, sy0), (sx1, sy1)
-                sx0, sy0, sx1, sy1, snapped_axis = _snap_short_leg_to_axis(sx0, sy0, sx1, sy1)
-                snapped = (before_p0, before_p1, snapped_axis, minor_leg, angle_deg)
-            else:
-                # genuinely diagonal under at least one gate -- refused, as
-                # before.  ⭐ F-147 R3: the refusal now NAMES the gate(s).
-                refused_by = ([] if mm_gate_ok else ["deviation_mm"]) + \
-                             ([] if angle_gate_ok else ["angle_deg"])
-                _add(diags, _diag("tarch_wall_nonorthogonal",
-                                  handles=[e.dxf.handle],
-                                  points_dxf_mm=[(sx0, sy0), (sx1, sy1)],
-                                  context={"refused_by": refused_by,
-                                           "minor_leg_mm": minor_leg,
-                                           "major_leg_mm": major_leg,
-                                           "angle_deg": angle_deg,
-                                           "axis_snap_max_native": tols.axis_snap_max_native,
-                                           "axis_snap_max_angle_deg": tols.axis_snap_max_angle_deg}))
-                continue
+        staged.append((e.dxf.handle, e.dxf.layer, sx0, sy0, sx1, sy1))
+
+    # ⭐⭐ Between the passes -- the anchor-end rule's one input: for every
+    # point on the ``q`` grid, which ALREADY-AXIAL strokes touch it.  ⛔ The
+    # "already axial" half is what keeps the rule from degenerating (see
+    # :func:`_anchor_end`): a crooked neighbour anchors nothing.
+    axial_neighbours_at: dict[tuple[int, int], set[str]] = {}
+    for handle, _layer, sx0, sy0, sx1, sy1 in staged:
+        if not _stroke_is_already_axial(sx0, sy0, sx1, sy1, q):
+            continue
+        for point in ((sx0, sy0), (sx1, sy1)):
+            key = (round(point[0] / q), round(point[1] / q))
+            axial_neighbours_at.setdefault(key, set()).add(handle)
+
+    # ⭐⭐ PASS 2 -- grade each stroke on the ladder, then the unchanged S1/S2 body.
+    for handle, layer, sx0, sy0, sx1, sy1 in staged:
+        verdict = _ladder_verdict(handle, sx0, sy0, sx1, sy1, tols=tols,
+                                  cap_native=cap_native,
+                                  axial_neighbours_at=axial_neighbours_at)
+        snapped: tuple[tuple[float, float], tuple[float, float], str,
+                       _LadderVerdict] | None = None
+        if verdict is not None and verdict.tier != 1:
+            # tier 2 (arbitration) and tier 3 (real diagonal) are BOTH refused
+            # and dropped -- the fail-closed outcome is the same, ⛔ but the
+            # reason is not, and the record says which.  A tier-2 stroke is
+            # additionally itemised for a human by the facts layer, keyed off
+            # ``ladder_tier`` below.
+            _add(diags, _diag("tarch_wall_nonorthogonal",
+                              handles=[handle],
+                              points_dxf_mm=[(sx0, sy0), (sx1, sy1)],
+                              context={"ladder_tier": verdict.tier,
+                                       "refused_by": [verdict.reason],
+                                       "minor_leg_mm": verdict.minor_leg,
+                                       "major_leg_mm": verdict.major_leg,
+                                       "length_mm": verdict.length,
+                                       "angle_deg": verdict.angle_deg,
+                                       "deviation_limit_mm": verdict.deviation_limit,
+                                       "cap_mm": verdict.cap,
+                                       "axis_snap_max_angle_deg":
+                                           tols.axis_snap_max_angle_deg,
+                                       "anchor_candidates_stored":
+                                           verdict.stored_candidates}))
+            continue
+        if verdict is not None:
+            before_p0, before_p1 = (sx0, sy0), (sx1, sy1)
+            sx0, sy0, sx1, sy1, snapped_axis = _snap_short_leg_to_axis(
+                sx0, sy0, sx1, sy1, anchor=verdict.anchor or "mid")
+            snapped = (before_p0, before_p1, snapped_axis, verdict)
         x0, y0 = _quantize(sx0, q), _quantize(sy0, q)
         x1, y1 = _quantize(sx1, q), _quantize(sy1, q)
         if snapped is not None:
@@ -586,19 +891,33 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
             # EXACT coordinates that end up in ``wall_lines`` -- a consumer
             # can therefore verify this record against the resulting face
             # line bit-for-bit, not against an intermediate value.
-            before_p0, before_p1, snapped_axis, minor_leg, angle_deg = snapped
+            before_p0, before_p1, snapped_axis, verdict = snapped
             _add(diags, _diag("tarch_wall_axis_snapped",
-                              handles=[e.dxf.handle],
+                              handles=[handle],
                               points_dxf_mm=[(x0, y0), (x1, y1)],
                               context={"before_p0": list(before_p0),
                                        "before_p1": list(before_p1),
                                        "snapped_axis": snapped_axis,
-                                       "minor_leg_mm": minor_leg,
-                                       # ⭐ F-147 R3: the second gate's reading,
-                                       # alongside the first gate's, so a human
-                                       # signing the snap list sees BOTH numbers
-                                       # that admitted this stroke.
-                                       "angle_deg": angle_deg}))
+                                       "minor_leg_mm": verdict.minor_leg,
+                                       # ⭐ the angle reading, alongside the
+                                       # deviation, so a human reading the snap
+                                       # list sees the numbers that admitted it.
+                                       "angle_deg": verdict.angle_deg,
+                                       # ⭐ G-c: the ladder's own readings --
+                                       # WHICH TIER, what the tier-1 ceiling was
+                                       # for a stroke this long, and WHICH END
+                                       # the flattening was anchored about.  ⛔
+                                       # Without the last one the record cannot
+                                       # distinguish "we knew which end was
+                                       # right" from "we averaged and hoped".
+                                       "ladder_tier": 1,
+                                       "length_mm": verdict.length,
+                                       "deviation_limit_mm": verdict.deviation_limit,
+                                       "cap_mm": verdict.cap,
+                                       "anchor_end": verdict.anchor,
+                                       "anchor_reason": verdict.reason,
+                                       "anchor_candidates_stored":
+                                           verdict.stored_candidates}))
         # G2 conservation bookkeeping (per axis, pre vs post quantize)
         for src, snap in ((sx0, x0), (sx1, x1)):
             source_x.setdefault(snap, []).append(src)
@@ -608,24 +927,24 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
         if x0 == x1 and y0 == y1:
             degenerate += 1
             _add(diags, _diag("tarch_wall_degenerate_line",
-                              handles=[e.dxf.handle],
+                              handles=[handle],
                               points_dxf_mm=[(x0, y0)]))
             continue
-        wall_lines.append((e.dxf.handle, x0, y0, x1, y1))
-        wall_line_layers[e.dxf.handle] = e.dxf.layer
+        wall_lines.append((handle, x0, y0, x1, y1))
+        wall_line_layers[handle] = layer
         # S2 jamb-cap identification: short cross-section line within the sanity range.
         if x0 == x1:  # vertical segment -> cap of a horizontal wall band (normal = y)
-            length = abs(y1 - y0)
-            if t_min <= length <= t_max:
+            cap_length = abs(y1 - y0)
+            if t_min <= cap_length <= t_max:
                 span = (min(y0, y1), max(y0, y1))
                 caps_v.setdefault(x0, set()).add(span)
-                cap_handles_v.setdefault(x0, {}).setdefault(span, []).append(e.dxf.handle)
+                cap_handles_v.setdefault(x0, {}).setdefault(span, []).append(handle)
         elif y0 == y1:  # horizontal segment -> cap of a vertical wall band (normal = x)
-            length = abs(x1 - x0)
-            if t_min <= length <= t_max:
+            cap_length = abs(x1 - x0)
+            if t_min <= cap_length <= t_max:
                 span = (min(x0, x1), max(x0, x1))
                 caps_h.setdefault(y0, set()).add(span)
-                cap_handles_h.setdefault(y0, {}).setdefault(span, []).append(e.dxf.handle)
+                cap_handles_h.setdefault(y0, {}).setdefault(span, []).append(handle)
 
     return _WallCollect(wall_lines, degenerate, caps_v, caps_h,
                         cap_handles_v, cap_handles_h, all_handles, source_x, source_y,
