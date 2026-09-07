@@ -1,0 +1,29 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "geometry_topology",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "T1 probe verdict (W-1 dispatch 2026-09-07h), citing the R0 run's own committed readout (bdbf8154): L-shape outline 8 vertices match gt one-by-one, topology identical; each vertex inset 0.11-0.13 m (= half of the 240 wall) — the known R-2/R-3 datum gap, correction_recoverable by the same reasoning as the R0 J0 verdict."
+    },
+    {
+      "criterion": "gate1_checks",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "gate① zero block zero flag on the accepted attempt (attempts=1); 31 windows placed; F1 20 cells / F2 18 cells (gt 14/15); total area 279.2 vs gt 290.0 — cell over-segmentation is a known open item, not a blocker for wiring."
+    },
+    {
+      "criterion": "scorability",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "F-90 (registered 2026-08-25): correction scoring was refused wholesale on a floor-id mapping gap (F1 vs floor_1) — the judge-side mapping debt, not a product defect; does not block the downstream wiring this verdict unblocks."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "T1 end-to-end probe (dispatch 2026-09-07h §三 T1): unblocking the R0-clone run to walk 2_modelling..5_intakeoutput through the standard flow entry. All evidence cited from the committed R0 readout; no new pixel inspection performed."
+}
