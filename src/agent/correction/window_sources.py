@@ -608,6 +608,57 @@ def verify_window_resolver_inputs(inputs: WindowResolverInputsV1) -> None:
             raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": link.window_id, "claim": link.claim}, category="input_integrity_error")
 
 
+def catalog_for_contract(
+    *, manifest: ViewManifest, raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[SourceWindowV1, ...]:
+    """⭐ 窗源目录的【唯一】腿分派点 —— 按产物契约选 legacy / as_drawn 的目录构建器。
+
+    **为什么必须集中在一处（2026-09-08 实测教训）**：
+    腿分派最初只加在 `verify_window_resolver_inputs_artifact` 一个地方，
+    而 `_catalog(...)` 在本模块里有**五个**重建点。补窗把 as_drawn 目录从
+    T2-⑤ 的「合法空集」填成真观测之后，没被分派的那几处立刻现形 ——
+    `2_modelling` 的加载边界撞 `source_identity_invalid: {'artifact': 'source_catalog'}`
+    （`verify_window_resolver_inputs_against_raw_artifacts`）。
+    ⇒ 这正是「修了例子没修那一类」：⛔ 逐点打补丁只会让下一个重建点在更远处爆。
+
+    选腿的键 = 分类器对**产物本身**的判定（项目口径：路由是分类器的判定，
+    ⛔ 永不按文件名）。混合契约响亮失败，⛔ 不静默挑一条腿。
+    """
+    from src.agent.reading.vector_contract import (
+        CONTRACT_AS_DRAWN_ELEVATION_V0,
+        CONTRACT_AS_DRAWN_PLAN,
+        CONTRACT_AS_DRAWN_PLAN_V0,
+        classify_vector_json,
+    )
+
+    as_drawn_ids = {CONTRACT_AS_DRAWN_PLAN, CONTRACT_AS_DRAWN_PLAN_V0,
+                    CONTRACT_AS_DRAWN_ELEVATION_V0}
+    contracts: set[str] = set()
+    for input_id, raw in sorted(raw_reading_artifacts.items()):
+        try:
+            doc = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise WindowResolverInputError(
+                "source_identity_invalid", {"input_id": input_id, "artifact": "reading"},
+                category="input_integrity_error",
+            ) from exc
+        contracts.add(classify_vector_json(doc).contract_id)
+    as_drawn = contracts & as_drawn_ids
+    if as_drawn and as_drawn != contracts:
+        raise WindowResolverInputError(
+            "source_identity_invalid",
+            {"artifact": "source_catalog",
+             "reason": "mixed reading contracts — cannot pick a catalog leg",
+             "contracts": sorted(contracts)},
+            category="input_integrity_error",
+        )
+    if as_drawn:
+        return build_as_drawn_window_catalog(
+            manifest=manifest, raw_reading_artifacts=raw_reading_artifacts
+        )
+    return _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+
+
 def verify_window_resolver_inputs_against_raw_artifacts(
     inputs: WindowResolverInputsV1,
     *,
@@ -621,7 +672,7 @@ def verify_window_resolver_inputs_against_raw_artifacts(
         raise WindowResolverInputError(
             "source_identity_invalid", {"artifact": "view_manifest"}, category="input_integrity_error"
         )
-    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    rows = catalog_for_contract(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
     if rows != inputs.source_windows:
         raise WindowResolverInputError(
             "source_identity_invalid", {"artifact": "source_catalog"}, category="input_integrity_error"
@@ -652,7 +703,7 @@ def verify_window_resolver_inputs_against_raw_artifacts(
 def build_window_source_offer(*, raw_view_manifest_bytes: bytes,
                               raw_reading_artifacts: Mapping[str, bytes]) -> WindowSourceOfferV1:
     manifest = _parse_manifest(raw_view_manifest_bytes)
-    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    rows = catalog_for_contract(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
     allowed = tuple((row.source_locator, row.positive_claims) for row in rows)
     payload = {"schema_version": "1", "view_manifest_sha256": manifest.content_sha256,
                "source_windows": [row.model_dump(mode="json") for row in rows],
@@ -761,7 +812,7 @@ def derive_observation_reference_catalog(
     every row from that same view (all its stroke rows share the same frame).
     """
     manifest = _parse_manifest(raw_view_manifest_bytes)
-    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    rows = catalog_for_contract(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
     entries_by_input = {entry.input_id: entry for entry in manifest.required_entries()}
     expected_output_id_by_input = {entry.input_id: entry.expected_output_id for entry in manifest.required_entries()}
     frame_cache: dict[str, tuple[int, float] | None] = {}
@@ -1331,7 +1382,7 @@ def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
                                           raw_reading_artifacts: Mapping[str, bytes],
                                           elevation_direction_facts: tuple[ElevationDirectionFactV1, ...]) -> VerifiedWindowResolverInputs:
     manifest = _parse_manifest(raw_view_manifest_bytes)
-    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    rows = catalog_for_contract(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
     facts = _check_direction_facts(manifest, elevation_direction_facts, raw_reading_artifacts)
     return _assemble_verified_resolver_inputs(
         producer_draw=producer_draw, manifest=manifest, rows=rows, facts=facts,

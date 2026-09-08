@@ -14,17 +14,29 @@
     },
     "1_correction": {
       "stage": "1_correction",
-      "status": "awaiting_judge",
+      "status": "judge_pass",
       "attempts_used": 1,
       "accepted_attempt": 1,
-      "message": "gate① passed — awaiting judge J1 (you, multimodal)",
+      "message": "judge verdict non-blocking (pass/minor) → advance",
       "gate1": {
         "passed": true,
         "block": 0,
         "flag": 0
       }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "status": "deterministic_defect",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "deterministic gate① blocked — code defect, fail-closed (no resample)",
+      "gate1": {
+        "passed": false,
+        "block": 1,
+        "flag": 0
+      }
     }
   },
-  "stop_reason": null,
+  "stop_reason": "deterministic_defect@2_modelling",
   "updated": ""
 }

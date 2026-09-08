@@ -1,0 +1,38 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "geometry matches the reading evidence",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "主控【独立实测】：31 个窗全部绑段、全部有 room、floor 全部派生；corrections=31 全为 window_host_resolution，与 writer 的前缀/后缀契约对齐。⭐ 跨方法族交叉验证：legacy 腿（模型画+笔画账本，输入格式都不同）在同一 case 上也得 31 个窗，逐面分布 East12/North8/South7/West4 完全一致、逐窗位置差厘米级（主控实测 diff）。"
+    },
+    {
+      "criterion": "no fabricated element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "窗由确定性推导产出（平面 opening_types 给类型+宿主、立面 z_range 给窗台窗顶），⛔ 非模型自由绘制。每个窗的 provenance 逐条引用【有权声称该项】的通道（契约权限矩阵：host 只准平面、sill/head 只准立面）。34 个立面洞口中 3 个未成窗（平面标为 door）、2 个平面候选无立面对应 —— 三类缺席全部记账在 as_drawn_window_account.json，⛔ 无静默丢弃。"
+    },
+    {
+      "criterion": "positions are unambiguous",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "独立影子校验 correction.window_position_evidence_shadow 从 rejected=21 降到 【0】（主控实测 checks.json）。该校验与主控实现不同源，条件含 unique_mutual_nearest / source_not_reused / ambiguity_margin。⭐ 且门有牙：容差放宽到 200mm 时窗数 31→30（North_view/O04 同墙两记录端差 151mm 触发歧义拒绝），⇒ 不是恒绿的摆设。"
+    },
+    {
+      "criterion": "downstream contract satisfied",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "gate① 18 项 fail/error = 0、flag = 0（主控实测）。归档重放通过（W#3 的 F-22 拦截点未被放宽，主控裁决书 2026-09-08f 明写⛔不许改 writer 判断）。"
+    },
+    {
+      "criterion": "unresolved risk",
+      "status": "minor",
+      "recoverability": null,
+      "evidence": "⛔ 主控【未验】：① 新腿几何尚未进入 2_modelling 之后任何一段；② as_drawn 腿的立面 flip 取默认值、产物不声明 mirrored/local_x_positive（登记为残余风险，未修）；③ 立面产物不声明门窗种类（door_window_classified: false），门窗分类完全依赖平面侧。以上均已在 logs/experiments/2026-09-08c_window_investigation 与 verdict/2026-09-08g 登记。"
+    }
+  ],
+  "judge_disabled": false,
+  "notes": "主控 J1（2026-09-08，run_win_e2e attempt 001）。⭐ 本裁决的每一条证据都是主控自己跑出来的读数（checks.json / output.json / 与 legacy 腿的 diff），⛔ 无转引席位结论。⚠️ 放行的是【correction 段】，⛔ 不是总验收 —— 2_modelling 之后仍未验证。"
+}

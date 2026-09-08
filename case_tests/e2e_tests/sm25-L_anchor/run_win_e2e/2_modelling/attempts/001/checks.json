@@ -1,0 +1,72 @@
+{
+  "stage": "2_modelling",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "ef6635a0b6871c4e70c407aee10e88b0dfd55fff1830f6dd2220f0b5af848f8f",
+  "attempt_hash": "ef6635a0b6871c4e70c407aee10e88b0dfd55fff1830f6dd2220f0b5af848f8f",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": null,
+  "run_policy_source": null,
+  "results": [
+    {
+      "check_id": "kernel.zone_closure",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "zones": 27
+      }
+    },
+    {
+      "check_id": "kernel.normals",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "surfaces": 208
+      }
+    },
+    {
+      "check_id": "kernel.pairing_gate",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "2 InterZone pairing issue(s)",
+      "evidence": {
+        "issues": [
+          "degenerate surface 'Z04_Ceiling2': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)",
+          "degenerate surface 'Z20_Floor1': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)"
+        ],
+        "count": 2
+      }
+    },
+    {
+      "check_id": "kernel.spec_self_consistency",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "kernel.window_parent_binding",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 31
+      }
+    },
+    {
+      "check_id": "kernel.coverage_completeness",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "profile=orthogonal_polygon: B5 generalises non-rect",
+      "evidence": {}
+    }
+  ]
+}
