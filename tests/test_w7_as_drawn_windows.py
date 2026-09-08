@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -17,19 +18,9 @@ from src.agent.correction.as_drawn_windows import (
     derive_match_tolerance_m,
 )
 from src.agent.correction.config import load_core_tolerances
-from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
 from src.agent.correction.facade_visibility import (
     VisibilityTolerances,
     materialize_all_facade_segments,
-)
-from src.agent.correction.multifloor import (
-    assemble_multifloor_geometry,
-    derive_floor_ladder,
-    read_plan_calibration_declaration,
-    snap_footprints_to_reference,
-)
-from src.agent.correction.projection_bridge import (
-    CorrectedGeometryProjectionEnvelopeV1,
 )
 from src.agent.correction.window_sources import (
     ElevationSourceWindowV1,
@@ -38,6 +29,9 @@ from src.agent.correction.window_sources import (
     _parse_manifest,
     build_as_drawn_window_catalog,
 )
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts" / "tool_scripts"))
 
 RUN = Path("case_tests/e2e_tests/sm25-L_anchor/run_wallhunt")
 
@@ -59,21 +53,118 @@ def catalog(manifest, raw_readings):
     )
 
 
+def _fixed_responses(rdir: Path, product_filename: str):
+    """The deterministic model beat (same shape as ``test_w3_chain_replay_
+    lock``): round 0 selects every open item's FIRST candidate, round 1
+    accepts — ⛔ zero billed provider calls."""
+    from src.agent.correction.decision_executor import (
+        FixedDecisionV1,
+        build_decision_packet,
+        compile_wall_ir,
+        decision_hash,
+    )
+    from src.agent.correction.decision_schema import (
+        CorrectionDecisionResponseV1,
+        ItemDecisionV1,
+    )
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
+
+    stem = Path(product_filename).stem
+    raw = (rdir / product_filename).read_bytes()
+    artifact = adapt_as_drawn_plan(
+        raw, input_id=stem, floor_ref=stem.removesuffix("_view"), view_type="plan"
+    )
+    packet0 = build_decision_packet(
+        compile_wall_ir(artifact, profile="exploratory"), bundle=artifact, round_index=0
+    )
+    picks = tuple(
+        (item.item_id, item.candidates[0].candidate_id)
+        for item in packet0.open_items
+    )
+    select = CorrectionDecisionResponseV1(
+        packet_hash=packet0.packet_hash,
+        item_decisions=tuple(
+            ItemDecisionV1(
+                item_id=item_id,
+                action="select_candidate",
+                candidate_id=candidate_id,
+                reason_code="FIXTURE_LOCK",
+            )
+            for item_id, candidate_id in picks
+        ),
+        whole_building_review={"verdict": "accept"},
+    )
+    packet1 = build_decision_packet(
+        compile_wall_ir(
+            artifact,
+            profile="exploratory",
+            decisions=tuple(
+                FixedDecisionV1(item_id=i, candidate_id=c) for i, c in picks
+            ),
+        ),
+        bundle=artifact,
+        round_index=1,
+        previous_decision_hashes=(decision_hash(select),),
+    )
+    accept = CorrectionDecisionResponseV1(
+        packet_hash=packet1.packet_hash,
+        whole_building_review={"verdict": "accept"},
+    )
+    return [select, accept]
+
+
 @pytest.fixture(scope="module")
-def staged(raw_readings):
-    """两层真链几何 + Vg 段（喂入的是【真实产物】，⛔ 不是合成的）。"""
-    geoms, decls = [], []
-    for floor_dir, input_id in (("floor_1", "1f_view"), ("floor_2", "2f_view")):
-        envelope = CorrectedGeometryProjectionEnvelopeV1.model_validate_json(
-            (RUN / "1_correction" / floor_dir / "projection_envelope.json").read_bytes()
+def staged(tmp_path_factory):
+    """两层真链几何 + Vg 段 —— 跑【当前生产链】（`run_multifloor_correction`，
+    含 W#6 的 cut-lines 层间协调），输入 = 入库的 run_wallhunt 0_reading 产物。
+
+    ⛔ 不再读 `floor_*/projection_envelope.json`（09.08u 登记的 4 把锁卡点）：
+    那两份是 W#6 之前落盘的产物，其二层 cells 停在旧 ring 上
+    （14.8749 vs 新链 14.8784）⇒ 窗的 room 匹配 n_cells_matched=0。
+    跑真链 = 夹具几何与生产代码【同一次推导】，永不脱同步
+    （病根根治，⛔ 不是给匹配加容差 —— 加了会盖掉一个已经修好的病）。
+    """
+    from run_stage import _w1_cross_check_elevation_ladders
+    from src.agent.execution.view_manifest import ViewManifest
+    from src.agent.pipeline import MultiFloorPlanRun, run_multifloor_correction
+
+    run_dir = tmp_path_factory.mktemp("w7_chain")
+    rdir = run_dir / "0_reading"
+    rdir.mkdir(parents=True)
+    (run_dir / "_run").mkdir(parents=True)
+    (run_dir / "_run" / "view_manifest.json").write_bytes(
+        (RUN / "_run" / "view_manifest.json").read_bytes()
+    )
+    for p in (RUN / "0_reading").glob("*_view.json"):
+        (rdir / p.name).write_bytes(p.read_bytes())
+    manifest_obj = ViewManifest.model_validate_json(
+        (RUN / "_run" / "view_manifest.json").read_text("utf-8")
+    )
+    entries = manifest_obj.required_entries()
+    plan_entries = sorted(
+        (e for e in entries if e.view_type == "plan"), key=lambda e: e.floor_ref
+    )
+    elevation_entries = [e for e in entries if e.view_type == "elevation"]
+    elevation_evidence = _w1_cross_check_elevation_ladders(elevation_entries, rdir)
+    s1 = run_dir / "1_correction"
+    plan_runs = [
+        MultiFloorPlanRun(
+            vector_dir=rdir,
+            product_filename=f"{e.expected_output_id}.json",
+            out_dir=s1 / f"floor_{e.floor_ref}",
+            profile="exploratory",
+            fixed_responses=_fixed_responses(
+                rdir, f"{e.expected_output_id}.json"
+            ),
         )
-        geoms.append(envelope.geometry)
-        decls.append(read_plan_calibration_declaration(
-            json.loads(raw_readings[input_id]), input_id=input_id))
-    snapped, _ = snap_footprints_to_reference(geoms, decls)
-    ladder = derive_floor_ladder(adapt_as_drawn_elevation(
-        raw_readings["East_view"], input_id="East_view", facade_ref="East"))
-    geom = assemble_multifloor_geometry(ladder, snapped)
+        for e in plan_entries
+    ]
+    geom = run_multifloor_correction(
+        elevation_evidence,
+        plan_runs,
+        snap_ledger_path=s1 / "footprint_snap_ledger.json",
+        evidence_debt_path=s1 / "evidence_debt.json",
+    )
     tol = load_core_tolerances()
     vis = VisibilityTolerances(
         depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
