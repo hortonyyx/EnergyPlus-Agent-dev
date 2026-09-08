@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 
 import pytest
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 from shapely.ops import unary_union
 
 from src.agent.correction.geometry_validator import validate_corrected_geometry
@@ -160,7 +160,15 @@ def test_1_cells_tile_the_footprint_zero_threshold(view_id, floor_id, expected):
 @pytest.mark.parametrize("view_id,floor_id,expected", SM25_VIEWS)
 def test_2_rooms_share_inner_walls_vertex_for_vertex(view_id, floor_id, expected):
     """Any two rooms that touch along an inner wall share it VERTEX for
-    VERTEX — asserted on the vertices (⛔ never a hash of the whole)."""
+    VERTEX — asserted on the vertices (⛔ never a hash of the whole).
+
+    ⭐ W-1 S3b: rings are CORNER-ONLY since the promotion of the reduction
+    to the partition producer, so a shared wall's endpoint may be a REAL
+    corner of one room and a mid-edge point of the other (the neighbour
+    runs straight through the T-landing — geometrically identical sharing).
+    The pinned property is therefore "every vertex of the shared boundary
+    lies EXACTLY on both boundary polylines, zero tolerance" — a jog of the
+    21–49 mm family lands at real distance and reds here just the same."""
     envelope = bridge_sm25(view_id)
     cells = _cell_polygons(envelope)
     shared_found = 0
@@ -177,18 +185,19 @@ def test_2_rooms_share_inner_walls_vertex_for_vertex(view_id, floor_id, expected
                 if shared.geom_type == "MultiLineString"
                 else [shared]
             )
-            ring_i = {
-                (round(x, 9), round(y, 9))
-                for x, y in cells[i].exterior.coords
-            }
-            ring_j = {
-                (round(x, 9), round(y, 9))
-                for x, y in cells[j].exterior.coords
-            }
             for line in lines:
                 for x, y in line.coords:
-                    assert (round(x, 9), round(y, 9)) in ring_i
-                    assert (round(x, 9), round(y, 9)) in ring_j
+                    point = Point(x, y)
+                    dist_i = point.distance(cells[i].boundary)
+                    dist_j = point.distance(cells[j].boundary)
+                    assert dist_i == 0.0, (
+                        f"shared-wall vertex {(x, y)} is {dist_i * 1000:.3f} mm "
+                        f"off room {i}'s boundary (jogged wall)"
+                    )
+                    assert dist_j == 0.0, (
+                        f"shared-wall vertex {(x, y)} is {dist_j * 1000:.3f} mm "
+                        f"off room {j}'s boundary (jogged wall)"
+                    )
     assert shared_found > 0, "no adjacent rooms found — fixture degenerated"
 
 

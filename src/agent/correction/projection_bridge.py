@@ -353,10 +353,20 @@ def extend_endpoints(
 # ── steps ③④: the arrangement's bounded faces and the derived footprint ──── #
 @dataclass(frozen=True)
 class PartitionOutcome:
-    """Steps ③④ in one auditable object."""
+    """Steps ③④ in one auditable object.
 
-    faces: tuple[tuple[tuple[float, float], ...], ...]  # CCW open rings
-    footprint_ring: tuple[tuple[float, float], ...]
+    ⭐ W-1 S3b (ruling 2026-09-07x §二): EVERY ring this outcome carries —
+    each face AND the footprint — leaves here in CORNER-ONLY form
+    (``_corner_only_ring``, applied at this producer, ⛔ not left to
+    consumers).  The collinear subdivision vertices the arrangement plants
+    where wall-ends land on straight edges are a property of the PARTITION,
+    so dropping them is the partition's own job: a consumer that forgets to
+    de-duplicate would ship them downstream (measured on the sm25 real
+    chain: cell min edges 1.62/0.55 cm → 111.93/194.13 cm once reduced).
+    """
+
+    faces: tuple[tuple[tuple[float, float], ...], ...]  # CCW open CORNER-ONLY rings
+    footprint_ring: tuple[tuple[float, float], ...]  # CCW open CORNER-ONLY ring
     dangling_ends: tuple[DanglingEndV1, ...] = field(default=())
 
 
@@ -392,20 +402,13 @@ def partition_lines(
     bounded = list(polygonize(merged))
     faces = []
     for polygon in bounded:
-        ring = tuple((float(x), float(y)) for x, y in polygon.exterior.coords)
-        # shapely's exterior ring is closed (first == last); the cell
-        # contract wants an OPEN ring
-        if len(ring) > 1 and ring[0] == ring[-1]:
-            ring = ring[:-1]
-        # orientation: cell polygons must be CCW (cell_geometry contract)
-        area2 = sum(
-            ring[i][0] * ring[(i + 1) % len(ring)][1]
-            - ring[(i + 1) % len(ring)][0] * ring[i][1]
-            for i in range(len(ring))
-        )
-        if area2 < 0:
-            ring = tuple(reversed(ring))
-        faces.append(ring)
+        # ``_corner_only_ring`` does the whole normalisation: opens the
+        # shapely closed ring, drops EXACTLY collinear subdivision vertices
+        # (zero tolerance — see its docstring), guards degeneracy and
+        # enforces the CCW orientation the cell contract demands.  S3b: the
+        # reduction is a PRODUCER invariant, applied to every ring here —
+        # ⛔ not re-derived (or forgotten) per consumer downstream.
+        faces.append(_corner_only_ring(polygon.exterior.coords))
     if not faces:
         raise ProjectionBridgeError(
             "NO_BOUNDED_FACES_AFTER_EXTENSION",
@@ -425,9 +428,7 @@ def partition_lines(
             "FOOTPRINT_HAS_INTERIORS",
             {"n_interiors": len(footprint.interiors), "origin": origin_label},
         )
-    fp_ring = tuple((float(x), float(y)) for x, y in footprint.exterior.coords)
-    if len(fp_ring) > 1 and fp_ring[0] == fp_ring[-1]:
-        fp_ring = fp_ring[:-1]
+    fp_ring = _corner_only_ring(footprint.exterior.coords)
 
     dangling: list[DanglingEndV1] = []
     for index, line in enumerate(lines):
@@ -790,15 +791,17 @@ def _cells_from_faces(
 def _corner_only_ring(
     ring: Sequence[tuple[float, float]],
 ) -> tuple[tuple[float, float], ...]:
-    """Drop EXACTLY collinear subdivision vertices from a closed ring.
+    """Normalise a closed ring to its CCW open CORNER-ONLY form.
 
-    ⭐ W-1 (2026-09-07, measured on sm25): the partition-derived footprint
-    ring carries a vertex at every wall-end landing on the outer skin —
-    collinear points along straight edges, 94 vertices on sm25's ground
-    floor where the building has 8 corners.  The correction contract's ring
-    validator (``parse._ring_checks`` → ``validate_cell_polygon``) refuses
-    edges below ``min_edge_length_m`` (0.1 m), and those jogs measure
-    21–49 mm ⇒ an as-is ring is structurally unpassable downstream.
+    ⭐ W-1 (2026-09-07, measured on sm25): partition-derived rings carry a
+    vertex at every wall-end landing — collinear points along straight
+    edges, 94 vertices on sm25's ground-floor footprint where the building
+    has 8 corners, and the same batch on the cells (S3b, ruling
+    2026-09-07x §二: cell min edges 1.62/0.55 cm before reduction).  The
+    correction contract's ring validator (``parse._ring_checks`` →
+    ``validate_cell_polygon``) refuses edges below ``min_edge_length_m``
+    (0.1 m), and those jogs measure 21–49 mm ⇒ an as-is ring is
+    structurally unpassable downstream.
 
     Removing a vertex whose neighbours it lies EXACTLY in line with
     (cross-product == 0.0, ⛔ no tolerance band) is lossless by
@@ -807,6 +810,13 @@ def _corner_only_ring(
     unchanged to the last float bit).  A vertex that is NOT exactly
     collinear is a real corner of the arrangement and is kept even if the
     edge it creates is short — ⛔ this helper is not an edge-length filter.
+    One pass is confluent: a corner whose neighbour was dropped cannot
+    become collinear (its dropped neighbour lay on the line through its OLD
+    neighbours, so the surviving pair still spans a bend) — verified
+    idempotent on sm25's rings.
+
+    Also performs the ring normalisations the cell contract demands:
+    opens shapely's closed exterior ring and reverses CW input to CCW.
     """
     pts = [(float(x), float(y)) for x, y in ring]
     if pts and pts[0] == pts[-1]:
@@ -826,7 +836,7 @@ def _corner_only_ring(
         # ring — refuse rather than emit a 2-point "polygon".  (Unreachable
         # through the partition, which only emits bounded faces.)
         raise ProjectionBridgeError(
-            "FOOTPRINT_RING_DEGENERATE",
+            "RING_DEGENERATE_ALL_COLLINEAR",
             {"n_input_vertices": len(pts), "n_corners": len(out)},
         )
     # W-1 (same probe): the partition emits a CW ring; the correction
@@ -885,11 +895,11 @@ def project_cut_lines(
         extension.lines, resolution_m=resolution_m, origin_label=origin_label
     )
     cells = _cells_from_faces(partition.faces, floor_id=floor_id)
-    # W-1: the emitted ring is the CORNER-ONLY outline — collinear wall-end
-    # subdivision vertices are dropped (exactly, zero tolerance; see
-    # ``_corner_only_ring``).  Lossless for the shape, and the only form the
-    # downstream ring validator accepts.
-    fp = _corner_only_ring(partition.footprint_ring)
+    # W-1 S3b: the rings (footprint AND cells) arrive here already in
+    # CORNER-ONLY form — ``partition_lines`` owns that invariant for every
+    # ring it emits (see ``PartitionOutcome``), so no consumer of this
+    # envelope re-derives or forgets the reduction.
+    fp = partition.footprint_ring
     xs = [p[0] for p in fp]
     ys = [p[1] for p in fp]
     floor = FloorV3(
