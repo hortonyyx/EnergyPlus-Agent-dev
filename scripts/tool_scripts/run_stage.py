@@ -618,13 +618,41 @@ def _draw_correction_as_drawn(
     evidence_debt = load_evidence_debt(s1 / "evidence_debt.json")
 
     target = correction_target(policy.capability_profile)
+    raw_readings = {
+        entry.input_id: (rdir / f"{entry.expected_output_id}.json").read_bytes()
+        for entry in entries
+    }
+    # ⭐ 2026-09-08 补窗：把窗填进几何，**在建 marker 之前**。
+    # 顺序被两条既有约束夹死（见 as_drawn_windows.populate_as_drawn_windows）：
+    # 窗要 facade_segments 才能定归属，而 marker 绑 producer 字节且
+    # `_claim_links` 在建 marker 那一刻校验 producer 已有的窗。
+    # ⛔ 在此之前这条腿产出的是一栋【没有窗】的楼（projection 的 windows=[] 是硬写的），
+    # gt 有洞口而模型没有 ⇒ 洞口通道零分，且无窗围护结构对能耗模型没有物理意义。
+    from src.agent.correction.as_drawn_windows import populate_as_drawn_windows
+    from src.agent.correction.config import load_core_tolerances as _load_tol
+    from src.agent.correction.facade_visibility import (
+        VisibilityTolerances as _VisTol,
+    )
+
+    _tol = _load_tol()
+    geom, window_account = populate_as_drawn_windows(
+        geom,
+        raw_view_manifest_bytes=raw_manifest_bytes,
+        raw_reading_artifacts=raw_readings,
+        visibility_tolerances=_VisTol(
+            depth_epsilon_m=_tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=_tol.facade_visibility_endpoint_epsilon_m,
+        ),
+    )
+    # 缺席做成信号，⛔ 不是静默空白（门/立面无对应/平面无立面 三类各自记账）
+    (s1 / "as_drawn_window_account.json").write_text(
+        json.dumps(window_account.to_payload(), indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     vwi = build_verified_window_inputs_as_drawn(
         producer_draw=geom,
         raw_view_manifest_bytes=raw_manifest_bytes,
-        raw_reading_artifacts={
-            entry.input_id: (rdir / f"{entry.expected_output_id}.json").read_bytes()
-            for entry in entries
-        },
+        raw_reading_artifacts=raw_readings,
     )
     # W#3 (dispatch 2026-09-08c S-A): freeze each chain run's FINAL wall
     # compilation — filed by the chain itself next to its outcome — into the

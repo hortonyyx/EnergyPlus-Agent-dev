@@ -256,6 +256,27 @@ def replay_as_drawn_chain(
         tuple(per_floor_lines), per_floor_project, declarations
     )
     producer = assemble_multifloor_geometry(ladder, tuple(snapped))
+    # ⭐ 2026-09-08 补窗：重放必须**镜像生产方的推导**，否则 producer 必然不等。
+    # 生产侧在建 marker 之前调 `populate_as_drawn_windows` 把 31 个窗填进几何
+    # （投影的 `windows=[]` 是硬写的，窗由「平面 opening_types × 立面 z_range」
+    # 确定性推出）。重放若跳过这一步，就会用**无窗**几何去比一个**有窗**的 marker
+    # ⇒ 具名 `chain_replay_producer_drift`（实测）。
+    # ⛔ 修法是让重放走同一个确定性函数，⛔ 不是放宽这个字节比较 ——
+    # 这道比较正是 F-22 BLOCKER-1 那种「整套自洽伪造」的唯一拦截点。
+    from src.agent.correction.as_drawn_windows import populate_as_drawn_windows
+    from src.agent.correction.config import load_core_tolerances
+    from src.agent.correction.facade_visibility import VisibilityTolerances
+
+    _tol = load_core_tolerances()
+    producer, _window_account = populate_as_drawn_windows(
+        producer,
+        raw_view_manifest_bytes=marker.raw_view_manifest_bytes,
+        raw_reading_artifacts=reading_bytes,
+        visibility_tolerances=VisibilityTolerances(
+            depth_epsilon_m=_tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=_tol.facade_visibility_endpoint_epsilon_m,
+        ),
+    )
     # The producer is REBUILT here — a candidate-side tamper of the producer
     # (re-signed footprint, rewritten rings/cells, every derived artifact
     # re-materialized from the tampered geometry, all internally consistent —

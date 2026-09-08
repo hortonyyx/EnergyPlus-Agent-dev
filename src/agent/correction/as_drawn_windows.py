@@ -176,8 +176,22 @@ def _plan_rows_for(catalog: Sequence[SourceWindowV1], *, floor_ref: int, facade:
             continue
         if (abs(float(along.lo) - along_lo) <= tolerance_m
                 and abs(float(along.hi) - along_hi) <= tolerance_m):
-            out.append(row)
-    return tuple(out)
+            residual = (abs(float(along.lo) - along_lo)
+                        + abs(float(along.hi) - along_hi))
+            out.append((residual, row))
+    # ⚠️ 一个物理窗在墙的【两个面】上各留一个缺口（实测：62 个平面 window 候选
+    # = 33 个物理窗）⇒ 同一份平面产物会给出两条观测。而 Va 账本的不变量是
+    # 「同一条声称里，每个来源输入只许有一条证据」
+    # （`facade_applicability.py:422`，实测 va_claim_ledger_invalid）。
+    # ⇒ 每个 source_input_id 只留【与立面投影最吻合】的那一条：确定性、有意义
+    # （吻合度更高的那个面就是更可信的观测），⛔ 不按下标或字典序任意挑。
+    best: dict[str, tuple[float, PlanSourceWindowV1]] = {}
+    for residual, row in out:
+        current = best.get(row.source_input_id)
+        if current is None or residual < current[0]:
+            best[row.source_input_id] = (residual, row)
+    return tuple(row for _, row in sorted(
+        best.values(), key=lambda item: item[1].observation_id))
 
 
 def derive_match_tolerance_m(raw_reading_artifacts: Mapping[str, bytes]) -> float:
