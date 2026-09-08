@@ -1023,7 +1023,11 @@ def test_new_leg_files_the_channel_split_debt(monkeypatch, tmp_path):
     """Lock ① (rework BLK-A): walking the new leg FILES the window
     channel-split debt — the identifier exists as a filed JSON artifact on
     disk, ⛔ not only inside docstrings.  Under the default exploratory chain
-    profile it is a FLAG, and the walk completes."""
+    profile it is a FLAG, and the walk completes.
+
+    ⭐ 2026-09-08h 退休条件在本锁里被**反向行使**：夹具平面产物零 window
+    洞口 ⇒ 债照落（这正是 T2-⑤ 立债时的原状）；带 window 洞口的退休面
+    见 `test_windowed_plan_products_retire_the_channel_split_debt`。"""
     made: list[str] = []
 
     def _fake_chain(*args, **kwargs):
@@ -1045,6 +1049,48 @@ def test_new_leg_files_the_channel_split_debt(monkeypatch, tmp_path):
     assert items, "the channel-split debt must be FILED on the new leg"
     assert items[0]["disposition"] == "flag"
     assert items[0]["evidence"]["evidence_chain_profile"] == "exploratory"
+    assert filed["source_stage"] == "1_correction"
+
+
+def test_windowed_plan_products_retire_the_channel_split_debt(
+    monkeypatch, tmp_path
+):
+    """Lock ③ (2026-09-08h 债退休的分辨锁)：平面产物声明了 window 洞口 ⇒
+    窗证据有自己的台账载体（opening 目录 + claim links）⇒「on chain NOT on
+    ledger」不再为真 ⇒ 债【退休】：落一份空债账（debts=[]，记账退休 ⛔ 不是
+    静默不写），链条照常走；**strict 也不再把这条腿拒掉**（拒绝的前提 =
+    台账空，前提没了拒绝就没牙）。"""
+    fired: list[str] = []
+
+    def _fake_chain(*args, **kwargs):
+        fired.append(kwargs)
+        _file_chain_source_record({**kwargs, "vector_dir": args[0]})
+        return _square_floor(f"f{len(fired)}", _RECT)
+
+    monkeypatch.setattr(pipeline, "run_correction", _fake_chain)
+    art = _elevation([2900.0, 3300.0])
+    # 带一个 window 洞口的平面产物（as_drawn 形状）
+    windowed = _snap_declared_plan_doc()
+    windowed["hypotheses"] = {
+        "opening_types": {"W1": "window"},
+        "opening_candidates": [{"id": "W1", "face_line": "L1", "span_m": [1.0, 2.0]}],
+        "pairs": [{"face_a": "L1", "face_b": "L2", "matched_declared_mm": [200.0]}],
+    }
+    vector_dir = tmp_path / "v0"
+    vector_dir.mkdir(parents=True, exist_ok=True)
+    (vector_dir / "p0.json").write_text(json.dumps(windowed), encoding="utf-8")
+    strict_run = pipeline.MultiFloorPlanRun(
+        vector_dir=vector_dir, product_filename="p0.json",
+        out_dir=tmp_path / "out" / "p0", profile="strict",
+    )
+    plain_run = _materialized_plan_run(tmp_path, "p1", profile="strict")
+    debt_path = tmp_path / "evidence_debt.json"
+    pipeline.run_multifloor_correction(
+        art, [strict_run, plain_run], evidence_debt_path=debt_path
+    )
+    assert fired, "strict + 台账有载体 ⇒ 链条必须照常跑（不再 fail-closed）"
+    filed = json.loads(debt_path.read_text(encoding="utf-8"))
+    assert filed["debts"] == [], "退休 = 空债账记账，⛔ 不是不写文件"
     assert filed["source_stage"] == "1_correction"
 
 

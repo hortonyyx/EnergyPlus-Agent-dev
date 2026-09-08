@@ -1829,6 +1829,32 @@ class MultiFloorPlanRun(NamedTuple):
     round_budget: int = 3
 
 
+def _as_drawn_plan_window_openings(
+    plan_runs: "Sequence[MultiFloorPlanRun]",
+) -> int:
+    """这条腿的平面产物**自己声明**的 window 洞口数（链条跑之前就可测）。
+
+    这是 channel-split 债的退休条件（2026-09-08h）：> 0 ⇒ 窗证据有自己的
+    台账载体（平面 opening 目录 + claim links），「on chain NOT on ledger」
+    不成立。只数 ``hypotheses.opening_types`` 判为 window 的候选 —— 与
+    ``window_sources._as_drawn_plan_rows`` 进目录的判据同源。产品缺文件/
+    解析失败按 0 计（保守：债照落，链条稍后自会对坏输入响亮拒绝）。
+    """
+    total = 0
+    for run in plan_runs:
+        try:
+            doc = json.loads(
+                (Path(run.vector_dir) / run.product_filename).read_text("utf-8")
+            )
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            continue
+        hypotheses = doc.get("hypotheses") or {}
+        types = hypotheses.get("opening_types") or {}
+        candidates = {c.get("id") for c in hypotheses.get("opening_candidates") or []}
+        total += sum(1 for cid in candidates if types.get(cid) == "window")
+    return total
+
+
 def _unified_chain_profile(
     plan_runs: "Sequence[MultiFloorPlanRun]",
 ) -> str:
@@ -1917,27 +1943,51 @@ def run_multifloor_correction(
     # the ladder and every chain) so the debt exists on disk whatever happens
     # next; a mixed-profile plan_runs is a loud refusal here — no single
     # account could describe a leg whose floors ran under different policies.
+    #
+    # ⭐ 2026-09-08h 退休（实测条件化，⛔ 不是删机制）：补窗落地后，这条腿的
+    # 窗证据真走上了台账（平面 opening 目录 + claim links，且有
+    # `window_position_evidence_shadow` 这道有牙的独立门在行使）⇒ 债的标题
+    # 「evidence on chain NOT on ledger」不再为真，**不该再落**。退休条件
+    # = 平面产物自己声明的 window 洞口数 > 0（在链条跑之前就可测）；条件
+    # 不满足（平面零 window 洞）时 T2-⑤ 的原状成立，照旧落债 + strict 拒绝。
+    # 退休本身也要【记账 ⛔ 不是静默】：写一份**空债账**（debts=[]），让
+    # 下游能区分「测过、不欠」与「根本没跑」。
     chain_profile = _unified_chain_profile(plan_runs)
-    channel_split_debt = window_evidence_channel_split_debt(
-        chain_profile=chain_profile
-    )
-    if evidence_debt_path is not None:
-        write_evidence_debt(Path(evidence_debt_path), channel_split_debt)
-    if channel_split_debt.blocking:
-        raise MultiFloorAssemblyError(
-            WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
-            {
-                "evidence_chain_profile": chain_profile,
-                "filed_at": (
-                    str(evidence_debt_path)
-                    if evidence_debt_path is not None
-                    else None
+    plan_window_openings = _as_drawn_plan_window_openings(plan_runs)
+    if plan_window_openings > 0:
+        if evidence_debt_path is not None:
+            write_evidence_debt(
+                Path(evidence_debt_path),
+                EvidenceDebt(
+                    run_profile=(
+                        "exploratory" if chain_profile == "exploratory"
+                        else "regression"
+                    ),
+                    source_stage="1_correction",
+                    debts=[],
                 ),
-                "reason": "strict evidence-chain profile blocks the window "
-                "channel split (legacy ledger empty by ratified T2-⑤); the "
-                "debt is filed and the wiring fails closed",
-            },
+            )
+    else:
+        channel_split_debt = window_evidence_channel_split_debt(
+            chain_profile=chain_profile
         )
+        if evidence_debt_path is not None:
+            write_evidence_debt(Path(evidence_debt_path), channel_split_debt)
+        if channel_split_debt.blocking:
+            raise MultiFloorAssemblyError(
+                WINDOW_EVIDENCE_CHANNEL_SPLIT_DEBT_ID,
+                {
+                    "evidence_chain_profile": chain_profile,
+                    "filed_at": (
+                        str(evidence_debt_path)
+                        if evidence_debt_path is not None
+                        else None
+                    ),
+                    "reason": "strict evidence-chain profile blocks the window "
+                    "channel split (legacy ledger empty by ratified T2-⑤); the "
+                    "debt is filed and the wiring fails closed",
+                },
+            )
 
     # B-1/B-2: derive_floor_ladder consumes the SEALED carrier and runs B3's
     # value↔byte gate (validate_evidence_bundle) as its FIRST act, BEFORE any

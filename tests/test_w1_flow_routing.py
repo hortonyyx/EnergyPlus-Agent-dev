@@ -280,15 +280,17 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
     filed = json.loads(
         (run_dir / "1_correction" / "evidence_debt.json").read_text("utf-8")
     )
-    assert any(
-        d["check_id"] == "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER"
-        for d in filed["debts"]
-    )
+    # ⭐ 2026-09-08h 债退休（实测条件化）：staged 平面产物声明了 window 洞口
+    # ⇒ 窗证据有自己的台账载体（opening 目录 + claim links + 有牙影子门），
+    # 「on chain NOT on ledger」不再为真 ⇒ 落一份【空债账】记账退休，
+    # ⛔ 不是删除（平面侧 window 证据归零时 S1 会重新落债并 strict 拒绝）。
+    assert filed["debts"] == [], filed["debts"]
     # and the window account is filed as a signal, not a silence
     account = json.loads(
         (run_dir / "1_correction" / "as_drawn_window_account.json").read_text("utf-8")
     )
     assert account["windows_built"] == 31
+    assert len(account["plan_records_folded"]) == 29
 
 
 def test_strict_run_profile_rides_the_chain_strict_side(tmp_path, monkeypatch):

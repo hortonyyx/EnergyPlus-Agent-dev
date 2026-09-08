@@ -262,6 +262,13 @@ def window_evidence_channel_split_debt(*, chain_profile: str) -> EvidenceDebt:
     a while the identifier existed only in two docstrings — zero code, so
     the acceptance premise was false on disk).
 
+    ⭐ 2026-09-08h 退休条件（实测，管线侧 ``pipeline.py`` 的 S1 接线执行）：
+    补窗落地后这条腿的窗证据有了自己的台账载体（平面 opening 目录 +
+    claim links），且有 ``window_position_evidence_shadow`` 这道独立门在
+    行使 ⇒ 「on chain NOT on ledger」不再为真，S1 改为**只在平面产物零
+    window 洞口时**调用本工厂；退休时写**空债账**（``debts=[]``）记账，
+    ⛔ 不是删机制 —— 平面侧 window 证据退回为零的那一刻，债会重新落盘。
+
     Disposition follows the EVIDENCE-CHAIN profile axis the wiring runs
     under: ``exploratory`` flags it, ``strict`` blocks it (the wiring fails
     closed AFTER filing, so the refusal itself is auditable).  The ledger's
