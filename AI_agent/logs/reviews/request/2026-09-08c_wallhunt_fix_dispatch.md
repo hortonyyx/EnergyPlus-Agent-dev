@@ -119,7 +119,12 @@ gate①: FAIL correction.evidence_debt_coverage: 1 view/global evidence debt ite
 
 ## 三 · 总验收
 
-1. **全量回到 `0 failed`**：`cd /tmp/w1_flow_glm && PYTHONPATH=/tmp/w1_flow_glm uv run pytest -n 6 -q`
+1. **全量回到 `0 failed`**：`cd /tmp/w1_flow_glm && PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python -m pytest -n 6 -q`
+   ⛔ **勘误（2026-09-08，GPT 席位停报翻出，主控确认题错）**：本单原写 `uv run pytest`，
+   而 `uv run` **本身会重新同步共享 `/opt/venv`**（实测输出 `Uninstalled 1 package` /
+   `Installed 1 package`）⇒ **与本单 §五「禁任何写 `site-packages` 的命令」自相矛盾**，
+   且这是并行 worktree 之间 `.pth` 反复互踢的**根因**。改用 `/opt/venv/bin/python -m pytest`：
+   实测解析正确、**零安装输出、`.pth` 跑完未被改**。一次性脚本同理（`uv run python -c` 也会同步）。
    （开跑前自检 `src.agent.__file__` 落在本树）
 2. ⭐⭐⭐ **端到端**：`0_reading` → 出分，全程标准入口、**零现场手写脚本**，
    命令序列逐字写进交件、任何人照抄能重跑。
