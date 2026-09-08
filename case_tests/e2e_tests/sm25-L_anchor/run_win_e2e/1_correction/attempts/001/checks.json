@@ -1,0 +1,208 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "3005228fb9b27b8958dc9ff1b33858e07220077d487b10bf433531de92e9d7a5",
+  "attempt_hash": "3005228fb9b27b8958dc9ff1b33858e07220077d487b10bf433531de92e9d7a5",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": null,
+  "run_policy_source": null,
+  "results": [
+    {
+      "check_id": "correction.schema_version_supported",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "schema_version": "3"
+      }
+    },
+    {
+      "check_id": "correction.capability_profile_shapes",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "capability_profile": "orthogonal_polygon",
+        "declared_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ],
+        "allowed_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ]
+      }
+    },
+    {
+      "check_id": "correction.cell_polygon_contract",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "1f",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 279.186494,
+        "cells_union_area_m2": 279.186494,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": 0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "2f",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 279.186494,
+        "cells_union_area_m2": 279.186494,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": -0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.nondegenerate",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zstack_continuity",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zone_count_tripwire",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "actual": 27,
+        "expected": null
+      }
+    },
+    {
+      "check_id": "correction.window_host_resolution",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 31,
+        "aggregate_sha256": "fa45190d9db9842cae9bd0f3dcc7e9da992229753a5c722f8c602fde0d262d13"
+      }
+    },
+    {
+      "check_id": "correction.cross_image_reconcile",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation widths supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.facade_frame_cross_check",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation reading artifacts supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.audit_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "audit_entries": 31
+      }
+    },
+    {
+      "check_id": "correction.facade_area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.wwr_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.unsupported_count_by_severity",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.window_position_evidence_shadow",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "producer_draw_sha256": "22f759b91230c1862be0aa7001ebcd89efc1c90ba317457a654bc85feda70787",
+        "resolver_inputs_sha256": "bacb20b8eeb263cfb0113e2f683080a9ac003afc1950664c5bb95aca244450e6",
+        "window_count": 31,
+        "rejected_window_ids": [],
+        "rejected_reject_codes": [],
+        "max_legacy_span_delta_m": 0.042500000000000426,
+        "ruleset_version": "f9_route2_s2_position_evidence_ruleset_v2",
+        "evaluated_conditions": [
+          "ambiguity_margin",
+          "claim_consistency",
+          "distance_within_tolerance",
+          "scope_resolution",
+          "source_not_reused",
+          "unique_mutual_nearest"
+        ],
+        "unevaluated_conditions": [],
+        "content_sha256": "1f86a5fced16cea865063220d29dfb7f79077c6c83f7fadb1c828282249b394a"
+      }
+    }
+  ]
+}

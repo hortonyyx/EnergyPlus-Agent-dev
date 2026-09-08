@@ -1,0 +1,28 @@
+{
+  "schema_version": "2",
+  "producer": "src.agent.execution.evidence_preflight",
+  "run_profile": "exploratory",
+  "capability_profile": "rectangular",
+  "source_stage": "1_correction",
+  "debts": [
+    {
+      "check_id": "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER",
+      "canonical_check_id": "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER",
+      "view": null,
+      "status": "fail",
+      "layer": "cross_check",
+      "disposition": "flag",
+      "message": "the as_drawn evidence-chain leg carries its window evidence on the chain (opening_claims); the legacy pen-stroke window ledger is an ACCOUNTED empty set — the channel split is this filed debt, ⛔ never a silent emptiness",
+      "evidence": {
+        "evidence_chain_profile": "exploratory",
+        "channel": "window_evidence",
+        "on_chain": "opening_claims",
+        "on_ledger": 0,
+        "reason": "as_drawn products carry no pen strokes, so the legacy ledger gate has no teeth on this leg (ratified 2026-09-07i T2-⑤, under this filed-debt condition)"
+      },
+      "scope": "view_global",
+      "offender_ids": [],
+      "debt_id": "889fa5f4dc8997b5b75e155e8641136909a87cd2d584555ea7311258ec845a2c"
+    }
+  ]
+}

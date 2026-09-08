@@ -1,0 +1,41 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "minor",
+      "recoverability": null,
+      "evidence": "⛔ 本条不是独立视觉复核。本次 run 的六份 reading 产物与 run_wallfix_gpt_judge_on 的【逐字节相同】（主控实测 sha256：1f 2a5631494479b65d / 2f bdf9a6fbd0e6ac66 / East 6efa55b7c6970648 / North 9ef111270b606bf7 / South 0e76a5c29f47069b / West d7089513cfec96b8），该 run 的 J0（提交 63c400e8）已由 GPT 席位对照全部六张原图复核并判 minor。本裁决转引其结论并如实标注：主控【没有】重做视觉复核。"
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "minor",
+      "recoverability": null,
+      "evidence": "同上：输入逐字节相同，转引 63c400e8 的 J0（多画 0.722 m / 0.524 m，约 0.3% / 0.2%）。⛔ 非本次独立复核。"
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "insufficient_evidence",
+      "recoverability": null,
+      "evidence": "立面产物不声明门窗种类（ledger.door_window_classified: false，主控实测）⇒ 立面语义正确性【未被认证】。平面侧 opening kind 由产物自己声明。"
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "主控本轮【独立实测】了尺寸链：两份平面产物声明的 cum_mm 逐位相同、overall_mm 25000/20000、chain_closure_mm 全为 0；四份立面 overall_mm 20000/25000/25000/20000、闭合差全 0（读数在 logs/experiments/2026-09-08c_window_investigation）。⭐ 这一条是我自己量的，⛔ 不是转引。"
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "minor",
+      "recoverability": null,
+      "evidence": "主控本轮【独立实测】：立面洞口投影到世界系后与平面候选的端点偏移，East(不镜像) −13.8/−8.0mm、South +3.7/+1.9、North(镜像) +10.7/+8.8、West(镜像) −3.4/−4.2 ⇒ 偏移【不随镜像变化】、量级 ≤14mm，与跨图标定残差同档。⛔ 但这【不】证明声明级朝向已确立：as_drawn 腿的 flip 取的是默认值、产物没有声明它（登记为残余风险，未修）。63c400e8 的 J0 就此点名的限制仍然成立。"
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "主控 J0（2026-09-08，run_win_e2e attempt 001）。⛔ 这是一份【带明确来源标注】的放行：两条转引自 63c400e8（输入逐字节相同、已复核），两条是主控本轮独立实测，一条如实记 insufficient_evidence。本次放行的【目的】是推进 1_correction 以验证补窗路径，⛔ 不是对识图质量的认证，也⛔ 不能替代总验收。"
+}

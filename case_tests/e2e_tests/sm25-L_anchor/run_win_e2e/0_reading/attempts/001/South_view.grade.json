@@ -1,0 +1,239 @@
+{
+ "grade_version": "elevation_grade_v1",
+ "denominator": {
+  "rule": "elevation_targets_v1",
+  "view": "South_view",
+  "floors": [
+   "F1",
+   "F2"
+  ],
+  "openings": 7,
+  "structure_lines": 5
+ },
+ "params": {
+  "along_tol_m": 0.3,
+  "z_tol_m": 0.2,
+  "size_tol_m": 0.3,
+  "struct_tol_m": 0.08,
+  "gt_resolution_m": 0.001,
+  "gt_resolution_source": "/generator/tolerances/dxf_axis_alignment_tolerance_m",
+  "product_resolution_m": 0.01,
+  "product_resolution_source": "default:0.01 (pipeline output grid; product declared no resolution_m)",
+  "product_resolution_declared": false,
+  "quantization_band_m": 0.0055
+ },
+ "scores": {
+  "E1_openings_found_pct": 100.0,
+  "E1_openings_placed_and_sized_pct": 100.0,
+  "E2_extra_openings": 0,
+  "E3_structure_lines_pct": 100.0,
+  "E5_opening_kind_pct": null
+ },
+ "by_verdict": {
+  "OK": 7,
+  "WRONG_SIZE": 0,
+  "OUT_OF_BAND": 0,
+  "NOT_FOUND": 0
+ },
+ "along_axis": {
+  "assumed": "identity",
+  "explicit": false,
+  "identity_placed": 7,
+  "mirror_placed": 0,
+  "ambiguous": false,
+  "rule": "two fixed hypotheses (identity; reflection about the answer's own along extent) — ⛔ no shift or scale is fitted; switch needs a margin of 2 placed openings"
+ },
+ "openings_by_floor": {
+  "F1": 2,
+  "F2": 5
+ },
+ "structure_unexplained": [
+  "S02"
+ ],
+ "detail": {
+  "openings": [
+   {
+    "id": "op_15be",
+    "kind": "window",
+    "floor_id": "F1",
+    "along_m": [
+     8.64,
+     12.64
+    ],
+    "z_m": [
+     1.0000213815526515,
+     2.8000213815526513
+    ],
+    "verdict": "OK",
+    "matched": "O02",
+    "along_centre_err_m": 0.0,
+    "z_centre_err_m": 0.005
+   },
+   {
+    "id": "op_15c1",
+    "kind": "window",
+    "floor_id": "F1",
+    "along_m": [
+     13.360000000000001,
+     17.36
+    ],
+    "z_m": [
+     1.0000213815526515,
+     2.8000213815526513
+    ],
+    "verdict": "OK",
+    "matched": "O04",
+    "along_centre_err_m": 0.01,
+    "z_centre_err_m": 0.005
+   },
+   {
+    "id": "op_15c4",
+    "kind": "window",
+    "floor_id": "F2",
+    "along_m": [
+     6.930000000000001,
+     8.73
+    ],
+    "z_m": [
+     4.600021381552652,
+     6.200021381552651
+    ],
+    "verdict": "OK",
+    "matched": "O01",
+    "along_centre_err_m": 0.005,
+    "z_centre_err_m": 0.005
+   },
+   {
+    "id": "op_15c7",
+    "kind": "window",
+    "floor_id": "F2",
+    "along_m": [
+     9.450000000000001,
+     11.25
+    ],
+    "z_m": [
+     4.600021381552652,
+     6.200021381552651
+    ],
+    "verdict": "OK",
+    "matched": "O03",
+    "along_centre_err_m": 0.005,
+    "z_centre_err_m": 0.005
+   },
+   {
+    "id": "op_15ca",
+    "kind": "window",
+    "floor_id": "F2",
+    "along_m": [
+     14.750000000000002,
+     16.55
+    ],
+    "z_m": [
+     4.600021381552652,
+     6.200021381552651
+    ],
+    "verdict": "OK",
+    "matched": "O05",
+    "along_centre_err_m": 0.005,
+    "z_centre_err_m": 0.005
+   },
+   {
+    "id": "op_15cd",
+    "kind": "window",
+    "floor_id": "F2",
+    "along_m": [
+     17.27,
+     19.07
+    ],
+    "z_m": [
+     4.600021381552652,
+     6.200021381552651
+    ],
+    "verdict": "OK",
+    "matched": "O06",
+    "along_centre_err_m": 0.005,
+    "z_centre_err_m": 0.005
+   },
+   {
+    "id": "op_15d0",
+    "kind": "window",
+    "floor_id": "F2",
+    "along_m": [
+     21.3,
+     23.1
+    ],
+    "z_m": [
+     4.600021381552652,
+     6.200021381552651
+    ],
+    "verdict": "OK",
+    "matched": "O07",
+    "along_centre_err_m": 0.005,
+    "z_centre_err_m": 0.01
+   }
+  ],
+  "structure": [
+   {
+    "what": "floor_line",
+    "axis": "z",
+    "const_m": 0.0,
+    "span_m": [
+     0.0,
+     25.0
+    ],
+    "verdict": "OK",
+    "matched": "S06",
+    "coverage": 1.0
+   },
+   {
+    "what": "floor_line",
+    "axis": "z",
+    "const_m": 3.6,
+    "span_m": [
+     0.0,
+     25.0
+    ],
+    "verdict": "OK",
+    "matched": "S05",
+    "coverage": 1.0
+   },
+   {
+    "what": "floor_line",
+    "axis": "z",
+    "const_m": 7.2,
+    "span_m": [
+     0.0,
+     25.0
+    ],
+    "verdict": "OK",
+    "matched": "S04",
+    "coverage": 1.0
+   },
+   {
+    "what": "end_line",
+    "axis": "along",
+    "const_m": 0.0,
+    "span_m": [
+     0.0,
+     7.2
+    ],
+    "verdict": "OK",
+    "matched": "S01",
+    "coverage": 0.9991
+   },
+   {
+    "what": "end_line",
+    "axis": "along",
+    "const_m": 25.0,
+    "span_m": [
+     0.0,
+     7.2
+    ],
+    "verdict": "OK",
+    "matched": "S03",
+    "coverage": 0.9991
+   }
+  ],
+  "extras": []
+ }
+}
