@@ -1,0 +1,46 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "minor",
+      "evidence": "Reviewed all six source images and this attempt's native grade images/JSON. Plan target coverage is 100.0/98.1 percent, length coverage 99.2/97.8. F2 has one missed face along the first south-row partition, while its parallel face survives; the partition is not wholly absent. Four elevations retain all 34 opening extents and five structure lines each. Small face/end omissions remain; this is not a perfect trace."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "minor",
+      "evidence": "Plan grade overlays retain the L outline, corridor and room boundaries. Furniture and dimension chains are not promoted as whole walls. Extra traced length is 0.722 m / 0.524 m (0.3 / 0.2 percent); small endpoint protrusions remain."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "insufficient_evidence",
+      "evidence": "The plan native opening-kind check reports 31/31 and 30/30 correctly named. Elevation E5 is null: these products do not declare opening kind. The word window/door in an elevation grade render is not a producer declaration, so elevation semantic correctness is not certified."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "evidence": "The native rulers agree with the visible 25000 by 20000 mm plan extents and the 7200 mm two-storey elevation height; plan F1 x segments 2240/2400/720/2400/2540/600/4100/300/8000/1700 and East z 1000/1600/1000/1000/1600/1000 match the drawings. Native dimension-chain checks are clean. This is a visual sample and internal-chain check, not independent exhaustive OCR."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "insufficient_evidence",
+      "evidence": "Facade labels identify East/North/South/West, but legacy mirrored declarations are not part of these as-drawn products. The native scorer reports assumed mirror for North/West and identity for East/South. North/West grade overlays also show a horizontal registration offset against source pixels; the reported 100 percent extent scores do not establish declaration-level orientation."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "not_applicable",
+      "evidence": "This reading contract records face-line runs, gaps and opening hypotheses. Healing those into correction geometry is downstream; the legacy healed-stroke representation is not required here. Plan door gaps remain visible and their native kind reconciliation is clean."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "evidence": "Both full L-shaped plan extents and all four two-storey elevation regions are present in native products and grade images. No whole floor, wing or room band is absent."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": false,
+  "judge_disabled": false,
+  "notes": "GPT manual J0 for run_wallfix_gpt_judge_on attempt 001, reviewed during this execution. Standard generic renders are 400x80 empty-vector images because their renderer reads legacy strokes/dimensions; native grade images and JSON were generated in this attempt by the standard flow and reviewed with all original images. This is an exploratory, qualified pass-through with named evidence limits, not certification of the missing elevation semantics, orientation declarations or a blind reading benchmark."
+}
