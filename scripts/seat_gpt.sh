@@ -8,7 +8,7 @@
 #   * cwd for the seat = <worktree-dir>
 #   * the prompt is read from a FILE and fed on STDIN — ⛔ never as a trailing
 #     positional argument: codex's `-i` is variadic and swallows trailing
-#     positionals (AI_agent/guides/codex_execution_protocol.md §1).
+#     positionals (AI_agent/workflow/models.md).
 #   * background stdin must reach EOF or codex waits forever, hence `< file`.
 #   * sandbox = danger-full-access, because `workspace-write` needs bubblewrap
 #     and this dev container cannot create user namespaces. Measured 2026-09-02:
@@ -16,7 +16,7 @@
 #     with `bwrap: No permissions to create a new namespace`, so it could run
 #     no test, verify nothing, and correctly refused to issue a verdict.
 #     The container is itself the sandbox here (same reasoning the MCP codex
-#     channel already uses per AI_agent/guides/codex_execution_protocol.md).
+#     channel already uses per AI_agent/workflow/models.md).
 #   * an empty log mid-run means "still working", ⛔ not "dead" — which is why
 #     the kill -0 check below exists.
 #

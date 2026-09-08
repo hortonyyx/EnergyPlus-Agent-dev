@@ -1,6 +1,6 @@
 """Trusted view manifest — schema v1 (strict typed models) + strict generator.
 
-Per C2 B-M (``AI_agent/proposals/c2_bm_view_manifest_spec.md``, v6 定稿): the
+Per C2 B-M (``AI_agent/archive/2026-09-08_management_rebuild/original/AI_agent/proposals/c2_bm_view_manifest_spec.md``, v6 定稿): the
 manifest is generated **deterministically from case metadata**, before
 0_reading runs, by the orchestration side — never by the product (reader /
 correction LLM). It is the single trusted record of "what input images exist,

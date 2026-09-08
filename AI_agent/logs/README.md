@@ -1,11 +1,12 @@
-# 工作与实验记录
+# 工作记录与运行证据
 
-当前任务和状态只在 [plan.md](../plan.md) 维护。这里保存可复查的历史过程，记录中的旧审批、批次和“必须”只描述当时工作，不是新任务。
+当前任务看 [路线与任务](../project/roadmap.md)，运行方法看 [case 指南](../workflow/run_case.md)。这里保留实际执行证据，历史要求不自动生成新任务。
 
-- [worklog](worklog/README.md)：按日期记录交接、完成结果、遗留和提交。
-- [experiments](experiments/)：输入分析、运行证据、诊断与本轮管理审计。
-- [reviews](reviews/)：已有执行和审阅历史；以后只在任务有需要时新增。
-- [下游修改历史](downstream_agent_changes.md)：触及相关下游实现时参考。
+- [worklog](worklog/README.md)：按日期保存交接和变更理由。
+- [experiments](experiments/)：输入分析、诊断、运行产物、历史审计与当前实验。
+- [reviews](reviews/)：旧请求/执行/裁决及相关证据，不要求新任务沿用这套角色结构。
+- `runtime/`：主程序的运行日志目录，按实际运行产生。
+- [下游修改历史](downstream_agent_changes.md)：按需查证历史实现。
 
-新记录写清目的、代码版本、命令/输入、实际结果、产物位置和未验证范围即可；模型实验补模型配置及人工参与情况。不要求为小任务另造报告模板。
-本轮管理审计见 [审计索引](experiments/2026-09-08_management_audit/README.md)，存档与收树见 [接手记录](worklog/2026-09-08_takeover.md)。
+保留 logs 的依据是内容和实际消费者：主程序在此写运行日志，多项测试/GT 工具读取 experiments，个别回归读取 reviews 下的 JSON。它们不是旧管理入口的兼容壳，移动这些数据需要单独处理真实代码依赖。
+新记录足以定位输入、版本、命令/配置、模型与人工参与、结果和未验证范围即可。重要产物保持原样，不为整理导航改写过去的运行结果。

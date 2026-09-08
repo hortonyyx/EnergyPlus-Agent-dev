@@ -8,7 +8,7 @@ a fresh clone `test_f52_neuter_reverting_bbox_parser_reproduces_the_original_cra
 (and its three siblings) raised `FileNotFoundError` before ever reaching an assertion
 (2026-08-17 cross-review finding M-2). Moving trimmed copies here makes the dependency
 explicit and tracked; the `backup/` originals are untouched (they remain this repo's
-ordinary "back up before editing" local safety copies, per `AI_agent/CLAUDE.md` §5#4).
+ordinary "back up before editing" local safety copies, per `AI_agent/Agent.md` §5#4).
 
 ## Layout
 

@@ -80,7 +80,7 @@ def _load_testdata(case_dir: Path) -> dict | None:
 
 
 # F-20: `correction.accepted_artifact_trust` — see
-# AI_agent/proposals/f20_validate_case_v3_proof_design.md §2.2/§3.1/§4.
+# AI_agent/archive/2026-09-08_management_rebuild/original/AI_agent/proposals/f20_validate_case_v3_proof_design.md §2.2/§3.1/§4.
 # This is the ONLY check_id validate_case adds to the 1_correction report as
 # part of F-20; it is NEVER placed in the 2_modelling report (that report's
 # bytes feed `geometry_checkpoint_digest`'s `hash_obj(kernel_check_report)`,

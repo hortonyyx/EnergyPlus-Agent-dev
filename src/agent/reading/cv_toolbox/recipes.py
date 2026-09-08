@@ -6,7 +6,7 @@ TREE on the user's ruling ("从现在的工作环境撤掉，不是说就永远�
 2026-08-15: the implementation was still here while the authorization table
 (``run_cv_probe.ALLOWED_TOOLS``) no longer listed them, so the reader could not call
 them at all and only the orchestrator could pre-stage their output. Nothing was lost: the full code, tests and restore
-procedure are archived under ``AI_agent/capability/reading/prescan_snapshot/``
+procedure are archived under ``AI_agent/archive/reading_prescan/``
 (byte-identical to commit 0cfa289). Whether prescan comes back — and in what form —
 is a reading-专项 decision, to be taken together with the "calibration anchors must be
 a tool-emitted candidate_id" fix, because prescan's tick_candidate is exactly the

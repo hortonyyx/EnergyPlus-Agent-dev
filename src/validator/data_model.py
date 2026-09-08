@@ -1298,7 +1298,7 @@ class GeometrySchema(BaseSchema):
         # zones) but do NOT raise — let SurfaceConverter add surfaces and let EP
         # be the judge. To be removed entirely after idfpy switch
         # (idfpy_embed.md §3.1; src/validator/data_model.py is dropped).
-        # See AI_agent/plan.md B0' for follow-up.
+        # See AI_agent/archive/2026-09-08_pre_takeover/plan.md B0' for follow-up.
         # ====================================================================
         points = np.vstack([surface.vertices for surface in v]).round(8)
         unique_points, counts = np.unique(points, axis=0, return_counts=True)

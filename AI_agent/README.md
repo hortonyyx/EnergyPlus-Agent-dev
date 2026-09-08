@@ -1,29 +1,20 @@
-# 项目文档入口
+# 轻量 BIM 项目文档
 
-本目录承载整套项目管理方案和所有助手共享的项目记忆。每次会话从 [Agent.md](Agent.md) 开始；当前做什么只看 [plan.md](plan.md)。
+项目目标是把图纸、带表皮体量和后续 CAD 等混合输入转成可用的轻量 BIM。每次会话从 [Agent.md](Agent.md) 开始。
 
-## 现行管理
-
-| 入口 | 内容 |
+| 要找什么 | 文档 |
 |---|---|
-| [初始上下文](Agent.md) | 项目协作、Git 权限、记忆同步与收工约定 |
-| [管理体系](management.md) | 文档职责、任务推进、更新和归档方法 |
-| [产品范围](project_scope.md) | 通用轻量 BIM、两路输入、混合入口及协作边界 |
-| [当前计划](plan.md) | 当前阶段、已有证据、下一步和具体阻塞 |
-| [关键决策](decision_log.md) | 已确认选择与后续建议的区别 |
-| [操作指南](guides/README.md) | 开发、跑 case、模型配置偏好和会话加载 |
+| 做什么、做到什么程度 | [产品目标](project/goal.md) |
+| 现在做到哪里、下一步做什么 | [路线与当前任务](project/roadmap.md) |
+| 已经确定的选择和原因 | [关键决策](project/decisions.md) |
+| 两路输入如何组成同一个产品 | [系统设计](design/architecture.md) |
+| 共同模型、单位、坐标和编辑对象 | [轻量建筑模型](design/model.md) |
+| 已有代码、接口和真实能力缺口 | [现有实现](design/implementation.md) |
+| 怎样判断输出有用、完整和可信 | [验证与评价](design/evaluation.md) |
+| 怎样开发、维护文档和收工 | [工作方式](workflow/development.md) |
+| 用什么模型、哪些调用需要同意 | [模型与费用](workflow/models.md) |
+| 怎样启动和检查一个 case | [运行 case](workflow/run_case.md) |
+| 怎样让每次会话加载同一上下文 | [会话设置](workflow/session_setup.md) |
 
-## 技术与证据
-
-| 目录 | 使用方式 |
-|---|---|
-| [架构](architecture/README.md) | 现有代码链、坐标几何、评测边界；设计建议明确标注 |
-| [能力](capability/README.md) | 已有能力和实际缺口，不以测试数替代可用性 |
-| [提案](proposals/README.md) | 尚未实现的设计选择；旧规格仅留兼容跳转 |
-| [技术参考](reference/README.md) | 可复用方法与源码入口 |
-| [暂缓事项](deferred/README.md) | 有明确重启条件的候选工作 |
-| [日志](logs/README.md) | 工作交接、实验、审计与原始证据 |
-| [归档](archive/README.md) | 已替代文档、历史记忆及回退索引 |
-
-`showcase_animation/` 是演示资产，`backup/` 是本地历史副本，二者不管理研发排期。旧日志保留其当时叙述，不覆盖现行文件。
-本轮逐份核对和处置结果见 [管理体系重建记录](logs/worklog/2026-09-08_management_rebuild.md)。
+`project/` 管目标和推进，`design/` 管系统与实现，`workflow/` 管操作方法。
+[logs/](logs/README.md) 保存工作交接、实验和实际运行证据；[archive/](archive/README.md) 集中保存历史原稿、记忆和旧资产。历史资料不参与当前排期。

@@ -15,7 +15,7 @@ from pathlib import Path
 # 2026-08-15: `prescan-plan` / `prescan-elevation` withdrawn from this table;
 # 2026-08-19 it was WITHDRAWN FROM THE WORKING TREE (user ruling — a half-dead
 # feature whose code shipped while its authorization did not). Code + tests + restore
-# steps are archived under AI_agent/capability/reading/prescan_snapshot/;
+# steps are archived under AI_agent/archive/reading_prescan/;
 # whether prescan returns is a reading 专项 decision, not an abandonment. Historical rationale: six draws across 07-07..08-15 showed the reader
 # always opens with prescan and then stops at the
 # candidate layer; rolling the "spend fewer crops" wording back to the 07-07 text

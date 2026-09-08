@@ -432,7 +432,7 @@ def _corrections_summary(run_dir: Path) -> dict:
 
 def _annotation_basis_summary(run_dir: Path) -> dict:
     """Best-effort read of 1_correction/annotation_basis.json (2026-08-12,
-    摊 C: "让标注法这个观测量可见" -- see AI_agent/plan.md〇-C). Pure
+    摊 C: "让标注法这个观测量可见" -- see AI_agent/archive/2026-09-08_pre_takeover/plan.md〇-C). Pure
     observation, advisory-only: a missing sidecar (legacy v1/v2 run, or a v3
     run whose facade envelope never accepted an axis) is normal, not an
     error, and must never make report generation fail or change any

@@ -1653,7 +1653,7 @@ def _assert_rel_allowed(rel: Path) -> None:
     if "test_baseline" in parts and "gt" in parts:
         raise ValueError(f"forbidden gt source path: {rel}")
     # 2026-08-19: prescan was withdrawn from the working tree (archived under
-    # AI_agent/capability/reading/prescan_snapshot/), so the one exception that used to let
+    # AI_agent/archive/reading_prescan/), so the one exception that used to let
     # run_*/0_reading/cv_evidence/<stem>/prescan/** through is gone with it.
     # Every run_* source path is now forbidden, full stop.
     if any(part.startswith("run_") for part in rel.parts[:-1]):

@@ -23,7 +23,7 @@ Real-data fixtures used (no hand-typed geometry for the headline claims):
   `window_host.py::resolve_window_hosts` — see F-9's own test file) so the
   shadow decision can be exercised on the un-rejected, real geometry.
 - `case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e/` — a REAL,
-  fully-accepted v3 production run (per `AI_agent/CLAUDE.md`'s 2026-08-11
+  fully-accepted v3 production run (per `AI_agent/Agent.md`'s 2026-08-11
   entry: "一次 flow 调用从头跑到底、中途不停...EnergyPlus Completed
   Successfully, 0 Severe"). All 15 windows here have CORRECT citations; used
   as the clean positive baseline for the real-entry wiring locks and the
@@ -1280,7 +1280,7 @@ def test_condition2_side_effect_undeclared_z_scope_now_rejects_not_silently_acce
     / `status=="resolved" and floor mismatch` -- both require a definite
     status this source never reaches) and, if its along-distance happened to
     be in tolerance, was silently ACCEPTED. Verified against the actual
-    pre-MAJOR-B1 module (`AI_agent/backup/src_history/2026-08-12_majorb1/
+    pre-MAJOR-B1 module (`AI_agent/archive/local_backup/src_history/2026-08-12_majorb1/
     window_position.py.orig`) on this exact fixture: `decision=="accepted"`.
 
     AFTER this batch: the SAME fixture now REJECTS. Condition 2's elevation-

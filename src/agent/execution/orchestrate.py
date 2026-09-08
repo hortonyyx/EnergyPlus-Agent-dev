@@ -1,7 +1,7 @@
 """Agent-orchestration helpers for the dev baseline workflow (2026-06-16).
 
 In the dev period the main conversational Agent is the orchestrator + judge②
-(see AI_agent/guides/new_case_guide.md). Each stage is run by an isolated
+(see AI_agent/workflow/run_case.md). Each stage is run by an isolated
 executor (a separate API call or a cold-started sub-agent) so judge / cross-stage
 info never pollutes a stage's input. This module gives the orchestrator two thin
 primitives over the M0 audit layer:

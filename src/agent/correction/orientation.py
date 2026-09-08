@@ -2,7 +2,7 @@
 accepted v3/Vg correction with a `NorthAxisEvidence` — including the
 zero-evidence `prior_fill` default-0 mechanical producer.
 
-Authority: ``AI_agent/proposals/c2_e4_output_contract_spec.md`` v2 §3.2bis.
+Authority: ``AI_agent/archive/2026-09-08_management_rebuild/original/AI_agent/proposals/c2_e4_output_contract_spec.md`` v2 §3.2bis.
 This module does not draw geometry, does not re-run the LLM, and does not
 implement priority/sanity merging of multiple raw orientation observations
 (that policy is explicitly out of scope for this batch, spec §0.3) — it only

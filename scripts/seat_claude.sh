@@ -15,7 +15,7 @@
 #   * the prompt is read from a FILE, never inlined, so it survives quoting
 #   * runs detached; headless `-p` prints only when the whole turn ends, so an
 #     empty log mid-run means "still working", ⛔ not "dead"
-#     (AI_agent/guides/codex_execution_protocol.md §7)
+#     (AI_agent/workflow/models.md)
 #   * prints the pid and the log path, then returns immediately
 #
 # ⚠️ Known side effect (CLAUDE.md §5#8.6, NOT a violation by the seat): a

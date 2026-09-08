@@ -4,7 +4,7 @@ Intake flows (pick one):
 
     Flow PIPELINE  (default dev flow; no Anthropic API needed):
         # 1) In a Claude Code session, drive the reading stage (image -> vector JSON)
-        #    following AI_agent/guides/new_case_guide.md Step 4 (Appendix A); save
+        #    following AI_agent/workflow/run_case.md Step 4 (Appendix A); save
         #    the per-image vector JSONs + reading_summary.md under
         #    case_tests/.../<case>/0_reading/
         # 2) Then run — intake_node runs the pipeline (vector JSON -> IntakeOutput)
@@ -59,7 +59,7 @@ SUPPORTED_FACADES = ("South", "North", "East", "West")
 
 
 def _collect_images(case_dir: Path, spec: dict) -> list[Path]:
-    """Per AI_agent/guides/new_case_guide.md §九 schema A:
+    """Per AI_agent/workflow/run_case.md §九 schema A:
     Floor plans (per-floor) -> top_view (back-compat) -> facades -> supp_plan.
     """
     images: list[Path] = []

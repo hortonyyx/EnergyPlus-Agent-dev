@@ -1,7 +1,7 @@
 """CheckReport v2 — the common schema every per-stage deterministic check emits.
 
 Two ideas drive the design, both from the 2026-06-15 validation architecture
-(see AI_agent/architecture/pipeline_stage_contracts.md §0.2/§0.4):
+(see AI_agent/design/implementation.md):
 
 1. **Three layers** (§0.2). Every check declares which layer it belongs to:
      - ``invariant``   — a structural/geometric invariant that MUST hold; a

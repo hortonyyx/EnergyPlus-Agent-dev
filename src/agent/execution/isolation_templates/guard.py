@@ -117,7 +117,7 @@ PROBE_DIRECT_REQUIRED_KEYS = ("tool", "image")
 # repair instead of a generic pairing lecture.
 # 2026-08-15: prescan-plan / prescan-elevation dropped in step with
 # run_cv_probe.ALLOWED_TOOLS; 2026-08-19 it was withdrawn from the working tree
-# and archived under AI_agent/capability/reading/prescan_snapshot/
+# and archived under AI_agent/archive/reading_prescan/
 # (deferred to the reading 专项, not abandoned).
 # Leaving them advertised here would keep pointing at a tool the
 # wrapper now refuses, which is the "mechanical repair" hint working against the

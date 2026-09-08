@@ -34,7 +34,7 @@
 # by the API but silently ignored — probed 2026-08-16, reasoning_tokens still
 # billed) and `reasoning_effort` defaults to "max". Claude Code drives the
 # thinking budget itself, so nothing to set here, but expect a heavier quota
-# burn per turn than glm-5.2 gave (see AI_agent/guides/codex_execution_protocol.md §1).
+# burn per turn than glm-5.2 gave (see AI_agent/workflow/models.md).
 #
 # Config lives in .env (gitignored): GLM_API_KEY / GLM_ANTHROPIC_BASE_URL.
 set -euo pipefail

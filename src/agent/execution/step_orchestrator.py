@@ -2,7 +2,7 @@
 
 Turns the dev-baseline run from "run the whole chain, then judge after the fact"
 into a per-stage BLOCKING loop the main Agent drives turn by turn (the ideal in
-AI_agent/guides/new_case_guide.md §2):
+AI_agent/workflow/run_case.md §2):
 
     for each stage 0..5:
         draw (executor) ──► gate① (deterministic check)

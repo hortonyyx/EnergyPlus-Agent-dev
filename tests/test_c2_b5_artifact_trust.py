@@ -870,7 +870,7 @@ def test_d3_report_reads_typed_conflict_reason_from_rejected_attempt_only(
 # sites already use) into all three geometry-consumer sites — check_correction
 # / build_geometry / check_kernel — instead of rebuilding from the untrusted
 # stage-root convenience copy without any window_host_proof at all. Design
-# authority: AI_agent/proposals/f20_validate_case_v3_proof_design.md §4 (L1-L8).
+# authority: AI_agent/archive/2026-09-08_management_rebuild/original/AI_agent/proposals/f20_validate_case_v3_proof_design.md §4 (L1-L8).
 # ---------------------------------------------------------------------------
 
 _TRUST_CHECK_ID = "correction.accepted_artifact_trust"

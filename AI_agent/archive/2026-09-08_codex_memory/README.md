@@ -8,9 +8,9 @@
 
 | 原记录 | 当前去向 / 处置 |
 |---|---|
-| [项目讨论](energyplus-agent-dev.md) §1 接手时点 | 已由 [AGENTS.md](../../../AGENTS.md) 与 [接手记录](../../logs/worklog/2026-09-08_takeover.md) 覆盖 |
-| 同文 §2/§4/§5/§6/§7/§8：目标、物性协作、路线、编辑、几何和评价 | [产品范围](../../project_scope.md)；[两路方案](../../architecture/multimodal_bim.md) 同步房间与热区的区分 |
-| 同文 §3/§10：运行模型、开发偏好、通道 | [模型使用约定](../../guides/model_usage.md)；型号与探测明细保留在本历史档 |
+| [项目讨论](energyplus-agent-dev.md) §1 接手时点 | 已由 [Agent.md](../../Agent.md) 与 [接手记录](../../logs/worklog/2026-09-08_takeover.md) 覆盖 |
+| 同文 §2/§4/§5/§6/§7/§8：目标、物性协作、路线、编辑、几何和评价 | [产品范围](../../project/goal.md)；[两路方案](../../design/architecture.md) 同步房间与热区的区分 |
+| 同文 §3/§10：运行模型、开发偏好、通道 | [模型使用约定](../../workflow/models.md)；型号与探测明细保留在本历史档 |
 | 同文 §9：外部技术参考 | 原文保留链接与当时结论，本轮没有重新浏览或声称所有仿真出口已验证 |
 | [模型与额度调查](energyplus-agent-dev-model-routing-2026-09-07.md) | 长期用户偏好进使用约定，时效性数据作为历史参考，实际使用时再核对 |
 | [文本连通探测](energyplus-agent-dev-model-probes-2026-09-07.json) | 完整迁移；只证明当时文本请求连通，不证明视觉/工具能力或长任务容量 |

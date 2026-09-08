@@ -196,7 +196,7 @@ def annotation_basis_report(
     return {
         "schema": "envelope_annotation_basis_observation_v1",
         "note": (
-            "纯观测,不设门/不阻断/不改变任何既有判定 —— 见 AI_agent/plan.md〇-C 与 "
+            "纯观测,不设门/不阻断/不改变任何既有判定 —— 见 AI_agent/archive/2026-09-08_pre_takeover/plan.md〇-C 与 "
             "2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md。"
         ),
         "summary_line": f"标注法观测（纯观测）: {summary}",

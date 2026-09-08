@@ -37,11 +37,11 @@ deterministic; 4_mep only physics-semantics errors. The `CorrectedGeometry` and
 ## Startup prompts
 
 The operational startup prompts (the phase-1 / phase-2 blocks to paste into a new
-session) live in [`../../AI_agent/guides/new_case_guide.md`](../../AI_agent/guides/new_case_guide.md)
+session) live in [`../../AI_agent/workflow/run_case.md`](../../AI_agent/workflow/run_case.md)
 Appendix A / B, kept in one place so they don't drift from the run procedure.
 
 ## Authoritative wiring
 
-See [`../../AI_agent/architecture/pipeline_stage_contracts.md`](../../AI_agent/architecture/pipeline_stage_contracts.md)
+See [`../../AI_agent/design/implementation.md`](../../AI_agent/design/implementation.md)
 for the full stage-by-stage contract (inputs / outputs / which skill feeds which
 stage / invariants).

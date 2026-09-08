@@ -133,11 +133,11 @@ def test_prescan_stays_deleted_until_the_reading_专项_decides_otherwise():
 
     prescan (`prescan-plan` / `prescan-elevation`) was WITHDRAWN FROM THE WORKING TREE on
     2026-08-19 by user ruling — deferred to the reading 专项, NOT abandoned; the code,
-    tests and restore steps live in `AI_agent/capability/reading/prescan_snapshot/`. It had spent 2026-08-15..08-19 half-dead: the implementation shipped while
+    tests and restore steps live in `AI_agent/archive/reading_prescan/`. It had spent 2026-08-15..08-19 half-dead: the implementation shipped while
     `run_cv_probe.ALLOWED_TOOLS` no longer listed it, so the reader could not call it
     and only the orchestrator could pre-stage its output. That half-dead shape is what
     this sentinel prevents from recurring — prescan returns as a DECISION recorded in
-    `AI_agent/capability/reading/`, or it stays archived until one is taken.
+    `AI_agent/archive/2026-09-08_management_rebuild/original/AI_agent/capability/reading/`, or it stays archived until one is taken.
 
     ⚠️ The first draft of this sentinel grepped the source for "prescan_plan" and
     tripped on its own module docstring recording the deletion. This repo has been

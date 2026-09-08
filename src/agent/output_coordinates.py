@@ -2,7 +2,7 @@
 hash-chain verifiers, pure derivers, sidecar persistence, and the loader that
 gives graph/CLI entry points a single object to carry EP-frame decisions.
 
-Authority: ``AI_agent/proposals/c2_e4_output_contract_spec.md`` v2, §3–§8.
+Authority: ``AI_agent/archive/2026-09-08_management_rebuild/original/AI_agent/proposals/c2_e4_output_contract_spec.md`` v2, §3–§8.
 This module owns the type/derive/apply surface; the building-bound object
 registry + gate lives in ``src/validator/output_coordinates.py`` (validator
 layer must not import agent graph code).
