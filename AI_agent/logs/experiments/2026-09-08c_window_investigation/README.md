@@ -139,3 +139,35 @@ FACADE_BASE_SIGN = {"North": -1, "South": 1, "East": 1, "West": -1}
 
 ⚠️ **尚未解释的余量**（⛔ 不预设）：平面 33 个物理窗 vs 立面 31 个 window 类型洞口。
 S2 要逐个对上，差额必须有名字。
+
+---
+
+## 7 · 回应 J0 的朝向质疑（2026-09-08，主控实测）
+
+GPT 席位在首次 judge-on 跑的 J0 裁决里写：
+> 「North/West grade overlays also show a **horizontal registration offset** against source pixels;
+> the reported 100 percent extent scores do not establish declaration-level orientation.」
+
+⇒ 若这是**坐标层**的问题，North/West 的窗会整体错位 ⇒ 直接压在补窗的地基上，必须查。
+
+**实测**（立面洞口投影到世界系后，与平面候选的端点偏移中位数）：
+
+| 面 | `FACADE_BASE_SIGN` | n | lo 端偏移 | hi 端偏移 |
+|---|---|---:|---:|---:|
+| **East** | +1（不镜像）| 12 | **−13.8 mm** | −8.0 mm |
+| South | +1（不镜像）| 7 | +3.7 mm | +1.9 mm |
+| **North** | −1（镜像）| 8 | +10.7 mm | +8.8 mm |
+| West | −1（镜像）| 4 | −3.4 mm | −4.2 mm |
+
+⭐ **偏移最大的是 East（不镜像），最小的是 West（镜像）** ⇒ **偏移不随镜像变化**，
+量级 ≤ 14 mm，与本档 §3 量到的跨图标定残差（中位 18.4 mm）同一档。
+
+⇒ **坐标层的镜像相关偏移不成立**；镜像没有引入系统性错误。
+
+⚠️ **划界（⛔ 不夸大本次测量）**：
+- 本测量只覆盖**坐标层**。J0 说的是 **overlay（渲染叠图）**上的偏移 ——
+  那属于席位同时发现的**渲染器仍读 legacy `strokes/dimensions`、产出 400×80 空图**那条，
+  ⛔ 不是本条线的问题，也**未被本次测量覆盖**。
+- 样本量小（4~12），「系统性」是粗判据（两端同向且 >5 mm）。
+- ⛔ 本测量**不**证明「声明级朝向已确立」—— J0 那半句仍然成立：
+  as_drawn 腿的 flip 取的是**默认值**，⛔ 产物没有声明它（本档 §2 的残余风险，登记未修）。
