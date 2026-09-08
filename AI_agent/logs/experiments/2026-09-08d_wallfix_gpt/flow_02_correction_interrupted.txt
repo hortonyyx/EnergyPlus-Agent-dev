@@ -1,0 +1,106 @@
+Traceback (most recent call last):
+  File "/tmp/w1_flow_glm/scripts/tool_scripts/run_stage.py", line 3588, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/tmp/w1_flow_glm/scripts/tool_scripts/run_stage.py", line 3576, in main
+    return {
+           ^
+  File "/tmp/w1_flow_glm/scripts/tool_scripts/run_stage.py", line 3249, in cmd_flow
+    outcome = run_one_stage(
+              ^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/execution/step_orchestrator.py", line 251, in run_one_stage
+    out, report = draw_fn(None)  # blind: never inject judge/feedback in the loop
+                  ^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/scripts/tool_scripts/run_stage.py", line 1190, in <lambda>
+    return lambda _fb: _draw_correction(run_dir, testdata_text, ez, relied, policy)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/scripts/tool_scripts/run_stage.py", line 714, in _draw_correction
+    return _draw_correction_as_drawn(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/scripts/tool_scripts/run_stage.py", line 612, in _draw_correction_as_drawn
+    geom = run_multifloor_correction(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/pipeline.py", line 1959, in run_multifloor_correction
+    geom = run_correction(
+           ^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/pipeline.py", line 1634, in run_correction
+    outcome = run_correction_evidence_chain(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/pipeline.py", line 1260, in run_correction_evidence_chain
+    outcome = run_decision_loop(
+              ^^^^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/correction/decision_executor.py", line 637, in run_decision_loop
+    response = response_provider(packet)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/pipeline.py", line 1034, in provider
+    parsed = _call_json_llm(
+             ^^^^^^^^^^^^^^^
+  File "/tmp/w1_flow_glm/src/agent/pipeline.py", line 288, in _call_json_llm
+    resp = client.chat.completions.create(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/_utils/_utils.py", line 287, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/resources/chat/completions/completions.py", line 1211, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/_base_client.py", line 1314, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/_base_client.py", line 1019, in request
+    response = self._send_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/_client.py", line 400, in _send_request
+    return self._send_with_auth_retry(request, stream=stream, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/_client.py", line 378, in _send_with_auth_retry
+    response = super()._send_request(request, stream=stream, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/openai/_base_client.py", line 947, in _send_request
+    return self._client.send(request, stream=stream, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_client.py", line 928, in send
+    raise exc
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_client.py", line 922, in send
+    response.read()
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_models.py", line 881, in read
+    self._content = b"".join(self.iter_bytes())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_models.py", line 897, in iter_bytes
+    for raw_bytes in self.iter_raw():
+                     ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_models.py", line 951, in iter_raw
+    for raw_stream_bytes in self.stream:
+                            ^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_client.py", line 153, in __iter__
+    for chunk in self._stream:
+                 ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 127, in __iter__
+    for part in self._httpcore_stream:
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 407, in __iter__
+    raise exc from None
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 403, in __iter__
+    for part in self._stream:
+                ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 342, in __iter__
+    raise exc
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 334, in __iter__
+    for chunk in self._connection._receive_response_body(**kwargs):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 203, in _receive_response_body
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/httpcore/_backends/sync.py", line 128, in read
+    return self._sock.recv(max_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1232, in recv
+    return self.read(buflen)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1105, in read
+    return self._sslobj.read(len)
+           ^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

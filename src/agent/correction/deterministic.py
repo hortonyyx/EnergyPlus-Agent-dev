@@ -91,6 +91,20 @@ _EPS = 1e-9
 # score — that is the intended enforcement mechanism, not a gap).
 DETERMINISTIC_CORE_STAMP_VERSION = "1"
 
+#: W#3 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-A): the AS_DRAWN chain
+#: leg's own stamp version — the same "which revision of the deterministic
+#: kernel produced this geometry" identity, for the OTHER kernel.  The
+#: as_drawn leg's geometry comes through the evidence chain's projection
+#: bridge + snap + assembly + the as_drawn finalize half (see
+#: ``correction.chain_replay``), ⛔ never through ``apply_deterministic_core``
+#: — stamping it ``"1"`` would be a false processing claim, and leaving it
+#: unstamped leaves judge-side boundary scoring permanently ``no_data``.  The
+#: writer's as_drawn replay signs its proof under THIS version, and
+#: ``judge.correction_score`` accepts a stamp/proof PAIR under either leg's
+#: version (exact equality per leg, ⛔ no cross-leg mixing: a chain product
+#: carrying a legacy proof, or vice versa, is untrusted).
+AS_DRAWN_CHAIN_STAMP_VERSION = "as_drawn_chain_1"
+
 
 class DeterministicCoreProofV1(BaseModel):
     """F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): externally issued

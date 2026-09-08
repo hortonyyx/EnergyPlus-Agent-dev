@@ -1,0 +1,23 @@
+{
+  "run": "case_tests/e2e_tests/sm25-L_anchor/run_wallfix_gpt_judge_on",
+  "judge_mode": "stop",
+  "last_accepted_stage": "0_reading",
+  "last_completed_draw": "1_correction/attempts/001",
+  "archive_completed": true,
+  "gate1_passed": false,
+  "blocking_check": "correction.audit_completeness",
+  "blocking_evidence": {
+    "changed": false,
+    "relied_on_testdata": true,
+    "corrections": [],
+    "conflicts": []
+  },
+  "remaining_flag": "correction.evidence_debt_coverage",
+  "correction_judge_reached": false,
+  "downstream_stages_reached": false,
+  "full_flow_acceptance": false,
+  "termination": "operator SIGINT while the standard stochastic retry was waiting on the provider; no acceptance override",
+  "process_exit_code": 130,
+  "reason": "The first archived draw exposed a fixed input/audit mismatch: _make_draw_fn sets relied from testdata file existence, while the as-drawn finalize emits empty corrections/conflicts. Stop and report the new wall instead of changing excluded audit/window work or spending further blind retries.",
+  "note": "This is an execution observation, not a replacement for run_manifest or orchestration_state. The manifest correctly has no accepted correction. Per-floor convenience files may have been touched by the interrupted second draw; use the immutable attempts/001 bundle for the completed draw."
+}

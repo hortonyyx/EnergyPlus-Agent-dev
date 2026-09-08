@@ -822,6 +822,21 @@ _EVIDENCE_CHAIN_SOURCE_RECORD_NAME = "chain_source_record.json"
 #: outcome.  ⛔ The bare geometry never travels as the product without
 #: this envelope (design §四: hash 对不上 / envelope 丢失 ⇒ 投影失败).
 _EVIDENCE_CHAIN_PROJECTION_NAME = "projection_envelope.json"
+#: W#3 (wallhunt 2026-09-08b): the FINAL wall compilation the decision loop
+#: settled on, filed next to the outcome/projection envelope.  This is the
+#: chain's model product — the byte the writer's as_drawn replay re-drives
+#: the geometry from (embedded into the candidate's chain provenance by the
+#: flow wiring).  Its ``content_sha256`` equals the outcome's
+#: ``final_provisional_sha256`` and the envelope's ``source_resolved_sha256``
+#: — three artifacts, one binding.
+_EVIDENCE_CHAIN_COMPILATION_NAME = "evidence_chain_compilation.json"
+#: W#6 (wallhunt 2026-09-08b): the chain's cut lines AS PROJECTED (i.e. after
+#: the exterior-frame declaration snap), plus the exact ``project_cut_lines``
+#: arguments the chain used — filed so the multifloor wiring can realign the
+#: upper floors' wall positions onto the reference floor and RE-PARTITION
+#: from the same lines (conservation survives the alignment by construction),
+#: and so the writer-side replay re-drives the identical reconciliation.
+_EVIDENCE_CHAIN_CUT_LINES_NAME = "cut_lines.json"
 #: The llm.yaml section the model beat reads, BY ITS REAL NAME (v3, B-1 —
 #: ⛔ never through the `intake_`-prefixing `_section()`, which silently
 #: resolved this to `intake_correction`).  An absent section is a LOUD
@@ -1096,6 +1111,14 @@ def run_correction_evidence_chain(
         classify_vector_json,
     )
 
+    # W#4: this file describes the current invocation, not an earlier draw.
+    # Clear it before source_read; a new exception below files its own link.
+    # A normal (including non-success terminal) outcome has its own route and
+    # outcome records and must not inherit a stale exception from a prior run.
+    failure_path = _evidence_chain_run_meta(out_dir, _EVIDENCE_CHAIN_FAILURE_NAME)
+    if failure_path is not None:
+        failure_path.unlink(missing_ok=True)
+
     # -- source_read: freeze the bytes -------------------------------------- #
     try:
         raw = (Path(vector_dir) / product_filename).read_bytes()
@@ -1305,6 +1328,34 @@ def run_correction_evidence_chain(
                 lines, _ = cut_lines_from_wall_compilation(
                     final_compilation[-1].walls, spans
                 )
+                # W#6 (dispatch 2026-09-08c S-B): take the FOUR exterior
+                # edges' axis positions from the drawing's OWN declarations
+                # (overall extents + the matched thickness callout) BEFORE
+                # the cut — every floor whose declared chains agree then
+                # projects onto the IDENTICAL axis frame by construction
+                # (assembly's zero-tolerance compare needs no snap), and
+                # each floor's ring/cells conservation survives because the
+                # partition runs on the SAME snapped lines.  Interior walls
+                # keep their ink-side positions (measured: their axes sit
+                # 121.6-2358.7 mm off every declared tick — snapping them
+                # would displace geometry, not fix representation).
+                from src.agent.correction.multifloor import (
+                    read_declared_exterior_frame,
+                )
+                from src.agent.correction.projection_bridge import (
+                    snap_exterior_walls_to_declared_frame,
+                )
+
+                frame = read_declared_exterior_frame(
+                    doc, input_id=Path(product_filename).stem
+                )
+                lines, frame_records = snap_exterior_walls_to_declared_frame(
+                    lines,
+                    overall_x_m=frame.overall_x_m,
+                    overall_y_m=frame.overall_y_m,
+                    thickness_callouts_mm=frame.thickness_callouts_mm,
+                    input_id=Path(product_filename).stem,
+                )
                 envelope = project_cut_lines(
                     lines,
                     # N-3, redeclared HERE for the production chain: the
@@ -1334,6 +1385,56 @@ def run_correction_evidence_chain(
                 envelope_path.write_text(
                     envelope.model_dump_json(indent=2), encoding="utf-8"
                 )
+                # W#3: file the FINAL compilation (the chain's model product)
+                # alongside the envelope, so the flow wiring can freeze those
+                # bytes into the candidate's chain provenance for the
+                # writer-side replay.  Canonical bytes — the same body whose
+                # ``content_sha256`` the compilation itself carries.
+                (Path(out_dir) / _EVIDENCE_CHAIN_COMPILATION_NAME).write_bytes(
+                    final_compilation[-1].model_dump_json(indent=2).encode("utf-8")
+                )
+                # W#6: file the projected cut lines + the exact projection
+                # arguments, for the cross-floor reconciliation downstream.
+                (Path(out_dir) / _EVIDENCE_CHAIN_CUT_LINES_NAME).write_text(
+                    json.dumps(
+                        {
+                            "schema": "cut_lines_v1",
+                            "lines": [
+                                {
+                                    "axis": line.axis,
+                                    "pos_m": line.pos_m,
+                                    "along_lo_m": line.along_lo_m,
+                                    "along_hi_m": line.along_hi_m,
+                                    "half_thickness_m": line.half_thickness_m,
+                                    "kind": line.kind,
+                                    "origin_id": line.origin_id,
+                                }
+                                for line in lines
+                            ],
+                            "project": {
+                                "resolution_m": 0.0,
+                                "resolution_source": (
+                                    "production evidence chain: as-drawn "
+                                    "*_m fields, floating-point metres, no "
+                                    "declared quantisation (N-3 redeclared "
+                                    "at the wiring)"
+                                ),
+                                "source_resolved_sha256": final_compilation[
+                                    -1
+                                ].content_sha256,
+                                "floor_id": projection.floor_id or floor_ref,
+                                "floor_name": projection.floor_name or floor_ref,
+                                "z_floor_m": projection.z_floor_m,
+                                "ceiling_height_m": projection.ceiling_height_m,
+                                "view_id": Path(product_filename).stem,
+                                "floor_ref": floor_ref,
+                                "origin_label": Path(product_filename).stem,
+                            },
+                        },
+                        indent=2,
+                    ),
+                    encoding="utf-8",
+                )
                 projection_record = {
                     "requested": True,
                     "projected": True,
@@ -1343,6 +1444,24 @@ def run_correction_evidence_chain(
                     "extension_count": envelope.extension_count,
                     "n_dangling_end_debts": len(envelope.dangling_end_debts),
                     "n_opening_spans": len(spans),
+                    # W#6: the exterior-frame snap's own account — what each
+                    # exterior edge's ink said, what the declaration says,
+                    # and the displacement absorbed.
+                    "exterior_frame_snaps": [
+                        {
+                            "axis": r.axis,
+                            "side": r.side,
+                            "wall_origin_id": r.wall_origin_id,
+                            "pix_pos_m": r.pix_pos_m,
+                            "declared_pos_m": r.declared_pos_m,
+                            "displaced_m": r.displaced_m,
+                            "matched_callout_mm": r.matched_callout_mm,
+                            "followed_opening_ids": list(
+                                r.followed_opening_ids
+                            ),
+                        }
+                        for r in frame_records
+                    ],
                 }
             except Exception as exc:  # recorded, then re-raised untouched
                 _record_evidence_chain_failure(out_dir, "project", exc)
@@ -1555,6 +1674,30 @@ def run_correction(
                 "evidence chain projection envelope does not bind the "
                 "outcome's final provisional: envelope has "
                 f"{envelope.source_resolved_sha256}, outcome has "
+                f"{outcome.final_provisional_sha256} — treat as a "
+                "projection failure"
+            )
+        # W#3: reconcile the FILED final compilation against the same binding
+        # — its canonical content hash must equal the outcome's final
+        # provisional hash, so the bytes the flow wiring will freeze into the
+        # candidate's chain provenance are exactly the bytes the loop settled
+        # on (and the writer replay will re-verify the same equation again).
+        from src.agent.correction.wall_compiler import WallCompilationV1
+        from src.agent.correction.window_sources import canonical_sha256
+
+        filed_compilation = WallCompilationV1.model_validate_json(
+            (Path(out_dir) / _EVIDENCE_CHAIN_COMPILATION_NAME).read_bytes()
+        )
+        _content = filed_compilation.model_dump(mode="python")
+        _declared = _content.pop("content_sha256", None)
+        if (
+            canonical_sha256(_content) != _declared
+            or _declared != outcome.final_provisional_sha256
+        ):
+            raise RuntimeError(
+                "evidence chain compilation does not bind the outcome's "
+                "final provisional: filed compilation has "
+                f"{_declared}, outcome has "
                 f"{outcome.final_provisional_sha256} — treat as a "
                 "projection failure"
             )
@@ -1886,8 +2029,58 @@ def run_multifloor_correction(
         )
         for doc, run in zip(plan_docs, plan_runs)
     ]
-    geometries, snap_account = snap_footprints_to_reference(
-        geometries, declarations
+    # W#6: reconcile ON THE CUT LINES and re-partition, ⛔ never the verbatim
+    # ring swap (which left the upper floor's cells from its own partition
+    # and broke its coverage conservation by 0.3806 m² on sm25).  The lines
+    # and the exact projection arguments are the chain's own filed sidecar,
+    # hash-anchored to the same compilation the envelope binds to below.
+    from src.agent.correction.multifloor import (
+        cut_lines_from_sidecar,
+        reconcile_floors_to_reference,
+    )
+
+    per_floor_cut_lines: list = []
+    per_floor_project: list = []
+    for run, geom in zip(plan_runs, geometries):
+        sidecar_path = Path(run.out_dir) / _EVIDENCE_CHAIN_CUT_LINES_NAME
+        try:
+            sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise MultiFloorAssemblyError(
+                "CUT_LINES_SIDECAR_MISSING",
+                {
+                    "run": run.product_filename,
+                    "sidecar_path": str(sidecar_path),
+                    "reason": "the cross-floor reconciliation consumes the "
+                    "chain's own filed cut lines (W#6)",
+                },
+            ) from exc
+        if sidecar.get("schema") != "cut_lines_v1":
+            raise MultiFloorAssemblyError(
+                "CUT_LINES_SIDECAR_SCHEMA_UNKNOWN",
+                {"run": run.product_filename, "schema": sidecar.get("schema")},
+            )
+        filed_compilation = json.loads(
+            (
+                Path(run.out_dir) / _EVIDENCE_CHAIN_COMPILATION_NAME
+            ).read_text(encoding="utf-8")
+        )
+        if (
+            sidecar["project"].get("source_resolved_sha256")
+            != filed_compilation.get("content_sha256")
+        ):
+            raise MultiFloorAssemblyError(
+                "CUT_LINES_SIDECAR_UNBOUND",
+                {
+                    "run": run.product_filename,
+                    "reason": "the sidecar's projection anchor is not the "
+                    "chain's filed final compilation",
+                },
+            )
+        per_floor_cut_lines.append(cut_lines_from_sidecar(sidecar))
+        per_floor_project.append(sidecar["project"])
+    geometries, snap_account = reconcile_floors_to_reference(
+        per_floor_cut_lines, per_floor_project, declarations
     )
     if snap_ledger_path is not None:
         snap_path = Path(snap_ledger_path)

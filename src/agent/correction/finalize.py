@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 import hashlib
 from pathlib import Path
 
@@ -40,6 +41,9 @@ from src.agent.correction.window_sources import (
     canonical_json_bytes,
 )
 
+if TYPE_CHECKING:  # provenance carrier is a structural field, not a runtime dep
+    from src.agent.correction.chain_provenance import AsDrawnChainProvenanceV1
+
 
 @dataclass(frozen=True)
 class PreparedCandidateIdentity:
@@ -73,6 +77,15 @@ class FinalizeResult:
     # AuthoritativeEnvelope-derived v3 comparison). Never gates, never
     # changes any pre-existing field on this result.
     annotation_basis: tuple[EnvelopeAnnotationObservation, ...] = ()
+    # W#3 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-A): the as_drawn
+    # chain leg's writer-replay anchor.  Present ⟺ this result came through
+    # ``finalize_as_drawn_chain_geometry`` WITH its frozen per-storey
+    # compilations — the explicit dispatcher the StageRunner writer reads to
+    # route the B5 replay lock onto the chain replay instead of the legacy
+    # envelope core (⛔ never a shape guess off the geometry).  A chain result
+    # minted WITHOUT it routes to the legacy replay and reds there by
+    # construction — the omission is loud, never silently accepted.
+    chain_provenance: "AsDrawnChainProvenanceV1 | None" = None
 
 
 def _identity_snapshot(geom: CorrectedGeometry):
@@ -216,6 +229,7 @@ def finalize_as_drawn_chain_geometry(
     verified_window_inputs: VerifiedWindowResolverInputs,
     target: CorrectionTarget,
     tol: CoreTolerances | None = None,
+    chain_provenance: "AsDrawnChainProvenanceV1 | None" = None,
 ) -> FinalizeResult:
     """The as_drawn evidence-chain leg's finalize (W-1 T2-⑤ / rework BLK-B).
 
@@ -275,6 +289,20 @@ def finalize_as_drawn_chain_geometry(
             phase="final",
             context=exc.context,
         ) from exc
+    # The as_drawn chain's own unconditional kernel stamp (W#3): same "I ran,
+    # version is X" role as ``apply_deterministic_core``'s LAST-statement
+    # stamp, naming THIS leg's kernel (projection + snap + assembly + this
+    # finalize half), ⛔ never the legacy "1" this geometry did not run
+    # through.  Stamped before the final validation boundary, so everything
+    # downstream (feature claims, output bytes) hashes over the stamped body.
+    from src.agent.correction.deterministic import AS_DRAWN_CHAIN_STAMP_VERSION
+    from src.agent.correction.schema import DeterministicCoreStampV1
+
+    geom = geom.model_copy(update={
+        "deterministic_core_stamp": DeterministicCoreStampV1(
+            version=AS_DRAWN_CHAIN_STAMP_VERSION
+        ),
+    })
     geom = validate_final_corrected_geometry(geom)
     feature_state_claims = derive_feature_state_claims(target, geom)
     output_bytes = serialize_correction_output(geom)
@@ -311,4 +339,5 @@ def finalize_as_drawn_chain_geometry(
         window_evidence_ledger=window_evidence,
         verified_window_resolver_inputs=verified_window_inputs,
         prepared_candidate_identity=prepared_identity,
+        chain_provenance=chain_provenance,
     )

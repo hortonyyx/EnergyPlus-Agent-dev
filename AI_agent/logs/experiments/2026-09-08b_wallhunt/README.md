@@ -128,3 +128,63 @@ ValueError: v3 build requires VerifiedWindowHostProof, including zero-window out
   `tolerance=0.020643492 m`、noise 支管事、`cap=0.06` ⇒ 主控此前的读数是对的。
 - **BLK-A 在真跑上确认解除**：`evidence_debt.json` 里确有该条、`disposition=flag`。
 - **丁（ladder 取声明刻度）在真跑上没有报错**，ladder 正常推出 2 级。
+
+
+---
+
+# 附录 B · ⛔ W#1 定性勘误（2026-09-08，GPT 席位停报翻出，主控确认题错）
+
+## 我写错了什么
+
+本档正文与派工单把 W#1 的 24 条 FLAG 拆成**一真一假**：
+
+- ⛔ 假红：`reading.dimensions_present`（as_drawn 带尺寸链，只是不在 legacy 字段里）
+- ⭐ 真的：`reading.plan_scale_origin_usable` —— 原文「the plan channel would **score zero**」
+  ⇒ 我判「**出分会是零，必须修**」
+
+**这个拆分是错的：两条是同一个病。**
+
+## 席位的实测（主控复核为准）
+
+1. 标准入口**早就有 as_drawn 专用评分分支**：`run_stage.py:2404` 在 typed/legacy 评分前先调
+   `_grade_as_drawn_reading_branch`，命中即返回；分支按**产物契约**分派（`vector_contract`），
+   走 `judge/as_drawn/reading_grade.py:127`，消费的是
+   `observations.face_lines[].constant_world_axis / pos_m / edges_m / runs_m`
+   —— ⛔ **不要求 legacy `scale_origin`**。
+2. **我引用的那个 run 里已经有非零平面分**
+   （`run_wallhunt/0_reading/attempts/001/score_vs_gt.json`）：
+
+   | 产物 | 契约 | `C1_C2_targets_drawn_pct` | `C2_length_coverage_pct` |
+   |---|---|---:|---:|
+   | 1f_view | as_drawn_plan | **100.0** | 99.2 |
+   | 2f_view | as_drawn_plan | **98.1** | 97.8 |
+
+3. 那句警告的来源是 `validator/checks/view_manifest.py:104` 仍对新契约对象调
+   `parse_reading_view`，而 `reading/schema.py:122` 默认 `image_kind="plan"`、
+   `strokes=[]`、`dimensions=[]`、`scale_origin=None`
+   ⇒ **同一句警告出现 6 次，包含全部 4 张立面**（East 立面被解析成 `plan`）。
+
+## ⭐⭐⭐ 我犯错的机制（这条比结论有用）
+
+**我让【警告的措辞】替我做了分类，⛔ 没去查【机制】。**
+`dimensions_present` 措辞平淡 ⇒ 我判假红；`plan_scale_origin_usable` 措辞吓人
+（"would score zero"）⇒ 我判真缺陷。**而两句出自同一行代码。**
+
+⇒ 判一条红是真是假，问的必须是「**它是怎么产生的**」，
+⛔ 不是「**它说得多严重**」。同族 [[observation-named-as-fact-travels-as-fact]] 的近亲：
+**不是名字冒充事实，是【严重性措辞】冒充证据。**
+
+## ⛔ 被推翻的 / ⛔ 没被推翻的（如实划界）
+
+**被推翻**：「缺 legacy `scale_origin` ⇒ as_drawn 平面评分必为零」这个具体断言。
+⇒ 主控给用户的盘面第 ③ 条「W#1 不修就算跑通分数也是零」**作废**。
+
+**没被推翻**（席位自己也划了这条界）：本轮**未跑 judge 打开的完整 flow**
+（`run_wallhunt/run_config.yaml` 是 `judge.mode: off`），
+⇒ 「端到端能出分」**仍未验证**，⛔ 既有评分工件不能冒充总验收。
+
+## ⇒ W#1 的正确题面
+
+**24 条 FLAG 是同一类**：legacy 形状的检查/解析器被套在 as_drawn 产物上。
+它们是**噪声与误导**（会把后来的人引到错误结论上——我就是被引的那个），
+⛔ **不是评分缺口**。修法仍是「让检查按产物契约分派」+ **回头枚举这一类**。

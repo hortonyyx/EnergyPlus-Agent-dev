@@ -189,6 +189,25 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
                 chain_profile=plan_runs[0].profile
             ),
         )
+        # W#3: and FILE each chain run's final wall compilation, exactly where
+        # the flow wiring then freezes it into the candidate's provenance
+        # carrier — a real compiler product of the staged bytes, ⛔ not a
+        # hand-built stub (the carrier self-hashes these bytes verbatim).
+        from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
+        from src.agent.correction.wall_compiler import compile_wall_ir
+
+        for run in plan_runs:
+            raw = (run.vector_dir / run.product_filename).read_bytes()
+            stem = run.product_filename.removesuffix(".json")
+            artifact = adapt_as_drawn_plan(
+                raw, input_id=stem, floor_ref=stem.removesuffix("_view"),
+                view_type="plan",
+            )
+            compilation = compile_wall_ir(artifact, profile=run.profile)
+            run.out_dir.mkdir(parents=True, exist_ok=True)
+            (run.out_dir / "evidence_chain_compilation.json").write_bytes(
+                compilation.model_dump_json(indent=2).encode("utf-8")
+            )
         return _square_two_storey()
 
     monkeypatch.setattr(pipeline, "run_multifloor_correction", _fake_mfc)

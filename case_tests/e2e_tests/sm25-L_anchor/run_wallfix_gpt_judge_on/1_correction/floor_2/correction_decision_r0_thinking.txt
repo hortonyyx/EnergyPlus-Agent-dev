@@ -1,0 +1,450 @@
+We need answer JSON only. Need decide every open item. There are 23 open items? Need inspect. We need select candidate for each. Need follow schema. No numbers in response, no coordinates. So reason_code tokens only. Candidate ids must be exact. Need identify packet_hash. Need item decisions for all open items. Whole building review maybe findings? Need assess.
+
+We have many thickness_resolution items, and one axis_offset_undetermined. Need decide. We are adjudication beat. Need likely select KEEP_OBSERVED_WIDTH where observed spacing matches or close to declared callouts; for thickness items with observed near declared 0.12 or 0.24, choose observed/keep. For observed spacing not matching declared well, choose declared? Let's analyze each.
+
+Open items:
+1 item_0446939a... wall_fc677... observed 0.2399, declared [0.12,0.24]. Candidate keep observed, snap 0.12, snap 0.24. 0.2399 very close to 0.24. Which select? Since declared callouts include 0.24, and observed 0.2399 differs delta 0.0001. Could snap to 0.24 or keep observed. Design decision. We need choose. Maybe standard building should prefer declared normative callouts? But observed is backed by evidence. However callouts are explicit declarations. Need infer pipeline. Many thickness_resolution items: observed face spacing recomputed, declared callouts [0.12,0.24]. We need decide each wall thickness. Most likely choose snap to declaration when observed is within tolerance? The callout values. Need maybe choose nearest declared callout to observed. That is canonical: snap to declared if observed within maybe some band. But no band given. The symbolic op KEEP_OBSERVED_WIDTH vs SNAP_TO_DECLARATION. We need make deterministic adjudication. Since declared callout values [0.12, 0.24] and observed face spacings. Typically EnergyPlus wants actual wall thickness? The observed spacing is exactly face pair evidence; resolved thickness should match declared? The "correction" stage: thickness_resolution open items because no signed rule. We need decide. Based on observed values, many are near 0.12 or 0.24, some intermediate 0.109, 0.1267, 0.1307. Could choose nearest declared callout for all to get clean thicknesses, but maybe preserve observation if within tolerance. Need identify likely intended: The packet has declared callouts [0.12, 0.24]. Observed spacings cluster around two values. For each wall, choose candidate that snaps to the declared callout nearest observed maybe most semantically valid. But there is a candidate for keep observed. In a correction stage, perhaps observed width should be preserved unless declaration conflicts. The declarations say "callouts [0.12, 0.24] m" maybe wall thickness scales available. For thickness_resolution, wall with two observed faces can snap to declaration or keep observed. EnergyPlus likely wants actual thickness as observed. But open items ask "thickness_resolution" with candidates. We need choose.
+
+Let's parse all thickness items and their observed:
+- item_0446939a: observed 0.2399 -> near 0.24. likely snap to 0.24? candidate cand_871044... SNAP 0.24.
+- item_1e99fd713f: observed 0.120000000000001 -> near 0.12. likely snap to 0.12? candidate cand_2e2e... SNAP 0.12 delta tiny.
+- item_2481019: observed 0.1200000000000001 -> snap 0.12.
+- item_2cbc5a: observed 0.1091 -> near 0.12. snap 0.12.
+- item_364857: observed 0.1091 -> snap 0.12.
+- item_3c526e: observed 0.2398 -> snap 0.24.
+- item_4155bc: observed 0.1307 -> near 0.12, delta -0.0107 vs to 0.24 +0.1093, so snap 0.12.
+- item_432e75: observed 0.1199 -> snap 0.12.
+- item_451ad22: observed 0.2398 -> snap 0.24.
+- item_5b520: observed 0.2398 -> snap 0.24.
+- item_5ef80: observed 0.1199 -> snap 0.12.
+- item_5f272: observed 0.1199 -> snap 0.12.
+- item_6780: observed 0.109 -> snap 0.12.
+- item_773114: observed 0.1199 -> snap 0.12.
+- item_83d198: observed 0.2399 -> snap 0.24.
+- item_8580a: observed 0.2398 -> snap 0.24.
+- item_950ce: observed 0.24 -> snap to 0.24 or keep observed. Candidate f871dba snap 0.24 delta tiny. use snap to declaration 0.24.
+- item_975ed: observed 0.2399 -> snap 0.24.
+- item_cd7b6: observed 0.12 -> snap 0.12.
+- item_ddd950: observed 0.1267 -> near 0.12, snap 0.12.
+- item_ec4df: observed 0.1199 -> snap 0.12.
+
+But maybe for thickness items with observed 0.109/0.1267/0.1307, snap to declared can shift face positions which might affect topology. But no coordinates. We just decide. The open_items are all kind thickness_resolution. We can select snap_to_declaration nearest declared. This creates uniform declared thickness. Might be preferred.
+
+Need for axis_offset_undetermined item_48348748 wall_9cc8 single face at x=9.1516? In response no numbers. Candidates offset positive/negative 0.12, 0.24. Need decide. Single face. Need choose side and thickness. Need understand context: wall_9cc8 face_line/11 L012 single face. There are neighboring walls? It likely should align with wall_a41dc0e4? Let's look. The single observed face at x=9.1516? Actually wall_9cc resolved_along_intervals [0.2008, 3.8874]; source_refs face_lines/11. Candidate preview positions: if positive 0.12 -> 9.2116; negative 0.12 -> 9.0916; positive 0.24 -> 9.2716; negative 0.24 -> 9.0316. The wall originally single face x=9.1516? Wait component "single observed face at x=9.1516 m" maybe x coordinate = 9.1516? But wall_9cc has constant_pos? For single face no resolved centerline; resolved_along intervals only. In wall_9cc source face_lines/11 maybe line orientation? It is likely vertical? The wall_9cc's face line maybe at x=9.1516 between y 0.2008 to 3.8874. It sits between wall_22b0dfb at x=5.00365 and wall_c1a907 at x=8.94245? Hmm.
+
+Need decide axis offset for single face. We have surrounding walls:
+- wall_a25144d6 at x=12.9998 y 0.2008-3.8874 thickness 0.109 (maybe wall at x ~12.9998)
+- wall_712fba at x=16.90795 y 0.2008-3.8874 thickness 0.1199
+- wall_753651 at x=20.93605 y 0.2008-3.8874 thickness 0.1091
+- wall_9cc single face at x=9.1516? Let's derive from wall_9cc's source maybe face line /11? It is single face with along interval 0.2008 to 3.8874. Other walls around x=8.942? wall_c1a907 at x=8.94245 from y 5.7416-14.2273, not same range. There is wall_22b0 at x=5.00365 y 16.1033-19.768. Not. Need maybe the single face is one side of an opening? The wall_9cc has adjacent paired walls at x=9.1516? Need not overfit: axis_offset candidates offset positive/negative with thickness 0.12 or 0.24. We need choose maybe based on declared callout nearest observed? There is no observed thickness. Single face no evidence. Need choose maybe offset_positive 0.12? Could use same as nearby thin walls? But no numbers in response. Need reason code maybe NO_EVIDENCE_SELECT_NEAREST_DECLARED? We can select a candidate. The exclusions IDENTITY_AS_CENTERLINE. We must choose one of four.
+
+Need possibly use neighboring walls to infer side. We can inspect provisional geometry relationships. The single face line L012 is in auto_action_scope? entity_to_source_refs has 2f_view:L001? Actually L012? item scope wall_9cc. We need maybe find face line in provisional walls? Maybe wall_9cc source refs /observations/face_lines/11 only. There is no pair. Could compare coordinates of nearby vertical walls in top band? Wall_9cc has along y 0.2008-3.8874. The paired walls with same along interval:
+- wall_a25144d6 x=12.9998, thickness 0.109, y 0.2008-3.8874
+- wall_712fba x=16.90795, thickness 0.1199, y 0.2008-3.8874
+- wall_753651 x=20.93605, thickness 0.1091, y 0.2008-3.8874
+- wall_9cc single face maybe x=9.1516, y interval same 0.2008-3.8874. It is likely another vertical wall in same row, missing one face. The paired walls in same row all have centerlines at x 12.9998 etc. Their observed spacing about 0.109-0.12. The single face x=9.1516 likely one of two faces. Which side is wall centerline? If thin walls there have thickness 0.12 and their centers maybe face? Let's see paired wall_a25144 at x=12.9998 observed spacing 0.109, p1 12.9998? Wait wall_a25144 centerline x=12.9998 (from summary, resolved_centerline constant_world_axis x constant_pos_m 12.9998). Face lines 16/17 around centerline. So centerline is between faces. If single face at x=9.1516, candidate offset positive 0.12 -> centerline 9.2116; negative -> 9.0916; positive 0.24 -> 9.2716; negative -> 9.0316. Which would match likely spacing between vertical wall centerlines? The row vertical walls from west to east: maybe x=9.2116? Actually there is wall_c1a907 at x=8.94245 (maybe lower/upper), wall_22b0 at x=5.00365 (bottom), wall_a41dc x=11.06485, wall_a251 x=12.9998, wall_712 x=16.90795, wall_753 x=20.93605. The missing wall x=9.1516 might fit between x=8.94245 and x=11.06485, likely centerline around 9.0? Hmm.
+
+Maybe line L012 is in "auto_action_scope" L001? It might be non-wall? Actually entity_to_source_refs lists L001, L004, L005 auto_action_scope non_wall. The open item for wall_9cc uses unpaired wall face L012. There is no auto action for wall_9cc midline because single face. We need decide side.
+
+Could use relationship with other walls to choose offset negative/positive. But we cannot use numbers in response, only select candidate. Need think which candidate yields plausible building.
+
+Maybe we can infer from plan positions. Let's reconstruct the building layout roughly from wall summaries (without coordinates in output, but internal reasoning can use numbers; final must no numbers? The rules: response carries NO coordinates anywhere. That means in JSON no numbers. We can internally use numbers but reasoning tokens absent; final only JSON. We can mention tokens not numbers. Okay.)
+
+Let's map walls. There are horizontal y walls and vertical x walls.
+
+Vertical walls (constant_world_axis x) top/bottom:
+- wall_1ea4c2b x=24.87145 y 0.0045-5.9815 (rightmost vertical thick? spacing 0.2399)
+- wall_1f3f6b x=9.94195 y 16.1033-19.768 (thin 0.1199)
+- wall_22b0 x=5.00365 y 16.1033-19.768 (thin 0.1199)
+- wall_3150 x=5.129 y -0.0173-14.0091 (thick 0.2398)
+- wall_712fba x=16.90795 y 0.2008-3.8874 (thin 0.1199)
+- wall_717f x=14.8749 y 5.9815-20.008 (thick 0.2398)
+- wall_753651 x=20.93605 y 0.2008-3.8874 (thin 0.1091)
+- wall_a251 x=12.9998 y 0.2008-3.8874 (thin 0.109)
+- wall_a41dc x=11.06485 y 5.7416-16.016 (thin 0.1199)
+- wall_c1a907 x=8.94245 y 5.7416-14.2273 (spacing 0.1267)
+- wall_ea98 x=0.1253 y 14.0091-19.9862 (thick 0.2398)
+- wall_9cc single at x? around 9.1516 y 0.2008-3.8874.
+
+Horizontal walls (constant y)
+- wall_0b681 y=8.0048 x 11.1248-14.7877 (thin 0.12)
+- wall_22125 y=19.877 x 0.0054-15.0275 (thick 0.2398)
+- wall_28ff y=14.1182 x 0.0054-9.0317 (thick 0.24)
+- wall_3f93 y=3.94205 x 5.238-24.7733 (thick 0.1307? declared? Actually 0.1307)
+- wall_4368 y=14.00365 x 11.1248-14.7877 (thin 0.1199)
+- wall_685ab y=12.00225 x 11.1248-14.7877 (thin 0.1091)
+- wall_6a67 y=10.0008 x 11.1248-14.7877 (thin 0.12)
+- wall_bc264 y=16.0651 x 0.2452-14.7877 (thin 0.12)
+- wall_db4a y=5.88335 x 5.238-24.9914 (thick 0.2399)
+- wall_fc677 y=0.12445 x 4.9982-24.9914 (thick 0.2399)
+
+This looks like a building with grid lines. The single face wall_9cc likely vertical segment at x ~9.1516 from y=0.2008 to y=3.8874 (between bottom wall y=0.12445 and horizontal wall y=3.94205). It is a short vertical segment in a row of vertical walls between y=0.2008 and 3.8874. Other verticals in that row:
+- wall_a251 x=12.9998
+- wall_712 x=16.90795
+- wall_753 x=20.93605
+Maybe also wall_9cc x=?
+At x=9.1516 maybe close to wall_c1a907 x=8.94245 (which is vertical from y=5.7416 to 14.2273) not contiguous; wall_9cc is below it separated by horizontal wall y=3.94205? Actually wall_9cc y 0.2008-3.8874, wall_c1a907 y 5.7416-14.2273. The offset candidate maybe to align with wall_c1a907 centerline 8.94245? Hmm face line x=9.1516. If wall_9cc paired with something? The L012 might be the left or right face of a wall whose other face is missing, and centerline could be snapped to align with either wall_c1a907 at x=8.94245 or wall_a41dc at x=11.06485? Let's see if candidate centerline values 9.2116, 9.0916, 9.2716, 9.0316. None exactly 8.94245 or 11.06485. But maybe observed face x=9.1516 is close to wall_c1a907's face? Let's derive wall_c1a907 faces at x? centerline x=8.94245, observed spacing 0.1267, so faces at x approximately 8.94245 ± 0.06335 = 8.8791 and 9.0058. Not 9.1516.
+
+Maybe wall_9cc single face L012 is intended to pair with another face at x? Not in wall summaries. It may need thickness. Candidate offset negative 0.12 -> centerline 9.0916, which gives faces 9.0316/9.1516? Wait if observed face at x=9.1516 and offset negative 0.12 means centerline = face_x -0.12 = 9.0316? Wait candidate preview_constant_pos_m for OFFSET_NEGATIVE with 0.12 is 9.0916 (from packet) not 9.0316? Let's parse: item_48348748 candidates:
+- OFFSET_POSITIVE 0.12 preview_constant_pos_m: 9.2116 (face + 0.06? Wait observed face at x=9.1516. If centerline = offset positive 0.12, that means maybe face is one side of centerline offset by half thickness? Hmm The candidate's preview_constant_pos_m maybe centerline position. For offset positive 0.12, constant_pos = 9.2116 = 9.1516 + 0.06. For offset negative 0.12, constant_pos = 9.0916 = 9.1516 - 0.06. For offset positive 0.24, 9.2716 = +0.12. For offset negative 0.24, 9.0316 = -0.12. So the offset from face to centerline is half thickness. Thus face x=9.1516, offset positive 0.12 means centerline on positive side (larger x) by 0.06. Offset negative means centerline smaller x by 0.06. For 0.24, offset positive centerline +0.12, negative -0.12. Need determine wall orientation relative to observed face. Which side is wall body? Single observed face could be either face; positive offset means observed face is lower-x face? Actually if observed line is one face, centerline displaced half thickness away from wall. Need choose based on adjacent spaces.
+
+Maybe wall_9cc is part of row of rooms; near x=9.1516. Could be side face of a wall adjacent to room left or right. Which side has rooms? We can look at wall_28ff horizontal y=14.1182, wall_db4 y=5.883, wall_fc677 bottom. There may be a room around x 5-9, y 5.883-14.118? Walls: vertical x=5.129 (wall_3150) y -0.0173-14.0091; horizontal y=5.883 (wall_db4) x 5.238-24.9914; vertical x=8.94245 (wall_c1a907) y 5.7416-14.2273. So wall_9cc below y=3.887? It is below y=3.942, maybe within bottom zone between y=0.124 and y=3.942. There are vertical walls from y 0.2008 to 3.8874 perhaps separators between rooms or openings. Wall_9cc at x around 9.15 in this row; other verticals at x=12.9998, 16.90795, 20.93605. Their centerlines are at 12.9998, etc. The row spaces between verticals are roughly 3.9 increments: 9.15? Let's calculate x positions:
+- wall_9cc maybe centerline unknown. The vertical row may be at x = 5.129? no wall_3150 is vertical at x=5.129 but that's big wall. The other row verticals: 12.9998, 16.90795, 20.93605. Difference: 16.90795-12.9998=3.90815; 20.93605-16.90795=4.0281. Maybe not exactly.
+Maybe missing wall at x=9.1516? If centerline offset positive 0.12 -> 9.2116. Then spaces between wall_3150 x=5.129 and wall_9cc centerline maybe 4.08; between wall_9cc and wall_a251 x=12.9998 maybe 3.788. Not obvious.
+Maybe wall_9cc face x=9.1516 is left face of wall whose centerline is 9.2116 (positive 0.12), with right face at 9.2716. That would place it near x=9.2116. If we choose positive 0.12, centerline 9.2116. If choose negative 0.12, centerline 9.0916. If 0.24 positive, centerline 9.2716. Which aligns with horizontal wall points? The vertical row at x=? There is wall_a41dc at x=11.06485, but vertical from y=5.7416-16.016; wall_9cc below. Maybe same vertical grid? The wall_9cc might be lower continuation of wall_c1a907? Wait wall_c1a907 centerline x=8.94245 y 5.7416-14.2273. Wall_9cc face x=9.1516; if centerline negative 0.24 -> 9.0316, close to 8.94245 (difference 0.089). If wall_9cc is continuation of wall_c1a907, centerline would align around 8.942, but face x=9.1516 far. But perhaps wall_9cc is part of a different wall with thickness 0.24, centerline 9.0316 and right face 9.1516, left face 9.0316? Actually if face x=9.1516 is right face, centerline negative 0.24 -> 9.0316, left face 8.9116. The left face at 8.9116 would be near wall_c1a907 face? wall_c1a907 centerline 8.94245 ±0.06335 gives left/right 8.8791/9.0058. Hmm 8.9116 between.
+But wall_9cc exists from y 0.2008 to 3.8874 while wall_c1a907 y starts 5.7416, so they don't connect due horizontal wall y=5.883? Actually wall_c1a907 starts at y 5.7416, wall_9cc ends at 3.8874, gap between 3.8874 and 5.7416. There is wall_db4 horizontal y=5.88335 x 5.238-24.9914 maybe crossing. So not continuation.
+
+Maybe use adjacent spaces to determine which side has wall thickness to avoid overlap with wall_db4/other. Wall_9cc vertical at x=9.1516 between y=0.2008 and 3.8874. Top at y=3.8874 near wall_3f93 horizontal y=3.94205, bottom y=0.2008 near wall_fc677 y=0.12445. The wall segment could be on either side of the observed face. If offset negative 0.12, centerline 9.0916, right face 9.1516 (observed) and left face 9.0316. If offset positive 0.12, left face 9.1516 observed, right face 9.2116. Which side is more likely based on rooms? To avoid overlapping wall_3150 at x=5.129 (thick), there is space. To avoid overlapping wall_a251 at x=12.9998, also space. Both possible.
+
+Maybe open item's phenomenon says "single observed face at x=9.1516 m covering 1 piece(s); thickness scales available: [0.12, 0.24]". Need decide maybe choose "OFFSET_NEGATIVE" because wall face on right side? Hmm.
+
+Let's consider that single face is from a wall with one visible face due to another wall joining? Could be the face is one side of a wall where the other side is hidden by an adjacent thick wall. Which side is hidden? In cad drawings, a single line may be one side of a wall where the other line coincides with another pair? Maybe wall_9cc is actually a wall segment between x=9.0316 and 9.2716? We need infer hidden pair maybe from nearby horizontal wall endpoints. The face line L012 in observations/face_lines/11. The source_hypotheses/unpaired_wall_faces/L012. Maybe there is hypothesis for pairing with some face not available. We need choose side based on adjacent walls.
+
+Let's look at wall_9cc's along interval: resolved_along_intervals [0.2008, 3.8874]. The wall_fc677 bottom horizontal at y=0.12445 from x=4.9982 to 24.9914. The wall_3f93 horizontal y=3.94205 from x=5.238 to 24.7733. So wall_9cc maybe between these horizontals. At top, wall_3f93 has double_face_intervals etc; at bottom, wall_fc677. The vertical wall_9cc sits near x maybe 9.15. There may be a room boundary between these horizontals. If it is a wall, one side is maybe outside building? Hmm.
+
+Could choose offset based on wall thickness 0.12 as most common for this row, and orientation maybe positive or negative. Need choose one. Maybe default select smallest thickness and offset negative? There's no rule. We can choose candidate with minimal thickness to match nearby walls? Candidate OFFSET_NEGATIVE 0.12 (cand_09aaf6be) has centerline x=9.0916, thickness 0.12. That seems plausible.
+
+But maybe we can use reason code "SINGLE_FACE_DEFAULT_NEGATIVE_OFFSET" etc. Need output no numbers.
+
+Now whole_building_review. Need decide verdict accept or findings. There may be findings even after selections? We need check if any unresolved issues. Since we will select candidates, maybe accept. But need evaluate geometry topological consistency? The packet has consistency_results passed. There are many unshared tails; no findings. We can accept if all open items resolved. But whole building might have issues not listed: single face wall_9cc thickness side uncertain. But if we select a candidate, maybe okay. We can provide findings? The whole_building_review can name problems not in items. But we should not invent unnecessarily. The output schema mandates `whole_building_review.verdict` accept or findings. Since all open items decided and consistency passed, could accept. However if we choose keep observed for some items? We might want findings about thickness callouts? But findings require requested_effect etc. We don't need if none.
+
+Need produce item_decisions array with all 23 open items. Need ensure candidate ids exact. We need every open item. Need verify number. Count open_items in packet: 23? Let's list:
+1 item_0446939a
+2 item_1e99fd713f
+3 item_2481019
+4 item_2cbc5a71
+5 item_364857298
+6 item_3c526e4b
+7 item_4155bc5c
+8 item_432e75fa
+9 item_451ad22b
+10 item_48348748 (axis)
+11 item_5b52039a
+12 item_5ef80fcb
+13 item_5f27210a
+14 item_6780eaa2
+15 item_77311459
+16 item_83d198a4
+17 item_8580a8ed
+18 item_950ce445
+19 item_975edfc
+20 item_cd7b6eca
+21 item_ddd95088
+22 item_ec4dfaa3
+Wait open_items list after item_ec4df ends? Let's recount from packet. The open_items begin at item_044... then many. Count in listing:
+1 item_0446939a
+2 item_1e99...
+3 item_2481019
+4 item_2cbc5
+5 item_364857
+6 item_3c526e
+7 item_4155bc
+8 item_432e75
+9 item_451ad22
+10 item_48348748
+11 item_5b52039
+12 item_5ef80
+13 item_5f272
+14 item_6780e
+15 item_773114
+16 item_83d198
+17 item_8580a
+18 item_950ce
+19 item_975ed
+20 item_cd7b6
+21 item_ddd950
+22 item_ec4dfaa
+Wait 22? Are there 23? Let's check packet open_items sequence:
+- item_0446939a
+- item_1e99fd713f
+- item_2481019
+- item_2cbc5a71
+- item_364857298
+- item_3c526e4b
+- item_4155bc5c
+- item_432e75fa
+- item_451ad22b
+- item_48348748
+- item_5b52039a
+- item_5ef80fcb
+- item_5f27210a
+- item_6780eaa2
+- item_77311459
+- item_83d198a4
+- item_8580a8ed
+- item_950ce445
+- item_975edfc
+- item_cd7b6eca
+- item_ddd95088
+- item_ec4dfaa3
+That's 22. But earlier I thought 23. Let's count all thickness items and axis. There are 22 open items. Need see if any item missing? Let's count from entity_to_source_refs items: 22 item_ entries? Count: item_044, 1e99, 248, 2cbc, 364, 3c52, 4155, 432e, 451a, 4834, 5b52, 5ef8, 5f27, 6780, 7731, 83d1, 8580, 950c, 975e, cd7b, ddd9, ec4d. Yes 22. Good.
+
+Need decide candidate for each. Let's map each item to candidate id for selected candidate.
+
+For thickness items, decide either snap nearest declared callout or keep observed. Need be consistent maybe. We need produce reason_code for each. reason_code token no numbers. Could use same reason_code for all thickness: SNAP_OBSERVED_TO_NEAREST_DECLARED_CALLOUT? But token can't contain digits. We can create e.g. SNAP_TO_NEAREST_DECLARED_CALLOUT. For axis item: NEGATIVE_OFFSET_PREFERRED? No digits. For whole building accept no findings.
+
+Need select candidate IDs:
+
+Let's list thickness items and corresponding chosen snap candidate ID. For observed around 0.12 -> cand IDs with SNAP_TO_DECLARATION value 0.12:
+- item_1e99fd713f -> cand_2e2e9b21bb3d4722bbfad3455e3e9e20500dba5dec95ca3dcfb3f9a07ad6ab37
+- item_2481019 -> cand_a03043db738dda8b3de79f45b545636450ed70efc8fdf562f5eaf61214bc0132
+- item_2cbc5a71 -> cand_d8c60df110d1deb4f5bd1279c8b81dd260739aab3c11fd076248554479e5ac8b
+- item_364857 -> cand_8c059adee7aeb522b04aabd4c5326ff398451ffd77422250fd3db8fd4d88ee26
+- item_4155bc? Wait item_4155bc observed 0.1307? Actually item_4155bc wall_3f93a observed 0.1307. Near 0.12 -> cand_a5340f4bd00e1b65f19c1487523161a2c5490a6c7d651ba89cc5d6feeaf1975c
+- item_432e75 observed 0.1199 -> cand_0b962b6884a10f33cbc028755e2527ecb1e5d220622e6f8c518655dc09e977a4
+- item_5ef80 observed 0.1199 -> cand_5840fb4f84412bb83605b22bc2cdb8deb5af37442a63cdf7dd97e44db00a0dc4
+- item_5f272 observed 0.1199 -> cand_a171b65662c329958552ed930c8a7a4ea455a6d29971a925fa12c530c6d0a4cf
+- item_6780 observed 0.109 -> cand_57cd0a56bb08c77a02ab2d576519a10676cf67139e7c699f0b57a9ab8ad7daf6
+- item_773114 observed 0.1199 -> cand_5c40c1376c811fe39b8d4a9cc5434873c95926feef090489164c8807e8abe0d4
+- item_8580a? Wait item_8580 observed wall_3150 0.2398 not 0.12. Need not.
+- item_950ce observed 0.24 -> near 0.24 not 0.12.
+- item_cd7b6 observed 0.12 -> cand_17424064af5b827875800765ce1854794b85a3778a1d47b093ccb74bebac5c8c
+- item_ddd950 observed 0.1267 -> near 0.12 -> cand_b30ed28f3bef8ac3421bfff7ee890f9a76b6e80993df4057cc3818daf9b6e573
+- item_ec4df observed 0.1199 -> cand_156aab9df68f1e27346fc5cac9ab6aa93b4fa36d6c9d3584d752d96a54eb67db
+
+For observed near 0.24 -> SNAP_TO_DECLARATION 0.24 candidates:
+- item_0446939a -> cand_8710440971203b312ab0a0816d99cd2f050d2fb8183fc4b9e6fce72a1d8c8e7f
+- item_3c526e -> cand_a35c8c8a6d582c53d01e34d4b2da77fedc547505848d735bef4f3fcfd4cfbc42
+- item_451ad22 -> cand_a496c95b6d5599993bbabb1f51e2f65762bd54d82e1a62576c4b5ce0bb3f3e03
+- item_5b520 -> cand_6a344c9db4fa0d95d720962502669855db8b8c977f5102a2fbc773cd613618d8
+- item_83d198 -> cand_1a9d8c0915c6aa50bcfa0f66df35a23e22063b9b150a589caef6a6a0c7c6eecd
+- item_8580a -> cand_12061c8ec2e02022a1fe65c3af849d62fd33716743d318f517b63ef7317f3310
+- item_950ce -> cand_f871dba8e15dc5a9b3e3f875eb487467e7994835eb35beb51cd71c3ded251590
+- item_975ed -> cand_def1ce8db6bf449422e781db48c5d0cac6dc4ca150d570867860500ecfc0817c
+
+Need check item_950ce thickness 0.24 has candidate SNAP_TO_DECLARATION 0.24 id f871..., yes.
+
+For item_4155bc observed 0.1307: could snap to 0.12 candidate a534... yes.
+
+For item_ddd950 observed 0.1267: candidate b30... yes.
+
+Axis item_48348748: choose candidate? We can pick cand_09aaf6be7ee2cc385c48a2eec4eb3d67eb08579223bb2ca1b8a64e39cbec71b0 (OFFSET_NEGATIVE 0.12) maybe. Need decide. Let's think further.
+
+Maybe choose OFFSET_POSITIVE 0.12? Which is more likely? There may be clue in the single face x=9.1516 relative to wall_28ff/ wall_db4. The vertical row includes wall_22b0 at x=5.00365 (from y 16.1033-19.768) and wall_1f3f6b at x=9.94195 (y 16.1033-19.768). The single face wall_9cc at x=9.1516, y 0.2008-3.8874. There is also wall_c1a907 at x=8.94245. Maybe the observed face at x=9.1516 is on the right of a wall whose centerline aligns with x=9.0916. Hmm.
+
+Maybe there are "non_wall_face_lines" L001, L004, L005; the L012 is unpaired wall face. Let's inspect face line /11 maybe has supporting observations. Not included.
+
+Could use adjacency to infer wall side by considering if the face line L012 is a left face or right face from neighboring wall's overlap. There is no coordinate constraints. But perhaps the wall_9cc's single face is at x=9.1516 while the wall_28ff horizontal y=14.1182 has P1 x=0.0054 to 9.0317; wall_db4 horizontal y=5.88335 P1 x=5.238 to 24.9914. The wall_9cc is below y=3.887, not interacting with those horizontals except bottom/top. Not helpful.
+
+The wall_9cc's position x=9.1516; if we choose negative 0.12, centerline 9.0916 (just left of face). That creates a wall occupying between x≈9.0316 and 9.1516. If positive 0.12, wall occupies 9.1516 to 9.2116. Which side has adjacent wall? There is wall_a41dc at x=11.06485 (not adjacent due distance). There's wall_c1a907 at x=8.94245 above, maybe left side. If wall_9cc is below in the same vertical line as wall_c1a907? Actually centerline 8.94245, wall_9cc centerline negative 0.24 = 9.0316 close. But gap is huge.
+Let's see local row: vertical walls at 12.9998, 16.90795, 20.93605. Differences around 3.9. If missing wall at x=9.0916, difference to wall_a251 (12.9998) is 3.9082; if at x=9.2116, difference 3.7882. The pattern between 16.90795 and 12.9998 is 3.90815; between 20.93605 and 16.90795 is 4.0281. Hard.
+
+Maybe wall_9cc might be aligned under wall_a41dc? wall_a41dc x=11.06485 y 5.7416-16.016; not same. Under wall_c1a907 x=8.94245 y 5.7416-14.2273? If wall_9cc should align with wall_c1a907, choose OFFSET_NEGATIVE 0.24 => centerline 9.0316, close to 8.94245, and face x=9.1516 is right face? Wait if observed face is right face, centerline negative 0.24 = observed -0.12 = 9.0316; left face at 8.9116. That is similar to wall_c1a907 left/right face 8.8791/9.0058. But not aligned. If choose OFFSET_NEGATIVE 0.12 centerline 9.0916, left face 9.0316, right face 9.1516. Which aligns left face with perhaps wall_c1a907 right face? wall_c1a907 right face 9.0058, not 9.0316.
+
+Maybe the single face L012 line x=9.1516 could be one face of a wall whose other face coincides with wall_c1a907's left face at 8.8791? No.
+
+Could choose based on thickness 0.12 for short wall; orientation positive/negative probably ambiguous. We can pick OFFSET_NEGATIVE because the observed face is maybe the right face of a wall, so centerline lies left (negative). That's a common convention? There is no convention, but we can choose one. Or maybe choose OFFSET_POSITIVE to stay inside building? Let's not overthink.
+
+Potential issue: If we choose offset negative 0.12, wall centerline at 9.0916, wall thickness 0.12. This is a valid wall. Whole building accept.
+
+Need whole_building_review maybe accept. But note there are no findings. However item decisions on thickness use SNAP_TO_DECLARATION; this changes wall positions, possibly causing overlap? The candidates include preview_delta but not constant_pos; for thickness_resolution with paired faces, snapping to declaration likely recenters on same midline? Actually thickness_resolution sets thickness and maybe moves faces symmetrically? The packet preview_constant_pos_m is null, preview_thickness_m set. So centerline remains same; thickness adjusted. Overlap consistency might change? It should still be okay because thickness changes small. Whole building accept.
+
+Need ensure reason_code tokens no numbers, no lowercase, no spaces. We'll craft:
+- For thickness items: reason_code "SNAP_TO_NEAREST_DECLARED_CALLOUT" (valid uppercase)
+- For axis item: reason_code "NEGATIVE_OFFSET_MIN_THICKNESS" maybe no digits. But "MIN" is fine. 
+Need `candidate_id` only for select_candidate. action is select_candidate for all. `candidate_id` must be string for select. We'll include.
+
+Need maybe reason_code "OBSERVED_MATCHES_DECLARATION" for exact matches? But all can same. We can use same reason code.
+
+Need be precise with item ids and candidate ids. We must not accidentally use wrong candidate for item. Let's build JSON carefully.
+
+Let's produce JSON object.
+
+Need possibly include `whole_building_review` with verdict accept and empty findings. Since no findings. We can omit findings or include []. Schema requires verdict only, findings default. We can include "findings": [] maybe okay.
+
+Need ensure output is only JSON object, no markdown.
+
+Let's enumerate decisions in order. We can include all 22.
+
+Let's map each item to candidate:
+
+1 item_0446939a1425e092a5d4c52e61c03407d2a23cd059630191c7042fec4657e837 -> select_candidate cand_8710440971203b312ab0a0816d99cd2f050d2fb8183fc4b9e6fce72a1d8c8e7f (snap 0.24). Reason SNAP_TO_NEAREST_DECLARED_CALLOUT.
+2 item_1e99fd713faa9b8ec047d4c98f76b54e22114d18b0f34a22818e4703d66e7463 -> cand_2e2e9b21bb3d4722bbfad3455e3e9e20500dba5dec95ca3dcfb3f9a07ad6ab37 (snap 0.12)
+3 item_2481019cdce6ed80abb5e4ff534e9f01365ed2b0f1f6b66a1e16211a50509247 -> cand_a03043db738dda8b3de79f45b545636450ed70efc8fdf562f5eaf61214bc0132
+4 item_2cbc5a71f09f61ee0d403e0cb8b1d47b1e5961f0a3d840bb896b17a96237b5d0 -> cand_d8c60df110d1deb4f5bd1279c8b81dd260739aab3c11fd076248554479e5ac8b
+5 item_364857298c60784a651093db3b76b61fd6e8c3f17d3473c2f0e1743e0b924703 -> cand_8c059adee7aeb522b04aabd4c5326ff398451ffd77422250fd3db8fd4d88ee26
+6 item_3c526e4b5d72178d32ed4fcd4615082f5ca98dccb465a1b0b356c0218b19730c -> cand_a35c8c8a6d582c53d01e34d4b2da77fedc547505848d735bef4f3fcfd4cfbc42
+7 item_4155bc5c457530e61fe5fd353d09fa25de8e72cc8ce4679561dd442d84660278 -> cand_a5340f4bd00e1b65f19c1487523161a2c5490a6c7d651ba89cc5d6feeaf1975c
+8 item_432e75fa3962404086826a76e175b27242a8233254582d1851cea20385402398 -> cand_0b962b6884a10f33cbc028755e2527ecb1e5d220622e6f8c518655dc09e977a4
+9 item_451ad22b04a2fa727061b109ed9a10b0dc316e9b43fe289fc31dd8ae71afb3d3 -> cand_a496c95b6d5599993bbabb1f51e2f65762bd54d82e1a62576c4b5ce0bb3f3e03
+10 item_48348748f0ee1250634af3be10d0b0ee5777336533cb546c0efd026454ccba4a -> cand_09aaf6be7ee2cc385c48a2eec4eb3d67eb08579223bb2ca1b8a64e39cbec71b0 (OFFSET_NEGATIVE 0.12). Reason SINGLE_FACE_NEGATIVE_OFFSET_MIN_DECLARED maybe. Candidate id is correct? Let's check packet: item_483 candidates:
+   - OFFSET_POSITIVE 0.12: cand_bc61a210...
+   - OFFSET_NEGATIVE 0.12: cand_09aaf6be...
+   - OFFSET_POSITIVE 0.24: cand_56dd2ad...
+   - OFFSET_NEGATIVE 0.24: cand_26a2c75b...
+Yes choose cand_09aaf6be.
+11 item_5b52039aac57306beecba7e576203f1befd46f275dd3035ef46c38372f26ed52 -> cand_6a344c9db4fa0d95d720962502669855db8b8c977f5102a2fbc773cd613618d8 (snap 0.24)
+12 item_5ef80fcb2d417a14f53cdc4bb15ab75619c269f239d6779655465d8c974874a5 -> cand_5840fb4f84412bb83605b22bc2cdb8deb5af37442a63cdf7dd97e44db00a0dc4 (snap 0.12)
+13 item_5f27210aad3b8f8cc4292297dd8174a42aa3da2bf06b64e53005a13e01ef08d3 -> cand_a171b65662c329958552ed930c8a7a4ea455a6d29971a925fa12c530c6d0a4cf (snap 0.12)
+14 item_6780eaa2e3e2c75cd20863e431f214db72ec0166cec0c78d83fcb56a6b1b0e81 -> cand_57cd0a56bb08c77a02ab2d576519a10676cf67139e7c699f0b57a9ab8ad7daf6 (snap 0.12)
+15 item_773114591299784cc8b14111f2a6d5beba597564cbb2559578e2658182c121c7 -> cand_5c40c1376c811fe39b8d4a9cc5434873c95926feef090489164c8807e8abe0d4 (snap 0.12)
+16 item_83d198a4059d40c2f2822c3d83c9136ad89151aecd71e5ffce8a7f7a41d9f28e -> cand_1a9d8c0915c6aa50bcfa0f66df35a23e22063b9b150a589caef6a6a0c7c6eecd (snap 0.24)
+17 item_8580a8ed259be39636686ac18511fded20b569f08cc63c9e6b27b3d1f3fcfb39 -> cand_12061c8ec2e02022a1fe65c3af849d62fd33716743d318f517b63ef7317f3310 (snap 0.24)
+18 item_950ce445b4f59505046a9c64542fbb44a5fd70b0a79ad598b6111f47ebe63a92 -> cand_f871dba8e15dc5a9b3e3f875eb487467e7994835eb35beb51cd71c3ded251590 (snap 0.24)
+19 item_975edfc0387db8c5ef449e1df1ae8bd83a05490796ada04bd0d1689ee98964cf -> cand_def1ce8db6bf449422e781db48c5d0cac6dc4ca150d570867860500ecfc0817c (snap 0.24)
+20 item_cd7b6ecae6f34e17ae596d4a55e860cb990f550e5a242e3e57079c5696de0f60 -> cand_17424064af5b827875800765ce1854794b85a3778a1d47b093ccb74bebac5c8c (snap 0.12)
+21 item_ddd950884358046251fb1c638e3220bcac3b89a2112f4127c95d744ac52c3529 -> cand_b30ed28f3bef8ac3421bfff7ee890f9a76b6e80993df4057cc3818daf9b6e573 (snap 0.12)
+22 item_ec4dfaa3155d55dab325847452b377c59edb98bddf3b07954ca84a96e7e116e8 -> cand_156aab9df68f1e27346fc5cac9ab6aa93b4fa36d6c9d3584d752d96a54eb67db (snap 0.12)
+
+Need verify candidate ids for items:
+Let's double-check item_950ce has candidate for snap 0.24:
+In packet item_950ce candidates:
+- cand_f33eaca634022c89555b8ee8b700a8da53ffb889bc5adf3e86e313cd7a50903d KEEP
+- cand_570bede0ea13a8f4ead7c475c6e0ee3a00cc84b78566a7df44816116eb07a5e5 SNAP 0.12
+- cand_f871dba8e15dc5a9b3e3f875eb487467e7994835eb35beb51cd71c3ded251590 SNAP 0.24
+Yes.
+
+Item_8580a candidates:
+- cand_0594a721... KEEP 0.2398
+- cand_bebbffc1... SNAP 0.12
+- cand_12061c8e... SNAP 0.24
+Yes.
+
+Item_83d198:
+- cand_a56c5d0c... KEEP
+- cand_dca40cae... SNAP 0.12
+- cand_1a9d8c09... SNAP 0.24
+Yes.
+
+Item_5b520:
+- cand_53e717... KEEP
+- cand_0592e6f... SNAP 0.12
+- cand_6a344c9d... SNAP 0.24
+Yes.
+
+Item_451ad22:
+- cand_1c578... KEEP
+- cand_d7c61d... SNAP 0.12
+- cand_a496c95... SNAP 0.24
+Yes.
+
+Item_3c526:
+- cand_c3d09ab... KEEP
+- cand_28e517... SNAP 0.12
+- cand_a35c8c8... SNAP 0.24
+Yes.
+
+Item_044:
+- cand_27f345... KEEP
+- cand_17d72c... SNAP 0.12
+- cand_871044... SNAP 0.24
+Yes.
+
+Item_975ed:
+- cand_404aafa... KEEP
+- cand_dfbe658... SNAP 0.12
+- cand_def1ce8... SNAP 0.24
+Yes.
+
+Item_cd7b6:
+- cand_94d54dd... KEEP
+- cand_174240... SNAP 0.12
+- cand_0cd047... SNAP 0.24
+Yes.
+
+Item_ddd950:
+- cand_4f1d5f... KEEP
+- cand_b30ed2... SNAP 0.12
+- cand_772638... SNAP 0.24
+Yes.
+
+Item_ec4d:
+- cand_de3145... KEEP
+- cand_156aab... SNAP 0.12
+- cand_07262d... SNAP 0.24
+Yes.
+
+Item_6780:
+- cand_70d77f... KEEP
+- cand_57cd0a... SNAP 0.12
+- cand_73b641... SNAP 0.24
+Yes.
+
+Item_773114:
+- cand_9d784c... KEEP
+- cand_5c40c1... SNAP 0.12
+- cand_f336e8... SNAP 0.24
+Yes.
+
+Item_5f272:
+- cand_c7bc15... KEEP
+- cand_a171b6... SNAP 0.12
+- cand_e32eced... SNAP 0.24
+Yes.
+
+Item_5ef80:
+- cand_b4a254... KEEP
+- cand_5840fb... SNAP 0.12
+- cand_791e2e... SNAP 0.24
+Yes.
+
+Item_432e75:
+- cand_8780f4... KEEP
+- cand_0b962b... SNAP 0.12
+- cand_fd3380... SNAP 0.24
+Yes.
+
+Item_4155bc:
+- cand_0d3715... KEEP
+- cand_a5340f... SNAP 0.12
+- cand_d85ddf... SNAP 0.24
+Yes.
+
+Item_2cbc:
+- cand_25bddd... KEEP
+- cand_d8c60d... SNAP 0.12
+- cand_f55341... SNAP 0.24
+Yes.
+
+Item_364857:
+- cand_0ad88d... KEEP
+- cand_8c059a... SNAP 0.12
+- cand_b03b55... SNAP 0.24
+Yes.
+
+Item_2481019:
+- cand_04909e... KEEP
+- cand_a03043... SNAP 0.12
+- cand_269401... SNAP 0.24
+Yes.
+
+Item_1e99:
+- cand_3e6f25... KEEP
+- cand_2e2e9b... SNAP 0.12
+- cand_94ef42... SNAP 0.24
+Yes.
+
+Good.
+
+Now whole_building_review. We need maybe accept. But consider there is item_483 axis offset chosen negative 0.12. This might create a thickness of 0.12 but we didn't snap to declaration? It uses declared callout 0.12. Good. Consistency passed. We can accept.
+
+Need produce JSON only.
+
+Let's craft with all item_decisions.
+
+Need ensure `reason_code` tokens no digits. Use `SNAP_TO_NEAREST_DECLARED_CALLOUT` for thickness (valid ASCII uppercase underscore, starts with letter). Use `NEGATIVE_OFFSET_MIN_DECLARED`? It includes no numbers. "MIN" is okay, but maybe better `NEGATIVE_OFFSET_PREFERRED_SIDE`. Let's use `SINGLE_FACE_NEGATIVE_OFFSET` reason code.
+
+For thickness items maybe use different reason? If same for all, okay.
+
+Need maybe reason_code length <=96. Good.
+
+Let's build object:
+
+{
+  "packet_hash": "543119f03a6e3f59694f24c3e56f4542772240b6ecf7499bc9b1dcdf53700b3c",
+  "item_decisions": [
+    { "item_id": "...", "action":"select_candidate", "candidate_id":"...", "reason_code":"SNAP_TO_NEAREST_DECLARED_CALLOUT"},
+    ...
+  ],
+  "whole_building_review": { "verdict": "accept", "findings": [] }
+}
+
+Need ensure no candidate_id for reject etc. select only.
+
+Let's write systematically.
+
+Double-check if any item kind thickness could prefer keep observed. But our choices snap all to declared, except maybe axis. The reason code says nearest declared callout. For observed exactly 0.24, snap to 0.24. For observed 0.2399 vs 0.24 difference tiny; nearest declared 0.24 indeed. For observed 0.2398 vs 0.24 diff 0.0002; 0.12 diff 0.1198; nearest 0.24. For 0.1267 vs 0.12 diff 0.0067, vs 0.24 diff 0.1133; nearest 0.12. For 0.1307 vs 0.12 diff 0.0107, vs 0.24 diff 0.1093; nearest 0.12. So consistent.
+
+Potential nuance: `candidate_id` must exactly match candidate. Use full hashes.
+
+Let's output now.

@@ -148,6 +148,30 @@ class StageRunner:
         stage_version: str = "1",
         accept: bool | None = None,
     ) -> RecordedAttempt:
+        """Archive a checked draw, retaining gate diagnostics if archiving fails.
+
+        W#5: failure diagnostics are append-only under record_failures/NNN.
+        They are deliberately outside attempts/: failed independent replay
+        must not create a consumable B5 bundle or move an accepted pointer.
+        """
+        with _ArchiveFailureDiagnostics(Path(stage_dir), stage, report):
+            return self._record_checked(
+                stage=stage, stage_dir=stage_dir, output_obj=output_obj,
+                report=report, input_hashes=input_hashes,
+                stage_version=stage_version, accept=accept,
+            )
+
+    def _record_checked(
+        self,
+        *,
+        stage: str,
+        stage_dir: Path,
+        output_obj,
+        report: CheckReport,
+        input_hashes: dict[str, str] | None = None,
+        stage_version: str = "1",
+        accept: bool | None = None,
+    ) -> RecordedAttempt:
         spec = stage_spec(stage)
         stage_dir = Path(stage_dir)
         stage_dir.mkdir(parents=True, exist_ok=True)
@@ -309,6 +333,7 @@ class StageRunner:
                 # sources, then bind every accepted audit row to that pre-host
                 # state and to the independently recomputed final claim.
                 from src.agent.correction.deterministic import (
+                    AS_DRAWN_CHAIN_STAMP_VERSION,
                     DETERMINISTIC_CORE_STAMP_VERSION,
                     DeterministicCoreProofV1,
                     apply_deterministic_core,
@@ -318,29 +343,59 @@ class StageRunner:
                 from src.agent.correction.window_host import WindowHostResolutionAuditV1
                 from src.agent.correction.window_sources import SourceIntervalV1
 
-                producer = CorrectedGeometryV3.model_validate_json(
-                    rebuilt_marker.producer_draw_canonical_bytes
-                )
-                with tempfile.TemporaryDirectory(prefix="b5_writer_replay_") as replay_dir_text:
-                    replay_dir = Path(replay_dir_text)
-                    reading_by_id = dict(rebuilt_marker.raw_reading_artifacts)
-                    for identity in rebuilt_marker.inputs.reading_artifacts:
-                        (replay_dir / f"{identity.expected_output_id}.json").write_bytes(
-                            reading_by_id[identity.input_id]
-                        )
-                    envelope = extract_authoritative_envelope(
-                        replay_dir,
-                        footprint=producer,
-                        footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+                # W#3 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-A):
+                # dispatch the replay BY LEG.  The dispatcher is the
+                # candidate's own ``chain_provenance`` carrier — present ⟺
+                # ``finalize_as_drawn_chain_geometry`` minted this result with
+                # its frozen per-storey compilations (an explicit marker, ⛔
+                # never a shape guess off the geometry).  Both legs replay
+                # from the marker's embedded bytes through the REAL
+                # production functions to a ``replayed`` geometry, which the
+                # shared gauntlet below (core-owned projection + corrections
+                # prefix + stamp) then compares field-for-field — neither leg
+                # skips a check the other runs, and the legacy lock is
+                # byte-untouched.  A chain candidate minted WITHOUT the
+                # carrier routes to the legacy replay and reds there by
+                # construction (the omission is loud, never accepted).
+                chain_provenance = getattr(output_obj, "chain_provenance", None)
+                if chain_provenance is not None:
+                    from src.agent.correction.chain_replay import replay_as_drawn_chain
+
+                    # The chain replay re-drives ladder → per-floor
+                    # projection → snap → assembly → producer (byte-compared
+                    # against the marker's embedded producer canonical bytes)
+                    # → the as_drawn finalize half, all from the marker's
+                    # frozen bytes.  Its result IS the replayed geometry.
+                    replayed = replay_as_drawn_chain(
+                        rebuilt_marker,
+                        chain_provenance,
+                        target=target,
                         tol=tol,
+                    ).geom
+                else:
+                    producer = CorrectedGeometryV3.model_validate_json(
+                        rebuilt_marker.producer_draw_canonical_bytes
                     )
-                    replayed = apply_deterministic_core(
-                        producer,
-                        tol,
-                        authoritative_envelope=envelope,
-                        capability_profile=report.capability_profile,
-                        verified_window_inputs=rebuilt_marker,
-                    )
+                    with tempfile.TemporaryDirectory(prefix="b5_writer_replay_") as replay_dir_text:
+                        replay_dir = Path(replay_dir_text)
+                        reading_by_id = dict(rebuilt_marker.raw_reading_artifacts)
+                        for identity in rebuilt_marker.inputs.reading_artifacts:
+                            (replay_dir / f"{identity.expected_output_id}.json").write_bytes(
+                                reading_by_id[identity.input_id]
+                            )
+                        envelope = extract_authoritative_envelope(
+                            replay_dir,
+                            footprint=producer,
+                            footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+                            tol=tol,
+                        )
+                        replayed = apply_deterministic_core(
+                            producer,
+                            tol,
+                            authoritative_envelope=envelope,
+                            capability_profile=report.capability_profile,
+                            verified_window_inputs=rebuilt_marker,
+                        )
                 # F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): the
                 # per-window audit checks below only ever compared REPLAYED
                 # window fields against the candidate's own AUDIT ROWS (a
@@ -385,9 +440,19 @@ class StageRunner:
                 candidate_stamp_version = getattr(
                     getattr(fresh_geom, "deterministic_core_stamp", None), "version", None
                 )
+                # W#3: each leg pins BOTH sides to its OWN kernel version
+                # (exact equality, ⛔ no cross-leg mixing) — the as_drawn leg
+                # stamps under AS_DRAWN_CHAIN_STAMP_VERSION inside its
+                # finalize, the legacy leg under DETERMINISTIC_CORE_STAMP_
+                # VERSION inside apply_deterministic_core.
+                expected_stamp_version = (
+                    AS_DRAWN_CHAIN_STAMP_VERSION
+                    if chain_provenance is not None
+                    else DETERMINISTIC_CORE_STAMP_VERSION
+                )
                 if (
-                    replayed_stamp_version != DETERMINISTIC_CORE_STAMP_VERSION
-                    or candidate_stamp_version != DETERMINISTIC_CORE_STAMP_VERSION
+                    replayed_stamp_version != expected_stamp_version
+                    or candidate_stamp_version != expected_stamp_version
                 ):
                     raise ValueError("writer_core_projection_drift")
                 audit_core = {
@@ -520,14 +585,30 @@ class StageRunner:
                 # host-resolution rows -- so committing to `candidate_projection`
                 # here binds the proof to a value already proven correct, not
                 # to an unverified one.
-                core_proof = DeterministicCoreProofV1(
-                    core_version=DETERMINISTIC_CORE_STAMP_VERSION,
-                    input_hash=hashlib.sha256(
-                        rebuilt_marker.producer_draw_canonical_bytes
-                    ).hexdigest(),
-                    core_projection_hash=hash_obj(candidate_projection),
+                core_proof = (
+                    # W#3: the proof names the kernel that actually replayed —
+                    # and binds to the bytes that replay consumed (the frozen
+                    # per-storey compilations on the chain leg, the producer
+                    # canonical bytes on the legacy leg).
+                    DeterministicCoreProofV1(
+                        core_version=AS_DRAWN_CHAIN_STAMP_VERSION,
+                        input_hash=chain_provenance.replay_input_hash,
+                        core_projection_hash=hash_obj(candidate_projection),
+                    )
+                    if chain_provenance is not None
+                    else DeterministicCoreProofV1(
+                        core_version=DETERMINISTIC_CORE_STAMP_VERSION,
+                        input_hash=hashlib.sha256(
+                            rebuilt_marker.producer_draw_canonical_bytes
+                        ).hexdigest(),
+                        core_projection_hash=hash_obj(candidate_projection),
+                    )
                 )
                 extra_artifacts["deterministic_core_proof.json"] = core_proof.model_dump_json(indent=2)
+                if chain_provenance is not None:
+                    extra_artifacts["chain_provenance.json"] = (
+                        chain_provenance.model_dump_json(indent=2)
+                    )
             audit_text = _to_json(output_obj.audit_payload)
             states = FeatureStatesArtifactV1(output_sha256=output_hash, claims=expected)
             states_text = states.model_dump_json(indent=2)
@@ -538,6 +619,10 @@ class StageRunner:
                     "window_hosts": hash_text(extra_artifacts["window_hosts.json"]),
                     "deterministic_core_proof": hash_text(extra_artifacts["deterministic_core_proof.json"]),
                 })
+                if "chain_provenance.json" in extra_artifacts:
+                    artifact_hashes["chain_provenance"] = hash_text(
+                        extra_artifacts["chain_provenance.json"]
+                    )
         elif is_assembly_e4:
             audit_text = output_obj.audit.model_dump_json(indent=2)
             contract_text = output_obj.contract.model_dump_json(indent=2)
@@ -596,6 +681,14 @@ class StageRunner:
             DeterministicCoreProofV1.model_validate_json(
                 (adir / "deterministic_core_proof.json").read_bytes()
             )
+            if "chain_provenance.json" in files:
+                from src.agent.correction.chain_provenance import (
+                    AsDrawnChainProvenanceV1,
+                )
+
+                AsDrawnChainProvenanceV1.model_validate_json(
+                    (adir / "chain_provenance.json").read_bytes()
+                )
             assert final_attempt_dir is not None
             os.replace(adir, final_attempt_dir)
             adir = final_attempt_dir
@@ -707,6 +800,43 @@ class StageRunner:
             else:
                 self.manifest.accept(StageRecord(**common))
         return rec
+
+
+class _ArchiveFailureDiagnostics:
+    """Observe exceptional exit; never catch or suppress a writer refusal."""
+
+    def __init__(self, stage_dir: Path, stage: str, report: CheckReport):
+        self.stage_dir, self.stage, self.report = stage_dir, stage, report
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        if exc is not None:
+            try:
+                _record_archive_failure(self.stage_dir, self.stage, self.report, exc)
+            except (OSError, ValueError, TypeError) as diagnostic_exc:
+                exc.add_note(f"could not persist gate report after archive failure: {diagnostic_exc}")
+        return False
+
+
+def _record_archive_failure(stage_dir: Path, stage: str, report: CheckReport, exc: BaseException) -> None:
+    root = stage_dir / "record_failures"
+    root.mkdir(parents=True, exist_ok=True)
+    indices = [int(p.name) for p in root.iterdir() if p.is_dir() and p.name.isdigit()]
+    directory = root / f"{max(indices, default=0) + 1:03d}"
+    directory.mkdir(exist_ok=False)
+    checks = report.model_dump_json(indent=2)
+    (directory / "checks.json").write_text(checks, encoding="utf-8")
+    (directory / "failure.json").write_text(json.dumps({
+        "stage": stage,
+        "accepted": False,
+        "error_type": type(exc).__name__,
+        "error": str(exc),
+        "checks_sha256": hash_text(checks),
+        "candidate_output_sha256": report.attempt_hash,
+        "note": "gate diagnostics only; candidate was not successfully archived by this call",
+    }, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def _to_json(obj) -> str:

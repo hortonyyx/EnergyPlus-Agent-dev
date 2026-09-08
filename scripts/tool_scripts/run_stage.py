@@ -560,6 +560,7 @@ def _draw_correction_as_drawn(
     wires them in the flow's standard (result, report) shape so the SAME
     StageRunner writer archives the attempt.
     """
+    from src.agent.correction.chain_provenance import build_chain_provenance
     from src.agent.correction.finalize import finalize_as_drawn_chain_geometry
     from src.agent.correction.parse import correction_target
     from src.agent.correction.window_sources import (
@@ -625,8 +626,41 @@ def _draw_correction_as_drawn(
             for entry in entries
         },
     )
+    # W#3 (dispatch 2026-09-08c S-A): freeze each chain run's FINAL wall
+    # compilation — filed by the chain itself next to its outcome — into the
+    # candidate's provenance carrier.  The StageRunner writer then re-drives
+    # the whole chain from these bytes + the marker's embedded products
+    # (same strength as the legacy core replay, ⛔ never a leg-skip).
+    # ``floor_ref`` here is the SAME derivation the production chain uses for
+    # the adapter slot (``pipeline.run_correction_evidence_chain``'s plan
+    # branch: the ``<N>f`` token inside the frozen product name) — the
+    # manifest's own ``floor_ref`` is an int storey index and would break the
+    # carrier's ``StableName`` typing; the run DIRECTORY keeps the manifest
+    # int (``floor_1``), which is where the chain filed the compilation.
+    import re as _re
+
+    def _chain_floor_ref(product_filename: str) -> str:
+        stem = Path(product_filename).stem
+        m = _re.search(r"(\d+)\s*f", stem, _re.I)
+        return m.group(0).lower() if m else stem
+
+    provenance = build_chain_provenance([
+        {
+            "input_id": entry.input_id,
+            "product_filename": f"{entry.expected_output_id}.json",
+            "floor_ref": _chain_floor_ref(f"{entry.expected_output_id}.json"),
+            "compilation_bytes": (
+                s1 / f"floor_{entry.floor_ref}" / "evidence_chain_compilation.json"
+            ).read_bytes(),
+            "source_bytes_sha256": hashlib.sha256(
+                (rdir / f"{entry.expected_output_id}.json").read_bytes()
+            ).hexdigest(),
+        }
+        for entry in plan_entries
+    ])
     result = finalize_as_drawn_chain_geometry(
-        geom, verified_window_inputs=vwi, target=target
+        geom, verified_window_inputs=vwi, target=target,
+        chain_provenance=provenance,
     )
     # gate①: the SAME check_correction the legacy leg uses (expected_zone_
     # total etc. all passed through).  The legacy leg's extra pre-gate

@@ -137,6 +137,24 @@ _TRUSTED_SCHEMA_V3_IDENTITY = "outer_skin_exterior_centerline_interior"
 CORRECTION_OUTPUT_CONVENTION = _TRUSTED_SCHEMA_V3_IDENTITY
 
 
+def _trusted_stamp_versions() -> frozenset:
+    """W#3 (wallhunt 2026-09-08b): the stamp versions this module trusts,
+    ONE PER KERNEL — the legacy envelope core stamps
+    ``DETERMINISTIC_CORE_STAMP_VERSION``; the as_drawn evidence chain
+    (projection bridge + snap + assembly + its finalize half, replayed by
+    ``correction.chain_replay`` in the writer) stamps
+    ``AS_DRAWN_CHAIN_STAMP_VERSION``.  Read live via the module (same
+    "single declared source, no drift" discipline as the constants above),
+    and the PAIRING rule in `_is_trusted_output_convention` additionally
+    requires the proof's ``core_version`` to equal the product's OWN stamp
+    version — a chain product carrying a legacy proof, or vice versa, is
+    untrusted, ⛔ never cross-leg mixed."""
+    return frozenset({
+        deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION,
+        deterministic_module.AS_DRAWN_CHAIN_STAMP_VERSION,
+    })
+
+
 def _is_declared_output_convention(geom: CorrectedGeometry) -> bool:
     """The product's own SELF-REPORT — three independent facts must ALL
     hold, none a proxy for another:
@@ -145,8 +163,9 @@ def _is_declared_output_convention(geom: CorrectedGeometry) -> bool:
     2. `CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY` — this
        module's own declared identity has not been tampered with.
     3. The product's `deterministic_core_stamp.version` (F-22 BLOCKER-1,
-       2026-08-12) exactly equals `deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
-       — a plausible, correctly-versioned stamp is present.
+       2026-08-12) is one of the trusted per-kernel stamp versions
+       (`_trusted_stamp_versions`) — a plausible, correctly-versioned stamp
+       naming the kernel that produced it is present.
 
     This is EXACTLY the check `_is_trusted_output_convention` used to BE, in
     full, before 2026-08-13 (sol re-review, BLOCKER-1 reopened): sol proved a
@@ -164,7 +183,7 @@ def _is_declared_output_convention(geom: CorrectedGeometry) -> bool:
     return (
         getattr(geom, "schema_version", None) == "3"
         and CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY
-        and stamp_version == deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION
+        and stamp_version in _trusted_stamp_versions()
     )
 
 
@@ -210,11 +229,11 @@ def _is_trusted_output_convention(
        `_resolve_core_proof_for_attempt`. This function itself never reads a
        run/manifest; a bare dict/`CorrectedGeometry` with no `core_proof`
        argument can therefore never be more than `declared`.
-    3. `core_proof.core_version == deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
-       — the proof was issued under the CURRENTLY live core revision, not a
-       stale one (mirrors the stamp check, but against the proof's own
-       recorded version, so a bump to the live constant untrusts BOTH the
-       self-report and any previously issued proof, with no fallback).
+    3. `core_proof.core_version` is one of the trusted per-kernel stamp
+       versions AND equals the product's OWN stamped version — the proof was
+       issued under the kernel the product itself names, not a stale or
+       cross-leg one (a bump to a live constant untrusts BOTH the self-report
+       and any previously issued proof under it, with no fallback).
     4. `core_proof.core_projection_hash == hash_obj(core_owned_projection_v1(geom))`
        — recomputed HERE, on THIS geometry, not merely read off the proof.
        This is what defeats sol's forged-candidate reproduction: a proof
@@ -229,7 +248,13 @@ def _is_trusted_output_convention(
         return False
     if core_proof is None:
         return False
-    if core_proof.core_version != deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION:
+    stamp_version = getattr(
+        getattr(geom, "deterministic_core_stamp", None), "version", None
+    )
+    if (
+        core_proof.core_version not in _trusted_stamp_versions()
+        or core_proof.core_version != stamp_version
+    ):
         return False
     if not isinstance(geom, deterministic_module.CorrectedGeometryV3):
         return False
