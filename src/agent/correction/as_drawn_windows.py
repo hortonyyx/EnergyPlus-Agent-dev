@@ -118,6 +118,43 @@ def _segment_of(geom: CorrectedGeometryV3, *, floor_id: str, facade: str,
     return hits[0]
 
 
+def _room_of(floor, *, facade: str, plane: float, along_lo: float, along_hi: float) -> str:
+    """窗所属的 cell。⭐ **零阈值**：按【共享边界边】匹配，⛔ 不用探针点、不用偏移常数。
+
+    cells 精确铺满足迹（实测：ring 面积 == cells∪ 面积，差 **0.0000 m²**，两层都是），
+    且 cell 顶点与足迹环出自**同一次 partition** ⇒ 落在该墙面线上的边是**逐位相等**的，
+    ⛔ 不需要容差。
+
+    ⛔ 零个或多个 ⇒ 具名拒绝（同 `_segment_of`：C2.1 §118「必须 conflict 不许猜」）。
+    """
+    const_index = 1 if facade in ("North", "South") else 0
+    along_index = 1 - const_index
+    hits: list[str] = []
+    for cell in floor.cells:
+        poly = [(float(x), float(y)) for x, y in cell.polygon]
+        if poly and poly[0] == poly[-1]:
+            poly.pop()
+        n = len(poly)
+        for i in range(n):
+            a, b = poly[i], poly[(i + 1) % n]
+            if a[const_index] != plane or b[const_index] != plane:
+                continue
+            lo = min(a[along_index], b[along_index])
+            hi = max(a[along_index], b[along_index])
+            if lo <= along_lo and along_hi <= hi:
+                hits.append(cell.id)
+                break
+    if len(hits) != 1:
+        raise WindowResolverInputError(
+            "source_identity_invalid",
+            {"reason": "window span does not sit on exactly one cell boundary edge",
+             "facade": facade, "plane": plane, "along": [along_lo, along_hi],
+             "n_cells_matched": len(hits)},
+            category="model_draw_error",
+        )
+    return hits[0]
+
+
 def _plan_rows_for(catalog: Sequence[SourceWindowV1], *, floor_ref: int, facade: str,
                    segment, along_lo: float, along_hi: float,
                    tolerance_m: float) -> tuple[PlanSourceWindowV1, ...]:
@@ -237,9 +274,13 @@ def derive_as_drawn_windows(
             matched_plan.add(f"{plan_row.source_input_id}/{plan_row.observation_id}")
         elevation_ref = f"{row.source_input_id}/{row.observation_id}"
         plan_refs = [f"{p.source_input_id}/{p.observation_id}" for p in plan_rows]
+        plane = (float(segment.p1[1]) if facade in ("North", "South")
+                 else float(segment.p1[0]))
+        room = _room_of(floor, facade=facade, plane=plane,
+                        along_lo=along_lo, along_hi=along_hi)
         windows.append(WindowV3(
             id=f"{floor.id}-win-{row.source_input_id}-{row.observation_id}",
-            floor_id=floor.id, facade=facade,
+            floor_id=floor.id, facade=facade, room=room,
             span=[along_lo, along_hi], z=[z_lo, z_hi],
             provenance={
                 # ⭐ 逐条声称只引【有权声称它】的通道（权限矩阵见 _claim_links）
@@ -287,3 +328,47 @@ def _floor_ref_of(geom: CorrectedGeometryV3, floor) -> int:
 
 
 __all__ = ["AsDrawnWindowAccount", "derive_as_drawn_windows"]
+
+
+def populate_as_drawn_windows(
+    geom: CorrectedGeometryV3,
+    *,
+    raw_view_manifest_bytes: bytes,
+    raw_reading_artifacts: Mapping[str, bytes],
+    visibility_tolerances,
+) -> tuple[CorrectedGeometryV3, AsDrawnWindowAccount]:
+    """S3 编排：把窗填进几何，**在建 vwi 之前**。
+
+    ⚠️ 顺序不是随意的，是被两条既有约束夹出来的：
+      * `derive_as_drawn_windows` 需要 `facade_segments`（靠它的 `visible_intervals`
+        定「这个洞口属于哪堵墙」）—— 而 Vg 是 finalize 里才跑的；
+      * `build_verified_window_inputs_as_drawn` 建的 marker 绑
+        `producer_draw_canonical_bytes`，且 `_claim_links` 在那一刻校验
+        **producer 已有的窗** —— 窗若在 marker 之后才加，既过不了校验，
+        marker 也不再对应这份几何。
+    ⇒ 本函数在**建 marker 之前**先跑一次 Vg 拿到段、造好窗；
+    finalize 里那次 Vg 是幂等重跑（同一 ring、同一容差），⛔ 不是第二个定义。
+    """
+    from src.agent.correction.facade_visibility import materialize_all_facade_segments
+    from src.agent.correction.window_sources import (
+        _parse_manifest,
+        build_as_drawn_window_catalog,
+    )
+
+    segments = materialize_all_facade_segments(geom, tolerances=visibility_tolerances)
+    staged = geom.model_copy(update={"facade_segments": list(segments)})
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    catalog = build_as_drawn_window_catalog(
+        manifest=manifest, raw_reading_artifacts=raw_reading_artifacts,
+    )
+    windows, account = derive_as_drawn_windows(
+        staged, catalog=catalog, manifest=manifest,
+        raw_reading_artifacts=raw_reading_artifacts,
+    )
+    # ⛔ 只把 windows 带回原几何：`facade_segments` 仍由 finalize 里的 Vg 写，
+    # 保持「Vg 是 facade_segments 的唯一写者」这条既有规矩不被本次改动动摇。
+    return geom.model_copy(update={"windows": list(windows)}), account
+
+
+__all__ = ["AsDrawnWindowAccount", "derive_as_drawn_windows",
+           "populate_as_drawn_windows"]

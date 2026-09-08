@@ -1410,8 +1410,15 @@ def build_verified_window_inputs_as_drawn(
         raw_reading_artifacts=raw_reading_artifacts,
     )
     facts = _check_direction_facts_as_drawn(manifest, facts)
+    # ⭐ 2026-09-08 补窗：目录不再是 T2-⑤ 的「合法空集」——它现在装的是这条腿
+    # 真正的窗源观测（平面 opening_types 的 window 候选 + 立面 openings）。
+    # 空集在投影 windows=[] 时才诚实；补窗后仍传空集会让 _claim_links 把每一个
+    # 窗都判成 model_draw_error（引用了不存在的源）。
+    rows = build_as_drawn_window_catalog(
+        manifest=manifest, raw_reading_artifacts=raw_reading_artifacts,
+    )
     return _assemble_verified_resolver_inputs(
-        producer_draw=producer_draw, manifest=manifest, rows=(), facts=facts,
+        producer_draw=producer_draw, manifest=manifest, rows=rows, facts=facts,
         raw_view_manifest_bytes=raw_view_manifest_bytes,
         raw_reading_artifacts=raw_reading_artifacts,
     )
