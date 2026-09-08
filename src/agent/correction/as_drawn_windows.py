@@ -16,7 +16,12 @@
 （`window_sources._claim_links` 的权限矩阵）⇒ 平面上有、立面上没有的窗
 **造不出合法窗对象**，只能作为**记账的缺席**（见返回的第二个元素）。
 
-⚠️ **一个物理窗在墙的两个面上各留一个缺口**（实测：62 个平面 window 候选 = 33 个物理窗）。
+⚠️ **一个物理洞在墙的两条面线上各留一个缺口**（实测 sm25：62 个 window 候选
+= 33 个物理洞）。目录层已按模型自己声明的墙配对（`hypotheses.pairs`）把它们
+**收编成一洞一行**（`window_sources._as_drawn_plan_gap_groups`）⇒ 这里的每个
+平面候选都是**不同的物理洞**，配对决策（唯一 + 互为最近 + 无复用）因此在
+真候选之间进行，⛔ 不再需要按吻合度预选 —— 双胞胎并列曾让「最近邻」不唯一
+（21/31 影子校验拒绝，2026-09-08h），收编后唯一性由结构保证。
 按平面候选造窗会**静默翻倍**且看上去完全合理 —— 从立面驱动天然避开这一点。
 """
 from __future__ import annotations
@@ -52,6 +57,13 @@ class AsDrawnWindowAccount:
     unclassified_elevation_openings: tuple[str, ...] = ()
     #: 平面有 window 候选、立面没有对应洞口的（⇒ 缺 z，造不出窗）
     plan_windows_without_elevation: tuple[str, ...] = ()
+    #: 同一物理洞在墙另一条面线上的记录被目录收编（"folded->survivor"）——
+    #: ⭐ 收编是**动作**，必须可对账：目录里少掉的观测在这里有名有姓
+    plan_records_folded: tuple[str, ...] = ()
+    #: 容差球内 ≥2 个并列候选 ⇒ 配对决策不唯一 ⇒ ⛔ 不猜，整洞口不建窗
+    ambiguous_pair_openings: tuple[str, ...] = ()
+    #: 平面记录的最近洞口不是本洞口（互为最近失败）⇒ ⛔ 不建
+    conflicting_pair_openings: tuple[str, ...] = ()
 
     def to_payload(self) -> dict:
         return {
@@ -60,6 +72,9 @@ class AsDrawnWindowAccount:
             "windows_built": self.windows_built,
             "unclassified_elevation_openings": list(self.unclassified_elevation_openings),
             "plan_windows_without_elevation": list(self.plan_windows_without_elevation),
+            "plan_records_folded": list(self.plan_records_folded),
+            "ambiguous_pair_openings": list(self.ambiguous_pair_openings),
+            "conflicting_pair_openings": list(self.conflicting_pair_openings),
         }
 
 
@@ -155,13 +170,19 @@ def _room_of(floor, *, facade: str, plane: float, along_lo: float, along_hi: flo
     return hits[0]
 
 
-def _plan_rows_for(catalog: Sequence[SourceWindowV1], *, floor_ref: int, facade: str,
-                   segment, along_lo: float, along_hi: float,
-                   tolerance_m: float) -> tuple[PlanSourceWindowV1, ...]:
-    """该窗在平面侧的观测行（**可能是 1 或 2 个** —— 一堵墙两个面各记一次）。
+def _plan_candidates_for(catalog: Sequence[SourceWindowV1], *, floor_ref: int,
+                         facade: str, segment, along_lo: float, along_hi: float,
+                         tolerance_m: float) -> tuple[tuple[float, PlanSourceWindowV1], ...]:
+    """该洞口在平面侧的候选（**带残差、⛔ 不去重不预选**）。
 
     判据与 `window_host._plan_source_matches_plane` 同形：跨向区间必须**含住**
     该段所在的平面坐标；沿面区间与立面投影出的区间重合（容差为调用方派生）。
+
+    ⭐ 目录已在上一层把「同一物理洞的两条面线记录」收编成一行
+    （`window_sources._as_drawn_plan_gap_groups`）⇒ 这里看到的每个候选都是
+    **不同的物理洞**。容差球内出现 ≥2 个候选因此是真歧义（两堵不同墙都说
+    这个洞口在自己身上），交由调用方按歧义拒绝 —— ⛔ 不在这里悄悄挑一个
+    （旧实现按残差去重预选，把「挑了哪一个」藏在了配对决策之前）。
     """
     plane = float(segment.p1[1]) if facade in ("North", "South") else float(segment.p1[0])
     out = []
@@ -174,24 +195,11 @@ def _plan_rows_for(catalog: Sequence[SourceWindowV1], *, floor_ref: int, facade:
             along, cross = row.world_y_interval, row.world_x_interval
         if not (float(cross.lo) <= plane <= float(cross.hi)):
             continue
-        if (abs(float(along.lo) - along_lo) <= tolerance_m
-                and abs(float(along.hi) - along_hi) <= tolerance_m):
-            residual = (abs(float(along.lo) - along_lo)
-                        + abs(float(along.hi) - along_hi))
-            out.append((residual, row))
-    # ⚠️ 一个物理窗在墙的【两个面】上各留一个缺口（实测：62 个平面 window 候选
-    # = 33 个物理窗）⇒ 同一份平面产物会给出两条观测。而 Va 账本的不变量是
-    # 「同一条声称里，每个来源输入只许有一条证据」
-    # （`facade_applicability.py:422`，实测 va_claim_ledger_invalid）。
-    # ⇒ 每个 source_input_id 只留【与立面投影最吻合】的那一条：确定性、有意义
-    # （吻合度更高的那个面就是更可信的观测），⛔ 不按下标或字典序任意挑。
-    best: dict[str, tuple[float, PlanSourceWindowV1]] = {}
-    for residual, row in out:
-        current = best.get(row.source_input_id)
-        if current is None or residual < current[0]:
-            best[row.source_input_id] = (residual, row)
-    return tuple(row for _, row in sorted(
-        best.values(), key=lambda item: item[1].observation_id))
+        d_lo = abs(float(along.lo) - along_lo)
+        d_hi = abs(float(along.hi) - along_hi)
+        if d_lo <= tolerance_m and d_hi <= tolerance_m:
+            out.append((d_lo + d_hi, row))
+    return tuple(sorted(out, key=lambda item: item[1].observation_id))
 
 
 def derive_match_tolerance_m(raw_reading_artifacts: Mapping[str, bytes]) -> float:
@@ -202,9 +210,14 @@ def derive_match_tolerance_m(raw_reading_artifacts: Mapping[str, bytes]) -> floa
     语义也一致：**一个洞口的边被放错超过半堵墙，它就不再是同一个洞口**。
 
     ⭐⭐ 而且**实测证明取值不承重**：在真产物上扫容差，
-    50 mm / 100 mm / 200 mm 给出**完全相同**的结果（31 窗 + 3 未分类 + 2 平面孤儿），
-    20 mm 才开始丢（23 窗）。sm25 声明 [240, 120] ⇒ CAP = **60 mm**，
+    50 mm / 60 mm / 100 mm 给出**完全相同**的结果（31 窗 + 3 未分类 +
+    2 平面孤儿 + 29 折叠）。sm25 声明 [240, 120] ⇒ CAP = **60 mm**，
     **落在这段平台期内** ⇒ ⛔ 不是调出来的边界值。
+    ⚠️ 200 mm 一档**不再同数**（31→30）：North_view/O04 在 200 mm 球内同时
+    捞到同墙两条记录（L023g2 宽 0.67 m / L024g4 宽 0.80 m，hi 端差 151 mm
+    > 半墙 ⇒ 平面自己的语义说它们是**两个不同的洞**）⇒ 歧义门拒绝整洞口。
+    旧实现在这档会**静默挑走残差更小的一条**——正是 2026-09-08h 影子校验
+    拒绝 21/31 的那个形状；容差一旦宽过「同洞」语义，歧义必须亮出来 ⛔ 不许吞。
 
     ⚠️ 为什么不能更小：平面记的是**墙段之间的缺口**，立面记的是**可见洞口**，
     两者定义不同（窗框/侧壁），⛔ 这个差不是标定噪声，所以按噪声界派生会过紧。
@@ -243,14 +256,19 @@ def derive_as_drawn_windows(
 
     ``match_tolerance_m=None``（生产用法）⇒ 由 :func:`derive_match_tolerance_m`
     从产物自己的声明派生；显式传值只供测试扫描平台期。
+
+    ⭐ 配对是**双向**的，分两拍：
+      1. 每个立面洞口收集容差球内的平面候选（⛔ 不去重不预选）；
+      2. 全局决策 —— 洞口的候选必须**唯一**（≥2 个 ⇒ 歧义拒绝），
+         且被引记录的最近洞口必须**指回本洞口**（互为最近；否则冲突拒绝）。
+    每条平面观测因此至多佐证一个窗（无复用），每一次拒绝都进账本 ⛔ 不静默。
     """
     if match_tolerance_m is None:
         match_tolerance_m = derive_match_tolerance_m(raw_reading_artifacts)
     elevation_rows = [r for r in catalog if isinstance(r, ElevationSourceWindowV1)]
-    windows: list[WindowV3] = []
-    unclassified: list[str] = []
-    matched_plan: set[str] = set()
 
+    # ── Phase 1：立面洞口 → 几何上下文 + 平面候选（含残差） ──────────────────
+    openings: list[dict] = []
     for row in sorted(elevation_rows, key=lambda r: (r.source_input_id, r.observation_id)):
         entry = manifest.entry_by_input_id(row.source_input_id)
         facade = entry.building_view_direction
@@ -275,23 +293,69 @@ def derive_as_drawn_windows(
         floor = _floor_of(geom, z_lo, z_hi)
         segment = _segment_of(geom, floor_id=floor.id, facade=facade,
                               along_lo=along_lo, along_hi=along_hi)
-        plan_rows = _plan_rows_for(catalog, floor_ref=_floor_ref_of(geom, floor),
-                                   facade=facade, segment=segment,
-                                   along_lo=along_lo, along_hi=along_hi,
-                                   tolerance_m=match_tolerance_m)
-        if not plan_rows:
+        candidates = _plan_candidates_for(
+            catalog, floor_ref=_floor_ref_of(geom, floor), facade=facade,
+            segment=segment, along_lo=along_lo, along_hi=along_hi,
+            tolerance_m=match_tolerance_m)
+        openings.append(dict(
+            key=f"{row.source_input_id}/{row.observation_id}", row=row,
+            facade=facade, floor=floor, segment=segment,
+            along_lo=along_lo, along_hi=along_hi, z_lo=z_lo, z_hi=z_hi,
+            candidates=candidates,
+        ))
+
+    # ── Phase 2：反向最近 —— 每条平面观测的最近洞口（互为最近的另一半） ──────
+    # 同一条观测有两个等近洞口 ⇒ 该观测自己有歧义（None），引用它的洞口一律
+    # 按冲突拒绝，⛔ 不按遍历顺序悄悄定一边。
+    row_edges: dict[str, list[tuple[float, str]]] = {}
+    for opening in openings:
+        for residual, prow in opening["candidates"]:
+            ref = f"{prow.source_input_id}/{prow.observation_id}"
+            row_edges.setdefault(ref, []).append((residual, opening["key"]))
+    best_opening_of_row: dict[str, str | None] = {}
+    for ref, edges in row_edges.items():
+        edges.sort()
+        contested = len(edges) > 1 and abs(edges[0][0] - edges[1][0]) <= 1e-12
+        best_opening_of_row[ref] = None if contested else edges[0][1]
+
+    # ── Phase 3：决策 + 造窗 + 记账 ──────────────────────────────────────────
+    windows: list[WindowV3] = []
+    unclassified: list[str] = []
+    ambiguous: list[str] = []
+    conflicting: list[str] = []
+    matched_plan: set[str] = set()
+    for opening in openings:
+        candidates = opening["candidates"]
+        if not candidates:
             # 平面没把它分类成 window（实测 sm25 = 3 个 door）⇒ ⛔ 不当窗造，
             # 但**记账**：缺席是信号，不是空白。
-            unclassified.append(f"{row.source_input_id}/{row.observation_id}")
+            unclassified.append(opening["key"])
             continue
-        for plan_row in plan_rows:
-            matched_plan.add(f"{plan_row.source_input_id}/{plan_row.observation_id}")
-        elevation_ref = f"{row.source_input_id}/{row.observation_id}"
-        plan_refs = [f"{p.source_input_id}/{p.observation_id}" for p in plan_rows]
+        if len(candidates) > 1:
+            # 容差球内 ≥2 个候选 = 两堵不同的墙都声称这个洞口 ⇒ 配对决策不
+            # 唯一（歧义边际不足：次优与最优同在球内）⇒ ⛔ 不猜。
+            cands = ",".join(f"{p.source_input_id}/{p.observation_id}"
+                             for _, p in candidates)
+            ambiguous.append(f"{opening['key']}->{cands}")
+            continue
+        elevation_ref = opening["key"]
+        plan_ref = (f"{candidates[0][1].source_input_id}/"
+                    f"{candidates[0][1].observation_id}")
+        back = best_opening_of_row.get(plan_ref)
+        if back != opening["key"]:
+            # 该记录的最近洞口不是本洞口（或该记录自己有歧义）⇒ 互为最近失败。
+            conflicting.append(f"{opening['key']}->{plan_ref}(back={back})")
+            continue
+        matched_plan.add(plan_ref)
+        row, facade = opening["row"], opening["facade"]
+        floor, segment = opening["floor"], opening["segment"]
+        along_lo, along_hi = opening["along_lo"], opening["along_hi"]
+        z_lo, z_hi = opening["z_lo"], opening["z_hi"]
         plane = (float(segment.p1[1]) if facade in ("North", "South")
                  else float(segment.p1[0]))
         room = _room_of(floor, facade=facade, plane=plane,
                         along_lo=along_lo, along_hi=along_hi)
+        plan_refs = [plan_ref]
         windows.append(WindowV3(
             id=f"{floor.id}-win-{row.source_input_id}-{row.observation_id}",
             floor_id=floor.id, facade=facade, room=room,
@@ -322,10 +386,22 @@ def derive_as_drawn_windows(
         if isinstance(r, PlanSourceWindowV1)
         and f"{r.source_input_id}/{r.observation_id}" not in matched_plan
     ))
+    # 物理洞收编账（"folded->survivor"）：只记幸存者确在本次目录里的那部分 ——
+    # 目录若被调用方手工构造，收编结构与它对不上时 ⛔ 不虚记账。
+    from src.agent.correction.window_sources import as_drawn_plan_record_folds
+    catalog_refs = {f"{r.source_input_id}/{r.observation_id}" for r in catalog}
+    folds = tuple(f"{folded}->{survivor}"
+                  for folded, survivor in
+                  as_drawn_plan_record_folds(manifest=manifest,
+                                             raw_reading_artifacts=raw_reading_artifacts)
+                  if survivor in catalog_refs and folded not in catalog_refs)
     account = AsDrawnWindowAccount(
         elevation_openings=len(elevation_rows), windows_built=len(windows),
         unclassified_elevation_openings=tuple(unclassified),
         plan_windows_without_elevation=orphan_plan,
+        plan_records_folded=folds,
+        ambiguous_pair_openings=tuple(ambiguous),
+        conflicting_pair_openings=tuple(conflicting),
     )
     return tuple(windows), account
 

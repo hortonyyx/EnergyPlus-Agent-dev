@@ -27,6 +27,7 @@ from src.agent.correction.window_sources import (
     PlanSourceWindowV1,
     WindowResolverInputError,
     _parse_manifest,
+    as_drawn_plan_record_folds,
     build_as_drawn_window_catalog,
 )
 
@@ -228,20 +229,30 @@ def test_match_tolerance_has_no_declared_source_is_refused():
 
 
 def test_derived_tolerance_sits_inside_a_stability_plateau(staged, catalog, manifest, raw_readings):
-    """⭐ 取值不承重：50/100/200 mm 给出【相同】结果，60 mm 落在其中。
+    """⭐ 取值不承重：50/60/100 mm 给出【相同】结果，60 mm 落在其中。
 
     ⇒ 60 不是调到边界上的数（20 mm 会丢窗，实测 23 而非 31）。
+    ⚠️ 200 mm 一档 2026-09-08h 起不再同数（31→30）：容差宽过「同洞」语义
+    （半墙 = 120 mm）时，North_view/O04 会在球内同时捞到同墙两条记录
+    （L023g2/L024g4，span 端差 151 mm > 半墙 ⇒ 平面自己的语义说是两个洞）
+    ⇒ 歧义门拒绝整洞口 —— 旧实现静默挑走更优的一条，正是影子校验拒 21/31
+    的形状，⛔ 不许吞。
     """
-    def built(tolerance_m):
-        windows, _ = derive_as_drawn_windows(
+    def derive(tolerance_m):
+        return derive_as_drawn_windows(
             staged, catalog=catalog, manifest=manifest,
             raw_reading_artifacts=raw_readings, match_tolerance_m=tolerance_m)
-        return len(windows)
 
-    plateau = {built(t) for t in (0.05, 0.10, 0.20)}
+    plateau = {len(derive(t)[0]) for t in (0.05, 0.06, 0.10)}
     assert len(plateau) == 1, f"平台期不成立: {plateau}"
-    assert built(derive_match_tolerance_m(raw_readings)) == plateau.pop()
-    assert built(0.02) < built(0.05), "更紧的容差应当真的丢窗（判据有分辨力）"
+    assert len(derive(derive_match_tolerance_m(raw_readings))[0]) == plateau.pop()
+    assert len(derive(0.02)[0]) < len(derive(0.05)[0]), "更紧的容差应当真的丢窗（判据有分辨力）"
+    # 歧义门在 200 mm 一档有牙：真歧义（同墙两记录、span 端差 151 mm > 半墙）
+    # 必须亮成 ambiguous 拒绝 + 记账，⛔ 不许静默挑一条保住 31
+    windows_far, account_far = derive(0.20)
+    assert len(windows_far) == 30
+    assert account_far.ambiguous_pair_openings == (
+        "North_view/O04->1f_view/L023g2,1f_view/L024g4",)
 
 
 # ── 造窗 + 记账 ───────────────────────────────────────────────────────────── #
@@ -287,6 +298,97 @@ def test_every_window_lands_on_exactly_one_visible_segment(staged, catalog, mani
                     for i in segment.visible_intervals)
         ]
         assert len(hits) == 1, f"{window.id} 落进 {len(hits)} 个可见段"
+
+
+# ── 物理洞收编（2026-09-08h：双胞胎并列 ⇒ 最近邻不唯一 ⇒ 21/31 影子拒绝）── #
+
+def test_catalog_carries_one_row_per_physical_opening(catalog, manifest, raw_readings):
+    """⭐ 一个物理洞在墙的两条面线上各留一个缺口（62 候选 = 33 物理洞）——
+    目录每个物理洞只留一行（幸存 = 字典序最小观测 id），⛔ 不许双胞胎并列
+    进最近邻决策。"""
+    plan = [r for r in catalog if isinstance(r, PlanSourceWindowV1)]
+    assert len(plan) == 33, f"物理洞行数应为 33，实际 {len(plan)}"
+    ids = {f"{r.source_input_id}/{r.observation_id}" for r in plan}
+    # 具名抽查：L016g6/L017g6 是同一洞的两条面线记录（区间逐位相同）
+    assert "1f_view/L016g6" in ids
+    assert "1f_view/L017g6" not in ids, "被折叠的孪生不许再进目录"
+
+
+def test_record_folds_are_a_ledger_not_a_silence(catalog, manifest, raw_readings):
+    """收编是【动作】必须可对账：29 条折叠逐条 "folded->survivor" 有名有姓，
+    幸存者都在目录里、被折叠者一条不漏进目录。"""
+    folds = as_drawn_plan_record_folds(
+        manifest=manifest, raw_reading_artifacts=raw_readings)
+    assert len(folds) == 29, f"折叠应为 29 条，实际 {len(folds)}"
+    assert ("1f_view/L017g6", "1f_view/L016g6") in folds
+    catalog_refs = {f"{r.source_input_id}/{r.observation_id}" for r in catalog}
+    for folded, survivor in folds:
+        assert survivor in catalog_refs, f"幸存者 {survivor} 必须在目录里"
+        assert folded not in catalog_refs, f"被折叠者 {folded} 不许在目录里"
+
+
+def test_account_reports_the_new_pairing_ledgers(staged, catalog, manifest, raw_readings):
+    """双向配对的账本：31 建 + 3 未分类 + 2 真平面孤儿 + 29 折叠 +
+    0 歧义 + 0 冲突（sm25 收编后应全绿）。"""
+    windows, account = derive_as_drawn_windows(
+        staged, catalog=catalog, manifest=manifest, raw_reading_artifacts=raw_readings)
+    assert len(windows) == account.windows_built == 31
+    assert len(account.unclassified_elevation_openings) == 3
+    assert len(account.plan_windows_without_elevation) == 2, \
+        "孤儿必须是【真·平面独有】—— 旧实现把 29 条被折叠孪生也记成孤儿"
+    assert len(account.plan_records_folded) == 29
+    assert account.ambiguous_pair_openings == ()
+    assert account.conflicting_pair_openings == ()
+    payload = account.to_payload()
+    assert payload["schema"] == "as_drawn_window_account_v1"
+    assert "plan_records_folded" in payload and "ambiguous_pair_openings" in payload
+
+
+def test_a_second_in_ball_candidate_is_ambiguity_not_a_pick(
+    staged, catalog, manifest, raw_readings
+):
+    """⛔ 歧义门有牙：同一洞口在容差球内出现第二个【不同墙】候选 ⇒
+    整洞口拒绝 + 记账，⛔ 不许静默挑残差小的（旧实现正是这么做的）。"""
+    dup = None
+    for row in catalog:
+        if isinstance(row, PlanSourceWindowV1) and f"{row.source_input_id}/{row.observation_id}" == "1f_view/L016g6":
+            dup = row.model_copy(update={"observation_id": "L900g0"})
+            break
+    assert dup is not None
+    windows, account = derive_as_drawn_windows(
+        staged, catalog=tuple(catalog) + (dup,), manifest=manifest,
+        raw_reading_artifacts=raw_readings)
+    assert len(windows) == 30, "歧义洞口必须少建一个窗"
+    assert any(entry.startswith("East_view/O02->")
+               and "1f_view/L016g6" in entry and "1f_view/L900g0" in entry
+               for entry in account.ambiguous_pair_openings), account.ambiguous_pair_openings
+
+
+def test_a_record_whose_nearest_is_another_opening_is_a_conflict(
+    staged, catalog, manifest, raw_readings
+):
+    """⛔ 互为最近有牙：把 O02 挪到 O05 的平面记录附近（残差比 O05 自己大）
+    ⇒ 该记录的最近是 O05，O02 必须按冲突拒绝，⛔ 不许单向认领。"""
+    bumped = []
+    for row in catalog:
+        if (isinstance(row, ElevationSourceWindowV1)
+                and f"{row.source_input_id}/{row.observation_id}" == "East_view/O05"):
+            o05 = row
+        if (isinstance(row, ElevationSourceWindowV1)
+                and f"{row.source_input_id}/{row.observation_id}" == "East_view/O02"):
+            o02 = row
+    shifted = o02.model_copy(update={
+        "local_along_interval": o02.local_along_interval.model_copy(update={
+            # 挪到 O05 的洞口 +2 cm：仍在其平面记录容差球内，但残差必大于 O05 自己
+            "lo": float(o05.local_along_interval.lo) + 0.02,
+            "hi": float(o05.local_along_interval.hi) + 0.02,
+        })})
+    windows, account = derive_as_drawn_windows(
+        staged, catalog=tuple(r for r in catalog if r is not o02) + (shifted,),
+        manifest=manifest, raw_reading_artifacts=raw_readings)
+    assert len(windows) == 30, "冲突洞口必须少建一个窗"
+    assert any(entry.startswith("East_view/O02->") and "back=East_view/O05" in entry
+               for entry in account.conflicting_pair_openings), account.conflicting_pair_openings
 
 
 # ── 拒绝路径有牙（⛔ 不是猜） ─────────────────────────────────────────────── #

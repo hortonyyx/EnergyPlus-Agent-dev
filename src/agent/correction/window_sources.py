@@ -368,8 +368,17 @@ def _window_strokes(raw: bytes, entry: RequiredViewEntry):
 # is the observation of it.
 
 
-def _as_drawn_plan_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
-    """Plan-channel source rows from one ``as_drawn_plan_v2`` product."""
+def _as_drawn_plan_gap_groups(doc: dict, entry: RequiredViewEntry):
+    """Window-typed opening candidates grouped into **physical openings**.
+
+    ⭐ 一个物理洞在墙的【两条面线】上各留一个缺口，而哪两条面线是同一堵墙
+    是模型自己的声明（``hypotheses.pairs``）⇒ 同墙两面、span 两端偏差 ≤
+    **半堵声明墙厚**的两个候选 = 同一个洞被量了两次（与
+    ``derive_match_tolerance_m`` 同一语义：边被放错超过半堵墙就不是同一个洞）。
+
+    组锚 = 组内字典序首个候选的 span —— 确定性、与输入顺序无关。
+    每组返回 ``[(candidate, line, partner), …]``，``[0]`` 即幸存记录。
+    """
     observations = doc.get("observations") or {}
     lines = {line["id"]: line for line in (observations.get("face_lines") or [])}
     hypotheses = doc.get("hypotheses") or {}
@@ -385,6 +394,7 @@ def _as_drawn_plan_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
         thickness_m = float(min(declared)) / 1000.0
         wall_of[pair["face_a"]] = (pair["face_b"], thickness_m)
         wall_of[pair["face_b"]] = (pair["face_a"], thickness_m)
+    window_candidates = []
     for candidate in hypotheses.get("opening_candidates") or []:
         if types.get(candidate.get("id")) != "window":
             continue
@@ -399,14 +409,46 @@ def _as_drawn_plan_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
                  "reason": "opening candidate on an unpaired face line"},
                 category="input_integrity_error",
             )
-        partner_line = lines.get(partner[0])
-        if partner_line is None:
+        if lines.get(partner[0]) is None:
             raise WindowResolverInputError(
                 "source_identity_invalid",
                 {"input_id": entry.input_id, "observation_id": candidate.get("id"),
                  "reason": "paired face line absent from observations"},
                 category="input_integrity_error",
             )
+        window_candidates.append((candidate, line, partner, lines[partner[0]]))
+    groups: list[list[tuple[dict, dict, tuple[str, float], dict]]] = []
+    for item in sorted(window_candidates, key=lambda item: item[0]["id"]):
+        candidate, _line, partner, _partner_line = item
+        span = _interval(candidate.get("span_m"),
+                         observation_id=candidate["id"], field="span_m")
+        for group in groups:
+            head_candidate, _head_line, head_partner, _head_partner_line = group[0]
+            same_wall = ({head_candidate["face_line"], head_partner[0]}
+                         == {candidate["face_line"], partner[0]})
+            if not same_wall:
+                continue
+            head_span = _interval(head_candidate.get("span_m"),
+                                  observation_id=head_candidate["id"], field="span_m")
+            if (abs(float(span.lo) - float(head_span.lo)) <= head_partner[1] / 2.0
+                    and abs(float(span.hi) - float(head_span.hi)) <= head_partner[1] / 2.0):
+                group.append(item)
+                break
+        else:
+            groups.append([item])
+    return groups
+
+
+def _as_drawn_plan_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
+    """Plan-channel source rows from one ``as_drawn_plan_v2`` product.
+
+    ⭐ 每个**物理洞**一行（不是每条面线一行）：同一堵墙两条面线上的孪生
+    缺口在 :func:`_as_drawn_plan_gap_groups` 里收编为一组，只有幸存记录
+    （字典序最小的观测 id）进目录 —— 双胞胎并列会让「最近邻」不唯一，
+    而配对决策必须唯一（收编账见 :func:`as_drawn_plan_record_folds`）。
+    """
+    for group in _as_drawn_plan_gap_groups(doc, entry):
+        candidate, line, partner, partner_line = group[0]
         centre = (float(line["pos_m"]) + float(partner_line["pos_m"])) / 2.0
         half = partner[1] / 2.0
         cross = SourceIntervalV1(lo=centre - half, hi=centre + half)
@@ -428,6 +470,29 @@ def _as_drawn_plan_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
             world_x_interval=world_x, world_y_interval=world_y,
             positive_claims=("existence", "host", "along", "width"),
         )
+
+
+def as_drawn_plan_record_folds(
+    *, manifest, raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[tuple[str, str], ...]:
+    """物理洞收编账：``((folded_id, survivor_id), …)``。
+
+    同一物理洞的第二条面线记录不入目录，但**折叠这一动作必须可对账**
+    —— 目录里少掉的观测在这里逐条有名有姓（缺席是信号，⛔ 不是静默）。
+    """
+    folds: list[tuple[str, str]] = []
+    required = {entry.input_id: entry for entry in manifest.required_entries()}
+    for input_id in sorted(required):
+        entry = required[input_id]
+        if entry.view_type != "plan":
+            continue
+        doc = json.loads(raw_reading_artifacts[input_id].decode("utf-8"))
+        for group in _as_drawn_plan_gap_groups(doc, entry):
+            survivor = group[0][0]["id"]
+            for candidate, _line, _partner, _partner_line in group[1:]:
+                folds.append((f"{input_id}/{candidate['id']}",
+                              f"{input_id}/{survivor}"))
+    return tuple(folds)
 
 
 def _as_drawn_elevation_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
