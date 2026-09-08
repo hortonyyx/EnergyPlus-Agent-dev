@@ -887,16 +887,32 @@ def _snap_declared_plan_doc() -> dict:
     """The minimal plan product whose OWN declarations the snap tolerance
     derives from (``read_plan_calibration_declaration`` reads exactly these):
     per-axis calibration chains with a self-report that matches the recomputed
-    max residual, plus positive wall-thickness callouts."""
+    max residual, plus positive wall-thickness callouts.  W#6 additionally
+    has the reconciliation read the DECLARED exterior frame, so the chains'
+    declared overall extents are here too (matching the 6×4 square below)."""
     return {
         "observations": {
             "calibration": {
-                axis: {
+                **{
+                    axis: {
+                        "mm_per_px": 3.0,
+                        "residual_px": [0.5, -0.25, 0.125],
+                        "max_abs_residual_px": 0.5,
+                    }
+                    for axis in ("x", "y")
+                },
+                "x": {
                     "mm_per_px": 3.0,
                     "residual_px": [0.5, -0.25, 0.125],
                     "max_abs_residual_px": 0.5,
-                }
-                for axis in ("x", "y")
+                    "overall_mm": 6000.0,
+                },
+                "y": {
+                    "mm_per_px": 3.0,
+                    "residual_px": [0.5, -0.25, 0.125],
+                    "max_abs_residual_px": 0.5,
+                    "overall_mm": 4000.0,
+                },
             }
         },
         "declarations": {"thickness_callouts_mm": [200.0]},
@@ -923,7 +939,12 @@ def _materialized_plan_run(root: Path, name: str, **overrides):
 def _file_chain_source_record(chain_kwargs: dict) -> None:
     """What the REAL chain does at source_read (rework BLK-E): file the
     per-floor record of the bytes it consumed, keyed by the sha256 of the
-    product file as it stands AT CHAIN TIME."""
+    product file as it stands AT CHAIN TIME.  W#6 additionally has the
+    wiring consume the chain's own filed cut lines (post-exterior-frame-
+    snap) and final compilation, so a faithful fake chain files those too:
+    a 6×4 square of axis-snapped walls (t=200 ⇒ axis frame [0.1, 5.9] ×
+    [0.1, 3.9]) whose projection is the square these tests' geometries
+    have always described."""
     out_dir = Path(chain_kwargs["out_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = (
@@ -935,6 +956,63 @@ def _file_chain_source_record(chain_kwargs: dict) -> None:
                 "schema": "chain_source_record_v1",
                 "product_filename": chain_kwargs["evidence_chain_product"],
                 "source_bytes_sha256": hashlib.sha256(raw).hexdigest(),
+            }
+        ),
+        encoding="utf-8",
+    )
+    level = chain_kwargs.get("evidence_chain_level")
+    z_floor = getattr(level, "z_floor_m", 0.0)
+    ceiling = getattr(level, "ceiling_height_m", 3.0)
+    floor_ref = Path(chain_kwargs["evidence_chain_product"]).stem
+    compilation_hash = hashlib.sha256(b"w6-mock-compilation").hexdigest()
+    walls = [
+        {"axis": "y", "pos_m": 0.1, "along": [0.1, 3.9]},
+        {"axis": "y", "pos_m": 5.9, "along": [0.1, 3.9]},
+        {"axis": "x", "pos_m": 0.1, "along": [0.1, 5.9]},
+        {"axis": "x", "pos_m": 3.9, "along": [0.1, 5.9]},
+    ]
+    (out_dir / "cut_lines.json").write_text(
+        json.dumps(
+            {
+                "schema": "cut_lines_v1",
+                "lines": [
+                    {
+                        "axis": w["axis"],
+                        "pos_m": w["pos_m"],
+                        "along_lo_m": w["along"][0],
+                        "along_hi_m": w["along"][1],
+                        "half_thickness_m": 0.1,
+                        "kind": "wall",
+                        "origin_id": f"{floor_ref}-{index}",
+                    }
+                    for index, w in enumerate(walls)
+                ],
+                "project": {
+                    "resolution_m": 0.0,
+                    "resolution_source": "mock chain (test fixture)",
+                    "source_resolved_sha256": compilation_hash,
+                    "floor_id": floor_ref,
+                    "floor_name": floor_ref,
+                    "z_floor_m": z_floor,
+                    "ceiling_height_m": ceiling,
+                    "view_id": floor_ref,
+                    "floor_ref": floor_ref,
+                    "origin_label": floor_ref,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (out_dir / "evidence_chain_compilation.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "wall_compilation_v1",
+                "profile": "exploratory",
+                "bundle_content_sha256": "0" * 64,
+                "walls": [],
+                "open_items": [],
+                "completion": "complete",
+                "content_sha256": compilation_hash,
             }
         ),
         encoding="utf-8",
@@ -1034,7 +1112,10 @@ def test_reconciled_read_passes_and_derives(tmp_path, monkeypatch):
         pipeline, "run_correction", lambda *a, **k: _square_floor("f0", _RECT)
     )
     geom = pipeline.run_multifloor_correction(art, [run])
-    assert [f.id for f in geom.floors] == ["f0"]
+    # W#6: the walk now re-partitions from the chain's OWN filed cut lines,
+    # so the floor id is the sidecar's floor_id (= the chain's floor_ref) —
+    # the same thing the real chain's geometry always carried.
+    assert [f.id for f in geom.floors] == ["p0"]
 
 
 def test_drifted_product_bytes_are_a_named_red(tmp_path, monkeypatch):
