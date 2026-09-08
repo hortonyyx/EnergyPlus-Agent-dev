@@ -631,11 +631,24 @@ def _draw_correction_as_drawn(
     # candidate's provenance carrier.  The StageRunner writer then re-drives
     # the whole chain from these bytes + the marker's embedded products
     # (same strength as the legacy core replay, ⛔ never a leg-skip).
+    # ``floor_ref`` here is the SAME derivation the production chain uses for
+    # the adapter slot (``pipeline.run_correction_evidence_chain``'s plan
+    # branch: the ``<N>f`` token inside the frozen product name) — the
+    # manifest's own ``floor_ref`` is an int storey index and would break the
+    # carrier's ``StableName`` typing; the run DIRECTORY keeps the manifest
+    # int (``floor_1``), which is where the chain filed the compilation.
+    import re as _re
+
+    def _chain_floor_ref(product_filename: str) -> str:
+        stem = Path(product_filename).stem
+        m = _re.search(r"(\d+)\s*f", stem, _re.I)
+        return m.group(0).lower() if m else stem
+
     provenance = build_chain_provenance([
         {
             "input_id": entry.input_id,
             "product_filename": f"{entry.expected_output_id}.json",
-            "floor_ref": entry.floor_ref,
+            "floor_ref": _chain_floor_ref(f"{entry.expected_output_id}.json"),
             "compilation_bytes": (
                 s1 / f"floor_{entry.floor_ref}" / "evidence_chain_compilation.json"
             ).read_bytes(),
