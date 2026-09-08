@@ -1,0 +1,9 @@
+We need answer in JSON only. Need decide every open item (none). whole_building_review verdict accept or findings. Packet has open_items empty. Need echo packet_hash. No numbers anywhere. Must obey schema. We can give item_decisions empty. whole_building_review verdict accept, no findings. Need ensure no numbers. packet_hash is hex string allowed? It contains digits, but rule says response carries NO coordinates anywhere — no numbers at all? Specifically packet_hash required and has digits. User says echo packet_hash verbatim. The schema requires packet_hash. Rule 5: no numbers at all, and no coordinate pairs inside strings. But packet_hash contains numbers as hex. The packet_hash is not coordinate, but contains digits. "no numbers at all" likely means no coordinate numerals, but it says no numbers at all. However they require packet_hash verbatim. We can include hash. Need no numeric evidence quantities. Output valid JSON object. We'll produce with packet_hash and empty item_decisions and whole_building_review.
+
+Need reason? ItemDecision none. Whole building no findings. So:
+{
+  "packet_hash": "01d5...",
+  "item_decisions": [],
+  "whole_building_review": {"verdict":"accept","findings":[]}
+}
+Need ensure no markdown.

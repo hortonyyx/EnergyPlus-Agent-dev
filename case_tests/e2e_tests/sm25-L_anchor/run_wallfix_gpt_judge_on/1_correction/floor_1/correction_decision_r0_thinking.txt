@@ -1,0 +1,144 @@
+We need respond to decision packet. Need output JSON object only. Need decide every open item and whole-building review. We must adhere schema. No coordinates anywhere no numbers. Need inspect packet.
+
+We have packet_hash 7be08069d31b005bb66808102351c8c4870ed533715b61cbcbadb24e693dddef.
+
+Open items all thickness_resolution for walls. For each item candidates have KEEP_OBSERVED_WIDTH, SNAP_TO_DECLARATION 0.12, SNAP_TO_DECLARATION 0.24. Need choose candidate. Reason codes tokens. Need maybe whole building review verdict findings or accept.
+
+We are adjudication beat. Need decide thickness resolution based on observed spacing and declared callouts [0.12,0.24]. There are two clusters: wall observed ~0.119 is close to 0.12 declared. Should snap to 0.12 declaration? But need decide every open item.
+
+Let's understand policy: thickness resolution open item. The candidates: keep observed width or snap to declaration. For walls with observed spacing 0.119, 0.1116, 0.1191, 0.1192, 0.1246. For observed spacing around 0.238, 0.2379, 0.2384, 0.2391, 0.2488. Declared callouts [0.12,0.24]. The best decision likely snap to nearest declaration to regularize thicknesses: if observed <= maybe 0.18 snap to 0.12; if > 0.18 snap to 0.24. But some observed 0.2488, nearest 0.24 delta 0.0088 vs 0.12 delta 0.1288, so snap 0.24. Others 0.2384 near .24. 0.2379, .238, .2391 all nearest .24. 0.1246 nearest .12? 0.0046 vs .1154 so .12. 0.1192 .0008 vs .1208, .12. 0.1190 .001, .121, .12. 0.1116 delta .0084 vs .1284, .12. So all snap to nearest declaration. Is that intended? There is "declared callouts [0.12, 0.24] m". Usually design could be snap to declared values to avoid arbitrary fractions. Need choose SNAP_TO_DECLARATION candidate for all. But candidates have two snap values; need choose nearest.
+
+Let's list item ids and candidate IDs for snap nearest. Need ensure candidate_id exactly.
+
+I'll enumerate open_items 21? Let's count:
+1 item_04296c... wall_388427... observed 0.119 -> snap 0.12 candidate cand_3cc4f68fc9ced5205a3c683e903cc7bcf99f442ec5f7ab98c9ff8c0cc988cb06. 
+2 item_198274... wall_f235... 0.119 -> snap 0.12 cand_cac218afa5450df09745160ed74246f16b373b336b51cc739b79d7894f332c25.
+3 item_433201... wall_a1511... 0.119 -> snap 0.12 cand_6554233341a125cb10e0e5518596d95a0aea1123297c07e87e079c8b1eca007d.
+4 item_4bd558... wall_6053... 0.238 -> snap 0.24 cand_9652cb177c495b6ecb55cc8ecca67cd1770328e96fd7851dac68fc640fccc621.
+5 item_6899c... wall_67dd... 0.2391 -> snap 0.24 cand_9ed8c820fe08d748ea3d3f103ab33430594925d0cc3957c9d13b6257063d755b.
+6 item_6a67d... wall_4aa4... 0.119 -> snap 0.12 cand_91e73d4194cb2a52a8ad94884e1057b79a6b1a53b2485f480eec33793a32b2c0.
+7 item_794538... wall_0bbbec... 0.119 -> snap 0.12 cand_45126dc974a2f8ef5d1d71e63d8da6d033699615e0a4fba6bae225bb76d7ca77.
+8 item_7c747... wall_defa8... 0.1246 -> snap 0.12 cand_b74a1fc32d0ea9a7870514548ca8e1b48b654645b0c8c9b8d86a6f09648916a5.
+9 item_84b1c... wall_cf17... 0.119 -> snap 0.12 cand_29f8925e3b300c0e5ca4d2727c2ab739a37e856cc511fcdd1ad6e1e562a3642d.
+10 item_8784b... wall_69089... 0.119 -> snap 0.12 cand_2c1d95e693c8fe157e23984b2527bbb6e5d997f5b130ff98dfe5d5292088dd4c.
+11 item_8bf237... wall_0d66... 0.238 -> snap 0.24 cand_dc28481467c62d74fe3b16f4f0d25805b993f8c9396ce74ee5e144472b7ed32b.
+12 item_8f51d... wall_214650... 0.2384 -> snap 0.24 cand_61740681c21557f44d2011ffb8214df34b5896a5f682a6551243dff211b4820e.
+13 item_9b635... wall_5b947... 0.2488 -> snap 0.24 cand_9c57c585a45dc2dfe70702d3aa43ebcce34ee02e704a7ab49037b8ccdc42bbd9.
+14 item_9e076... wall_4cd6... 0.1192 -> snap 0.12 cand_fa94a4d907d8008abe51ef1232c0f592bc79bbfc700dfce55b24655ce095d010.
+15 item_9f991... wall_8bf55... 0.119 -> snap 0.12 cand_0066945508a7b513434c5a502a6c5c57b2cb21c5c051aadf41e3322f3cc28961.
+16 item_a21be... wall_e408d... 0.119 -> snap 0.12 cand_6a6fa87da156d360ce6f505fcf2ff8d7d240fd02ea8d17359f3ab10cbeabfdd6.
+17 item_cdb61... wall_3ff3... 0.1116 -> snap 0.12 cand_2baab1abff7750355b75c248e9d9e5fe2d4ecac0a270f00f669eeca75e5c6eb2.
+18 item_cddb8... wall_c4743... 0.2379 -> snap 0.24 cand_1fbad8cc4405a753610972317a80b3981ee57c8c3df3316bf53f6f9730fad6df.
+19 item_cfca1... wall_d0f2... 0.1191 -> snap 0.12 cand_4cd64c40ae575931bce3fea610fd570c0087c1440fc1049c156cd95de64ba32a.
+20 item_d184f... wall_c0b9... 0.238 -> snap 0.24 cand_e5fc760db8a32e00985ff0c27b5fef13f4505c47cdf9b864a40068ed99787796.
+21 item_d5afe... wall_023998... 0.238 -> snap 0.24 cand_6ed01768c9fb80e8aa3f724f0d5e12e586abbb42814e376e2360b34b3b832248.
+22 item_db417... wall_44140... 0.1191 -> snap 0.12 cand_da5c47e92e9c55ed282a6dbe8329c43da8147cf41bf8c81d7da98c4194c4e5bc.
+
+That is 22 open items? Let's count all item ids in packet open_items:
+- item_04296c...
+- item_198274...
+- item_433201...
+- item_4bd558...
+- item_6899c...
+- item_6a67d...
+- item_794538...
+- item_7c747...
+- item_84b1c...
+- item_8784b...
+- item_8bf237...
+- item_8f51d...
+- item_9b635...
+- item_9e076...
+- item_9f991...
+- item_a21be...
+- item_cdb616...
+- item_cddb8...
+- item_cfca14...
+- item_d184fa...
+- item_d5afe...
+- item_db417...
+That's 22.
+
+Need reason_code for each: perhaps SNAP_TO_NEAREST_DECLARATION or DECLARED_THICKNESS_MATCH. Must no digits. Code token. Could use SNAP_TO_NEAREST_DECLARATION for all. It's okay. But maybe reason_code could vary by category? Need no digits. Use NEAREST_DECLARED_THICKNESS_WITHIN_TOLERANCE? Hmm.
+
+Need whole_building_review. The provisional geometry has thickness unresolved open items all can be resolved. Whole building? Overall verdict probably accept? But maybe findings because some wall spacing 0.1116 below declared 0.12 by significant 0.0084, and 0.2488 above 0.24 by 0.0088; maybe should request reperception? However if we snap to nearest declared, tolerances are small but possible. The question asks "decide every open item and give whole-building review." If we accept all item decisions, whole_building_review verdict accept with no findings. But whole_building_review can be findings even if item decisions? We need consider any geometry issues beyond items: wall_3ff3... observed spacing 0.1116 vs declared 0.12: maybe suspicious but we chose snap 0.12; delta 0.0084. Is that acceptable? The "declared callouts [0.12,0.24] m"; observed faces can differ by drawing noise. The compiler consistency checks passed. Whole-building review likely accept, maybe with findings about thickness variation? But acceptance only meaningful against provisional geometry; all open items resolved. Could accept.
+
+Need ensure no coordinates in response. We cannot include numbers. Our reason_code and findings must use code tokens uppercase letters underscores only. Candidate IDs and item ids include digits lowercase letters? Rule says item_id/candidate_id must exactly packet ids; they are strings with digits, allowed as they are values not "code tokens"? The schema for item_id/candidate_id are string no pattern. So IDs with digits ok. But no coordinates. IDs allowed.
+
+Need ensure no "candidate_id" with reject_all or request_reperception. We will use select_candidate.
+
+Need output JSON object with packet_hash, item_decisions array (maybe all items), whole_building_review. Need include all decisions.
+
+Could there be a "whole_building_review" verdict accept and findings []. Need no extra fields? Could include item_decisions empty? No need. whole_building_review required verdict; findings default but we can omit findings or set []. Use verdict accept.
+
+Need reason_code uppercase; I'll use SNAP_TO_NEAREST_DECLARED_THICKNESS maybe too long? <=96. Count: SNAP_TO_NEAREST_DECLARED_THICKNESS is 32? Fine. It starts with letter. But maybe reason_code can be same all. We can choose "DECLARED_THICKNESS_NEAREST" 29. Use consistent. Need no numeric. 
+
+Could also maybe use "OBSERVED_SPACING_NEAR_DECLARED" etc. Let's use "SNAP_TO_NEAREST_DECLARATION" maybe. But candidate's symbolic_operation is SNAP_TO_DECLARATION. Reason_code must be code token; that's okay. Could use "DECLARED_THICKNESS_MATCH" but for 0.2488 not exact. Better "NEAREST_DECLARED_THICKNESS_SELECTED". I'll use "NEAREST_DECLARED_THICKNESS_SELECTED".
+
+Need not include rationale? Only whole_building_review accept no findings. Findings only if relevant. So no.
+
+Let's produce JSON. Need item_decisions order. We can order as open_items. Use exact item_id. candidate_id as above. 
+Let's double-check candidate ids for each snap nearest:
+1 item_04296: cand_3cc4f68fc9ced5205a3c683e903cc7bcf99f442ec5f7ab98c9ff8c0cc988cb06 yes.
+
+2 item_198274: cand_cac218afa5450df09745160ed74246f16b373b336b51cc739b79d7894f332c25.
+
+3 item_433201: cand_6554233341a125cb10e0e5518596d95a0aea1123297c07e87e079c8b1eca007d.
+
+4 item_4bd558: cand_9652cb177c495b6ecb55cc8ecca67cd1770328e96fd7851dac68fc640fccc621.
+
+5 item_6899: cand_9ed8c820fe08d748ea3d3f103ab33430594925d0cc3957c9d13b6257063d755b.
+
+6 item_6a67: cand_91e73d4194cb2a52a8ad94884e1057b79a6b1a53b2485f480eec33793a32b2c0.
+
+7 item_794538: cand_45126dc974a2f8ef5d1d71e63d8da6d033699615e0a4fba6bae225bb76d7ca77.
+
+8 item_7c747: cand_b74a1fc32d0ea9a7870514548ca8e1b48b654645b0c8c9b8d86a6f09648916a5.
+
+9 item_84b1c: cand_29f8925e3b300c0e5ca4d2727c2ab739a37e856cc511fcdd1ad6e1e562a3642d.
+
+10 item_8784b: cand_2c1d95e693c8fe157e23984b2527bbb6e5d997f5b130ff98dfe5d5292088dd4c.
+
+11 item_8bf237: cand_dc28481467c62d74fe3b16f4f0d25805b993f8c9396ce74ee5e144472b7ed32b.
+
+12 item_8f51d: cand_61740681c21557f44d2011ffb8214df34b5896a5f682a6551243dff211b4820e.
+
+13 item_9b635: cand_9c57c585a45dc2dfe70702d3aa43ebcce34ee02e704a7ab49037b8ccdc42bbd9.
+
+14 item_9e076: cand_fa94a4d907d8008abe51ef1232c0f592bc79bbfc700dfce55b24655ce095d010.
+
+15 item_9f991: cand_0066945508a7b513434c5a502a6c5c57b2cb21c5c051aadf41e3322f3cc28961.
+
+16 item_a21be: cand_6a6fa87da156d360ce6f505fcf2ff8d7d240fd02ea8d17359f3ab10cbeabfdd6.
+
+17 item_cdb616: cand_2baab1abff7750355b75c248e9d9e5fe2d4ecac0a270f00f669eeca75e5c6eb2.
+
+18 item_cddb8: cand_1fbad8cc4405a753610972317a80b3981ee57c8c3df3316bf53f6f9730fad6df.
+
+19 item_cfca14: cand_4cd64c40ae575931bce3fea610fd570c0087c1440fc1049c156cd95de64ba32a.
+
+20 item_d184fa: cand_e5fc760db8a32e00985ff0c27b5fef13f4505c47cdf9b864a40068ed99787796.
+
+21 item_d5afe: cand_6ed01768c9fb80e8aa3f724f0d5e12e586abbb42814e376e2360b34b3b832248.
+
+22 item_db417: cand_da5c47e92e9c55ed282a6dbe8329c43da8147cf41bf8c81d7da98c4194c4e5bc.
+
+Need ensure item_id string exact. We'll copy from packet carefully.
+
+Whole building review: verdict accept. Could include findings: []? Schema default; if omitted okay but output can include. I'll include "findings": [] to be explicit. Is that okay? no empty array? Yes. 
+
+Need no numbers anywhere. Reason code has no digits. Candidate ids include digits but values allowed. "packet_hash" contains digits; it's a hash value, required. Fine.
+
+Let's think if whole_building_review accept is justified. The packet's provisional geometry is derived; open items all thickness; selecting nearest declared regularizes. Could there be issue of wall_5b947 observed spacing 0.2488 exceeds declaration by 0.0088, maybe should "reject_all" for that item because no candidate exactly? But candidate snap to 0.24 with delta 0.0088 is within drawing tolerance probably. The "declared callouts [0.12,0.24]" and observed 0.2488 maybe not within? Hmm could be an outlier. But candidate exists snap to declaration; choose it. If we instead reject_all to avoid bad snap? But all others can snap. The prompt "design decision", no signed rule. As adjudicator, choose nearest declaration. Whole-building accept.
+
+But perhaps the model should provide whole-building finding "THICKNESS_DEVIATION_NEAR_DECLARATION_BOUNDARY_LOW" for wall with 0.1116? However acceptance requires no findings. Could be better to add findings? Need decide. The whole building review's findings are requests for next round; not necessary if we resolve items. But if we accept all items, no open issues. Might accept.
+
+We need be careful "reason_code" cannot use digits; "NEAREST_DECLARED_THICKNESS_SELECTED" is all letters underscores. Good.
+
+Let's ensure no coordinate in whole building review. No.
+
+Let's draft JSON. Use exact. Ensure valid JSON no comments.
+
+One potential issue: ItemDecision kind fields? action "select_candidate" and candidate_id included. reason_code required. No extra fields. Good.
+
+Need include exactly 22 item decisions. Let's produce.

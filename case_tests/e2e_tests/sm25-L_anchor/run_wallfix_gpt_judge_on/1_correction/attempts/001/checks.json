@@ -1,0 +1,227 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "5e99990f1f5e76acdbc0e9352852afaff70501f9faf8ca429820351ff9900fe2",
+  "attempt_hash": "5e99990f1f5e76acdbc0e9352852afaff70501f9faf8ca429820351ff9900fe2",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": null,
+  "run_policy_source": null,
+  "results": [
+    {
+      "check_id": "correction.schema_version_supported",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "schema_version": "3"
+      }
+    },
+    {
+      "check_id": "correction.capability_profile_shapes",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "capability_profile": "orthogonal_polygon",
+        "declared_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ],
+        "allowed_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ]
+      }
+    },
+    {
+      "check_id": "correction.cell_polygon_contract",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "1f",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 279.186494,
+        "cells_union_area_m2": 279.186494,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": 0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "2f",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 279.186494,
+        "cells_union_area_m2": 279.186494,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": -0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.nondegenerate",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zstack_continuity",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zone_count_tripwire",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "actual": 27,
+        "expected": null
+      }
+    },
+    {
+      "check_id": "correction.window_host_resolution",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 0,
+        "aggregate_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "check_id": "correction.cross_image_reconcile",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation widths supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.facade_frame_cross_check",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation reading artifacts supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.audit_completeness",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "geometry was changed (or relied on testdata) but no correction/conflict was recorded — attribution to 0_reading would be erased",
+      "evidence": {
+        "changed": false,
+        "relied_on_testdata": true
+      }
+    },
+    {
+      "check_id": "correction.evidence_debt_coverage",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "1 view/global evidence debt item(s) were not mentioned in correction audit",
+      "evidence": {
+        "scope": "view_global",
+        "missing": [
+          {
+            "check_id": "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER",
+            "canonical_check_id": "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER",
+            "view": null,
+            "message": "the as_drawn evidence-chain leg carries its window evidence on the chain (opening_claims); the legacy pen-stroke window ledger is an ACCOUNTED empty set — the channel split is this filed debt, ⛔ never a silent emptiness"
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "correction.facade_area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.wwr_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.unsupported_count_by_severity",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.window_position_evidence_shadow",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "producer_draw_sha256": "791786543c4839742e377e20c2709ccadac2d395817baaa6d5b38698b737b460",
+        "resolver_inputs_sha256": "41f50c6bc3b2f5ff22e3f7cadfaf1bb6c779c884cd3887b972067375ac145650",
+        "window_count": 0,
+        "rejected_window_ids": [],
+        "rejected_reject_codes": [],
+        "max_legacy_span_delta_m": null,
+        "ruleset_version": "f9_route2_s2_position_evidence_ruleset_v2",
+        "evaluated_conditions": [
+          "ambiguity_margin",
+          "claim_consistency",
+          "distance_within_tolerance",
+          "scope_resolution",
+          "source_not_reused",
+          "unique_mutual_nearest"
+        ],
+        "unevaluated_conditions": [],
+        "content_sha256": "40e24bd41d74a0ff0159b36b3716819e5a66152f23cd74a02ff858f48df70238"
+      }
+    }
+  ]
+}
