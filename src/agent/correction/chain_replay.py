@@ -16,7 +16,9 @@ and where every byte comes from):
   ``assemble_multifloor_geometry``                                  (producer)
   ``populate_as_drawn_windows``                                    (windows)
   ``build_verified_window_inputs_as_drawn`` +
-  ``finalize_as_drawn_chain_geometry``                              (final)
+  ``finalize_as_drawn_chain_geometry``      (final, stopped BEFORE host
+                                             resolution — the writer's
+                                             prefix/suffix stage contract)
 
 Every function called is the production one — ⛔ no second copy of any
 derivation.  The replay refuses BY NAME on every mismatch that matters:
@@ -87,10 +89,16 @@ def replay_as_drawn_chain(
 ) -> FinalizeResult:
     """Re-drive the as_drawn chain from the marker's frozen bytes.
 
-    Returns the freshly finalized ``FinalizeResult`` (producer → verified
-    window accounts → Vg → final validation), for the writer to compare
+    Returns the ``FinalizeResult`` of the chain's PRE-host-resolution state
+    (ruling 2026-09-08f §一): Vg + kernel stamp + typed validation, with the
+    31 windows present and every one still carrying its ORIGINAL room/span,
+    and ``corrections`` still the core's own rows.  The writer compares it
     against the candidate with the SAME ruler the legacy leg uses
-    (``core_owned_projection_v1`` + corrections prefix + stamp).
+    (``core_owned_projection_v1`` + corrections prefix + stamp): the
+    candidate must be EXACTLY this replay plus the host-resolution suffix
+    (its ``window_host_resolution`` audit rows) — returning the
+    post-resolution state instead would make the suffix length 0 and the
+    writer's prefix/suffix contract (:481) red by construction.
     """
     import hashlib
 
@@ -302,6 +310,9 @@ def replay_as_drawn_chain(
         target=target,
         tol=tol,
         chain_provenance=provenance,
+        # Ruling 2026-09-08f §一: hand the writer the PRE-host-resolution
+        # state (the core's prefix) — the candidate supplies the suffix.
+        stop_before_host_resolution=True,
     )
 
 

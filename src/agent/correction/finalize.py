@@ -223,6 +223,28 @@ def finalize_correction_draw(
     )
 
 
+def _stamp_and_validate_as_drawn_chain(geom: CorrectedGeometry) -> CorrectedGeometry:
+    """The as_drawn chain's own unconditional kernel stamp (W#3), then the
+    typed validation boundary — the shared tail of BOTH finalize modes
+    below (⛔ one implementation, never a second copy of the derivation).
+
+    Same "I ran, version is X" role as ``apply_deterministic_core``'s
+    LAST-statement stamp, naming THIS leg's kernel (projection + snap +
+    assembly + this finalize half), ⛔ never the legacy "1" this geometry
+    did not run through.  Stamped before the final validation boundary, so
+    everything downstream (feature claims, output bytes) hashes over the
+    stamped body.
+    """
+    from src.agent.correction.deterministic import AS_DRAWN_CHAIN_STAMP_VERSION
+    from src.agent.correction.schema import DeterministicCoreStampV1
+
+    return validate_final_corrected_geometry(geom.model_copy(update={
+        "deterministic_core_stamp": DeterministicCoreStampV1(
+            version=AS_DRAWN_CHAIN_STAMP_VERSION
+        ),
+    }))
+
+
 def finalize_as_drawn_chain_geometry(
     geom: CorrectedGeometry,
     *,
@@ -230,6 +252,7 @@ def finalize_as_drawn_chain_geometry(
     target: CorrectionTarget,
     tol: CoreTolerances | None = None,
     chain_provenance: "AsDrawnChainProvenanceV1 | None" = None,
+    stop_before_host_resolution: bool = False,
 ) -> FinalizeResult:
     """The as_drawn evidence-chain leg's finalize (W-1 T2-⑤ / rework BLK-B).
 
@@ -256,6 +279,14 @@ def finalize_as_drawn_chain_geometry(
       empty claims/evidence, accounts matching the product — the channel
       split itself is the FILED ``WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER``
       debt, ⛔ never a silent emptiness).
+
+    ``stop_before_host_resolution=True`` (W#3, ruling 2026-09-08f §一) returns
+    the PRE-host-resolution state — Vg + kernel stamp + typed validation,
+    corrections still the core's own rows and every window still carrying
+    its ORIGINAL room/span.  The B5 writer's chain replay is the only legal
+    caller: the writer's prefix/suffix contract needs the core's prefix
+    state, and the candidate itself supplies (and is audited for) the
+    host-resolution suffix.
     """
     tol = tol or load_core_tolerances()
     geom = ensure_corrected_geometry(geom)
@@ -271,6 +302,26 @@ def finalize_as_drawn_chain_geometry(
     )
     segments = materialize_all_facade_segments(geom, tolerances=visibility_tol)
     geom = geom.model_copy(update={"facade_segments": list(segments)})
+    if stop_before_host_resolution:
+        # W#3 (ruling 2026-09-08f §一): the B5 writer's replay must receive
+        # the state BEFORE host resolution — ``corrections`` is append-only
+        # downstream of the chain core (stage_runner.py's prefix/suffix
+        # contract), so the replay hands the writer the PREFIX state and the
+        # candidate supplies the host-resolution suffix (its 31
+        # ``window_host_resolution`` rows).  This is the as_drawn counterpart
+        # of the legacy leg replaying ``apply_deterministic_core`` ALONE:
+        # same Vg, same kernel stamp, same typed validation boundary —
+        # everything except the finalize half that belongs to the candidate.
+        # ⛔ This is a stage boundary inside the ONE production derivation,
+        # never a relaxed second copy of it.
+        geom = _stamp_and_validate_as_drawn_chain(geom)
+        return FinalizeResult(
+            geom=geom,
+            audit_payload={"corrections": geom.corrections, "conflicts": geom.conflicts, "unsupported": geom.unsupported},
+            feature_state_claims=derive_feature_state_claims(target, geom),
+            verified_window_resolver_inputs=verified_window_inputs,
+            chain_provenance=chain_provenance,
+        )
     try:
         window_host_claims = resolve_window_hosts(
             geom, verified_inputs=verified_window_inputs, tolerances=tol,
@@ -295,15 +346,7 @@ def finalize_as_drawn_chain_geometry(
     # finalize half), ⛔ never the legacy "1" this geometry did not run
     # through.  Stamped before the final validation boundary, so everything
     # downstream (feature claims, output bytes) hashes over the stamped body.
-    from src.agent.correction.deterministic import AS_DRAWN_CHAIN_STAMP_VERSION
-    from src.agent.correction.schema import DeterministicCoreStampV1
-
-    geom = geom.model_copy(update={
-        "deterministic_core_stamp": DeterministicCoreStampV1(
-            version=AS_DRAWN_CHAIN_STAMP_VERSION
-        ),
-    })
-    geom = validate_final_corrected_geometry(geom)
+    geom = _stamp_and_validate_as_drawn_chain(geom)
     feature_state_claims = derive_feature_state_claims(target, geom)
     output_bytes = serialize_correction_output(geom)
     output_sha256 = hashlib.sha256(output_bytes).hexdigest()

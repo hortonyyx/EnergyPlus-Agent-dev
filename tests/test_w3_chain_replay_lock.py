@@ -295,14 +295,40 @@ def test_record_accepts_a_genuine_as_drawn_chain_candidate(tmp_path: Path):
     floors = {floor["id"]: floor["name"] for floor in output["floors"]}
     assert all(w["floor"] == floors[w["floor_id"]] for w in output["windows"])
     # The public replay also works with its default tolerance argument.
+    # Ruling 2026-09-08f §一: the replay returns the PRE-host-resolution
+    # state — corrections are the candidate's exact PREFIX (the core's own
+    # rows), the 31 windows still carry their ORIGINAL room/span, and the
+    # candidate alone supplies (and is audited for) the 31-row suffix.
     from src.agent.correction.chain_replay import replay_as_drawn_chain
+    from src.agent.correction.deterministic import (
+        AS_DRAWN_CHAIN_STAMP_VERSION,
+        core_owned_projection_v1,
+    )
+    from src.agent.correction.window_sources import canonical_json_bytes
 
     replayed = replay_as_drawn_chain(
         bundle.result.verified_window_resolver_inputs,
         bundle.result.chain_provenance,
         target=correction_target("orthogonal_polygon"),
     )
-    assert replayed.prepared_candidate_identity == bundle.result.prepared_candidate_identity
+    assert len(replayed.geom.windows) == 31
+    assert all(w.facade_segment_id is None for w in replayed.geom.windows)
+    assert not any(
+        isinstance(item, dict) and item.get("kind") == "window_host_resolution"
+        for item in replayed.geom.corrections
+    )
+    candidate_corrections = core_owned_projection_v1(bundle.result.geom)[
+        "corrections"
+    ]
+    replay_corrections = core_owned_projection_v1(replayed.geom)["corrections"]
+    assert (
+        canonical_json_bytes(candidate_corrections[: len(replay_corrections)])
+        == canonical_json_bytes(replay_corrections)
+    )
+    assert len(candidate_corrections) - len(replay_corrections) == 31
+    replay_stamp = replayed.geom.deterministic_core_stamp
+    assert replay_stamp is not None
+    assert replay_stamp.version == AS_DRAWN_CHAIN_STAMP_VERSION
     # the carrier itself is filed alongside the six B5 artifacts
     assert (bundle.attempt / "chain_provenance.json").exists()
     filed = AsDrawnChainProvenanceV1.model_validate_json(
