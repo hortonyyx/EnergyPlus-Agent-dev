@@ -14,6 +14,7 @@ and where every byte comes from):
              + ``project_cut_lines``                                (geom)
   ``read_plan_calibration_declaration`` + ``snap_footprints_to_reference``
   ``assemble_multifloor_geometry``                                  (producer)
+  ``populate_as_drawn_windows``                                    (windows)
   ``build_verified_window_inputs_as_drawn`` +
   ``finalize_as_drawn_chain_geometry``                              (final)
 
@@ -54,7 +55,6 @@ from src.agent.correction.finalize import FinalizeResult
 from src.agent.correction.parse import CorrectionTarget
 from src.agent.correction.window_sources import (
     VerifiedWindowResolverInputs,
-    canonical_json_bytes,
     canonical_sha256,
 )
 
@@ -87,7 +87,7 @@ def replay_as_drawn_chain(
 ) -> FinalizeResult:
     """Re-drive the as_drawn chain from the marker's frozen bytes.
 
-    Returns the freshly finalized ``FinalizeResult`` (producer → legal-empty
+    Returns the freshly finalized ``FinalizeResult`` (producer → verified
     window accounts → Vg → final validation), for the writer to compare
     against the candidate with the SAME ruler the legacy leg uses
     (``core_owned_projection_v1`` + corrections prefix + stamp).
@@ -264,36 +264,38 @@ def replay_as_drawn_chain(
     # ⛔ 修法是让重放走同一个确定性函数，⛔ 不是放宽这个字节比较 ——
     # 这道比较正是 F-22 BLOCKER-1 那种「整套自洽伪造」的唯一拦截点。
     from src.agent.correction.as_drawn_windows import populate_as_drawn_windows
-    from src.agent.correction.config import load_core_tolerances
     from src.agent.correction.facade_visibility import VisibilityTolerances
 
-    _tol = load_core_tolerances()
     producer, _window_account = populate_as_drawn_windows(
         producer,
         raw_view_manifest_bytes=marker.raw_view_manifest_bytes,
         raw_reading_artifacts=reading_bytes,
         visibility_tolerances=VisibilityTolerances(
-            depth_epsilon_m=_tol.facade_visibility_depth_epsilon_m,
-            endpoint_epsilon_m=_tol.facade_visibility_endpoint_epsilon_m,
+            depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
         ),
+    )
+    # Mirror the production marker constructor BEFORE comparing its bytes.
+    # Its schema validation derives WindowV3.floor from floor_id; comparing
+    # the unvalidated populate result instead leaves every window.floor null.
+    # This marker is built solely from the replayed producer + frozen inputs.
+    vwi = build_verified_window_inputs_as_drawn(
+        producer_draw=producer,
+        raw_view_manifest_bytes=marker.raw_view_manifest_bytes,
+        raw_reading_artifacts=reading_bytes,
     )
     # The producer is REBUILT here — a candidate-side tamper of the producer
     # (re-signed footprint, rewritten rings/cells, every derived artifact
     # re-materialized from the tampered geometry, all internally consistent —
     # the F-22 BLOCKER-1 shape) dies at this byte compare, exactly as it dies
     # at the legacy leg's core-projection compare.
-    producer_bytes = canonical_json_bytes(producer.model_dump(mode="json"))
+    producer_bytes = vwi.producer_draw_canonical_bytes
     if producer_bytes != marker.producer_draw_canonical_bytes:
         raise ValueError(
             "chain_replay_producer_drift: the chain replayed from the frozen "
             "compilations assembles a different producer than the marker "
             "carries"
         )
-    vwi = build_verified_window_inputs_as_drawn(
-        producer_draw=producer,
-        raw_view_manifest_bytes=marker.raw_view_manifest_bytes,
-        raw_reading_artifacts=reading_bytes,
-    )
     return finalize_as_drawn_chain_geometry(
         producer,
         verified_window_inputs=vwi,

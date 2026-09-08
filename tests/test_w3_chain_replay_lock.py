@@ -207,6 +207,23 @@ def _chain_bundle(tmp_path: Path) -> _ChainBundle:
         snap_ledger_path=s1 / "footprint_snap_ledger.json",
         evidence_debt_path=s1 / "evidence_debt.json",
     )
+    from src.agent.correction.as_drawn_windows import populate_as_drawn_windows
+    from src.agent.correction.facade_visibility import VisibilityTolerances
+
+    tol = load_core_tolerances()
+    geom, account = populate_as_drawn_windows(
+        geom,
+        raw_view_manifest_bytes=(run_dir / "_run" / "view_manifest.json").read_bytes(),
+        raw_reading_artifacts={
+            entry.input_id: (rdir / f"{entry.expected_output_id}.json").read_bytes()
+            for entry in entries
+        },
+        visibility_tolerances=VisibilityTolerances(
+            depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+        ),
+    )
+    assert account.windows_built == len(geom.windows) == 31
     marker = build_verified_window_inputs_as_drawn(
         producer_draw=geom,
         raw_view_manifest_bytes=(
@@ -273,6 +290,19 @@ def test_record_accepts_a_genuine_as_drawn_chain_candidate(tmp_path: Path):
     """The B5 writer dispatches BY LEG on the provenance carrier and the
     chain replay passes the shared gauntlet on genuine chain bytes."""
     bundle = _chain_bundle(tmp_path)
+    output = json.loads((bundle.attempt / "output.json").read_bytes())
+    assert len(output["windows"]) == 31
+    floors = {floor["id"]: floor["name"] for floor in output["floors"]}
+    assert all(w["floor"] == floors[w["floor_id"]] for w in output["windows"])
+    # The public replay also works with its default tolerance argument.
+    from src.agent.correction.chain_replay import replay_as_drawn_chain
+
+    replayed = replay_as_drawn_chain(
+        bundle.result.verified_window_resolver_inputs,
+        bundle.result.chain_provenance,
+        target=correction_target("orthogonal_polygon"),
+    )
+    assert replayed.prepared_candidate_identity == bundle.result.prepared_candidate_identity
     # the carrier itself is filed alongside the six B5 artifacts
     assert (bundle.attempt / "chain_provenance.json").exists()
     filed = AsDrawnChainProvenanceV1.model_validate_json(
