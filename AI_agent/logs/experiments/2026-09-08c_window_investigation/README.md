@@ -31,16 +31,42 @@
 ⇒ **34 个立面洞口在正确朝向下全部匹配**，且每一面的朝向**唯一**（13vs4 · 0vs8 · 7vs0 · 3vs6，⛔ 没有模棱两可的）。
 **East/South 原样，North/West 镜像** —— 从建筑外面看，+x 在南立面上是左→右、在北立面上是右→左，几何上本该如此。
 
-### ⛔ 由此发现一个【补窗之前就得先修】的缺陷
+### ⛔⛔ 主控自更正：**我先前判它「翻转被默认掉 ⇒ North/West 会装反」，那是错的**
 
-as_drawn 腿现在把这个翻转**默认掉了**：
-`window_sources.py` 的 `derive_manifest_direction_facts_as_drawn` 用
-`_resolve_facade_flip_fields(None)` 的**无声明默认值**。
-⇒ **North 和 West 的洞口会被静默放到墙的另一头。**
+第一版结论写的是：as_drawn 腿用 `_resolve_facade_flip_fields(None)` 的无声明默认值
+⇒ North/West 的洞口会被静默放到墙的另一头，**补窗之前必须先修**。
 
-⭐ 但翻转是**可派生的**，⛔ 不是缺一个声明：manifest 里已经声明了
-`building_view_direction`，翻转是「从外面看这一面」的**几何后果**。
-⇒ 按 [[symmetric-evidence-cannot-prove-direction]]：**镜像一致 ≠ 无害**，必须逐面定向。
+**把默认值代进公式算一遍就翻了**：
+- `_resolve_facade_flip_fields(None)` 返回 `(mirrored=False, local_x_positive="image_left_to_right")`
+- 代进 `facade_convention.resolve_sign`：`effective_flip = False XOR False = False`
+  ⇒ **`sign = FACADE_BASE_SIGN[family]`**
+
+而 `facade_convention.py:37-39` 写死的就是：
+
+```python
+FACADE_BASE_SIGN = {"North": -1, "South": 1, "East": 1, "West": -1}
+```
+
+⇒ **默认值给出的正是我实测证明为正确的那组符号。⛔ 当前没有这个缺陷。**
+
+⭐ **我犯的错**：把「这个值是默认来的」直接读成了「这个值是错的」，
+⛔ 没有把默认值代进下游公式算一遍。**「默认」描述的是来源，不是正确性。**
+
+**真实的残余风险弱得多**（登记，本轮不修）：
+若将来某份立面产物**真的是镜像画的 / 右→左**，as_drawn 腿**不会察觉** ——
+它不从产物读 `mirrored` / `local_x_positive`，只吃默认。
+⇒ 属于 [[symmetric-evidence-cannot-prove-direction]] 的形态，但**是潜在限制、不是当前缺陷**。
+
+### ⭐⭐⭐ 而这一查带来一个更好的结果：**约定和投影公式仓里早就有**
+
+- `facade_convention.FACADE_BASE_SIGN` = 我实测的那四个符号，**逐个吻合**
+- `window_sources.py:541` 的注释原话就叫它「**the North/West mirror sign**」
+- `_advisory_elevation_world_frame` 的 docstring（:490-492）给出的公式原文是
+  「`world = local` when `sign == +1`, or **`world = W - local` when `sign == -1`**」
+  —— **与我实测用的镜像式逐字相同**
+
+⇒ **两条【不同族】的推导互相印证**：我的是从真产物**实测**出来的，仓里的是**声明的表**。
+⇒ **补窗不需要「先修翻转」这一步**，直接复用 `facade_convention`，⛔ 不自己发明规则。
 
 ## 3 · 匹配上的 34 个：31 window + 3 door，1f/2f 各 17
 
@@ -60,7 +86,8 @@ as_drawn 腿现在把这个翻转**默认掉了**：
 **窗必须是确定性推导的，⛔ 不是模型画的** —— 与本项目的杠杆一致
 （[[reading-lever-is-measurement-enforcement]]：读图器只写像素锚点，代码做唯一换算）。
 
-1. 每份立面：从 manifest 声明的 `building_view_direction` **派生**翻转（⛔ 不默认）
+1. 每份立面：**复用 `facade_convention.resolve_sign` + `project_affine_interval`**
+   （⛔ 不自己发明规则；默认的 flip 字段在本批产物上已实测正确）
 2. 洞口的 `z_range_m` → 对 ladder 定楼层（实测四面**零跨层**，干净）
 3. 沿面范围 → 定位到该层该面的外墙面线上的洞口候选
 4. 平面的 `opening_types` 给类型；立面的 `z_range_m` 给 `z=[sill, head]`
