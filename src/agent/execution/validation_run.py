@@ -40,7 +40,7 @@ from src.validator.checks.assembly import check_assembly, check_ep_baseline
 from src.validator.checks.correction import check_correction
 from src.validator.checks.kernel import check_kernel
 from src.validator.checks.mep import check_mep
-from src.validator.checks.reading import check_reading_view
+from src.validator.checks.reading_product import check_reading_product
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 
 
@@ -269,7 +269,8 @@ def validate_case(
     # ---- 0_reading ----
     reading_views = []
     if has_reading:
-        from src.agent.reading import load_reading_view
+        from src.agent.reading import parse_reading_view
+        from src.agent.reading.vector_contract import CONTRACT_READING_VIEW_LEGACY, classify_vector_json
 
         # R1-3 (派工单 §1.3): per-view 4-state applicability, not a bool set.
         # r0 folded this to view_metadata={"dimensioned": stem in names} and
@@ -279,10 +280,13 @@ def validate_case(
         # takes dimensioned_state as the authoritative 4-state signal.
         dimensioned_states = dimensioned_view_states(case_dir)
         for vj in sorted(rdir.glob("*_view.json")):
-            view = load_reading_view(vj)
-            reading_views.append(view)
-            rep = check_reading_view(
-                view,
+            raw = json.loads(vj.read_text(encoding="utf-8"))
+            # The downstream legacy facade cross-check takes ReadingView.
+            # Never manufacture an empty legacy plan out of an as-drawn view.
+            if classify_vector_json(raw).contract_id == CONTRACT_READING_VIEW_LEGACY:
+                reading_views.append(parse_reading_view(raw))
+            rep = check_reading_product(
+                raw,
                 capability_profile=profile,
                 run_profile=run_profile,
                 dimensioned_state=dimensioned_states.get(vj.stem, "legacy_default"),

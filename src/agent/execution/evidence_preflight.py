@@ -15,8 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.agent.execution.manifest import hash_obj
 
-from src.agent.reading import load_reading_view
-from src.validator.checks.reading import check_reading_view
+from src.validator.checks.reading_product import check_reading_product
 from src.validator.checks.schema import (
     CheckReport,
     Disposition,
@@ -227,9 +226,8 @@ def compute_reading_report_from_vector_dir(
         run_profile=run_profile,
     )
     for path in sorted(vector_dir.glob("*_view.json")):
-        view = load_reading_view(path)
-        sub = check_reading_view(
-            view,
+        sub = check_reading_product(
+            json.loads(path.read_text(encoding="utf-8")),
             capability_profile=capability_profile,
             run_profile=run_profile,
             dimensioned_state=dimensioned_states.get(path.stem, "legacy_default"),

@@ -74,8 +74,7 @@ def check_reading_stage(
     ``declared_false`` object as dimensioned). ``dimensioned_stems`` is now a
     fallback for stems with no manifest entry (e.g. flat-flow when manifest
     provisioning failed)."""
-    from src.agent.reading import parse_reading_view
-    from src.validator.checks.reading import check_reading_view
+    from src.validator.checks.reading_product import check_reading_product
 
     rep = check_view_manifest_coverage(
         manifest,
@@ -94,25 +93,11 @@ def check_reading_stage(
 
     for stem in sorted(produced):
         raw = produced[stem]
-        if not isinstance(raw, dict):
-            rep.add_fail(
-                f"{stem}.reading.view_payload_shape", CheckLayer.INVARIANT,
-                f"produced view {stem!r} is not a JSON object",
-            )
-            continue
-        try:
-            view = parse_reading_view(raw)
-        except Exception as exc:  # noqa: BLE001 — a malformed view is a gate①-visible fact
-            rep.add_fail(
-                f"{stem}.reading.view_payload_valid", CheckLayer.INVARIANT,
-                f"produced view {stem!r} failed schema validation: {exc}",
-            )
-            continue
         state = manifest_state.get(stem)
         if state is None:
             state = "declared_true" if (dimensioned_stems and stem in dimensioned_stems) else "legacy_default"
-        sub = check_reading_view(
-            view,
+        sub = check_reading_product(
+            raw,
             capability_profile=capability_profile,
             run_profile=run_profile,
             dimensioned_state=state,
