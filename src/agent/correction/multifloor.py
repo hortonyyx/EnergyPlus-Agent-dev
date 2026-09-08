@@ -126,6 +126,138 @@ def _byte_z(frozen_docs: dict[str, dict], ref: ArtifactPointerV1) -> float:
     return float(value)
 
 
+def _declared_tick_m(frozen_docs: dict[str, dict], ref: ArtifactPointerV1) -> float:
+    """丁 (ruling 2026-09-07x §一): the storey z is the DECLARED tick, ⛔ not the ink.
+
+    The drawing's own ``calibration.z`` chain DECLARES the vertical dimension
+    chain (``cum_mm`` — the same frozen bytes the adapter's closure recompute
+    already reads); the rung's ``pos_m`` is the independently measured INK of
+    the same floor line, and its scatter across the four facades (measured
+    1.0–13.5 mm on sm25) is pure pixel-side product.  So the RECOGNITION
+    stays the ink (which line, selected by the frozen rule — unchanged),
+    while the VALUE the ladder uses is the nearest DECLARED tick.
+
+    ⭐ The mapping must be PROVEN unique, never assumed (the dispatch's
+    stop-and-report trigger, as a machine-checkable refusal — ⛔ no invented
+    tolerance, ⛔ no silent fallback to the ink):
+
+        noise_bound_mm = calibration.z.mm_per_px × max|residual_px|
+            — recomputed from the per-tick residuals, ⛔ not read off the
+            self-reported ``max_abs_residual_px`` (whose declared value is
+            cross-checked; a drift is a named red) — the BLK-1 shape.
+
+        unique  ⇔  |ink_mm − second_nearest_tick| > noise_bound_mm
+
+    (That one direction IS the ruled proof — the ruling 2026-09-07x §一 and
+    the dispatch define non-uniqueness as exactly "次近刻度距离 ≤ 噪声界".
+    The NEAREST-side ink residual is NOT gated: measured on the real south
+    facade it runs 6.5 mm against a 1.46 mm tick-fit bound — the bound
+    describes the dimension-witness FIT, while the rung ink is an
+    independent pixel measurement whose scatter (1.0–13.5 mm across the
+    four facades) is exactly the pixel-side product the ruling moved OFF
+    the critical path.  Gating it would re-block the pathway in a new
+    coat; it travels as a readout instead — ``ink_snap_residual_mm``.)
+
+    Measured margins on the four real sm25 facades: second-nearest distance
+    exceeds the bound by 356× / 102× / 547× / 118× (east/north/south/west).
+    """
+    ink_m = _byte_z(frozen_docs, ref)
+    doc = frozen_docs[ref.input_id]
+    calibration = doc.get("calibration") if isinstance(doc, dict) else None
+    z_chain = (
+        calibration.get("z") if isinstance(calibration, dict) else None
+    )
+    if not isinstance(z_chain, dict):
+        raise MultiFloorAssemblyError(
+            "FLOOR_TICK_DECLARATION_MISSING",
+            {
+                "input_id": ref.input_id,
+                "pointer": ref.json_pointer,
+                "reason": (
+                    "丁: the storey z is taken from the drawing's declared "
+                    "calibration.z.cum_mm; this product declares none, and no "
+                    "tolerance may be invented to bridge that (stop-and-"
+                    "report shape, as a named refusal)"
+                ),
+            },
+        )
+    ticks = z_chain.get("cum_mm")
+    mm_per_px = z_chain.get("mm_per_px")
+    residual_px = z_chain.get("residual_px")
+    declared_max = z_chain.get("max_abs_residual_px")
+    malformed = (
+        not isinstance(ticks, list) or len(ticks) < 2
+        or any(isinstance(t, bool) or not isinstance(t, (int, float))
+               for t in ticks)
+        or isinstance(mm_per_px, bool) or not isinstance(mm_per_px, (int, float))
+        or not isinstance(residual_px, list) or not residual_px
+        or any(isinstance(r, bool) or not isinstance(r, (int, float))
+               for r in residual_px)
+    )
+    if malformed:
+        raise MultiFloorAssemblyError(
+            "FLOOR_TICK_DECLARATION_MISSING",
+            {
+                "input_id": ref.input_id,
+                "reason": "calibration.z is present but cum_mm / mm_per_px / "
+                          "residual_px are malformed for the uniqueness proof",
+            },
+        )
+    if float(mm_per_px) <= 0.0:
+        raise MultiFloorAssemblyError(
+            "FLOOR_TICK_DECLARATION_MISSING",
+            {"input_id": ref.input_id,
+             "reason": f"calibration.z.mm_per_px = {mm_per_px!r} is not positive"},
+        )
+    recomputed_max = max(abs(float(r)) for r in residual_px)
+    if declared_max is not None and (
+        isinstance(declared_max, bool)
+        or not isinstance(declared_max, (int, float))
+        or float(declared_max) != recomputed_max
+    ):
+        raise MultiFloorAssemblyError(
+            "FLOOR_TICK_RESIDUAL_SUMMARY_DRIFT",
+            {
+                "input_id": ref.input_id,
+                "declared_max_abs_residual_px": declared_max,
+                "recomputed_max_abs_residual_px": recomputed_max,
+            },
+        )
+    bound_mm = float(mm_per_px) * recomputed_max
+    ink_mm = ink_m * 1000.0
+    ordered = sorted((float(t) for t in ticks), key=lambda t: abs(t - ink_mm))
+    nearest, second = ordered[0], ordered[1]
+    d_second = abs(second - ink_mm)
+    if not d_second > bound_mm:
+        raise MultiFloorAssemblyError(
+            "FLOOR_LINE_TICK_UNPROVEN",
+            {
+                "input_id": ref.input_id,
+                "pointer": ref.json_pointer,
+                "ink_mm": ink_mm,
+                "nearest_tick_mm": nearest,
+                "second_nearest_tick_mm": second,
+                "dist_second_mm": d_second,
+                "noise_bound_mm": bound_mm,
+                "reason": "second_nearest_tick_inside_noise_bound",
+            },
+        )
+    return nearest / 1000.0
+
+
+def _ink_snap_residual_mm(
+    frozen_docs: dict[str, dict], ref: ArtifactPointerV1
+) -> float:
+    """READOUT (丁, non-gating): how far the rung's frozen INK sits from the
+    declared tick it was snapped onto, in mm.  Visible on every level so the
+    pixel-side scatter stays observable after the value moved to the
+    declared integers — ⛔ never a gate (see ``_declared_tick_m``)."""
+    ink_m = _byte_z(frozen_docs, ref)
+    ticks = frozen_docs[ref.input_id]["calibration"]["z"]["cum_mm"]
+    nearest = min((float(t) for t in ticks), key=lambda t: abs(t - ink_m * 1000.0))
+    return abs(nearest - ink_m * 1000.0)
+
+
 @dataclass(frozen=True, eq=False)
 class _DerivedFloorLevel:
     """One storey's z, BYTE-RESOLVED from a bounding pair of gate-validated
@@ -138,8 +270,12 @@ class _DerivedFloorLevel:
     claim's ``z_ref`` INTO ``frozen_docs`` — it never reads ``claim.z_m`` and
     there is no settable z field:
 
-      * ``z_floor_m`` is the byte named by ``lower.z_ref``;
-      * ``ceiling_height_m`` is the rise ``upper-byte - lower-byte`` — a DERIVED
+      * ``z_floor_m`` is the DECLARED tick the lower rung's frozen ink
+        provably selects (丁, ruling 2026-09-07x §一 — see
+        :func:`_declared_tick_m`; the recognition stays the ink byte, the
+        VALUE is ``calibration.z.cum_mm``, uniqueness PROVEN against the
+        product's own noise bound, ⛔ never the raw measured ``pos_m``);
+      * ``ceiling_height_m`` is the rise ``upper-tick − lower-tick`` — a DERIVED
         difference whose BOTH operands are frozen bytes.
 
     There is no ``z_floor_m=`` / ``ceiling_height_m=`` constructor keyword, so the
@@ -158,11 +294,11 @@ class _DerivedFloorLevel:
 
     @property
     def z_floor_m(self) -> float:
-        return _byte_z(self.frozen_docs, self.lower.z_ref)
+        return _declared_tick_m(self.frozen_docs, self.lower.z_ref)
 
     @property
     def ceiling_height_m(self) -> float:
-        return _byte_z(self.frozen_docs, self.upper.z_ref) - self.z_floor_m
+        return _declared_tick_m(self.frozen_docs, self.upper.z_ref) - self.z_floor_m
 
     @property
     def z_floor_claim_id(self) -> str:
@@ -179,6 +315,19 @@ class _DerivedFloorLevel:
     @property
     def z_top_ref(self) -> ArtifactPointerV1:
         return self.upper.z_ref
+
+    @property
+    def ink_snap_residual_mm(self) -> float:
+        """丁 readout: the storey's LOWER rung ink-to-tick residual (mm),
+        non-gating — see :func:`_ink_snap_residual_mm`."""
+        return _ink_snap_residual_mm(self.frozen_docs, self.lower.z_ref)
+
+    @property
+    def ink_snap_residual_upper_mm(self) -> float:
+        """丁 readout: the UPPER rung's ink-to-tick residual (mm).  The top
+        rung of the building only ever appears as an ``upper`` bound, so this
+        is where its scatter stays visible."""
+        return _ink_snap_residual_mm(self.frozen_docs, self.upper.z_ref)
 
 
 # ── the seal (dispatch §一(a)) ──────────────────────────────────────────────── #
@@ -336,6 +485,12 @@ def _mint_ladder(
 
     ⛔ Sorting is NOT silent repair: after the sort, any adjacent pair whose
     rise is <= 0 can only be a duplicate rung, reported by name, not swallowed.
+
+    ⭐ 丁 (ruling 2026-09-07x §一): the declared-tick mapping is validated
+    EAGERLY here, per rung — the minter's own "gates first" rule.  The z
+    properties on the levels are lazy (byte-resolved at read), so a proof
+    that only ran at read time would be skippable by a consumer that never
+    reads z; at mint time it is not.
     """
     ordered = sorted(claims, key=lambda c: _byte_z(frozen_docs, c.z_ref))
     if len(ordered) < MIN_FLOOR_LEVELS:
@@ -343,6 +498,8 @@ def _mint_ladder(
             "FLOOR_LADDER_DEGENERATE",
             {"n_levels": len(ordered), "min_levels": MIN_FLOOR_LEVELS},
         )
+    for claim in ordered:
+        _declared_tick_m(frozen_docs, claim.z_ref)
     levels: list[_DerivedFloorLevel] = []
     for index in range(len(ordered) - 1):
         lower, upper = ordered[index], ordered[index + 1]

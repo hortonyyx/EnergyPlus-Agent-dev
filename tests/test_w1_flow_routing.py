@@ -282,17 +282,19 @@ def _east_evidence():
     )
 
 
-def test_real_products_do_disagree_strictly(tmp_path):
-    """STOP-REPORT LOCK (S4, 2026-09-07p): the four REAL sm25 elevation
-    products agree on the rung COUNT (4x2 storeys) but NOT on the z values
-    (z_floor spread 1.0/4.7 mm, ceiling spread up to 13.5 mm — independent
-    per-drawing annotation/calibration).  The T2 dispatch text's strict
-    criterion (equal z sequences) therefore REDS on real data, while the
-    ratification letter's "green" reading measured the rung count and the
-    East face only.  Until the orchestrator re-rules, this lock pins that
-    the strict check STAYS loud — ⛔ nobody may quietly loosen it while the
-    report is in flight."""
+def test_real_products_now_agree_strictly_on_declared_ticks(tmp_path):
+    """丁 LOCK (ruling 2026-09-07x §一 flipped the S4 stop-report lock):
+    the four REAL sm25 elevation products DISAGREED on the measured z
+    sequences (the S4 stop-report — spread 1.0–13.5 mm of pixel-side
+    scatter), and the ruling moved the VALUE to each drawing's own DECLARED
+    ``calibration.z.cum_mm`` ticks (recognition stays the ink).  The strict
+    cross-check — unchanged text, still tuple equality, ⛔ zero threshold —
+    now compares declared INTEGERS and the four facades agree BY
+    CONSTRUCTION (3600/7200 are the same integers in all four chains,
+    chain_closure 0.0).  The scatter did not vanish: it is a readout
+    (``ink_snap_residual_mm``) and this test pins both halves."""
     import run_stage
+    from src.agent.correction.multifloor import derive_floor_ladder
     from src.agent.execution.view_manifest import ViewManifest
 
     run_dir = _stage_as_drawn_run(tmp_path)
@@ -302,8 +304,122 @@ def test_real_products_do_disagree_strictly(tmp_path):
     elevation_entries = [
         e for e in manifest.required_entries() if e.view_type == "elevation"
     ]
-    with pytest.raises(SystemExit) as exc:
-        run_stage._w1_cross_check_elevation_ladders(
-            elevation_entries, run_dir / "0_reading"
+    # the strict check itself: PASSES now (no SystemExit), returns a bundle
+    artifact = run_stage._w1_cross_check_elevation_ladders(
+        elevation_entries, run_dir / "0_reading"
+    )
+    assert artifact is not None
+    # and the ink-side scatter the ruling set aside is still OBSERVABLE:
+    # the four ladders' readouts are non-identical (pixel-side product)
+    residuals = set()
+    for entry in elevation_entries:
+        raw = (run_dir / "0_reading" / f"{entry.expected_output_id}.json").read_bytes()
+        ladder = derive_floor_ladder(_adapt_elevation(raw, entry))
+        residuals.add(
+            tuple(
+                (round(level.ink_snap_residual_mm, 3),
+                 round(level.ink_snap_residual_upper_mm, 3))
+                for level in ladder
+            )
         )
-    assert "ELEVATION_LADDER_DISAGREEMENT" in str(exc.value)
+    assert len(residuals) == 4, (
+        "the four facades' ink residuals should stay four distinct "
+        f"readouts (pixel-side scatter), got {residuals!r}"
+    )
+
+
+def _adapt_elevation(raw: bytes, entry):
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
+
+    doc = json.loads(raw.decode("utf-8"))
+    facade_label = doc.get("facade_label") if isinstance(doc, dict) else None
+    return adapt_as_drawn_elevation(
+        raw,
+        input_id=entry.input_id,
+        facade_ref=(
+            facade_label
+            if isinstance(facade_label, str) and facade_label
+            else entry.input_id
+        ),
+    )
+
+
+def test_declared_tick_uniqueness_has_teeth(tmp_path):
+    """丁 discriminating lock: mutate ONE facade product's declared tick
+    chain so a rung's second-nearest tick falls INSIDE its own noise bound
+    (a denser chain than the ink can resolve) ⇒ the ladder derivation is a
+    NAMED refusal (FLOOR_LINE_TICK_UNPROVEN), ⛔ never a silent snap onto an
+    ambiguous tick.  The unmutated products stay green through the same
+    code path — the red is the mutation's, not the fixture's."""
+    import run_stage
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
+    from src.agent.correction.multifloor import (
+        MultiFloorAssemblyError,
+        derive_floor_ladder,
+    )
+
+    run_dir = _stage_as_drawn_run(tmp_path)
+    raw = (run_dir / "0_reading" / "East_view.json").read_bytes()
+    artifact = adapt_as_drawn_elevation(
+        raw, input_id="East_view", facade_ref="East"
+    )
+    derive_floor_ladder(artifact)  # unmutated: green
+
+    doc = json.loads(raw.decode("utf-8"))
+    # denser than the ink can resolve: east's noise bound is 2.808 mm and
+    # its mid rung's ink sits AT the 3600 tick — ticks 1 mm either side put
+    # the SECOND-nearest at 1.0 mm, inside the bound ⇒ ambiguous snap.
+    # (The chain still closes: sum(values_mm) == cum_mm[-1] == overall.)
+    doc["calibration"]["z"]["cum_mm"] = [0.0, 1000.0, 2600.0, 3599.0, 3601.0,
+                                         4600.0, 6200.0, 7199.0, 7200.0]
+    mutated = json.dumps(doc).encode("utf-8")
+    mutated_artifact = adapt_as_drawn_elevation(
+        mutated, input_id="East_view", facade_ref="East"
+    )
+    with pytest.raises(MultiFloorAssemblyError) as exc:
+        derive_floor_ladder(mutated_artifact)
+    assert "FLOOR_LINE_TICK_UNPROVEN" in str(exc.value)
+    assert "second_nearest_tick_inside_noise_bound" in str(exc.value)
+
+
+def test_declared_tick_missing_declaration_is_loud(tmp_path):
+    """丁 stop-trigger lock: a product that does NOT declare calibration.z
+    cannot have its storey z taken from the declared chain ⇒ a NAMED
+    refusal (FLOOR_TICK_DECLARATION_MISSING), ⛔ no invented tolerance and
+    ⛔ no silent fallback to the measured ink."""
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
+    from src.agent.correction.multifloor import (
+        MultiFloorAssemblyError,
+        derive_floor_ladder,
+    )
+
+    run_dir = _stage_as_drawn_run(tmp_path)
+    raw = (run_dir / "0_reading" / "East_view.json").read_bytes()
+    doc = json.loads(raw.decode("utf-8"))
+    doc["calibration"]["z"] = None
+    mutated = json.dumps(doc).encode("utf-8")
+    # the adapter's own chain-closure recompute refuses a broken chain
+    # first (CALIBRATION_CHAIN_MALFORMED) — also loud, also named
+    with pytest.raises(Exception) as exc:
+        adapt_as_drawn_elevation(
+            mutated, input_id="East_view", facade_ref="East"
+        )
+    assert "CALIBRATION" in str(exc.value) or "FLOOR_TICK" in str(exc.value)
+
+    # the ladder-side refusal shape: declare a chain that CLOSES but lacks
+    # the residual/mm_per_px the uniqueness proof needs
+    doc2 = json.loads(raw.decode("utf-8"))
+    z = doc2["calibration"]["z"]
+    z.pop("residual_px")
+    z.pop("mm_per_px")
+    # keep the chain closed: recompute the summary fields the adapter checks
+    z["values_mm"] = [
+        z["cum_mm"][i + 1] - z["cum_mm"][i] for i in range(len(z["cum_mm"]) - 1)
+    ]
+    mutated2 = json.dumps(doc2).encode("utf-8")
+    artifact2 = adapt_as_drawn_elevation(
+        mutated2, input_id="East_view", facade_ref="East"
+    )
+    with pytest.raises(MultiFloorAssemblyError) as exc2:
+        derive_floor_ladder(artifact2)
+    assert "FLOOR_TICK_DECLARATION_MISSING" in str(exc2.value)

@@ -494,16 +494,16 @@ def _w1_cross_check_elevation_ladders(
     """T2-③ (ratified strict version): every elevation product adapts and
     derives its own storey ladder; the z sequences must AGREE.
 
-    ⚠️ STOP-REPORT NOTE (2026-09-07p, S4): measured on the four REAL sm25
-    products, the rung COUNT agrees everywhere (4×2 storeys) but the z
-    values scatter — z_floor spread 1.0 mm (F1) / 4.7 mm (F2), ceiling
-    spread up to 13.5 mm — each drawing is independently annotated and
-    calibrated.  The T2 dispatch text's criterion (bitwise-equal z
-    sequences) therefore REDS on real data, while the ratification letter's
-    "green on real data" reading measured the rung COUNT and the East face
-    only.  This function keeps the STRICT text until the orchestrator
-    re-rules; the lock that pins this behavior is
-    tests/test_w1_flow_routing.py::test_real_products_do_disagree_strictly.
+    ⭐ 丁 (ruling 2026-09-07x §一, resolved the S4 stop-report): the z the
+    ladders carry is each drawing's own DECLARED tick (calibration.z.cum_mm,
+    ink-recognition unchanged, uniqueness PROVEN against the product's own
+    noise bound) — so this STRICT text (tuple equality, ⛔ zero threshold)
+    now compares declared INTEGERS, and the four real sm25 facades agree by
+    construction (3600/7200 identical in all four chains, closure 0.0).
+    The pixel-side scatter the stop-report measured (1.0–13.5 mm) did not
+    vanish; it is a readout on each level (ink_snap_residual_mm) and stays
+    out of the gate.  The flipped lock is
+    tests/test_w1_flow_routing.py::test_real_products_now_agree_strictly_on_declared_ticks.
     """
     from src.agent.correction.evidence_adapters import adapt_as_drawn_elevation
     from src.agent.correction.multifloor import derive_floor_ladder
