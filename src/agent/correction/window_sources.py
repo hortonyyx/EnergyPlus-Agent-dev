@@ -1443,19 +1443,65 @@ def verify_window_resolver_inputs_artifact(
     raw_readings = {
         row.input_id: bytes(row.raw_bytes) for row in artifact.raw_reading_artifacts
     }
-    fresh_facts = derive_manifest_direction_facts(
-        raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
-        raw_reading_artifacts=raw_readings,
-    )
     producer = CorrectedGeometryV3.model_validate_json(
         bytes(artifact.producer_draw_canonical_bytes)
     )
-    rebuilt = build_verified_window_resolver_inputs(
-        producer_draw=producer,
-        raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
-        raw_reading_artifacts=raw_readings,
-        elevation_direction_facts=fresh_facts,
+    # ⭐ 2026-09-08：重建必须【按腿分派】，⛔ 不能一律用 legacy builder。
+    #
+    # 这个缺口一直存在，只是【被空集藏住了】：在 as_drawn 产物上，legacy 的
+    # `_window_strokes` 找不到任何 `pen == "window"` 笔画（产物解析成空壳），
+    # 而 as_drawn 侧当时传的是 T2-⑤ 的 `rows=()` —— 两边【恰好都空、于是相等】，
+    # 重放比对永远通过。补窗把 as_drawn 目录填成真观测后，它当场现形
+    # （`resolver_inputs_replay` 具名红，8 条锁同因）。
+    # ⇒ 「合法空集」不只是占位符，它还在掩盖一处腿分派缺失。
+    #
+    # 选腿的键 = 分类器对【产物本身】的判定（项目口径：路由是分类器的判定，
+    # ⛔ 永不按文件名）。混合契约在这里是响亮失败，⛔ 不静默挑一条腿。
+    from src.agent.reading.vector_contract import (
+        CONTRACT_AS_DRAWN_ELEVATION_V0,
+        CONTRACT_AS_DRAWN_PLAN,
+        CONTRACT_AS_DRAWN_PLAN_V0,
+        classify_vector_json,
     )
+
+    _AS_DRAWN = {CONTRACT_AS_DRAWN_PLAN, CONTRACT_AS_DRAWN_PLAN_V0,
+                 CONTRACT_AS_DRAWN_ELEVATION_V0}
+    contracts = set()
+    for input_id, raw in sorted(raw_readings.items()):
+        try:
+            doc = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise WindowResolverInputError(
+                "source_identity_invalid", {"input_id": input_id, "artifact": "reading"},
+                category="input_integrity_error",
+            ) from exc
+        contracts.add(classify_vector_json(doc).contract_id)
+    as_drawn = contracts & _AS_DRAWN
+    if as_drawn and as_drawn != contracts:
+        raise WindowResolverInputError(
+            "source_identity_invalid",
+            {"artifact": "resolver_inputs_replay",
+             "reason": "mixed reading contracts — replay cannot pick a leg",
+             "contracts": sorted(contracts)},
+            category="input_integrity_error",
+        )
+    if as_drawn:
+        rebuilt = build_verified_window_inputs_as_drawn(
+            producer_draw=producer,
+            raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
+            raw_reading_artifacts=raw_readings,
+        )
+    else:
+        fresh_facts = derive_manifest_direction_facts(
+            raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
+            raw_reading_artifacts=raw_readings,
+        )
+        rebuilt = build_verified_window_resolver_inputs(
+            producer_draw=producer,
+            raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
+            raw_reading_artifacts=raw_readings,
+            elevation_direction_facts=fresh_facts,
+        )
     if rebuilt.inputs != artifact.inputs:
         raise WindowResolverInputError(
             "source_identity_invalid", {"artifact": "resolver_inputs_replay"}, category="input_integrity_error",
