@@ -316,6 +316,33 @@ def test_link_failure_source_read(tmp_path, booby_trap_pasteed_leg):
     assert not (out_dir / "decision_loop_outcome.json").exists()
 
 
+def test_successful_retry_clears_previous_chain_failure(tmp_path):
+    vector_dir, out_dir = _stage(tmp_path)
+    with pytest.raises(OSError):
+        pipeline.run_correction_evidence_chain(
+            vector_dir, "missing.json", out_dir=out_dir, fixed_responses=[],
+        )
+    assert _failure_record(tmp_path)["failed_stage"] == "source_read"
+    outcome = pipeline.run_correction_evidence_chain(
+        vector_dir, "sm25_2f_v2.json", out_dir=out_dir,
+        fixed_responses=_drive_to_success(vector_dir, "sm25_2f_v2.json"),
+    )
+    assert outcome.success
+    assert not (tmp_path / "_run/evidence_chain_failure.json").exists()
+    assert (out_dir / "decision_loop_outcome.json").exists()
+
+
+def test_failed_retry_records_current_failure(tmp_path):
+    vector_dir, out_dir = _stage(tmp_path)
+    for name in ("first_missing.json", "second_missing.json"):
+        with pytest.raises(OSError):
+            pipeline.run_correction_evidence_chain(
+                vector_dir, name, out_dir=out_dir, fixed_responses=[],
+            )
+        assert name in _failure_record(tmp_path)["error"]
+    assert "first_missing.json" not in _failure_record(tmp_path)["error"]
+
+
 def test_link_failure_adapt(tmp_path, booby_trap_pasteed_leg):
     vector_dir, out_dir = _stage(tmp_path)
     (vector_dir / "broken.json").write_bytes(b"{not json")

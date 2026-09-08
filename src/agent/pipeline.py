@@ -1111,6 +1111,14 @@ def run_correction_evidence_chain(
         classify_vector_json,
     )
 
+    # W#4: this file describes the current invocation, not an earlier draw.
+    # Clear it before source_read; a new exception below files its own link.
+    # A normal (including non-success terminal) outcome has its own route and
+    # outcome records and must not inherit a stale exception from a prior run.
+    failure_path = _evidence_chain_run_meta(out_dir, _EVIDENCE_CHAIN_FAILURE_NAME)
+    if failure_path is not None:
+        failure_path.unlink(missing_ok=True)
+
     # -- source_read: freeze the bytes -------------------------------------- #
     try:
         raw = (Path(vector_dir) / product_filename).read_bytes()
