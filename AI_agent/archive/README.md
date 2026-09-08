@@ -4,6 +4,7 @@
 
 - [2026-09-08 接手前管理文档](2026-09-08_pre_takeover/)：原入口、计划、决策、三个旧指南和原阶段契约。
 - [2026-09-08 全部工作树清单](2026-09-08_takeover_inventory.json)：原路径、HEAD、脏文件状态与保留方式。
+- [2026-09-08 Codex 记忆迁移](2026-09-08_codex_memory/README.md)：5 份原记录的完整快照、同步位置与旧口径处置。
 - `archive/2026-09-08/branches/*`、`archive/2026-09-08/worktrees/*` Git 标签：旧分支与 detached HEAD。
 - 完整本地 bundle 与未提交文件保存在仓库 `backup/2026-09-08_takeover/`；含本地私有配置，不推送。
 

@@ -2,6 +2,8 @@
 
 项目要把现有图纸、文字参数、带表皮体量以及后续 CAD 等输入，转成可查看、可解释、可继续用于能耗建模的轻量 BIM。
 “丐版”指按现有信息生成有用的简化模型，不要求施工图级精度，也不允许把未知信息伪装成准确事实。
+轻量 BIM 是通用核心产物，EnergyPlus 是首个下游插件；我方主线为几何，物性挂接由协作者负责。
+最终交付仍是运行模型可配置的多 agent 产品，仿真前支持查看、补充与编辑；完整范围见 [project_scope.md](project_scope.md)。
 
 ## 当前口径
 
@@ -31,6 +33,8 @@
 |---|---|
 | [AGENTS.md](../AGENTS.md) | 开发行为、权限和收工 |
 | [plan.md](plan.md) | 当前状态、近期下一步和少量明确搁置事项 |
+| [project_scope.md](project_scope.md) | 已确认的产品目标、几何范围、协作边界与评价要求 |
+| [model_usage.md](guides/model_usage.md) | 产品运行模型约束与开发资源分配偏好 |
 | [development.md](guides/development.md) | 常用开发、测试、Git 操作 |
 | [new_case_guide.md](guides/new_case_guide.md) | 如何使用现有 CLI 跑 case |
 | [pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md) | 当前代码链与实际接口 |
@@ -39,4 +43,4 @@
 | [logs](logs/README.md) / [archive](archive/README.md) | 历史过程和旧口径，不自动生成待办 |
 
 其余技术参考按需查阅，不再是开工必读串。旧技术规格可以复用；其中的旧日期状态、审批顺序和“硬纪律”不恢复为开发要求。
-项目级决定必须落在仓库，Claude 本地记忆只作索引。当前阶段见 [plan.md](plan.md)。
+所有助手（包括 Codex、Claude）的项目记忆必须同步到仓库管理文档，本地记忆只作索引；规则见 [AGENTS.md](../AGENTS.md)。当前阶段见 [plan.md](plan.md)。

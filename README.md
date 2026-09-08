@@ -2,12 +2,14 @@
 
 这个仓库研究如何把图纸、文字参数、带表皮体量以及后续 CAD 等混合输入，转成可查看的轻量 BIM，并复用既有 IntakeOutput → IDF → EnergyPlus 链路。
 模型精度由输入证据决定；缺失信息通过明确标注的假设和简化处理。
+轻量 BIM 是通用核心产物，EnergyPlus 是首个下游插件；我方主线为几何，物性挂接由协作者负责，完整目标见 [产品范围](AI_agent/project_scope.md)。
 
 目前主要实现是图纸路线。两路统一入口尚未完成，最新 sm25 case 已到几何建模阶段，后续仍有阻塞，不能视为端到端已跑通。
 
 ## 从这里接手
 
 - [AGENTS.md](AGENTS.md)：所有开发助手共同约定，含 Git 授权与“收工”动作。
+- [产品范围](AI_agent/project_scope.md) / [模型使用约定](AI_agent/guides/model_usage.md)：包含已从 Codex 本地记忆同步的用户约定。
 - [项目说明](AI_agent/README.md) / [当前计划](AI_agent/plan.md)：目标、代码位置、已完成与下一步。
 - [当前架构](AI_agent/architecture/pipeline_stage_contracts.md) / [两路融合建议](AI_agent/architecture/multimodal_bim.md)。
 - [case 操作](AI_agent/guides/new_case_guide.md) / [开发手册](AI_agent/guides/development.md)。

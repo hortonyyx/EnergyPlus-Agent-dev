@@ -1,0 +1,16 @@
+{
+  "date_utc": "2026-09-07",
+  "workspace": "/workspaces/EnergyPlus-Agent-dev",
+  "scope": "Minimal single-turn text connectivity only; no vision, model tool execution, development quality or quota-capacity validation.",
+  "root_session": {"model": "gpt-6-astra", "effort": "xhigh", "evidence": "current local session turn_context"},
+  "probes": [
+    {"family": "GPT", "model": "gpt-5.6-luna", "effort": "low", "channel": "native collaboration agent", "success": true, "response": "LUNA_OK"},
+    {"family": "GPT", "model": "gpt-5.6-terra", "effort": "low", "channel": "native collaboration agent", "success": true, "response": "TERRA_OK"},
+    {"family": "GPT", "model": "gpt-5.6-sol", "effort": "low", "channel": "native collaboration agent", "success": true, "response": "SOL_OK"},
+    {"family": "Claude", "requested_model": "sonnet", "reported_primary_model": "claude-sonnet-5", "other_usage_model": "claude-haiku-4-5-20251001", "channel": "Claude Code CLI", "success": true, "response": "CLAUDE_OK", "duration_ms": 3068},
+    {"family": "GLM", "requested_model": "glm-5.3", "reported_primary_model": "glm-5.3", "channel": "scripts/glm_code.sh", "success": true, "response": "GLM_OK", "duration_ms": 2028},
+    {"family": "DeepSeek", "requested_model": "deepseek-v4-flash", "reported_primary_model": "deepseek-v4-flash", "channel": "scripts/deepseek_code.sh", "success": true, "response": "DEEPSEEK_OK", "duration_ms": 2931}
+  ],
+  "changes": "Codex private memory files only; no project-management synchronization or code development.",
+  "external_probe_record": "/tmp/ep-agent-model-probes-20260907-szqa6E/results.json"
+}
