@@ -163,61 +163,97 @@ def _square_two_storey() -> CorrectedGeometryV3:
     return assemble_multifloor_geometry(ladder, single)
 
 
+def _fixed_responses(rdir: Path, product_filename: str):
+    """The deterministic model beat (the ``test_w3_chain_replay_lock`` shape):
+    round 0 selects every open item's FIRST candidate, round 1 accepts —
+    ⛔ zero billed provider calls."""
+    from src.agent.correction.decision_executor import (
+        FixedDecisionV1,
+        build_decision_packet,
+        compile_wall_ir,
+        decision_hash,
+    )
+    from src.agent.correction.decision_schema import (
+        CorrectionDecisionResponseV1,
+        ItemDecisionV1,
+    )
+    from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
+
+    stem = Path(product_filename).stem
+    raw = (rdir / product_filename).read_bytes()
+    artifact = adapt_as_drawn_plan(
+        raw, input_id=stem, floor_ref=stem.removesuffix("_view"), view_type="plan"
+    )
+    packet0 = build_decision_packet(
+        compile_wall_ir(artifact, profile="exploratory"), bundle=artifact, round_index=0
+    )
+    picks = tuple(
+        (item.item_id, item.candidates[0].candidate_id)
+        for item in packet0.open_items
+    )
+    select = CorrectionDecisionResponseV1(
+        packet_hash=packet0.packet_hash,
+        item_decisions=tuple(
+            ItemDecisionV1(
+                item_id=item_id,
+                action="select_candidate",
+                candidate_id=candidate_id,
+                reason_code="WIRED_LOCK",
+            )
+            for item_id, candidate_id in picks
+        ),
+        whole_building_review={"verdict": "accept"},
+    )
+    packet1 = build_decision_packet(
+        compile_wall_ir(
+            artifact,
+            profile="exploratory",
+            decisions=tuple(
+                FixedDecisionV1(item_id=i, candidate_id=c) for i, c in picks
+            ),
+        ),
+        bundle=artifact,
+        round_index=1,
+        previous_decision_hashes=(decision_hash(select),),
+    )
+    accept = CorrectionDecisionResponseV1(
+        packet_hash=packet1.packet_hash,
+        whole_building_review={"verdict": "accept"},
+    )
+    return [select, accept]
+
+
 def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
-    """The routed flow draw is LIVE: run_multifloor_correction (mocked to a
-    clean assembled v3 — the chain itself is S7's end-to-end exercise) →
-    legal empty window inputs → finalize → gate① zero blocking, in the
-    standard (result, report) shape the StageRunner archives."""
+    """The routed flow draw is LIVE and runs the REAL chain: window
+    population (31 windows — the ⛔ windows=0 false-green trap) →
+    finalize → gate① zero blocking, in the standard (result, report)
+    shape the StageRunner archives.
+
+    The model beat is the ONLY thing replaced: ``run_correction`` is
+    wrapped to inject the deterministic fixed-responses decision (the
+    production-supported beat), so run_multifloor_correction, the
+    population, the marker, the provenance carrier and the finalize all
+    run for real.  (The old shape mocked mfc to return a synthetic
+    6×4 two-storey box against the REAL sm25 window sources — legal while
+    the leg produced zero windows, structurally incompatible once
+    population went live: every opening fell outside the box and the
+    resolver refused, by design.)
+    """
     import src.agent.pipeline as pipeline
 
-    seen: dict = {}
+    real_run_correction = pipeline.run_correction
 
-    def _fake_mfc(evidence, plan_runs, *, snap_ledger_path=None,
-                  evidence_debt_path=None):
-        seen["plan_runs"] = list(plan_runs)
-        seen["snap"] = snap_ledger_path
-        seen["debt"] = evidence_debt_path
-        # what the real wiring does: FILE the channel-split debt first
-        from src.agent.execution.evidence_preflight import (
-            window_evidence_channel_split_debt,
-            write_evidence_debt,
-        )
-
-        write_evidence_debt(
-            evidence_debt_path,
-            window_evidence_channel_split_debt(
-                chain_profile=plan_runs[0].profile
-            ),
-        )
-        # W#3: and FILE each chain run's final wall compilation, exactly where
-        # the flow wiring then freezes it into the candidate's provenance
-        # carrier — a real compiler product of the staged bytes, ⛔ not a
-        # hand-built stub (the carrier self-hashes these bytes verbatim).
-        from src.agent.correction.evidence_adapters import adapt_as_drawn_plan
-        from src.agent.correction.wall_compiler import compile_wall_ir
-
-        for run in plan_runs:
-            raw = (run.vector_dir / run.product_filename).read_bytes()
-            stem = run.product_filename.removesuffix(".json")
-            artifact = adapt_as_drawn_plan(
-                raw, input_id=stem, floor_ref=stem.removesuffix("_view"),
-                view_type="plan",
+    def _deterministic_run_correction(vector_dir, payload, **kwargs):
+        if (
+            kwargs.get("evidence_chain")
+            and kwargs.get("evidence_chain_fixed_responses") is None
+        ):
+            kwargs["evidence_chain_fixed_responses"] = _fixed_responses(
+                Path(vector_dir), kwargs["evidence_chain_product"]
             )
-            compilation = compile_wall_ir(artifact, profile=run.profile)
-            run.out_dir.mkdir(parents=True, exist_ok=True)
-            (run.out_dir / "evidence_chain_compilation.json").write_bytes(
-                compilation.model_dump_json(indent=2).encode("utf-8")
-            )
-        return _square_two_storey()
+        return real_run_correction(vector_dir, payload, **kwargs)
 
-    monkeypatch.setattr(pipeline, "run_multifloor_correction", _fake_mfc)
-    import run_stage
-
-    monkeypatch.setattr(
-        run_stage,
-        "_w1_cross_check_elevation_ladders",
-        lambda entries, rdir: _east_evidence(),
-    )
+    monkeypatch.setattr(pipeline, "run_correction", _deterministic_run_correction)
     run_dir = _stage_as_drawn_run(tmp_path)
     policy = _make_policy(capability_profile="orthogonal_polygon",
                           run_profile="exploratory")
@@ -227,13 +263,19 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
     assert not rep.blocking(), [
         (r.check_id, r.message) for r in rep.blocking()
     ]
+    # ⭐ population is wired at the flow entry: a building WITHOUT windows
+    # must never archive as a success (the windows=0 false-green trap)
+    assert len(result.geom.windows) == 31
     # storey order came from the manifest's declared floor_ref
-    assert [r.product_filename for r in seen["plan_runs"]] == [
-        "1f_view.json", "2f_view.json"
-    ]
+    assert [
+        p.name for p in sorted((run_dir / "1_correction").glob("floor_*"))
+    ] == ["floor_1", "floor_2"]
+    for floor in ("floor_1", "floor_2"):
+        assert (
+            run_dir / "1_correction" / floor / "evidence_chain_compilation.json"
+        ).exists()
     # the S1/S2 ledgers landed where the flow expects them
-    assert seen["snap"].name == "footprint_snap_ledger.json"
-    assert seen["debt"].name == "evidence_debt.json"
+    assert (run_dir / "1_correction" / "footprint_snap_ledger.json").exists()
     assert (run_dir / "1_correction" / "evidence_debt.json").exists()
     filed = json.loads(
         (run_dir / "1_correction" / "evidence_debt.json").read_text("utf-8")
@@ -242,6 +284,11 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
         d["check_id"] == "WINDOW_EVIDENCE_ON_CHAIN_NOT_ON_LEDGER"
         for d in filed["debts"]
     )
+    # and the window account is filed as a signal, not a silence
+    account = json.loads(
+        (run_dir / "1_correction" / "as_drawn_window_account.json").read_text("utf-8")
+    )
+    assert account["windows_built"] == 31
 
 
 def test_strict_run_profile_rides_the_chain_strict_side(tmp_path, monkeypatch):
