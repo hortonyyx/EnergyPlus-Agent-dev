@@ -822,6 +822,14 @@ _EVIDENCE_CHAIN_SOURCE_RECORD_NAME = "chain_source_record.json"
 #: outcome.  ⛔ The bare geometry never travels as the product without
 #: this envelope (design §四: hash 对不上 / envelope 丢失 ⇒ 投影失败).
 _EVIDENCE_CHAIN_PROJECTION_NAME = "projection_envelope.json"
+#: W#3 (wallhunt 2026-09-08b): the FINAL wall compilation the decision loop
+#: settled on, filed next to the outcome/projection envelope.  This is the
+#: chain's model product — the byte the writer's as_drawn replay re-drives
+#: the geometry from (embedded into the candidate's chain provenance by the
+#: flow wiring).  Its ``content_sha256`` equals the outcome's
+#: ``final_provisional_sha256`` and the envelope's ``source_resolved_sha256``
+#: — three artifacts, one binding.
+_EVIDENCE_CHAIN_COMPILATION_NAME = "evidence_chain_compilation.json"
 #: The llm.yaml section the model beat reads, BY ITS REAL NAME (v3, B-1 —
 #: ⛔ never through the `intake_`-prefixing `_section()`, which silently
 #: resolved this to `intake_correction`).  An absent section is a LOUD
@@ -1334,6 +1342,14 @@ def run_correction_evidence_chain(
                 envelope_path.write_text(
                     envelope.model_dump_json(indent=2), encoding="utf-8"
                 )
+                # W#3: file the FINAL compilation (the chain's model product)
+                # alongside the envelope, so the flow wiring can freeze those
+                # bytes into the candidate's chain provenance for the
+                # writer-side replay.  Canonical bytes — the same body whose
+                # ``content_sha256`` the compilation itself carries.
+                (Path(out_dir) / _EVIDENCE_CHAIN_COMPILATION_NAME).write_bytes(
+                    final_compilation[-1].model_dump_json(indent=2).encode("utf-8")
+                )
                 projection_record = {
                     "requested": True,
                     "projected": True,
@@ -1555,6 +1571,30 @@ def run_correction(
                 "evidence chain projection envelope does not bind the "
                 "outcome's final provisional: envelope has "
                 f"{envelope.source_resolved_sha256}, outcome has "
+                f"{outcome.final_provisional_sha256} — treat as a "
+                "projection failure"
+            )
+        # W#3: reconcile the FILED final compilation against the same binding
+        # — its canonical content hash must equal the outcome's final
+        # provisional hash, so the bytes the flow wiring will freeze into the
+        # candidate's chain provenance are exactly the bytes the loop settled
+        # on (and the writer replay will re-verify the same equation again).
+        from src.agent.correction.wall_compiler import WallCompilationV1
+        from src.agent.correction.window_sources import canonical_sha256
+
+        filed_compilation = WallCompilationV1.model_validate_json(
+            (Path(out_dir) / _EVIDENCE_CHAIN_COMPILATION_NAME).read_bytes()
+        )
+        _content = filed_compilation.model_dump(mode="python")
+        _declared = _content.pop("content_sha256", None)
+        if (
+            canonical_sha256(_content) != _declared
+            or _declared != outcome.final_provisional_sha256
+        ):
+            raise RuntimeError(
+                "evidence chain compilation does not bind the outcome's "
+                "final provisional: filed compilation has "
+                f"{_declared}, outcome has "
                 f"{outcome.final_provisional_sha256} — treat as a "
                 "projection failure"
             )

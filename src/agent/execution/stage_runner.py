@@ -309,6 +309,7 @@ class StageRunner:
                 # sources, then bind every accepted audit row to that pre-host
                 # state and to the independently recomputed final claim.
                 from src.agent.correction.deterministic import (
+                    AS_DRAWN_CHAIN_STAMP_VERSION,
                     DETERMINISTIC_CORE_STAMP_VERSION,
                     DeterministicCoreProofV1,
                     apply_deterministic_core,
@@ -318,29 +319,59 @@ class StageRunner:
                 from src.agent.correction.window_host import WindowHostResolutionAuditV1
                 from src.agent.correction.window_sources import SourceIntervalV1
 
-                producer = CorrectedGeometryV3.model_validate_json(
-                    rebuilt_marker.producer_draw_canonical_bytes
-                )
-                with tempfile.TemporaryDirectory(prefix="b5_writer_replay_") as replay_dir_text:
-                    replay_dir = Path(replay_dir_text)
-                    reading_by_id = dict(rebuilt_marker.raw_reading_artifacts)
-                    for identity in rebuilt_marker.inputs.reading_artifacts:
-                        (replay_dir / f"{identity.expected_output_id}.json").write_bytes(
-                            reading_by_id[identity.input_id]
-                        )
-                    envelope = extract_authoritative_envelope(
-                        replay_dir,
-                        footprint=producer,
-                        footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+                # W#3 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-A):
+                # dispatch the replay BY LEG.  The dispatcher is the
+                # candidate's own ``chain_provenance`` carrier — present ⟺
+                # ``finalize_as_drawn_chain_geometry`` minted this result with
+                # its frozen per-storey compilations (an explicit marker, ⛔
+                # never a shape guess off the geometry).  Both legs replay
+                # from the marker's embedded bytes through the REAL
+                # production functions to a ``replayed`` geometry, which the
+                # shared gauntlet below (core-owned projection + corrections
+                # prefix + stamp) then compares field-for-field — neither leg
+                # skips a check the other runs, and the legacy lock is
+                # byte-untouched.  A chain candidate minted WITHOUT the
+                # carrier routes to the legacy replay and reds there by
+                # construction (the omission is loud, never accepted).
+                chain_provenance = getattr(output_obj, "chain_provenance", None)
+                if chain_provenance is not None:
+                    from src.agent.correction.chain_replay import replay_as_drawn_chain
+
+                    # The chain replay re-drives ladder → per-floor
+                    # projection → snap → assembly → producer (byte-compared
+                    # against the marker's embedded producer canonical bytes)
+                    # → the as_drawn finalize half, all from the marker's
+                    # frozen bytes.  Its result IS the replayed geometry.
+                    replayed = replay_as_drawn_chain(
+                        rebuilt_marker,
+                        chain_provenance,
+                        target=target,
                         tol=tol,
+                    ).geom
+                else:
+                    producer = CorrectedGeometryV3.model_validate_json(
+                        rebuilt_marker.producer_draw_canonical_bytes
                     )
-                    replayed = apply_deterministic_core(
-                        producer,
-                        tol,
-                        authoritative_envelope=envelope,
-                        capability_profile=report.capability_profile,
-                        verified_window_inputs=rebuilt_marker,
-                    )
+                    with tempfile.TemporaryDirectory(prefix="b5_writer_replay_") as replay_dir_text:
+                        replay_dir = Path(replay_dir_text)
+                        reading_by_id = dict(rebuilt_marker.raw_reading_artifacts)
+                        for identity in rebuilt_marker.inputs.reading_artifacts:
+                            (replay_dir / f"{identity.expected_output_id}.json").write_bytes(
+                                reading_by_id[identity.input_id]
+                            )
+                        envelope = extract_authoritative_envelope(
+                            replay_dir,
+                            footprint=producer,
+                            footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+                            tol=tol,
+                        )
+                        replayed = apply_deterministic_core(
+                            producer,
+                            tol,
+                            authoritative_envelope=envelope,
+                            capability_profile=report.capability_profile,
+                            verified_window_inputs=rebuilt_marker,
+                        )
                 # F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): the
                 # per-window audit checks below only ever compared REPLAYED
                 # window fields against the candidate's own AUDIT ROWS (a
@@ -385,9 +416,19 @@ class StageRunner:
                 candidate_stamp_version = getattr(
                     getattr(fresh_geom, "deterministic_core_stamp", None), "version", None
                 )
+                # W#3: each leg pins BOTH sides to its OWN kernel version
+                # (exact equality, ⛔ no cross-leg mixing) — the as_drawn leg
+                # stamps under AS_DRAWN_CHAIN_STAMP_VERSION inside its
+                # finalize, the legacy leg under DETERMINISTIC_CORE_STAMP_
+                # VERSION inside apply_deterministic_core.
+                expected_stamp_version = (
+                    AS_DRAWN_CHAIN_STAMP_VERSION
+                    if chain_provenance is not None
+                    else DETERMINISTIC_CORE_STAMP_VERSION
+                )
                 if (
-                    replayed_stamp_version != DETERMINISTIC_CORE_STAMP_VERSION
-                    or candidate_stamp_version != DETERMINISTIC_CORE_STAMP_VERSION
+                    replayed_stamp_version != expected_stamp_version
+                    or candidate_stamp_version != expected_stamp_version
                 ):
                     raise ValueError("writer_core_projection_drift")
                 audit_core = {
@@ -520,14 +561,30 @@ class StageRunner:
                 # host-resolution rows -- so committing to `candidate_projection`
                 # here binds the proof to a value already proven correct, not
                 # to an unverified one.
-                core_proof = DeterministicCoreProofV1(
-                    core_version=DETERMINISTIC_CORE_STAMP_VERSION,
-                    input_hash=hashlib.sha256(
-                        rebuilt_marker.producer_draw_canonical_bytes
-                    ).hexdigest(),
-                    core_projection_hash=hash_obj(candidate_projection),
+                core_proof = (
+                    # W#3: the proof names the kernel that actually replayed —
+                    # and binds to the bytes that replay consumed (the frozen
+                    # per-storey compilations on the chain leg, the producer
+                    # canonical bytes on the legacy leg).
+                    DeterministicCoreProofV1(
+                        core_version=AS_DRAWN_CHAIN_STAMP_VERSION,
+                        input_hash=chain_provenance.replay_input_hash,
+                        core_projection_hash=hash_obj(candidate_projection),
+                    )
+                    if chain_provenance is not None
+                    else DeterministicCoreProofV1(
+                        core_version=DETERMINISTIC_CORE_STAMP_VERSION,
+                        input_hash=hashlib.sha256(
+                            rebuilt_marker.producer_draw_canonical_bytes
+                        ).hexdigest(),
+                        core_projection_hash=hash_obj(candidate_projection),
+                    )
                 )
                 extra_artifacts["deterministic_core_proof.json"] = core_proof.model_dump_json(indent=2)
+                if chain_provenance is not None:
+                    extra_artifacts["chain_provenance.json"] = (
+                        chain_provenance.model_dump_json(indent=2)
+                    )
             audit_text = _to_json(output_obj.audit_payload)
             states = FeatureStatesArtifactV1(output_sha256=output_hash, claims=expected)
             states_text = states.model_dump_json(indent=2)
@@ -538,6 +595,10 @@ class StageRunner:
                     "window_hosts": hash_text(extra_artifacts["window_hosts.json"]),
                     "deterministic_core_proof": hash_text(extra_artifacts["deterministic_core_proof.json"]),
                 })
+                if "chain_provenance.json" in extra_artifacts:
+                    artifact_hashes["chain_provenance"] = hash_text(
+                        extra_artifacts["chain_provenance.json"]
+                    )
         elif is_assembly_e4:
             audit_text = output_obj.audit.model_dump_json(indent=2)
             contract_text = output_obj.contract.model_dump_json(indent=2)
@@ -596,6 +657,14 @@ class StageRunner:
             DeterministicCoreProofV1.model_validate_json(
                 (adir / "deterministic_core_proof.json").read_bytes()
             )
+            if "chain_provenance.json" in files:
+                from src.agent.correction.chain_provenance import (
+                    AsDrawnChainProvenanceV1,
+                )
+
+                AsDrawnChainProvenanceV1.model_validate_json(
+                    (adir / "chain_provenance.json").read_bytes()
+                )
             assert final_attempt_dir is not None
             os.replace(adir, final_attempt_dir)
             adir = final_attempt_dir
