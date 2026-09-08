@@ -646,6 +646,75 @@ class PlanCalibrationDeclaration:
     cap_m: float
 
 
+@dataclass(frozen=True)
+class DeclaredExteriorFrame:
+    """One plan product's own exterior axis-frame declarations (W#6, dispatch
+    2026-09-08c S-B): the overall extents and the thickness callouts the
+    exterior axis frame ``[t/2, overall − t/2]`` is derived from — the same
+    "the drawing declares, the code derives" shape as 丁's ladder ticks."""
+
+    input_id: str
+    overall_x_m: float
+    overall_y_m: float
+    thickness_callouts_mm: tuple[float, ...]
+
+
+def read_declared_exterior_frame(
+    doc: dict, *, input_id: str
+) -> DeclaredExteriorFrame:
+    """Derive one plan product's exterior-frame inputs from ITS OWN declared
+    quantities (W#6).  Loud, never defaulted — a product that does not
+    declare its overall extents cannot have an axis frame derived for it."""
+    calibration = (doc.get("observations") or {}).get("calibration")
+    if not isinstance(calibration, dict):
+        raise MultiFloorAssemblyError(
+            "PLAN_CALIBRATION_MISSING",
+            {"input_id": input_id, "reason": "no observations.calibration declared"},
+        )
+    overall: dict[str, float] = {}
+    for axis in ("x", "y"):
+        chain = calibration.get(axis)
+        if not isinstance(chain, dict):
+            raise MultiFloorAssemblyError(
+                "PLAN_CALIBRATION_AXIS_MISSING",
+                {"input_id": input_id, "axis": axis},
+            )
+        value = chain.get("overall_mm")
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or float(value) <= 0.0
+        ):
+            raise MultiFloorAssemblyError(
+                "PLAN_OVERALL_EXTENT_MISSING",
+                {"input_id": input_id, "axis": axis, "overall_mm": value},
+            )
+        overall[axis] = float(value) / 1000.0
+    callouts = (doc.get("declarations") or {}).get("thickness_callouts_mm")
+    if (
+        not isinstance(callouts, list)
+        or not callouts
+        or any(
+            isinstance(v, bool) or not isinstance(v, (int, float)) or float(v) <= 0.0
+            for v in callouts
+        )
+    ):
+        raise MultiFloorAssemblyError(
+            "PLAN_THICKNESS_CALLOUTS_MISSING",
+            {
+                "input_id": input_id,
+                "reason": "no positive declarations.thickness_callouts_mm — "
+                          "the exterior axis frame has no declared source",
+            },
+        )
+    return DeclaredExteriorFrame(
+        input_id=input_id,
+        overall_x_m=overall["x"],
+        overall_y_m=overall["y"],
+        thickness_callouts_mm=tuple(float(v) for v in callouts),
+    )
+
+
 def read_plan_calibration_declaration(
     doc: dict, *, input_id: str
 ) -> PlanCalibrationDeclaration:
@@ -926,6 +995,138 @@ def snap_footprints_to_reference(
             },
         ))
         out.append(snapped_geom)
+    account = FootprintSnapAccount(applied=applied, records=tuple(records))
+    return tuple(out), account
+
+
+# ── W#6 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-B): the cut-line-level
+# cross-floor reconciliation that REPLACES the geometry-level verbatim ring
+# swap inside the production wiring (and the writer replay). ───────────────── #
+def cut_lines_from_sidecar(payload: dict) -> tuple:
+    """Rebuild the chain's filed ``CutLineV1`` tuple from the sidecar dict."""
+    from src.agent.correction.projection_bridge import CutLineV1
+
+    return tuple(
+        CutLineV1(
+            axis=item["axis"],
+            pos_m=float(item["pos_m"]),
+            along_lo_m=float(item["along_lo_m"]),
+            along_hi_m=float(item["along_hi_m"]),
+            half_thickness_m=float(item["half_thickness_m"]),
+            kind=item["kind"],
+            origin_id=item["origin_id"],
+        )
+        for item in payload["lines"]
+    )
+
+
+def reconcile_floors_to_reference(
+    per_floor_cut_lines: Sequence[tuple],
+    per_floor_project: Sequence[dict],
+    declarations: Sequence[PlanCalibrationDeclaration],
+) -> tuple[tuple[CorrectedGeometryV3, ...], FootprintSnapAccount]:
+    """W#6: reconcile the upper floors onto the reference floor, ON THE CUT
+    LINES, and RE-PARTITION every floor from its (possibly aligned) lines.
+
+    WHY this replaced ``snap_footprints_to_reference`` in the wiring (the
+    measured root cause of W#6): the verbatim ring swap replaced floor 2's
+    footprint ring with floor 1's while LEAVING floor 2's cells from its own
+    partition — coverage conservation broke by 0.3806 m² against a 0.05 gate.
+    Aligning the cut lines instead and re-partitioning keeps ring and cells
+    from the SAME arrangement, so conservation survives BY CONSTRUCTION
+    (measured on sm25: both floors at 0.000000 while the rings become
+    bit-identical — which is what assembly's zero-tolerance compare needs).
+
+    The alignment absorbs exactly the same quantity the old snap did — the
+    cross-floor calibration residual, gated by the SAME fully-derived
+    tolerance (``footprint_snap_tolerance_m``: noise limb from both
+    products' declared calibration residuals, cap limb half the thinnest
+    declared wall) — but as WALL POSITIONS, not as a ring transplant:
+
+      * a wall line moves only onto the reference floor's NEAREST same-axis
+        wall position, only within the tolerance (openings follow their
+        host, in band);
+      * a wall with no counterpart within the tolerance keeps its own
+        position — genuinely different layouts are never touched, and a
+        still-mismatched footprint after re-partitioning is the existing
+        loud ``PER_FLOOR_FOOTPRINT_MISMATCH`` in assembly, unchanged;
+      * the reference floor itself is re-partitioned verbatim from its own
+        filed lines (the deterministic re-run of the chain's own
+        projection, byte-identical to what the chain already produced).
+    """
+    from src.agent.correction.projection_bridge import (
+        align_wall_lines_to_reference,
+        project_cut_lines,
+    )
+
+    if len(per_floor_cut_lines) != len(per_floor_project) \
+            or len(per_floor_cut_lines) != len(declarations):
+        raise MultiFloorAssemblyError(
+            "RECONCILE_INPUT_COUNT_MISMATCH",
+            {
+                "n_cut_lines": len(per_floor_cut_lines),
+                "n_project": len(per_floor_project),
+                "n_declarations": len(declarations),
+            },
+        )
+    if not per_floor_cut_lines:
+        raise MultiFloorAssemblyError(
+            "RECONCILE_INPUT_EMPTY", {"reason": "no floors to reconcile"}
+        )
+    reference_lines = per_floor_cut_lines[0]
+    ref_decl = declarations[0]
+    out: list[CorrectedGeometryV3] = []
+    records: list[FootprintSnapRecord] = []
+    applied = False
+    for index, (lines, project_kwargs, decl) in enumerate(
+        zip(per_floor_cut_lines, per_floor_project, declarations)
+    ):
+        tolerance = footprint_snap_tolerance_m(ref_decl, decl)
+        noise = math.hypot(ref_decl.bound_x_m + decl.bound_x_m,
+                           ref_decl.bound_y_m + decl.bound_y_m)
+        cap = min(ref_decl.cap_m, decl.cap_m)
+        aligned, _align_records = (
+            (lines, ())
+            if index == 0
+            else align_wall_lines_to_reference(
+                lines, reference_lines, tolerance_m=tolerance
+            )
+        )
+        floor_id = project_kwargs.get("floor_id") or decl.input_id
+        moved = any(
+            a.pos_m != b.pos_m for a, b in zip(aligned, lines)
+        ) if index > 0 else False
+        envelope = project_cut_lines(aligned, **project_kwargs)
+        geom = envelope.geometry
+        if index == 0:
+            upper_to_ref = 0.0
+            ref_to_upper = 0.0
+            reference = geom
+        else:
+            ref_geom = out[0]
+            upper_ring = _ring_points(geom.floors[0])
+            ref_ring = _ring_points(ref_geom.floors[0])
+            upper_to_ref = _directed_hausdorff_m(upper_ring, ref_ring)
+            ref_to_upper = _directed_hausdorff_m(ref_ring, upper_ring)
+        if moved:
+            applied = True
+        action = (
+            "identical"
+            if not moved and _footprint_fingerprint(geom.floors[0])
+            == _footprint_fingerprint(reference.floors[0])
+            else ("snapped" if moved else "refused")
+        )
+        records.append(FootprintSnapRecord(
+            floor_index=index, floor_id=floor_id, input_id=decl.input_id,
+            action=action, hausdorff_upper_to_reference_m=upper_to_ref,
+            hausdorff_reference_to_upper_m=ref_to_upper,
+            tolerance_m=tolerance, noise_bound_m=noise, cap_m=cap,
+            bbox_shift_m={
+                "x_m": abs(float(geom.footprint_x[0]) - float(reference.footprint_x[0])),
+                "y_m": abs(float(geom.footprint_y[0]) - float(reference.footprint_y[0])),
+            },
+        ))
+        out.append(geom)
     account = FootprintSnapAccount(applied=applied, records=tuple(records))
     return tuple(out), account
 

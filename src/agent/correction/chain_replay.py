@@ -167,7 +167,8 @@ def replay_as_drawn_chain(
             f"{len(ladder)} rungs for {len(provenance.floors)} plan products"
         )
 
-    per_floor_geoms = []
+    per_floor_lines: list = []
+    per_floor_project: list = []
     declarations = []
     for row, level in zip(provenance.floors, ladder):
         raw = reading_bytes.get(row.input_id)
@@ -206,28 +207,53 @@ def replay_as_drawn_chain(
             )
         spans = opening_spans_from_artifact(artifact)
         lines, _ = cut_lines_from_wall_compilation(compilation.walls, spans)
-        envelope = project_cut_lines(
-            lines,
-            resolution_m=0.0,
-            resolution_source=_RESOLUTION_SOURCE,
-            source_resolved_sha256=compilation.content_sha256,
-            floor_id=floor_ref,
-            floor_name=floor_ref,
-            z_floor_m=level.z_floor_m,
-            ceiling_height_m=level.ceiling_height_m,
-            view_id=stem,
-            floor_ref=floor_ref,
-            origin_label=stem,
+        # W#6: the SAME exterior-frame declaration snap the production chain
+        # ran before its cut (pipeline.run_correction_evidence_chain) — the
+        # replay re-drives it from the marker's own frozen plan bytes, so a
+        # caller cannot swap the declaration between the chain and the
+        # writer without the producer byte-compare below going red.
+        from src.agent.correction.multifloor import read_declared_exterior_frame
+        from src.agent.correction.projection_bridge import (
+            snap_exterior_walls_to_declared_frame,
         )
-        per_floor_geoms.append(envelope.geometry)
+
+        frame = read_declared_exterior_frame(
+            json.loads(raw.decode("utf-8")), input_id=stem
+        )
+        lines, _frame_records = snap_exterior_walls_to_declared_frame(
+            lines,
+            overall_x_m=frame.overall_x_m,
+            overall_y_m=frame.overall_y_m,
+            thickness_callouts_mm=frame.thickness_callouts_mm,
+            input_id=stem,
+        )
+        # W#6: collect the per-floor lines + the EXACT projection arguments
+        # (the same fields the chain's cut_lines sidecar files) and hand the
+        # whole set to the SHARED reconciliation the production wiring used,
+        # so the replay's producer is the identical byte-level re-derivation.
+        per_floor_lines.append(lines)
+        per_floor_project.append({
+            "resolution_m": 0.0,
+            "resolution_source": _RESOLUTION_SOURCE,
+            "source_resolved_sha256": compilation.content_sha256,
+            "floor_id": floor_ref,
+            "floor_name": floor_ref,
+            "z_floor_m": level.z_floor_m,
+            "ceiling_height_m": level.ceiling_height_m,
+            "view_id": stem,
+            "floor_ref": floor_ref,
+            "origin_label": stem,
+        })
         declarations.append(
             read_plan_calibration_declaration(
                 json.loads(raw.decode("utf-8")), input_id=stem
             )
         )
 
-    snapped, _account = snap_footprints_to_reference(
-        tuple(per_floor_geoms), declarations
+    from src.agent.correction.multifloor import reconcile_floors_to_reference
+
+    snapped, _account = reconcile_floors_to_reference(
+        tuple(per_floor_lines), per_floor_project, declarations
     )
     producer = assemble_multifloor_geometry(ladder, tuple(snapped))
     # The producer is REBUILT here — a candidate-side tamper of the producer

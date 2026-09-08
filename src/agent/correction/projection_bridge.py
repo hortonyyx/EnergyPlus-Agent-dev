@@ -125,6 +125,322 @@ class CutLineV1:
     kind: Literal["wall", "opening", "collinear_gap"]
     origin_id: str
 
+
+# ── W#6 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-B): the exterior
+# axis frame taken from the DRAWING'S OWN DECLARATIONS, before the cut. ────── #
+@dataclass(frozen=True)
+class ExteriorFrameSnapRecord:
+    """One exterior edge's declaration snap, with the full derivation."""
+
+    axis: Literal["x", "y"]  # the WORLD axis the pos lives on
+    side: Literal["min", "max"]
+    wall_origin_id: str
+    pix_pos_m: float
+    declared_pos_m: float
+    displaced_m: float
+    matched_callout_mm: float
+    followed_opening_ids: tuple[str, ...]
+
+
+def snap_exterior_walls_to_declared_frame(
+    lines: Sequence[CutLineV1],
+    *,
+    overall_x_m: float,
+    overall_y_m: float,
+    thickness_callouts_mm: Sequence[float],
+    input_id: str = "",
+) -> tuple[tuple[CutLineV1, ...], tuple[ExteriorFrameSnapRecord, ...]]:
+    """W#6: replace each of the FOUR exterior edges' pos by its DECLARED axis.
+
+    WHY (dispatch S-B, measured): each floor's pixel-side projection is
+    perfectly self-consistent (ring == cells union, 0.0000 m²), but the
+    same wall edge lands ~7-14 mm apart in the two floors' independently
+    calibrated world coordinates, and the cross-floor snap that replaced
+    floor 2's ring with floor 1's broke that floor's own conservation
+    (0.3806 m² vs a 0.05 gate).  The correct axis positions are not
+    anywhere in the ink — the drawing declares them: ``overall_mm`` and
+    the exterior thickness callout give the axis frame
+    ``[t/2, overall − t/2]``, IDENTICALLY for every floor whose declared
+    chains agree.  Taking the four exterior edges from the declarations
+    makes the two floors' rings EQUAL BY CONSTRUCTION (assembly's
+    zero-tolerance compare passes with no snap) and keeps each floor's
+    conservation (the cells are partitioned from the SAME snapped lines
+    as the ring), so the cross-floor snap step has nothing left to do.
+
+    Scope (measured on sm25, dispatch S-B stop-trigger 1): INTERIOR wall
+    axes do NOT sit on the declared dimension ticks (nearest misses
+    121.6-2358.7 mm against a ~8 mm noise bound) — snapping them to the
+    nearest tick would DISPLACE geometry, not fix it.  Interior walls
+    keep their pixel-side positions; only the four exterior edges move.
+
+    All sizes are read from the data (guide §十三 #1): the frame comes
+    from ``overall_*_m`` + the matched thickness callout; the matched
+    callout is the one NEAREST the exterior wall's own resolved
+    thickness; and BOTH gates (thickness-match and off-frame) use the
+    same CAP limb the ladder/snap family already uses — half the
+    thinnest declared wall, ``min(thickness_callouts_mm)/2``.  Beyond
+    that cap this is not a representation fix ("which design is this")
+    and the existing gates own the refusal:
+
+      * ``EXTERIOR_WALLS_MISSING`` — a run axis with no wall line;
+      * ``EXTERIOR_THICKNESS_UNDECLARED`` — the exterior wall's resolved
+        thickness matches NO declared callout within the cap (the frame
+        cannot be derived from this drawing's own declarations);
+      * ``EXTERIOR_WALL_OFF_DECLARED_FRAME`` — the pixel-side exterior
+        edge sits further than the cap from its declared axis position
+        (a drawing error, ⛔ never silently absorbed here).
+
+    Openings riding an exterior wall follow it: their cut lines borrow
+    the host wall's pos verbatim (``cut_lines_from_wall_compilation``),
+    so any line within the exterior wall's own half-thickness band of
+    the old pos moves with it.  Interior walls are structurally outside
+    that band (their axis sits at least their own half thickness plus
+    the exterior wall's beyond the exterior axis), so they cannot be
+    caught by it.
+    """
+    for line in lines:
+        _validated_axis(line.axis)
+    if not lines:
+        raise ProjectionBridgeError("EXTERIOR_WALLS_MISSING", {"input_id": input_id})
+    callouts = [float(v) for v in thickness_callouts_mm]
+    if not callouts or any(v <= 0.0 for v in callouts):
+        raise ProjectionBridgeError(
+            "EXTERIOR_THICKNESS_CALLOUTS_MISSING", {"input_id": input_id}
+        )
+    cap_mm = min(callouts) / 2.0
+    cap_m = cap_mm / 1000.0
+    overall = {"x": float(overall_x_m), "y": float(overall_y_m)}
+
+    # The run-axis vocabulary is OPPOSITE the world axis it fixes (see
+    # ``_run_axis``): an "x"-run line varies in x, so its pos is a y value.
+    world_axis_of_run = {"x": "y", "y": "x"}
+    records: list[ExteriorFrameSnapRecord] = []
+    moves: dict[int, float] = {}  # index into `lines` -> new pos
+    for run_axis in ("x", "y"):
+        walls = [
+            (index, line) for index, line in enumerate(lines)
+            if line.axis == run_axis and line.kind == "wall"
+        ]
+        if not walls:
+            raise ProjectionBridgeError(
+                "EXTERIOR_WALLS_MISSING",
+                {"input_id": input_id, "run_axis": run_axis},
+            )
+        world_axis = world_axis_of_run[run_axis]
+        span_m = overall[world_axis]
+        for side, pick in (
+            ("min", min(walls, key=lambda pair: pair[1].pos_m)),
+            ("max", max(walls, key=lambda pair: pair[1].pos_m)),
+        ):
+            index, wall = pick
+            resolved_mm = 2.0 * wall.half_thickness_m * 1000.0
+            matched_mm = min(callouts, key=lambda c: abs(c - resolved_mm))
+            if abs(matched_mm - resolved_mm) > cap_mm:
+                raise ProjectionBridgeError(
+                    "EXTERIOR_THICKNESS_UNDECLARED",
+                    {
+                        "input_id": input_id,
+                        "wall_origin_id": wall.origin_id,
+                        "resolved_thickness_mm": resolved_mm,
+                        "nearest_callout_mm": matched_mm,
+                        "callouts_mm": callouts,
+                        "cap_mm": cap_mm,
+                    },
+                )
+            half_m = matched_mm / 2.0 / 1000.0
+            declared = (half_m if side == "min" else span_m - half_m)
+            displaced = abs(wall.pos_m - declared)
+            if displaced > cap_m:
+                raise ProjectionBridgeError(
+                    "EXTERIOR_WALL_OFF_DECLARED_FRAME",
+                    {
+                        "input_id": input_id,
+                        "wall_origin_id": wall.origin_id,
+                        "world_axis": world_axis,
+                        "side": side,
+                        "pix_pos_m": wall.pos_m,
+                        "declared_pos_m": declared,
+                        "displaced_m": displaced,
+                        "cap_m": cap_m,
+                    },
+                )
+            followed: list[str] = []
+            for other_index, other in enumerate(lines):
+                if other_index == index:
+                    continue
+                if (
+                    other.axis == run_axis
+                    and abs(other.pos_m - wall.pos_m) <= wall.half_thickness_m
+                ):
+                    moves[other_index] = declared
+                    if other.kind == "opening":
+                        followed.append(other.origin_id)
+            moves[index] = declared
+            records.append(
+                ExteriorFrameSnapRecord(
+                    axis=world_axis,  # type: ignore[arg-type]
+                    side=side,  # type: ignore[arg-type]
+                    wall_origin_id=wall.origin_id,
+                    pix_pos_m=wall.pos_m,
+                    declared_pos_m=declared,
+                    displaced_m=displaced,
+                    matched_callout_mm=matched_mm,
+                    followed_opening_ids=tuple(sorted(followed)),
+                )
+            )
+    snapped = tuple(
+        line if index not in moves else
+        CutLineV1(
+            axis=line.axis,
+            pos_m=moves[index],
+            along_lo_m=line.along_lo_m,
+            along_hi_m=line.along_hi_m,
+            half_thickness_m=line.half_thickness_m,
+            kind=line.kind,
+            origin_id=line.origin_id,
+        )
+        for index, line in enumerate(lines)
+    )
+    return snapped, tuple(records)
+
+
+# ── W#6 part 2: the cross-floor residual alignment, on the cut lines ──────── #
+@dataclass(frozen=True)
+class CrossFloorAlignRecord:
+    """One wall line's cross-floor alignment onto the reference floor."""
+
+    axis: Literal["x", "y"]  # run axis of the line
+    from_pos_m: float
+    onto_pos_m: float
+    displaced_m: float
+    followed_opening_ids: tuple[str, ...]
+
+
+def align_wall_lines_to_reference(
+    lines: Sequence[CutLineV1],
+    reference_lines: Sequence[CutLineV1],
+    *,
+    tolerance_m: float,
+) -> tuple[tuple[CutLineV1, ...], tuple[CrossFloorAlignRecord, ...]]:
+    """W#6: align an upper floor's WALL positions onto the reference floor's.
+
+    This REPLACES the geometry-level "replace the upper ring verbatim" snap
+    as the cross-floor reconciliation: the upper floor's cut lines are
+    aligned (pos only — the along extents are untouched) and the floor is
+    RE-PARTITIONED from the aligned lines, so its ring and its cells come
+    from the SAME arrangement again and coverage conservation survives the
+    alignment by construction (measured on sm25: verbatim-ring snapping
+    broke floor 2's conservation by 0.3806 m²; aligned-lines re-partition
+    keeps both floors at 0.000000 while making the rings bit-identical).
+
+    The alignment is a RESIDUAL absorption, ⛔ never a re-shape: a wall
+    moves only onto the reference floor's NEAREST same-axis wall position,
+    and only within ``tolerance_m`` (the caller derives it from the two
+    products' own calibration/thickness declarations — see
+    :func:`multifloor.footprint_snap_tolerance_m`).  A wall with no
+    reference counterpart within the tolerance keeps its own position —
+    genuinely different layouts (an upper floor's own interior walls) are
+    metres away from any reference wall and are never touched.
+
+    Openings follow their host wall exactly as in the exterior-frame snap:
+    an opening cut line borrows its host's pos verbatim upstream, so any
+    opening within its own (host-inherited) half thickness of an aligned
+    wall's OLD pos moves with it.
+    """
+    for line in lines:
+        _validated_axis(line.axis)
+    ref_pos = {
+        axis: sorted({
+            float(line.pos_m) for line in reference_lines
+            if line.axis == axis and line.kind == "wall"
+        })
+        for axis in ("x", "y")
+    }
+    records: list[CrossFloorAlignRecord] = []
+    aligned: list[CutLineV1] = []
+    pending_openings: list[tuple[int, CutLineV1]] = []
+    moves: dict[int, float] = {}
+    followed_by_wall: dict[int, list[str]] = {}
+    for index, line in enumerate(lines):
+        if line.kind != "wall":
+            pending_openings.append((index, line))
+            continue
+        candidates = ref_pos[line.axis]
+        if not candidates:
+            aligned.append(line)
+            continue
+        nearest = min(candidates, key=lambda p: abs(p - line.pos_m))
+        if abs(nearest - line.pos_m) > tolerance_m or nearest == line.pos_m:
+            aligned.append(line)
+            continue
+        moves[index] = nearest
+        records.append(
+            CrossFloorAlignRecord(
+                axis=line.axis,
+                from_pos_m=line.pos_m,
+                onto_pos_m=nearest,
+                displaced_m=abs(nearest - line.pos_m),
+                followed_opening_ids=(),
+            )
+        )
+        aligned.append(
+            CutLineV1(
+                axis=line.axis,
+                pos_m=nearest,
+                along_lo_m=line.along_lo_m,
+                along_hi_m=line.along_hi_m,
+                half_thickness_m=line.half_thickness_m,
+                kind=line.kind,
+                origin_id=line.origin_id,
+            )
+        )
+    # openings follow their (already-moved) host's OLD position, in band
+    for _index, opening in pending_openings:
+        host = next(
+            (
+                (wall_index, moves[wall_index])
+                for wall_index, wall in enumerate(lines)
+                if wall.kind == "wall"
+                and wall.axis == opening.axis
+                and wall_index in moves
+                and abs(opening.pos_m - wall.pos_m) <= opening.half_thickness_m
+            ),
+            None,
+        )
+        if host is None:
+            aligned.append(opening)
+            continue
+        wall_index, new_pos = host
+        followed_by_wall.setdefault(wall_index, []).append(opening.origin_id)
+        aligned.append(
+            CutLineV1(
+                axis=opening.axis,
+                pos_m=new_pos,
+                along_lo_m=opening.along_lo_m,
+                along_hi_m=opening.along_hi_m,
+                half_thickness_m=opening.half_thickness_m,
+                kind=opening.kind,
+                origin_id=opening.origin_id,
+            )
+        )
+    if followed_by_wall:
+        # `records` was appended in the same order the walls entered `moves`
+        # (dict iteration order == insertion order), so they zip 1:1.
+        records = [
+            CrossFloorAlignRecord(
+                axis=record.axis,
+                from_pos_m=record.from_pos_m,
+                onto_pos_m=record.onto_pos_m,
+                displaced_m=record.displaced_m,
+                followed_opening_ids=tuple(
+                    sorted(followed_by_wall.get(wall_index, ()))
+                ),
+            )
+            for record, wall_index in zip(records, moves)
+        ]
+    return tuple(aligned), tuple(records)
+
+
     def __post_init__(self) -> None:
         _validated_axis(self.axis)
 
