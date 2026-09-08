@@ -1,12 +1,16 @@
-# 归档索引
+# 历史与恢复索引
 
-归档保存原文与恢复依据，不是当前管理入口。历史条文中的批准、强制测试和批次目标均不自动恢复执行。
+归档保存原文和恢复依据，旧文中的批准、测试、批次与待办不自动成为现行要求。当前规则从 [Agent.md](../Agent.md) 开始。
 
-- [2026-09-08 接手前管理文档](2026-09-08_pre_takeover/)：原入口、计划、决策、三个旧指南和原阶段契约。
-- [2026-09-08 全部工作树清单](2026-09-08_takeover_inventory.json)：原路径、HEAD、脏文件状态与保留方式。
-- [2026-09-08 Codex 记忆迁移](2026-09-08_codex_memory/README.md)：5 份原记录的完整快照、同步位置与旧口径处置。
-- `archive/2026-09-08/branches/*`、`archive/2026-09-08/worktrees/*` Git 标签：旧分支与 detached HEAD。
-- 完整本地 bundle 与未提交文件保存在仓库 `backup/2026-09-08_takeover/`；含本地私有配置，不推送。
+| 归档 | 保存内容 |
+|---|---|
+| [接手前核心管理稿](2026-09-08_pre_takeover/) | 前次保留的 8 份原入口、计划、决策与长指南 |
+| [整套管理重建快照](2026-09-08_management_rebuild/README.md) | 本轮重建前 74 份文件原文、哈希与逐文档处置 |
+| [Codex 记忆](2026-09-08_codex_memory/README.md) | 5 份原记忆/索引/探测文件及同步位置 |
+| [Claude 记忆](2026-09-08_claude_memory/README.md) | 两处项目目录 187 份 Markdown 原样归档，本地改为索引 |
+| [工作树存档清单](2026-09-08_takeover_inventory.json) | 原 67 棵树的路径、HEAD、状态及保留方式 |
 
-详细恢复命令与验证见 [接手记录](../logs/worklog/2026-09-08_takeover.md)。
-其余既有归档保留原样，按需引用；当前口径见 [项目说明](../README.md)。
+Git 归档标签 `archive/2026-09-08/branches/*` 与 `archive/2026-09-08/worktrees/*` 保存旧分支和 detached HEAD。完整 bundle、脏文件差异和私有配置在既有本地 `backup/2026-09-08_takeover/` 中，不推送凭据。
+恢复命令和实际还原验证见 [接手记录](../logs/worklog/2026-09-08_takeover.md)，本轮额外检查点见 [管理重建记录](../logs/worklog/2026-09-08_management_rebuild.md)。
+
+历史快照保持原文，其内部相对链接按原仓库位置写成，未全部重写；需要原上下文时使用对应基线 checkout。现行兼容页同时提供新说明和原稿的直接路径。

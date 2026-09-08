@@ -1,7 +1,7 @@
 # 产品目标与协作边界
 
 2026-09-08 从 Codex 的 09-07 用户讨论记忆补入仓库。来源、原文及新旧条款处置见 [迁移记录](archive/2026-09-08_codex_memory/README.md)。
-本页保存仍适用的目标；当前进度见 [plan.md](plan.md)，开发方式以 [AGENTS.md](../AGENTS.md) 为准。
+本页保存仍适用的目标；当前进度见 [plan.md](plan.md)，开发方式以 [Agent.md](Agent.md) 为准。
 
 ## 交付与研究问题
 

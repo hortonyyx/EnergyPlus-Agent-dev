@@ -13,9 +13,9 @@
 
 ## 当前已有路径
 
-`run_stage.py` 按输入契约分派 legacy / as-drawn。as-drawn 已接入多层证据校正、楼层协调、门窗构建和最终校正产物归档。
+`run_stage.py` 按输入契约分派 legacy / as-drawn。as-drawn 已接入多层证据校正、楼层协调、补窗和最终校正产物归档。
 实现见 [pipeline.py](../../src/agent/pipeline.py)、[correction](../../src/agent/correction/)、[CLI](../../scripts/tool_scripts/run_stage.py)。
-最新 case 已有 31 窗的校正产物，建模阶段仍有短边检查失败；详见 [当前计划](../plan.md)。
+注意 `flow` 的 reading 阶段只检查已生成观测，尚不负责从原图自动生成；case 状态见 [当前计划](../plan.md)，完整实现边界见 [图纸架构](../architecture/reading_pipeline_architecture.md)。
 
 ## 向混合入口演进
 

@@ -25,3 +25,5 @@
 - 09-07 的模型通道探测和计费资料已归档，本轮没有重测、查询余额、安装调度器或改变模型配置。
 
 既有脚本：[GLM](../../scripts/glm_code.sh)、[DeepSeek](../../scripts/deepseek_code.sh)。具体运行参数看实际脚本及有效接口。
+
+当前 flow 的配置生效范围有接线差异，固定本次全链模型时按 [case 指南](new_case_guide.md) 设置子进程 `EP_AGENT_LLM_CONFIG`；不要只凭 `--llm-config` 推断前面各阶段用了指定模型。

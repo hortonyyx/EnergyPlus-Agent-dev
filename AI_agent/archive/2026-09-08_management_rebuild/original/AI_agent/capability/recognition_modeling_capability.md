@@ -1,0 +1,208 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
+# 识图 → 建模 能力提升（长期主线活文档）
+
+> **术语对照（2026-06-10 改名后）**：本文历史叙述沿用旧称——phase1=0_reading（识图）/ phase2a=1_correction（校正）/ phase2b 已拆为 2_modelling+3_split_pairing（几何，代码内核）+4_mep（物理）+5_intakeoutput（装配）；代码模块 `src/agent/pipeline.py`（`run_pipeline`）。详见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。
+
+> **定位**：识图→建模质量是项目长期主线工作的主要对象。本文档管理这条线的**问题框架 / 诊断证据 / 设计哲学 / 改进方向 / 待定取舍**，是一份持续迭代的活文档。
+>
+> 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；[../architecture/geometry_first_zonification.md](../proposals/geometry_first_zonification.md) 是**并行的另一条腿**（再拓扑：抽象成热区积木、丢弃真实几何，EP 鲁棒性最优但变化最大）。**本文档 = 忠实建模 leg**（保留真实建筑几何的容差重生成），是**质量提升的设计与决策载体**，且有 beyond-EP 的独立产品价值（图纸→建筑模型小 Agent）。两腿并行决策见 §8。skill 的具体落地仍在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)。
+>
+> _建档 2026-05-28。首轮内容 = sm21 三模型 phase2 诊断 + 容差重生成设计讨论（讨论已捕获，未落地实现）。_
+>
+> **⚠️ 术语对齐（2026-06-07，与用户锁定）**：**两条线（忠实建模 / 热区再拓扑）只在 zonification 的方式与粒度上分叉**——忠实 = 房间=zone（需把图纸校正到高精度）；热区再拓扑 = 平面上先划少而大的热区再建模（省校正精度）。**校正（partA）/ 几何建模 / 切配 三段两线共用**。**切配**（面切成 EP 一一对应）= **独立、确定性、与两条线无关**（下游另有人做，技术参考 [../reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)）。因此本文 §8 早期把"A 类水密装配"当作两腿差异点的框架**已被 §8 表下的更正注修正**：水密=切配，对两腿是同一个确定性算法，不是差异点。zonification 实现的开放调研 = [../logs/reviews/request/2026-06-07_zonification_approach_request.md](../logs/reviews/request/2026-06-07_zonification_approach_request.md)。
+
+---
+
+## 1. 核心框架：定性 > 定量
+
+EnergyPlus 仿真真正在意的是**定性约束**，而非毫米级坐标：
+
+- zone 闭合（manifold / 无缝）
+- 相邻 zone 贴合、InterZone 面成对
+- 窗 ∈ 父面、窗不跨 zone
+- 面积 / 体积 / WWR 在误差范围内（量级 ±5%）
+
+**死扣数值是病根**。真实图纸天然带这些"合不上"的来源：
+
+1. **标注本身缺失或有误**（尤其复杂平面，中间常缺尺寸段）。
+2. **定位方式 vs 墙厚冲突**：尺寸标注常按轴线/墙中心起，但总尺寸和立面又按外墙外边画 → 子链之和对不上总尺寸。
+3. **等分房间被墙厚扰动**：名义等分的开间，因外墙/内墙厚度不一致，实测开间会有细微差异。
+
+这些误差对仿真**不重要**。所以方向是：**给误差范围，让模型在容差内自己判断、修正、再生成；强约束定性优先于定量。**
+
+---
+
+## 2. 诊断证据：sm21 案例研究（2026-05-28）
+
+实验设置：固定 phase1（一份矢量 JSON），phase2 用三个模型各跑一遍（DeepSeek 脚本 / Opus 子代理 / Sonnet 子代理，均图像盲、零会话上下文），下游统一 DeepSeek 9 subagent。
+
+### 2.1 phase1 自身内部矛盾（根因，非感知缺失）
+
+2f 南向隔墙：
+- 墙体笔画 `S8/S9/S10` = x **4.95 / 7.50 / 10.05** → 房宽 4.95/2.55/2.55/4.95（"两大中间小"，错）
+- 同一份 phase1 抄的尺寸链 `D19–D30` 编码隔墙中线 = **3.75 / 7.50 / 11.25** → **四等分 3.75m**（对）
+- phase1 self_check 自认笔画是 "estimated from dim chains"。
+
+→ phase1 **把估算的笔画坐标当测量值吐出**，与它自己抄对的尺寸链打架。
+
+走廊墙左侧 0.24m 缝：2f 走廊隔墙 `S5/S6` 起点 = `[0.24, 5.00]` / `[0.24, 3.00]`，**不是 x=0**。phase1 把内隔墙描到西外墙**内表面**（内缩 240mm，正好等于图上 `240` 墙厚标注），没连到外墙中线。**内墙(双线按内表面)/外墙(粗线按中线)画法差异未统一到中线坐标系**。1f 同。
+
+南立面 F1 左侧短窗（S7）位置 z 偏：phase1 已自标低置信（900/600/1500 链）。
+
+### 2.2 三模型 phase2 对比
+
+| 模型 | 2f 南隔墙 | 几何正确性（对真实设计） | EP 结局 | 行为本质 |
+|---|---|---|---|---|
+| **Opus** | 3.75/7.50/11.25（读尺寸链） | ✅ 最好（四等分对） | ✅ 完成 / 12 warning（1 CHKSBS=F1 西南低置信短窗超墙） | 按 rules §2.5 "trust the dim" 用尺寸链推翻笔画估值，**显式写明仲裁理由**——不是看图，是选了更权威通道 |
+| **Sonnet** | 4.95/7.50/10.05（信笔画） | 忠实复原 phase1（即 phase1 的错） | ❌ **EP 段错 SIGSEGV (exit 139)** | 忠实转写——这是 phase2 本分，但 phase1 给错了 |
+| **DeepSeek** | 0/4.11/5.31/10.89（贴窗边尺寸点） | ❌ 最差（1.2m 幽灵房 S2=office2 窗宽） | ✅ 完成 / 6 warning | 既不忠实笔画也不取链中线，抓错尺寸点 |
+
+### 2.3 Sonnet EP 段错真因（已抠顶点确认）
+
+phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**（跨图 5cm 抖动）。下游做跨层楼板配对时，F1 中间南办公室天花（4.90–10.10）切片配 F2 上方房间，错位必然切出 **4.90–4.95 / 10.05–10.10 两条 5cm×3m 退化碎片**（`F1_SM_Office_Ceiling_S2` 顶点 = x[4.90,4.95]）→ EP 在输入处理阶段段错、core dumped、崩在写 .err 前所以 .err 空。
+
+对比：Opus 错位是 1.15m（4.90 vs 3.75）够粗、不成碎片 → EP OK。DeepSeek 碰巧没踩 <0.1m 碎片 → EP OK。
+
+### 2.4 三条关键教训
+
+1. **EP 跑通 ≠ 几何对**：DeepSeek 几何最差（幽灵房）却 EP 最干净；Sonnet 几何最忠实却段错。验收不能只看 EP 通过。
+2. **忠实于 phase1 ≠ 正确**：当 phase1 自相矛盾时，忠实转写会忠实地把错误带下去（Sonnet）。
+3. **Opus 的"读尺寸链重新理解一次"正是要让所有模型强制做的事**——把偶然做对升格为范式。
+
+---
+
+## 3. 设计哲学：容差内重生成 + 定性优先
+
+把 phase2 从**转写器**升格为**约束求解 + 重生成器**：拿 phase1 的感知（笔画 + 尺寸链 + 置信度），在误差容差内重建一个 EP 合法、定性自洽的拓扑，而不是逐字照搬坐标。一句话：**结合尺寸链和图形再生成一次。**
+
+---
+
+## 4. 关键架构判断：重生成属于 phase2，phase1 保持忠实感知
+
+两步法命根 = **误差预算分离**（phase1 感知图绑定 / phase2 推理图盲）。本轮 4 条改进几乎全是推理/重建操作，**应全部放进 phase2**，phase1 不动这个原则：
+
+- **phase1 配套小改**：别再吐"估算的隔墙坐标"冒充测量值；把笔画 / 尺寸链作为**两个独立通道 + 置信度**交出，不预先替 phase2 仲裁。
+- **phase2 重写为约束求解器**：已同时拿到两个通道，不必新增中间步骤。
+- **`corrections[]` 审计日志（硬要求）**：phase2 每做一次修正记一条（如"闭合西走廊 0.24m 缝"、"按尺寸链总和=15.0 归一为四等分 3.75"）。**没有这条日志，放宽约束 = 放弃可解释性与可评测性**，误差归因（看错 vs 改错）会失效。
+
+---
+
+## 5. partA 容差校正约束集（设计定稿，2026-06-07 审阅后）
+
+> 取代原"四条改进方向"（用户初步想法）。Codex 审阅 verdict = **整体 sound，3 处修正后逐篇落地**，8 条 finding **全部采纳**。请求 [request](../logs/reviews/request/2026-06-07_partA_correction_constraint_set_request.md) + 审阅 [review](../logs/reviews/verdict/2026-06-07_partA_correction_constraint_set_review.md)。**partA = 校正层**：phase1 噪声/矛盾感知 → 干净自洽、EP 友好的几何基元，并记录每次修正。
+
+### 5.1 切割轴：确定性 vs 判断（= 未来 codify 接缝）
+
+按**操作性质**切，不按现象。这根轴 = 确定性 vs 判断 = 未来切配/idfpy 成熟时可整篇抬走变代码的接缝（确定性篇抬走、判断篇留 LLM）。**审阅修正（finding 2）**：A1/A2 的"确定性"仅在**证据已分级、同一意图墙/轴已判定之后**成立；证据身份、同墙聚类、合法错位 vs 抖动的判别**必须有升级到 A3 的机制**——不是纯机械。
+
+### 5.2 五篇分文档
+
+| 篇 | 类型 | 管什么（审阅后） |
+|---|---|---|
+| **A0 容差·证据·审计·校验契约** | 脊柱（**升级版**，finding 1） | 容差**分级**（非只数值）+ **证据分级** `direct_measurement\|transcribed_dimension\|estimated_stroke\|inferred_topology\|prior\|unknown` + confidence 模型 + **corrections/conflicts/unsupported schema**（source ids/原值/解析值/rule id/阈值/delta/前后置信/是否改拓扑）+ validation schema + **method profiles**（room_identity/use_grouped_rooms/perimeter_core 各自严格度，finding 7）+ **上游 phase1 provenance 输入契约**（finding 8）|
+| **A1 坐标归一化** | 确定性 over typed evidence（+ 升级路径） | 确定路径：世界系 / plan·facade local→world / z-stack / **已知墙厚**的中线转换。升级→A3：墙侧未知 / 缺墙厚 / 原点冲突 / 立面-平面朝向冲突 |
+| **A2 正则化/吸附** | 确定性 over typed evidence（+ 升级路径） | 确定路径：规范轴集 / 跨层聚类（**仅当证据说"同一意图墙/轴"**）/ canonical 后再量化 / 子链=总长闭合 / 最小碎片防止。升级→A3：错位超抖动容差 / 语义证据说不同墙·shaft·楼梯 / 聚类会删真房 → A3 或 unsupported |
+| **A3 冲突仲裁与补全** | 判断（**mode-aware**，finding 7） | 显式冲突类下的通道优先级 / 缺失补全 / 先验使用规则 / unsupported 策略 / 置信降级 / 决策后**回调 A2 重跑**。perimeter_core 下保守调用，room_identity 下才激进 |
+| **A4 建筑常识先验库** | 数据（**硬门控**，finding 5） | 窗台·窗高 / 门·窗宽 / 模数 / 各 space type 房间尺寸先验。**先验只出 warning/score 不直接 correct**；仅证据缺失·矛盾·低置信时才驱动修正；**语义证据支持的异常小房保留或标 conflict**（不归一）；每次用先验记 `prior_id`；**按 building/space type 分型**，禁全局单一最小房表 |
+
+### 5.3 落地序（审阅后微调，finding 3/4）
+
+- **撰写/落地序**：A0 → **（A1-min + A2 同批）** → A4 stub → A3。**不把 A2 独立写在 A1 前**（A2 需坐标系/中线/立面映射前提，先写 A2 会把这些暗埋进去拆不干净）。
+- **运行时（带反馈，非单向）**：`A1 → A2-detect → A3-resolve(+A4) → A2-apply → validate`。例：尺寸链 vs 笔画轴冲突，A2 检出、A3 选通道、A2 再确定性建规范轴集。
+
+### 5.4 每篇统一 header 约定（finding 3）
+
+每篇开头声明：消费的 input artifact 字段 / 可写的 output 字段 / 何时必须吐 `corrections[]` / 何时必须吐 `conflicts[]`·unsupported 而非硬修 / 是否可改拓扑。这条 header 约定防止五篇退化成五坨 prompt 散文。
+
+### 5.5 corrections[] 分级（finding 6）
+
+硬要求，但只对**实质改动**。A0 区分四类事件：**normalization**（输出精度内取整，无害）/ **corrections**（改了源值·拓扑·闭缝·吸轴·选了某证据通道）/ **conflicts**（未解或超阈歧义）/ **unsupported**（当前不能安全修）。硬规则：凡改几何超出输出取整、改拓扑、改证据权威、或调用先验，**必须记**；记不出 source ids + rule id 就标 unsupported、别静默通过。
+
+### 5.6 验收（写完 skill 后据此判）
+
+- sm21 全病灶可解释：0.24m 墙侧缝 / 5cm 跨层抖动 / 尺寸链 vs 笔画冲突 / 1.2m 幽灵房疑似。
+- 每条 correction 有 source ids + rule ids。
+- A2 不得仅凭坐标接近合并轴（语义证据说不同则不并）。
+- A4 先验不得覆盖高置信证据、不得抹掉带标签的 service/shaft/WC 房（否则标 conflict）。
+- perimeter_core 模式可跳过高细节内房仲裁，同时保住外壳/立面/WWR 正确。
+- 旧 phase1 JSON 可降置信运行，但新 provenance 字段须显式声明需求。
+
+---
+
+## 6. 待定取舍（已拍板 / 已被审阅解决）
+
+1. **重生成放哪** → phase2 内（容差校正 partA + zonification + 几何建模），无独立 reconciliation pass。✅
+2. **`corrections[]` 硬要求** → 是，但分级、只对实质改动（§5.5）。✅
+3. **先验红线** → 确认，且加硬门控（§5.2 A4 / finding 5）：先验只出 score、语义证据优先、记 prior_id、按 space type 分型。✅
+4. **阈值框架** → A0 定容差分级 + method profiles（§5.2 A0）；具体数值随首篇落地时锁。✅
+
+---
+
+## 6.5 partA P0 落地结论 + 待完善（2026-06-07，用户认定 P0 通过）
+
+**P0 通过**：partA 从"一步出"重构为**三段解耦**（phase2a 校正 LLM → 确定性核 代码 → phase2b 建模 LLM），中间态 `CorrectedGeometry` 物化（埋点/换模型/baseline diff 基础就位）；A0-A4 五篇全落；确定性核**结构性消碎片**（sm21 gate 4→0）；rules.md OBC=Surface 修 + 门补 OBC 盲区。每个失败现已精确归层。
+
+**待完善（后续，不阻塞 baseline）**：
+1. **确定性核完善（用户 2026-06-07 标记）**：当前轴吸附取簇**均值**（4.90/4.95→4.925），出现 **mm 级非栅格值**。需**统一误差约束**——吸到 `SNAP_GRID`(50mm) 栅格而非任意均值，整条管线容差口径统一（A0 registry 是单一真源，落实到核的实现）。
+2. **先验共享（用户 2026-06-07 提出）**：A4 当前是**几何先验**(窗/门/房尺寸)，只在 phase2a 被 A3 用；但**建模(phase2b)也需常识先验**(U值/灯·人密度/时间表/玻璃属性/WWR目标，当前散在 rules.md Step7+下游)。应把先验做成**两段共享参考库**(几何+MEP 一处)，校正与建模都查，而非割裂。
+3. **EP 绿瓶颈 = 切配层**：互逆配对(走廊跨房拆墙回指)LLM 记账不稳，门精准抓、无崩溃。**定性更新（2026-06-09，见 §7 末）**：sm20/sm21 对照证明这不是"LLM 做不到"——一步出 LLM 切配做得对（sm20 三层 7/8/4 也 0 门 issue），是 **staged 架构把跨层切配孤立成 LLM 机械记账杂活才退化**。决策：**切配（及全部 cell→面几何生成）确定性化、在我方核之后做**（[split_pairing_kernel_reference §6](../reference/split_pairing_kernel_reference.md)，反转"归下游"旧定）。
+4. **phase2a 判断质量**：2f 南向布局仍"两大两小"未仲裁四等分(顶点层)，待 baseline 后单独攻。
+
+---
+
+## 7. 状态与下一步
+
+- 状态：**partA P0 通过**（2026-06-07，详 §6.5）。五篇 A0-A4 全落、三段解耦（2a校正→确定性核→2b建模）+ 中间态物化、确定性核结构性消碎片、rules.md OBC=Surface 修 + 门补盲区。phase1/phase2 skill + 中间态见 §6.5 + [downstream_agent_changes.md 2026-06-07](../logs/downstream_agent_changes.md)。
+
+- **下一步 = 明天三优先级（用户 2026-06-07 收工定）**：
+  1. **重新规范子流程↔skill↔中间产物**：明确每段（phase1 识图 / phase2a 校正 / 确定性核 / phase2b 建模 / 下游）各喂哪些 skill、产物形式（尤其 §6.5#2 先验两段共享、CorrectedGeometry 边界、A4 几何 vs MEP 先验割裂）。
+  2. **修 partA 暴露的问题**（§6.5 待完善）：① 确定性核统一误差约束（吸到 SNAP_GRID 而非簇均值，灭 mm 级非栅格值）；② 先验共享库；③ phase1 上游 provenance 契约（别把估算笔画当测量值吐——见下方 sm20/sm21 归因）。（切配互逆配对属切配轨，非 partA。）
+  3. **建初步 baseline**：量化门过率/EP过率/issue 分类，**调到 deepseek phase2 几何建模准确的水平**（对标 sm20 一步出干净那种）。
+
+- 对应任务：[plan.md](../plan.md) B1.5.b + B2-B4。
+- sm21 实验产物（未 commit）：`phase2_intake/{deepseek,opus,sonnet,staged_p0,staged_p0_obcfix}/` + `output_{partA_p0,staged_e2e,staged_obcfix}/`。
+
+### 7.1 sm21_pre 端到端跑 + 切配定性反转 + 目标架构定调（2026-06-09）
+
+**A. 优先级 #2 推进**：确定性核 #2.1（吸 SNAP_GRID + 窗户分级）/ #2.4（连接性补缝 300mm）/ #2.2（MEP 去混合为 [priors/mep.md](../../skills/intake_pipeline/4_mep/mep.md) draft 种子）全落（[downstream_agent_changes 2026-06-09](../logs/downstream_agent_changes.md)）。新增 [CorrectedGeometry 渲染器](../../scripts/tool_scripts/render_corrected_geometry.py)（phase2a 产物首次可肉眼看）。
+
+**B. 固化规范流程 + sm21_pre 干净跑**：plumbing 固化产物布局（`<case>/{phase1, phase2/{partA,partB}, EP_run}`，[pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）。新建 `smalloffice_21_pre`（phase1=Sonnet sub-agent，余全 DeepSeek）完整跑通：phase1 识图忠实、#2.1 验证（56 坐标全栅格、0 mm 级值，核成 no-op 安全网=phase2a 自己做对了）、phase2b+下游全跑、**门抓 12 切配 issue/EP 未启动**。
+
+**C. 切配定性反转（重要）**：sm20/sm21 对照（见 [split_pairing_kernel_reference §2.5](../reference/split_pairing_kernel_reference.md)）——**一步出 LLM 切配做得对**（sm20 三层 7/8/4 更难也 0 门 issue、真切子面），**staged 退化**（sm21 12/26 issue）。根因 = staged 把跨层切配孤立成 LLM 机械记账杂活，非 LLM 不能、非信息变少（cells 含全部跨层几何且更干净）。**推翻 §6.5#3 + [kernel ref](../reference/split_pairing_kernel_reference.md) 旧"归下游"定性**：切配收回我方。
+
+**D. 目标总架构定调（用户）**：
+```
+识图        校正                建模·几何          切配·仿真          物理挂载         下游·组装
+phase1      phase2a判断+确定性核  cells→zones+面     面切分+互逆配对      材料/时间表/HVAC  9 subagent
+(LLM/VLM)   (LLM + 代码)        (确定性·待建)       (确定性·待建)       (LLM/模板)       (确定性装配)
+```
+一刀切分：**LLM 只做 感知 + 校正判断 + 物理语义；代码做 所有几何（建模+切配）+ 装配**。「建模·几何」+「切配·仿真」都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 rules.md §4/§2.6 + surface_agent 的脆弱几何指令；下游 surface_agent 退化成忠实誊写（不动契约、不动下游代码）。这与 phase3（MEP 撰写分段）同向：几何彻底确定性后 LLM 只剩语义。**待实现**（矩形现可落 / 非矩形随 B5 上 shapely）。
+
+---
+
+## 8. 两条腿并行：忠实建模 leg（本文档）vs 再拓扑 leg（2026-05-29 决策）
+
+**定调（用户）**：两条腿并行推进，不二选一。
+
+- **本文档 = 忠实建模 leg**：phase2 作容差重生成约束求解器，**保留真实建筑几何**（真墙、真房间）。§1-§7 全部适用——A 类（水密：闭缝/吸附/生成规则）和 B 类（仲裁/常识/审计）**都在 phase2 解**，没有剖分内核兜底水密。
+  - **本项目之外的价值**：若真能约束出高建模质量，等于实现了一个 **图纸 → 建筑几何模型** 的小 Agent 流程。这个忠实保留建筑空间的能力本身就有产品价值，不止服务 EP。
+- **[geometry_first_zonification.md](../proposals/geometry_first_zonification.md) = 再拓扑 leg**：抽象成热区积木块、**丢弃真实建筑空间信息**；A 类降为内核构造不变量、B 类迁入 phase2a 判断层。对 EP 鲁棒性最优，但**相对原始信息变化最大**（最激进）。
+- **关系与节奏**：再拓扑确实最好（EP 几乎必通），但变化大；先作**强力支线**推进、实验稳定了再切过去。忠实 leg 因其 beyond-EP 价值**独立继续落地**，不被再拓扑取代。
+
+### 8.1 两 leg 对 A/B 两类问题的处置差异
+
+> A 类 = 几何装配/水密性（"积木怎么拼合法"）；B 类 = 噪声/矛盾感知下的判断（"说谎的图纸里正确几何是什么"）。
+
+| | 忠实建模 leg（本文档） | 再拓扑 leg |
+|---|---|---|
+| A 类（水密装配） | phase2 重生成求解器解（§5.1/§5.4 生成规则**全保留**） | 内核构造不变量（自动免费） |
+| B 类（噪声仲裁/常识） | phase2 解（§5.2/§5.3/corrections **全保留**） | phase2a 判断层解（仍需） |
+| 真实建筑几何 | **保留**（产品价值所在） | 丢弃（抽象成块） |
+| 崩溃安全网 | **保留**（错几何仍可能 EP 段错 = 有用信号） | **撤除**（任何剖分都水密必通 → 错而不崩，B 类成唯一守门人） |
+| 相对原始信息变化 | 小（忠实） | 大（激进） |
+
+> **更正注（2026-06-07，术语锁定后）**：上表「A 类（水密装配）」一行**已不成立作差异点**。按 2026-06-07 约定，水密装配 = **切配**（面切成 EP 一一对应）= **确定性算法、对两腿是同一个**（两腿产出的 zone 体块粒度不同，但都喂同一个切配），下游另有人做、不归本项目管。因此两腿的真正差异**只在 zonification 的方式与粒度**（真实房间=zone vs 平面先划少而大的热区）+ 随之而来的**校正精度需求**（忠实需高、再拓扑省）。「真实建筑几何 保留/丢弃」「相对原始信息变化 小/大」两行仍成立；「崩溃安全网」一行的口径也随切配统一为确定性而变（两腿都靠确定性切配水密通过，崩溃安全网论点需重审，待 partA 讨论时一并处理）。
+
+### 8.2 共享基础设施
+两 leg 共用：phase1 忠实感知（笔画+尺寸链+置信度双通道）、两步法误差预算分离、下游 9 subagent、InterZone 门、**校正(partA)、几何建模、切配**。差异只在 **zonification 这一段怎么从平面定出 zone**——忠实 leg 是"房间=zone 保留真墙"，热区再拓扑 leg 是"平面先划少而大的热区"。

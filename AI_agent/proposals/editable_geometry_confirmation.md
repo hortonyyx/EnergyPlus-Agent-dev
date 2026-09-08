@@ -1,57 +1,13 @@
-> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+# 几何查看、修改与确认
 
-# Editable geometry-confirmation step — design notes (roadmap, not yet built)
+状态：目标已确认，完整编辑实现尚未交付。已有 [离线交互式 3D 查看器](../../scripts/tool_scripts/render_geometry_viewer.py) 和 flow 的几何确认/恢复入口，不能因此宣称已能墙推拉或自然语言回写。
 
-> **Status: DESIGN / DEFERRED (2026-06-19).** Recorded for later detailed discussion; nothing implemented.
-> Owner decision pending on channel + phasing (see §4). The read-only inspection viewer (#3,
-> `scripts/tool_scripts/render_geometry_viewer.py`) is the substrate this would extend.
+用户应能在仿真前查看、补充和修改模型。直接操作与自然语言指令尽量调用同一种几何动作，例如移动窗、调整墙或纠正楼层信息，记录修改对象、参数和来源。
 
-## 1. Goal
-Make the geometry-confirmation gate (contracts §1 2/3 ②a; the human gate before the near-deterministic
-downstream) **lightly editable**, so the user can fine-tune the model in 3D before committing. Result: the
-pipeline after this step is almost fully determined → the outcome is far less black-box.
+编辑应更新权威源几何，再重建受影响的派生面、配对和查看产物，执行有关检查并刷新确认状态。内核重建本身不能保证一定得到有效结果；失败要可见且可撤销，不能只改浏览器 mesh。
+共享墙的调整应考虑两侧房间与宿主开口。源隔断编辑和下游热区合并分开，不能为仿真方便覆盖建筑房间表达。
 
-Editing abilities, by priority:
-1. **Move a window** — 3-axis sliders (really 2 DOF on the facade plane + optional size).
-2. **Push/pull a wall** — Rhino-style: user first sets a **grid-granularity slider**, then push/pulls a face in
-   grid steps.
-3. **Adjust material (much later)** — click a surface → show its construction/material → natural-language edit.
+第一步可选一个窗口移动或已知几何补正形成最小回写闭环。当前查看器是静态 HTML，持久化通道可在局部服务与导出修改补丁之间按实际需求选择；尚未决定，不预设大型前端工程。
 
-## 2. First principle — edit the AUTHORITATIVE geometry, never just the mesh
-The pipeline's geometry truth is the **1_correction snapped geometry** (`correction_geometry_snapped.json`:
-cells / floors / windows). The deterministic kernel (2_modelling + 3_split_pairing) rebuilds faces / pairing
-from it. So every edit must:
-
-    edit → write back to the correction layer → re-run the deterministic kernel → regenerate viewer
-
-Editing `building_geometry.json` directly would bypass the kernel and risk an EP-invalid / inconsistent state
-(broken closure / pairing). Routing all edits through the kernel keeps the result EP-valid by construction.
-
-The geometry-confirmation **digest** (`geometry_checkpoint_digest`, approval.py) gives the re-confirm loop for
-free: edit → geometry changes → digest changes → stale approval → user must re-confirm before downstream runs.
-
-## 3. Edit → authoritative-layer mapping
-| edit | correction-layer change | kernel effect |
-|---|---|---|
-| move window | window's (facade, along-facade span, z-range) on its wall | re-place fenestration |
-| push/pull wall | the **cell rectangle** bound(s) the wall derives from (a shared wall resizes BOTH adjacent zones); snap to grid step | rebuild zones / faces / split-pairing |
-| material (later) | 4_mep construction assignment (NOT geometry) | re-author MEP only |
-
-Window-move also doubles as the **manual fix path** for the South-2F window-x issue ([[sm21-review-backlog]] #2).
-
-## 4. Open decisions (discuss before building)
-1. **Write-back channel** — the viewer is today a static offline HTML (no server). To persist edits we need a
-   browser↔disk channel:
-   - **A. local server mode** (`run_stage.py serve-viewer`): container serves localhost, VS Code forwards the
-     port to the Windows browser; `fetch` posts edits → write correction → re-run kernel → regenerate. Fluid UX,
-     but no longer "double-click offline". Keep the read-only offline viewer for pure inspection.
-   - **B. export-patch**: viewer collects edits client-side → user downloads a patch JSON → `run_stage.py
-     apply-edits` applies it. No server, but a manual round-trip.
-2. **Phasing**: Phase 1 = window move (+ grid snap) — smallest, high value, fixes #2. Phase 2 = wall push/pull
-   (cell-grid parametric op — the hardest; shared-boundary resize). Phase 3 = material NL edit (much later).
-3. Whether editing lives **inside** the inspection viewer or as a separate "edit session".
-
-## 5. Notes
-- This is a meaningful new sub-project; when it starts, write a full design + go through a cross-model review
-  cycle (Codex MCP, per §6 #14) before/while implementing.
-- See memory [[editable-geometry-confirmation-vision]]; viewer status in [[sm21-review-backlog]] (#3 done).
+验收看修改能否落盘、影响是否正确传播、失败能否解释和恢复，以及重新加载后模型是否一致。记录人工参与，辅助结果不冒充无人干预生成。
+原英文设计与旧审批要求见 [历史原稿](../archive/2026-09-08_management_rebuild/original/AI_agent/proposals/editable_geometry_confirmation.md)。

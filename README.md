@@ -8,7 +8,7 @@
 
 ## 从这里接手
 
-- [AGENTS.md](AGENTS.md)：所有开发助手共同约定，含 Git 授权与“收工”动作。
+- [Agent.md](AI_agent/Agent.md)：所有开发助手共同约定，含 Git 授权与“收工”动作。
 - [产品范围](AI_agent/project_scope.md) / [模型使用约定](AI_agent/guides/model_usage.md)：包含已从 Codex 本地记忆同步的用户约定。
 - [项目说明](AI_agent/README.md) / [当前计划](AI_agent/plan.md)：目标、代码位置、已完成与下一步。
 - [当前架构](AI_agent/architecture/pipeline_stage_contracts.md) / [两路融合建议](AI_agent/architecture/multimodal_bim.md)。

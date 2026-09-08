@@ -1,9 +1,4 @@
-# 旧协作规约已退役
+# 历史入口：Codex 执行协议
 
-2026-09-08 用户将开发和 Git 交给当前助手。原“Claude 编排、Codex 施工”、模型档位、必派工、必复审、双全量规定不再执行。
-
-- 当前共同约定：[AGENTS.md](../../AGENTS.md)。
-- 开发、测试、Git 与收工：[development.md](development.md)。
-- 原规约仅供历史查询：[接手前版本](../archive/2026-09-08_pre_takeover/guides/codex_execution_protocol.md)。
-
-现有工具、CLI 与历史审阅结论可按需使用，不恢复其旧审批流程。
+专属角色审批和排期已撤销。所有助手共用 [Agent.md](../Agent.md) 与 [开发手册](development.md)。
+原稿见 [接手前执行协议](../archive/2026-09-08_pre_takeover/guides/codex_execution_protocol.md)。
