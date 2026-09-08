@@ -291,6 +291,7 @@ class StageRunner:
                 from src.agent.correction.schema import CorrectedGeometryV3
                 from src.agent.correction.window_host import build_window_hosts_artifact
                 from src.agent.correction.window_sources import (
+                    canonical_json_bytes,
                     serialize_window_resolver_inputs_artifact,
                     verify_window_resolver_inputs_artifact,
                 )
@@ -364,8 +365,11 @@ class StageRunner:
                     # The chain replay re-drives ladder → per-floor
                     # projection → snap → assembly → producer (byte-compared
                     # against the marker's embedded producer canonical bytes)
-                    # → the as_drawn finalize half, all from the marker's
-                    # frozen bytes.  Its result IS the replayed geometry.
+                    # → the as_drawn finalize half STOPPED before host
+                    # resolution (ruling 2026-09-08f §一), all from the
+                    # marker's frozen bytes.  Its result IS the replayed
+                    # geometry — the core-prefix state the corrections
+                    # prefix/suffix contract below is written against.
                     replayed = replay_as_drawn_chain(
                         rebuilt_marker,
                         chain_provenance,
@@ -414,13 +418,30 @@ class StageRunner:
                 # excludes -- see `core_owned_projection_v1`'s docstring.
                 replayed_projection = core_owned_projection_v1(replayed)
                 candidate_projection = core_owned_projection_v1(fresh_geom)
-                if (
-                    replayed_projection["footprint_x"] != candidate_projection["footprint_x"]
-                    or replayed_projection["footprint_y"] != candidate_projection["footprint_y"]
-                    or replayed_projection["floors"] != candidate_projection["floors"]
-                    or replayed_projection["windows"] != candidate_projection["windows"]
-                    or replayed_projection["conflicts"] != candidate_projection["conflicts"]
-                    or replayed_projection["unsupported"] != candidate_projection["unsupported"]
+                # W#3 (ruling 2026-09-08f §二): compare the projections as
+                # CANONICAL JSON, never as raw python containers.  The two
+                # sides are NOT same-sourced: the candidate side is reloaded
+                # from archived bytes (every container a list) while the
+                # replay side is in-memory (a pydantic ``model_dump`` keeps
+                # tuple-typed fields as tuples) — a raw ``!=`` reported 62
+                # phantom container-type diffs on value-identical rows
+                # (``source_ids`` / ``tolerance_names``).  Canonical-JSON-ing
+                # BOTH sides is the same-ruler fix (both pass through the
+                # same JSON encoding before the zero-threshold compare),
+                # ⛔ NOT a "list == tuple" tolerance branch: a real drift —
+                # different elements, dict-vs-list, changed floats — still
+                # reds on the canonical bytes.
+                if any(
+                    canonical_json_bytes(replayed_projection[key])
+                    != canonical_json_bytes(candidate_projection[key])
+                    for key in (
+                        "footprint_x",
+                        "footprint_y",
+                        "floors",
+                        "windows",
+                        "conflicts",
+                        "unsupported",
+                    )
                 ):
                     raise ValueError("writer_core_projection_drift")
                 # `corrections` is append-only downstream of the core: window
@@ -432,7 +453,17 @@ class StageRunner:
                 # window, all `window_host_resolution`) is checked below once
                 # `audit_rows` exists.
                 _replayed_corrections = replayed_projection["corrections"]
-                if candidate_projection["corrections"][: len(_replayed_corrections)] != _replayed_corrections:
+                # Same canonical-JSON ruler as above (ruling 2026-09-08f §二):
+                # the candidate's reload-from-bytes lists vs the replay's
+                # in-memory tuples must compare as canonical JSON, and the
+                # slice-vs-full check keeps its prefix semantics — a shorter
+                # candidate list canonicalizes to different bytes.
+                if (
+                    canonical_json_bytes(
+                        candidate_projection["corrections"][: len(_replayed_corrections)]
+                    )
+                    != canonical_json_bytes(_replayed_corrections)
+                ):
                     raise ValueError("writer_core_projection_drift")
                 replayed_stamp_version = getattr(
                     getattr(replayed, "deterministic_core_stamp", None), "version", None
