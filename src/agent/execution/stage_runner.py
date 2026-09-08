@@ -148,6 +148,30 @@ class StageRunner:
         stage_version: str = "1",
         accept: bool | None = None,
     ) -> RecordedAttempt:
+        """Archive a checked draw, retaining gate diagnostics if archiving fails.
+
+        W#5: failure diagnostics are append-only under record_failures/NNN.
+        They are deliberately outside attempts/: failed independent replay
+        must not create a consumable B5 bundle or move an accepted pointer.
+        """
+        with _ArchiveFailureDiagnostics(Path(stage_dir), stage, report):
+            return self._record_checked(
+                stage=stage, stage_dir=stage_dir, output_obj=output_obj,
+                report=report, input_hashes=input_hashes,
+                stage_version=stage_version, accept=accept,
+            )
+
+    def _record_checked(
+        self,
+        *,
+        stage: str,
+        stage_dir: Path,
+        output_obj,
+        report: CheckReport,
+        input_hashes: dict[str, str] | None = None,
+        stage_version: str = "1",
+        accept: bool | None = None,
+    ) -> RecordedAttempt:
         spec = stage_spec(stage)
         stage_dir = Path(stage_dir)
         stage_dir.mkdir(parents=True, exist_ok=True)
@@ -776,6 +800,43 @@ class StageRunner:
             else:
                 self.manifest.accept(StageRecord(**common))
         return rec
+
+
+class _ArchiveFailureDiagnostics:
+    """Observe exceptional exit; never catch or suppress a writer refusal."""
+
+    def __init__(self, stage_dir: Path, stage: str, report: CheckReport):
+        self.stage_dir, self.stage, self.report = stage_dir, stage, report
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        if exc is not None:
+            try:
+                _record_archive_failure(self.stage_dir, self.stage, self.report, exc)
+            except (OSError, ValueError, TypeError) as diagnostic_exc:
+                exc.add_note(f"could not persist gate report after archive failure: {diagnostic_exc}")
+        return False
+
+
+def _record_archive_failure(stage_dir: Path, stage: str, report: CheckReport, exc: BaseException) -> None:
+    root = stage_dir / "record_failures"
+    root.mkdir(parents=True, exist_ok=True)
+    indices = [int(p.name) for p in root.iterdir() if p.is_dir() and p.name.isdigit()]
+    directory = root / f"{max(indices, default=0) + 1:03d}"
+    directory.mkdir(exist_ok=False)
+    checks = report.model_dump_json(indent=2)
+    (directory / "checks.json").write_text(checks, encoding="utf-8")
+    (directory / "failure.json").write_text(json.dumps({
+        "stage": stage,
+        "accepted": False,
+        "error_type": type(exc).__name__,
+        "error": str(exc),
+        "checks_sha256": hash_text(checks),
+        "candidate_output_sha256": report.attempt_hash,
+        "note": "gate diagnostics only; candidate was not successfully archived by this call",
+    }, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def _to_json(obj) -> str:
