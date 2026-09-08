@@ -32,6 +32,8 @@ python -m scripts.tool_scripts.run_stage --run-profile exploratory --capability-
 先核对 run 里的 `run_config.yaml`：文件存在时，`judge_mode` 优先于 CLI `--judge`，`scope_stages` 还可能把默认终点 5 改为更早阶段。以下命令的停止位置要结合该配置判断。
 若要固定整个 flow 的模型组合，启动此子进程时将 `EP_AGENT_LLM_CONFIG` 设为所选配置文件绝对路径。当前 `--llm-config` / run 的 `llm.yaml` 由下游 `_flow_ep` 才解析，并不会自动控制前面已经执行的 correction/MEP；没有环境覆盖时前段仍读全局配置。
 
+执行前核对实际模型和回退配置；若会调用 DeepSeek，先取得用户对此任务/批次的明确同意。跑 case 的一般授权不包含 DeepSeek 专项许可；Claude、GLM 的现有订阅调用按 [模型约定](model_usage.md) 自行安排。
+
 下例中的 `CASE` / `RUN` 替换为已准备的素材与新 run 名，命令可能调用配置中的模型：
 
 ```bash
