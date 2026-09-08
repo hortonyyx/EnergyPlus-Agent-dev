@@ -1,139 +1,145 @@
-# 2026-09-08d · GPT 接手：基线与 W#1 新题面矛盾停报
+# W#1 / W#4 / W#5 / W#2 · GPT 施工交件
 
-状态：**遵照本轮「题面不对就停下上报」暂停施工；不是四项修复完成报告。**
-本轮已采用修订后的 `/opt/venv/bin/python` 命令。此次停报仅涉及 W#1 的零分判断。
+工作树始终是 `/tmp/w1_flow_glm`，分支 `wt/09.07h_w1_flow`。接手 HEAD 是 `55fc8e30`（含基点 `5839a85c` 之后的两份已确认勘误）。已先读派工单与撞墙档附录 B；本次按「24 条 FLAG 同属契约错配噪声」施工，没有重报评分为零或 uv 同步问题。W#3、W#6 没有重做；W#7 和窗的生产逻辑没有修改。
 
-## 你以为是 X，实际是 Y，证据是……
+**当前结果（验收进行中，后文将追加实际终点）**
 
-**你以为** `reading.plan_scale_origin_usable` 所说的 “the plan channel would score zero”
-证明这份 as_drawn 产物存在必然零分的真缺陷，必须与 `dimensions_present` 的格式假红分开修。
+代码三项已提交。新建 `run_wallfix_gpt_judge_on`，配置从首次 provisioning 起就是 `judge.mode: stop`，本次 `0_reading` gate① `block=0 / flag=0`，本次新生成的两层平面 C1/C2 为 100.0 / 98.1。J0 已实际查看六张原图、六张原生评分图及 JSON，提交有证据限制的非阻塞判词；correction 正通过标准 flow 调用真实模型。**这还不是完整 flow 总验收通过。**
 
-**实际是** 本树标准入口已经按产物契约走独立的 as_drawn 评分分支；该分支消费
-`observations.face_lines` 的米制位置和长度，不要求 legacy `scale_origin`。
-题面所引用的同一个归档已经有非零平面分数，而且 `judge_packet.json` 已消费这些分数。
-因此不能把旧门的警告文字当成新腿评分必为零的证据。
+**分段提交与验证**
 
-证据链（均为本树只读核查）：
+| 提交 | 内容 | 验证 |
+|---|---|---|
+| `3a592091` | 接手全量基线 | 4049 passed / 2 skipped / 13 xfailed，0 failed，502.03s |
+| `0966c44d` | W#1：三个 reading 检查入口按契约分派 | 178 passed；真实六视图 × exploratory/dev/golden/regression；未知、歧义、坏标定、缺刻度、假闭合负例；legacy 报告逐字段不变 |
+| `d8fb122b` | W#4：新一轮链调用先移除上轮 exception 记录 | 33 passed；真链失败→成功与失败→不同失败 |
+| `42c880cd` | W#5：归档失败保留 gate 诊断 | 140 passed / 1 xfailed；含 W#3 七把锁、B5 原子归档及拒绝锁 |
+| `63c400e8` | 新 run 的 reading 工件和实际 J0 判词 | 标准 flow 返回 checkpoint 10，标准 judge 返回 0；不是复制旧 accepted attempt |
+| 代码 `42c880cd` 后最终全量 | 全部四项施工的代码状态 | **4075 passed / 2 skipped / 13 xfailed，0 failed，502.20s** |
 
-1. `scripts/tool_scripts/run_stage.py:2404` 在 typed/legacy 评分前调用
-   `_grade_as_drawn_reading_branch`，命中后直接返回。
-   `:2324` 的分支复用 `vector_contract` 按产物契约分派；`:2359` 起将平面
-   `C1_C2_targets_drawn_pct` 放入 `score_criteria`。
-2. `src/agent/judge/as_drawn/flow_wiring.py:172` 的 `grade_as_drawn_plan` 调用原生
-   `reading_grade.grade`；`src/agent/judge/as_drawn/reading_grade.py:127` 起实际读取
-   `observations.face_lines[].constant_world_axis/pos_m/edges_m/runs_m`。
-3. `case_tests/e2e_tests/sm25-L_anchor/run_wallhunt/0_reading/attempts/001/score_vs_gt.json`：
-
-   | 产物 | 契约 | C1_C2_targets_drawn_pct | C2_length_coverage_pct |
-   |---|---|---:|---:|
-   | 1f_view | as_drawn_plan | 100.0 | 99.2 |
-   | 2f_view | as_drawn_plan | 98.1 | 97.8 |
-
-   同目录 `judge_packet.json` 的 `score_criteria` 包含
-   `c1_c2_drawn_plan-F1: readout=100.0, passed=true` 和
-   `c1_c2_drawn_plan-F2: readout=98.1, passed=true`。
-   这些是具体评分指标，不能称为整条能耗管线的总分。
-4. 当前 `1f_view.json`、`2f_view.json`、`East_view.json` 与归档 `output.json`
-   对应对象逐对象相等。两张平面均无顶层 `scale_origin`，却有
-   `observations.calibration.mm_per_px/world_zero_px`：分别为
-   `21.635842 / [281.763, 1234.682]`、`21.808431 / [240.754, 1258.205]`。
-5. `src/validator/checks/view_manifest.py:104` 对这些新契约对象仍调用
-   `parse_reading_view`；`src/agent/reading/schema.py:122` 默认
-   `image_kind="plan"`，并默认 `strokes=[]`、`dimensions=[]`、`scale_origin=None`。
-   实测 East 立面也被解析为 `plan` 和两个空数组。
-   因而同一个零分警告出现 **6 次，包含全部 4 张立面**。
-
-**证据边界**：本轮未重新运行 judge 开启的完整 flow。现有 `run_wallhunt/run_config.yaml`
-确实是 `judge.mode: off`，所以既有评分工件不能冒充本轮总验收通过。
-不过它们与当前代码的契约分派一致，已足以推翻「缺少 legacy 字段必然导致这条
-as_drawn 平面评分为零」的具体断言。没有擅自给新产物添加旧字段，也没有改评分器或放宽门。
-
-## 基线与工作树
-
-- 固定工作目录 `/tmp/w1_flow_glm`，分支 `wt/09.07h_w1_flow`。
-- 接手 HEAD `673e0405`；W#3/W#6 的既有提交在历史中，未重做。
-- 接手时暂存区、已跟踪文件无改动，仅未跟踪的
-  `case_tests/e2e_tests/sm25-L_anchor/run_wallhunt/`；该目录未修改、未暂存。
-- 未发现本树或父目录适用的 `AGENTS.md`。
-- 导入自检输出 `/tmp/w1_flow_glm/src/agent/__init__.py`，断言通过。
-- 全量结果：**4049 passed, 2 skipped, 13 xfailed, 211 warnings in 491.80s (0:08:11)**；
-  退出码 0，**0 failed**。前序半份工作在本次全量基线上没有失败；本轮没有安装输出。
-
-本轮实际执行的基线命令：
+全量均使用下列命令，开跑前确认打印的是 `/tmp/w1_flow_glm/src/agent/__init__.py`：
 
 ```bash
 cd /tmp/w1_flow_glm
-PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python -c 'import src.agent; from pathlib import Path; p = Path(src.agent.__file__).resolve(); print(p); assert p.is_relative_to(Path("/tmp/w1_flow_glm"))'
+PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python -c 'import src.agent; print(src.agent.__file__); assert src.agent.__file__.startswith("/tmp/w1_flow_glm/")'
 PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python -m pytest -n 6 -q
 ```
 
-## 已核实的格式检查对照表
+日志位于 `AI_agent/logs/experiments/2026-09-08d_wallfix_gpt/`：`baseline_pytest.txt`、`final_pytest.txt`、`w1_tests.txt`、`w4_tests.txt`、`w5_tests.txt`。没有安装依赖、写 site-packages、改 git config、跳 hook 或操作别的树；只 add 本次明确路径，每次提交前均查看 cached numstat。日志被全局忽略，取证文件通过逐路径 `git add -f` 入库。
 
-范围是 `check_reading_stage → parse_reading_view → check_reading_view`，以及其每视图检查。
-下表记录现有读取字段和可观察结果；**不是已实施的适配方案，也不宣称完成全项目消费面审计**。
-检查 ID 均省略 `reading.` 前缀；PASS/N/A 是现有归档读数，不能据此认定新格式证据合格。
+**W#1：完整的逐检查对照表（交付物）**
 
-| 检查 | 实际使用的 legacy 字段 | 新格式对照／现有结果 |
+范围是 `src/validator/checks/reading.py::check_reading_view` 的全部 24 个可能的 per-view check ID，外加独立入口/消费端枚举。不是只列 24 条红字：撞墙 run 的报告实际有 127 行，即 manifest 1 行 + 六视图各 21 行；没有 room_labels 时三个标签检查不发结果。原四类 FAIL 每类六行，共 24 FLAG。
+
+原始报告保存在 `AI_agent/logs/experiments/2026-09-08d_wallfix_gpt/reading_checks_before.json`；本次报告是 `case_tests/e2e_tests/sm25-L_anchor/run_wallfix_gpt_judge_on/0_reading/attempts/001/checks.json`，157 行 = manifest 1 + 六视图各 26。下表 ID 均省略共同前缀 `reading.`。这里的 N/A 明确表示**legacy 字段检查不适用**，不宣称 as_drawn 对应内容已通过同等像素核验。
+
+| Check ID | 原检查读的 legacy 字段 | as_drawn 的实际载体 / 差异 | 原报告 → 本次处理 |
+|---|---|---|---|
+| `plan_scale_origin_usable` | `image_kind`, `scale_origin` | plan：`observations.calibration` 与 face_lines 的世界坐标；elevation：顶层 calibration，契约就是立面 | 六行 FAIL → N/A；新增 native calibration 检查；不再声称新腿会零分 |
+| `dimensions_present` | `dimensions[]` | plan：`observations.calibration.{x,y}.cum_mm`；elevation：`calibration.{x,z}.cum_mm` | 六行 FAIL → native PASS；四态 dimensioned applicability 保留 |
+| `raw_field_presence` | 原始 `uncaptured` 是否出现 | 三层 observations/declarations/hypotheses 与 ledger，不声明该 legacy 键 | 六行 FAIL → N/A |
+| `stroke_provenance_coverage` | `strokes[].pen/provenance` | plan 的 face_lines 像素/米载体与假说分层，不是 stroke provenance | 六行 FAIL → N/A，不以空 strokes 推断 provenance 缺失 |
+| `stroke_ids_unique` | `strokes[].id` | plan face_lines IDs / elevation structure_lines；不是同一集合 | 空集合 PASS → N/A；producer 类型校验不等于 ID 唯一性检查 |
+| `dimension_ids_unique` | `dimensions[].id` | 累计刻度数组，不携带同种 dimension ID | 空集合 PASS → N/A |
+| `pen_kind_valid` | `image_kind`, `strokes[].pen` | plan ink families / hypotheses；elevation 的结构与开口载体 | 空集合 PASS → N/A |
+| `no_topology_fields` | strokes 中禁止的 zone/adjacency 字段 | 三层契约允许独立 hypotheses；不能把它当 legacy strokes | 空集合 PASS → N/A；as_drawn plan 用既有 producer type 校验形状 |
+| `nondegenerate_geometry` | `strokes[].geometry` | face_lines 的 support/runs/edges，或 elevation structure_lines | 空集合 PASS → N/A；没有冒称做了原生几何/像素完整核验 |
+| `dimension_parseable` | `dimensions[].value_m/text` | `values_mm/cum_mm/overall_mm` 是数值链 | 空集合 PASS → N/A；native chain 检查数值、序列与闭合 |
+| `axis_endpoint_consistent` | dimensions 的 axis/from/to | calibration 的轴与累计刻度，不是二维 dimension endpoints | 空集合 PASS → N/A |
+| `facade_fields` | `image_kind=elevation`, `facade` | elevation 契约、facade_label；legacy facade 字段并不要求 | 被误当 plan 而 N/A → 按 elevation 契约明确 N/A，不伪造朝向声明 |
+| `uncaptured_present` | `uncaptured[]`（含迁移默认值） | ledger 与假说分桶，非同一字段 | 默认补空后的 PASS → N/A |
+| `dimension_p1a_fields` | text_verbatim/value/axis/chain 等 | native calibration 链 | 因旧 dimensions 空而 N/A → 按契约 N/A |
+| `room_label_roles_valid` | `room_labels[].role` | 当前这批 as_drawn 不声明该标签槽 | 原无结果 → 显式 N/A |
+| `room_label_basis_valid` | `room_labels[].basis` | 同上 | 原无结果 → 显式 N/A |
+| `room_label_anchors_in_bounds` | room_labels.anchor 与 legacy bounds | 同上；不借错格式 bounds 评新数据 | 原无结果 → 显式 N/A |
+| `ocr_anchors_in_bounds` | `ocr_texts[].anchor`、strokes 构造的米制参考 | native dimension_witnesses / calibration 匹配像素 | 空集合 PASS → N/A |
+| `dimension_endpoints_in_bounds` | dimensions.from/to、strokes 米制参考 | native matched_px 与数值链，不是 legacy 米制端点 | 空集合 PASS → N/A |
+| `dimension_chain_closure` | `dimensions[]` 内 chain/overall | plan x/y；elevation x/z 的 values/cum/overall | 原 N/A → native PASS；重新计算每段、累计和总长的误差，不信自报 chain_closure_mm；沿用 `DIMCHAIN_CLOSE_TOL_M` |
+| `dimension_derived_refs` | strokes.provenance 引用 dimension IDs | as_drawn 的 evidence locators/face IDs；引用体系不同 | 原 N/A → 按契约 N/A |
+| `stroke_dimension_consistency` | legacy strokes 与 dimension positions | 声明尺寸与像素观测分层 | 原 N/A → 按契约 N/A；未添加吸附或几何推断 |
+| `partition_on_window_jamb` | legacy wall/window strokes 与 dims | 无该 legacy 检查的输入 | 原 N/A → 按契约 N/A；窗逻辑未改 |
+| `door_heal_traced` | legacy healed stroke provenance 与 uncaptured | native gaps/opening hypotheses，后续才解释 | 原 N/A → 按契约 N/A；未改门窗推导 |
+
+新增两个检查：`reading.product_contract` 记录统一 `vector_contract` 分类结果及真实 plan/elevation；`reading.as_drawn.calibration_usable` 检查该契约的公共像素比例、世界零点和逐轴比例/原点的有限性与可用性。未知、声明损坏、歧义契约及 sidecar 作为 view 输入均 BLOCK，不回退 legacy。未声明的历史输入维持原迁移行为。
+
+**W#1：入口与同类消费端枚举**
+
+检索包括 `parse_reading_view` / `load_reading_view` / `ReadingView.model_validate` / `check_reading_view` 的所有生产调用，以及 validator/execution/run_stage 对 `strokes`、`dimensions`、`image_kind`、`scale_origin`、`uncaptured` 的直接读取。下表区分修复、已有分派、残留边界；不宣称全仓库所有 legacy 消费端都已迁移。
+
+| 入口 / 位置 | 用旧字段量新产物的风险 | 本次结果 / 范围 |
 |---|---|---|
-| `plan_scale_origin_usable` | `image_kind`, `scale_origin.world_{x,y}_m` | 平面有 `observations.calibration` 和米制 face lines；立面有顶层 `calibration`；6 次 FAIL，连立面也被误判为平面 |
-| `dimensions_present` | `dimensions[]` | 平面链在 `observations.calibration.{x,y}.cum_mm`；立面是 `calibration.{x,z}`、`dimension_witnesses`；6 次 FAIL |
-| `raw_field_presence` | 原始 `uncaptured` 存在性 | 新产物顶层有 `ledger`；检查没有消费它；6 次 FAIL。ledger 是否满足所有旧审计语义尚未裁定 |
-| `stroke_provenance_coverage` | `strokes[].pen/provenance` | 平面结构在 `observations.face_lines` 与 `hypotheses`；检查看到 0 strokes；6 次 FAIL，不能据此断言原生证据缺失 |
-| `stroke_ids_unique`, `pen_kind_valid`, `no_topology_fields`, `nondegenerate_geometry` | `strokes[].id/pen/kind/geometry` 与 extra 字段 | 空 strokes 导致全部 PASS，未量到新格式几何 |
-| `dimension_ids_unique`, `dimension_parseable`, `axis_endpoint_consistent`, `dimension_endpoints_in_bounds` | `dimensions[].id/value_m/text/axis/from/to` | 空 dimensions 导致全部 PASS，未量到原生尺寸链 |
-| `facade_fields` | `image_kind`, `facade.view_facade` | 原生立面有 `facade_label`；但默认 plan 导致 6 次 N/A，立面检查被漏掉 |
-| `uncaptured_present` | `uncaptured` 与 legacy 兼容位置 | schema 默认空列表使 6 次 PASS；原始字段缺失由另一检查报出；并未验证原生 ledger |
-| `dimension_p1a_fields` | `dimensions[].text_verbatim/value_m/chain_id/role/order` | 原生链不采用该数组形状；6 次 N/A（no dimensions to inspect） |
-| `dimension_chain_closure` | `dimensions[].chain_id/axis/role/value_m/order` | 平面校准链确实存在；6 次 N/A（no chain_id-tagged dimensions），没有检查那些链的闭合 |
-| `dimension_derived_refs` | `strokes[].provenance/dimension_refs` 和 dimensions ID | 6 次 N/A（no dimension_derived strokes）；不等于验证了新格式引用 |
-| `ocr_anchors_in_bounds` | `ocr_texts[].anchor` 与 strokes 结构范围 | 默认空 OCR 列表导致 6 次 PASS；没有检查原生见证位置 |
-| `room_label_roles_valid`, `room_label_basis_valid`, `room_label_anchors_in_bounds` | `room_labels[].role/basis/anchor` | 默认空列表使函数提前返回，归档中没有对应行；原生可选语义是否适用尚未裁定 |
-| `stroke_dimension_consistency` | strokes 墙位置与 dimensions 累计位置 | 6 次 N/A（no chain_id-tagged x/y dimension cumulative positions） |
-| `door_heal_traced` | `strokes[].note` 与 uncaptured | 6 次 N/A（no healed door openings）；未建立原生账本的等价检查 |
-| `partition_on_window_jamb` | legacy strokes 几何 | 只登记现有 6 次 N/A；属于本轮禁改的窗相关范围，未修改 |
+| `src/validator/checks/view_manifest.py::check_reading_stage` | flat flow 与 isolation merge 共用；无条件 parse 成 legacy 空壳 | **已修**：共用 `reading_product.check_reading_product`；覆盖检查、stem 前缀、冻结 policy hash/source 保留 |
+| `src/agent/execution/evidence_preflight.py::compute_reading_report_from_vector_dir` | 直接 load + legacy check；会把假红重新投影成 evidence debt | **已修**：同一原始 JSON 分派器；没有改 W#7 债的认领规则 |
+| `src/agent/execution/validation_run.py::validate_case` | 离线重验又做一遍 legacy check | **已修**：同一分派器；只把真实 legacy ReadingView 传给后续 legacy facade 交叉检查 |
+| `src/validator/checks/reading.py::check_calibration_evidence` | 名在 reading 模块，但实际读 CV sidecar | **非同类误用**：检查 sidecar 自己的轴标定事实，不解析 ReadingView；本次未改 |
+| `src/validator/checks/as_drawn.py` 的 11 个 image checks | 原生 face_lines / masks / hypotheses / declarations | **不是 legacy 检查**；有独立原图+配置入口，本次未接入全部 11 项，也不以新 gate PASS 代替其像素核验 |
+| `src/agent/reading/vector_contract.py::_detect_legacy_reading_view` | ReadingView 本身过度宽松 | **已有防护**：显式 strokes conjunct + 所有 detector 一起判断 + schema 声明不回退；本次复用，没有再写分类器 |
+| `scripts/tool_scripts/run_stage.py::_grade_as_drawn_reading_branch` / `src/agent/judge/as_drawn/flow_wiring.py` | legacy/typed score 的 schema/default 风险 | **已有正确分派**：标准评分在 typed/legacy 前按 vector_contract 进入原生 grader；本次 fresh attempt 实测出分 |
+| `src/agent/judge/reading_typed_adapter.py` 的 plan/elevation `ReadingView.model_validate`；`run_stage.py::_score_reading_attempt_output`；`src/agent/judge/reading_score.py` | 若直接喂 as_drawn 仍会按 strokes/scale_origin 衡量 | **legacy/typed 消费边界仍在**；标准 as_drawn 评分先返回，不走这些分支；本次未改这些 scorer |
+| `scripts/tool_scripts/run_stage.py::_finalize_reading_renders` → `scripts/tool_scripts/render_vector_to_png.py::render` | 无条件读取 strokes/dimensions；把 as_drawn 渲染为空 | **本次新实测残留**：六张通用 renders 均为 400×80 `empty vector`，render_manifest 却为 complete。原生 grade 图存在且由同次标准 flow 生成。列账，未修改渲染器；J0 明示材料缺陷 |
+| `src/agent/correction/envelope.py::extract_envelope_candidates_from_dir` / `extract_authoritative_envelope` | 仍 load legacy views，读 dimensions/facade | **legacy 专用路径仍在**；标准新腿 `_draw_correction_as_drawn` 使用专用 finalize，W#3 的 record replay 已按 chain_provenance 分腿；本次未重做 |
+| `src/agent/pipeline.py::run_pipeline_artifacts` 的 reading_views 列表 | 复合旧入口仍直接 load_reading_view；不能据此称所有入口已支持新腿 | **残留边界**：本次只修其共用 reading preflight；总验收走指定 run_stage flow，未宣称旧复合入口完成迁移 |
+| `src/validator/checks/correction.py::_reading_elevation_windows` / `_facade_frame_cross_check` | 只理解 legacy facade/strokes | **窗相关边界，未改**；本次 validation 不再送入伪造的 legacy plan 空壳。原生窗的交叉检查不在本单范围 |
+| `src/agent/correction/window_sources.py` 的 parse 调用（source windows、observation catalog、legacy direction facts/check） | 直接使用时会按 legacy facade/strokes 解析 | **窗归属另一席，未改**；当前标准 as_drawn builder 与 `_check_direction_facts_as_drawn` 已有专用分支；原生窗内容不宣称补齐 |
+| `src/agent/reading/legacy.py` 的 parse/load/migrate API | 直接拿新格式调用仍可造空壳 | **API 本身仍为 legacy**；本次三个检查调用端先分派，没有全局改 parser 去影响另一席的窗工作 |
+| `src/validator/checks/kernel.py` / `mep.py` / `assembly.py` | 不直接消费 reading JSON | **非同类**：消费 corrected geometry / kernel / MEP / assembly 产物，不能据其通过推断 reading 完整 |
 
-另外，`check_calibration_evidence`（`reading.py:1603`）读取 CV calibrator sidecar，
-并非读取 legacy `ReadingView` 字段；它是独立入口，不在上述每视图链内。
-manifest 覆盖检查按产物 ID 集合工作；该步也不是把新产物强转旧字段的环节。
+**W#4 / W#5 的实际边界**
 
-归档中的 FAIL 计数准确为四类各 6 条，共 24 条。
-除了假红，表中还发现空壳导致的 PASS 与 N/A，不能用清除 24 条警告代替契约适配。
+W#4 在每次 `run_correction_evidence_chain` 开始、source_read 之前清除同一 `_run/evidence_chain_failure.json`。成功和普通 non-success outcome 都由本轮 outcome/route 描述；本轮再抛异常会重写当前 failure。它不提供历史失败归档，也没有修用户排除的多层 run-level route last-writer-wins。
 
-## 工件定位与可复核性
+W#5 在 `StageRunner.record` 外围观察异常退出，不压掉原异常；checked writer 的重放、逐字段校验、原子发布顺序不变。失败诊断存放于 `<stage>/record_failures/NNN/{checks.json,failure.json}`，包括原 gate 结果、异常类型/消息、checks hash、候选 output hash。这里没有 output/proof，不在 manifest 接受链中。**没有把未验证候选塞进 attempts 以换取可见报告**；既有 B5「重放失败不生成 attempt」锁继续通过。诊断 IO 自身失败时给原异常附加 note，仍传播原拒绝。
 
-以下 SHA256 对应 `run_wallhunt/0_reading/attempts/001/` 的接手时工件；未重新生成它们：
+**W#2：凭据来源与本次逐字命令序列**
 
-| 工件 | SHA256 |
-|---|---|
-| `output.json` | `1fadfbb39d92567707a4f8a4f1c173fe297b0e1828a54aa023972286686de91c` |
-| `checks.json` | `4213f371220eb791938edbd54749aa11145d46ab7c83038b0258b9e371080b2e` |
-| `score_vs_gt.json` | `030a8da2be8fbe20e078601ef27efd08c329013718ba7191ba64e9cf63e8f6b4` |
-| `judge_packet.json` | `1fe80b4810beff19215679dcf56c8433e7e193f883f8cba1935bc1bf87cee339` |
+共享主树已有由主控配置的 `/workspaces/EnergyPlus-Agent-dev/.env`；它被 gitignore，worktree 不包含副本。本次在每个需要 API 的 shell 中 `set -a && . ... && set +a`，使本树的 `src/configs/llm.yaml` 的 `${oc.env:DEEPSEEK_API_KEY,null}` 能解析到凭据。只检查非空，不打印、复制或提交密钥。新机器由运行者先配置同等凭据来源；仓库不能提供秘密文件本身。
 
-已有 `tests/test_j_grade_wiring.py::test_plan_view_grades_through_the_wire` 使用真实
-平面产物和签名 DXF，明确断言 `C1_C2_targets_drawn_pct > 0.0`；属于此次全量基线。
-未新增或改写测试来迎合这个判断。
-
-## 未完成范围与凭据来源
-
-W#1 的生产修复、W#4 过期失败记录清理、W#5 归档异常保留报告均未开工。
-W#2 的完整逐字可重跑 flow 序列也未验收；下面只记录已授权的凭据来源前置命令，
-不将它冒充完整 flow 验收命令：
+以下为可直接复制的初始化及首次 flow 命令。本次实测把 `wallfix_run_name` 设置为 `run_wallfix_gpt_judge_on`；该取证 run 已落库，所以下面仅将 run 名改为自动生成的新名字，其余初始化和入口参数与本次相同。`test ! -e` 防止把旧 accepted 工件冒充新验收。
 
 ```bash
 cd /tmp/w1_flow_glm
 set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a
-export PYTHONPATH=/tmp/w1_flow_glm
+test -n "${DEEPSEEK_API_KEY:-}"
+wallfix_run_name=run_wallfix_gpt_judge_$(date -u +%Y%m%dT%H%M%S)_$$
+wallfix_run_dir=case_tests/e2e_tests/sm25-L_anchor/$wallfix_run_name
+test ! -e "$wallfix_run_dir"
+mkdir -p "$wallfix_run_dir/0_reading"
+cp AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_v2.json "$wallfix_run_dir/0_reading/1f_view.json"
+cp AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_2f_v2.json "$wallfix_run_dir/0_reading/2f_view.json"
+cp AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_east_as_drawn.json "$wallfix_run_dir/0_reading/East_view.json"
+cp AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_north_as_drawn.json "$wallfix_run_dir/0_reading/North_view.json"
+cp AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_south_as_drawn.json "$wallfix_run_dir/0_reading/South_view.json"
+cp AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_west_as_drawn.json "$wallfix_run_dir/0_reading/West_view.json"
+cat > "$wallfix_run_dir/run_config.yaml" <<'YAML'
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: stop
+review:
+  reading: false
+  correction: false
+  geometry: false
+YAML
+PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python scripts/tool_scripts/run_stage.py flow sm25-L_anchor "$wallfix_run_name" --from 0_reading --judge stop --geometry auto
 ```
 
-后续 flow 使用 `/opt/venv/bin/python scripts/tool_scripts/run_stage.py` 标准入口。
-未读取、输出、复制或提交 `.env` 内容。W#7、窗相关实现和另一工作树均未修改。
-本轮无生产代码变更；写本报告前没有待提交代码，仅提交此明确路径的文档。
+首次返回码 **10 = awaiting_judge**，是启用 judge 的标准检查点。继续在同一个 shell 使用刚才的 run 名：
 
-待派工方修订的是 **W#1 的真假分类与验收表述**：旧 `scale_origin` 检查应按实际消费
-契约评估，不能预设该缺字段已让 as_drawn 得零分。确认前按停报要求不继续四项施工。
+```bash
+PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python scripts/tool_scripts/run_stage.py judge sm25-L_anchor "$wallfix_run_name" 0_reading --verdict AI_agent/logs/experiments/2026-09-08d_wallfix_gpt/j0_verdict.json
+set -a && . /workspaces/EnergyPlus-Agent-dev/.env && set +a
+PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python scripts/tool_scripts/run_stage.py flow sm25-L_anchor "$wallfix_run_name" --judge stop --geometry auto
+```
 
-## 我这次最薄弱的一处
+本次后两条入口的逐字记录（两次调用各自的 shell 均已 source 上述 .env）：
 
-非零分数读数来自接手时既有归档，虽已核对产物一致性、当前标准入口分派和全量内的真实
-评分测试，但本轮没有新跑 judge 开启的完整 flow；因此不能证明整条能耗管线已经跑通出分。
+```bash
+PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python scripts/tool_scripts/run_stage.py judge sm25-L_anchor run_wallfix_gpt_judge_on 0_reading --verdict AI_agent/logs/experiments/2026-09-08d_wallfix_gpt/j0_verdict.json
+PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python scripts/tool_scripts/run_stage.py flow sm25-L_anchor run_wallfix_gpt_judge_on --judge stop --geometry auto
+```
+
+这里的 `j0_verdict.json` 是本次主 Agent 按 packet/rubric 查看实际材料后写的判词，通过标准 judge 入口提交；不是预制全 PASS。按同一输入复现本次轨迹可以使用该判词；若重新识图或输入字节改变，必须重新审阅，不能复制本次判词当新审阅。全过程从已落库的六份 reading 产品开始，没有重新做 reading 感知，没有手写 geometry/归档/评分绕过脚本，没有借旧 run 的分数当本次验收。
+
+**我这次最薄弱的一处**
+
+最弱的是完整 flow 的验收边界：现有新腿内容与通用 judge 展示仍有明确缺项，本次 W#1 只把错误的 legacy 检查排除并核验原生契约/标定/尺寸链，没有把全部原图像素检查接入 gate①。不能把清掉 24 FLAG、J0 非阻塞或高 reading 分数解读成完整能耗模型已正确；最终终点必须以本次 judge-on flow 的实际结果为准。
