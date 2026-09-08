@@ -2,9 +2,9 @@
 
 工作树始终是 `/tmp/w1_flow_glm`，分支 `wt/09.07h_w1_flow`。接手 HEAD 是 `55fc8e30`（含基点 `5839a85c` 之后的两份已确认勘误）。已先读派工单与撞墙档附录 B；本次按「24 条 FLAG 同属契约错配噪声」施工，没有重报评分为零或 uv 同步问题。W#3、W#6 没有重做；W#7 和窗的生产逻辑没有修改。
 
-**当前结果（验收进行中，后文将追加实际终点）**
+**结果：四项已交付，全量通过；完整 flow 总验收未通过**
 
-代码三项已提交。新建 `run_wallfix_gpt_judge_on`，配置从首次 provisioning 起就是 `judge.mode: stop`，本次 `0_reading` gate① `block=0 / flag=0`，本次新生成的两层平面 C1/C2 为 100.0 / 98.1。J0 已实际查看六张原图、六张原生评分图及 JSON，提交有证据限制的非阻塞判词；correction 正通过标准 flow 调用真实模型。**这还不是完整 flow 总验收通过。**
+W#1 契约分派、W#4 失败记录清理、W#5 归档失败诊断、W#2 凭据与复跑序列均已落库。最终全量 **4075 passed，0 failed**。新建 `run_wallfix_gpt_judge_on`，配置从首次 provisioning 起就是 `judge.mode: stop`，本次 `0_reading` gate① `block=0 / flag=0`，本次新生成的两层平面 C1/C2 为 100.0 / 98.1。J0 已实际查看六张原图、六张原生评分图及 JSON，提交有证据限制的非阻塞判词。correction 两层都经真实 `deepseek-v4-pro` 调用成功，归档重放成功，但 **gate① 被新暴露的 `correction.audit_completeness` 阻塞**；未到 J1、2/3/4/5，也没有 correction/下游的本次出分。没有修改 W#7、窗代码或强行接受候选。
 
 **分段提交与验证**
 
@@ -16,6 +16,8 @@
 | `42c880cd` | W#5：归档失败保留 gate 诊断 | 140 passed / 1 xfailed；含 W#3 七把锁、B5 原子归档及拒绝锁 |
 | `63c400e8` | 新 run 的 reading 工件和实际 J0 判词 | 标准 flow 返回 checkpoint 10，标准 judge 返回 0；不是复制旧 accepted attempt |
 | 代码 `42c880cd` 后最终全量 | 全部四项施工的代码状态 | **4075 passed / 2 skipped / 13 xfailed，0 failed，502.20s** |
+
+W#2 与枚举表提交为 `42f06f53`；本次 correction 完整失败候选和中止观测也已单独提交，路径见下。
 
 全量均使用下列命令，开跑前确认打印的是 `/tmp/w1_flow_glm/src/agent/__init__.py`：
 
@@ -140,6 +142,30 @@ PYTHONPATH=/tmp/w1_flow_glm /opt/venv/bin/python scripts/tool_scripts/run_stage.
 
 这里的 `j0_verdict.json` 是本次主 Agent 按 packet/rubric 查看实际材料后写的判词，通过标准 judge 入口提交；不是预制全 PASS。按同一输入复现本次轨迹可以使用该判词；若重新识图或输入字节改变，必须重新审阅，不能复制本次判词当新审阅。全过程从已落库的六份 reading 产品开始，没有重新做 reading 感知，没有手写 geometry/归档/评分绕过脚本，没有借旧 run 的分数当本次验收。
 
+**标准 flow 的新阻塞：停下上报证据**
+
+我的工作假设 X 是「W#3 归档成功、W#6 守恒通过后，标准 flow 能把新腿交给 J1」；实际 Y 是「**归档已经成功，标准入口还有一条必填审计条件没有满足，gate① 在 J1 前 BLOCK**」。这不是旧的 uv / W#1 评分题面问题，也不是 W#3 重放再次失败。
+
+证据来自本次不可变候选目录 `case_tests/e2e_tests/sm25-L_anchor/run_wallfix_gpt_judge_on/1_correction/attempts/001/`，不是离线重算 gate：
+
+| 实测项 | 结果 / 证据 |
+|---|---|
+| 两层链 | 两个 `decision_loop_outcome.json` 均 success；route 的 `response_source=model:correction_decision`、`llm_model_resolved=deepseek-v4-pro`，不是 fixed responses |
+| W#3 | attempts/001 内九件归档工件完整，包含 chain_provenance 与 deterministic_core_proof；writer 没有抛异常 |
+| W#6 | `checks.json` 两条 `correction.coverage` 均 PASS，zstack 与 cell polygon 检查 PASS |
+| 新 BLOCK | `correction.audit_completeness`，evidence=`{"changed":false,"relied_on_testdata":true}` |
+| 审计内容 | `audit.json` 与 `output.json` 中 corrections/conflicts 都是空数组 |
+| W#7 | `correction.evidence_debt_coverage` 仍 FAIL→FLAG，认领缺口没有被掩盖 |
+| 接受/出分 | run_manifest 只有 accepted 0_reading，没有 accepted 1_correction；未生成本次 correction score，未运行下游 |
+
+接线证据：`run_stage.py:1189` 用 `td_path.exists()` 生成 `relied`；`:676` 不变地传入 as_drawn 的 `check_correction`。`correction.py:513` 的 `needs_audit = changed or relied_on_testdata`，`:520` 要求 corrections/conflicts 至少一条。`finalize.py:336` 只镜像新腿几何已有的审计列表。本次列表为空，所以不是重采样几何就能保证消除的错误。现有 `test_w1_flow_routing.py::test_new_leg_draw_runs_through_the_flow_shape` 用 `relied=False` 调该函数，不能代替标准入口这次的 `True` 路径。
+
+我没有自行决定「把 relied 改 False」或凭空补审计条目，也没有把 W#7 的债加进审计来顺带消红。应由派工方明确新腿到底是否消费 testdata，以及应由哪一处记录该事实，并与另一席的审计认领工作协调。
+
+标准 runner 对 stochastic gate failure 会立即盲重试。发现 attempt 001 的固定接线问题后，我在第二次 draw 等待 provider 时向**本次进程**发 SIGINT 停止重复调用；进程退出 **130**，不是宣称 flow 正常结束或到达 quarantine。`flow_02_correction_interrupted.txt` 保存原始 traceback，`flow_stop.json` 记录本次终点及原因。未手改 run_manifest / orchestration_state / checks。后者因 run_one_stage 尚未正常返回而仍停留在 reading 的状态，排障应同时读 attempt 001 和 flow_stop，不可把这个旧状态当“correction 没运行”。逐层工作文件可能被第二次 draw 触碰；completed draw 的证据以 attempts/001 内冻结字节为准。
+
+复跑上述完整命令会重新经过同一标准门；模型耗时/输出可变，本交件不承诺不同调用逐字相同。修复新审计接线后，应以**新 run、judge 保持开启**继续验证 J1 和 2/3/4/5，不能把本次 reading 高分或已有历史工件折算成完整验收通过。
+
 **我这次最薄弱的一处**
 
-最弱的是完整 flow 的验收边界：现有新腿内容与通用 judge 展示仍有明确缺项，本次 W#1 只把错误的 legacy 检查排除并核验原生契约/标定/尺寸链，没有把全部原图像素检查接入 gate①。不能把清掉 24 FLAG、J0 非阻塞或高 reading 分数解读成完整能耗模型已正确；最终终点必须以本次 judge-on flow 的实际结果为准。
+最弱的是**尚未取得完整 flow 通过和下游出分的证据**：本次真实入口停在新暴露的审计接线 BLOCK。另一方面，W#1 只排除了不适用的 legacy 检查并核验原生契约/标定/尺寸链，没有接入全部原图像素检查；通用渲染空图和原生立面语义/方向声明限制都已列账。清掉 24 FLAG、4075 项测试通过、J0 非阻塞和高 reading 分数，都不能替代尚未完成的总验收。
