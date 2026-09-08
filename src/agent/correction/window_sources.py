@@ -339,6 +339,156 @@ def _window_strokes(raw: bytes, entry: RequiredViewEntry):
                 positive_claims=("existence", "along", "width", "sill", "head", "appearance"))
 
 
+# ── as_drawn 腿的窗源目录（2026-09-08 补窗 S1）────────────────────────────── #
+#
+# WHY THIS EXISTS: the as_drawn leg's catalog used to be the LEGAL EMPTY SET
+# (T2-⑤) — honest only while the projection emitted ``windows=[]``.  Measured
+# 2026-09-08: the plan products carry 85/87 opening candidates that are
+# consumed ONLY to cut walls, and the projection's ``windows=[]`` is a hard
+# literal ⇒ the leg produced a WINDOWLESS building (gt has openings, the model
+# had none ⇒ the opening channels score zero, and a no-window envelope has no
+# physical meaning for an energy model).  This builder is the as_drawn twin of
+# ``_window_strokes`` above: same carrier types, same claim vocabulary, ⛔ no
+# second definition of what a window source is.
+#
+# ⭐ THE CHANNEL SPLIT IS NOT A DESIGN CHOICE HERE — it is what the two
+# products actually observe (measured, ``logs/experiments/2026-09-08c_*``):
+#   plan      declares ``hypotheses.opening_types`` (window/door/not_opening)
+#             and the along-wall span, ⛔ carries NO height;
+#   elevation declares ``z_range_m`` (sill→head), ⛔ carries NO door/window
+#             classification (``ledger.door_window_classified: false``).
+# which is exactly the permission matrix ``_claim_links`` already enforces
+# (plan → existence/host/along/width, elevation → …/sill/head/appearance).
+#
+# ⛔ THICKNESS IS THE DECLARED ONE, NOT THE MEASURED ONE: a wall's cross
+# interval uses ``pairs[].matched_declared_mm`` (the callout the drawing
+# itself declares), ⛔ not ``spacing_m`` (the pixel-measured 0.2384 against a
+# declared 240).  Same ruling as the ladder/footprint work the same day: when
+# the drawing declares the number, the declaration is the answer and the ink
+# is the observation of it.
+
+
+def _as_drawn_plan_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
+    """Plan-channel source rows from one ``as_drawn_plan_v2`` product."""
+    observations = doc.get("observations") or {}
+    lines = {line["id"]: line for line in (observations.get("face_lines") or [])}
+    hypotheses = doc.get("hypotheses") or {}
+    types = hypotheses.get("opening_types") or {}
+    # face line -> (partner line id, declared thickness in metres), from the
+    # MODEL's own pairing (``hypotheses.pairs``) — ⛔ never re-paired here:
+    # "which two faces are one wall" is the model's call by project rule.
+    wall_of: dict[str, tuple[str, float]] = {}
+    for pair in hypotheses.get("pairs") or []:
+        declared = pair.get("matched_declared_mm") or []
+        if not declared:
+            continue
+        thickness_m = float(min(declared)) / 1000.0
+        wall_of[pair["face_a"]] = (pair["face_b"], thickness_m)
+        wall_of[pair["face_b"]] = (pair["face_a"], thickness_m)
+    for candidate in hypotheses.get("opening_candidates") or []:
+        if types.get(candidate.get("id")) != "window":
+            continue
+        line = lines.get(candidate.get("face_line"))
+        partner = wall_of.get(candidate.get("face_line"))
+        if line is None or partner is None:
+            # An opening on an UNPAIRED face has no wall and therefore no
+            # cross interval — loud, ⛔ never dropped silently.
+            raise WindowResolverInputError(
+                "source_identity_invalid",
+                {"input_id": entry.input_id, "observation_id": candidate.get("id"),
+                 "reason": "opening candidate on an unpaired face line"},
+                category="input_integrity_error",
+            )
+        partner_line = lines.get(partner[0])
+        if partner_line is None:
+            raise WindowResolverInputError(
+                "source_identity_invalid",
+                {"input_id": entry.input_id, "observation_id": candidate.get("id"),
+                 "reason": "paired face line absent from observations"},
+                category="input_integrity_error",
+            )
+        centre = (float(line["pos_m"]) + float(partner_line["pos_m"])) / 2.0
+        half = partner[1] / 2.0
+        cross = SourceIntervalV1(lo=centre - half, hi=centre + half)
+        along = _interval(candidate.get("span_m"),
+                          observation_id=candidate["id"], field="span_m")
+        # ``constant_world_axis`` names the FIXED axis: a line with constant x
+        # runs in y, so its openings' along-span is the y interval.
+        if line.get("constant_world_axis") == "x":
+            world_x, world_y = cross, along
+        else:
+            world_x, world_y = along, cross
+        yield PlanSourceWindowV1(
+            channel="plan",
+            source_locator=source_locator(input_id=entry.input_id,
+                                          observation_id=candidate["id"],
+                                          output_sha256=output_sha),
+            source_input_id=entry.input_id, source_output_sha256=output_sha,
+            observation_id=candidate["id"], floor_ref=entry.floor_ref,
+            world_x_interval=world_x, world_y_interval=world_y,
+            positive_claims=("existence", "host", "along", "width"),
+        )
+
+
+def _as_drawn_elevation_rows(doc: dict, entry: RequiredViewEntry, output_sha: str):
+    """Elevation-channel source rows from one ``as_drawn_elevation_v0`` product.
+
+    ⭐ ``local_along_interval`` stays IMAGE-LOCAL (as the legacy rows do): the
+    per-facade flip is applied downstream by ``facade_convention``, ⛔ never
+    pre-baked here — one flip rule, one place.
+    """
+    for opening in doc.get("openings") or []:
+        yield ElevationSourceWindowV1(
+            channel="elevation",
+            source_locator=source_locator(input_id=entry.input_id,
+                                          observation_id=opening["id"],
+                                          output_sha256=output_sha),
+            source_input_id=entry.input_id, source_output_sha256=output_sha,
+            observation_id=opening["id"],
+            local_along_interval=_interval(opening.get("x_range_m"),
+                                           observation_id=opening["id"],
+                                           field="x_range_m"),
+            local_z_interval=_interval(opening.get("z_range_m"),
+                                       observation_id=opening["id"],
+                                       field="z_range_m"),
+            positive_claims=("existence", "along", "width", "sill", "head",
+                             "appearance"),
+        )
+
+
+def build_as_drawn_window_catalog(
+    *, manifest: ViewManifest, raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[SourceWindowV1, ...]:
+    """``_catalog``'s as_drawn twin — same shape, same validation, same sort."""
+    required = {entry.input_id: entry for entry in manifest.required_entries()}
+    if set(raw_reading_artifacts) != set(required):
+        raise WindowResolverInputError(
+            "source_identity_invalid",
+            {"reading_inputs": sorted(raw_reading_artifacts),
+             "required_inputs": sorted(required)},
+            category="input_integrity_error",
+        )
+    rows: list[SourceWindowV1] = []
+    for input_id in sorted(required):
+        entry = required[input_id]
+        raw = raw_reading_artifacts[input_id]
+        try:
+            doc = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise WindowResolverInputError(
+                "source_identity_invalid",
+                {"input_id": input_id, "artifact": "reading"},
+                category="input_integrity_error",
+            ) from exc
+        output_sha = hashlib.sha256(raw).hexdigest()
+        if entry.view_type == "plan":
+            rows.extend(_as_drawn_plan_rows(doc, entry, output_sha))
+        elif entry.view_type == "elevation":
+            rows.extend(_as_drawn_elevation_rows(doc, entry, output_sha))
+    _validate_catalog(rows, raw_parser=True)
+    return tuple(sorted(rows, key=lambda item: (item.channel, item.source_input_id, item.observation_id)))
+
+
 def _catalog(*, manifest: ViewManifest, raw_reading_artifacts: Mapping[str, bytes]) -> tuple[SourceWindowV1, ...]:
     required = {entry.input_id: entry for entry in manifest.required_entries()}
     if set(raw_reading_artifacts) != set(required):
