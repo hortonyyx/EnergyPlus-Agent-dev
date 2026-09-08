@@ -1,3 +1,5 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
 # C2 开工设计:正交多边形 footprint + 多平面立面(设计方案,待 Codex 审)
 
 > **定位**:C2 档(正交多边形 L/U/凹凸 + 同朝向多平面立面)的**开工设计文档**——把 [capability/pipeline_0-5_capability_upgrade_suggestions.md](../capability/pipeline_0-5_capability_upgrade_suggestions.md) §C2 骨架 + Fable5 体检([logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md](../logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md) B1/C2/C3 节)的烤死假设清单,落成可分批执行的设计决策。**设计=本文档;执行=后续 Opus 主控按 §8 分批走 Codex**。2026-07-06 Fable5 出稿。

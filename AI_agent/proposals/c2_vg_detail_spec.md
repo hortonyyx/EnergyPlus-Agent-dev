@@ -1,3 +1,5 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
 # C2 Vg 代码级细稿 v3：E1' 立面可见性纯几何函数批
 
 > **版本史**：v1 2026-07-12（sol 次高档出稿）→ Fable 最高档交叉审 `APPROVE-WITH-CHANGES` → v2 2026-07-12（冻结 core 身份快照在 materialize 前复核、stage version 按 strict helper-version release map 派生、双翻转按 XOR）→ sol 施工交叉审 `REWORK` → **v3 2026-07-12**：中央 release map 纳入 legacy v1 完整状态、删除不可构造的单段双 visible-islands 验收项、禁止两个 visibility epsilon 的 dataclass 默认；全文累计自包含。

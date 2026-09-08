@@ -1,3 +1,5 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
 # 0–5 管线各环节 capability 升级建议（活文档）
 
 > **定位**：记录 0–5 管线**六个子环节**各自的 capability（能力/质量）升级建议，供后续依次升级。**不是硬伤清单**——硬伤走 [review/request/2026-06-10_pipeline_0-5_full_audit_request.md](../logs/reviews/request/2026-06-10_pipeline_0-5_full_audit_request.md) → review 闭环。

@@ -1,3 +1,5 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
 # C2 E4-output-contract 代码级施工细稿 v2：Relative 出口 + Zone 零原点 + 真北 θ 唯一 owner
 
 > **版本史（只记已发生事实，不预填未来判定）**：v1 2026-07-12 次高档出稿 → Fable 最高档 r1 [判词](../logs/reviews/verdict/2026-07-12_c2_e4oc_spec_review_r1.md) **APPROVE-WITH-CHANGES（3 MAJOR）** → **v2 2026-07-12**：E4-R1 真实版本史、E4-R2 prior_fill assumed-0 确定性生产通路、E4-R3 E4 helper release-map 注册三条全采纳；v2 尚无后续审判词。唯一上位定案为 [c2_full_unlock_design.md](c2_full_unlock_design.md) v2.2 §E4，实证基线为 [E4 probe RESULTS](../logs/experiments/2026-07-10_e4_relative_north_axis_probe/RESULTS.md)。

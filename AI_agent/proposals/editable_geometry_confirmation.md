@@ -1,3 +1,5 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
 # Editable geometry-confirmation step — design notes (roadmap, not yet built)
 
 > **Status: DESIGN / DEFERRED (2026-06-19).** Recorded for later detailed discussion; nothing implemented.

@@ -1,3 +1,5 @@
+> **技术参考 / 非当前管理入口（2026-09-08）**：保留既有技术细节供按需复用；正文的历史状态、模型席位、审批/全量要求和旧批次“必须”不自动生效。开发按 [AGENTS.md](../../AGENTS.md)，进度按 [当前计划](../plan.md)；实施事实需对照当前源码和产物。
+
 # C2 B2b 细稿 v2（2026-07-12）：E3' envelope 权威矩阵安全变形批
 
 > **版本史**：v1（基座 `bac689b`）→ Fable 最高档 r1 **APPROVE-WITH-CHANGES：1 MAJOR + 1 MINOR + 1 NIT**（[判词](../logs/reviews/verdict/2026-07-12_c2_b2b_spec_review_r1.md)）→ v2 全部采纳：拆开 B3 开工前置门与 B2b 三容差施工后自检；冻结 topology guard 的候选模拟评估时点；移除 endpoint chain helper 的 tol 默认值；并把现状对账更新到 B3 `20da78a` + Vg 收录后基座。
