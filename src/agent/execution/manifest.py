@@ -170,6 +170,10 @@ ArtifactKey = Literal[
     "output", "checks", "audit", "feature_states", "isolation_provenance",
     "output_coordinate_contract", "output_coordinate_snapshot",
     "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
+    # W#3 (wallhunt 2026-09-08b): the as_drawn chain leg's provenance carrier
+    # (frozen per-storey compilations) — filed by the writer on every
+    # as_drawn B5 write, structurally absent from every legacy one.
+    "chain_provenance",
 ]
 ArtifactContract = Literal[
     "migrated_v1", "base_v2", "reading_isolated_v2", "correction_b2_v1",
@@ -231,10 +235,12 @@ _CONTRACT_ALLOWED_KEYS: dict[str, frozenset[str]] = {
     "correction_b5_v1": frozenset({
         "output", "checks", "audit", "feature_states",
         "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
+        "chain_provenance",
     }),
     "correction_b5_orientation_v1": frozenset({
         "output", "checks", "audit", "feature_states",
         "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
+        "chain_provenance",
     }),
     "assembly_e4_v1": frozenset({
         "output", "checks", "audit", "output_coordinate_contract", "output_coordinate_snapshot",

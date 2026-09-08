@@ -98,6 +98,7 @@ def replay_as_drawn_chain(
         adapt_as_drawn_elevation,
         adapt_as_drawn_plan,
     )
+    from src.agent.correction.finalize import finalize_as_drawn_chain_geometry
     from src.agent.correction.multifloor import (
         assemble_multifloor_geometry,
         derive_floor_ladder,
@@ -187,8 +188,8 @@ def replay_as_drawn_chain(
         artifact = adapt_as_drawn_plan(
             raw, input_id=stem, floor_ref=floor_ref, view_type="plan"
         )
-        compilation = WallCompilationV1.model_validate(
-            json.loads(row.compilation_bytes.decode("utf-8"))
+        compilation = WallCompilationV1.model_validate_json(
+            row.compilation_bytes.decode("utf-8")
         )
         content = compilation.model_dump(mode="python")
         declared_hash = content.pop("content_sha256", None)
@@ -197,7 +198,7 @@ def replay_as_drawn_chain(
                 f"chain_replay_compilation_hash_drift: floor {floor_ref!r} "
                 "compilation bytes are not canonical"
             )
-        if compilation.bundle_content_sha256 != artifact.content_sha256:
+        if compilation.bundle_content_sha256 != artifact.bundle.content_sha256:
             raise ValueError(
                 f"chain_replay_compilation_unbound: floor {floor_ref!r} "
                 "compilation was not minted from this plan product's "
