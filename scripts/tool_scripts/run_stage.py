@@ -2611,6 +2611,20 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
     renders = _render_stage(stage, run_dir, case_dir)
     cfg = run_config or RunConfig.defaults(path=run_dir / "run_config.yaml", present=False)
     document = load_gt_document(case) if has_gt(case) else None
+    partition_artifacts = {}
+    if stage == "1_correction":
+        from src.agent.judge.partition_evidence import attempt_partition_evidence
+
+        partition_report = attempt_partition_evidence(
+            run_dir, attempt_dir, document=document,
+            reference_path=gt_path(case) if document is not None else None,
+        )
+        partition_path = attempt_dir / "source_partition_evidence.json"
+        partition_path.write_text(json.dumps(partition_report, indent=2, ensure_ascii=False), encoding="utf-8")
+        partition_artifacts = {
+            "source_partition_evidence": str(partition_path),
+            "source_partition_criterion": partition_report["criterion"],
+        }
     if isinstance(document, GroundTruthV3):
         gt_artifacts = _grade_typed_attempt_artifacts(stage, case, attempt_dir, document,
             gt_file=gt_path(case), manifest=manifest or _load_manifest_readonly(run_dir),
@@ -2642,6 +2656,7 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
         "score_payload_detail": gt_artifacts.get("score_payload_detail"),
         "score_criteria": gt_artifacts["score_criteria"],
         "grade": gt_artifacts["grade"],
+        **partition_artifacts,
         "gate1": {
             "passed": report.passed,
             "flags": [f"{r.check_id}: {r.message}" for r in report.flagged()],
@@ -2650,7 +2665,11 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
                 "write a StageVerdict JSON and submit it with `judge ... --verdict`. "
                 "score_criteria is machine-readable gt reconciliation evidence only; "
                 "StageVerdict remains the authoritative checklist decision. "
-                "Use the reconciliation first, images second; tolerances are relaxed.",
+                "Use the reconciliation first, images second; tolerances are relaxed. "
+                + ("For J1, read source_partition_evidence before ruling on rooms: "
+                   "resolve object-level split/merge and unsupported-boundary findings; "
+                   "counts and exterior reference-plane offsets are not a partition verdict. "
+                   if stage == "1_correction" else ""),
     }
     (attempt_dir / "judge_packet.json").write_text(
         json.dumps(pkt, indent=2, ensure_ascii=False), encoding="utf-8")

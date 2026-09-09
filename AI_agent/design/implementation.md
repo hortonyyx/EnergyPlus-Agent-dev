@@ -59,7 +59,7 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 - [GT 配置](../../src/configs/judge_gt.yaml) 的 DXF 节点连接/轴对齐为 0.001 m；as-drawn 分母仍从签字源 DXF 生成。GT 准备/规整精度与最后产品评价容差属于不同环节，不能只修改评分配置便声称解决了前者。
 - sm25 当前 J0/J1 已放行，建模的 `kernel.pairing_gate` 将 [InterZone 检查](../../src/validator/interzone.py) 的短边问题升为 invariant，0.065 m 小于硬编码 0.1 m 后停止。该规则来自历史崩溃防护，尚未证明是所有模型/EP 版本的普遍下限；也不是 GT 逐点比较导致的这次直接停止。
 
-09-09 新增 [确定性分区比较器](../../src/agent/judge/source_partition.py) 和三案例诊断入口，尚未接入 J0/J1 自动取参照路径。源到派生映射已接 Stage 2：严重实现错误保存候选后返回失败，包含 exploratory 路径；其余既有 gate 阈值未放宽。源投影的具体覆盖与限制见 [共同模型](model.md)，比较器边界见 [评价原则](evaluation.md)。
+09-09 新增 [确定性分区比较器](../../src/agent/judge/source_partition.py) 和三案例诊断入口；[独立分区证据服务](../../src/agent/judge/partition_evidence.py) 已接 J1 评价包，自动读取可用 GT 房间多边形及历史读图墙线。它提供源对象对应、内部边界差异和无支持边界，保留原始参考面差异与未评价范围；J0、as-drawn 独立墙线适配与自动房间身份识读仍待接线。源到派生映射已接 Stage 2：严重实现错误保存候选后返回失败，包含 exploratory 路径；其余既有 gate 阈值未放宽。源投影的具体覆盖与限制见 [共同模型](model.md)，比较器边界见 [评价原则](evaluation.md)。
 
 | 能力 | 已有基础 | 缺口 |
 |---|---|---|

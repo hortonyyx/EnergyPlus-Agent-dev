@@ -18,9 +18,16 @@ reference answer)?"** — this is the most human-verification-dependent stage.
 
 ## Criteria (redraw fidelity)
 1. **zonification fidelity** — filled zone plan vs original plan: no rooms wrongly
-   merged / split / missing / invented.
+   merged / split / missing / invented. Read `source_partition_evidence` and
+   `source_partition_criterion` in the judge packet first. The former includes
+   independent GT polygon correspondence and partial upstream wall-stroke
+   support, with per-object findings and input hashes. Known extra physical
+   partitions, lost walls and false source splits/merges are severe; good
+   counts, overall area or historical EP success cannot offset them.
 2. **cross-floor consistency** — the same wall aligns across floors (no ~5 cm
-   jitter class).
+   unexplained jitter). Retain offsets supported by the input: a small shift
+   that loses a junction is a topology failure; a real floor-to-floor offset
+   must not be erased merely to align the floors.
 3. **window position fidelity** — each window lands on the correct facade / floor /
    position vs the original elevation.
 4. **count vs reference** — zone count and window count match the reference
@@ -31,6 +38,14 @@ reference answer)?"** — this is the most human-verification-dependent stage.
    qualitative error?
 
 ## Disposition
+- `source_partition_evidence` is judge evidence, not an automatic whole-BIM
+  approval. Boundary-offset-only discrepancies require coordinate/reference-
+  plane review, and the raw geometric result remains in the report. Partial
+  reading wall support cannot define room identities: a doorway gap does not
+  merge the source rooms. Inspect unsupported spans against doors and original
+  drawings before calling them invented walls. No usable reference means
+  insufficient evidence, never a count-based pass. If these findings contradict
+  a proposed pass/minor, resolve the specific objects in the verdict evidence.
 - **fatal / severe** → route to the **attributed root stage** (`0_reading` or
   `1_correction`), 3 attempts → terminate. 1_correction is `stochastic`, so the
   retry is a **blind resample** — judge commentary is logged out-of-band, never
