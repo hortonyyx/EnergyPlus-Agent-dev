@@ -33,3 +33,15 @@
 ## 本轮验证与下一次入口
 
 本轮仅修改项目文档，没有业务代码改动、模型调用、新几何生成或 EP 运行。`git diff --check` 通过，13 份变更文档的 117 个本地链接可解析，未跑 pytest。下一次从计划 M0-1/2/4 开始，先把源分区和自动判定做对，再接门/连通、容差规整与当前冷启动链；短边微差不再压过源拓扑成为主线。
+
+## 后续澄清：Stage 2 人工交互停点
+
+用户确认 Stage 2 是主要人工交互停点，完整交互需要后续设计，当前先参考已有 HTML 至少输出模型供人工查看确认。已同步目标、决策、架构、执行计划和 roadmap；持久编辑仍在 M1，不能阻塞首份 HTML。
+
+基于 `cffed459` 只读核对：
+
+- `render_geometry_viewer.py` 已有内嵌 three.js/OrbitControls、离线 HTML、旋转/缩放/半透明/剖切/展开/选择/测量；`build_viewer_html` 目前消费 zones/surfaces/windows/roles，门/通用开口未接。
+- `run_stage.py::_render_geometry_viewer` 从 Stage 2 几何写出 `manual_review/geometry_viewer.html`；`cmd_run` 要求阶段检查通过，flow 在抵达几何确认停点时生成。失败产物始终有查看入口尚未保证。
+- `step_orchestrator.py` 的正式确认仍在 Stage 3 后，摘要绑定 2+3 和 kernel report，Stage 4 受确认策略控制；新设计的 Stage 2 停点未实现。迁移需核对源版本、确认失效与恢复，不能只改常量。
+
+本次仅澄清并同步文档，未生成新的查看产物、修改业务代码或执行模型/EP。`git diff --check` 通过，6 份变更文档的 46 个本地链接路径存在；未跑 pytest，不改写前轮测试范围。
