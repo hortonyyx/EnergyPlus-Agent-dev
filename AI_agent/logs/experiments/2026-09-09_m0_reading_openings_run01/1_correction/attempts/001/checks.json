@@ -1,0 +1,278 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "8e9ba77d7372d12b21d5b12d0b402c856ff86fd993ad387a9f674c90f10884cf",
+  "attempt_hash": "8e9ba77d7372d12b21d5b12d0b402c856ff86fd993ad387a9f674c90f10884cf",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": null,
+  "run_policy_source": null,
+  "results": [
+    {
+      "check_id": "correction.schema_version_supported",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "schema_version": "3"
+      }
+    },
+    {
+      "check_id": "correction.capability_profile_shapes",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "capability_profile": "orthogonal_polygon",
+        "declared_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ],
+        "allowed_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ]
+      }
+    },
+    {
+      "check_id": "correction.cell_polygon_contract",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "1f",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 279.186494,
+        "cells_union_area_m2": 279.186494,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": 0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "2f",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 279.186494,
+        "cells_union_area_m2": 279.186494,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": -0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.nondegenerate",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zstack_continuity",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zone_count_tripwire",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "actual": 27,
+        "expected": null
+      }
+    },
+    {
+      "check_id": "correction.window_host_resolution",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 31,
+        "aggregate_sha256": "fa45190d9db9842cae9bd0f3dcc7e9da992229753a5c722f8c602fde0d262d13"
+      }
+    },
+    {
+      "check_id": "correction.cross_image_reconcile",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation widths supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.facade_frame_cross_check",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation reading artifacts supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.audit_completeness",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "no material change / no testdata reliance detected",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.plan_opening_completeness",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "Explicitly identified plan openings remain unbuilt; the source model is incomplete.",
+      "evidence": {
+        "unbuilt": [
+          {
+            "kind": "as_drawn_opening_unbuilt",
+            "input_id": "2f_view",
+            "observation_ids": [
+              "L029g0",
+              "L030g0"
+            ],
+            "floor_id": "2f",
+            "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+            "anchor_observation_id": "L029g0",
+            "span_m": [
+              3.8427,
+              4.6712
+            ],
+            "compiled_half_thickness_m": 0.06,
+            "reason": "final_wall_host_not_unique",
+            "candidate_positions": []
+          },
+          {
+            "kind": "as_drawn_opening_unbuilt",
+            "input_id": "2f_view",
+            "observation_ids": [
+              "L029g3"
+            ],
+            "floor_id": "2f",
+            "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+            "anchor_observation_id": "L029g3",
+            "span_m": [
+              9.9038,
+              10.9286
+            ],
+            "compiled_half_thickness_m": 0.06,
+            "reason": "opening_crosses_room_boundaries",
+            "candidate_space_ids": [
+              "2f-c000",
+              "2f-c001",
+              "2f-c006"
+            ]
+          },
+          {
+            "kind": "as_drawn_opening_unbuilt",
+            "input_id": "2f_view",
+            "observation_ids": [
+              "L030g2"
+            ],
+            "floor_id": "2f",
+            "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+            "anchor_observation_id": "L030g2",
+            "span_m": [
+              10.1219,
+              11.1248
+            ],
+            "compiled_half_thickness_m": 0.06,
+            "reason": "opening_crosses_room_boundaries",
+            "candidate_space_ids": [
+              "2f-c000",
+              "2f-c006",
+              "2f-c007"
+            ]
+          }
+        ],
+        "built_openings": 29
+      }
+    },
+    {
+      "check_id": "correction.facade_area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.wwr_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.unsupported_count_by_severity",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.window_position_evidence_shadow",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "producer_draw_sha256": "99be72200eaf245b4054acaa933a516e87bff086207f91a125c52913ddef78ec",
+        "resolver_inputs_sha256": "c811c5e7385bcc54e0192db7beb705f47e3919d1b785cd4fe7631e60bbe8cada",
+        "window_count": 31,
+        "rejected_window_ids": [],
+        "rejected_reject_codes": [],
+        "max_legacy_span_delta_m": 0.042500000000000426,
+        "ruleset_version": "f9_route2_s2_position_evidence_ruleset_v2",
+        "evaluated_conditions": [
+          "ambiguity_margin",
+          "claim_consistency",
+          "distance_within_tolerance",
+          "scope_resolution",
+          "source_not_reused",
+          "unique_mutual_nearest"
+        ],
+        "unevaluated_conditions": [],
+        "content_sha256": "9ed6b3ecffe73b18d4400fc05ab42a6790f7bceaebd5f4f6810fac4fa8b1c74f"
+      }
+    }
+  ]
+}
