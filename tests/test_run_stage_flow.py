@@ -56,6 +56,78 @@ def _pass_report(stage: str) -> CheckReport:
     return rep
 
 
+def test_flow_configuration_reaches_correction_and_restores_callers_environment(tmp_path, monkeypatch):
+    import os
+    from src.agent.pipeline import _section
+
+    config = tmp_path / "subscription.yaml"
+    config.write_text("intake_correction:\n  provider: claude_subscription\n  model_name: sonnet\n")
+    previous = tmp_path / "previous.yaml"
+    monkeypatch.setenv("EP_AGENT_LLM_CONFIG", str(previous))
+
+    def inspect(args):
+        assert _section("correction")["provider"] == "claude_subscription"
+        assert os.environ["EP_AGENT_LLM_CONFIG"] == str(config)
+        raise RuntimeError("stop before any model call")
+
+    monkeypatch.setattr(rs, "_cmd_flow_with_config", inspect)
+    with pytest.raises(RuntimeError, match="stop before"):
+        rs.cmd_flow(_args(tmp_path, llm_config=config))
+    assert os.environ["EP_AGENT_LLM_CONFIG"] == str(previous)
+
+
+def test_automatic_reading_refuses_implicit_or_api_correction_before_start(tmp_path):
+    args = _args(tmp_path, target="source-bim", reading_model="haiku")
+    with pytest.raises(SystemExit, match="explicit --llm-config"):
+        rs.cmd_flow(args)
+    config = tmp_path / "api.yaml"
+    config.write_text("intake_correction:\n  provider: openai\n  model_name: deepseek-v4-pro\n")
+    args.llm_config = config
+    with pytest.raises(SystemExit, match="subscription correction"):
+        rs.cmd_flow(args)
+    assert not (tmp_path / "case").exists()
+
+
+def test_automatic_reading_block_stops_before_correction_or_source_export(tmp_path, monkeypatch):
+    from src.agent.execution import automatic_reading
+
+    _seed_case_data(tmp_path)
+    config = tmp_path / "subscription.yaml"
+    config.write_text("intake_correction:\n  provider: claude_subscription\n  model_name: sonnet\n")
+    seen = []
+
+    def blocked(case_dir, run_dir, **kwargs):
+        seen.append(kwargs)
+        return {"status": "blocked"}
+
+    monkeypatch.setattr(automatic_reading, "run_automatic_reading", blocked)
+    monkeypatch.setattr(rs, "_make_draw_fn", lambda *a, **kw: pytest.fail("reading block started correction"))
+    out = tmp_path / "bim"
+    args = _args(tmp_path, target="source-bim", from_stage="auto", bim_out=out,
+                 reading_model="haiku", reading_timeout=20, llm_config=config)
+    assert rs.cmd_flow(args) == rs.FLOW_EXIT_CHECKPOINT
+    assert seen == [{"model": "haiku", "timeout_seconds": 20}]
+    assert not (tmp_path / "case/run/1_correction").exists()
+    assert not out.exists()
+
+
+def test_source_flow_continues_after_automatic_reader_returns(tmp_path, monkeypatch):
+    from src.agent.execution import automatic_reading
+
+    _seed_case_data(tmp_path)
+    config = tmp_path / "subscription.yaml"
+    config.write_text("intake_correction:\n  provider: claude_subscription\n  model_name: sonnet\n")
+    monkeypatch.setattr(automatic_reading, "run_automatic_reading", lambda *a, **kw: {"status": "reused"})
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **kw: [])
+    monkeypatch.setattr(rs, "_render_stage_grade_artifacts", lambda *a, **kw: [])
+    out = tmp_path / "bim"
+    args = _args(tmp_path, target="source-bim", bim_out=out, reading_model="haiku",
+                 reading_timeout=20, llm_config=config)
+    assert rs.cmd_flow(args) == rs.FLOW_EXIT_OK
+    assert (out / "source_model.json").is_file()
+
+
 def test_source_bim_flow_does_not_enter_legacy_modelling_or_ep(tmp_path, monkeypatch):
     _seed_case_data(tmp_path)
     stages=[]

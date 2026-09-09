@@ -1083,6 +1083,49 @@ def _append_reader_invocation(staging_root: Path, record: dict) -> Path:
     return path
 
 
+def _archive_reader_process_output(
+    staging_root: Path, stdout: str, stderr: str
+) -> tuple[Path, Path]:
+    """Persist each CLI result outside the reader-writable tree.
+
+    The invocation ledger only needs hashes for merge provenance, but the
+    controller also needs the raw Claude JSON (including model usage and a
+    successful-process error payload) to explain a stopped automatic run.
+    """
+    output_dir = _audit_dir(staging_root) / "reader_process_outputs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    index = len(list(output_dir.glob("*_stdout.txt"))) + 1
+    stdout_path = output_dir / f"{index:03d}_stdout.txt"
+    stderr_path = output_dir / f"{index:03d}_stderr.txt"
+    stdout_path.write_text(stdout, encoding="utf-8")
+    stderr_path.write_text(stderr, encoding="utf-8")
+    return stdout_path, stderr_path
+
+
+def _reader_response_summary(stdout: str) -> dict[str, object]:
+    """Extract only the CLI completion status from a JSON-mode response."""
+    empty = {
+        "response_json": False,
+        "response_is_error": False,
+        "response_error": None,
+        "response_subtype": None,
+        "response_usage": None,
+    }
+    try:
+        payload = json.loads(stdout)
+    except (json.JSONDecodeError, TypeError):
+        return empty
+    if not isinstance(payload, dict):
+        return empty
+    return {
+        "response_json": True,
+        "response_is_error": bool(payload.get("is_error")),
+        "response_error": payload.get("error"),
+        "response_subtype": payload.get("subtype"),
+        "response_usage": payload.get("usage"),
+    }
+
+
 def _reported_session_id(stdout: str) -> str | None:
     try:
         value = (json.loads(stdout) or {}).get("session_id")
@@ -1113,6 +1156,8 @@ def spawn_command(
     execute: bool = False,
     directive: str | Path | None = None,
     resume: bool = False,
+    timeout_seconds: float | None = None,
+    subscription_only: bool = False,
 ) -> list[str]:
     """Build (and optionally run) the reader spawn command.
 
@@ -1215,6 +1260,13 @@ def spawn_command(
             prompt += "\nIMPORTANT: " + _FEEDBACK_POINTER
 
     cmd = ["claude", "-p", prompt, "--settings", str(staging_root / "isolation_settings.json")]
+    if subscription_only:
+        # A subscription run must use the locally logged-in Claude CLI, never a
+        # key or endpoint inherited from a provider-wrapper shell.  Empty
+        # setting sources also prevents user/project settings from adding an
+        # unreviewed MCP or environment route; this workspace's settings file is
+        # the sole explicit configuration source.
+        cmd.extend(["--setting-sources", "", "--strict-mcp-config"])
     if model:
         cmd.extend(["--model", model])
     if resume_id:
@@ -1225,7 +1277,7 @@ def spawn_command(
         # so its output format is left alone.
         cmd.extend(["--output-format", "json"])
     if execute:
-        spawn_env = clean_spawn_env(staging_root)
+        spawn_env = clean_spawn_env(staging_root, subscription_only=subscription_only)
         runner_path = shutil.which(cmd[0], path=spawn_env.get("PATH")) or cmd[0]
         try:
             version_proc = subprocess.run(
@@ -1240,11 +1292,23 @@ def spawn_command(
 
         started_at = datetime.now(timezone.utc)
         started_clock = time.monotonic()
-        proc = subprocess.run(
-            cmd, cwd=staging_root, env=spawn_env,
-            check=False, text=True, capture_output=True,
-        )
+        timed_out = False
+        try:
+            proc = subprocess.run(
+                cmd, cwd=staging_root, env=spawn_env,
+                check=False, text=True, capture_output=True,
+                timeout=timeout_seconds,
+            )
+        except subprocess.TimeoutExpired as exc:
+            timed_out = True
+            stdout = exc.stdout.decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+            stderr = exc.stderr.decode() if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+            proc = subprocess.CompletedProcess(cmd, 124, stdout, stderr)
         completed_at = datetime.now(timezone.utc)
+        stdout_path, stderr_path = _archive_reader_process_output(
+            staging_root, proc.stdout, proc.stderr
+        )
+        response = _reader_response_summary(proc.stdout)
         prompt_hash = hash_text(prompt)
         redacted_argv = list(cmd)
         redacted_argv[2] = f"<prompt sha256={prompt_hash}>"
@@ -1258,6 +1322,9 @@ def spawn_command(
             "runner_version_returncode": runner_version_returncode,
             "requested_model": model,
             "model_source": model_source,
+            "subscription_only": bool(subscription_only),
+            "timeout_seconds": timeout_seconds,
+            "timed_out": timed_out,
             "session_form": "resume" if resume_id else "start",
             "session_id": resume_id,
             "reported_session_id": _reported_session_id(proc.stdout),
@@ -1267,16 +1334,26 @@ def spawn_command(
             "returncode": proc.returncode,
             "stdout_sha256": hash_text(proc.stdout),
             "stderr_sha256": hash_text(proc.stderr),
+            "stdout_path": str(stdout_path),
+            "stderr_path": str(stderr_path),
             "launcher_module_sha256": hash_file(Path(__file__)),
             "input_hashes": _reader_input_hashes(staging_root),
+            **response,
         }
         _append_reader_invocation(staging_root, invocation)
-        proc.check_returncode()
         # stdout is the reader's product record either way; print it so the
         # caller's redirect keeps behaving as before this change.
         print(proc.stdout, end="")
         if proc.stderr:
             print(proc.stderr, end="", file=sys.stderr)
+        if timed_out:
+            raise subprocess.TimeoutExpired(
+                cmd, timeout_seconds, output=proc.stdout, stderr=proc.stderr
+            )
+        proc.check_returncode()
+        if response["response_is_error"] or response["response_subtype"] == "error_max_turns":
+            detail = response["response_error"] or response["response_subtype"] or "unknown CLI error"
+            raise RuntimeError(f"Claude CLI returned an error payload: {detail}")
         if not resume_id:
             _record_reader_session_id(staging_root, proc.stdout)
     return cmd
@@ -1299,8 +1376,20 @@ def _record_reader_session_id(staging_root: Path, stdout: str) -> None:
     target.write_text(str(session_id), encoding="utf-8")
 
 
-def clean_spawn_env(staging_root: Path) -> dict[str, str]:
-    keep = {"PATH", "HOME", "LANG", "LC_ALL", "ANTHROPIC_API_KEY"}
+def clean_spawn_env(staging_root: Path, *, subscription_only: bool = False) -> dict[str, str]:
+    """Return the narrow environment available to an isolated reader.
+
+    ``subscription_only`` is for the Claude CLI's logged-in subscription
+    route.  It intentionally omits all provider API credentials and endpoint
+    selectors, while preserving the CLI's OAuth token when the host supplied
+    one.  The normal path remains byte-for-byte compatible with the historical
+    API-key-capable launcher.
+    """
+    keep = {"PATH", "HOME", "LANG", "LC_ALL"}
+    if subscription_only:
+        keep.add("CLAUDE_CODE_OAUTH_TOKEN")
+    else:
+        keep.add("ANTHROPIC_API_KEY")
     env = {key: value for key, value in os.environ.items() if key in keep}
     env["PYTHONPATH"] = str(Path(staging_root).resolve())
     return env

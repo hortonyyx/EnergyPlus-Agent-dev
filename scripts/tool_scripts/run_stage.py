@@ -2960,6 +2960,11 @@ def _resolve_flow_llm_config(args, case_dir: Path, run_dir: Path) -> Path:
         if not cfg.is_file():
             raise SystemExit(f"--llm-config not found: {cfg}")
         return cfg
+    if os.environ.get("EP_AGENT_LLM_CONFIG"):
+        cfg = Path(os.environ["EP_AGENT_LLM_CONFIG"])
+        if not cfg.is_file():
+            raise SystemExit("EP_AGENT_LLM_CONFIG does not point to a file")
+        return cfg
     for cfg in (run_dir / "llm.yaml", case_dir / "llm.yaml", global_cfg):
         if cfg.is_file():
             return cfg
@@ -3291,6 +3296,35 @@ def cmd_approve_review(args) -> int:
 
 
 def cmd_flow(args) -> int:
+    """Bind the chosen configuration before reading/correction, then restore it."""
+    case_dir, run_dir, _ = _resolve(args.base_dir, args.case, args.run)
+    config = _resolve_flow_llm_config(args, case_dir, run_dir).resolve()
+    if getattr(args, "reading_model", None):
+        if getattr(args, "target", "source-bim") not in {"source-bim", "ep"}:
+            raise SystemExit("automatic reading requires the shared source-bim/ep target")
+        if getattr(args, "llm_config", None) is None:
+            raise SystemExit("automatic reading requires explicit --llm-config for correction")
+        from omegaconf import OmegaConf
+        selected = OmegaConf.to_container(OmegaConf.load(config), resolve=True)
+        correction = selected.get("intake_correction", {})
+        decision = selected.get("correction_decision", correction)
+        for section in (correction, decision):
+            if (section.get("provider") != "claude_subscription"
+                    or section.get("model_name") not in {"haiku", "sonnet", "claude-haiku-4-5-20251001", "claude-sonnet-4-6"}
+                    or section.get("api_key") or section.get("base_url")):
+                raise SystemExit("automatic reading currently requires explicit Claude subscription correction sections (Haiku/Sonnet)")
+    previous = os.environ.get("EP_AGENT_LLM_CONFIG")
+    os.environ["EP_AGENT_LLM_CONFIG"] = str(config)
+    try:
+        return _cmd_flow_with_config(args)
+    finally:
+        if previous is None:
+            os.environ.pop("EP_AGENT_LLM_CONFIG", None)
+        else:
+            os.environ["EP_AGENT_LLM_CONFIG"] = previous
+
+
+def _cmd_flow_with_config(args) -> int:
     branch_target = getattr(args, "target", "source-bim")
     source_target = branch_target in ("source-bim", "ep")
     if not source_target and getattr(args, "enclosure_input", None) is not None:
@@ -3343,6 +3377,17 @@ def cmd_flow(args) -> int:
         source=source,
         reading_mode=run_config.reading_mode,  # M-1: freeze at the attempt choke point, not at record time
     )
+    if getattr(args, "reading_model", None):
+        from src.agent.execution.automatic_reading import run_automatic_reading
+        from src.agent.execution.manifest import load_run_manifest
+        reading = run_automatic_reading(case_dir, run_dir, model=args.reading_model,
+                                         timeout_seconds=args.reading_timeout)
+        print(f"  automatic reading: {reading['status']}")
+        if reading["status"] not in {"accepted", "reused"}:
+            print(f"  reading evidence: {run_dir / '_run/automatic_reading.json'}")
+            return FLOW_EXIT_CHECKPOINT
+        # The isolated merge owns the accepted reading record and its mirrors.
+        manifest = load_run_manifest(run_dir)
     start_stage = (
         _auto_start_stage(
             manifest=manifest,
@@ -3739,6 +3784,10 @@ def main() -> int:
                     help="shared source BIM trunk, optionally followed by EP; old stages 2-5 require explicit legacy-ep")
     pf.add_argument("--bim-out", type=Path, help="new source output directory, required for --target source-bim")
     pf.add_argument("--enclosure-input", type=Path, help="source geometry declaration of open/unknown enclosure regions")
+    pf.add_argument("--reading-model", choices=("haiku", "sonnet"),
+                    help="read original drawings once through the Claude subscription; reuse an accepted reading")
+    pf.add_argument("--reading-timeout", type=float, default=900,
+                    help="automatic reader timeout in seconds (default 900)")
     pf.add_argument("--physics-template", type=Path, help="geometry-free EP physics template")
     pf.add_argument("--zone-bindings", type=Path, help="JSON source space ID to physics zone name map")
     pf.add_argument("--opening-policy", type=Path, help="explicit per-source-door backend policy JSON")

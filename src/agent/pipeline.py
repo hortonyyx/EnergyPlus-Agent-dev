@@ -61,6 +61,7 @@ from src.agent.execution.evidence_preflight import (
     window_evidence_channel_split_debt,
     write_evidence_debt,
 )
+from src.agent.execution.subscription_json import call_subscription_json
 from src.agent.llm import load_llm_section, resolve_llm_config_path
 from src.agent.reading.vector_contract import classify_vector_dir
 from src.agent.state import IntakeOutput
@@ -242,6 +243,18 @@ def _call_json_llm(
     `retry_guidance` returning ``None`` (e.g. for a semantic ValueError) also
     retries blind: the inner retry owns ONLY schema/format robustness, never
     geometry/upstream/numeric values. None/omitted ⇒ fully blind retry (legacy)."""
+    if section.get("provider") == "claude_subscription":
+        return call_subscription_json(
+            section,
+            system_prompt,
+            human,
+            out_dir=out_dir,
+            prefix=prefix,
+            attempts=attempts,
+            validate=validate,
+            retry_guidance=retry_guidance,
+            extract_json=_extract_json,
+        )
     api_key = section.get("api_key")
     base_url = section.get("base_url")
     model_name = section["model_name"]
