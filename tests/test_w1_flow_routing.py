@@ -295,12 +295,13 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
         (run_dir / "1_correction" / "as_drawn_opening_account.json").read_text("utf-8")
     )
     assert openings["observations_considered"] == 61
-    assert openings["built_count"] == len(result.geom.openings) == 29
-    assert len(openings["unbuilt"]) == 3
+    assert openings["built_count"] == len(result.geom.openings) == 30
+    assert len(openings["unbuilt"]) == 2
     assert len([
         row for row in result.geom.unsupported
         if row.get("kind") == "as_drawn_opening_unbuilt"
-    ]) == 3
+    ]) == 2
+    assert result.chain_provenance.endpoint_connection_policy == "preserve_endpoint_connections_v1"
     assert result.chain_provenance.wall_opening_policy.assumed_height_m == 2.1
 
 

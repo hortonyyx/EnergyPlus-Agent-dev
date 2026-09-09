@@ -872,11 +872,13 @@ class FootprintSnapAccount:
     schema: str = "footprint_snap_ledger_v1"
     applied: bool = False
     records: tuple[FootprintSnapRecord, ...] = ()
+    endpoint_connections: tuple[dict, ...] = ()
 
     def to_payload(self) -> dict:
         return {
             "schema": self.schema,
             "applied": self.applied,
+            **({"endpoint_connections": list(self.endpoint_connections)} if self.endpoint_connections else {}),
             "records": [
                 {
                     "floor_index": r.floor_index,
@@ -1024,6 +1026,7 @@ def reconcile_floors_to_reference(
     per_floor_cut_lines: Sequence[tuple],
     per_floor_project: Sequence[dict],
     declarations: Sequence[PlanCalibrationDeclaration],
+    *, preserve_connections: bool = False,
 ) -> tuple[tuple[CorrectedGeometryV3, ...], FootprintSnapAccount]:
     """W#6: reconcile the upper floors onto the reference floor, ON THE CUT
     LINES, and RE-PARTITION every floor from its (possibly aligned) lines.
@@ -1056,6 +1059,7 @@ def reconcile_floors_to_reference(
     """
     from src.agent.correction.projection_bridge import (
         align_wall_lines_to_reference,
+        preserve_endpoint_connections,
         project_cut_lines,
     )
 
@@ -1078,6 +1082,7 @@ def reconcile_floors_to_reference(
     out: list[CorrectedGeometryV3] = []
     records: list[FootprintSnapRecord] = []
     applied = False
+    endpoint_records = []
     for index, (lines, project_kwargs, decl) in enumerate(
         zip(per_floor_cut_lines, per_floor_project, declarations)
     ):
@@ -1092,10 +1097,11 @@ def reconcile_floors_to_reference(
                 lines, reference_lines, tolerance_m=tolerance
             )
         )
+        if preserve_connections:
+            aligned, _endpoint_records = preserve_endpoint_connections(lines, aligned)
+            endpoint_records.extend({"floor_id": decl.input_id, **r} for r in _endpoint_records)
         floor_id = project_kwargs.get("floor_id") or decl.input_id
-        moved = any(
-            a.pos_m != b.pos_m for a, b in zip(aligned, lines)
-        ) if index > 0 else False
+        moved = bool(_align_records)
         envelope = project_cut_lines(aligned, **project_kwargs)
         geom = envelope.geometry
         if index == 0:
@@ -1127,7 +1133,8 @@ def reconcile_floors_to_reference(
             },
         ))
         out.append(geom)
-    account = FootprintSnapAccount(applied=applied, records=tuple(records))
+    account = FootprintSnapAccount(applied=applied, records=tuple(records),
+                                   endpoint_connections=tuple(endpoint_records))
     return tuple(out), account
 
 

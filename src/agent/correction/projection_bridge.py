@@ -34,7 +34,7 @@ coordinate resolution — see :func:`resolution_from_units_per_metre`.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Literal, Sequence
 
 from pydantic import BaseModel, ConfigDict
@@ -124,6 +124,81 @@ class CutLineV1:
     half_thickness_m: float
     kind: Literal["wall", "opening", "collinear_gap"]
     origin_id: str
+
+
+def preserve_endpoint_connections(
+    before: Sequence[CutLineV1], after: Sequence[CutLineV1],
+) -> tuple[tuple[CutLineV1, ...], tuple[dict, ...]]:
+    """Follow uniquely evidenced perpendicular hosts across a position-only move.
+
+    A connection must already meet the extension rule in the ORIGINAL wall
+    bands (or touch the axis exactly). Only physical walls can host it. Move
+    the effective endpoint (already extended to the old axis) onto the new
+    host axis exactly, avoiding a second floating-point band decision. No larger gap
+    tolerance, nearest-wall guess, or shortening of an interior crossing.
+    """
+    def key(line):
+        return (line.axis, line.kind, line.origin_id, line.along_lo_m, line.along_hi_m)
+
+    old = {key(line): line for line in before}
+    new = {key(line): line for line in after}
+    if len(old) != len(before) or len(new) != len(after) or old.keys() != new.keys():
+        raise ProjectionBridgeError("ENDPOINT_FOLLOW_LINE_IDENTITY_CHANGED")
+    result, records, connections = [], [], []
+    indices = {key(line): i for i, line in enumerate(after)}
+    for moved in after:
+        line = old[key(moved)]
+        changes = {}
+        if line.kind != "wall":
+            result.append(moved)
+            continue
+        for endpoint, value in (("lo", line.along_lo_m), ("hi", line.along_hi_m)):
+            hosts = [host for host in before
+                     if host.kind == "wall" and host.axis != line.axis
+                     and host.along_lo_m - line.half_thickness_m <= line.pos_m
+                     <= host.along_hi_m + line.half_thickness_m
+                     and abs(value - host.pos_m) <= host.half_thickness_m
+                     and (host.pos_m <= value if endpoint == "lo" else host.pos_m >= value)]
+            if not hosts or not any(new[key(h)].pos_m != h.pos_m for h in hosts):
+                continue
+            # Multiple pieces of the SAME axis are harmless only if they
+            # agree both before and after the move. Distinct axes are ambiguous.
+            positions = {(h.pos_m, new[key(h)].pos_m) for h in hosts}
+            if len(positions) != 1:
+                raise ProjectionBridgeError("ENDPOINT_FOLLOW_AMBIGUOUS_HOST", {
+                    "origin_id": line.origin_id, "endpoint": endpoint,
+                    "host_ids": sorted(h.origin_id for h in hosts),
+                })
+            old_pos, new_pos = next(iter(positions))
+            target = new_pos
+            changes[f"along_{endpoint}_m"] = target
+            connections.append((len(result), [indices[key(h)] for h in hosts]))
+            records.append({
+                "origin_id": line.origin_id, "endpoint": endpoint,
+                "host_ids": sorted(h.origin_id for h in hosts),
+                "from_m": value, "to_m": target,
+                "host_from_m": old_pos, "host_to_m": new_pos,
+                "original_gap_m": abs(value - old_pos),
+                "host_displacement_m": new_pos - old_pos,
+                "host_half_thickness_m": min(h.half_thickness_m for h in hosts),
+            })
+        followed = replace(moved, **changes)
+        if followed.along_lo_m >= followed.along_hi_m:
+            raise ProjectionBridgeError("ENDPOINT_FOLLOW_COLLAPSED_WALL", {"origin_id": line.origin_id})
+        result.append(followed)
+    # A simultaneous perpendicular move must not break the other coordinate
+    # of a followed junction. Check the actual extension used by projection.
+    closed, _ = close_collinear_gaps(result, resolution_m=0.0)
+    extended = extend_endpoints(closed, resolution_m=0.0).lines
+    for index, host_indices in connections:
+        line = extended[index]
+        if not any(
+            line.along_lo_m <= extended[h].pos_m <= line.along_hi_m
+            and extended[h].along_lo_m <= line.pos_m <= extended[h].along_hi_m
+            for h in host_indices
+        ):
+            raise ProjectionBridgeError("ENDPOINT_FOLLOW_CONNECTION_BROKEN", {"origin_id": line.origin_id})
+    return tuple(result), tuple(records)
 
 
 # ── W#6 (wallhunt 2026-09-08b / dispatch 2026-09-08c S-B): the exterior

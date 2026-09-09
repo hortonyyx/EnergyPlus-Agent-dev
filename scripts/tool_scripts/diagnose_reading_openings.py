@@ -34,7 +34,7 @@ from src.validator.checks.correction import check_correction
 DEFAULT_ARCHIVE = ROOT / "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e"
 
 
-def derive_candidate(old: Path, *, assumed_height_m: float = 2.1):
+def derive_candidate(old: Path, *, assumed_height_m: float = 2.1, rebuild_partitions: bool = False, connection_audit: dict | None = None):
     """Re-use verified historical inputs, deriving openings before finalization."""
     from src.agent.correction.as_drawn_openings import populate_as_drawn_openings
 
@@ -47,6 +47,25 @@ def derive_candidate(old: Path, *, assumed_height_m: float = 2.1):
     old_provenance = AsDrawnChainProvenanceV1.model_validate_json((attempt / "chain_provenance.json").read_bytes())
     producer = ensure_corrected_geometry(json.loads(old_marker.producer_draw_canonical_bytes))
     readings = dict(old_marker.raw_reading_artifacts)
+    rows = [
+        {"input_id": row.input_id, "product_filename": row.product_filename, "floor_ref": row.floor_ref,
+         "compilation_bytes": row.compilation_bytes, "source_bytes_sha256": row.source_bytes_sha256}
+        for row in old_provenance.floors
+    ]
+    endpoint_policy = "preserve_endpoint_connections_v1" if rebuild_partitions else old_provenance.endpoint_connection_policy
+    if rebuild_partitions:
+        from src.agent.correction.chain_replay import derive_as_drawn_chain_producer
+
+        if connection_audit is not None:
+            historical_audit = {}
+            historical = derive_as_drawn_chain_producer(old_marker, old_provenance, audit=historical_audit)
+            if historical.producer_draw_canonical_bytes != old_marker.producer_draw_canonical_bytes:
+                raise RuntimeError("historical producer replay drifted")
+            connection_audit["historical_recipe"] = historical_audit
+        rebuilt_marker = derive_as_drawn_chain_producer(
+            old_marker, build_chain_provenance(rows, endpoint_connection_policy=endpoint_policy),
+            audit=connection_audit)
+        producer = ensure_corrected_geometry(json.loads(rebuilt_marker.producer_draw_canonical_bytes))
     policy = PlanWallOpeningPolicyV1(assumed_height_m=assumed_height_m)
     producer, account = populate_as_drawn_openings(
         producer, raw_view_manifest_bytes=old_marker.raw_view_manifest_bytes,
@@ -58,11 +77,8 @@ def derive_candidate(old: Path, *, assumed_height_m: float = 2.1):
         producer_draw=producer, raw_view_manifest_bytes=old_marker.raw_view_manifest_bytes,
         raw_reading_artifacts=readings,
     )
-    provenance = build_chain_provenance([
-        {"input_id": row.input_id, "product_filename": row.product_filename, "floor_ref": row.floor_ref,
-         "compilation_bytes": row.compilation_bytes, "source_bytes_sha256": row.source_bytes_sha256}
-        for row in old_provenance.floors
-    ], wall_opening_policy=policy)
+    provenance = build_chain_provenance(
+        rows, wall_opening_policy=policy, endpoint_connection_policy=endpoint_policy)
     result = finalize_as_drawn_chain_geometry(
         producer, verified_window_inputs=marker, target=correction_target("orthogonal_polygon"),
         chain_provenance=provenance,
@@ -92,9 +108,13 @@ def record_candidate(out: Path, result):
     return record, checks, attempt
 
 
-def run(out: Path, old: Path = DEFAULT_ARCHIVE) -> dict:
+def run(out: Path, old: Path = DEFAULT_ARCHIVE, *, rebuild_partitions: bool = False) -> dict:
     out.mkdir(parents=True, exist_ok=False)
-    result, account, original, archived_attempt = derive_candidate(old)
+    connection_audit = {} if rebuild_partitions else None
+    result, account, original, archived_attempt = derive_candidate(
+        old, rebuild_partitions=rebuild_partitions, connection_audit=connection_audit)
+    if connection_audit is not None:
+        write_json(out / "endpoint_connections.json", connection_audit)
     payload = account.to_payload()
     accounted = [(row["input_id"], oid) for row in payload["built"] + payload["unbuilt"]
                  for oid in row["observation_ids"]]
@@ -122,11 +142,14 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE) -> dict:
     _viewer(out / "viewer.html", data, f"已有读图记录自动接门洞：{len(source['spaces'])} 空间、{len(bg.windows)} 窗、{len(result.geom.openings)} 门/通道；部分问题待处理")
     unchanged_rooms = [f.model_dump(mode="json") for f in original.floors] == [f.model_dump(mode="json") for f in result.geom.floors]
     # Proof hashes change with the new producer; compare window geometry and
-    # source ownership instead of mistaking a changed proof hash for a move.
+    # geometry instead of mistaking changed proof hashes or room numbering for a move.
     def window_shape(geom):
-        return [(w.id, w.floor_id, w.room, w.facade, tuple(w.span), tuple(w.z)) for w in geom.windows]
+        return sorted((w.id, w.floor_id, w.facade, tuple(w.span), tuple(w.z)) for w in geom.windows)
     unchanged_windows = window_shape(original) == window_shape(result.geom)
-    if not unchanged_rooms or not unchanged_windows:
+    unchanged_window_rooms = sorted((w.id, w.room) for w in original.windows) == sorted((w.id, w.room) for w in result.geom.windows)
+    if not rebuild_partitions and not unchanged_window_rooms:
+        raise RuntimeError("door-only derivation unexpectedly changed window ownership")
+    if (not rebuild_partitions and not unchanged_rooms) or not unchanged_windows:
         raise RuntimeError("door derivation unexpectedly changed rooms or windows")
     if payload["unbuilt"] and record.accepted:
         raise RuntimeError("known unbuilt doors were accepted as a complete correction")
@@ -141,6 +164,7 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE) -> dict:
                        for name in ("output.json", "window_resolver_inputs.json", "chain_provenance.json")],
             "model_calls": 0, "solver_calls": 0, "manual_door_positions_or_room_groups": 0,
             "assumed_height_m": 2.1,
+            "endpoint_connection_policy": result.chain_provenance.endpoint_connection_policy,
         },
         "opening_account": payload,
         "correction": {"accepted": record.accepted, "checks": checks.model_dump(mode="json"),
@@ -148,12 +172,23 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE) -> dict:
         "building": {"spaces": len(source["spaces"]), "surfaces": len(bg.surfaces), "windows": len(bg.windows),
                      "source_openings": len(result.geom.openings), "derived_openings": len(bg.openings),
                      "rooms_unchanged": unchanged_rooms, "windows_unchanged": unchanged_windows,
+                     "window_room_ids_unchanged": unchanged_window_rooms,
                      "source_mapping": source["validation"], "kernel_issues": issues,
                      "connections": source["connections"]},
         "not_evaluated": ["new image reading", "whole-drawing partition/opening completeness",
                           "actual door/passage heights and door operating states",
                           "EnergyPlus opening adapter/run", "human approval and browser screenshot inspection"],
     }
+    if rebuild_partitions:
+        from shapely.geometry import Polygon
+        report["partition_changes"] = [
+            {"floor_id": old_floor.id, "old_spaces": len(old_floor.cells), "new_spaces": len(new_floor.cells),
+             "overlaps": [{"old_id": oc.id, "new_id": nc.id,
+                           "area_m2": Polygon(oc.polygon).intersection(Polygon(nc.polygon)).area}
+                          for oc in old_floor.cells for nc in new_floor.cells
+                          if Polygon(oc.polygon).intersection(Polygon(nc.polygon)).area > 0]}
+            for old_floor, new_floor in zip(original.floors, result.geom.floors)
+        ]
     write_json(out / "report.json", report)
     built = payload["built_count"]
     pending = len(payload["unbuilt"])
@@ -163,11 +198,16 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE) -> dict:
                    for i, row in enumerate(payload["unbuilt"], 1))
     completeness = (f"还有 {pending} 组明确开口记录未能建入，因此校正结果未获完整通过。模型仍可查看；未建项目保留如下。"
                     if pending else "已有明确门/通道记录均已接入；这不证明原图的所有开口都已读出。")
+    change_description = (
+        f"保留尺寸校正前已有的墙端连接后，空间由 {sum(len(f.cells) for f in original.floors)} 个变为 {len(source['spaces'])} 个；{len(bg.windows)} 扇窗的位置和尺寸保留。新增分区来自已有墙线，整图正确性仍待独立评价。"
+        if rebuild_partitions else
+        f"原有 {len(source['spaces'])} 个空间、{len(bg.windows)} 扇窗均保留，房间形状和窗的位置、尺寸未改。"
+    )
     page = f'''<!doctype html><html lang="zh"><meta charset="utf-8"><title>从已有读图记录自动接入门洞</title>
 <style>body{{font:16px/1.8 system-ui;max-width:980px;margin:40px auto;padding:0 24px;color:#183044;background:#f6f8fa}}
 section{{background:white;padding:20px;margin:20px 0}}a{{color:#0768a0}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}}li{{overflow-wrap:anywhere}}</style>
 <h1>从已有读图记录自动接入门洞</h1>
-<p>这次自动接入了 {built} 处门/通道。原有 {len(source['spaces'])} 个空间、{len(bg.windows)} 扇窗均保留，房间形状和窗的位置、尺寸未改。</p>
+<p>这次自动接入了 {built} 处门/通道。{change_description}</p>
 <p><a href="viewer.html">打开建筑模型</a> · <a href="opening_account.json">查看逐项门洞记录</a></p>
 <section><h2>减少了什么人工操作</h2><p>直接读取已经保存的门/通道类型和位置，借用已确定的墙找到两侧房间。同一扇门在墙两面留下的记录会归并，不再逐门手工填写房间和坐标。</p>
 <p>本次没有重新看原图或调用模型；仍沿用历史读图判断和墙的处理结果。门高/通道高暂按 2.1 米并逐项记为假设；门的实际开闭状态未知。</p></section>
@@ -182,8 +222,9 @@ section{{background:white;padding:20px;margin:20px 0}}a{{color:#0768a0}}pre{{whi
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--rebuild-partitions", action="store_true", help="Rebuild wall partitions with preserved endpoint connections")
     args = parser.parse_args()
-    report = run(args.out.resolve())
+    report = run(args.out.resolve(), rebuild_partitions=args.rebuild_partitions)
     print(json.dumps({"built": report["opening_account"]["built_count"],
                       "unbuilt_groups": len(report["opening_account"]["unbuilt"]),
                       "correction_accepted": report["correction"]["accepted"],

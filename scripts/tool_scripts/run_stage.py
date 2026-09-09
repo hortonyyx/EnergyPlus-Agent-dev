@@ -681,7 +681,8 @@ def _draw_correction_as_drawn(
             ).hexdigest(),
         }
         for entry in plan_entries
-    ], wall_opening_policy=opening_policy)
+    ], wall_opening_policy=opening_policy,
+       endpoint_connection_policy="preserve_endpoint_connections_v1")
     from src.agent.correction.as_drawn_openings import populate_as_drawn_openings
 
     geom, opening_account = populate_as_drawn_openings(

@@ -100,18 +100,56 @@ def replay_as_drawn_chain(
     post-resolution state instead would make the suffix length 0 and the
     writer's prefix/suffix contract (:481) red by construction.
     """
+    from src.agent.correction.finalize import finalize_as_drawn_chain_geometry
+    from src.agent.correction.parse import ensure_corrected_geometry
+
+    tol = tol or load_core_tolerances()
+    vwi = derive_as_drawn_chain_producer(marker, provenance, tol=tol)
+    producer = ensure_corrected_geometry(json.loads(vwi.producer_draw_canonical_bytes))
+    # The producer is REBUILT here — a candidate-side tamper of the producer
+    # (re-signed footprint, rewritten rings/cells, every derived artifact
+    # re-materialized from the tampered geometry, all internally consistent —
+    # the F-22 BLOCKER-1 shape) dies at this byte compare, exactly as it dies
+    # at the legacy leg's core-projection compare.
+    producer_bytes = vwi.producer_draw_canonical_bytes
+    if producer_bytes != marker.producer_draw_canonical_bytes:
+        raise ValueError(
+            "chain_replay_producer_drift: the chain replayed from the frozen "
+            "compilations assembles a different producer than the marker "
+            "carries"
+        )
+    return finalize_as_drawn_chain_geometry(
+        producer,
+        verified_window_inputs=vwi,
+        target=target,
+        tol=tol,
+        chain_provenance=provenance,
+        # Ruling 2026-09-08f §一: hand the writer the PRE-host-resolution
+        # state (the core's prefix) — the candidate supplies the suffix.
+        stop_before_host_resolution=True,
+    )
+
+
+def derive_as_drawn_chain_producer(
+    marker: VerifiedWindowResolverInputs,
+    provenance: AsDrawnChainProvenanceV1,
+    *, tol: CoreTolerances | None = None, audit: dict | None = None,
+) -> VerifiedWindowResolverInputs:
+    """Rebuild a producer from frozen inputs and an explicit replay recipe.
+
+    This creates a candidate, not an acceptance. The writer independently
+    rebuilds it again and compares the complete producer bytes below.
+    """
     import hashlib
 
     from src.agent.correction.evidence_adapters import (
         adapt_as_drawn_elevation,
         adapt_as_drawn_plan,
     )
-    from src.agent.correction.finalize import finalize_as_drawn_chain_geometry
     from src.agent.correction.multifloor import (
         assemble_multifloor_geometry,
         derive_floor_ladder,
         read_plan_calibration_declaration,
-        snap_footprints_to_reference,
     )
     from src.agent.correction.projection_bridge import (
         cut_lines_from_wall_compilation,
@@ -175,6 +213,8 @@ def replay_as_drawn_chain(
             f"{len(ladder)} rungs for {len(provenance.floors)} plan products"
         )
 
+    if audit is not None:
+        audit["floors"] = []
     per_floor_lines: list = []
     per_floor_project: list = []
     declarations = []
@@ -223,11 +263,13 @@ def replay_as_drawn_chain(
         from src.agent.correction.multifloor import read_declared_exterior_frame
         from src.agent.correction.projection_bridge import (
             snap_exterior_walls_to_declared_frame,
+            preserve_endpoint_connections,
         )
 
         frame = read_declared_exterior_frame(
             json.loads(raw.decode("utf-8")), input_id=stem
         )
+        before_frame = lines
         lines, _frame_records = snap_exterior_walls_to_declared_frame(
             lines,
             overall_x_m=frame.overall_x_m,
@@ -235,6 +277,9 @@ def replay_as_drawn_chain(
             thickness_callouts_mm=frame.thickness_callouts_mm,
             input_id=stem,
         )
+        _endpoint_records = ()
+        if provenance.endpoint_connection_policy is not None:
+            lines, _endpoint_records = preserve_endpoint_connections(before_frame, lines)
         # W#6: collect the per-floor lines + the EXACT projection arguments
         # (the same fields the chain's cut_lines sidecar files) and hand the
         # whole set to the SHARED reconciliation the production wiring used,
@@ -252,6 +297,15 @@ def replay_as_drawn_chain(
             "floor_ref": floor_ref,
             "origin_label": stem,
         })
+        if audit is not None:
+            audit["floors"].append({
+                "floor_id": floor_ref, "endpoint_connections": list(_endpoint_records),
+                "walls": [{"wall_id": w.wall_id,
+                           "observation_ids": sorted({r.observation_id for r in w.source_refs})}
+                          for w in compilation.walls],
+                "spaces_before_frame": project_cut_lines(before_frame, **per_floor_project[-1]).face_count,
+                "spaces_after_frame": project_cut_lines(lines, **per_floor_project[-1]).face_count,
+            })
         declarations.append(
             read_plan_calibration_declaration(
                 json.loads(raw.decode("utf-8")), input_id=stem
@@ -261,8 +315,13 @@ def replay_as_drawn_chain(
     from src.agent.correction.multifloor import reconcile_floors_to_reference
 
     snapped, _account = reconcile_floors_to_reference(
-        tuple(per_floor_lines), per_floor_project, declarations
+        tuple(per_floor_lines), per_floor_project, declarations,
+        preserve_connections=provenance.endpoint_connection_policy is not None,
     )
+    if audit is not None:
+        audit["cross_floor_alignment"] = _account.to_payload()
+        for row, geom in zip(audit["floors"], snapped):
+            row["spaces_after_alignment"] = len(geom.floors[0].cells)
     producer = assemble_multifloor_geometry(ladder, tuple(snapped))
     # ⭐ 2026-09-08 补窗：重放必须**镜像生产方的推导**，否则 producer 必然不等。
     # 生产侧在建 marker 之前调 `populate_as_drawn_windows` 把 31 个窗填进几何
@@ -303,28 +362,7 @@ def replay_as_drawn_chain(
         raw_view_manifest_bytes=marker.raw_view_manifest_bytes,
         raw_reading_artifacts=reading_bytes,
     )
-    # The producer is REBUILT here — a candidate-side tamper of the producer
-    # (re-signed footprint, rewritten rings/cells, every derived artifact
-    # re-materialized from the tampered geometry, all internally consistent —
-    # the F-22 BLOCKER-1 shape) dies at this byte compare, exactly as it dies
-    # at the legacy leg's core-projection compare.
-    producer_bytes = vwi.producer_draw_canonical_bytes
-    if producer_bytes != marker.producer_draw_canonical_bytes:
-        raise ValueError(
-            "chain_replay_producer_drift: the chain replayed from the frozen "
-            "compilations assembles a different producer than the marker "
-            "carries"
-        )
-    return finalize_as_drawn_chain_geometry(
-        producer,
-        verified_window_inputs=vwi,
-        target=target,
-        tol=tol,
-        chain_provenance=provenance,
-        # Ruling 2026-09-08f §一: hand the writer the PRE-host-resolution
-        # state (the core's prefix) — the candidate supplies the suffix.
-        stop_before_host_resolution=True,
-    )
+    return vwi
 
 
-__all__ = ["replay_as_drawn_chain"]
+__all__ = ["replay_as_drawn_chain", "derive_as_drawn_chain_producer"]

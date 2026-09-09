@@ -109,6 +109,10 @@ class AsDrawnChainProvenanceV1(BaseModel):
 
     schema_version: Literal["as_drawn_chain_provenance_v1"]
     floors: tuple[AsDrawnFloorCompilationV1, ...]
+    # Absent means the historical position-only snap and alignment.
+    endpoint_connection_policy: Literal["preserve_endpoint_connections_v1"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     wall_opening_policy: PlanWallOpeningPolicyV1 | None = Field(default=None, exclude_if=lambda value: value is None)
     content_sha256: Hex64
 
@@ -129,6 +133,8 @@ class AsDrawnChainProvenanceV1(BaseModel):
             digest.update(entry.compilation_bytes)
         if self.wall_opening_policy is not None:
             digest.update(canonical_json_bytes(self.wall_opening_policy.model_dump(mode="json")))
+        if self.endpoint_connection_policy is not None:
+            digest.update(canonical_json_bytes(self.endpoint_connection_policy))
         return digest.hexdigest()
 
     @model_validator(mode="after")
@@ -162,6 +168,7 @@ class AsDrawnChainProvenanceV1(BaseModel):
 def build_chain_provenance(
     floors: "list[dict]",
     *, wall_opening_policy: PlanWallOpeningPolicyV1 | None = None,
+    endpoint_connection_policy: Literal["preserve_endpoint_connections_v1"] | None = None,
 ) -> AsDrawnChainProvenanceV1:
     """Assemble + self-hash a provenance carrier from per-floor fields.
 
@@ -189,12 +196,14 @@ def build_chain_provenance(
         schema_version="as_drawn_chain_provenance_v1",
         floors=tuple(entries),
         wall_opening_policy=wall_opening_policy,
+        endpoint_connection_policy=endpoint_connection_policy,
         content_sha256="0" * 64,
     )
     return AsDrawnChainProvenanceV1(
         schema_version="as_drawn_chain_provenance_v1",
         floors=tuple(entries),
         wall_opening_policy=wall_opening_policy,
+        endpoint_connection_policy=endpoint_connection_policy,
         content_sha256=canonical_sha256(_without_content_hash(staged)),
     )
 

@@ -1344,11 +1344,13 @@ def run_correction_evidence_chain(
                 )
                 from src.agent.correction.projection_bridge import (
                     snap_exterior_walls_to_declared_frame,
+                    preserve_endpoint_connections,
                 )
 
                 frame = read_declared_exterior_frame(
                     doc, input_id=Path(product_filename).stem
                 )
+                before_frame = lines
                 lines, frame_records = snap_exterior_walls_to_declared_frame(
                     lines,
                     overall_x_m=frame.overall_x_m,
@@ -1356,6 +1358,7 @@ def run_correction_evidence_chain(
                     thickness_callouts_mm=frame.thickness_callouts_mm,
                     input_id=Path(product_filename).stem,
                 )
+                lines, endpoint_records = preserve_endpoint_connections(before_frame, lines)
                 envelope = project_cut_lines(
                     lines,
                     # N-3, redeclared HERE for the production chain: the
@@ -1399,6 +1402,8 @@ def run_correction_evidence_chain(
                     json.dumps(
                         {
                             "schema": "cut_lines_v1",
+                            "endpoint_connection_policy": "preserve_endpoint_connections_v1",
+                            "endpoint_connections": list(endpoint_records),
                             "lines": [
                                 {
                                     "axis": line.axis,
@@ -1447,6 +1452,7 @@ def run_correction_evidence_chain(
                     # W#6: the exterior-frame snap's own account — what each
                     # exterior edge's ink said, what the declaration says,
                     # and the displacement absorbed.
+                    "endpoint_connections": list(endpoint_records),
                     "exterior_frame_snaps": [
                         {
                             "axis": r.axis,
@@ -2130,7 +2136,7 @@ def run_multifloor_correction(
         per_floor_cut_lines.append(cut_lines_from_sidecar(sidecar))
         per_floor_project.append(sidecar["project"])
     geometries, snap_account = reconcile_floors_to_reference(
-        per_floor_cut_lines, per_floor_project, declarations
+        per_floor_cut_lines, per_floor_project, declarations, preserve_connections=True
     )
     if snap_ledger_path is not None:
         snap_path = Path(snap_ledger_path)

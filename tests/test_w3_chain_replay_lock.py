@@ -247,7 +247,7 @@ def _chain_bundle(tmp_path: Path) -> _ChainBundle:
             ).hexdigest(),
         }
         for entry in plan_entries
-    ])
+    ], endpoint_connection_policy="preserve_endpoint_connections_v1")
     result = finalize_as_drawn_chain_geometry(
         geom,
         verified_window_inputs=marker,
