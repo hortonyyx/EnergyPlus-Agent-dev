@@ -27,6 +27,7 @@ _SM21 = Path("case_tests/e2e_tests/sm21_anchor")
 
 def _args(tmp_path, **overrides):
     data = {
+        "target": "legacy-ep",
         "base_dir": str(tmp_path),
         "case": "case",
         "run": "run",
@@ -85,6 +86,30 @@ def test_source_bim_flow_rejects_ep_flags_before_mutation(tmp_path):
     with pytest.raises(SystemExit,match="cannot run EP"):
         rs.cmd_flow(args)
     assert not (tmp_path/"case").exists()
+
+
+def test_ep_flow_branches_from_the_exported_source_bim(tmp_path, monkeypatch):
+    _seed_case_data(tmp_path)
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **kw: [])
+    monkeypatch.setattr(rs, "_render_stage_grade_artifacts", lambda *a, **kw: [])
+    def forbidden(*a, **kw):
+        pytest.fail("EP target entered the legacy geometry route")
+    monkeypatch.setattr(rs, "_draw_modelling", forbidden)
+    monkeypatch.setattr(rs, "_flow_ep", forbidden)
+    seen = []
+    def branch(source, physics, bindings, out, *, epw):
+        seen.append(source)
+        assert source == tmp_path/"bim/source_model.json"
+        assert json.loads(source.read_bytes())["schema_version"] == "source_bim_v2"
+        assert epw == Path("data/weather/Shenzhen.epw")
+        return {"status": "passed"}
+    monkeypatch.setattr("src.agent.execution.ep_branch.export_ep_branch", branch)
+    args = _args(tmp_path, target="ep", bim_out=tmp_path/"bim", backend_out=tmp_path/"ep",
+                 physics_template=tmp_path/"physics.idf", zone_bindings=tmp_path/"bindings.json", with_ep=True)
+    assert rs.cmd_flow(args) == rs.FLOW_EXIT_OK
+    assert len(seen) == 1
+    assert not (tmp_path/"case/run/2_modelling").exists()
 
 
 def _fake_make_draw_fn(stage, run_dir, *_args, **_kwargs):

@@ -3237,7 +3237,7 @@ def cmd_approve_geometry(args) -> int:
     mark_geometry_approved(run_dir, timestamp=args.date or "")
     print(f"✓ geometry approved by {appr.actor} @ {appr.timestamp}")
     print(f"  digest={appr.digest}")
-    print(f"  → continue at 3_split_pairing: run_stage.py flow {args.case} {args.run}")
+    print(f"  → continue at 3_split_pairing: run_stage.py flow {args.case} {args.run} --target legacy-ep")
     return 0
 
 
@@ -3291,16 +3291,22 @@ def cmd_approve_review(args) -> int:
 
 
 def cmd_flow(args) -> int:
-    source_target = getattr(args, "target", "ep") == "source-bim"
+    branch_target = getattr(args, "target", "source-bim")
+    source_target = branch_target in ("source-bim", "ep")
     if source_target:
-        if args.with_ep or args.record:
-            raise SystemExit("source-bim target cannot run EP or write a legacy EP baseline")
+        if (branch_target == "source-bim" and args.with_ep) or args.record:
+            raise SystemExit("source-bim target cannot run EP; source branches cannot write a legacy EP baseline")
         if getattr(args, "bim_out", None) is None:
-            raise SystemExit("source-bim target requires --bim-out NEW_DIRECTORY")
+            raise SystemExit("source-bim/ep target requires --bim-out NEW_DIRECTORY")
         if args.bim_out.exists():
             raise SystemExit("--bim-out must be a new directory; previous outputs are immutable")
         if args.to_stage not in ("1_correction", "5_intakeoutput") or args.from_stage not in ("auto", "0_reading", "1_correction"):
             raise SystemExit("source-bim target runs reading/correction and exports source geometry; legacy stages 2-5 are not used")
+        if branch_target == "ep":
+            if not all(getattr(args, name, None) for name in ("physics_template", "zone_bindings", "backend_out")):
+                raise SystemExit("ep target requires --physics-template, --zone-bindings and --backend-out")
+            if args.backend_out.exists() or args.backend_out.resolve() == args.bim_out.resolve():
+                raise SystemExit("--backend-out must be a separate new directory")
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
     run_config = load_run_config(run_dir)
@@ -3489,6 +3495,13 @@ def cmd_flow(args) -> int:
         from src.agent.execution.source_bim import export_source_bim
         report = export_source_bim(run_dir, args.bim_out, capability_profile=policy.capability_profile)
         print(f"  source BIM: {args.bim_out} (source geometry ready={report['source_geometry_ready']}; drawing fidelity={report.get('drawing_fidelity', 'not_evaluated')})")
+        if branch_target == "ep" and report["source_geometry_ready"]:
+            from src.agent.execution.ep_branch import export_ep_branch
+            branch = export_ep_branch(args.bim_out / "source_model.json", args.physics_template,
+                                      args.zone_bindings, args.backend_out,
+                                      epw=Path(args.epw) if args.with_ep else None)
+            print(json.dumps(branch, ensure_ascii=False))
+            return FLOW_EXIT_OK if branch["status"] in ("exported", "passed") else FLOW_EXIT_STOP
         return FLOW_EXIT_OK if report["source_geometry_ready"] else FLOW_EXIT_STOP
 
     if args.with_ep:
@@ -3648,6 +3661,14 @@ def cmd_bim(args) -> int:
     return 0 if report["source_geometry_ready"] else 1
 
 
+def cmd_backend_ep(args) -> int:
+    from src.agent.execution.ep_branch import export_ep_branch
+    report = export_ep_branch(args.source, args.physics_template, args.zone_bindings,
+                              args.out, epw=args.epw if args.with_ep else None)
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["status"] in ("exported", "passed") else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -3677,6 +3698,14 @@ def main() -> int:
     pb.add_argument("--candidate-attempt", type=int, default=None,
                     help="explicitly preview an unaccepted correction attempt; never grants acceptance")
 
+    pe = sub.add_parser("backend-ep", help="derive EP from a frozen source BIM and independent physics")
+    pe.add_argument("--source", type=Path, required=True)
+    pe.add_argument("--physics-template", type=Path, required=True)
+    pe.add_argument("--zone-bindings", type=Path, required=True)
+    pe.add_argument("--out", type=Path, required=True)
+    pe.add_argument("--with-ep", action="store_true", help="also run the actual EnergyPlus simulation")
+    pe.add_argument("--epw", type=Path, default=Path("data/weather/Shenzhen.epw"))
+
     for verb in ("run", "resample"):
         p = sub.add_parser(verb)
         p.add_argument("case"); p.add_argument("run"); p.add_argument("stage")
@@ -3698,9 +3727,12 @@ def main() -> int:
 
     pf = sub.add_parser("flow")
     pf.add_argument("case"); pf.add_argument("run")
-    pf.add_argument("--target", choices=("ep", "source-bim"), default="ep",
-                    help="source-bim runs reading/correction then independent source generation; ep keeps the legacy flow")
+    pf.add_argument("--target", choices=("ep", "source-bim", "legacy-ep"), default="source-bim",
+                    help="shared source BIM trunk, optionally followed by EP; old stages 2-5 require explicit legacy-ep")
     pf.add_argument("--bim-out", type=Path, help="new source output directory, required for --target source-bim")
+    pf.add_argument("--physics-template", type=Path, help="geometry-free EP physics template")
+    pf.add_argument("--zone-bindings", type=Path, help="JSON source space ID to physics zone name map")
+    pf.add_argument("--backend-out", type=Path, help="new EP branch directory")
     pf.add_argument("--from", dest="from_stage", default="auto",
                     choices=["auto", *_STAGES])
     pf.add_argument("--to", dest="to_stage", default="5_intakeoutput",
@@ -3742,6 +3774,7 @@ def main() -> int:
         "artifacts": cmd_artifacts,
         "provision": cmd_provision,
         "bim": cmd_bim,
+        "backend-ep": cmd_backend_ep,
     }[args.verb](args)
 
 
