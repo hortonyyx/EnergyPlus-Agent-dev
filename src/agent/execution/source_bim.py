@@ -15,7 +15,8 @@ from src.agent.execution.manifest import hash_file, load_run_manifest
 from src.agent.geometry.source_bim import build_source_bim, source_view_geometry
 
 
-def export_source_bim(run_dir: Path, out_dir: Path, *, capability_profile: str, candidate_attempt: int | None = None) -> dict:
+def export_source_bim(run_dir: Path, out_dir: Path, *, capability_profile: str, candidate_attempt: int | None = None,
+                      enclosure_input_path: Path | None = None) -> dict:
     from src.agent.execution.validation_run import _resolve_correction_source
     from src.agent.output_coordinates import _verify_b5_bundle
     from scripts.tool_scripts.render_geometry_viewer import build_viewer_html
@@ -77,19 +78,41 @@ def export_source_bim(run_dir: Path, out_dir: Path, *, capability_profile: str, 
                     verdict = StageVerdict.model_validate_json(path.read_bytes())
                     report["input_judge"] = verdict.model_dump(mode="json")
                     blocked_input |= verdict.blocking
-        source = build_source_bim(geom, capability_profile=capability_profile, window_host_proof=proof)
+        enclosure = None
+        if enclosure_input_path is not None:
+            from hashlib import sha256
+            enclosure_raw = Path(enclosure_input_path).read_bytes()
+            (out_dir / "enclosure_input.json").write_bytes(enclosure_raw)
+            report["enclosure_input"] = {"path": str(enclosure_input_path),
+                                          "sha256": sha256(enclosure_raw).hexdigest(),
+                                          "mode": "explicit_source_geometry_declaration"}
+            enclosure = json.loads(enclosure_raw)
+            if not isinstance(enclosure, dict):
+                raise ValueError("enclosure input must be a source geometry declaration object")
+        source = build_source_bim(geom, capability_profile=capability_profile, window_host_proof=proof,
+                                  enclosure_declaration=enclosure)
         # Preserve a geometric candidate even when old input checks or explicit
         # observations block readiness. No accepted-attempt record is invented.
         report["source_validation"] = source["validation"]
         report["status"] = "severe" if blocked_input or source["validation"]["status"] == "severe" else "not_evaluated"
-        report["source_geometry_ready"] = not blocked_input and source["validation"]["status"] == "pass"
+        report["source_geometry_ready"] = not blocked_input and source["validation"]["status"] in {"pass", "warning"}
         report["drawing_fidelity"] = "not_evaluated"
         report["counts"] = {k:len(source[k]) for k in ("spaces", "boundaries", "openings", "connections", "unbuilt_openings", "unsupported")}
+        if source["schema_version"] == "source_bim_v3":
+            regions = [r for b in source["boundaries"] for r in b.get("enclosure_regions", [])]
+            report["counts"].update(virtual_boundaries=sum(b["kind"] == "virtual" for b in source["boundaries"]),
+                                    open_regions=sum(r["condition"] == "open" for r in regions),
+                                    unknown_regions=sum(r["condition"] == "unknown" for r in regions),
+                                    enclosure_open_connections=len(source["source_enclosure"]["open_connections"]))
+            report["enclosure_information_complete"] = not report["counts"]["unknown_regions"]
+            report["not_evaluated"].append("EP adaptation of virtual/unknown enclosure boundaries")
         report["source_model_sha256"] = source["source_model_sha256"]
         (out_dir / "source_model.json").write_text(json.dumps(source, ensure_ascii=False, indent=2)+"\n")
         display = source_view_geometry(source)
         (out_dir / "display_geometry.json").write_text(json.dumps(display, ensure_ascii=False, indent=2)+"\n")
         title = "源 BIM：有未完成项" if not report["source_geometry_ready"] else "源 BIM：几何检查通过，图纸保真待评价"
+        if report["counts"].get("unknown_regions"):
+            title += "；含未知围护"
         viewer = build_viewer_html(display, title=title)
         banner = ('<aside style="position:fixed;bottom:12px;left:12px;z-index:30;background:white;padding:10px;max-width:55vw">'
                   + html.escape(title) + ' · <a href="report.json">质量与输入记录</a> · <a href="source_model.json">源模型</a>'

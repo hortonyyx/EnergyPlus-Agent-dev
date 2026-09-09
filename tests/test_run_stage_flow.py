@@ -88,6 +88,12 @@ def test_source_bim_flow_rejects_ep_flags_before_mutation(tmp_path):
     assert not (tmp_path/"case").exists()
 
 
+def test_legacy_flow_cannot_silently_ignore_source_enclosure(tmp_path):
+    with pytest.raises(SystemExit, match="cannot consume source enclosure"):
+        rs.cmd_flow(_args(tmp_path, enclosure_input=tmp_path/"enclosure.json"))
+    assert not (tmp_path/"case").exists()
+
+
 def test_ep_flow_branches_from_the_exported_source_bim(tmp_path, monkeypatch):
     _seed_case_data(tmp_path)
     monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)

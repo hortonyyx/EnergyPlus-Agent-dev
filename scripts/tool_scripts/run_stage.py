@@ -3293,6 +3293,8 @@ def cmd_approve_review(args) -> int:
 def cmd_flow(args) -> int:
     branch_target = getattr(args, "target", "source-bim")
     source_target = branch_target in ("source-bim", "ep")
+    if not source_target and getattr(args, "enclosure_input", None) is not None:
+        raise SystemExit("legacy-ep cannot consume source enclosure declarations; use the source-bim target")
     if source_target:
         if (branch_target == "source-bim" and args.with_ep) or args.record:
             raise SystemExit("source-bim target cannot run EP; source branches cannot write a legacy EP baseline")
@@ -3493,7 +3495,8 @@ def cmd_flow(args) -> int:
 
     if source_target:
         from src.agent.execution.source_bim import export_source_bim
-        report = export_source_bim(run_dir, args.bim_out, capability_profile=policy.capability_profile)
+        report = export_source_bim(run_dir, args.bim_out, capability_profile=policy.capability_profile,
+                                   enclosure_input_path=getattr(args, "enclosure_input", None))
         print(f"  source BIM: {args.bim_out} (source geometry ready={report['source_geometry_ready']}; drawing fidelity={report.get('drawing_fidelity', 'not_evaluated')})")
         if branch_target == "ep" and report["source_geometry_ready"]:
             from src.agent.execution.ep_branch import export_ep_branch
@@ -3656,7 +3659,8 @@ def cmd_bim(args) -> int:
     frozen = resolve_frozen_run_policy(run_dir)
     capability = args.capability_profile if frozen.legacy_defaulted else frozen.capability_profile
     report = export_source_bim(run_dir, args.out, capability_profile=capability,
-                               candidate_attempt=args.candidate_attempt)
+                               candidate_attempt=args.candidate_attempt,
+                               enclosure_input_path=getattr(args, "enclosure_input", None))
     print(json.dumps({"status": report["status"], "counts": report.get("counts"),
                       "output": str(args.out), "error": report.get("error")}, ensure_ascii=False))
     return 0 if report["source_geometry_ready"] else 1
@@ -3699,6 +3703,7 @@ def main() -> int:
     pb.add_argument("--out", type=Path, required=True, help="new source BIM output directory")
     pb.add_argument("--candidate-attempt", type=int, default=None,
                     help="explicitly preview an unaccepted correction attempt; never grants acceptance")
+    pb.add_argument("--enclosure-input", type=Path, help="source geometry declaration of open/unknown enclosure regions")
 
     pe = sub.add_parser("backend-ep", help="derive EP from a frozen source BIM and independent physics")
     pe.add_argument("--source", type=Path, required=True)
@@ -3733,6 +3738,7 @@ def main() -> int:
     pf.add_argument("--target", choices=("ep", "source-bim", "legacy-ep"), default="source-bim",
                     help="shared source BIM trunk, optionally followed by EP; old stages 2-5 require explicit legacy-ep")
     pf.add_argument("--bim-out", type=Path, help="new source output directory, required for --target source-bim")
+    pf.add_argument("--enclosure-input", type=Path, help="source geometry declaration of open/unknown enclosure regions")
     pf.add_argument("--physics-template", type=Path, help="geometry-free EP physics template")
     pf.add_argument("--zone-bindings", type=Path, help="JSON source space ID to physics zone name map")
     pf.add_argument("--opening-policy", type=Path, help="explicit per-source-door backend policy JSON")

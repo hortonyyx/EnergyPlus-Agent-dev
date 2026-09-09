@@ -7,10 +7,13 @@ and all controls, and that the app script parses (node --check, when node exists
 from __future__ import annotations
 
 import json
+import copy
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 import render_geometry_viewer as rgv  # noqa: E402
@@ -51,8 +54,112 @@ def test_viewer_has_all_controls():
     html = rgv.build_viewer_html(_GEO, title="t")
     for ctrl in ('id="opacity"', 'id="explode"', 'id="explodeMode"', 'id="measure"', 'id="savePng"',
                  'id="colorBy"', 'id="floorSel"', 'id="showWin"', 'id="showEdges"',
-                 'id="hud"', 'id="meas"', 'section cuts', 'select by'):
+                 'id="showLogical"', 'id="showEnclosure"', 'id="hud"', 'id="meas"',
+                 'section cuts', 'select by'):
         assert ctrl in html, f"missing control: {ctrl}"
+
+
+def test_enclosure_projection_keeps_open_regions_out_of_solid_meshes():
+    """Open area is a semantic outline; unknown area remains visible and labelled."""
+    data = copy.deepcopy(_GEO)
+    data["display_surface_parts"] = {
+        "w1": [
+            {"verts": [[0, 0, 0], [2, 0, 0], [2, 0, 3], [0, 0, 3]],
+             "holes": [], "duplicate_at_rest": False, "enclosure_condition": "physical"},
+            {"verts": [[3, 0, 0], [4, 0, 0], [4, 0, 3], [3, 0, 3]],
+             "holes": [], "duplicate_at_rest": False, "enclosure_condition": "unknown"},
+        ],
+        "w2": [{"verts": data["surfaces"][1]["verts"], "holes": [],
+                "duplicate_at_rest": False, "enclosure_condition": "physical"}],
+    }
+    data["enclosure_regions"] = [
+        {"boundary_id": "w1", "space_id": "Z1", "condition": "open",
+         "verts": [[2, 0, 0], [3, 0, 0], [3, 0, 3], [2, 0, 3]],
+         "source_refs": ["test:opening"], "assumptions": []},
+        {"boundary_id": "w1", "space_id": "Z1", "condition": "unknown",
+         "verts": [[3, 0, 0], [4, 0, 0], [4, 0, 3], [3, 0, 3]],
+         "source_refs": ["test:uncertain"], "assumptions": ["extent inferred"]},
+    ]
+    html = rgv.build_viewer_html(data, title="semi-open")
+    start = html.index("window.GEO = ") + len("window.GEO = ")
+    embedded = json.loads(html[start:html.index(";</script>", start)])
+    assert embedded["enclosure_regions"] == data["enclosure_regions"]
+    assert embedded["visible_wall_parts"]["w1"][1]["enclosure_condition"] == "unknown"
+    assert "LineDashedMaterial" in html and "UNKNOWN_COLOR" in html and "OPEN_COLOR" in html
+    assert "allPickables().filter" in html and "raycaster.params.Line.threshold" in html
+    assert "源边界 ID" in html and "明确开敞区域" in html and "围护未知区域" in html
+    # The enclosure-region loop creates outlines only. It must never restore an
+    # open region as a translucent wall mesh.
+    region_block = html[html.index("ENC_REGIONS.forEach"):html.index("WINS.forEach")]
+    assert "new THREE.Mesh(" not in region_block
+    assert "逻辑闭合只界定空间范围，不表示实体密闭或热区" in html
+    assert "边界覆盖" in html and "来源" in html and "假设" in html
+
+
+def _minimal_source_v2():
+    from src.agent.geometry.source_model import _digest
+
+    source = {
+        "schema_version": "source_bim_v2",
+        "spaces": [{"id": "room", "floor_id": "F1", "role": "corridor",
+                    "source_refs": ["test:room"]}],
+        "boundaries": [{"id": "room/wall/0", "space_id": "room", "kind": "physical",
+                        "geometry_type": "wall",
+                        "vertices": [[0, 0, 0], [4, 0, 0], [4, 0, 3], [0, 0, 3]],
+                        "adjacent_space_ids": [], "counterpart_ids": [],
+                        "source_refs": ["test:wall"]}],
+        "boundary_relations": [], "openings": [], "opening_hosts": {},
+        "connections": [], "validation": {"status": "pass"},
+    }
+    source["source_model_sha256"] = _digest(source)
+    return source
+
+
+def test_loader_opens_validated_source_bim_directly(tmp_path):
+    path = tmp_path / "source_model.json"
+    path.write_text(json.dumps(_minimal_source_v2()), encoding="utf-8")
+    display = rgv.load_viewer_geometry(path)
+    assert display["zones"] == ["room"]
+    assert display["surfaces"][0]["name"] == "room/wall/0"
+    assert display["source_model"]["schema_version"] == "source_bim_v2"
+
+    damaged = _minimal_source_v2()
+    damaged["spaces"][0]["role"] = "office"
+    path.write_text(json.dumps(damaged), encoding="utf-8")
+    with pytest.raises(ValueError, match="digest"):
+        rgv.load_viewer_geometry(path)
+
+
+def test_loader_projects_v3_open_boundary_without_a_wall_part(tmp_path):
+    from src.agent.geometry.source_enclosure import apply_source_enclosure
+
+    source = _minimal_source_v2()
+    evidence = {"source_refs": ["test:explicit-open"], "assumptions": [],
+                "evidence_kind": "example"}
+    v3 = apply_source_enclosure(source, {
+        "schema_version": "source_enclosure_input_v1",
+        "base_source_model_sha256": source["source_model_sha256"],
+        "spaces": [{"space_id": "room", "enclosure": "semi_open", **evidence}],
+        "boundaries": [{"boundary_id": "room/wall/0", "condition": "open",
+                        "scope": "whole", **evidence}],
+    })
+    path = tmp_path / "source_model.json"
+    path.write_text(json.dumps(v3), encoding="utf-8")
+    display = rgv.load_viewer_geometry(path)
+    assert display["source_model"]["schema_version"] == "source_bim_v3"
+    assert display["display_surface_parts"]["room/wall/0"] == []
+    assert display["enclosure_regions"] == [{
+        "boundary_id": "room/wall/0", "space_id": "room", "condition": "open",
+        "verts": v3["boundaries"][0]["vertices"], "source_refs": ["test:explicit-open"],
+        "assumptions": [], "evidence_kind": "example",
+    }]
+
+
+def test_loader_rejects_unknown_source_schema_instead_of_blank_legacy_view(tmp_path):
+    path = tmp_path / "source.json"
+    path.write_text(json.dumps({"schema_version": "source_bim_v99"}), encoding="utf-8")
+    with pytest.raises(ValueError, match="unsupported source BIM schema"):
+        rgv.load_viewer_geometry(path)
 
 
 def test_geometry_cannot_break_out_of_script():

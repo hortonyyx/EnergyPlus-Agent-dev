@@ -89,7 +89,8 @@ def _contacts(boundaries):
     return relations
 
 
-def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular", window_host_proof=None) -> dict:
+def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular", window_host_proof=None,
+                     enclosure_declaration: dict | None = None) -> dict:
     """Generate geometric source objects without cut/pair, physics or IDF calls.
 
     Invalid base space geometry fails explicitly. Unresolved openings remain in
@@ -286,6 +287,9 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
                                          "voids and false slabs", "thermal properties and solver acceptance"]},
     }
     payload["source_model_sha256"] = _digest(payload)
+    if enclosure_declaration is not None:
+        from src.agent.geometry.source_enclosure import apply_source_enclosure
+        return apply_source_enclosure(payload, enclosure_declaration)
     return payload
 
 
@@ -297,7 +301,7 @@ def source_view_geometry(source: dict) -> dict:
     by the renderer, never by changing the authoritative source.
     """
     expected = _digest({k:v for k,v in source.items() if k != "source_model_sha256"})
-    if source.get("schema_version") != "source_bim_v2" or source.get("source_model_sha256") != expected:
+    if source.get("schema_version") not in {"source_bim_v2", "source_bim_v3"} or source.get("source_model_sha256") != expected:
         raise ValueError("invalid source BIM schema or digest")
     boundaries = {b["id"]: b for b in source["boundaries"]}
     surfaces = [{"name": b["id"], "zone": b["space_id"],
@@ -323,6 +327,13 @@ def source_view_geometry(source: dict) -> dict:
     display = {"zones": [s["id"] for s in source["spaces"]], "surfaces": surfaces, "windows": windows,
                "openings": apertures, "roles": {s["id"]:s["role"] for s in source["spaces"]}}
     display["display_surface_parts"] = _display_parts(source)
+    if source["schema_version"] == "source_bim_v3":
+        display["enclosure_regions"] = [
+            {"boundary_id": b["id"], "space_id": b["space_id"],
+             "condition": r["condition"], "verts": r["vertices"],
+             "source_refs": r.get("source_refs", []), "assumptions": r.get("assumptions", []),
+             "evidence_kind": r.get("evidence_kind")}
+            for b in source["boundaries"] for r in b.get("enclosure_regions", [])]
     display["source_model"] = {**source, "derived": {
         "zones": {s["id"]:s["id"] for s in source["spaces"]},
         "surfaces": {b["id"]:b["id"] for b in source["boundaries"]},
@@ -353,6 +364,11 @@ def _display_parts(source):
         holes = [project(o["vertices"]) for o in source["openings"]
                  if bid in source["opening_hosts"][o["id"]]]
         wall = parent.difference(unary_union(holes))
+        regions = boundary.get("enclosure_regions", [])
+        open_area = unary_union([project(r["vertices"]) for r in regions if r["condition"] == "open"])
+        unknown_area = unary_union([project(r["vertices"]) for r in regions if r["condition"] == "unknown"])
+        physical = wall.difference(open_area.union(unknown_area)) if regions else wall
+        unknown = wall.intersection(unknown_area)
         hidden = []
         for relation in source["boundary_relations"]:
             if bid not in relation["boundary_ids"] or bid == min(relation["boundary_ids"]):
@@ -364,10 +380,14 @@ def _display_parts(source):
                 hidden.append(patch)
         mask = unary_union(hidden)
         rows = []
-        for shape, duplicate in ((wall.difference(mask), False), (wall.intersection(mask), True)):
-            for part in _parts(shape):
-                rows.append({"verts": lift(list(part.exterior.coords)[:-1]),
-                             "holes": [lift(list(r.coords)[:-1]) for r in part.interiors],
-                             "duplicate_at_rest": duplicate})
+        for area, condition in ((physical, "physical"), (unknown, "unknown")):
+            for shape, duplicate in ((area.difference(mask), False), (area.intersection(mask), True)):
+                for part in _parts(shape):
+                    row = {"verts": lift(list(part.exterior.coords)[:-1]),
+                           "holes": [lift(list(r.coords)[:-1]) for r in part.interiors],
+                           "duplicate_at_rest": duplicate}
+                    if source["schema_version"] == "source_bim_v3":
+                        row["enclosure_condition"] = condition
+                    rows.append(row)
         result[bid] = rows
     return result

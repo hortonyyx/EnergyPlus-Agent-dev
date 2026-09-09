@@ -20,7 +20,7 @@ Headless note: the rendered result needs a browser to confirm (no browser here);
 generation + ``node --check`` of the app JS is the automated guard.
 
 Usage:
-    python scripts/tool_scripts/render_geometry_viewer.py <building_geometry.json> [--out viewer.html]
+    python scripts/tool_scripts/render_geometry_viewer.py <building_geometry.json|source_model.json> [--out viewer.html]
 """
 
 from __future__ import annotations
@@ -57,9 +57,12 @@ _APP_JS = r"""
   const WINS = (GEO.windows || []).filter(w => (w.verts || []).length >= 3);
   const OPENS = (GEO.openings || []).filter(o => (o.verts || []).length >= 3);
   const WALL_PARTS = GEO.visible_wall_parts || {};
+  const ENC_REGIONS = GEO.enclosure_regions || [];
   const ZONES = (GEO.zones || []).slice().sort((a, b) => b.length - a.length);
   const SOURCE = GEO.source_model || null;
-  const SOURCE_MAP = SOURCE ? SOURCE.derived : {zones:{}, surfaces:{}, windows:{}};
+  const SOURCE_MAP = SOURCE ? (SOURCE.derived || {}) : {};
+  const SOURCE_SPACES = Object.fromEntries(((SOURCE && SOURCE.spaces) || []).map(s=>[s.id,s]));
+  const SOURCE_BOUNDARIES = Object.fromEntries(((SOURCE && SOURCE.boundaries) || []).map(b=>[b.id,b]));
   // resolve a window's zone: its parent surface's zone first (parent = "<wall>_<i>"),
   // then a zone-name prefix, then the nearest zone centroid — never returns '?' so a
   // window always pops out + groups/explodes with a real zone.
@@ -79,6 +82,7 @@ _APP_JS = r"""
   const FLOOR_COLORS = [0xb0d0e8,0xffe0b2,0xc8e6c9,0xf4c7c7,0xd1c4e9,0xfff59d,0xb2dfdb,0xd7ccc8];
   const TYPE_COLORS = { Wall:0xdfe3e6, Floor:0xc8a165, Ceiling:0x9fa8da, Roof:0xfff3b0 };
   const WINDOW_COLOR = 0x1e5ad2, WHITE = 0xffffff, SEL_COLOR = 0xff9800;
+  const UNKNOWN_COLOR = 0xe69a2d, OPEN_COLOR = 0x00a6a6, LOGICAL_COLOR = 0x596b86;
   // fixed room-type → fill colour. Mirrors render_gt.py ROLE_FILL (office/meeting/corridor)
   // so the 3D viewer and the gt plan share one palette; synonyms map to the same hue so the
   // SAME room type is always the SAME colour (across cases + helps see which zones to merge).
@@ -195,7 +199,7 @@ _APP_JS = r"""
   function activePlanes(){ return AX.filter(a=>a.enabled).map(a=>a.plane); }
 
   // ---- build meshes (keep ALL faces; reciprocal dup hidden at rest, windows popped out) ----
-  const surfMeshes=[], winMeshes=[], openingMeshes=[], edgeSegs=[];
+  const surfMeshes=[], winMeshes=[], openingMeshes=[], edgeSegs=[], logicalLines=[], enclosureLines=[];
   const root=new THREE.Group(); scene.add(root);
   function fanTriangulate(n){ const idx=[]; for(let i=1;i<n-1;i++) idx.push(0,i,i+1); return idx; }
   function projectRing(ring){
@@ -246,6 +250,9 @@ _APP_JS = r"""
   function edgeGeom(ring){ const pos=[]; for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];
     pos.push(a[0],a[1],a[2], b[0],b[1],b[2]);} const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); return g; }
+  function dashedEdge(ring,color,dash,gap,userData){
+    const line=new THREE.LineSegments(edgeGeom(ring),new THREE.LineDashedMaterial({color,transparent:true,opacity:0.95,dashSize:dash,gapSize:gap,depthTest:false}));
+    line.computeLineDistances(); line.renderOrder=800; line.userData=userData; root.add(line); return line; }
   const isDup = (s) => s.obc==='Surface' && s.obc_obj && s.name > s.obc_obj;  // one of each reciprocal pair
   SURF.forEach(s=>{
     const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES);
@@ -256,7 +263,13 @@ _APP_JS = r"""
     parts.forEach(part=>{
       const dup=part.duplicate_at_rest ?? isDup(s);
       const mesh=new THREE.Mesh(ringGeom(part.verts,part.holes||[]), m.clone());
+      const enclosureCondition=part.enclosure_condition || 'physical';
+      if(enclosureCondition==='unknown'){
+        mesh.material.color.setHex(UNKNOWN_COLOR); mesh.material.opacity=0.38;
+        mesh.material.transparent=true; mesh.material.depthWrite=false;
+      }
       mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup,
+        enclosureCondition,
         area:polyArea(part.verts)-(part.holes||[]).reduce((sum,r)=>sum+polyArea(r),0)};
       surfMeshes.push(mesh); root.add(mesh);
       [part.verts,...(part.holes||[])].forEach(ring=>{
@@ -264,7 +277,20 @@ _APP_JS = r"""
         em.userData={zone, floor:fi, dup}; edgeSegs.push(em); root.add(em);
       });
     });
+    logicalLines.push(dashedEdge(s.verts,LOGICAL_COLOR,radius*0.018,radius*0.012,
+      {zone,floor:fi,kind:'logical',dup:false}));
     m.dispose();
+  });
+  ENC_REGIONS.forEach(r=>{
+    if(!(r.verts||[]).length) return;
+    const sourceBoundary=SOURCE_BOUNDARIES[r.boundary_id] || {};
+    const zone=r.space_id || sourceBoundary.space_id || '?';
+    const fi=zoneFloor[zone] ?? nearestBase(Math.min(...r.verts.map(v=>v[2])),BASES);
+    const color=r.condition==='unknown'?UNKNOWN_COLOR:OPEN_COLOR;
+    enclosureLines.push(dashedEdge(r.verts,color,radius*0.012,radius*0.008,
+      {zone,floor:fi,kind:'enclosure-region',condition:r.condition,dup:Boolean(r.duplicate_at_rest),
+       boundaryId:r.boundary_id,area:polyArea(r.verts),sourceRefs:r.source_refs||[],assumptions:r.assumptions||[],
+       evidenceKind:r.evidence_kind,baseColor:color}));
   });
   WINS.forEach(w=>{
     const zone=zoneOfWindow(w), sv=popOut(w.verts, zone);  // proud of wall → clean + pickable
@@ -287,10 +313,11 @@ _APP_JS = r"""
     em.userData={zone,floor:zoneFloor[zone]||0,dup,kind:'opening'};edgeSegs.push(em);root.add(em);
   });
   const allMeshes = () => surfMeshes.concat(winMeshes,openingMeshes);
+  const allPickables = () => allMeshes().concat(enclosureLines);
 
   function applyClipping(){ const p=activePlanes();
     allMeshes().forEach(m=>{m.material.clippingPlanes=p; m.material.needsUpdate=true;});
-    edgeSegs.forEach(e=>{e.material.clippingPlanes=p; e.material.needsUpdate=true;}); }
+    edgeSegs.concat(logicalLines,enclosureLines).forEach(e=>{e.material.clippingPlanes=p; e.material.needsUpdate=true;}); }
 
   // ---- geometric measures (on TRUE geometry) ----
   function polyArea(r){ let nx=0,ny=0,nz=0; const n=r.length;  // Newell → planar polygon area
@@ -307,17 +334,18 @@ _APP_JS = r"""
   let selected=new Set(); const selGroup=new THREE.Group(); scene.add(selGroup);
   function refreshColors(){
     const mode=$('colorBy').value;
-    surfMeshes.forEach(m=>{ let c; if(mode==='floor') c=FLOOR_COLORS[m.userData.floor%FLOOR_COLORS.length];
+    surfMeshes.forEach(m=>{ let c; if(m.userData.enclosureCondition==='unknown') c=UNKNOWN_COLOR;
+      else if(mode==='floor') c=FLOOR_COLORS[m.userData.floor%FLOOR_COLORS.length];
       else if(mode==='zone') c=roleColor(m.userData.zone);   // colour by room type
       else if(mode==='edge') c=WHITE; else c=TYPE_COLORS[m.userData.type] ?? 0xcccccc;
       m.userData.baseColor=c; });
     winMeshes.forEach(m=>m.userData.baseColor=WINDOW_COLOR);
-    allMeshes().forEach(m=>m.material.color.setHex(selected.has(m) ? SEL_COLOR : m.userData.baseColor));
+    allPickables().forEach(m=>m.material.color.setHex(selected.has(m) ? SEL_COLOR : m.userData.baseColor));
     updateLegend(mode);
   }
   function clearSelGroup(){ while(selGroup.children.length) selGroup.remove(selGroup.children[0]); }
   function setSelection(arr, lbl){ clearSelGroup(); selected=new Set(arr);
-    allMeshes().forEach(m=>m.material.color.setHex(selected.has(m)?SEL_COLOR:(m.userData.baseColor??0xcccccc)));
+    allPickables().forEach(m=>m.material.color.setHex(selected.has(m)?SEL_COLOR:(m.userData.baseColor??0xcccccc)));
     $('sel').innerHTML=lbl||''; $('sel').style.display=lbl?'block':'none'; }
   function clearSelection(){ setSelection([], ''); }
 
@@ -391,26 +419,54 @@ _APP_JS = r"""
 
   // ---- selection picking (face raycast, for click-select only) ----
   const raycaster=new THREE.Raycaster();
+  raycaster.params.Line.threshold=radius*0.012;
   function pick(ev){ const r=renderer.domElement.getBoundingClientRect();
     const mouse=new THREE.Vector2(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
     raycaster.setFromCamera(mouse,camera);
-    const hits=raycaster.intersectObjects(allMeshes().filter(m=>m.visible),false); return hits.length?hits[0]:null; }
+    const hits=raycaster.intersectObjects(allPickables().filter(m=>m.visible),false); return hits.length?hits[0]:null; }
   // structured selection readout: a titled block of label→value rows (one per line)
   function kv(pairs){ return pairs.filter(p=>p[1]!=null && p[1]!=='').map(p=>row(p[0], esc(p[1]))).join(''); }
+  function evidenceText(items){ return (items||[]).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('; '); }
+  function enclosureLabel(v){ return ({enclosed:'封闭',semi_open:'半开敞',open:'开敞',physical:'实体',mixed:'局部混合',unknown:'未知'})[v] || v; }
+  function boundaryFor(u){ const bid=((SOURCE_MAP.surfaces||{})[u.name] || u.name); return SOURCE_BOUNDARIES[bid] || null; }
+  function coverageFor(b){
+    if(!b || !(b.vertices||[]).length) return '';
+    const total=polyArea(b.vertices)||1, area={open:0,unknown:0};
+    (b.enclosure_regions||[]).forEach(r=>{if(area[r.condition]!=null) area[r.condition]+=polyArea(r.vertices||[]);});
+    if(!(b.enclosure_regions||[]).length){ if(b.enclosure==='open') area.open=total; if(b.enclosure==='unknown') area.unknown=total; }
+    const physical=Math.max(0,total-area.open-area.unknown), rows=[];
+    [['实体',physical],['开敞',area.open],['未知',area.unknown]].forEach(([k,a])=>{if(a>total*1e-8) rows.push(k+' '+(a/total*100).toFixed(0)+'%');});
+    return rows.join(' · ');
+  }
+  function boundaryEvidence(b,key){ return evidenceText([...(b&&b[key]||[]),...(b&&b.enclosure_regions||[]).flatMap(r=>r[key]||[])]); }
+  function boundaryEvidenceKinds(b){ return [...new Set((b&&b.enclosure_regions||[]).map(r=>r.evidence_kind).filter(Boolean))].join(', '); }
   function describe(mode,o){ const u=o.userData;
+    if(u.kind==='enclosure-region'){ const boundary=SOURCE_BOUNDARIES[u.boundaryId];
+      return '<div class="hh">'+(u.condition==='open'?'明确开敞区域':'围护未知区域')+'</div>'+kv([
+        ['源边界 ID',u.boundaryId],['空间',u.zone],['面积',u.area.toFixed(2)+' m²'],
+        ['边界覆盖',coverageFor(boundary)],['证据类型',u.evidenceKind],['来源',evidenceText(u.sourceRefs)],
+        ['假设',evidenceText(u.assumptions)]]); }
     if(u.kind==='opening') return '<div class="hh">'+esc(u.type)+'</div>'+kv([
       ['源开口 ID',u.sourceId],['连通',u.spaceId+' ↔ '+(u.otherSpaceId||'室外')],
       ['开闭状态',({open:'开放',closed:'关闭',unknown:'未确定'})[u.state]],['面积',u.area.toFixed(2)+' m²']]);
     if(mode==='floor') return '<div class="hh">floor</div>'+kv([['floor','F'+(u.floor+1)]]);
-    if(mode==='zone'){ const r=roleOf(u.zone);
+    if(mode==='zone'){ const r=roleOf(u.zone), sid=(SOURCE_MAP.zones||{})[u.zone]||u.zone, space=SOURCE_SPACES[sid],
+      enclosureEvidence=space&&(space.enclosure_evidence||{});
       return '<div class="hh">zone</div>'+kv([['name',u.zone],['type',r||'—'],
-        ['源空间 ID',SOURCE_MAP.zones[u.zone]],
+        ['源空间 ID',(SOURCE_MAP.zones||{})[u.zone]],['空间开敞性',space&&enclosureLabel(space.exposure||space.enclosure)],
+        ['证据类型',enclosureEvidence&&enclosureEvidence.evidence_kind],
+        ['来源',space&&evidenceText(enclosureEvidence.source_refs||space.source_refs)],
+        ['假设',space&&evidenceText(enclosureEvidence.assumptions||space.assumptions)],
         ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']]); }
     // Area of the selected visible fragment: wall apertures are cut out;
     // windows remain separate child surfaces and are not subtracted here.
+    const boundary=boundaryFor(u);
     return '<div class="hh">surface</div>'+kv([['name',u.name],['type',u.type],
-      ['源对象 ID',SOURCE_MAP.surfaces[u.name] || SOURCE_MAP.windows[u.name]],
-      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前可见片面积；门洞已扣除，窗面积未扣除':'']]);
+      ['源对象 ID',(SOURCE_MAP.surfaces||{})[u.name] || (SOURCE_MAP.windows||{})[u.name]],
+      ['显示语义',u.kind==='surface'?(u.enclosureCondition==='unknown'?'未知围护（未当作实体墙）':'实体围护'):'窗'],
+      ['边界围护',boundary&&enclosureLabel(boundary.enclosure||boundary.kind)],['边界覆盖',coverageFor(boundary)],
+      ['证据类型',boundaryEvidenceKinds(boundary)],['来源',boundaryEvidence(boundary,'source_refs')],['假设',boundaryEvidence(boundary,'assumptions')],
+      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前显示片面积；开敞区域已扣除，未知围护以琥珀色标示':'']]);
   }
   function handleClick(ev){
     if(measuring){ const r=renderer.domElement.getBoundingClientRect();
@@ -426,8 +482,8 @@ _APP_JS = r"""
     if(mode==='edge'){ edgePick(ev); return; }
     const hit=pick(ev); if(!hit){ clearSelection(); return; }
     const o=hit.object;
-    let sel; if(mode==='floor') sel=allMeshes().filter(m=>m.userData.floor===o.userData.floor);
-    else if(mode==='zone') sel=allMeshes().filter(m=>m.userData.zone===o.userData.zone); else sel=[o];
+    let sel; if(mode==='floor') sel=allPickables().filter(m=>m.userData.floor===o.userData.floor);
+    else if(mode==='zone') sel=allPickables().filter(m=>m.userData.zone===o.userData.zone); else sel=[o];
     setSelection(sel, describe(mode,o));
   }
   // click vs orbit-drag: only a near-stationary press is a click
@@ -450,7 +506,9 @@ _APP_JS = r"""
     surfMeshes.forEach(m=>m.visible = sw && okF(m.userData));
     winMeshes.forEach(m=>m.visible = swin && okF(m.userData));
     openingMeshes.forEach(m=>m.visible=$('showOpen').checked && okF(m.userData));
-    edgeSegs.forEach(e=>e.visible = se && okF(e.userData) && (e.userData.kind!=='opening'||$('showOpen').checked)); }
+    edgeSegs.forEach(e=>e.visible = se && okF(e.userData) && (e.userData.kind!=='opening'||$('showOpen').checked));
+    logicalLines.forEach(e=>e.visible=$('showLogical').checked && okF(e.userData));
+    enclosureLines.forEach(e=>e.visible=$('showEnclosure').checked && okF(e.userData)); }
   function explodeOffset(zone){ const amt=parseFloat($('explode').value); if(amt<=0) return new THREE.Vector3();
     if($('explodeMode').value==='floor') return new THREE.Vector3(0,0, (zoneFloor[zone]||0)*amt*radius*1.0);
     return (zoneDir[zone]||new THREE.Vector3()).clone().multiplyScalar(amt*radius*1.2);  // zone: full 3D radial
@@ -458,7 +516,7 @@ _APP_JS = r"""
   function applyExplode(){ surfMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     winMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     openingMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
-    edgeSegs.forEach(e=>e.position.copy(explodeOffset(e.userData.zone)));
+    edgeSegs.concat(logicalLines,enclosureLines).forEach(e=>e.position.copy(explodeOffset(e.userData.zone)));
     applyFilter(); }  // re-evaluate dup visibility when crossing explode 0 ↔ >0
 
   // ---- right-side info (structured) ----
@@ -469,9 +527,11 @@ _APP_JS = r"""
     row('height (z)',size.z.toFixed(2)+' m') + row('floors',BASES.length);
   if(SOURCE) $('hud').innerHTML += '<div class="hh">源建筑模型</div>' +
     row('源空间',SOURCE.spaces.length) + row('源边界',SOURCE.boundaries.length) +
-    row('源开口',SOURCE.openings.length) + row(SOURCE.schema_version==='source_bim_v2'?'源几何检查':'派生映射检查',esc(SOURCE.validation.status)) +
+    row('源开口',SOURCE.openings.length) + row((SOURCE.schema_version||'').startsWith('source_bim_v')?'源几何检查':'派生映射检查',esc(SOURCE.validation.status)) +
     row('已记录的门/开口连接',(SOURCE.connections||[]).length) +
-    '<p>检查只覆盖已记录的对象。没有记录门洞不等于没有门；图纸完整性及人工确认另行评价。</p>';
+    (SOURCE.schema_version==='source_bim_v3' ? row('半开敞 / 开敞空间',SOURCE.spaces.filter(s=>['semi_open','open'].includes(s.enclosure)).length) +
+      row('开敞 / 未知边界',SOURCE.boundaries.filter(b=>['open','unknown','mixed'].includes(b.enclosure)).length) : '') +
+    '<p>逻辑闭合只界定空间范围，不表示实体密闭或热区。青色虚线是明确开敞区域；琥珀色是未知围护。</p>';
 
   // ---- room-type legend (shown in zone mode: colour swatch → room type) ----
   function updateLegend(mode){
@@ -500,8 +560,10 @@ _APP_JS = r"""
   const fs=$('floorSel'); BASES.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.textContent='F'+(i+1)+' (z='+b.toFixed(2)+')'; fs.appendChild(o);});
   $('colorBy').onchange=()=>{ refreshColors(); clearSelection(); }; fs.onchange=applyFilter;
   $('showWalls').onchange=applyFilter; $('showWin').onchange=applyFilter; $('showEdges').onchange=applyFilter;
-  $('showOpen').onchange=applyFilter;
-  $('opacity').oninput=e=>{const v=parseFloat(e.target.value); surfMeshes.forEach(m=>{m.material.opacity=v; m.material.transparent=v<1;});};
+  $('showOpen').onchange=applyFilter; $('showLogical').onchange=applyFilter; $('showEnclosure').onchange=applyFilter;
+  $('opacity').oninput=e=>{const v=parseFloat(e.target.value); surfMeshes.forEach(m=>{
+    m.material.opacity=m.userData.enclosureCondition==='unknown'?Math.min(0.38,v):v;
+    m.material.transparent=m.userData.enclosureCondition==='unknown'||v<1;});};
   $('explode').oninput=applyExplode; $('explodeMode').onchange=applyExplode;
   $('measure').onclick=()=>{ measuring ? clearMeasure() : startMeasure(); };  // toggle
   $('clearMeasure').onclick=clearMeasure;
@@ -538,6 +600,9 @@ _PANEL_HTML = r"""
   <label class="chk"><input type="checkbox" id="showWin" checked> windows</label>
   <label class="chk"><input type="checkbox" id="showOpen" checked> 门 / 空开口</label>
   <label class="chk"><input type="checkbox" id="showEdges" checked> edges</label>
+  <label class="chk"><input type="checkbox" id="showLogical"> 逻辑空间边界（细虚线）</label>
+  <label class="chk"><input type="checkbox" id="showEnclosure" checked> 开敞 / 未知区域轮廓</label>
+  <div class="enclosure-key"><span class="open-key"></span>明确开敞　<span class="unknown-key"></span>围护未知</div>
 
   <div id="sections"></div>
 
@@ -570,6 +635,10 @@ _STYLE = r"""
   #panel label.rng { font-size:12.5px; color:#555; margin:10px 0 5px; }
   #panel label.chk { font-size:13px; margin:7px 0; cursor:pointer; }
   #panel label.chk input { margin-right:7px; vertical-align:-1px; }
+  .enclosure-key { color:#667085; font-size:11.5px; margin:5px 0 0 2px; }
+  .enclosure-key span { width:13px; height:3px; display:inline-block; margin:0 4px 2px 0; }
+  .enclosure-key .open-key { background:#00a6a6; }
+  .enclosure-key .unknown-key { background:#e69a2d; }
   #panel input[type=range] { width:100%; margin:2px 0 4px; accent-color:#3b6ea5; }
   #panel select { width:100%; padding:6px 8px; font-size:13px; border:1px solid #cfd4da; border-radius:6px; background:#fff; }
   #panel button { width:100%; padding:8px; margin-top:8px; font-size:13px; cursor:pointer;
@@ -666,6 +735,7 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
         "windows": data.get("windows", []),
         "openings": data.get("openings", []),
         "visible_wall_parts": data["display_surface_parts"] if "display_surface_parts" in data else visible_wall_parts(data),
+        "enclosure_regions": data.get("enclosure_regions", []),
         "roles": roles if roles is not None else data.get("roles", {}),
         "source_model": data.get("source_model"),
     }
@@ -682,27 +752,47 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
     )
 
 
+def load_viewer_geometry(path: Path) -> dict:
+    """Load either a display geometry file or an authoritative source BIM.
+
+    Source BIM inputs go through their validated display projection.  Unknown
+    source schema versions fail rather than opening a plausible-looking empty
+    legacy viewer.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+    schema = data.get("schema_version")
+    if schema in {"source_bim_v2", "source_bim_v3"}:
+        from src.agent.geometry.source_bim import source_view_geometry
+
+        return source_view_geometry(data)
+    if isinstance(schema, str) and schema.startswith("source_bim"):
+        raise ValueError(f"unsupported source BIM schema: {schema}")
+
+    source_path = path.with_name("source_model.json")
+    if source_path.exists() and not data.get("source_model"):
+        from src.agent.geometry.source_model import _digest
+
+        source = json.loads(source_path.read_text(encoding="utf-8"))
+        # Legacy building_geometry carries a digest of that derived geometry.
+        if source.get("derived_geometry_sha256") == _digest(data):
+            data["source_model"] = source
+    return data
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("json", help="building_geometry.json")
+    ap.add_argument("json", help="display/building geometry JSON, or validated source_bim_v2/v3 source_model.json")
     ap.add_argument("--out", help="output HTML (default: <json dir>/geometry_viewer.html)")
     ap.add_argument("--title", default="")
     ap.add_argument("--roles", help="optional JSON {zone: role} to colour zones by room type; "
                                     "default uses building_geometry zone_meta, then legacy correction lookup")
     args = ap.parse_args()
     j = Path(args.json)
-    data = json.loads(j.read_text(encoding="utf-8"))
-    source_path = j.with_name("source_model.json")
-    if source_path.exists():
-        from src.agent.geometry.source_model import _digest
-
-        source = json.loads(source_path.read_text(encoding="utf-8"))
-        if source.get("derived_geometry_sha256") == _digest(data):
-            data["source_model"] = source
+    data = load_viewer_geometry(j)
     if args.roles:
         roles = json.loads(Path(args.roles).read_text(encoding="utf-8"))
     else:
-        roles = discover_roles(j)
+        roles = discover_roles(j) or None
     out = Path(args.out) if args.out else j.with_name("geometry_viewer.html")
     title = args.title or j.parent.parent.name or j.stem
     out.parent.mkdir(parents=True, exist_ok=True)
