@@ -11,7 +11,7 @@ Verbs (one stage / action per call — the Agent invokes them in order):
     run    <case> <run> <stage>        draw + gate① (+ blind resample on block) → stop
     judge  <case> <run> <stage> --verdict v.json   record the Agent's StageVerdict → classify
     resample <case> <run> <stage>      force a fresh blind draw (judge-driven), same budget
-    approve-geometry <case> <run> --actor X --date ISO   record the human geometry confirm
+    approve-geometry <case> <run> --actor X --digest SHA --date ISO   record the human geometry confirm
     status <case> <run>                print the orchestration ledger
 
 Stages: 0_reading 1_correction 2_modelling 3_split_pairing 4_mep 5_intakeoutput.
@@ -1536,27 +1536,38 @@ def _render_geometry_viewer(
     try:
         import render_geometry_viewer as rgv
 
-        data = json.loads(bg.read_text(encoding="utf-8"))
-        source_path = run_dir / "2_modelling" / "source_model.json"
-        if source_path.exists():
-            from src.agent.geometry.source_model import _digest
+        from src.agent.execution.run_policy_freeze import effective_run_policy
+        from src.agent.execution.source_checkpoint import inspect_source_checkpoint, save_source_review
+        import html as html_module
 
-            source = json.loads(source_path.read_text(encoding="utf-8"))
-            if source.get("derived_geometry_sha256") == _digest(data):
-                data["source_model"] = source
-        # Human geometry-confirmation artifact lives in its own manual_review/
-        # folder (not a pipeline-stage output); role-coloured from the sibling
-        # 1_correction so the reviewer sees room types. (backlog: edit-writeback.)
-        out = run_dir / "manual_review" / "geometry_viewer.html"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(
-            rgv.build_viewer_html(
-                data, title=f"{case_dir.name} / {run_dir.name}",
-                roles=rgv.discover_roles(bg)),
-            encoding="utf-8")
+        state = inspect_source_checkpoint(run_dir, policy=effective_run_policy(run_dir), geometry_path=bg)
+        data = {**state["geometry"], "source_model": state["source_model"]}
+        roles = {s["id"]: s.get("role") for s in (state["source_model"] or {}).get("spaces", [])}
+        viewer = rgv.build_viewer_html(data, title=f"{case_dir.name} / {run_dir.name}", roles=roles)
+        status = ("源模型及当前几何检查可供确认；确认后进入下游处理。"
+                  if state["approval_ready"] else "当前候选仅供查看：来源或检查尚未通过，不能确认继续。")
+        unsupported = len((state["source_model"] or {}).get("unsupported", []))
+        banner = (f'<aside style="position:fixed;bottom:0;left:0;right:0;z-index:1000;background:#fff3cd;color:#332b00;padding:8px 16px;font:14px/1.5 system-ui">'
+                  f'{status} 未建/未支持项：{unsupported}。版本 <span title="{state["digest"]}">{state["digest"][:12]}</span> '
+                  f'<a href="checkpoint.json">检查与版本记录</a> · <a href="source_model.json">源对象与未完成项</a>。图纸完整性与仿真结果仍需独立核对。</aside>')
+        viewer = viewer.replace("</body>", banner + "</body>")
+        out = save_source_review(run_dir, state, viewer)
+        landing = run_dir / "manual_review/geometry_viewer.html"
+        landing.write_text('<!doctype html><meta charset="utf-8"><title>源模型查看</title>'
+                           f'<p>{status}</p><a href="{html_module.escape(str(out.relative_to(landing.parent)))}">打开当前源模型</a>', encoding="utf-8")
         return str(out)
     except Exception as e:  # noqa: BLE001 — viewer is best-effort, never fatal
         return f"(geometry viewer render failed: {type(e).__name__}: {e})"
+
+
+def _source_review_digest(run_dir: Path) -> str | None:
+    from src.agent.execution.source_checkpoint import REVIEW_NAME
+    from src.agent.execution.run_meta import run_meta_path
+
+    try:
+        return json.loads(run_meta_path(run_dir, REVIEW_NAME).read_bytes())["digest"]
+    except (OSError, ValueError, KeyError):
+        return None
 
 
 def _source_images(case_dir: Path) -> list[str]:
@@ -3119,6 +3130,7 @@ def cmd_run(args) -> int:
         if vpath:
             print(f"  🧊 3D viewer (open in a browser to inspect, then "
                   f"`approve-geometry`): {vpath}")
+            print(f"  source confirmation version: --digest {_source_review_digest(run_dir)}")
     return 0 if not outcome.terminal_stop else 2
 
 
@@ -3215,16 +3227,17 @@ def cmd_judge(args) -> int:
 def cmd_approve_geometry(args) -> int:
     case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
     appr = approve_geometry(run_dir, actor=args.actor, timestamp=args.date,
-                            policy=args.policy, note=args.note or "", case_dir=case_dir)
+                            policy=args.policy, note=args.note or "", case_dir=case_dir,
+                            expected_digest=getattr(args, "digest", None))
     if appr is None:
-        print("✗ no consistent geometry checkpoint to approve "
-              "(build 2_modelling + 3_split_pairing first)")
+        print("✗ no current, displayed Stage 2 source checkpoint matches --digest; "
+              "reopen the source review and resolve blocking findings before confirming")
         return 2
     # reflect approval in the ledger so a pending geometry stop_reason is cleared
     mark_geometry_approved(run_dir, timestamp=args.date or "")
     print(f"✓ geometry approved by {appr.actor} @ {appr.timestamp}")
     print(f"  digest={appr.digest}")
-    print(f"  → 4_mep is now unblocked: run_stage.py run {args.case} {args.run} 4_mep")
+    print(f"  → continue at 3_split_pairing: run_stage.py flow {args.case} {args.run}")
     return 0
 
 
@@ -3414,6 +3427,7 @@ def cmd_flow(args) -> int:
                     policy="auto",
                     note="flow --geometry auto",
                     case_dir=case_dir,
+                    expected_digest=_source_review_digest(run_dir),
                 )
                 if appr is None:
                     print("✗ geometry auto-approval failed: no consistent checkpoint")
@@ -3426,6 +3440,7 @@ def cmd_flow(args) -> int:
                 "     run_stage.py"
                 f" --base-dir {args.base_dir} approve-geometry {args.case} {args.run}"
                 " --actor <you>"
+                f" --digest {_source_review_digest(run_dir)}"
             )
             return FLOW_EXIT_CHECKPOINT
 
@@ -3633,6 +3648,7 @@ def main() -> int:
     pa = sub.add_parser("approve-geometry")
     pa.add_argument("case"); pa.add_argument("run")
     pa.add_argument("--actor", required=True); pa.add_argument("--note")
+    pa.add_argument("--digest", required=True, help="full source checkpoint digest shown with the Stage 2 review")
     pa.add_argument("--policy", choices=("required", "auto"), default="required")
 
     pr = sub.add_parser("approve-review")

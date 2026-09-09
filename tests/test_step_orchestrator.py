@@ -384,17 +384,17 @@ def _required_policy():
 
 
 def test_geometry_checkpoint_blocks_when_unapproved(tmp_path):
-    draw, _ = _fake_draw("3_split_pairing", [True])
-    out = run_one_stage(stage="3_split_pairing", runner=_runner(tmp_path),
-                        stage_dir=tmp_path / "3_split_pairing", policy=_required_policy(),
+    draw, _ = _fake_draw("2_modelling", [True])
+    out = run_one_stage(stage="2_modelling", runner=_runner(tmp_path),
+                        stage_dir=tmp_path / "2_modelling", policy=_required_policy(),
                         draw_fn=draw, geometry_approved=lambda: False)
     assert out.status == StepStatus.AWAITING_GEOMETRY_APPROVAL
 
 
 def test_geometry_checkpoint_advances_when_approved(tmp_path):
-    draw, _ = _fake_draw("3_split_pairing", [True])
-    out = run_one_stage(stage="3_split_pairing", runner=_runner(tmp_path),
-                        stage_dir=tmp_path / "3_split_pairing", policy=_required_policy(),
+    draw, _ = _fake_draw("2_modelling", [True])
+    out = run_one_stage(stage="2_modelling", runner=_runner(tmp_path),
+                        stage_dir=tmp_path / "2_modelling", policy=_required_policy(),
                         draw_fn=draw, geometry_approved=lambda: True)
     assert out.status == StepStatus.DETERMINISTIC_PASS
 
@@ -457,12 +457,12 @@ def test_update_state_records_awaiting_reread_stop_reason(tmp_path):
 
 
 def test_geometry_approval_clears_stop_reason(tmp_path):
-    draw, _ = _fake_draw("3_split_pairing", [True])
-    out = run_one_stage(stage="3_split_pairing", runner=_runner(tmp_path),
-                        stage_dir=tmp_path / "3_split_pairing", policy=_required_policy(),
+    draw, _ = _fake_draw("2_modelling", [True])
+    out = run_one_stage(stage="2_modelling", runner=_runner(tmp_path),
+                        stage_dir=tmp_path / "2_modelling", policy=_required_policy(),
                         draw_fn=draw, geometry_approved=lambda: False)
     update_state(tmp_path, out, timestamp="t")
-    assert load_state(tmp_path)["stop_reason"] == "awaiting_geometry_approval@3_split_pairing"
+    assert load_state(tmp_path)["stop_reason"] == "awaiting_geometry_approval@2_modelling"
     mark_geometry_approved(tmp_path, timestamp="t2")
     st = load_state(tmp_path)
     assert st["stop_reason"] is None and st["geometry_approved"] is True
@@ -486,7 +486,7 @@ def test_human_review_approval_clears_matching_stop_reason(tmp_path):
 
 def test_advance_clears_stale_geometry_stop_reason(tmp_path):
     # Medium fix: a successful 4_mep advance after approval must not leave a stale
-    # awaiting_geometry_approval@3_split_pairing in the ledger.
+    # awaiting_geometry_approval@2_modelling in the ledger.
     runner = _runner(tmp_path)
     d3, _ = _fake_draw("3_split_pairing", [True])
     o3 = run_one_stage(stage="3_split_pairing", runner=runner,

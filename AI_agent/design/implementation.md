@@ -55,7 +55,7 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 
 ### gate、judge、GT 的当前接线
 
-- `stage_runner.py` 定义 0–5 的阶段与依赖；`step_orchestrator.py` 在 gate① 后进入 judge/几何确认或继续。reading 自动调用缺口仍在，历史 flow 成功不意味着今日已经是一键无人值守。
+- `stage_runner.py` 定义 0–5 的阶段与依赖；`step_orchestrator.py` 在 gate① 后进入 judge/几何确认或继续。正式源确认已在 Stage 2 后阻塞 Stage 3–5，绑定已显示快照并核对可信上游与当前检查；恢复不重抽上游，旧确认随源/检查/查看产物变化失效。reading 自动调用缺口仍在，历史 flow 成功不意味着今日已经是一键无人值守。
 - [CheckReport](../../src/validator/checks/schema.py) 已区分 invariant 的阻塞与 cross_check 的提示，并有 profile 例外；[StageVerdict](../../src/agent/judge/verdict.py) 明确采用定性清单，minor 放行，severe/fatal 阻塞（J0 有可交校正恢复的例外）。[judge 注册](../../src/agent/judge/executor.py) 当前启用 J0/J1，J4 是停用的 stub。
 - 评分并非全部毫米级：legacy 墙位默认容差 0.30 m、窗中心 0.40 m；[typed 评分配置](../../src/configs/judge_score.yaml) 同样包含厘米/分米级阈值；as-drawn 平面位置默认 0.08 m，并纳入两侧量化误差下限。它们是不同消费者的现值，不是本轮推荐的统一容差。
 - [GT 配置](../../src/configs/judge_gt.yaml) 的 DXF 节点连接/轴对齐为 0.001 m；as-drawn 分母仍从签字源 DXF 生成。GT 准备/规整精度与最后产品评价容差属于不同环节，不能只修改评分配置便声称解决了前者。

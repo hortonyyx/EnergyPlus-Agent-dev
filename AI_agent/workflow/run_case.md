@@ -72,4 +72,23 @@ python scripts/tool_scripts/diagnose_source_partitions.py --out AI_agent/logs/ex
 
 它读取固定 sm21/sm24/sm25 历史产物、复用当前确定性内核和 sm25 已接受的 B5 证明，不调用模型或 EP、不修改旧 run。`index.html` 汇总历史与当前查看入口、分区/建模状态；`report.json` 保存输入哈希与具体证据。sm24 三墙 fixture 有明确人工分组，8 空间预览不建 11 扇窗（完整候选保留窗记录），不得报告为完整重建。sm21/sm25 缺独立分区参照时为 not_evaluated。
 
-正常 Stage 2 还会写 `source_model.json`，并提前生成 CLI 查看 HTML；这不授予人工确认，也未迁移当前 Stage 3 后的正式确认停点。
+正常 Stage 2 会写 `source_model.json` 和 CLI 查看 HTML；生成查看结果本身不授予确认。
+
+## Stage 2 源模型查看、确认与恢复
+
+`flow CASE RUN --geometry required` 在 Stage 2 检查通过后停下，并打印不可变查看快照的路径及完整版本摘要。先打开 HTML 查看源房间、门窗、未完成项与检查记录，再将实际所看版本的摘要填入：
+
+```bash
+python -m scripts.tool_scripts.run_stage approve-geometry CASE RUN --actor YOUR_NAME --digest SOURCE_DIGEST
+python -m scripts.tool_scripts.run_stage flow CASE RUN --geometry required
+```
+
+恢复从 Stage 3 继续，上游已接受产物不重抽。确认使用 run 的冻结检查策略；修改源输入、接受记录、检查或显示快照后，旧确认失效，须重新生成当前查看版本。查看页只显示摘要前 12 位，完整值以 CLI 或 run 下的 `_run/source_geometry_review.json` 为准。不能把未接受、来源不一致、有阻塞检查或未建/未支持观测的候选确认通过；这些候选仍尽可能生成带状态的查看页。旧 Stage 3 确认不会自动替代新源模型确认。
+
+`--geometry auto` 沿用自动实验模式，明确记录 `flow:auto`，不表示用户看过或人工确认。源确认不证明 Stage 3 序列化、原图完整性或 EnergyPlus 已通过；持久编辑尚待接入。
+
+离线验证可复用历史输入，在新目录重建 Stage 2、模拟确认并恢复 Stage 3，同时验证 sm25 未通过候选可查看且拒绝确认，不调用模型或 EP：
+
+```bash
+python scripts/tool_scripts/diagnose_source_checkpoint.py --out AI_agent/logs/experiments/NEW_SOURCE_CHECKPOINT_RUN
+```

@@ -11,7 +11,7 @@ AI_agent/workflow/run_case.md §2):
                               ▼
                           gate① pass
                               │ judge stage (J0/J1 enabled) → STOP: AWAITING_JUDGE
-                              │ geometry checkpoint (after 3) → STOP: AWAITING_GEOMETRY_APPROVAL
+                              │ source checkpoint (after 2) → STOP: AWAITING_GEOMETRY_APPROVAL
                               │ else (2/3/5, 4_mep J4-disabled) → advance
         Agent submits StageVerdict:
             non-blocking                      → JUDGE_PASS (advance)
@@ -34,7 +34,7 @@ Disciplines this module mechanically keeps:
     the only cost is one semantic draw can be >1 LLM call. (Archiving inner rejects
     is a deferred audit refinement — review 2026-06-19 High-2.)
   - The geometry checkpoint is a *calling policy* (ConfirmationPolicy), wired here
-    as a blocking human gate: 4_mep refuses to run until the geometry digest is
+    as a blocking human gate: stages 3–5 refuse until the source digest is
     approved (approval.py binds the digest so an approved checkpoint is reused,
     not silently regenerated).
 
@@ -65,8 +65,9 @@ from src.agent.judge.verdict import CriterionStatus, Recoverability, StageVerdic
 from src.validator.checks.schema import CheckReport
 
 STATE_NAME = "orchestration_state.json"
-GEOMETRY_CHECKPOINT_STAGE = "3_split_pairing"  # digest binds 2+3+kernel report
-GEOMETRY_GATED_STAGE = "4_mep"                  # refuse until geometry approved
+GEOMETRY_CHECKPOINT_STAGE = "2_modelling"
+GEOMETRY_GATED_STAGE = "3_split_pairing"
+GEOMETRY_GATED_STAGES = {"3_split_pairing", "4_mep", "5_intakeoutput"}
 
 
 class StepStatus(str, Enum):
@@ -220,14 +221,14 @@ def run_one_stage(
     stage_dir = Path(stage_dir)
     spec = stage_spec(stage)
     cap = spec.capability
-    approved = geometry_approved or (lambda: True)
+    approved = geometry_approved or (lambda: False)
     stage_dir_for = stage_dir_for or _sibling_stage_dir_for(stage, stage_dir)
 
-    # --- geometry gate: 4_mep refuses to run until the checkpoint is approved ---
-    if stage == GEOMETRY_GATED_STAGE and policy.confirmation_blocks(approved()):
+    # Guard direct downstream entry as well as sequential flow/resume.
+    if stage in GEOMETRY_GATED_STAGES and policy.confirmation_blocks(approved()):
         return StageOutcome(
             stage, StepStatus.AWAITING_GEOMETRY_APPROVAL, _existing_attempts(stage_dir),
-            message="geometry checkpoint not approved — confirm geometry before 4_mep",
+            message="source geometry not approved — confirm Stage 2 before downstream processing",
         )
 
     accepted = runner.manifest.accepted(stage)
@@ -299,7 +300,7 @@ def _post_gate1(
     stage_dir_for: Callable[[str], Path],
 ) -> StageOutcome:
     """gate① passed — decide: judge / geometry-gate / advance."""
-    # geometry checkpoint sits after 3_split_pairing (digest binds 2+3+kernel report)
+    # Source review precedes downstream serialization and uses no Stage 3 output.
     if stage == GEOMETRY_CHECKPOINT_STAGE and policy.confirmation_blocks(approved()):
         return StageOutcome(
             stage, StepStatus.AWAITING_GEOMETRY_APPROVAL, attempts, attempt_idx, report,
@@ -467,6 +468,7 @@ def approve_geometry(
     policy: str = "required",
     note: str = "",
     case_dir: Path | None = None,
+    expected_digest: str | None = None,
 ):
     """Record the human geometry confirmation, binding it to the current checkpoint
     digest. Returns the saved GeometryApproval, or None if the geometry is not
@@ -476,23 +478,27 @@ def approve_geometry(
         effective_run_policy,
         resolve_frozen_run_policy,
     )
-    from src.agent.execution.validation_run import validate_case
+    from src.agent.execution.source_checkpoint import SCHEMA, current_source_review
+    from src.agent.execution.manifest import hash_obj
 
     run_dir = Path(run_dir)
     # R1-5 (裁定 §1.3): judge the geometry confirmation on the run's FROZEN
     # policy, not RunPolicy() defaults (laxest exploratory/rectangular/optional).
     frozen = resolve_frozen_run_policy(run_dir)
     effective = effective_run_policy(run_dir)
-    res = validate_case(run_dir, case_dir=case_dir, policy=effective)
-    if res.geometry_digest is None:
+    if expected_digest is None:
+        return None
+    review = current_source_review(run_dir, policy=effective, expected_digest=expected_digest)
+    if review is None:
         return None
     appr = GeometryApproval(
-        digest=res.geometry_digest, actor=actor, policy=policy,
+        digest=review["digest"], actor=actor, policy=policy,
         timestamp=timestamp, note=note,
         run_policy_source=frozen.source,
         run_policy_legacy_defaulted=frozen.legacy_defaulted,
         run_profile=effective.run_profile,
         capability_profile=effective.capability_profile,
+        checkpoint_schema=SCHEMA, review_sha256=hash_obj(review),
     )
     appr.save(run_dir)
     return appr
@@ -501,11 +507,18 @@ def approve_geometry(
 def geometry_is_approved(run_dir: Path, *, case_dir: Path | None = None) -> bool:
     """True iff a stored approval matches the current geometry checkpoint digest."""
     from src.agent.execution.run_policy_freeze import effective_run_policy
-    from src.agent.execution.validation_run import validate_case
+    from src.agent.execution.source_checkpoint import SCHEMA, current_source_review
+    from src.agent.execution.approval import GeometryApproval
+    from src.agent.execution.manifest import hash_obj
 
     # R1-5 (裁定 §1.3): judge on the run's FROZEN policy, not RunPolicy() defaults.
-    res = validate_case(Path(run_dir), case_dir=case_dir, policy=effective_run_policy(run_dir))
-    return res.geometry_approved
+    review = current_source_review(Path(run_dir), policy=effective_run_policy(run_dir))
+    try:
+        approval = GeometryApproval.load(run_dir)
+    except (ValueError, OSError):
+        return False
+    return bool(review and approval and approval.checkpoint_schema == SCHEMA
+                and approval.digest == review["digest"] and approval.review_sha256 == hash_obj(review))
 
 
 # --------------------------------------------------------------------------- #

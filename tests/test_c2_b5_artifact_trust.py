@@ -979,9 +979,22 @@ def test_f20_l1_v3_accepted_proof_reaches_validate_case(tmp_path: Path, include_
     assert res.geometry_digest is not None
 
     provision_run_policy(tmp_path, run_profile="exploratory", capability_profile="orthogonal_polygon")
-    appr = approve_geometry(tmp_path, actor="f20-lock", timestamp="2026-08-10T00:00:00Z")
+    # Source confirmation now requires an accepted Stage 2 and an explicitly
+    # displayed version. The old full 2+3 audit digest is not a source approval.
+    from scripts.tool_scripts.run_stage import _render_geometry_viewer, _source_review_digest
+    from src.agent.execution.stage_runner import StageRunner
+    from src.agent.execution.manifest import load_run_manifest
+    from src.agent.geometry.specs import building_geometry_dict
+    manifest = load_run_manifest(tmp_path)
+    StageRunner(tmp_path, manifest).record(
+        stage="2_modelling", stage_dir=tmp_path / "2_modelling",
+        output_obj=building_geometry_dict(bundle.bg), report=res.reports["2_modelling"])
+    manifest.save(tmp_path)
+    _render_geometry_viewer(tmp_path, tmp_path)
+    digest = _source_review_digest(tmp_path)
+    appr = approve_geometry(tmp_path, actor="f20-lock", timestamp="2026-08-10T00:00:00Z", expected_digest=digest)
     assert appr is not None
-    assert appr.digest == res.geometry_digest
+    assert appr.digest == digest and appr.digest != res.geometry_digest
 
     # Scope-conservation tail (§2.5): break the upstream trust chain so a
     # full validate would now hard-reject, then prove --intake-from's early
@@ -1306,8 +1319,18 @@ def test_f20_major1_v2_rejection_never_falls_back_to_buildable_legacy_stage_root
     clean_trust = _trust_row(clean.reports["1_correction"])
     assert clean_trust.status == CheckStatus.PASS, clean_trust.message
     assert clean.geometry_digest is not None
+    from scripts.tool_scripts.run_stage import _render_geometry_viewer, _source_review_digest
+    from src.agent.execution.stage_runner import StageRunner
+    from src.agent.geometry.specs import building_geometry_dict
+    StageRunner(tmp_path, _manifest).record(
+        stage="2_modelling", stage_dir=tmp_path / "2_modelling",
+        output_obj=building_geometry_dict(_bg), report=clean.reports["2_modelling"])
+    _manifest.save(tmp_path)
+    _render_geometry_viewer(tmp_path, tmp_path)
+    digest = _source_review_digest(tmp_path)
     assert approve_geometry(
         tmp_path, actor="f20-major1-clean", timestamp="2026-08-10T00:00:00Z",
+        expected_digest=digest,
     ) is not None
 
     accepted_output = tmp_path / "1_correction" / "attempts" / "001" / "output.json"
@@ -1320,6 +1343,7 @@ def test_f20_major1_v2_rejection_never_falls_back_to_buildable_legacy_stage_root
     assert res.geometry_digest is None
     assert approve_geometry(
         tmp_path, actor="f20-major1-rejected", timestamp="2026-08-10T00:01:00Z",
+        expected_digest=digest,
     ) is None
 
 

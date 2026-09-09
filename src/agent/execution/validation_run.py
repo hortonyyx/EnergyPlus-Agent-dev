@@ -510,6 +510,19 @@ def validate_case(
         )
         res.geometry_approved = is_approved(run_dir, res.geometry_digest)
 
+    # Current displayed-source confirmations replace the legacy 2+3 digest
+    # only for runs carrying the new review record. Old audits stay unchanged.
+    from src.agent.execution.source_checkpoint import REVIEW_NAME, current_source_review
+    from src.agent.execution.run_meta import run_meta_path
+    if run_meta_path(run_dir, REVIEW_NAME).exists():
+        from src.agent.execution.step_orchestrator import geometry_is_approved
+        review = current_source_review(run_dir, policy=policy)
+        res.geometry_digest = review["digest"] if review else None
+        res.geometry_approved = geometry_is_approved(run_dir) if review else False
+        if review is None:
+            res.reports["2_modelling::source_checkpoint"] = _error_report(
+                "2_modelling", profile, run_profile, "source review is missing, stale or not eligible for confirmation")
+
     _finalize(res, policy)
     if write_reports:
         # A validation SUMMARY — NOT the M0 audit manifest (which is backed by

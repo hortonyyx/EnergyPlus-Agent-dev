@@ -59,7 +59,12 @@ def _fake_make_draw_fn(stage, run_dir, *_args, **_kwargs):
     def draw(_fb):
         attempts = run_dir / stage / "attempts"
         n = len([p for p in attempts.glob("*") if p.is_dir()]) if attempts.exists() else 0
-        return {"stage": stage, "draw": n + 1}, _pass_report(stage)
+        output = {"stage": stage, "draw": n + 1}
+        if stage == "1_correction":
+            output.update(footprint_x=[0., 10.], footprint_y=[0., 8.], floors=[{
+                "name": "Floor 1", "z_floor": 0., "ceiling_height": 3.,
+                "cells": [{"id": "A", "x": [0., 10.], "y": [0., 8.]}]}])
+        return output, _pass_report(stage)
 
     return draw
 
@@ -147,7 +152,7 @@ def test_cmd_run_judge_off_still_writes_correction_renders(tmp_path, monkeypatch
                 ),
                 encoding="utf-8",
             )
-            return {"stage": stage}, _pass_report(stage)
+            return json.loads((corr / "correction_geometry_snapped.json").read_text()), _pass_report(stage)
 
         return draw
 
@@ -430,18 +435,18 @@ def test_flow_geometry_auto_records_auto_policy(tmp_path, monkeypatch):
         calls["n"] += 1
         if calls["n"] == 1:
             return StageOutcome(
-                stage="3_split_pairing",
+                stage="2_modelling",
                 status=StepStatus.AWAITING_GEOMETRY_APPROVAL,
                 attempts_used=1,
                 accepted_attempt=1,
                 message="need geometry",
             )
         return StageOutcome(
-            stage="3_split_pairing",
+            stage="2_modelling",
             status=StepStatus.DETERMINISTIC_PASS,
             attempts_used=1,
             accepted_attempt=1,
-            report=_pass_report("3_split_pairing"),
+            report=_pass_report("2_modelling"),
             message="pass",
         )
 
@@ -458,8 +463,8 @@ def test_flow_geometry_auto_records_auto_policy(tmp_path, monkeypatch):
     code = rs.cmd_flow(
         _args(
             tmp_path,
-            from_stage="3_split_pairing",
-            to_stage="3_split_pairing",
+            from_stage="2_modelling",
+            to_stage="2_modelling",
             geometry="auto",
         )
     )
@@ -1082,114 +1087,36 @@ def test_R1_1_context_not_in_hash_no_drift(tmp_path):
 # the wrapper only retains the real CheckReport for assertions, it does not
 # fabricate the validation result.
 # --------------------------------------------------------------------------- #
-def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
-    """A frozen regression/orthogonal run must reach the human geometry gate
-    validating at that frozen TIER.  r2-4 (ruling 2026-08-04 §2): require_ep is
-    NO LONGER read from frozen context — it is a per-invocation operational knob,
-    and the geometry gate (which has no --with-ep) validates at the default
-    require_ep=False, so no downstream.build row is produced here.  The frozen
-    tier being consumed (not RunPolicy() defaults) is proven by BOTH the
-    stage-report headers AND a tier-gated check-id row (r2c-2, cross-review F-4:
-    the r2b rewrite had dropped the check-id row half).  Neuter: replace
-    effective_run_policy with RunPolicy() ⇒ tier headers become
-    exploratory/rectangular AND the non-closing chain FLAGs instead of BLOCKs ⇒
-    this lock reds on both halves."""
-    from src.agent.execution import validation_run
+@pytest.mark.parametrize("operation", ["approve", "resume"])
+def test_source_confirmation_uses_frozen_policy(tmp_path, monkeypatch, operation):
+    """Both confirmation entry points use the frozen source-checking tier.
+
+    Stage 2 confirmation no longer runs downstream/full reading validation;
+    actual source report headers and behavior are tested in test_source_checkpoint.
+    """
+    from src.agent.execution import source_checkpoint, step_orchestrator
     from src.agent.execution.run_policy_freeze import provision_run_policy
-    from src.validator.checks.schema import CheckStatus
 
-    run_dir = tmp_path / "case" / "run"
+    run_dir = tmp_path / "case/run"
     run_dir.mkdir(parents=True)
-    provision_run_policy(
-        run_dir,
-        run_profile="regression",
-        capability_profile="orthogonal_polygon",
-    )
-    # r2c-2: plant a non-closing dimension chain so a TIER-GATED check-id row
-    # (reading.dimension_chain_closure: BLOCK under regression, FLAG under
-    # exploratory) flows through validate_case — the check-id half r2b dropped.
-    rdir = run_dir / "0_reading"
-    rdir.mkdir(parents=True, exist_ok=True)
-    (rdir / "1f_view.json").write_text(
-        json.dumps(_non_closing_plan_payload()), encoding="utf-8")
-    real_validate_case = validation_run.validate_case
-    seen = {}
+    provision_run_policy(run_dir, run_profile="regression", capability_profile="orthogonal_polygon")
+    real = source_checkpoint.current_source_review
+    seen = []
 
-    def capture_validate_case(*args, **kwargs):
-        result = real_validate_case(*args, **kwargs)
-        seen["result"] = result
-        return result
+    def capture(*args, **kwargs):
+        seen.append(kwargs["policy"])
+        return real(*args, **kwargs)
 
-    monkeypatch.setattr(validation_run, "validate_case", capture_validate_case)
-    code = rs.cmd_approve_geometry(_args(
-        tmp_path, actor="reviewer", policy="required", note="",
-    ))
-
-    assert code == 2  # intentionally no geometry checkpoint in this focused fixture
-    # r2-4: require_ep comes from the caller (default False here), never from
-    # frozen context ⇒ no "downstream" report. The frozen TIER consumed is proven
-    # by the stage-report headers (regression/orthogonal, not RunPolicy defaults).
-    assert "downstream" not in seen["result"].reports
-    stage_report = seen["result"].reports["1_correction"]
-    assert stage_report.run_profile == "regression"
-    assert stage_report.capability_profile == "orthogonal_polygon"
-    # r2c-2: the check-id half — the non-closing chain FAIL is BLOCK only because
-    # the tier fed to validate_case was regression (exploratory would FLAG it).
-    reading_report = seen["result"].reports["0_reading::1f_view"]
-    closure = next(r for r in reading_report.results
-                   if r.check_id == "reading.dimension_chain_closure")
-    assert closure.status is CheckStatus.FAIL
-    assert any(r.check_id == "reading.dimension_chain_closure"
-               for r in reading_report.blocking())
-
-
-def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
-    """The resume predicate is the second real geometry caller and must validate
-    at the frozen TIER, not RunPolicy() defaults.  r2-4: require_ep no longer
-    comes from frozen context (geometry gate uses default require_ep=False ⇒ no
-    downstream row).  r2c-2 (cross-review F-4): the check-id row half dropped in
-    the r2b rewrite is restored — a tier-gated non-closing chain BLOCKs under
-    regression.  Neuter effective_run_policy ⇒ the stage-report tier headers AND
-    the check-id row red alongside only the paired approval lock, because both
-    callers share that hook."""
-    from src.agent.execution import step_orchestrator, validation_run
-    from src.agent.execution.run_policy_freeze import provision_run_policy
-    from src.validator.checks.schema import CheckStatus
-
-    run_dir = tmp_path / "case" / "run"
-    run_dir.mkdir(parents=True)
-    provision_run_policy(
-        run_dir,
-        run_profile="regression",
-        capability_profile="orthogonal_polygon",
-    )
-    # r2c-2: tier-gated check-id row (non-closing chain: BLOCK under regression).
-    rdir = run_dir / "0_reading"
-    rdir.mkdir(parents=True, exist_ok=True)
-    (rdir / "1f_view.json").write_text(
-        json.dumps(_non_closing_plan_payload()), encoding="utf-8")
-    real_validate_case = validation_run.validate_case
-    seen = {}
-
-    def capture_validate_case(*args, **kwargs):
-        result = real_validate_case(*args, **kwargs)
-        seen["result"] = result
-        return result
-
-    monkeypatch.setattr(validation_run, "validate_case", capture_validate_case)
-    assert step_orchestrator.geometry_is_approved(run_dir) is False
-
-    assert "downstream" not in seen["result"].reports
-    stage_report = seen["result"].reports["1_correction"]
-    assert stage_report.run_profile == "regression"
-    assert stage_report.capability_profile == "orthogonal_polygon"
-    # r2c-2: the check-id half — non-closing chain FAIL BLOCKs under regression.
-    reading_report = seen["result"].reports["0_reading::1f_view"]
-    closure = next(r for r in reading_report.results
-                   if r.check_id == "reading.dimension_chain_closure")
-    assert closure.status is CheckStatus.FAIL
-    assert any(r.check_id == "reading.dimension_chain_closure"
-               for r in reading_report.blocking())
+    monkeypatch.setattr(source_checkpoint, "current_source_review", capture)
+    if operation == "approve":
+        assert rs.cmd_approve_geometry(_args(
+            tmp_path, actor="reviewer", policy="required", note="", digest="0" * 64)) == 2
+    else:
+        assert not step_orchestrator.geometry_is_approved(run_dir)
+    assert len(seen) == 1
+    assert seen[0].run_profile == "regression"
+    assert seen[0].capability_profile == "orthogonal_polygon"
+    assert not seen[0].require_ep
 
 
 # --------------------------------------------------------------------------- #

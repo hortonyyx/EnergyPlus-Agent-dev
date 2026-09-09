@@ -1,25 +1,13 @@
-"""Geometry approval gate — accepted-checkpoint digest binding (M0).
+"""Durable geometry approval records and the legacy audit digest.
 
-The user geometry-confirmation gate is a *calling policy*, not an
-un-bypassable interactive step (contracts §1 2/3 ②a; §0.4 #9). This module owns
-the durable record of an approval: ``geometry_approval.json`` binds an approval
-to the **accepted geometry checkpoint digest** =
+Current source confirmations use source_checkpoint.py: accepted Stage 1/2,
+source identity, displayed geometry, checks and immutable review artifacts.
+The Stage 2 orchestrator requires this schema before downstream resume.
 
-    hash( building_geometry.json
-        + geometry_specs.md
-        + kernel check report
-        + stage/check version )
-
-so that:
-  - approving once and resuming reuses that exact geometry — 1_correction is NOT
-    re-drawn (re-verify must-fix);
-  - if any of those inputs drift after approval, the digest no longer matches and
-    the approval is automatically stale (must re-approve).
-
-``confirmation_policy`` (required | optional | disabled) is held in policy.py and
-decides whether an *unapproved* checkpoint blocks; batch / CI / ``--intake-from``
-(``validation_scope=downstream_only``) run with ``disabled`` so they are never
-strapped to an interactive prompt.
+geometry_checkpoint_digest() retains the historical 2+3 serialization recipe
+for auditing old runs. Such a legacy approval cannot authorize the new source
+checkpoint. Confirmation remains a calling policy (required/optional/disabled);
+automated confirmations record their actor and policy explicitly.
 """
 
 from __future__ import annotations
@@ -68,6 +56,8 @@ class GeometryApproval(BaseModel):
     run_policy_legacy_defaulted: bool = True
     run_profile: str = "exploratory"
     capability_profile: str = "rectangular"
+    checkpoint_schema: str = "legacy_geometry_checkpoint"
+    review_sha256: str | None = None
 
     # ---- io ----
     @classmethod
