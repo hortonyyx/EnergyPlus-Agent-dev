@@ -4,7 +4,7 @@
 
 ## 当前交接
 
-最新交接为 [Stage 2 确认与恢复](../logs/worklog/2026-09-09_m1_source_checkpoint.md)；前一程为 [连续走廊缺口修复记录](../logs/worklog/2026-09-09_m0_wall_gap_review.md)，更早见 [J1 独立分区证据](../logs/worklog/2026-09-09_m0_partition_evidence.md) 和 [端点连接修复](../logs/worklog/2026-09-09_m0_endpoint_connections.md)，此前节点及模型约定见 [上轮收工记录](../logs/worklog/2026-09-09_m0_session_wrapup.md)。M0 已在工程实现，完整原图到源 BIM 确认、持久编辑和下游的新流程尚未打通；按计划保留 0–5 分段逐步调整职责。
+最新交接为 [本轮收工：几何修复与 Stage 2 确认](../logs/worklog/2026-09-09_m0_m1_session_wrapup.md)。用户已收工，下一轮从**一次源模型持久修改与重新确认/恢复**继续。最近实现细节见 [Stage 2 确认与恢复](../logs/worklog/2026-09-09_m1_source_checkpoint.md)；本轮其他节点、验证及遗留已汇总到收工记录。当前已进入 M1 流程改造，完整原图到源 BIM、持久编辑和下游的新流程尚未打通；按计划保留 0–5 分段逐步调整职责。
 
 本程 `76aad9fe` 已将正式源模型确认前移到 **Stage 2 后、Stage 3 前**，绑定可信校正/建模、显示快照、冻结策略与当前检查；改动后旧确认失效，直接进入 Stage 3–5 也不能绕过要求确认的策略。sm21 实际离线重建停下、显式模拟确认后从 Stage 3 恢复，上游不重抽；sm25 29 空间候选可查看，但两条未建门记录等问题继续拒绝确认。171 项定向测试通过、8 项原有预期失败。[查看与执行证据](../logs/experiments/2026-09-09_m1_source_checkpoint_run01/index.html) 已保存。当前进入 M1 的流程改造，未宣称 M0 全部完成；持久编辑与原图冷启动仍待接通。
 
