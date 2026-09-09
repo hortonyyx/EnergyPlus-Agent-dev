@@ -1,0 +1,2386 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>从已有读图记录自动接入门洞</title>
+<style>body{font:16px/1.8 system-ui;max-width:980px;margin:40px auto;padding:0 24px;color:#183044;background:#f6f8fa}
+section{background:white;padding:20px;margin:20px 0}a{color:#0768a0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}li{overflow-wrap:anywhere}</style>
+<h1>从已有读图记录自动接入门洞</h1>
+<p>这次自动接入了 29 处门/通道。根据带来源记录的 3 处连续空间决定重建，得到 29 个空间；31 扇窗的位置和尺寸保留。缺口判读为辅助输入，原始读图未改。</p>
+<p><a href="viewer.html">打开建筑模型</a> · <a href="opening_account.json">查看逐项门洞记录</a></p>
+<section><h2>减少了什么人工操作</h2><p>直接读取已经保存的门/通道类型和位置，借用已确定的墙找到两侧房间。同一扇门在墙两面留下的记录会归并，不再逐门手工填写房间和坐标。</p>
+<p>本次复用了原始平面图的辅助核对决定，没有重新运行读图模型；1 条旧门/通道记录已明确改判为连续空间，原分类与理由保存在台账。门高/通道高暂按 2.1 米并逐项记为假设；门的实际开闭状态未知。</p></section>
+<section><h2>仍未完成</h2><p>还有 2 组明确开口记录未能建入，因此校正结果未获完整通过。模型仍可查看；未建项目保留如下。</p><ul><li>第 1 组：开口范围跨到了多个房间，暂不能确定两侧关系。</li><li>第 2 组：开口范围跨到了多个房间，暂不能确定两侧关系。</li></ul>
+<p>原有短边检查问题继续保留，新增开口的仿真出口尚未支持。图纸整体是否读全、房间分区是否全对、正式人工确认和浏览器截图均未在本次验收。</p></section>
+<details><summary>完整报告与来源</summary><pre>{
+  &quot;manifest&quot;: {
+    &quot;mode&quot;: &quot;assisted_wall_gap_review_replay&quot;,
+    &quot;code_commit&quot;: &quot;dcbf4a8170eef8692a6fba3865237f4c824e0112&quot;,
+    &quot;working_tree_diff_sha256&quot;: &quot;10351a6b3b4cfc4c954de0ef94642423db876a407db0c14c7e6498e4d9714bb4&quot;,
+    &quot;archive&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/run_win_e2e&quot;,
+    &quot;inputs&quot;: [
+      {
+        &quot;path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001/output.json&quot;,
+        &quot;sha256&quot;: &quot;3005228fb9b27b8958dc9ff1b33858e07220077d487b10bf433531de92e9d7a5&quot;
+      },
+      {
+        &quot;path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001/window_resolver_inputs.json&quot;,
+        &quot;sha256&quot;: &quot;65c53cf8b44c3eb5f1bd83cd7410f7409b171f7f85b9f9c462ce831617bb7ccf&quot;
+      },
+      {
+        &quot;path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001/chain_provenance.json&quot;,
+        &quot;sha256&quot;: &quot;6e1c1adb3afd0513ca29eba3ee3d6256a7f5661e8933577145d03aa3ac5de7d2&quot;
+      }
+    ],
+    &quot;model_calls&quot;: 0,
+    &quot;solver_calls&quot;: 0,
+    &quot;manual_door_positions_or_room_groups&quot;: 0,
+    &quot;assumed_height_m&quot;: 2.1,
+    &quot;endpoint_connection_policy&quot;: &quot;preserve_endpoint_connections_v1&quot;,
+    &quot;wall_gap_reviews&quot;: [
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;wall_id&quot;: &quot;wall_0d66d97f207575accbac07685e42f628c7580d9c15c947256e84598b664a9c4d&quot;,
+        &quot;gap_index&quot;: 0,
+        &quot;action&quot;: &quot;continuous_space&quot;,
+        &quot;source_bytes_sha256&quot;: &quot;2a5631494479b65d27328f5891e8016df632e0b5783fbae1acc86f4ce9936c57&quot;,
+        &quot;compilation_sha256&quot;: &quot;8ac8c670ba9b59691b5f23af7c78022877f747c32722c889b49b6f0a2c5ca329&quot;,
+        &quot;image_path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png&quot;,
+        &quot;image_sha256&quot;: &quot;6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644&quot;,
+        &quot;review_mode&quot;: &quot;developer_assisted&quot;,
+        &quot;reason&quot;: &quot;原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;wall_id&quot;: &quot;wall_defa8acce3d251e56f7119ef5dde7fd361bb3bf4a0452edbb3ce30050c3a2c30&quot;,
+        &quot;gap_index&quot;: 0,
+        &quot;action&quot;: &quot;continuous_space&quot;,
+        &quot;source_bytes_sha256&quot;: &quot;2a5631494479b65d27328f5891e8016df632e0b5783fbae1acc86f4ce9936c57&quot;,
+        &quot;compilation_sha256&quot;: &quot;8ac8c670ba9b59691b5f23af7c78022877f747c32722c889b49b6f0a2c5ca329&quot;,
+        &quot;image_path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png&quot;,
+        &quot;image_sha256&quot;: &quot;6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644&quot;,
+        &quot;review_mode&quot;: &quot;developer_assisted&quot;,
+        &quot;reason&quot;: &quot;原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;wall_id&quot;: &quot;wall_db4a3d1687a12225c6808f211947eff5aa661479dcee45eb754b685b678b383d&quot;,
+        &quot;gap_index&quot;: 0,
+        &quot;action&quot;: &quot;continuous_space&quot;,
+        &quot;source_bytes_sha256&quot;: &quot;bdf9a6fbd0e6ac6694575b748ca3c34f124ac7b4f11551e2ea816340e774d9e2&quot;,
+        &quot;compilation_sha256&quot;: &quot;f9bceede3325eb2d276a5338270a06038c4ac049a940ff2fb5a043836631fbf1&quot;,
+        &quot;image_path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png&quot;,
+        &quot;image_sha256&quot;: &quot;bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322&quot;,
+        &quot;review_mode&quot;: &quot;developer_assisted&quot;,
+        &quot;reason&quot;: &quot;原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。&quot;
+      }
+    ]
+  },
+  &quot;opening_account&quot;: {
+    &quot;schema&quot;: &quot;as_drawn_opening_account_v1&quot;,
+    &quot;observations_considered&quot;: 61,
+    &quot;built_count&quot;: 29,
+    &quot;built&quot;: [
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L001g1&quot;,
+          &quot;L002g2&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_214650bf7cd2029d9b910158d61032b3f13e6b46584d015df3ab4bc00c7d11b5&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L001g1&quot;,
+        &quot;span_m&quot;: [
+          14.5553,
+          15.3127
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.12,
+        &quot;opening_id&quot;: &quot;plan_opening:9f7c7cca928adc8802d4bb9d&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: null,
+        &quot;p1&quot;: [
+          0.12,
+          14.5553
+        ],
+        &quot;p2&quot;: [
+          0.12,
+          15.3127
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:16245851532b0f4a16bcca9fd52d180543582624c48a0b9a4ebb74d9f067f1ff&quot;,
+          &quot;src:6f7c901f3ee20b45c2e9dc987d69db3d1f89e614633342f07d2625e16241cef8&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=0.1137 to 0.12 m; bounded by compiled half-thickness 0.12 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L005g2&quot;,
+          &quot;L007g3&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_c4743f6db7241803e4aa095ac4b12f99a5ade41a0842655c408e0f91a34ddb02&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L005g2&quot;,
+        &quot;span_m&quot;: [
+          4.299,
+          5.078
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.12,
+        &quot;opening_id&quot;: &quot;plan_opening:40455a73812844c967c966dc&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: null,
+        &quot;p1&quot;: [
+          5.12155,
+          4.299
+        ],
+        &quot;p2&quot;: [
+          5.12155,
+          5.078
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:034e74d9b88e2111de20e96decf7f5bc7412f7511bcfcbb0d0d311fbda546fdc&quot;,
+          &quot;src:63ab41d3fcc8d070f1caf7a7821859bc17b022f1a9e9dd283da405058bd95965&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L008g0&quot;,
+          &quot;L009g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_f235d0cd3624f6500fc4edc754d4264b2852ff7bbda78579ba2e3775c9d895fc&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L008g0&quot;,
+        &quot;span_m&quot;: [
+          10.336,
+          11.1582
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:682f064fa78e70b890c7d944&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c005&quot;,
+        &quot;p1&quot;: [
+          8.9345,
+          10.336
+        ],
+        &quot;p2&quot;: [
+          8.9345,
+          11.1582
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:9a846aba6475e3927e3b1e9fb2390c5bbaeeed59a815fbf8f92bacbfdde5f7ec&quot;,
+          &quot;src:ad3ee59d6152b1ba383a1c5e20e669ae9a2f77d7dd45aacf56c19c22b3414a4f&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L008g2&quot;,
+          &quot;L009g1&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_f235d0cd3624f6500fc4edc754d4264b2852ff7bbda78579ba2e3775c9d895fc&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L008g2&quot;,
+        &quot;span_m&quot;: [
+          8.8213,
+          9.6436
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:1433b3c70c4c93551eb48f96&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c004&quot;,
+        &quot;p1&quot;: [
+          8.9345,
+          8.8213
+        ],
+        &quot;p2&quot;: [
+          8.9345,
+          9.6436
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:00067e773d29a143447c014da50f43b53bdb6ebb0cee59fcfce8017e1ccbb715&quot;,
+          &quot;src:339c47dabdf0204067efabe96e88e3f1485c7e34dad87b4fa86e89b03dc951fd&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g0&quot;,
+          &quot;L013g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g0&quot;,
+        &quot;span_m&quot;: [
+          18.3636,
+          19.1425
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:f55240cff87959a7bd34a736&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c012&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          18.3636
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          19.1425
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:f74c8063661472c19b4e5f90afda25ce81bff7d5fd85af48557906544fbd2ac3&quot;,
+          &quot;src:4f1f3ef052d164d96347c32099598311e6ddc23e83d1e38c1ff3eaca5f5e5457&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g1&quot;,
+          &quot;L013g2&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g1&quot;,
+        &quot;span_m&quot;: [
+          16.8489,
+          17.6063
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:09115f8e980a0a6fee6cc57b&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c011&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          16.8489
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          17.6063
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:e870dd0c01c75a6ca0f8459abcf3b1178e177ac66a30de449edf424c977eb3d3&quot;,
+          &quot;src:dffb6a708419153510444db979c4a18d4176688d5d39b5b73c8e4de1cb6966a1&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g2&quot;,
+          &quot;L013g4&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g2&quot;,
+        &quot;span_m&quot;: [
+          14.3606,
+          15.1396
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:7981332c65389d76f08f2a07&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c010&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          14.3606
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          15.1396
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:3134a5f23a5d42835f33c58796741105d0e0b73254a9429614ca4b085b58091e&quot;,
+          &quot;src:ad7f7442e813f503a6448f6f5d3020210fa033f28fc4064e7c6740766d0d0985&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g3&quot;,
+          &quot;L013g6&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g3&quot;,
+        &quot;span_m&quot;: [
+          12.8459,
+          13.6033
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:836b36f74905c5ea8917462a&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c009&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          12.8459
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          13.6033
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:325123ac88cd1e54d70b88216c03afbf5a00632f1219b42dd23b675f23d462a4&quot;,
+          &quot;src:3ae2e26ff6ddf60e740c50a08015e487f11d1b02869533e0b050e4d646b940c7&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g4&quot;,
+          &quot;L013g8&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g4&quot;,
+        &quot;span_m&quot;: [
+          10.3576,
+          11.1366
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:832bb610ddab26306200c090&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c008&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          10.3576
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          11.1366
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:c8de18dc6bd018a8e5726b4609cd588c16d07cc6d46c4bcc87fa5c9cb0c52ae6&quot;,
+          &quot;src:4c9623d7e3f4051b5771302870e4b52ec17ff171d2e4113768b867991a36975e&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g5&quot;,
+          &quot;L013g10&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g5&quot;,
+        &quot;span_m&quot;: [
+          8.843,
+          9.6219
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:cd08f7ee86fc5cd81eff2636&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c007&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          8.843
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          9.6219
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:368e72b00fc57be35a518ec956fe6fcbe74949a5e47361eca5a7aa76c481667b&quot;,
+          &quot;src:566e4d5e5892da9f4c77fdab95f6796b3ca3875ac1a1f4ed0bd08f8ba0008c94&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L012g6&quot;,
+          &quot;L013g12&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3ff3d5ba1eeacf8fc7f0575b66001e02a347787f6e86360ac27dc42bae11c40f&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g6&quot;,
+        &quot;span_m&quot;: [
+          6.8523,
+          7.6096
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:53b3a3da4ebb6c82b4fc48b9&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c006&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          6.8523
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          7.6096
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:0ca655f9cd1ed5938843e18faafec97e543f1583f99681ae762a1005556ff3d9&quot;,
+          &quot;src:bcaa89ac42db83b2cdd782600da9aaecbb0312449392beea2f78ef4709055db4&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L021g0&quot;,
+          &quot;L022g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_6053ce6de0dcf19f07eee8f689c04415cc22a1fcda64db4f1fe1a56a4ada002c&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L021g0&quot;,
+        &quot;span_m&quot;: [
+          0.5124,
+          2.1353
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.12,
+        &quot;opening_id&quot;: &quot;plan_opening:c6306e84a78d2c67644c7fbc&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: null,
+        &quot;p1&quot;: [
+          24.88,
+          0.5124
+        ],
+        &quot;p2&quot;: [
+          24.88,
+          2.1353
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:f96eb381ba6b99d23a5431fb3c026573a4d0969214ed5dd275256f0d1d888f89&quot;,
+          &quot;src:330326e8d1083a96c1a391c03650d3d4551d6ffb43442da8232b65be1aca4572&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=24.8841 to 24.88 m; bounded by compiled half-thickness 0.12 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L027g0&quot;,
+          &quot;L029g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_4aa4fbac856a460d19a6b0c08b8b803eee09daca5d047e8b2b9569728bd4608c&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L027g0&quot;,
+        &quot;span_m&quot;: [
+          3.8343,
+          4.6564
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:2ee12fdd2e0c515a326e1945&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c001&quot;,
+        &quot;p1&quot;: [
+          3.8343,
+          16.0646
+        ],
+        &quot;p2&quot;: [
+          4.6564,
+          16.0646
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:88675b248dccf9fdc044858286caa25511a4a64b4552a271f72321a5956056b1&quot;,
+          &quot;src:dd0840634f5c9a801d0737c5390bc9f02b0a393f6e4a1950de664fc0e5b6af86&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L027g2&quot;,
+          &quot;L029g1&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_4aa4fbac856a460d19a6b0c08b8b803eee09daca5d047e8b2b9569728bd4608c&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L027g2&quot;,
+        &quot;span_m&quot;: [
+          5.3487,
+          6.1924
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:b2d0e90267d40a0a82f14a1a&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c002&quot;,
+        &quot;p1&quot;: [
+          5.3487,
+          16.0646
+        ],
+        &quot;p2&quot;: [
+          6.1924,
+          16.0646
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:c36a910cd7d435a9a926b3d624c1abea62d9b100357e4bed85fdd2bb91dac45a&quot;,
+          &quot;src:c1b31d20e091aa4f424b5fb01b3e3452e16ddd3141a2fb0d95734e95e04455bc&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L045g0&quot;,
+          &quot;L046g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_4cd6ef7bb6f2cecf3941cc17ac4eac7e3d12d65c860208f7887197db540ebede&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L045g0&quot;,
+        &quot;span_m&quot;: [
+          11.06,
+          12.6177
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:092f098609989c531df46769&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c003&quot;,
+        &quot;p1&quot;: [
+          11.06,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          12.6177,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:67e56729d548e0eaa36ca9e42afbd8305d76bbdb8aa00b03dcc458d3d9b1372a&quot;,
+          &quot;src:2252500558c9c6a90fbbe554101d348783b62caaed21ee71d0758b6124ae595d&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L045g1&quot;,
+          &quot;L046g2&quot;
+        ],
+        &quot;floor_id&quot;: &quot;1f&quot;,
+        &quot;wall_id&quot;: &quot;wall_4cd6ef7bb6f2cecf3941cc17ac4eac7e3d12d65c860208f7887197db540ebede&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L045g1&quot;,
+        &quot;span_m&quot;: [
+          13.3965,
+          14.9542
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:ed162f03b8c92f158fbfa100&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;1f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;1f-c013&quot;,
+        &quot;p1&quot;: [
+          13.3965,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          14.9542,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          0.0,
+          2.1
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:4fbd45407ce902d73bff74aa0a25ba4b5960490e71f8ebb70a52816b7de85cc8&quot;,
+          &quot;src:2ea9a8bac7cdb808c59052ef8600d923f9b40be536d189f2f48013ac616f1d62&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L010g0&quot;,
+          &quot;L011g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_c1a907a45f123064955f509202bf84531419fe956f000ad0e18015c72cd48902&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L010g0&quot;,
+        &quot;span_m&quot;: [
+          12.0677,
+          13.7037
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:2447dabbbeaef05dbaeafba8&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c004&quot;,
+        &quot;p1&quot;: [
+          8.9345,
+          12.0677
+        ],
+        &quot;p2&quot;: [
+          8.9345,
+          13.7037
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:d416a8880300013db4ac430447ec0b66033ab20b0359635ff10d873d5ba3a661&quot;,
+          &quot;src:45e73dddc86c2af48131e00340513960f2d34de14723c1d9a47f4e4714ac5f1f&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=8.94245 to 8.9345 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L015g0&quot;,
+          &quot;L016g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g0&quot;,
+        &quot;span_m&quot;: [
+          14.3581,
+          15.1434
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:74d8094b4902c77cc08b59eb&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c011&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          14.3581
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          15.1434
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:41103e18b713fe9c0c12116f8f026ac3e13689a8fd725c02899ebc12ec15ef6d&quot;,
+          &quot;src:b923bd81c3b439a38c80ac2c350ab0e61f194c8dcddf6d083e885876fc60a0be&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L015g1&quot;,
+          &quot;L016g2&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g1&quot;,
+        &quot;span_m&quot;: [
+          12.853,
+          13.6165
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:1be0d58a8f61e0193d1cf25e&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c010&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          12.853
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          13.6165
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:33fa586a6ca10a00a66fa592941f55b1521ff5f517e5fcc7fc49df5f5578962f&quot;,
+          &quot;src:17dea5594e37102ed7fac2c850c7f7981849e886c813f531395b7e52c9e1d398&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L015g2&quot;,
+          &quot;L016g4&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g2&quot;,
+        &quot;span_m&quot;: [
+          10.3662,
+          11.1297
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:180b75c1d514dbe68f58fa7a&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c009&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          10.3662
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          11.1297
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:5a665ccf4608c61b7370ba94718d5bed92a44554751e0c2fe3bb5cd674070ed6&quot;,
+          &quot;src:e0a7d0344ad8346321745695cc40e1daba70a47fd2cf558f1429882a58f5af62&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L015g3&quot;,
+          &quot;L016g6&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g3&quot;,
+        &quot;span_m&quot;: [
+          8.8392,
+          9.6027
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:9fa1078da157f2b2debbaf52&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c008&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          8.8392
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          9.6027
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:af22ab0818a0c39fd0ff8b149e36091d65b1def5da20e56813fd5afde00e03a7&quot;,
+          &quot;src:ddbe878d65310c7647fe52e4884ce3a3854df60cbdb0bdf1506570b2f6233b40&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L015g4&quot;,
+          &quot;L016g8&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g4&quot;,
+        &quot;span_m&quot;: [
+          6.8541,
+          7.6176
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:6465a3c0e2f6b1d8c44ffbfd&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c007&quot;,
+        &quot;p1&quot;: [
+          11.0598,
+          6.8541
+        ],
+        &quot;p2&quot;: [
+          11.0598,
+          7.6176
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:4094d1b5089b9f54d04d830114011b2d968a5581ff6a4aa8b4b2f656bd1e08fd&quot;,
+          &quot;src:c778cfe2c01d6398a1262384f20741fdb8285000ff41dc6dbd6e4fc1dd0c9f9e&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L029g0&quot;,
+          &quot;L030g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L029g0&quot;,
+        &quot;span_m&quot;: [
+          3.8427,
+          4.6712
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:2b3051c152107ffa0b4399ad&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c001&quot;,
+        &quot;p1&quot;: [
+          3.8427,
+          16.0646
+        ],
+        &quot;p2&quot;: [
+          4.6712,
+          16.0646
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:924bb2a0b171bd975c17ed3b00a3ed8c3b429dbb936b17f7ef1fc57d012ae7c6&quot;,
+          &quot;src:a58b8e64416390f58ae6e79ca8930c8c92482d2c285948e8d540c1aee79612f3&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=16.0651 to 16.0646 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L029g2&quot;,
+          &quot;L030g1&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L029g2&quot;,
+        &quot;span_m&quot;: [
+          5.3689,
+          6.1974
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:e674b7082ad8b9df272da4f6&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c002&quot;,
+        &quot;p1&quot;: [
+          5.3689,
+          16.0646
+        ],
+        &quot;p2&quot;: [
+          6.1974,
+          16.0646
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:6d38e435616165b306f8b322ee49bccc238ca9fba680080e47d2cd424b4a26ef&quot;,
+          &quot;src:8a11d67b89485e3ac4172c525b18bc8063dcb543fea45989e01653ca54072f47&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=16.0651 to 16.0646 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L043g0&quot;,
+          &quot;L044g0&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g0&quot;,
+        &quot;span_m&quot;: [
+          7.9634,
+          8.7265
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:ecf412e03e7abb9859a8809d&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c003&quot;,
+        &quot;p1&quot;: [
+          7.9634,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          8.7265,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:2f19bb3d1048f95143b75e9ba0dadb18a2f5048ed5c4139a4d7a5c2215817b3a&quot;,
+          &quot;src:88878898aa19264266e5c56db125d37d83c55aac33154b32d38504c28ba80c2b&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L043g1&quot;,
+          &quot;L044g2&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g1&quot;,
+        &quot;span_m&quot;: [
+          9.4896,
+          10.2527
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:dd34d8f08a163946314e8523&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c005&quot;,
+        &quot;p1&quot;: [
+          9.4896,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          10.2527,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:a4807c7c306dd8b510737e04652aa255181df55cd539032a29a8c4dfcb1abff8&quot;,
+          &quot;src:e5248c4c1d0dbd5ce90e1ee75458f093736e147d1c6b5e6b44ef9bbcf689b3e4&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L043g2&quot;,
+          &quot;L044g4&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g2&quot;,
+        &quot;span_m&quot;: [
+          15.7688,
+          16.5319
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:03dfe48fe131f10e734b3849&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c012&quot;,
+        &quot;p1&quot;: [
+          15.7688,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          16.5319,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:81be0ec2a047bb021371dd3badf0a87a1277875b1367a9c4ed7510271e56795a&quot;,
+          &quot;src:48005b549436af25fa905f8cc51eac0ea75af1e6d9663c05c5c9a0a43b8ca83a&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L043g3&quot;,
+          &quot;L044g6&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g3&quot;,
+        &quot;span_m&quot;: [
+          17.295,
+          18.0581
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:66cc3460e0115eef7739ca27&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c013&quot;,
+        &quot;p1&quot;: [
+          17.295,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          18.0581,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:fa92cbae436ca09841374c5e27f28198b0e5f615cb69158da01b80bb00692960&quot;,
+          &quot;src:b4adf3eebd4d64e7d342e9b09c581b34138937d595649b2c9fe7dd6996c0a3d0&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L043g4&quot;,
+          &quot;L044g8&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g4&quot;,
+        &quot;span_m&quot;: [
+          21.3285,
+          22.0916
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;opening_id&quot;: &quot;plan_opening:86d010c2b9dc7171d83e6710&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_id&quot;: &quot;2f-c000&quot;,
+        &quot;other_space_id&quot;: &quot;2f-c014&quot;,
+        &quot;p1&quot;: [
+          21.3285,
+          3.9365
+        ],
+        &quot;p2&quot;: [
+          22.0916,
+          3.9365
+        ],
+        &quot;z&quot;: [
+          3.6,
+          5.7
+        ],
+        &quot;source_refs&quot;: [
+          &quot;src:4f62fa611a500545f7e6866499a4bbf3f2bc1408755eb55a848edcdd76c15b9a&quot;,
+          &quot;src:757c43ab8395ff4778f3108ac3757f6aac61397063c2fe03bb21e977503cb27f&quot;
+        ],
+        &quot;assumptions&quot;: [
+          &quot;Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.&quot;,
+          &quot;Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged.&quot;
+        ]
+      }
+    ],
+    &quot;unbuilt&quot;: [
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L029g3&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L029g3&quot;,
+        &quot;span_m&quot;: [
+          9.9038,
+          10.9286
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;reason&quot;: &quot;opening_crosses_room_boundaries&quot;,
+        &quot;candidate_space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c002&quot;,
+          &quot;2f-c006&quot;
+        ]
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L030g2&quot;
+        ],
+        &quot;floor_id&quot;: &quot;2f&quot;,
+        &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L030g2&quot;,
+        &quot;span_m&quot;: [
+          10.1219,
+          11.1248
+        ],
+        &quot;compiled_half_thickness_m&quot;: 0.06,
+        &quot;reason&quot;: &quot;opening_crosses_room_boundaries&quot;,
+        &quot;candidate_space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c006&quot;,
+          &quot;2f-c011&quot;
+        ]
+      }
+    ],
+    &quot;folded&quot;: [
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L002g2&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L001g1&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:9f7c7cca928adc8802d4bb9d&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L007g3&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L005g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:40455a73812844c967c966dc&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L009g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L008g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:682f064fa78e70b890c7d944&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L009g1&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L008g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:1433b3c70c4c93551eb48f96&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:f55240cff87959a7bd34a736&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g2&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g1&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:09115f8e980a0a6fee6cc57b&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g4&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:7981332c65389d76f08f2a07&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g6&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g3&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:836b36f74905c5ea8917462a&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g8&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g4&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:832bb610ddab26306200c090&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g10&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g5&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:cd08f7ee86fc5cd81eff2636&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L013g12&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L012g6&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:53b3a3da4ebb6c82b4fc48b9&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L022g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L021g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:c6306e84a78d2c67644c7fbc&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L029g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L027g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:2ee12fdd2e0c515a326e1945&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L029g1&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L027g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:b2d0e90267d40a0a82f14a1a&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L046g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L045g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:092f098609989c531df46769&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;observation_id&quot;: &quot;L046g2&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L045g1&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:ed162f03b8c92f158fbfa100&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L011g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L010g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:2447dabbbeaef05dbaeafba8&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L016g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:74d8094b4902c77cc08b59eb&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L016g2&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g1&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:1be0d58a8f61e0193d1cf25e&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L016g4&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:180b75c1d514dbe68f58fa7a&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L016g6&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g3&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:9fa1078da157f2b2debbaf52&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L016g8&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L015g4&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:6465a3c0e2f6b1d8c44ffbfd&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L030g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L029g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:2b3051c152107ffa0b4399ad&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L030g1&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L029g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:e674b7082ad8b9df272da4f6&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L044g0&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g0&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:ecf412e03e7abb9859a8809d&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L044g2&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g1&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:dd34d8f08a163946314e8523&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L044g4&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g2&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:03dfe48fe131f10e734b3849&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L044g6&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g3&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:66cc3460e0115eef7739ca27&quot;
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_id&quot;: &quot;L044g8&quot;,
+        &quot;anchor_observation_id&quot;: &quot;L043g4&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:86d010c2b9dc7171d83e6710&quot;
+      }
+    ],
+    &quot;reclassified&quot;: [
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;observation_ids&quot;: [
+          &quot;L042g0&quot;
+        ],
+        &quot;reason&quot;: &quot;reviewed_continuous_source_space&quot;,
+        &quot;review&quot;: {
+          &quot;input_id&quot;: &quot;2f_view&quot;,
+          &quot;wall_id&quot;: &quot;wall_db4a3d1687a12225c6808f211947eff5aa661479dcee45eb754b685b678b383d&quot;,
+          &quot;gap_index&quot;: 0,
+          &quot;action&quot;: &quot;continuous_space&quot;,
+          &quot;source_bytes_sha256&quot;: &quot;bdf9a6fbd0e6ac6694575b748ca3c34f124ac7b4f11551e2ea816340e774d9e2&quot;,
+          &quot;compilation_sha256&quot;: &quot;f9bceede3325eb2d276a5338270a06038c4ac049a940ff2fb5a043836631fbf1&quot;,
+          &quot;image_path&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png&quot;,
+          &quot;image_sha256&quot;: &quot;bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322&quot;,
+          &quot;review_mode&quot;: &quot;developer_assisted&quot;,
+          &quot;reason&quot;: &quot;原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。&quot;,
+          &quot;axis&quot;: &quot;x&quot;,
+          &quot;pos_m&quot;: 5.88335,
+          &quot;span_m&quot;: [
+            9.0317,
+            10.994
+          ],
+          &quot;face_observation_ids&quot;: [
+            &quot;L041&quot;,
+            &quot;L042&quot;
+          ],
+          &quot;opening_classifications&quot;: [
+            {
+              &quot;id&quot;: &quot;L041g0&quot;,
+              &quot;type&quot;: &quot;not_opening&quot;
+            },
+            {
+              &quot;id&quot;: &quot;L042g0&quot;,
+              &quot;type&quot;: &quot;passage&quot;
+            }
+          ]
+        }
+      }
+    ],
+    &quot;host_moves&quot;: [
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:9f7c7cca928adc8802d4bb9d&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 0.1137,
+        &quot;final_pos_m&quot;: 0.12,
+        &quot;delta_m&quot;: 0.0063,
+        &quot;wall_id&quot;: &quot;wall_214650bf7cd2029d9b910158d61032b3f13e6b46584d015df3ab4bc00c7d11b5&quot;,
+        &quot;max_follow_distance_m&quot;: 0.12
+      },
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:c6306e84a78d2c67644c7fbc&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 24.8841,
+        &quot;final_pos_m&quot;: 24.88,
+        &quot;delta_m&quot;: -0.004100000000001103,
+        &quot;wall_id&quot;: &quot;wall_6053ce6de0dcf19f07eee8f689c04415cc22a1fcda64db4f1fe1a56a4ada002c&quot;,
+        &quot;max_follow_distance_m&quot;: 0.12
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:2447dabbbeaef05dbaeafba8&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 8.942450000000001,
+        &quot;final_pos_m&quot;: 8.9345,
+        &quot;delta_m&quot;: -0.007950000000001012,
+        &quot;wall_id&quot;: &quot;wall_c1a907a45f123064955f509202bf84531419fe956f000ad0e18015c72cd48902&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:74d8094b4902c77cc08b59eb&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 11.06485,
+        &quot;final_pos_m&quot;: 11.0598,
+        &quot;delta_m&quot;: -0.005050000000000665,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:1be0d58a8f61e0193d1cf25e&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 11.06485,
+        &quot;final_pos_m&quot;: 11.0598,
+        &quot;delta_m&quot;: -0.005050000000000665,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:180b75c1d514dbe68f58fa7a&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 11.06485,
+        &quot;final_pos_m&quot;: 11.0598,
+        &quot;delta_m&quot;: -0.005050000000000665,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:9fa1078da157f2b2debbaf52&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 11.06485,
+        &quot;final_pos_m&quot;: 11.0598,
+        &quot;delta_m&quot;: -0.005050000000000665,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:6465a3c0e2f6b1d8c44ffbfd&quot;,
+        &quot;axis&quot;: &quot;x&quot;,
+        &quot;compiled_pos_m&quot;: 11.06485,
+        &quot;final_pos_m&quot;: 11.0598,
+        &quot;delta_m&quot;: -0.005050000000000665,
+        &quot;wall_id&quot;: &quot;wall_a41dc0e4e3edf05362fdf8bb2da22d8f1b7f200624722e18948d348b6f5b076a&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:2b3051c152107ffa0b4399ad&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 16.0651,
+        &quot;final_pos_m&quot;: 16.0646,
+        &quot;delta_m&quot;: -0.0005000000000023874,
+        &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:e674b7082ad8b9df272da4f6&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 16.0651,
+        &quot;final_pos_m&quot;: 16.0646,
+        &quot;delta_m&quot;: -0.0005000000000023874,
+        &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:ecf412e03e7abb9859a8809d&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 3.94205,
+        &quot;final_pos_m&quot;: 3.9365,
+        &quot;delta_m&quot;: -0.005549999999999944,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:dd34d8f08a163946314e8523&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 3.94205,
+        &quot;final_pos_m&quot;: 3.9365,
+        &quot;delta_m&quot;: -0.005549999999999944,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:03dfe48fe131f10e734b3849&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 3.94205,
+        &quot;final_pos_m&quot;: 3.9365,
+        &quot;delta_m&quot;: -0.005549999999999944,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:66cc3460e0115eef7739ca27&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 3.94205,
+        &quot;final_pos_m&quot;: 3.9365,
+        &quot;delta_m&quot;: -0.005549999999999944,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;opening_id&quot;: &quot;plan_opening:86d010c2b9dc7171d83e6710&quot;,
+        &quot;axis&quot;: &quot;y&quot;,
+        &quot;compiled_pos_m&quot;: 3.94205,
+        &quot;final_pos_m&quot;: 3.9365,
+        &quot;delta_m&quot;: -0.005549999999999944,
+        &quot;wall_id&quot;: &quot;wall_3f93a9c970e13e13af92d562b41f92d079ddcb434ed8866147f6f30d36285754&quot;,
+        &quot;max_follow_distance_m&quot;: 0.06
+      }
+    ],
+    &quot;assumed_height_m&quot;: 2.1,
+    &quot;views&quot;: [
+      {
+        &quot;input_id&quot;: &quot;1f_view&quot;,
+        &quot;status&quot;: &quot;structured&quot;,
+        &quot;observations_considered&quot;: 32
+      },
+      {
+        &quot;input_id&quot;: &quot;2f_view&quot;,
+        &quot;status&quot;: &quot;structured&quot;,
+        &quot;observations_considered&quot;: 29
+      }
+    ]
+  },
+  &quot;correction&quot;: {
+    &quot;accepted&quot;: false,
+    &quot;checks&quot;: {
+      &quot;stage&quot;: &quot;1_correction&quot;,
+      &quot;capability_profile&quot;: &quot;orthogonal_polygon&quot;,
+      &quot;run_profile&quot;: &quot;exploratory&quot;,
+      &quot;artifact_hash&quot;: &quot;49a90d5a184f35ed8ff5d40cfc1b42b609b20471358dc5412c5ebd224578442d&quot;,
+      &quot;attempt_hash&quot;: &quot;49a90d5a184f35ed8ff5d40cfc1b42b609b20471358dc5412c5ebd224578442d&quot;,
+      &quot;report_schema_version&quot;: &quot;2.2&quot;,
+      &quot;run_policy_sha256&quot;: null,
+      &quot;run_policy_source&quot;: null,
+      &quot;results&quot;: [
+        {
+          &quot;check_id&quot;: &quot;correction.schema_version_supported&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;schema_version&quot;: &quot;3&quot;
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.capability_profile_shapes&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;capability_profile&quot;: &quot;orthogonal_polygon&quot;,
+            &quot;declared_shapes&quot;: [
+              &quot;orthogonal_polygon&quot;,
+              &quot;rectangular&quot;
+            ],
+            &quot;allowed_shapes&quot;: [
+              &quot;orthogonal_polygon&quot;,
+              &quot;rectangular&quot;
+            ]
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.cell_polygon_contract&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.coverage&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;floor&quot;: &quot;1f&quot;,
+            &quot;coverage_gate_version&quot;: &quot;v2&quot;,
+            &quot;footprint_source&quot;: &quot;floor_footprint&quot;,
+            &quot;footprint_area_m2&quot;: 279.186494,
+            &quot;cells_union_area_m2&quot;: 279.186494,
+            &quot;area_delta_m2&quot;: 0.0,
+            &quot;coverage_area_tol_m2&quot;: 0.05,
+            &quot;overlap_m2&quot;: 0.0,
+            &quot;hole_m2&quot;: 0.0,
+            &quot;outside_footprint_m2&quot;: 0.0
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.coverage&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;floor&quot;: &quot;2f&quot;,
+            &quot;coverage_gate_version&quot;: &quot;v2&quot;,
+            &quot;footprint_source&quot;: &quot;floor_footprint&quot;,
+            &quot;footprint_area_m2&quot;: 279.186494,
+            &quot;cells_union_area_m2&quot;: 279.186494,
+            &quot;area_delta_m2&quot;: 0.0,
+            &quot;coverage_area_tol_m2&quot;: 0.05,
+            &quot;overlap_m2&quot;: 0.0,
+            &quot;hole_m2&quot;: 0.0,
+            &quot;outside_footprint_m2&quot;: 0.0
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.nondegenerate&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.zstack_continuity&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.zone_count_tripwire&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;actual&quot;: 29,
+            &quot;expected&quot;: null
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.window_host_resolution&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;windows&quot;: 31,
+            &quot;aggregate_sha256&quot;: &quot;ba7aa7c5e6e57d12df3388e539e22765195f38d9d0e0be2f45a8a90c4807275b&quot;
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.cross_image_reconcile&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;no elevation widths supplied&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.facade_frame_cross_check&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;no elevation reading artifacts supplied&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.audit_completeness&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;no material change / no testdata reliance detected&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.plan_opening_completeness&quot;,
+          &quot;status&quot;: &quot;fail&quot;,
+          &quot;layer&quot;: &quot;invariant&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;Explicitly identified plan openings remain unbuilt; the source model is incomplete.&quot;,
+          &quot;evidence&quot;: {
+            &quot;unbuilt&quot;: [
+              {
+                &quot;kind&quot;: &quot;as_drawn_opening_unbuilt&quot;,
+                &quot;input_id&quot;: &quot;2f_view&quot;,
+                &quot;observation_ids&quot;: [
+                  &quot;L029g3&quot;
+                ],
+                &quot;floor_id&quot;: &quot;2f&quot;,
+                &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+                &quot;anchor_observation_id&quot;: &quot;L029g3&quot;,
+                &quot;span_m&quot;: [
+                  9.9038,
+                  10.9286
+                ],
+                &quot;compiled_half_thickness_m&quot;: 0.06,
+                &quot;reason&quot;: &quot;opening_crosses_room_boundaries&quot;,
+                &quot;candidate_space_ids&quot;: [
+                  &quot;2f-c000&quot;,
+                  &quot;2f-c002&quot;,
+                  &quot;2f-c006&quot;
+                ]
+              },
+              {
+                &quot;kind&quot;: &quot;as_drawn_opening_unbuilt&quot;,
+                &quot;input_id&quot;: &quot;2f_view&quot;,
+                &quot;observation_ids&quot;: [
+                  &quot;L030g2&quot;
+                ],
+                &quot;floor_id&quot;: &quot;2f&quot;,
+                &quot;wall_id&quot;: &quot;wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3&quot;,
+                &quot;anchor_observation_id&quot;: &quot;L030g2&quot;,
+                &quot;span_m&quot;: [
+                  10.1219,
+                  11.1248
+                ],
+                &quot;compiled_half_thickness_m&quot;: 0.06,
+                &quot;reason&quot;: &quot;opening_crosses_room_boundaries&quot;,
+                &quot;candidate_space_ids&quot;: [
+                  &quot;2f-c000&quot;,
+                  &quot;2f-c006&quot;,
+                  &quot;2f-c011&quot;
+                ]
+              }
+            ],
+            &quot;built_openings&quot;: 29
+          }
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.facade_area_residuals&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;deferred until evidence is richer&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.wwr_residuals&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;deferred until evidence is richer&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.area_residuals&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;deferred until evidence is richer&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.unsupported_count_by_severity&quot;,
+          &quot;status&quot;: &quot;not_applicable&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;deferred until evidence is richer&quot;,
+          &quot;evidence&quot;: {}
+        },
+        {
+          &quot;check_id&quot;: &quot;correction.window_position_evidence_shadow&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;layer&quot;: &quot;cross_check&quot;,
+          &quot;check_version&quot;: &quot;1&quot;,
+          &quot;message&quot;: &quot;&quot;,
+          &quot;evidence&quot;: {
+            &quot;producer_draw_sha256&quot;: &quot;8996e7992dcf73071dd12f143852567c35b1b9e40178277efcd41792eac019de&quot;,
+            &quot;resolver_inputs_sha256&quot;: &quot;2ef2a4e8616f0740af8080484825550b7dbe1b3d217ba30d5ec10ca6817d6110&quot;,
+            &quot;window_count&quot;: 31,
+            &quot;rejected_window_ids&quot;: [],
+            &quot;rejected_reject_codes&quot;: [],
+            &quot;max_legacy_span_delta_m&quot;: 0.042500000000000426,
+            &quot;ruleset_version&quot;: &quot;f9_route2_s2_position_evidence_ruleset_v2&quot;,
+            &quot;evaluated_conditions&quot;: [
+              &quot;ambiguity_margin&quot;,
+              &quot;claim_consistency&quot;,
+              &quot;distance_within_tolerance&quot;,
+              &quot;scope_resolution&quot;,
+              &quot;source_not_reused&quot;,
+              &quot;unique_mutual_nearest&quot;
+            ],
+            &quot;unevaluated_conditions&quot;: [],
+            &quot;content_sha256&quot;: &quot;d385e91449d6072ebfc611c6ded44a9a6ffe58fd41cae7948d5a4fa960eec697&quot;
+          }
+        }
+      ]
+    },
+    &quot;independent_replay_verification&quot;: &quot;pass&quot;
+  },
+  &quot;building&quot;: {
+    &quot;spaces&quot;: 29,
+    &quot;surfaces&quot;: 223,
+    &quot;windows&quot;: 31,
+    &quot;source_openings&quot;: 29,
+    &quot;derived_openings&quot;: 55,
+    &quot;rooms_unchanged&quot;: false,
+    &quot;windows_unchanged&quot;: true,
+    &quot;window_room_ids_unchanged&quot;: false,
+    &quot;source_mapping&quot;: {
+      &quot;status&quot;: &quot;pass&quot;,
+      &quot;findings&quot;: [],
+      &quot;realization_tolerance_m&quot;: 2e-06,
+      &quot;scope&quot;: &quot;source-to-derived realization only&quot;,
+      &quot;not_evaluated&quot;: [
+        &quot;drawing partition fidelity&quot;,
+        &quot;drawing opening completeness/operating state&quot;,
+        &quot;voids and false slabs&quot;,
+        &quot;downstream solver acceptance&quot;
+      ]
+    },
+    &quot;kernel_issues&quot;: [
+      &quot;degenerate surface &#x27;Z04_Ceiling2&#x27;: shortest edge 0.0650 m &lt; 0.1 m (sub-tolerance sliver — EP may segfault in input processing)&quot;,
+      &quot;degenerate surface &#x27;Z18_Floor1&#x27;: shortest edge 0.0650 m &lt; 0.1 m (sub-tolerance sliver — EP may segfault in input processing)&quot;
+    ],
+    &quot;connections&quot;: [
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:9f7c7cca928adc8802d4bb9d&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;
+        ],
+        &quot;exterior&quot;: true,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:40455a73812844c967c966dc&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;
+        ],
+        &quot;exterior&quot;: true,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:682f064fa78e70b890c7d944&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c005&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:1433b3c70c4c93551eb48f96&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c004&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:f55240cff87959a7bd34a736&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c012&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:09115f8e980a0a6fee6cc57b&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c011&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:7981332c65389d76f08f2a07&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c010&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:836b36f74905c5ea8917462a&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c009&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:832bb610ddab26306200c090&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c008&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:cd08f7ee86fc5cd81eff2636&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c007&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:53b3a3da4ebb6c82b4fc48b9&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c006&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:c6306e84a78d2c67644c7fbc&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;
+        ],
+        &quot;exterior&quot;: true,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:2ee12fdd2e0c515a326e1945&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c001&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:b2d0e90267d40a0a82f14a1a&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c002&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:092f098609989c531df46769&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c003&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:ed162f03b8c92f158fbfa100&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;1f-c000&quot;,
+          &quot;1f-c013&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:2447dabbbeaef05dbaeafba8&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c004&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:74d8094b4902c77cc08b59eb&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c011&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:1be0d58a8f61e0193d1cf25e&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c010&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:180b75c1d514dbe68f58fa7a&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c009&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:9fa1078da157f2b2debbaf52&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c008&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:6465a3c0e2f6b1d8c44ffbfd&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c007&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:2b3051c152107ffa0b4399ad&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c001&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:e674b7082ad8b9df272da4f6&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c002&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:ecf412e03e7abb9859a8809d&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c003&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:dd34d8f08a163946314e8523&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c005&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:03dfe48fe131f10e734b3849&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c012&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:66cc3460e0115eef7739ca27&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c013&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      },
+      {
+        &quot;opening_id&quot;: &quot;plan_opening:86d010c2b9dc7171d83e6710&quot;,
+        &quot;kind&quot;: &quot;door&quot;,
+        &quot;space_ids&quot;: [
+          &quot;2f-c000&quot;,
+          &quot;2f-c014&quot;
+        ],
+        &quot;exterior&quot;: false,
+        &quot;state&quot;: &quot;unknown&quot;
+      }
+    ]
+  },
+  &quot;not_evaluated&quot;: [
+    &quot;new image reading&quot;,
+    &quot;whole-drawing partition/opening completeness&quot;,
+    &quot;actual door/passage heights and door operating states&quot;,
+    &quot;EnergyPlus opening adapter/run&quot;,
+    &quot;human approval and browser screenshot inspection&quot;
+  ],
+  &quot;partition_changes&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;1f&quot;,
+      &quot;old_spaces&quot;: 16,
+      &quot;new_spaces&quot;: 14,
+      &quot;overlaps&quot;: [
+        {
+          &quot;old_id&quot;: &quot;1f-c000&quot;,
+          &quot;new_id&quot;: &quot;1f-c000&quot;,
+          &quot;area_m2&quot;: 34.278493249999975
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c001&quot;,
+          &quot;new_id&quot;: &quot;1f-c001&quot;,
+          &quot;area_m2&quot;: 18.60808734
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c002&quot;,
+          &quot;new_id&quot;: &quot;1f-c002&quot;,
+          &quot;area_m2&quot;: 18.861048360000005
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c003&quot;,
+          &quot;new_id&quot;: &quot;1f-c003&quot;,
+          &quot;area_m2&quot;: 30.074592475
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c004&quot;,
+          &quot;new_id&quot;: &quot;1f-c000&quot;,
+          &quot;area_m2&quot;: 53.404934295000004
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c005&quot;,
+          &quot;new_id&quot;: &quot;1f-c004&quot;,
+          &quot;area_m2&quot;: 15.712785655000001
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c006&quot;,
+          &quot;new_id&quot;: &quot;1f-c005&quot;,
+          &quot;area_m2&quot;: 15.721174144999996
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c007&quot;,
+          &quot;new_id&quot;: &quot;1f-c000&quot;,
+          &quot;area_m2&quot;: 8.758148769999998
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c008&quot;,
+          &quot;new_id&quot;: &quot;1f-c006&quot;,
+          &quot;area_m2&quot;: 8.07672086
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c009&quot;,
+          &quot;new_id&quot;: &quot;1f-c007&quot;,
+          &quot;area_m2&quot;: 7.659347880000003
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c010&quot;,
+          &quot;new_id&quot;: &quot;1f-c008&quot;,
+          &quot;area_m2&quot;: 7.626507919999998
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c011&quot;,
+          &quot;new_id&quot;: &quot;1f-c009&quot;,
+          &quot;area_m2&quot;: 7.6429279
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c012&quot;,
+          &quot;new_id&quot;: &quot;1f-c010&quot;,
+          &quot;area_m2&quot;: 7.642736969999994
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c013&quot;,
+          &quot;new_id&quot;: &quot;1f-c011&quot;,
+          &quot;area_m2&quot;: 7.642927900000013
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c014&quot;,
+          &quot;new_id&quot;: &quot;1f-c012&quot;,
+          &quot;area_m2&quot;: 7.174576609999986
+        },
+        {
+          &quot;old_id&quot;: &quot;1f-c015&quot;,
+          &quot;new_id&quot;: &quot;1f-c013&quot;,
+          &quot;area_m2&quot;: 30.301483399999995
+        }
+      ]
+    },
+    {
+      &quot;floor_id&quot;: &quot;2f&quot;,
+      &quot;old_spaces&quot;: 11,
+      &quot;new_spaces&quot;: 15,
+      &quot;overlaps&quot;: [
+        {
+          &quot;old_id&quot;: &quot;2f-c000&quot;,
+          &quot;new_id&quot;: &quot;2f-c000&quot;,
+          &quot;area_m2&quot;: 38.76606479999997
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c000&quot;,
+          &quot;new_id&quot;: &quot;2f-c001&quot;,
+          &quot;area_m2&quot;: 18.60808734
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c001&quot;,
+          &quot;new_id&quot;: &quot;2f-c002&quot;,
+          &quot;area_m2&quot;: 18.861048360000005
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c002&quot;,
+          &quot;new_id&quot;: &quot;2f-c003&quot;,
+          &quot;area_m2&quot;: 15.151695825
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c003&quot;,
+          &quot;new_id&quot;: &quot;2f-c000&quot;,
+          &quot;area_m2&quot;: 38.372885745000005
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c004&quot;,
+          &quot;new_id&quot;: &quot;2f-c004&quot;,
+          &quot;area_m2&quot;: 31.433959799999997
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c005&quot;,
+          &quot;new_id&quot;: &quot;2f-c005&quot;,
+          &quot;area_m2&quot;: 14.92289665
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c006&quot;,
+          &quot;new_id&quot;: &quot;2f-c006&quot;,
+          &quot;area_m2&quot;: 18.84006366
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c007&quot;,
+          &quot;new_id&quot;: &quot;2f-c007&quot;,
+          &quot;area_m2&quot;: 8.07672086
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c007&quot;,
+          &quot;new_id&quot;: &quot;2f-c008&quot;,
+          &quot;area_m2&quot;: 7.659347880000003
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c007&quot;,
+          &quot;new_id&quot;: &quot;2f-c009&quot;,
+          &quot;area_m2&quot;: 7.626507919999998
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c007&quot;,
+          &quot;new_id&quot;: &quot;2f-c010&quot;,
+          &quot;area_m2&quot;: 7.6429279
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c007&quot;,
+          &quot;new_id&quot;: &quot;2f-c011&quot;,
+          &quot;area_m2&quot;: 7.890755039999992
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c008&quot;,
+          &quot;new_id&quot;: &quot;2f-c012&quot;,
+          &quot;area_m2&quot;: 14.908203125
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c009&quot;,
+          &quot;new_id&quot;: &quot;2f-c013&quot;,
+          &quot;area_m2&quot;: 15.393280274999995
+        },
+        {
+          &quot;old_id&quot;: &quot;2f-c010&quot;,
+          &quot;new_id&quot;: &quot;2f-c014&quot;,
+          &quot;area_m2&quot;: 15.032048550000003
+        }
+      ]
+    }
+  ]
+}</pre></details>
+<p><a href="report.json">下载报告</a></p></html>

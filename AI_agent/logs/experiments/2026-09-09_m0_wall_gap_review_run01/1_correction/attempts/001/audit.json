@@ -1,0 +1,1182 @@
+{
+  "corrections": [
+    {
+      "kind": "wall_gap_continuity_review",
+      "reviews": [
+        {
+          "action": "continuous_space",
+          "axis": "x",
+          "compilation_sha256": "8ac8c670ba9b59691b5f23af7c78022877f747c32722c889b49b6f0a2c5ca329",
+          "face_observation_ids": [
+            "L043",
+            "L044"
+          ],
+          "gap_index": 0,
+          "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+          "input_id": "1f_view",
+          "opening_classifications": [
+            {
+              "id": "L043g0",
+              "type": "ambiguous"
+            },
+            {
+              "id": "L044g0",
+              "type": "not_opening"
+            }
+          ],
+          "pos_m": 5.8786000000000005,
+          "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+          "review_mode": "developer_assisted",
+          "source_bytes_sha256": "2a5631494479b65d27328f5891e8016df632e0b5783fbae1acc86f4ce9936c57",
+          "span_m": [
+            9.0265,
+            10.9951
+          ],
+          "wall_id": "wall_0d66d97f207575accbac07685e42f628c7580d9c15c947256e84598b664a9c4d"
+        },
+        {
+          "action": "continuous_space",
+          "axis": "x",
+          "compilation_sha256": "8ac8c670ba9b59691b5f23af7c78022877f747c32722c889b49b6f0a2c5ca329",
+          "face_observation_ids": [
+            "L039",
+            "L040"
+          ],
+          "gap_index": 0,
+          "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+          "input_id": "1f_view",
+          "opening_classifications": [
+            {
+              "id": "L039g0",
+              "type": "ambiguous"
+            },
+            {
+              "id": "L040g0",
+              "type": "not_opening"
+            }
+          ],
+          "pos_m": 9.999500000000001,
+          "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+          "review_mode": "developer_assisted",
+          "source_bytes_sha256": "2a5631494479b65d27328f5891e8016df632e0b5783fbae1acc86f4ce9936c57",
+          "span_m": [
+            8.9183,
+            11.1033
+          ],
+          "wall_id": "wall_defa8acce3d251e56f7119ef5dde7fd361bb3bf4a0452edbb3ce30050c3a2c30"
+        },
+        {
+          "action": "continuous_space",
+          "axis": "x",
+          "compilation_sha256": "f9bceede3325eb2d276a5338270a06038c4ac049a940ff2fb5a043836631fbf1",
+          "face_observation_ids": [
+            "L041",
+            "L042"
+          ],
+          "gap_index": 0,
+          "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+          "input_id": "2f_view",
+          "opening_classifications": [
+            {
+              "id": "L041g0",
+              "type": "not_opening"
+            },
+            {
+              "id": "L042g0",
+              "type": "passage"
+            }
+          ],
+          "pos_m": 5.88335,
+          "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+          "review_mode": "developer_assisted",
+          "source_bytes_sha256": "bdf9a6fbd0e6ac6694575b748ca3c34f124ac7b4f11551e2ea816340e774d9e2",
+          "span_m": [
+            9.0317,
+            10.994
+          ],
+          "wall_id": "wall_db4a3d1687a12225c6808f211947eff5aa661479dcee45eb754b685b678b383d"
+        }
+      ]
+    },
+    {
+      "kind": "wall_gap_opening_reclassification",
+      "input_id": "2f_view",
+      "observation_ids": [
+        "L042g0"
+      ],
+      "reason": "reviewed_continuous_source_space",
+      "review": {
+        "input_id": "2f_view",
+        "wall_id": "wall_db4a3d1687a12225c6808f211947eff5aa661479dcee45eb754b685b678b383d",
+        "gap_index": 0,
+        "action": "continuous_space",
+        "source_bytes_sha256": "bdf9a6fbd0e6ac6694575b748ca3c34f124ac7b4f11551e2ea816340e774d9e2",
+        "compilation_sha256": "f9bceede3325eb2d276a5338270a06038c4ac049a940ff2fb5a043836631fbf1",
+        "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+        "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "review_mode": "developer_assisted",
+        "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+        "axis": "x",
+        "pos_m": 5.88335,
+        "span_m": [
+          9.0317,
+          10.994
+        ],
+        "face_observation_ids": [
+          "L041",
+          "L042"
+        ],
+        "opening_classifications": [
+          {
+            "id": "L041g0",
+            "type": "not_opening"
+          },
+          {
+            "id": "L042g0",
+            "type": "passage"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-West_view-O04",
+      "floor_id": "1f",
+      "original_room_id": "1f-c004",
+      "resolved_room_id": "1f-c004",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+      "original_span": {
+        "lo": 7.819000000000001,
+        "hi": 9.647
+      },
+      "resolved_span": {
+        "lo": 7.819000000000001,
+        "hi": 9.647
+      },
+      "source_ids": [
+        "src:951a1045d59a7d52d17d3b75b4f92b95cbabe0160d0d32183c0bdc9fb5b5e8bd",
+        "src:f75ce4536ac797b5f458d5bb02c50712a3b46d50e06b4cbc927e64f86e1e7fe1"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "801cf9fcddd11122c3c6eaaf310a8d27a26c2da95eb18850739edc10ccc7119a",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-West_view-O03",
+      "floor_id": "1f",
+      "original_room_id": "1f-c005",
+      "resolved_room_id": "1f-c005",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+      "original_span": {
+        "lo": 10.3376,
+        "hi": 12.165600000000001
+      },
+      "resolved_span": {
+        "lo": 10.3376,
+        "hi": 12.165600000000001
+      },
+      "source_ids": [
+        "src:33c048f2db28c628bf2c634b3ebd4fdd594b292b5e65cc7b1f5bf599e9e37257",
+        "src:7e2da3cbf28a5909d063c79c6858d249d4f52c91d7d68135668cc62dd2714c95"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "dcdd5153fee738970ff9d40bb394d4cd23eee44770b5b1d76ff8528f117633f4",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-North_view-O02",
+      "floor_id": "1f",
+      "original_room_id": "1f-c000",
+      "resolved_room_id": "1f-c000",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:5faac39e2814e3dc9c76942a36364a13ef71705c255c31d08d8031357896a78d",
+      "original_span": {
+        "lo": 15.2746,
+        "hi": 23.3136
+      },
+      "resolved_span": {
+        "lo": 15.2746,
+        "hi": 23.3136
+      },
+      "source_ids": [
+        "src:0d8178a93eba1da5a23ad5d87f75901d702ed6c8111e72b270931b65c48ecce8",
+        "src:f2b6081588c7de27d1e34c95146a9eab302601fde32e842fd5611a68d4b54163"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "33f9314d002682ce16ca06880f7f71f06a4456ee4ad331edd3057bb722a8e1fd",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O02",
+      "floor_id": "1f",
+      "original_room_id": "1f-c006",
+      "resolved_room_id": "1f-c006",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 6.7226,
+        "hi": 7.6586
+      },
+      "resolved_span": {
+        "lo": 6.7226,
+        "hi": 7.6586
+      },
+      "source_ids": [
+        "src:761257a7769fd5d1dfe0ff5bae0ec93f684835d3a97f0decd71c61eda765dfc8",
+        "src:ebdd1a33d9683abbcfcc61e376de798c2fc9327a0f9076769cb7414147d0c3ef"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "a90165126295038a7556e166e4a9c3d2d6a84916f7e206500f5f80c410534e2e",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O05",
+      "floor_id": "1f",
+      "original_room_id": "1f-c007",
+      "resolved_room_id": "1f-c007",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 8.7302,
+        "hi": 9.6527
+      },
+      "resolved_span": {
+        "lo": 8.7302,
+        "hi": 9.6527
+      },
+      "source_ids": [
+        "src:7130453ab89a49d4fb31214ab9b2be8432fb1821875032b8ab25df7deafab970",
+        "src:f015944da4ed8a3bf7434e2e20b596a09244506f58935c09dacc71053fbc2ded"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "e6a2b6efb96c6dc3d5adc76402d27615d79a748e00bd24ec78b7bb1e22ae3ee4",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O07",
+      "floor_id": "1f",
+      "original_room_id": "1f-c008",
+      "resolved_room_id": "1f-c008",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 10.3581,
+        "hi": 11.2805
+      },
+      "resolved_span": {
+        "lo": 10.3581,
+        "hi": 11.2805
+      },
+      "source_ids": [
+        "src:92e143207bf6f5eedc438e36e500d6c40ae54ffb0b5656478113588f5d8d4b9c",
+        "src:b7675825497f7e57c6ac1433553bb0ec3c181f855233183979644d3517220355"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "e3b4106c06b76727d3a9033236fcc062fc4f7e37121960ff2b8b5904fd6fa3bf",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O09",
+      "floor_id": "1f",
+      "original_room_id": "1f-c009",
+      "resolved_room_id": "1f-c009",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 12.732,
+        "hi": 13.6681
+      },
+      "resolved_span": {
+        "lo": 12.732,
+        "hi": 13.6681
+      },
+      "source_ids": [
+        "src:43515b391160546a4e156395214148fee2cdd917f893be8fb20998799efae944",
+        "src:8e78b420d6de6338cdca33dadd4fa8c18d222905f2e1c705ffc91549a9b10124"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "da1c20abdfde0ff7103e0e88f4d37771b9274ded464371746842a6888bb43dfe",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O10",
+      "floor_id": "1f",
+      "original_room_id": "1f-c010",
+      "resolved_room_id": "1f-c010",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 14.3463,
+        "hi": 15.2823
+      },
+      "resolved_span": {
+        "lo": 14.3463,
+        "hi": 15.2823
+      },
+      "source_ids": [
+        "src:1252e74264d834b531c5fea24bf8debc42f25dbd23663cbf01b5f1a0cc8ff449",
+        "src:558e613d11e368e964a9e8a4263c2ab1da624689f2c9d01df59174f4bdce50cc"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "30e1d53758641a41fdf99dcaafd479d8234d0afc60ad2d2edf305a4f18807a73",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O12",
+      "floor_id": "1f",
+      "original_room_id": "1f-c011",
+      "resolved_room_id": "1f-c011",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 16.7338,
+        "hi": 17.6563
+      },
+      "resolved_span": {
+        "lo": 16.7338,
+        "hi": 17.6563
+      },
+      "source_ids": [
+        "src:90d93fd79045359c011b61edb3553afa1216a27573ef132120087ac0ca50541b",
+        "src:9251687cb2c8c8c690ff6051ea9ade68b97ddbfd03bf0d9fed42fc3e09f34d87"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "7ec3257f68d1659cf150604743263b313fed2b6d1a89663d1bdd49578ce4867f",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-East_view-O13",
+      "floor_id": "1f",
+      "original_room_id": "1f-c012",
+      "resolved_room_id": "1f-c012",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 18.3481,
+        "hi": 19.2841
+      },
+      "resolved_span": {
+        "lo": 18.3481,
+        "hi": 19.2841
+      },
+      "source_ids": [
+        "src:b8d522304613594eb39fb47c834267200a680f04cfc91326671a3a7f0c375847",
+        "src:db67f8f0d584b3a8bb6ba06fd302fd021040f9affbb626ac59e003b16b459138"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "642de90bffe3fee130a655e428d3f82fb145bcb6b30d2e827e94d9e1d3c958e7",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-North_view-O08",
+      "floor_id": "1f",
+      "original_room_id": "1f-c001",
+      "resolved_room_id": "1f-c001",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+      "original_span": {
+        "lo": 2.2196999999999996,
+        "hi": 4.6463
+      },
+      "resolved_span": {
+        "lo": 2.2196999999999996,
+        "hi": 4.6463
+      },
+      "source_ids": [
+        "src:4b6f0a01ed8bb2d8927f0fb827ec41f2050f33291a535981dd5a173fb140e2ed",
+        "src:b7232c2337fbc85bedfc4bd7f5f89897399f8e26365e8239cf55545e9539f4a1"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "07b5ae5a18338d3069e5b250e8e18c0b500ec6602252479a487d698f077ec2fb",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-North_view-O06",
+      "floor_id": "1f",
+      "original_room_id": "1f-c002",
+      "resolved_room_id": "1f-c002",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+      "original_span": {
+        "lo": 5.337700000000002,
+        "hi": 7.764299999999999
+      },
+      "resolved_span": {
+        "lo": 5.337700000000002,
+        "hi": 7.764299999999999
+      },
+      "source_ids": [
+        "src:59492332dbb5f96052d44f3c6dab0708b864f7733970a74808696d16570e9eb9",
+        "src:8afaa67f797f469129740f6ac0f90cf2c418299705602e8bfd0d4676ab7a7f04"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "4e1ba01ba38c2d721b35e6aa201a4e35311cc934086bd124d98fd4e86f76e7e5",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-North_view-O04",
+      "floor_id": "1f",
+      "original_room_id": "1f-c000",
+      "resolved_room_id": "1f-c000",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+      "original_span": {
+        "lo": 10.2858,
+        "hi": 10.9094
+      },
+      "resolved_span": {
+        "lo": 10.2858,
+        "hi": 10.9094
+      },
+      "source_ids": [
+        "src:3874beb5b303ddbf03d762c8ee7b5188d7280938bf448e3a0939badaa1c2a729",
+        "src:d28596f500f6b041b89d03048a170078574f04229914ddf750c6b7b04c8c1106"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "28b73e88d67c6c861336c1a0c233037e150afabd624264daaa57a91957885132",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-South_view-O02",
+      "floor_id": "1f",
+      "original_room_id": "1f-c003",
+      "resolved_room_id": "1f-c003",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 8.6292,
+        "hi": 12.6537
+      },
+      "resolved_span": {
+        "lo": 8.6292,
+        "hi": 12.6537
+      },
+      "source_ids": [
+        "src:756416e5428c1aca058b330b1cecbbb388d8752ef388736399f330d90f0091e1",
+        "src:dbfd4dcd8bdfe6a43554e693c13c158093ebb35b3c680d3ab5198cad6b962ff1"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "45cae17ebdab0e80904ca94072e4b7e692278af06589c37834cb27422a4276ac",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "1f-win-South_view-O04",
+      "floor_id": "1f",
+      "original_room_id": "1f-c013",
+      "resolved_room_id": "1f-c013",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "1f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 13.3583,
+        "hi": 17.3827
+      },
+      "resolved_span": {
+        "lo": 13.3583,
+        "hi": 17.3827
+      },
+      "source_ids": [
+        "src:666ef2ec00d963942e4a03365186f2ae8e75f23a89190d9aff5fbb8da5cd1110",
+        "src:9eb415c466758d7813d09d6ec192a44e5148dfb0d641482c20a7d9f73eb0628c"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "b9fcb4ddeb8fae83b9ebe12c74932054c6ffa07a3e11b58555d9f316cdc09e04",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-West_view-O05",
+      "floor_id": "2f",
+      "original_room_id": "2f-c000",
+      "resolved_room_id": "2f-c000",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+      "original_span": {
+        "lo": 4.244199999999999,
+        "hi": 5.462899999999999
+      },
+      "resolved_span": {
+        "lo": 4.244199999999999,
+        "hi": 5.462899999999999
+      },
+      "source_ids": [
+        "src:94d48d378dd9325646f6445b45a8f8016c9c3beeb6ca0cb5bf8936ebc3b17f79",
+        "src:e36df8737239d0018c19b9132637530faf2d17c4e1d497b4dff8fd248bef7081"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "11617d2c820a5f4701b827c4d86e9343a888a7485c2e9e3934a85a952a5e2a90",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-West_view-O02",
+      "floor_id": "2f",
+      "original_room_id": "2f-c004",
+      "resolved_room_id": "2f-c004",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+      "original_span": {
+        "lo": 7.819000000000001,
+        "hi": 12.165600000000001
+      },
+      "resolved_span": {
+        "lo": 7.819000000000001,
+        "hi": 12.165600000000001
+      },
+      "source_ids": [
+        "src:d58ef575832dcf292b093ea7b1d1ba23015f7bc1185abd5fc5d8c30e05177cb8",
+        "src:e2e3516308a74ff89b8e98b11a4d14356e8c300cf743e9948d0541393d0df646"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "2ebbee4fa616031d6c2b19121ecd6b2745ae8d21b38092b8df0cf2874f352f93",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-North_view-O01",
+      "floor_id": "2f",
+      "original_room_id": "2f-c000",
+      "resolved_room_id": "2f-c000",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:5faac39e2814e3dc9c76942a36364a13ef71705c255c31d08d8031357896a78d",
+      "original_span": {
+        "lo": 15.2746,
+        "hi": 23.3136
+      },
+      "resolved_span": {
+        "lo": 15.2746,
+        "hi": 23.3136
+      },
+      "source_ids": [
+        "src:c6ed7c953834d588c76def401415e970c56e7075e3033db5b745359d34a80b04",
+        "src:fdb7cd91adb0f043f3510e5ffd0ddd25f12334d408243461db9d01e5405d2f65"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "a4a6548bf8e6bde831f194e15a6f9b0ad0d5678c44153a1468607400783b407f",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-East_view-O03",
+      "floor_id": "2f",
+      "original_room_id": "2f-c007",
+      "resolved_room_id": "2f-c007",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 6.7361,
+        "hi": 7.6586
+      },
+      "resolved_span": {
+        "lo": 6.7361,
+        "hi": 7.6586
+      },
+      "source_ids": [
+        "src:9b9fedd74bc1d88ce1d51101bb97879e6e0592eb76c8607a9bd9af0864f3cc20",
+        "src:c3eccb883edb71dcabef27329965cd64d038b74c24e84d55c19eca697aa39b00"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "a2cf4ecb36c3d053e144d705cbb2ae6455f022a572cda8c81ed58664a586f3f7",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-East_view-O04",
+      "floor_id": "2f",
+      "original_room_id": "2f-c008",
+      "resolved_room_id": "2f-c008",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 8.7302,
+        "hi": 9.6527
+      },
+      "resolved_span": {
+        "lo": 8.7302,
+        "hi": 9.6527
+      },
+      "source_ids": [
+        "src:24fa93bb3daf8d016d9f8988e6668afd4649dc07eadbafc1d17a88c000368997",
+        "src:fa36a3651a8bcea4eb0a64066060e49417b6405f9980f58b1721f248684d51b1"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "007be58991abff58a58979f51f34a348148f6edccd37bc0f4c4cf003256574f6",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-East_view-O06",
+      "floor_id": "2f",
+      "original_room_id": "2f-c009",
+      "resolved_room_id": "2f-c009",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 10.3581,
+        "hi": 11.2805
+      },
+      "resolved_span": {
+        "lo": 10.3581,
+        "hi": 11.2805
+      },
+      "source_ids": [
+        "src:b87942be09d387693ed1c8ab1b5b42d3d20f101e315c6851391997e996025a3b",
+        "src:c51e6e7d1759626280dcdec54a0e541e639f443d32aaf5c58cf4323bacd8ddc5"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "013344ba75b4fe7a9503b5fe31f196529c6c16ed657a3ce619d8057ce930b841",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-East_view-O08",
+      "floor_id": "2f",
+      "original_room_id": "2f-c010",
+      "resolved_room_id": "2f-c010",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 12.732,
+        "hi": 13.6545
+      },
+      "resolved_span": {
+        "lo": 12.732,
+        "hi": 13.6545
+      },
+      "source_ids": [
+        "src:cf5963712b745bbacc45b991cf6fdf4a3b21447dbdb10af54852c34929ff7878",
+        "src:d711d3e7d1eeea0def8649189254204b381b8a36a713c8b841e3e1497c9b9a7e"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "da3fd9add447edc564e8af12d5ab7358b49a377207e46c787985fb808d925c6f",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-East_view-O11",
+      "floor_id": "2f",
+      "original_room_id": "2f-c011",
+      "resolved_room_id": "2f-c011",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+      "original_span": {
+        "lo": 14.3599,
+        "hi": 15.2823
+      },
+      "resolved_span": {
+        "lo": 14.3599,
+        "hi": 15.2823
+      },
+      "source_ids": [
+        "src:7bd5491335af6f644f5da309e3f20f44e24c3b4bbae6acc0f23c14d38534d83f",
+        "src:cc03d1fd23f65b469cc6347b48a99767a61134088ce6f08d2e8e23c05ea3a299"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "a6b4e9956f1b6644a3514a2534ea2131d63a6e9ac50e227ed6f68335bba2dc90",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-North_view-O07",
+      "floor_id": "2f",
+      "original_room_id": "2f-c001",
+      "resolved_room_id": "2f-c001",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+      "original_span": {
+        "lo": 2.2196999999999996,
+        "hi": 4.6463
+      },
+      "resolved_span": {
+        "lo": 2.2196999999999996,
+        "hi": 4.6463
+      },
+      "source_ids": [
+        "src:8017e6e1bcc2bb5926efff87d3c47a7d532e88261fdd1cd54a9ee1716017a599",
+        "src:8f4437fc7d142855d984519ce2ac4767459c8aac33834115dbda2cb131ba7f79"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "cad5ea7a3454a36688ad3376dfd1fc5e7ca6a0986a2d30f51c08b03310c39b4b",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-North_view-O05",
+      "floor_id": "2f",
+      "original_room_id": "2f-c002",
+      "resolved_room_id": "2f-c002",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+      "original_span": {
+        "lo": 5.337700000000002,
+        "hi": 7.764299999999999
+      },
+      "resolved_span": {
+        "lo": 5.337700000000002,
+        "hi": 7.764299999999999
+      },
+      "source_ids": [
+        "src:4ba1c1258e7fa7e841046aee87ff3f89b146c48e960e85629e2d09496e4645d2",
+        "src:f1f9a604affe2179a145badb7e2fa6c87af73d9dffbbc9f599e968febf12a40b"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "fe18bb0e5751ba751e874f3d4a62ba087438fcc5e0ab7dec07844362c7640629",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-North_view-O03",
+      "floor_id": "2f",
+      "original_room_id": "2f-c006",
+      "resolved_room_id": "2f-c006",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+      "original_span": {
+        "lo": 10.2858,
+        "hi": 10.9094
+      },
+      "resolved_span": {
+        "lo": 10.2858,
+        "hi": 10.9094
+      },
+      "source_ids": [
+        "src:190a55baa96fddc62d7d7429ec17fa04ba7c726d605b91ddf9dcf863992681d9",
+        "src:202ea8031b369e1f4d207076c88d1ac75d33fefd65762eb69f603f9d3119125c"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "414b5d411dcb729a1d4be6aa9c129180333a2a98f53d532d7c395489b8c28b44",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-South_view-O01",
+      "floor_id": "2f",
+      "original_room_id": "2f-c003",
+      "resolved_room_id": "2f-c003",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 6.9219,
+        "hi": 8.7512
+      },
+      "resolved_span": {
+        "lo": 6.9219,
+        "hi": 8.7512
+      },
+      "source_ids": [
+        "src:1830604f1a1e374ced1c4aba18e725981872eec413db4e8520d4e03e141c4de5",
+        "src:a74eacb5dfcc8fa2aa847403ce0b92b74df22b6b1b2572de6143473d00c09557"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "ad1cc6809da38c1c8728bee9c2d09ec1119abd951eefa904095dea34ae876d25",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-South_view-O03",
+      "floor_id": "2f",
+      "original_room_id": "2f-c005",
+      "resolved_room_id": "2f-c005",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 9.4422,
+        "hi": 11.2715
+      },
+      "resolved_span": {
+        "lo": 9.4422,
+        "hi": 11.2715
+      },
+      "source_ids": [
+        "src:ae3cdec0ac50ec55a84279b2813d728c11c921e184a46d6b5f8b82c2296e0962",
+        "src:c531157ea4d08dbc7d952171995988392c09740a947c621d1ae1eea7d2feac4b"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "f3b346f6c7a9cb1da36c1af721be5ae4c821c30f46dd33a1c11a3d9999bf7636",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-South_view-O05",
+      "floor_id": "2f",
+      "original_room_id": "2f-c012",
+      "resolved_room_id": "2f-c012",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 14.7404,
+        "hi": 16.5697
+      },
+      "resolved_span": {
+        "lo": 14.7404,
+        "hi": 16.5697
+      },
+      "source_ids": [
+        "src:a91bbfbe1f9dff1cf8d580b3f47d75775edefef00fabd71cc61c65d69f5f1f6b",
+        "src:d81c9eff69eb1bae5cc96a5a3b8e7899b2bff616a2563c276653bae9d9681439"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "7737b263045b26510464201c1f66e7254453e11219bcc6daa9da93b65519f233",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-South_view-O06",
+      "floor_id": "2f",
+      "original_room_id": "2f-c013",
+      "resolved_room_id": "2f-c013",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 17.2607,
+        "hi": 19.09
+      },
+      "resolved_span": {
+        "lo": 17.2607,
+        "hi": 19.09
+      },
+      "source_ids": [
+        "src:ed32d5ea3c8b4dfd4e82b9c30c372c008f4fdbb33487c5e73a1ab31e58b9518a",
+        "src:fdc4341892492f9109e9fb4d6527184ce52b2d589e7d13d5652b3fcb6c22d093"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "b1271d02ae19016d9c472f4cf672209b00deaf8e490e2a0f36e6d3df8d9fd392",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "2f-win-South_view-O07",
+      "floor_id": "2f",
+      "original_room_id": "2f-c014",
+      "resolved_room_id": "2f-c014",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+      "original_span": {
+        "lo": 21.2987,
+        "hi": 23.1144
+      },
+      "resolved_span": {
+        "lo": 21.2987,
+        "hi": 23.1144
+      },
+      "source_ids": [
+        "src:70ebe274421cd116222516022a3ba5c14b8f22e07d6538dfd7e8e75217628e64",
+        "src:d2e4539c529cc58eeeeebfe105448010e35e2daa728be22a0a5626e64012fc1e"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "8657033b3a7081c0eb88d7a5cf6c73eede18a8e8e069664f575e05af13d8705b",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    }
+  ],
+  "conflicts": [],
+  "unsupported": [
+    {
+      "kind": "as_drawn_opening_unbuilt",
+      "input_id": "2f_view",
+      "observation_ids": [
+        "L029g3"
+      ],
+      "floor_id": "2f",
+      "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+      "anchor_observation_id": "L029g3",
+      "span_m": [
+        9.9038,
+        10.9286
+      ],
+      "compiled_half_thickness_m": 0.06,
+      "reason": "opening_crosses_room_boundaries",
+      "candidate_space_ids": [
+        "2f-c000",
+        "2f-c002",
+        "2f-c006"
+      ]
+    },
+    {
+      "kind": "as_drawn_opening_unbuilt",
+      "input_id": "2f_view",
+      "observation_ids": [
+        "L030g2"
+      ],
+      "floor_id": "2f",
+      "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+      "anchor_observation_id": "L030g2",
+      "span_m": [
+        10.1219,
+        11.1248
+      ],
+      "compiled_half_thickness_m": 0.06,
+      "reason": "opening_crosses_room_boundaries",
+      "candidate_space_ids": [
+        "2f-c000",
+        "2f-c006",
+        "2f-c011"
+      ]
+    }
+  ]
+}
