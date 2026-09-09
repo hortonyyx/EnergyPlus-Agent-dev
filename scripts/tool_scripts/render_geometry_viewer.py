@@ -82,7 +82,7 @@ _APP_JS = r"""
   const FLOOR_COLORS = [0xb0d0e8,0xffe0b2,0xc8e6c9,0xf4c7c7,0xd1c4e9,0xfff59d,0xb2dfdb,0xd7ccc8];
   const TYPE_COLORS = { Wall:0xdfe3e6, Floor:0xc8a165, Ceiling:0x9fa8da, Roof:0xfff3b0 };
   const WINDOW_COLOR = 0x1e5ad2, WHITE = 0xffffff, SEL_COLOR = 0xff9800;
-  const UNKNOWN_COLOR = 0xe69a2d, OPEN_COLOR = 0x00a6a6, LOGICAL_COLOR = 0x596b86;
+  const ENCLOSURE_COLOR = 0x8b949e, ENCLOSURE_OPACITY = 0.32, LOGICAL_COLOR = 0x596b86;
   // fixed room-type → fill colour. Mirrors render_gt.py ROLE_FILL (office/meeting/corridor)
   // so the 3D viewer and the gt plan share one palette; synonyms map to the same hue so the
   // SAME room type is always the SAME colour (across cases + helps see which zones to merge).
@@ -199,7 +199,7 @@ _APP_JS = r"""
   function activePlanes(){ return AX.filter(a=>a.enabled).map(a=>a.plane); }
 
   // ---- build meshes (keep ALL faces; reciprocal dup hidden at rest, windows popped out) ----
-  const surfMeshes=[], winMeshes=[], openingMeshes=[], edgeSegs=[], logicalLines=[], enclosureLines=[];
+  const surfMeshes=[], winMeshes=[], openingMeshes=[], enclosureMeshes=[], edgeSegs=[], logicalLines=[], enclosureLines=[];
   const root=new THREE.Group(); scene.add(root);
   function fanTriangulate(n){ const idx=[]; for(let i=1;i<n-1;i++) idx.push(0,i,i+1); return idx; }
   function projectRing(ring){
@@ -262,12 +262,12 @@ _APP_JS = r"""
     const parts = Object.prototype.hasOwnProperty.call(WALL_PARTS,s.name) ? WALL_PARTS[s.name] : [{verts:s.verts,holes:[]}];
     parts.forEach(part=>{
       const dup=part.duplicate_at_rest ?? isDup(s);
-      const mesh=new THREE.Mesh(ringGeom(part.verts,part.holes||[]), m.clone());
       const enclosureCondition=part.enclosure_condition || 'physical';
-      if(enclosureCondition==='unknown'){
-        mesh.material.color.setHex(UNKNOWN_COLOR); mesh.material.opacity=0.38;
-        mesh.material.transparent=true; mesh.material.depthWrite=false;
-      }
+      // Unknown patches are represented by the enclosure-region helper below.
+      // Skipping their projected wall part prevents two coincident viewer faces;
+      // the authoritative source boundary and display projection remain untouched.
+      if(enclosureCondition==='unknown') return;
+      const mesh=new THREE.Mesh(ringGeom(part.verts,part.holes||[]), m.clone());
       mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup,
         enclosureCondition,
         area:polyArea(part.verts)-(part.holes||[]).reduce((sum,r)=>sum+polyArea(r),0)};
@@ -281,16 +281,27 @@ _APP_JS = r"""
       {zone,floor:fi,kind:'logical',dup:false}));
     m.dispose();
   });
+  const enclosureRegionKeys=new Set();
+  function enclosureRegionKey(ring){
+    return ring.map(v=>v.map(x=>Math.round(x*1e6)/1e6).join(',')).sort().join('|');
+  }
   ENC_REGIONS.forEach(r=>{
     if(!(r.verts||[]).length) return;
     const sourceBoundary=SOURCE_BOUNDARIES[r.boundary_id] || {};
     const zone=r.space_id || sourceBoundary.space_id || '?';
     const fi=zoneFloor[zone] ?? nearestBase(Math.min(...r.verts.map(v=>v[2])),BASES);
-    const color=r.condition==='unknown'?UNKNOWN_COLOR:OPEN_COLOR;
-    enclosureLines.push(dashedEdge(r.verts,color,radius*0.012,radius*0.008,
-      {zone,floor:fi,kind:'enclosure-region',condition:r.condition,dup:Boolean(r.duplicate_at_rest),
-       boundaryId:r.boundary_id,area:polyArea(r.verts),sourceRefs:r.source_refs||[],assumptions:r.assumptions||[],
-       evidenceKind:r.evidence_kind,baseColor:color}));
+    const key=enclosureRegionKey(r.verts), duplicate=enclosureRegionKeys.has(key);
+    enclosureRegionKeys.add(key);
+    const userData={zone,floor:fi,kind:'enclosure-region',condition:r.condition,dup:duplicate,
+      boundaryId:r.boundary_id,area:polyArea(r.verts),sourceRefs:r.source_refs||[],assumptions:r.assumptions||[],
+      evidenceKind:r.evidence_kind,baseColor:ENCLOSURE_COLOR};
+    // This translucent face is a viewer-only aid. It makes an open extent easy
+    // to see without restoring a physical wall, changing volume, or connectivity.
+    const material=new THREE.MeshBasicMaterial({color:ENCLOSURE_COLOR,side:THREE.DoubleSide,
+      transparent:true,opacity:ENCLOSURE_OPACITY,depthWrite:false});
+    const mesh=new THREE.Mesh(ringGeom(r.verts),material); mesh.userData=userData;
+    enclosureMeshes.push(mesh); root.add(mesh);
+    enclosureLines.push(dashedEdge(r.verts,ENCLOSURE_COLOR,radius*0.012,radius*0.008,{...userData}));
   });
   WINS.forEach(w=>{
     const zone=zoneOfWindow(w), sv=popOut(w.verts, zone);  // proud of wall → clean + pickable
@@ -312,7 +323,7 @@ _APP_JS = r"""
     const em=new THREE.LineSegments(edgeGeom(o.verts),new THREE.LineBasicMaterial({color}));
     em.userData={zone,floor:zoneFloor[zone]||0,dup,kind:'opening'};edgeSegs.push(em);root.add(em);
   });
-  const allMeshes = () => surfMeshes.concat(winMeshes,openingMeshes);
+  const allMeshes = () => surfMeshes.concat(winMeshes,openingMeshes,enclosureMeshes);
   const allPickables = () => allMeshes().concat(enclosureLines);
 
   function applyClipping(){ const p=activePlanes();
@@ -334,12 +345,12 @@ _APP_JS = r"""
   let selected=new Set(); const selGroup=new THREE.Group(); scene.add(selGroup);
   function refreshColors(){
     const mode=$('colorBy').value;
-    surfMeshes.forEach(m=>{ let c; if(m.userData.enclosureCondition==='unknown') c=UNKNOWN_COLOR;
-      else if(mode==='floor') c=FLOOR_COLORS[m.userData.floor%FLOOR_COLORS.length];
+    surfMeshes.forEach(m=>{ let c; if(mode==='floor') c=FLOOR_COLORS[m.userData.floor%FLOOR_COLORS.length];
       else if(mode==='zone') c=roleColor(m.userData.zone);   // colour by room type
       else if(mode==='edge') c=WHITE; else c=TYPE_COLORS[m.userData.type] ?? 0xcccccc;
       m.userData.baseColor=c; });
     winMeshes.forEach(m=>m.userData.baseColor=WINDOW_COLOR);
+    enclosureMeshes.forEach(m=>m.userData.baseColor=ENCLOSURE_COLOR);
     allPickables().forEach(m=>m.material.color.setHex(selected.has(m) ? SEL_COLOR : m.userData.baseColor));
     updateLegend(mode);
   }
@@ -506,6 +517,7 @@ _APP_JS = r"""
     surfMeshes.forEach(m=>m.visible = sw && okF(m.userData));
     winMeshes.forEach(m=>m.visible = swin && okF(m.userData));
     openingMeshes.forEach(m=>m.visible=$('showOpen').checked && okF(m.userData));
+    enclosureMeshes.forEach(m=>m.visible=$('showEnclosure').checked && okF(m.userData));
     edgeSegs.forEach(e=>e.visible = se && okF(e.userData) && (e.userData.kind!=='opening'||$('showOpen').checked));
     logicalLines.forEach(e=>e.visible=$('showLogical').checked && okF(e.userData));
     enclosureLines.forEach(e=>e.visible=$('showEnclosure').checked && okF(e.userData)); }
@@ -516,6 +528,7 @@ _APP_JS = r"""
   function applyExplode(){ surfMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     winMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     openingMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
+    enclosureMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     edgeSegs.concat(logicalLines,enclosureLines).forEach(e=>e.position.copy(explodeOffset(e.userData.zone)));
     applyFilter(); }  // re-evaluate dup visibility when crossing explode 0 ↔ >0
 
@@ -531,7 +544,7 @@ _APP_JS = r"""
     row('已记录的门/开口连接',(SOURCE.connections||[]).length) +
     (SOURCE.schema_version==='source_bim_v3' ? row('半开敞 / 开敞空间',SOURCE.spaces.filter(s=>['semi_open','open'].includes(s.enclosure)).length) +
       row('开敞 / 未知边界',SOURCE.boundaries.filter(b=>['open','unknown','mixed'].includes(b.enclosure)).length) : '') +
-    '<p>逻辑闭合只界定空间范围，不表示实体密闭或热区。青色虚线是明确开敞区域；琥珀色是未知围护。</p>';
+    '<p>逻辑闭合只界定空间范围，不表示实体密闭或热区。半透明灰色是开敞或未知围护的查看辅助面；点选后可区分语义与来源。</p>';
 
   // ---- room-type legend (shown in zone mode: colour swatch → room type) ----
   function updateLegend(mode){
@@ -562,8 +575,7 @@ _APP_JS = r"""
   $('showWalls').onchange=applyFilter; $('showWin').onchange=applyFilter; $('showEdges').onchange=applyFilter;
   $('showOpen').onchange=applyFilter; $('showLogical').onchange=applyFilter; $('showEnclosure').onchange=applyFilter;
   $('opacity').oninput=e=>{const v=parseFloat(e.target.value); surfMeshes.forEach(m=>{
-    m.material.opacity=m.userData.enclosureCondition==='unknown'?Math.min(0.38,v):v;
-    m.material.transparent=m.userData.enclosureCondition==='unknown'||v<1;});};
+    m.material.opacity=v; m.material.transparent=v<1;});};
   $('explode').oninput=applyExplode; $('explodeMode').onchange=applyExplode;
   $('measure').onclick=()=>{ measuring ? clearMeasure() : startMeasure(); };  // toggle
   $('clearMeasure').onclick=clearMeasure;
@@ -601,8 +613,8 @@ _PANEL_HTML = r"""
   <label class="chk"><input type="checkbox" id="showOpen" checked> 门 / 空开口</label>
   <label class="chk"><input type="checkbox" id="showEdges" checked> edges</label>
   <label class="chk"><input type="checkbox" id="showLogical"> 逻辑空间边界（细虚线）</label>
-  <label class="chk"><input type="checkbox" id="showEnclosure" checked> 开敞 / 未知区域轮廓</label>
-  <div class="enclosure-key"><span class="open-key"></span>明确开敞　<span class="unknown-key"></span>围护未知</div>
+  <label class="chk"><input type="checkbox" id="showEnclosure" checked> 开敞 / 未知辅助面</label>
+  <div class="enclosure-key"><span></span>开敞 / 未知（点选查看类型）</div>
 
   <div id="sections"></div>
 
@@ -636,9 +648,8 @@ _STYLE = r"""
   #panel label.chk { font-size:13px; margin:7px 0; cursor:pointer; }
   #panel label.chk input { margin-right:7px; vertical-align:-1px; }
   .enclosure-key { color:#667085; font-size:11.5px; margin:5px 0 0 2px; }
-  .enclosure-key span { width:13px; height:3px; display:inline-block; margin:0 4px 2px 0; }
-  .enclosure-key .open-key { background:#00a6a6; }
-  .enclosure-key .unknown-key { background:#e69a2d; }
+  .enclosure-key span { width:13px; height:3px; display:inline-block; margin:0 4px 2px 0;
+    background:#8b949e; opacity:.65; }
   #panel input[type=range] { width:100%; margin:2px 0 4px; accent-color:#3b6ea5; }
   #panel select { width:100%; padding:6px 8px; font-size:13px; border:1px solid #cfd4da; border-radius:6px; background:#fff; }
   #panel button { width:100%; padding:8px; margin-top:8px; font-size:13px; cursor:pointer;
