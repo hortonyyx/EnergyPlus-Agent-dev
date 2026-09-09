@@ -61,3 +61,15 @@ python -m scripts.tool_scripts.run_stage --run-profile exploratory --capability-
 
 正式比较成绩时另行检查 GT、输入隔离和评分口径。当前研发默认探索档，正式成绩不会自动由探索结果晋升。
 更完整的旧操作步骤只供查询：[历史手册](../archive/2026-09-08_pre_takeover/guides/new_case_guide.md)。
+
+## M0 离线源分区诊断
+
+从仓库根运行 [诊断脚本](../../scripts/tool_scripts/diagnose_source_partitions.py)，输出目录必须是新的独立目录：
+
+```bash
+python scripts/tool_scripts/diagnose_source_partitions.py --out AI_agent/logs/experiments/NEW_SOURCE_PARTITION_RUN
+```
+
+它读取固定 sm21/sm24/sm25 历史产物、复用当前确定性内核和 sm25 已接受的 B5 证明，不调用模型或 EP、不修改旧 run。`index.html` 汇总历史与当前查看入口、分区/建模状态；`report.json` 保存输入哈希与具体证据。sm24 三墙 fixture 有明确人工分组，8 空间预览不建 11 扇窗（完整候选保留窗记录），不得报告为完整重建。sm21/sm25 缺独立分区参照时为 not_evaluated。
+
+正常 Stage 2 还会写 `source_model.json`，并提前生成 CLI 查看 HTML；这不授予人工确认，也未迁移当前 Stage 3 后的正式确认停点。

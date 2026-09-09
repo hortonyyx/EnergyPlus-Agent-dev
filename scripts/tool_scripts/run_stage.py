@@ -960,10 +960,19 @@ def _draw_modelling(run_dir: Path, policy: RunPolicy):
         window_host_proof=window_host_proof,
     )
     if bg is None:
+        if any(issue.startswith("source.") for issue in issues):
+            _render_geometry_viewer(
+                run_dir, run_dir.parent, geometry_path=s2 / "building_geometry.json",
+            )
         rep = CheckReport(stage="2_modelling")
         rep.add("kernel.build", CheckStatus.ERROR, CheckLayer.INVARIANT,
                 message="geometry kernel build failed: " + "; ".join(issues))
         return {}, rep
+    # Make the current Stage 2 candidate viewable even if a solver gate fails.
+    # This is a viewing artifact, not a grant of human geometry approval.
+    _render_geometry_viewer(
+        run_dir, run_dir.parent, geometry_path=s2 / "building_geometry.json",
+    )
     rep = check_kernel(
         bg,
         window_host_proof=window_host_proof,
@@ -1476,13 +1485,15 @@ def _render_stage(stage: str, run_dir: Path, case_dir: Path) -> list[str]:
     return produced
 
 
-def _render_geometry_viewer(run_dir: Path, case_dir: Path) -> str | None:
+def _render_geometry_viewer(
+    run_dir: Path, case_dir: Path, *, geometry_path: Path | None = None,
+) -> str | None:
     """Generate the self-contained offline interactive 3D viewer for the geometry
     confirmation gate (backlog #3). Returns its path, or None / an error string.
     The GLB exporter (render_building_3d.py) is kept as a tool but no longer wired
     into the main flow."""
     sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
-    bg = _accepted_output_path(run_dir, "2_modelling") or (
+    bg = geometry_path or _accepted_output_path(run_dir, "2_modelling") or (
         run_dir / "2_modelling" / "building_geometry.json"
     )
     if not bg.exists():
@@ -1491,6 +1502,13 @@ def _render_geometry_viewer(run_dir: Path, case_dir: Path) -> str | None:
         import render_geometry_viewer as rgv
 
         data = json.loads(bg.read_text(encoding="utf-8"))
+        source_path = run_dir / "2_modelling" / "source_model.json"
+        if source_path.exists():
+            from src.agent.geometry.source_model import _digest
+
+            source = json.loads(source_path.read_text(encoding="utf-8"))
+            if source.get("derived_geometry_sha256") == _digest(data):
+                data["source_model"] = source
         # Human geometry-confirmation artifact lives in its own manual_review/
         # folder (not a pipeline-stage output); role-coloured from the sibling
         # 1_correction so the reviewer sees room types. (backlog: edit-writeback.)

@@ -2549,7 +2549,9 @@ def materialize_kernel_geometry(
     `run_pipeline` reuses this object (it does NOT build a second time). On a hard
     kernel error returns `(None, [err])` so the caller can fail loudly. The
     InterZone gate issues are advisory here (the downstream gate re-checks the
-    assembled IDF). Never raises.
+    assembled IDF). Source realization failures return None after saving the
+    candidate geometry and source report, so exploratory runs also stop. Never
+    raises for build/validation failures.
     """
     # Lazy imports: keep the kernel (shapely/eppy) off the hot path for callers
     # that never reach here, mirroring the run_pipeline import discipline.
@@ -2565,7 +2567,14 @@ def materialize_kernel_geometry(
             capability_profile=capability_profile,
             window_host_proof=window_host_proof,
         )
+        from src.agent.geometry.source_model import materialize_source_model
+
+        source_model = materialize_source_model(geom, bg)
         issues = validate_interzone_surface_pairs(building_to_idf(bg))
+        issues.extend(
+            f"{finding['code']}: {json.dumps(finding, ensure_ascii=False)}"
+            for finding in source_model["validation"]["findings"]
+        )
     except Exception as e:  # noqa: BLE001 — advisory build, never fatal here
         logger.warning("kernel: geometry build/gate failed: {}", e)
         err = [f"kernel-error: {type(e).__name__}: {e}"]
@@ -2590,6 +2599,9 @@ def materialize_kernel_geometry(
         (out_dir / "building_geometry.json").write_text(
             building_geometry_json(bg), encoding="utf-8"
         )
+        (out_dir / "source_model.json").write_text(
+            json.dumps(source_model, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         (out_dir / "kernel_gate_report.json").write_text(
             json.dumps(
                 {"gate_issues": issues, "build_notes": bg.notes},
@@ -2598,6 +2610,10 @@ def materialize_kernel_geometry(
             ),
             encoding="utf-8",
         )
+    # Source realization failures must never become downstream physical geometry,
+    # including exploratory runs. Keep the candidate files for diagnosis first.
+    if source_model["validation"]["status"] == "severe":
+        return None, issues
     return bg, issues
 
 

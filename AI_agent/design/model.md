@@ -1,6 +1,17 @@
 # 共同轻量建筑模型
 
-这是两路输入共有的数据要求，正式新 schema 尚未定稿；已实现的类型与限制见 [现有实现](implementation.md)。
+这是两路输入共有的数据要求。09-09 已落最小源对象与 Stage 2 投影，完整开口/连通 schema 尚未贯通；已实现的类型与限制见 [现有实现](implementation.md)。
+
+## 已实现的最小源投影（09-09 M0 增量）
+
+权威可修改参数仍在 CorrectedGeometry 的 Cell/Window；Cell.id 是源空间身份，不采用会重排的 Z 编号。[source_model.py](../../src/agent/geometry/source_model.py) 从它和确定性建模输出生成 `2_modelling/source_model.json`，复用 [schema.py](../../src/agent/correction/schema.py) 的 SourceSpace/SourceBoundary/SourceOpening。现有 geometry JSON/specs 字节合同保持原样，源投影是附带产物。
+
+- 空间保存 cell ID、楼层、完整多边形、高度、role 和校正对象引用。源边界按空间与规整后的环边序编号，尺寸变化/显示面细分不依赖 Z 排序；新增/删除源边需要显式迁移边界身份，不能承诺任意拓扑编辑后 ID 自动稳定。
+- 边界是有方向的空间边界，含 owner、相邻空间和对侧边界引用。同一物理隔断的两侧仍为两个相关联的源边界，不假装已建立唯一全局墙实体。当前 Cell 环按物理隔断解释；virtual/door/open 有类型槽，尚无生产生成/导出支持。
+- 已有窗保留源 ID、宿主源边界、空间/室外、顶点和 unknown 连通状态。重复/丢失窗、窗移位或错宿主会报告严重问题。门、空开口与可通行关系仍未评价。
+- `derived` 分别将 zone/surface/window 映射到源对象；源墙覆盖、派生面是否位于源边界、同一源空间内多出的墙和开口映射会检查。严重映射错误先保存候选与报告，然后阻断下游，探索模式也不例外。
+
+源/派生内容各有摘要；查看器只在派生摘要匹配时载入附带源投影。映射检查的 2 μm 容差仅兼容现有切配的 1 μm buffer 和六位小数，不是图纸比较或规整容差。映射通过证明建模保留了校正对象，不能证明 correction 没有读错/切错房间；后者由独立分区参照与输入证据评价。
 
 ## 源对象与派生对象
 

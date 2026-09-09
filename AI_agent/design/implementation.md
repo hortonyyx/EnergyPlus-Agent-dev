@@ -1,6 +1,6 @@
 # 现有实现与能力边界
 
-依据业务代码 `461dfc98` 和 [2026-09-08 代码审计](../logs/experiments/2026-09-08_management_audit/README.md)。本轮管理整理未扩展业务能力；当前 case 的具体状态只在 [路线与任务](../project/roadmap.md) 维护。
+旧能力基线依据业务代码 `461dfc98` 和 [2026-09-08 代码审计](../logs/experiments/2026-09-08_management_audit/README.md)。09-09 已新增 M0 源投影、分区比较与提前 HTML 查看；当前 case 的具体状态只在 [路线与任务](../project/roadmap.md) 维护。
 
 ## 实际调用链
 
@@ -10,7 +10,7 @@
 |---|---|---|
 | 0_reading | 读取并检查预生成的 `*_view.json`，不自动调用视觉模型读原图 | [run_stage.py](../../scripts/tool_scripts/run_stage.py)、[reading](../../src/agent/reading/) |
 | 1_correction | legacy/as-drawn 分派、多层证据整合、坐标校正、补窗与 finalize，输出 CorrectedGeometry/V3 | [pipeline.py](../../src/agent/pipeline.py)、[correction](../../src/agent/correction/) |
-| 2_modelling | 构建 BuildingGeometry，build 内已造面、切配和挂窗 | [build.py](../../src/agent/geometry/build.py) |
+| 2_modelling | 构建 BuildingGeometry，build 内已造面、切配和挂窗；附带 source_model.json 与源映射检查，CLI 提前生成 HTML | [build.py](../../src/agent/geometry/build.py)、[source_model.py](../../src/agent/geometry/source_model.py) |
 | 3_split_pairing | 当前 CLI 再从校正产物重建，序列化 specs 并与前段几何核对 | [split_pairing.py](../../src/agent/geometry/split_pairing.py)、run_stage.py |
 | 4_mep | 生成非几何语义；HVAC specs 由代码按 zones 替换并合入保留 schedules | pipeline.py、[intakeoutput.py](../../src/agent/intakeoutput.py) |
 | 5_intakeoutput | 朝向/坐标合同、已接受产物核对、装配 IntakeOutput 和 sidecar | [output_coordinates.py](../../src/agent/output_coordinates.py) |
@@ -45,7 +45,7 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 | 平面非正交 | 底层 polygon/线段及法向原语可复用 | `cell_geometry.cell_polygon` 和 facade visibility 明确拒绝非正交边，run_config 只接受 rectangular/orthogonal_polygon；读图/校正/评分的轴向假设也要变 |
 | 整栋旋转/真北 | 建筑局部坐标与朝向出口已有实现 | 旋转的正交建筑与内部斜墙不是同一能力；输入方向识别与未命名立面匹配需分别验收 |
 
-上述为代码边界，未执行新能力实验。施工顺序、样例和完成依据见 [执行计划](../project/drawing_reconstruction_plan.md)。
+上述为复杂度边界；M0 已执行确定性分区回归和旧产物重放，尚无新原图冷启动实验。施工顺序、样例和完成依据见 [执行计划](../project/drawing_reconstruction_plan.md)。
 
 ## 面向目标的缺口
 
@@ -57,7 +57,7 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 - [GT 配置](../../src/configs/judge_gt.yaml) 的 DXF 节点连接/轴对齐为 0.001 m；as-drawn 分母仍从签字源 DXF 生成。GT 准备/规整精度与最后产品评价容差属于不同环节，不能只修改评分配置便声称解决了前者。
 - sm25 当前 J0/J1 已放行，建模的 `kernel.pairing_gate` 将 [InterZone 检查](../../src/validator/interzone.py) 的短边问题升为 invariant，0.065 m 小于硬编码 0.1 m 后停止。该规则来自历史崩溃防护，尚未证明是所有模型/EP 版本的普遍下限；也不是 GT 逐点比较导致的这次直接停止。
 
-09-09 已将 [评价原则](evaluation.md) 调整为定性优先、容差规整和自动判断。以上代码行为本轮未改；下一批先用真实产物与扰动对照选择具体改动，不能把文档更新当作 gate 已放宽。
+09-09 新增 [确定性分区比较器](../../src/agent/judge/source_partition.py) 和三案例诊断入口，尚未接入 J0/J1 自动取参照路径。源到派生映射已接 Stage 2：严重实现错误保存候选后返回失败，包含 exploratory 路径；其余既有 gate 阈值未放宽。源投影的具体覆盖与限制见 [共同模型](model.md)，比较器边界见 [评价原则](evaluation.md)。
 
 | 能力 | 已有基础 | 缺口 |
 |---|---|---|

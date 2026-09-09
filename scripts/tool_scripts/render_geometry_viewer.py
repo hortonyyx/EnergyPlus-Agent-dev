@@ -56,6 +56,8 @@ _APP_JS = r"""
   const SURF = (GEO.surfaces || []).filter(s => (s.verts || []).length >= 3);
   const WINS = (GEO.windows || []).filter(w => (w.verts || []).length >= 3);
   const ZONES = (GEO.zones || []).slice().sort((a, b) => b.length - a.length);
+  const SOURCE = GEO.source_model || null;
+  const SOURCE_MAP = SOURCE ? SOURCE.derived : {zones:{}, surfaces:{}, windows:{}};
   // resolve a window's zone: its parent surface's zone first (parent = "<wall>_<i>"),
   // then a zone-name prefix, then the nearest zone centroid — never returns '?' so a
   // window always pops out + groups/explodes with a real zone.
@@ -373,10 +375,12 @@ _APP_JS = r"""
     if(mode==='floor') return '<div class="hh">floor</div>'+kv([['floor','F'+(u.floor+1)]]);
     if(mode==='zone'){ const r=roleOf(u.zone);
       return '<div class="hh">zone</div>'+kv([['name',u.zone],['type',r||'—'],
+        ['源空间 ID',SOURCE_MAP.zones[u.zone]],
         ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']]); }
     // surface: gross area (a wall's polygon is the FULL rectangle — window openings are
     // separate child surfaces and are NOT subtracted)
     return '<div class="hh">surface</div>'+kv([['name',u.name],['type',u.type],
+      ['源对象 ID',SOURCE_MAP.surfaces[u.name] || SOURCE_MAP.windows[u.name]],
       ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'gross (windows not deducted)':'']]);
   }
   function handleClick(ev){
@@ -432,6 +436,10 @@ _APP_JS = r"""
     '<div class="hh">MODEL</div>' + row('zones',(GEO.zones||[]).length) + row('surfaces',SURF.length) + row('windows',WINS.length) +
     '<div class="hh">BOUNDING BOX</div>' + row('width (x)',size.x.toFixed(2)+' m') + row('depth (y)',size.y.toFixed(2)+' m') +
     row('height (z)',size.z.toFixed(2)+' m') + row('floors',BASES.length);
+  if(SOURCE) $('hud').innerHTML += '<div class="hh">源建筑模型</div>' +
+    row('源空间',SOURCE.spaces.length) + row('源边界',SOURCE.boundaries.length) +
+    row('源开口',SOURCE.openings.length) + row('派生映射检查',esc(SOURCE.validation.status)) +
+    '<p>映射通过仅表示建模保留了校正对象。图纸分区正确性、门洞连通及人工确认另行评价。</p>';
 
   // ---- room-type legend (shown in zone mode: colour swatch → room type) ----
   function updateLegend(mode){
@@ -621,6 +629,7 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
         "surfaces": data.get("surfaces", []),
         "windows": data.get("windows", []),
         "roles": roles if roles is not None else data.get("roles", {}),
+        "source_model": data.get("source_model"),
     }
     safe_title = html.escape(title)  # HTML-context (title tag + panel text)
     return (
@@ -645,6 +654,13 @@ def main() -> int:
     args = ap.parse_args()
     j = Path(args.json)
     data = json.loads(j.read_text(encoding="utf-8"))
+    source_path = j.with_name("source_model.json")
+    if source_path.exists():
+        from src.agent.geometry.source_model import _digest
+
+        source = json.loads(source_path.read_text(encoding="utf-8"))
+        if source.get("derived_geometry_sha256") == _digest(data):
+            data["source_model"] = source
     if args.roles:
         roles = json.loads(Path(args.roles).read_text(encoding="utf-8"))
     else:

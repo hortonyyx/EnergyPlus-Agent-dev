@@ -639,7 +639,7 @@ def attach_windows(
             continue
         verts = _legacy_cardinal_window_verts(w, parent)
         if verts:
-            win = Window("", parent.name, verts)
+            win = Window("", parent.name, verts, source_window_id=str(w.id))
             windows.append(win)
             pending.append((win, str(w.id)))
 

@@ -194,7 +194,11 @@ _FACADE_ALIASES = {
 
 
 class Cell(BaseModel):
-    """One enclosed room footprint on a floor (world meters)."""
+    """One source room footprint (world meters), never a display/thermal slice.
+
+    ``id`` is the persistent source-space identity. Public Z handles are derived
+    and can change when geometry ordering changes. Preserve this id on edits.
+    """
 
     model_config = ConfigDict(extra="allow")
     id: str
@@ -202,6 +206,51 @@ class Cell(BaseModel):
     x: list[float]  # [min, max]
     y: list[float]  # [min, max]
     polygon: list[list[float]] | None = None  # exterior ring, CCW, not closed
+
+
+class SourceSpace(BaseModel):
+    """Materialized source identity; independent of downstream zone numbering."""
+
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    floor_id: str
+    polygon: list[list[float]]
+    z_floor: float
+    height: float
+    role: str
+    source_refs: list[str] = Field(default_factory=list)
+
+
+class SourceBoundary(BaseModel):
+    """A source room's oriented boundary, possibly split into several faces.
+
+    Adjacent spaces and counterpart boundaries are derived relations, not a
+    claim that adjacency is traversable. A long wall can border several rooms.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    space_id: str
+    kind: Literal["physical", "virtual"]
+    geometry_type: Literal["wall", "floor", "ceiling"]
+    vertices: list[list[float]]
+    adjacent_space_ids: list[str] = Field(default_factory=list)
+    counterpart_ids: list[str] = Field(default_factory=list)
+    source_refs: list[str] = Field(default_factory=list)
+
+
+class SourceOpening(BaseModel):
+    """An identified opening and its source host, without door-leaf solids."""
+
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    kind: Literal["window", "door", "open"]
+    host_boundary_id: str
+    space_ids: list[str]
+    exterior: bool
+    vertices: list[list[float]]
+    connectivity: Literal["unknown", "open", "closed"] = "unknown"
+    source_refs: list[str] = Field(default_factory=list)
 
 
 class Window(BaseModel):
