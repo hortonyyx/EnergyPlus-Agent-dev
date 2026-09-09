@@ -1,5 +1,7 @@
 # 09-09 纠偏：定性优先、容差规整与自动评价
 
+**同日后续更正**：下文记录了当时读取的历史 judge 判语；不能将 sm24 的 11/8 拆分当成当前可接受的轻微偏差。用户随后明确 reading 正确、C2 前 correction 切房，源码产物核对也发现校正已产生 11 cells，并生成三个内部 Wall 配对。最新原则及计划以 [后续记录](2026-09-09_drawing_route_execution_plan.md) 为准。
+
 ## 用户要求与本轮结果
 
 用户要求回看 sm21/sm24/sm25 的历史成功案例和 0–5 pipeline/gate。judge + GT 原为减少人工核对、自动看到运行效果，也为 CAD 模态接入积累资产；不应因 CAD 制图/数值细微误差长期陷入 GT 精修。pipeline、CAD 输入产物和 GT 都不要求逐点严丝合缝，核心是正确的丐版 BIM，定性大于定量。
@@ -11,7 +13,7 @@
 | 案例与路径 | 直接读取的证据 | 可复用的经验 |
 |---|---|---|
 | [sm21 07-02 run](../../../case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e) | `2_modelling/building_geometry.json`：14 区/100 面/15 窗；`EP/EP_run/eplusout.end`：成功、6 warning/0 severe；J0/J1 清单均 pass | 0–5、judge、报告与 EP 链曾实际贯通，能复用；报告记录人工确认与证据 flags，不等于本次无人值守成绩 |
-| [sm24 06-24 run](../../../case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading) | 几何：11 区/76 面/11 窗；EP 完成文件：成功、6 warning/0 severe；J0 的 L 形坐标及 J1 区数项为 minor | 历史报告把 11 区相对声明 8 区归因为非矩形空间的矩形分解。定性 judge 允许轻微表示差异继续；源房间身份仍应保留 |
+| [sm24 06-24 run](../../../case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading) | 几何：11 区/76 面/11 窗；EP 完成文件：成功、6 warning/0 severe；J0 的 L 形坐标及 J1 区数项为 minor | 历史报告归因为非矩形空间的矩形分解并放行；同日后续已纠正为源分区失真，应作为回归反例，不沿用 minor 验收 |
 | [sm25 run_win_e2e](../../../case_tests/e2e_tests/sm25-L_anchor/run_win_e2e) | 状态：J0/J1 `judge_pass`，2_modelling `deterministic_defect`；已有 27 区/208 面/31 窗 | 不能把本次直接停止归因于 judge 的逐点 GT 比较。复用现有可视/诊断产物，针对实际 gate 消费者处理 |
 
 本轮在 `sm25-L_anchor` 下未找到 `eplusout.end`，也在本地 `backup`/`data` 中按 sm25/smalloffice_25 目录名查找，未补定位到 EP 成功记录；不据此否认用户提及的其他成功产物。已定位的 sm25 reading/correction/modelling 仍纳入三案例资产，后续遇到其他旧路径再补索引，不因此阻塞推进。

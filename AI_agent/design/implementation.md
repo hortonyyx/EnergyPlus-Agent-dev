@@ -4,7 +4,7 @@
 
 ## 实际调用链
 
-历史链路已有实际成功产物：sm21 `run_2026-07-02_sonnet_flow_e2e` 为 14 区/100 面/15 窗，sm24 `run_2026-06-24_opus_reading` 为 11 区/76 面/11 窗，两者的 EP 完成文件均为成功、0 severe。sm24 的 11 区相对声明 8 区，历史 judge 归因为非矩形空间拆分并判 minor。它们可复用为功能资产，历史人工参与、模型配置和表示限制不能当成当前自动运行成绩。sm25 本轮定位到 reading/correction/modelling 的阶段产物，未定位到历史 EP 成功文件；不据此断言用户提及的其他 sm25 成功产物不存在。路径与核对见 [本轮记录](../logs/worklog/2026-09-09_qualitative_reconstruction.md)。
+历史链路已有实际成功产物：sm21 `run_2026-07-02_sonnet_flow_e2e` 为 14 区/100 面/15 窗，sm24 `run_2026-06-24_opus_reading` 为 11 区/76 面/11 窗，两者的 EP 完成文件均为成功、0 severe。**sm24 是下游运行成功、源分区失真的资产**：用户确认 reading 正确、C2 之前 correction 切房；`1_correction/attempts/002/output.json` 已有 11 个矩形 cell，走廊分为两片、右下办公室分为三片，随后生成三个内部 Wall 配对。历史 judge 的 minor 判定不符合当前源 BIM 标准，应作为回归反例。历史人工参与、模型配置和表示限制不能当成当前自动运行成绩。sm25 已定位到 reading/correction/modelling 阶段产物，未定位到历史 EP 成功文件。最新证据见 [复杂度与分区核对](../logs/worklog/2026-09-09_drawing_route_execution_plan.md)。
 
 | 阶段 | 当前行为与产物 | 实现 |
 |---|---|---|
@@ -33,6 +33,19 @@ as-drawn 的 reading 检查覆盖契约、标定和尺寸链，旧字段检查�
 
 E4 的建筑坐标、Relative、Zone 归零和来源朝向已经接入装配及导出检查；并非全部 legacy 入口都等价消费。[state.py](../../src/agent/state.py) 中 IntakeOutput 仍以 building、site_location 及九类 specs 交接下游，多数 specs 是文本，不能替代可编辑的建筑模型。
 V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/family 范围匹配，还会拒绝部分 assumed existence；不能直接用于任意外壳或全推断开口。
+
+### 建筑复杂度的实际边界（09-09 定向核对）
+
+| 能力 | 现有支撑 | 当前不能据此宣称完成的部分 |
+|---|---|---|
+| 正交非矩形房间 | `Cell.polygon`、C2 多边形造面/挂窗；`test_c2_b1_cell_polygon.py` 已有单个 L 形走廊和 sm24 形状用例 | 整个原图冷启动流程与源分区保真仍需真实 case 验证；不重做已实现的 C2 内核 |
+| 立面匹配与缺图 | ViewManifest、立面投影框架、可见性、宿主和来源基础 | 命名立面/已绑定方向不等于未命名视图自动匹配；当前 as-drawn 对缺立面会拒绝 |
+| 退台 | V3 每层 footprint 字段，切配已有层间交集及未覆盖 roof/exposed-floor 计算 | `assemble_multifloor_geometry` 仍以 `PER_FLOOR_FOOTPRINT_MISMATCH` 拒绝不同层外形；来源、校验、覆盖和立面消费者须一起贯通 |
+| 内院、挑空、通高 | 面模型、区域 z 范围、切配原语可复用 | Cell 只有外环；projection bridge 拒绝 `FOOTPRINT_HAS_INTERIORS`；造区域统一用所属层高度，墙按同层分组、楼板按相邻层处理，未表达一般孔洞/跨层连通空间 |
+| 平面非正交 | 底层 polygon/线段及法向原语可复用 | `cell_geometry.cell_polygon` 和 facade visibility 明确拒绝非正交边，run_config 只接受 rectangular/orthogonal_polygon；读图/校正/评分的轴向假设也要变 |
+| 整栋旋转/真北 | 建筑局部坐标与朝向出口已有实现 | 旋转的正交建筑与内部斜墙不是同一能力；输入方向识别与未命名立面匹配需分别验收 |
+
+上述为代码边界，未执行新能力实验。施工顺序、样例和完成依据见 [执行计划](../project/drawing_reconstruction_plan.md)。
 
 ## 面向目标的缺口
 
