@@ -122,7 +122,9 @@ def test_source_failure_stops_pipeline_but_preserves_viewable_candidate(tmp_path
     monkeypatch.setattr(run_stage, "_load_snapped_with_proof", lambda _run: (geom, None))
     payload, report = run_stage._draw_modelling(tmp_path, RunPolicy(capability_profile="orthogonal_polygon"))
     assert payload == {} and report.blocking()
-    viewer = (tmp_path / "manual_review/geometry_viewer.html").read_text()
+    # Stage 2 now writes a pointer page to the actual immutable snapshot.
+    pointer = json.loads((tmp_path / "_run/source_geometry_review.json").read_text())
+    viewer = (tmp_path / pointer["viewer"]).read_text()
     assert '"source_model"' in viewer and 'source.duplicate_opening' in viewer
     assert not (tmp_path / "_run/geometry_approval.json").exists()
 

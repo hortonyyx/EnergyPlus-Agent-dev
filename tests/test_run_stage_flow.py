@@ -55,6 +55,38 @@ def _pass_report(stage: str) -> CheckReport:
     return rep
 
 
+def test_source_bim_flow_does_not_enter_legacy_modelling_or_ep(tmp_path, monkeypatch):
+    _seed_case_data(tmp_path)
+    stages=[]
+    def draw(stage, *args, **kwargs):
+        stages.append(stage)
+        assert stage == "1_correction"
+        return _fake_make_draw_fn(stage,*args,**kwargs)
+    monkeypatch.setattr(rs,"_make_draw_fn",draw)
+    monkeypatch.setattr(rs,"_render_stage",lambda *args,**kwargs: [])
+    monkeypatch.setattr(rs,"_render_stage_grade_artifacts",lambda *args,**kwargs: [])
+    def forbidden(*args,**kwargs):
+        pytest.fail("source flow called a legacy geometry/EP/confirmation path")
+    monkeypatch.setattr(rs,"_draw_modelling",forbidden)
+    monkeypatch.setattr(rs,"_flow_ep",forbidden)
+    monkeypatch.setattr(rs,"approve_geometry",forbidden)
+    out=tmp_path/"source_bim"
+    args=_args(tmp_path,target="source-bim",bim_out=out,to_stage="5_intakeoutput")
+    assert rs.cmd_flow(args)==rs.FLOW_EXIT_OK
+    assert stages==["1_correction"]
+    assert len(json.loads((out/"source_model.json").read_bytes())["spaces"])==1
+    run=tmp_path/"case/run"
+    assert not (run/"2_modelling").exists() and not (run/"3_split_pairing").exists()
+    assert not (run/"_run/geometry_approval.json").exists()
+
+
+def test_source_bim_flow_rejects_ep_flags_before_mutation(tmp_path):
+    args=_args(tmp_path,target="source-bim",bim_out=tmp_path/"bim",with_ep=True)
+    with pytest.raises(SystemExit,match="cannot run EP"):
+        rs.cmd_flow(args)
+    assert not (tmp_path/"case").exists()
+
+
 def _fake_make_draw_fn(stage, run_dir, *_args, **_kwargs):
     def draw(_fb):
         attempts = run_dir / stage / "attempts"

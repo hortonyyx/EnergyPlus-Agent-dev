@@ -248,12 +248,13 @@ _APP_JS = r"""
     g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); return g; }
   const isDup = (s) => s.obc==='Surface' && s.obc_obj && s.name > s.obc_obj;  // one of each reciprocal pair
   SURF.forEach(s=>{
-    const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES), dup=isDup(s);
+    const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES);
     // FLAT (unlit) fill so every face of a zone renders the EXACT same colour — no
     // lighting wash that made horizontal (roof/floor) faces read near-white. Edges keep form.
     const m=new THREE.MeshBasicMaterial({side:THREE.DoubleSide, transparent:true, opacity:1});
     const parts = Object.prototype.hasOwnProperty.call(WALL_PARTS,s.name) ? WALL_PARTS[s.name] : [{verts:s.verts,holes:[]}];
     parts.forEach(part=>{
+      const dup=part.duplicate_at_rest ?? isDup(s);
       const mesh=new THREE.Mesh(ringGeom(part.verts,part.holes||[]), m.clone());
       mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup,
         area:polyArea(part.verts)-(part.holes||[]).reduce((sum,r)=>sum+polyArea(r),0)};
@@ -468,7 +469,7 @@ _APP_JS = r"""
     row('height (z)',size.z.toFixed(2)+' m') + row('floors',BASES.length);
   if(SOURCE) $('hud').innerHTML += '<div class="hh">源建筑模型</div>' +
     row('源空间',SOURCE.spaces.length) + row('源边界',SOURCE.boundaries.length) +
-    row('源开口',SOURCE.openings.length) + row('派生映射检查',esc(SOURCE.validation.status)) +
+    row('源开口',SOURCE.openings.length) + row(SOURCE.schema_version==='source_bim_v2'?'源几何检查':'派生映射检查',esc(SOURCE.validation.status)) +
     row('已记录的门/开口连接',(SOURCE.connections||[]).length) +
     '<p>检查只覆盖已记录的对象。没有记录门洞不等于没有门；图纸完整性及人工确认另行评价。</p>';
 
@@ -664,7 +665,7 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
         "surfaces": data.get("surfaces", []),
         "windows": data.get("windows", []),
         "openings": data.get("openings", []),
-        "visible_wall_parts": visible_wall_parts(data),
+        "visible_wall_parts": data["display_surface_parts"] if "display_surface_parts" in data else visible_wall_parts(data),
         "roles": roles if roles is not None else data.get("roles", {}),
         "source_model": data.get("source_model"),
     }

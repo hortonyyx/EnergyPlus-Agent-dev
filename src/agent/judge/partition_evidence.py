@@ -39,7 +39,7 @@ def _unavailable(reason):
     return {"status": "not_evaluated", "reason": reason, "findings": []}
 
 
-def reference_partition(geom, document, *, tolerance_m=.02):
+def reference_partition(geom, document, *, tolerance_m=.02, source_spaces=None):
     """Compare typed, validated reference polygons in their recorded world frame.
 
     No fitting to candidate coordinates, buffering rooms, or changing answers.
@@ -83,9 +83,11 @@ def reference_partition(geom, document, *, tolerance_m=.02):
             return _unavailable("ambiguous_floor_correspondence")
         mapping[identity] = matches[0] if matches else f"unmatched:{identity}"
         used.update(matches)
-    candidates = candidate_spaces(geom)
+    # A source BIM exporter can supply its actual emitted spaces. The correction
+    # still supplies floor identity metadata; evaluation never feeds GT back.
+    candidates = candidate_spaces(geom) if source_spaces is None else [dict(s) for s in source_spaces]
     for space in candidates:
-        space["floor_id"] = mapping[space["floor_id"]]
+        space["floor_id"] = mapping.get(space["floor_id"], f"unmatched:{space['floor_id']}")
     comparison = compare_partitions(refs, candidates, tolerance_m=tolerance_m)
     topology_codes = {"source_space_split", "source_spaces_merged", "extra_source_space",
                       "missing_source_space", "floor_assignment_changed", "vertical_extent_changed",

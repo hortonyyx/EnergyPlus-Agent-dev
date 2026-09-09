@@ -198,12 +198,8 @@ def _issue_verified_window_host_proof(
     return _reverify_window_host_proof(proof)
 
 
-def build_geometry(
-    geom: CorrectedGeometry,
-    *,
-    capability_profile: str = "rectangular",
-    window_host_proof: VerifiedWindowHostProof | None = None,
-) -> BuildingGeometry:
+def verify_geometry_input(geom: CorrectedGeometry, window_host_proof=None):
+    """Verify source bytes/host evidence independently of EP surface building."""
     is_b5 = str(geom.schema_version) == "3"
     if is_b5 and window_host_proof is None:
         raise ValueError("v3 build requires VerifiedWindowHostProof, including zero-window output")
@@ -211,14 +207,26 @@ def build_geometry(
         raise ValueError("legacy build must not receive B5 window host proof")
     proof_artifact = None
     if is_b5:
-        from src.agent.correction.config import load_core_tolerances
-
         assert window_host_proof is not None
         reverified = _reverify_window_host_proof(window_host_proof)
         proof_geom, _inputs, proof_artifact = _proof_parts(reverified)
         if proof_geom.model_dump(mode="json") != geom.model_dump(mode="json"):
             raise ValueError("build geom was mutated after verified output bytes were issued")
         geom = proof_geom
+
+    return geom, proof_artifact
+
+
+def build_geometry(
+    geom: CorrectedGeometry,
+    *,
+    capability_profile: str = "rectangular",
+    window_host_proof: VerifiedWindowHostProof | None = None,
+) -> BuildingGeometry:
+    geom, proof_artifact = verify_geometry_input(geom, window_host_proof)
+    is_b5 = str(geom.schema_version) == "3"
+    if is_b5:
+        from src.agent.correction.config import load_core_tolerances
 
     out = BuildingGeometry(geometry_contract="c2_b5_v1" if is_b5 else "legacy")
 

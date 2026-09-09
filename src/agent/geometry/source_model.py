@@ -39,33 +39,18 @@ def _digest(value: dict) -> str:
     ).encode()).hexdigest()
 
 
-def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> dict:
-    """Project correction objects and verify every derived face has a source.
-
-    IDs use cell identity and canonical boundary order, independent of Z names
-    and face subdivision. Topology edits that add/remove source edges need an
-    explicit identity migration; dimensional edits preserve boundary order.
-    The current correction contract only produces physical, single-ring rooms.
-    Explicit wall apertures are checked; unrecorded drawing openings and voids
-    remain unevaluated.
-    """
-    from src.agent.geometry.specs import building_geometry_dict
-
+def source_primitives(geom: CorrectedGeometry, *, polygon_builder=_cell_polygon):
+    """Build source identities and full room boundaries, without derived faces."""
     spaces: list[SourceSpace] = []
     boundaries: dict[str, SourceBoundary] = {}
     polygons: dict[str, Polygon] = {}
     by_space: dict[str, list[str]] = {}
-    findings: list[dict] = []
-
-    def fail(code: str, **evidence) -> None:
-        findings.append({"code": code, "severity": "severe", **evidence})
-
     for floor in geom.floors:
         floor_id = str(getattr(floor, "id", None) or floor.name)
         for cell in floor.cells:
             if cell.id in polygons:
                 raise ValueError(f"duplicate source space id: {cell.id}")
-            poly = _cell_polygon(cell)
+            poly = polygon_builder(cell)
             polygons[cell.id] = poly
             ring = _ring(poly)
             z0 = float(floor.z_floor)
@@ -92,6 +77,27 @@ def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> d
                     vertices=vertices, source_refs=[ref],
                 )
                 by_space[cell.id].append(bid)
+
+    return spaces, boundaries, polygons, by_space
+
+
+def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> dict:
+    """Project correction objects and verify every derived face has a source.
+
+    IDs use cell identity and canonical boundary order, independent of Z names
+    and face subdivision. Topology edits that add/remove source edges need an
+    explicit identity migration; dimensional edits preserve boundary order.
+    The current correction contract only produces physical, single-ring rooms.
+    Explicit wall apertures are checked; unrecorded drawing openings and voids
+    remain unevaluated.
+    """
+    from src.agent.geometry.specs import building_geometry_dict
+
+    spaces, boundaries, polygons, by_space = source_primitives(geom)
+    findings: list[dict] = []
+
+    def fail(code: str, **evidence) -> None:
+        findings.append({"code": code, "severity": "severe", **evidence})
 
     zone_map = {z.zone: z.cell_id for z in bg.zone_volumes}
     if len(zone_map) != len(bg.zone_volumes) or set(bg.zones) != set(zone_map):

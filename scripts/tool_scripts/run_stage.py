@@ -3291,9 +3291,21 @@ def cmd_approve_review(args) -> int:
 
 
 def cmd_flow(args) -> int:
+    source_target = getattr(args, "target", "ep") == "source-bim"
+    if source_target:
+        if args.with_ep or args.record:
+            raise SystemExit("source-bim target cannot run EP or write a legacy EP baseline")
+        if getattr(args, "bim_out", None) is None:
+            raise SystemExit("source-bim target requires --bim-out NEW_DIRECTORY")
+        if args.bim_out.exists():
+            raise SystemExit("--bim-out must be a new directory; previous outputs are immutable")
+        if args.to_stage not in ("1_correction", "5_intakeoutput") or args.from_stage not in ("auto", "0_reading", "1_correction"):
+            raise SystemExit("source-bim target runs reading/correction and exports source geometry; legacy stages 2-5 are not used")
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
     run_config = load_run_config(run_dir)
+    if source_target and run_config.scope_stages and "1_correction" not in run_config.scope_stages:
+        raise SystemExit("source-bim target requires correction, but run_config scope excludes it")
     review_switches = (
         _parse_review_switches(args.review or "")
         if args.review
@@ -3303,6 +3315,8 @@ def cmd_flow(args) -> int:
     to_stage = args.to_stage
     if run_config.present and args.to_stage == "5_intakeoutput" and run_config.scope_stages:
         to_stage = run_config.scope_stages[-1]
+    if source_target:
+        to_stage = "1_correction"
     run_profile, capability_profile, source = _resolve_run_profiles(run_config, args)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
@@ -3471,6 +3485,12 @@ def cmd_flow(args) -> int:
         print(f"  unhandled flow status: {outcome.status.value}")
         return FLOW_EXIT_CHECKPOINT
 
+    if source_target:
+        from src.agent.execution.source_bim import export_source_bim
+        report = export_source_bim(run_dir, args.bim_out, capability_profile=policy.capability_profile)
+        print(f"  source BIM: {args.bim_out} (source geometry ready={report['source_geometry_ready']}; drawing fidelity={report.get('drawing_fidelity', 'not_evaluated')})")
+        return FLOW_EXIT_OK if report["source_geometry_ready"] else FLOW_EXIT_STOP
+
     if args.with_ep:
         code = _flow_ep(run_dir, testdata_text, args, case_dir)
         if code:
@@ -3613,6 +3633,21 @@ def cmd_provision(args) -> int:
     return 0
 
 
+def cmd_bim(args) -> int:
+    """Generate the source BIM exit, independently of the legacy EP flow."""
+    from src.agent.execution.source_bim import export_source_bim
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    _case_dir, run_dir, _td_path = _resolve(args.base_dir, args.case, args.run)
+    frozen = resolve_frozen_run_policy(run_dir)
+    capability = args.capability_profile if frozen.legacy_defaulted else frozen.capability_profile
+    report = export_source_bim(run_dir, args.out, capability_profile=capability,
+                               candidate_attempt=args.candidate_attempt)
+    print(json.dumps({"status": report["status"], "counts": report.get("counts"),
+                      "output": str(args.out), "error": report.get("error")}, ensure_ascii=False))
+    return 0 if report["source_geometry_ready"] else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -3636,6 +3671,12 @@ def main() -> int:
     )
     sub = ap.add_subparsers(dest="verb", required=True)
 
+    pb = sub.add_parser("bim", help="export source BIM without EP cutting/pairing or physics")
+    pb.add_argument("case"); pb.add_argument("run")
+    pb.add_argument("--out", type=Path, required=True, help="new source BIM output directory")
+    pb.add_argument("--candidate-attempt", type=int, default=None,
+                    help="explicitly preview an unaccepted correction attempt; never grants acceptance")
+
     for verb in ("run", "resample"):
         p = sub.add_parser(verb)
         p.add_argument("case"); p.add_argument("run"); p.add_argument("stage")
@@ -3657,6 +3698,9 @@ def main() -> int:
 
     pf = sub.add_parser("flow")
     pf.add_argument("case"); pf.add_argument("run")
+    pf.add_argument("--target", choices=("ep", "source-bim"), default="ep",
+                    help="source-bim runs reading/correction then independent source generation; ep keeps the legacy flow")
+    pf.add_argument("--bim-out", type=Path, help="new source output directory, required for --target source-bim")
     pf.add_argument("--from", dest="from_stage", default="auto",
                     choices=["auto", *_STAGES])
     pf.add_argument("--to", dest="to_stage", default="5_intakeoutput",
@@ -3697,6 +3741,7 @@ def main() -> int:
         "status": cmd_status,
         "artifacts": cmd_artifacts,
         "provision": cmd_provision,
+        "bim": cmd_bim,
     }[args.verb](args)
 
 

@@ -1,0 +1,373 @@
+"""Solver-independent source BIM: full boundaries, contact regions and openings.
+
+Contact regions describe actual adjacency. They never split source boundaries
+or create EnergyPlus surfaces. The viewer is a separate, disposable projection.
+"""
+from __future__ import annotations
+
+import math
+from itertools import combinations
+from urllib.parse import quote
+
+from shapely.geometry import Polygon, box
+from shapely.ops import unary_union
+
+from src.agent.correction.schema import CorrectedGeometry, SourceOpening
+from src.agent.correction.cell_geometry import cell_polygon
+from src.agent.geometry.build import verify_geometry_input
+from src.agent.geometry.capability import require_supported_geometry_contract, schema_supports, FEATURE_CELL_POLYGON
+from src.agent.geometry.modelling import Surface, _FACADE_NORMAL, _legacy_cardinal_window_verts, _newell, _orient
+from src.agent.geometry.openings import _frame, _lift, _project
+from src.agent.geometry.source_model import _digest, source_primitives
+
+# Numerical comparison only, not a drawing snap distance or minimum EP edge.
+EPS = 1e-7
+
+
+def _parts(shape):
+    if shape.geom_type == "Polygon":
+        return [shape] if shape.area > EPS ** 2 else []
+    return [p for g in getattr(shape, "geoms", []) for p in _parts(g)]
+
+
+def _on_wall(vertices, boundary):
+    origin = boundary.vertices[0][:2]
+    direction, _ = _frame(origin, boundary.vertices[1][:2])
+    # Do not use the EP realization tolerance for source coplanarity.
+    if any(abs((v[0]-origin[0])*direction[1] - (v[1]-origin[1])*direction[0]) > EPS for v in vertices):
+        return None
+    return _project(vertices, origin, direction)
+
+
+def _contained(vertices, boundary):
+    aperture = _on_wall(vertices, boundary)
+    parent = _on_wall(boundary.vertices, boundary)
+    return (aperture is not None and aperture.is_valid and aperture.area > EPS ** 2
+            and parent.buffer(EPS).covers(aperture))
+
+
+def _contacts(boundaries):
+    """Record many-to-many contact patches without changing boundary geometry."""
+    relations = []
+    for a, b in combinations(sorted(boundaries.values(), key=lambda b: b.id), 2):
+        if a.space_id == b.space_id:
+            continue
+        regions = []
+        if a.geometry_type == b.geometry_type == "wall":
+            if float(_newell(a.vertices) @ _newell(b.vertices)) > -1 + EPS:
+                continue
+            projected = _on_wall(b.vertices, a)
+            if projected is None:
+                continue
+            contact = _on_wall(a.vertices, a).intersection(projected)
+            origin = a.vertices[0][:2]
+            direction, _ = _frame(origin, a.vertices[1][:2])
+            lift = lambda ring: _lift(list(ring), origin, direction)
+        elif {a.geometry_type, b.geometry_type} == {"floor", "ceiling"}:
+            if abs(a.vertices[0][2] - b.vertices[0][2]) > EPS:
+                continue
+            contact = Polygon([v[:2] for v in a.vertices]).intersection(Polygon([v[:2] for v in b.vertices]))
+            z = a.vertices[0][2]
+            lift = lambda ring: [[x, y, z] for x, y in ring]
+        else:
+            continue
+        for part in _parts(contact):
+            regions.append({"vertices": lift(list(part.exterior.coords)[:-1]),
+                            "holes": [lift(list(r.coords)[:-1]) for r in part.interiors],
+                            "area_m2": part.area})
+        if not regions:
+            continue
+        a.adjacent_space_ids.append(b.space_id)
+        b.adjacent_space_ids.append(a.space_id)
+        a.counterpart_ids.append(b.id)
+        b.counterpart_ids.append(a.id)
+        relations.append({"boundary_ids": [a.id, b.id], "space_ids": [a.space_id, b.space_id],
+                          "regions": regions})
+    for boundary in boundaries.values():
+        boundary.adjacent_space_ids = sorted(set(boundary.adjacent_space_ids))
+        boundary.counterpart_ids = sorted(set(boundary.counterpart_ids))
+    return relations
+
+
+def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular", window_host_proof=None) -> dict:
+    """Generate geometric source objects without cut/pair, physics or IDF calls.
+
+    Invalid base space geometry fails explicitly. Unresolved openings remain in
+    the candidate's unbuilt inventory and block source readiness, while allowing
+    its valid space geometry to be inspected.
+    """
+    require_supported_geometry_contract(geom, capability_profile)
+    geom, proof_artifact = verify_geometry_input(geom, window_host_proof)
+    findings = []
+
+    def fail(code, **evidence):
+        findings.append({"code": code, "severity": "severe", **evidence})
+
+    if not geom.floors or not any(f.cells for f in geom.floors):
+        raise ValueError("source BIM requires at least one source space")
+    floor_ids = [str(getattr(f, "id", None) or f.name) for f in geom.floors]
+    if any(not fid.strip() for fid in floor_ids) or len(set(floor_ids)) != len(floor_ids):
+        raise ValueError("source floor identities must be nonempty and unique")
+    for floor in geom.floors:
+        if not math.isfinite(floor.z_floor) or not math.isfinite(floor.ceiling_height) or floor.ceiling_height <= 0:
+            raise ValueError(f"floor {floor.name}: height/base must be finite and height positive")
+        for cell in floor.cells:
+            if not cell.id.strip():
+                raise ValueError("source space identity must not be empty")
+            if cell.polygon and not schema_supports(geom, FEATURE_CELL_POLYGON):
+                raise ValueError(f"space {cell.id}: polygon requires a polygon-capable schema")
+            if not cell.polygon and (len(cell.x) != 2 or len(cell.y) != 2 or
+                                     cell.x[0] >= cell.x[1] or cell.y[0] >= cell.y[1]):
+                raise ValueError(f"space {cell.id}: rectangle intervals must be positive")
+            coords = cell.polygon or [[cell.x[0], cell.y[0]], [cell.x[1], cell.y[0]],
+                                      [cell.x[1], cell.y[1]], [cell.x[0], cell.y[1]]]
+            if not all(len(p) == 2 and all(math.isfinite(v) for v in p) for p in coords):
+                raise ValueError(f"space {cell.id}: non-finite or malformed coordinates")
+            poly = Polygon(coords)
+            if not poly.is_valid or poly.area <= EPS ** 2:
+                raise ValueError(f"space {cell.id}: invalid or empty footprint")
+            if any(abs(a[0]-b[0]) > EPS and abs(a[1]-b[1]) > EPS for a,b in zip(coords, coords[1:]+coords[:1])):
+                raise ValueError(f"space {cell.id}: non-orthogonal source geometry is not supported yet")
+
+    # Reuse polygon validity/bounds checks, without the legacy EP kernel's
+    # configurable minimum edge length. Small valid source spaces stay present.
+    spaces, boundaries, polygons, by_space = source_primitives(geom, polygon_builder=cell_polygon)
+    for floor, fid in zip(geom.floors, floor_ids):
+        footprint = getattr(floor, "footprint", None)
+        expected = Polygon(footprint.vertices) if footprint else box(geom.footprint_x[0], geom.footprint_y[0], geom.footprint_x[1], geom.footprint_y[1])
+        if not expected.is_valid or expected.area <= EPS ** 2:
+            raise ValueError(f"floor {fid}: invalid declared footprint")
+        actual = unary_union([polygons[c.id] for c in floor.cells])
+        missing = expected.difference(actual.buffer(EPS)).area
+        outside = actual.difference(expected.buffer(EPS)).area
+        if missing > EPS ** 2 or outside > EPS ** 2:
+            fail("source.floor_coverage", floor_id=fid, missing_area_m2=missing, outside_area_m2=outside)
+    for boundary in boundaries.values():
+        if boundary.geometry_type == "floor":
+            boundary.vertices.reverse()  # source space outward normal is down
+    for a, b in combinations(spaces, 2):
+        height = min(a.z_floor+a.height, b.z_floor+b.height) - max(a.z_floor, b.z_floor)
+        if height > EPS:
+            overlap = polygons[a.id].intersection(polygons[b.id]).area
+            if overlap > EPS ** 2:
+                fail("source.space_overlap", space_ids=[a.id, b.id], volume_m3=overlap*height)
+    relations = _contacts(boundaries)
+    openings, unbuilt, connections = [], [], []
+    bindings = {}
+    seen_ids = set()
+
+    def hosts(vertices, sid):
+        return [boundaries[bid] for bid in by_space.get(sid, [])
+                if boundaries[bid].geometry_type == "wall" and _contained(vertices, boundaries[bid])]
+
+    def contact_shapes(boundary, other=None):
+        return [_on_wall(region["vertices"], boundary) for rel in relations
+                if boundary.id in rel["boundary_ids"] and (other is None or other in rel["space_ids"])
+                for region in rel["regions"]]
+
+    def exterior(vertices, boundary):
+        aperture = _on_wall(vertices, boundary)
+        return not any(aperture.intersection(p).area > EPS ** 2 for p in contact_shapes(boundary))
+
+    def reject(source, message):
+        unbuilt.append({"id": source.id, "record": source.model_dump(mode="json"), "reason": message})
+        fail("source.opening_unbuilt", opening_id=source.id, reason=message)
+
+    resolutions = {r.window_id: r for r in proof_artifact.claims.resolutions} if proof_artifact else {}
+    for window in geom.windows:
+        wid = str(window.id)
+        if wid in seen_ids:
+            reject(window, "duplicate source opening identity")
+            continue
+        seen_ids.add(wid)
+        owner = next((s for s in spaces if s.id == window.room), None)
+        owner_floor = next((f for f in geom.floors if str(getattr(f, "id", None) or f.name) == owner.floor_id), None) if owner else None
+        if owner_floor is None or (getattr(window, "floor_id", None) or window.floor) not in {owner.floor_id, owner_floor.name}:
+            reject(window, "window floor and source room disagree")
+            continue
+        if (len(window.span) != 2 or len(window.z) != 2 or
+                not all(math.isfinite(v) for v in [*window.span, *window.z]) or
+                window.span[0] >= window.span[1] or window.z[0] >= window.z[1]):
+            reject(window, "window span/height must be positive finite intervals")
+            continue
+        candidates = []
+        resolution = resolutions.get(wid)
+        want = resolution.segment_outward_normal if resolution else _FACADE_NORMAL[window.facade.lower()]
+        for bid in by_space.get(window.room, []):
+            boundary = boundaries[bid]
+            if boundary.geometry_type != "wall":
+                continue
+            normal = _newell(boundary.vertices)
+            if normal[0]*want[0] + normal[1]*want[1] < 1-EPS:
+                continue
+            if resolution:
+                vertices = [[p.x, p.y, p.z] for p in resolution.clamped_vertices]
+            else:
+                vertices = _legacy_cardinal_window_verts(window, Surface(bid, boundary.space_id, "Wall", boundary.vertices, "Outdoors"))
+            if _contained(vertices, boundary) and exterior(vertices, boundary):
+                candidates.append((boundary, vertices))
+        if len(candidates) != 1:
+            reject(window, f"expected one complete exterior host; found {len(candidates)}")
+            continue
+        boundary, vertices = candidates[0]
+        openings.append(SourceOpening(id=wid, kind="window", host_boundary_id=boundary.id,
+                        space_ids=[boundary.space_id], exterior=True, vertices=vertices,
+                        source_refs=[f"correction:window/{quote(wid, safe='')}"]))
+        bindings[wid] = [boundary.id]
+
+    for aperture in geom.openings:
+        if aperture.id in seen_ids:
+            reject(aperture, "duplicate source opening identity")
+            continue
+        seen_ids.add(aperture.id)
+        vertices = [[*aperture.p1, aperture.z[0]], [*aperture.p2, aperture.z[0]],
+                    [*aperture.p2, aperture.z[1]], [*aperture.p1, aperture.z[1]]]
+        owners = hosts(vertices, aperture.space_id)
+        others = hosts(vertices, aperture.other_space_id) if aperture.other_space_id is not None else []
+        if len(owners) != 1 or (aperture.other_space_id is not None and len(others) != 1):
+            reject(aperture, "opening requires one complete source boundary on each declared side")
+            continue
+        owner = owners[0]
+        if others:
+            shared = unary_union(contact_shapes(owner, aperture.other_space_id))
+            valid = shared.buffer(EPS).covers(_on_wall(vertices, owner))
+        else:
+            valid = exterior(vertices, owner)
+        if not valid:
+            reject(aperture, "opening does not connect the declared spaces/outdoors over its full area")
+            continue
+        sids = [aperture.space_id] + ([aperture.other_space_id] if others else [])
+        openings.append(SourceOpening(id=aperture.id, kind=aperture.kind, host_boundary_id=owner.id,
+                        space_ids=sids, exterior=not others, vertices=vertices, connectivity=aperture.state,
+                        source_refs=aperture.source_refs, assumptions=aperture.assumptions))
+        bindings[aperture.id] = [owner.id] + [b.id for b in others]
+        connections.append({"opening_id": aperture.id, "kind": aperture.kind, "space_ids": sids,
+                            "exterior": not others, "state": aperture.state})
+
+    by_host = {}
+    for opening in openings:
+        for bid in bindings[opening.id]:
+            by_host.setdefault(bid, []).append(opening)
+    for bid, rows in by_host.items():
+        for a, b in combinations(rows, 2):
+            overlap = _on_wall(a.vertices, boundaries[bid]).intersection(_on_wall(b.vertices, boundaries[bid])).area
+            if overlap > EPS ** 2:
+                fail("source.opening_overlap", opening_ids=[a.id, b.id], boundary_id=bid, area_m2=overlap)
+    if geom.unsupported:
+        fail("source.unresolved_observations", count=len(geom.unsupported))
+
+    payload = {
+        "schema_version": "source_bim_v2",
+        "source_geometry_sha256": _digest(geom.model_dump(mode="json")),
+        "coordinate_system": {"units": "m", "frame": "corrected building coordinates", "up_axis": "Z",
+                              "north_axis": getattr(geom, "north_axis", None).model_dump(mode="json") if getattr(geom, "north_axis", None) else None},
+        "floors": [{"id":fid, "name":f.name, "z_floor":f.z_floor, "height":f.ceiling_height,
+                    "footprint": list(getattr(f, "footprint").vertices) if getattr(f, "footprint", None)
+                    else [[geom.footprint_x[0],geom.footprint_y[0]], [geom.footprint_x[1],geom.footprint_y[0]],
+                          [geom.footprint_x[1],geom.footprint_y[1]], [geom.footprint_x[0],geom.footprint_y[1]]],
+                    "footprint_basis": "per_floor_correction" if getattr(f,"footprint",None) else "legacy_common_footprint"}
+                   for f,fid in zip(geom.floors,floor_ids)],
+        "spaces": [s.model_dump(mode="json") for s in sorted(spaces, key=lambda s: s.id)],
+        "boundaries": [boundaries[k].model_dump(mode="json") for k in sorted(boundaries)],
+        "boundary_relations": relations,
+        "openings": [o.model_dump(mode="json") for o in sorted(openings, key=lambda o: o.id)],
+        "opening_hosts": bindings,
+        "connections": connections,
+        "unbuilt_openings": unbuilt,
+        "assumptions": ["Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+                        "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+                        "Only explicit openings are represented; absent observations do not establish a solid wall.",
+                        "Source boundary identity follows cell identity and ring order; topology edits need identity migration."],
+        "corrections": geom.corrections, "conflicts": geom.conflicts, "unsupported": geom.unsupported,
+        "validation": {"status": "severe" if findings else "pass", "findings": findings,
+                       "numerical_tolerance_m": EPS,
+                       "scope": "source geometry, contacts and explicit opening hosts",
+                       "not_evaluated": ["drawing partition fidelity and completeness", "unobserved openings",
+                                         "voids and false slabs", "thermal properties and solver acceptance"]},
+    }
+    payload["source_model_sha256"] = _digest(payload)
+    return payload
+
+
+def source_view_geometry(source: dict) -> dict:
+    """Project full source boundaries into the existing viewer's display schema.
+
+    Display names map straight back to source IDs. No thermal boundary condition
+    or reciprocal EP pair is synthesized. Coincident display overlap is handled
+    by the renderer, never by changing the authoritative source.
+    """
+    expected = _digest({k:v for k,v in source.items() if k != "source_model_sha256"})
+    if source.get("schema_version") != "source_bim_v2" or source.get("source_model_sha256") != expected:
+        raise ValueError("invalid source BIM schema or digest")
+    boundaries = {b["id"]: b for b in source["boundaries"]}
+    surfaces = [{"name": b["id"], "zone": b["space_id"],
+                 "type": {"wall":"Wall", "floor":"Floor", "ceiling":"Ceiling"}[b["geometry_type"]],
+                 "verts": b["vertices"]} for b in source["boundaries"]]
+    windows, apertures, window_map, aperture_map = [], [], {}, {}
+    for opening in source["openings"]:
+        if opening["kind"] == "window":
+            name = f"window/{quote(opening['id'], safe='')}"
+            windows.append({"name": name, "parent": opening["host_boundary_id"], "verts": opening["vertices"]})
+            window_map[name] = opening["id"]
+            continue
+        hosts = source["opening_hosts"][opening["id"]]
+        names = [f"opening/{quote(opening['id'], safe='')}/{quote(bid, safe='')}" for bid in hosts]
+        for i, bid in enumerate(hosts):
+            owner = boundaries[bid]["space_id"]
+            apertures.append({"name": names[i], "parent": bid,
+                              "verts": _orient(opening["vertices"], _newell(boundaries[bid]["vertices"])),
+                              "source_opening_id": opening["id"], "kind": opening["kind"], "space_id": owner,
+                              "other_space_id": next((s for s in opening["space_ids"] if s != owner), None),
+                              "state": opening["connectivity"], "partner": names[1-i] if len(names)==2 else ""})
+            aperture_map[names[i]] = opening["id"]
+    display = {"zones": [s["id"] for s in source["spaces"]], "surfaces": surfaces, "windows": windows,
+               "openings": apertures, "roles": {s["id"]:s["role"] for s in source["spaces"]}}
+    display["display_surface_parts"] = _display_parts(source)
+    display["source_model"] = {**source, "derived": {
+        "zones": {s["id"]:s["id"] for s in source["spaces"]},
+        "surfaces": {b["id"]:b["id"] for b in source["boundaries"]},
+        "windows": window_map, "openings": aperture_map}}
+    return display
+
+
+def _display_parts(source):
+    """Remove holes and hide only overlapping display patches at rest.
+
+    These are display meshes, with the entire parent/source boundary preserved.
+    At exploded views both sides reappear. Handles partial/many-to-one contacts
+    without inventing a reciprocal surface or hiding exposed parts of a wall.
+    """
+    result = {}
+    for boundary in source["boundaries"]:
+        bid, vertices = boundary["id"], boundary["vertices"]
+        if boundary["geometry_type"] == "wall":
+            origin = vertices[0][:2]
+            direction, _ = _frame(origin, vertices[1][:2])
+            project = lambda ring: _project(ring, origin, direction)
+            lift = lambda ring: _lift(list(ring), origin, direction)
+        else:
+            z = vertices[0][2]
+            project = lambda ring: Polygon([v[:2] for v in ring])
+            lift = lambda ring: [[x,y,z] for x,y in ring]
+        parent = project(vertices)
+        holes = [project(o["vertices"]) for o in source["openings"]
+                 if bid in source["opening_hosts"][o["id"]]]
+        wall = parent.difference(unary_union(holes))
+        hidden = []
+        for relation in source["boundary_relations"]:
+            if bid not in relation["boundary_ids"] or bid == min(relation["boundary_ids"]):
+                continue
+            for region in relation["regions"]:
+                patch = project(region["vertices"])
+                if region["holes"]:
+                    patch = patch.difference(unary_union([project(r) for r in region["holes"]]))
+                hidden.append(patch)
+        mask = unary_union(hidden)
+        rows = []
+        for shape, duplicate in ((wall.difference(mask), False), (wall.intersection(mask), True)):
+            for part in _parts(shape):
+                rows.append({"verts": lift(list(part.exterior.coords)[:-1]),
+                             "holes": [lift(list(r.coords)[:-1]) for r in part.interiors],
+                             "duplicate_at_rest": duplicate})
+        result[bid] = rows
+    return result

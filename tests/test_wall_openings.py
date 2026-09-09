@@ -151,7 +151,8 @@ def test_cli_saves_opening_viewer_before_stopping_unsupported_export(tmp_path):
     correction.write_text(_geom().model_dump_json())
     payload, report = run_stage._draw_modelling(tmp_path, RunPolicy())
     assert len(payload["openings"]) == 2 and not report.blocking()
-    viewer = (tmp_path / "manual_review/geometry_viewer.html").read_text()
+    pointer = json.loads((tmp_path / "_run/source_geometry_review.json").read_text())
+    viewer = (tmp_path / pointer["viewer"]).read_text()
     assert '"visible_wall_parts"' in viewer and 'hall_door' in viewer
     with pytest.raises(ValueError, match="refusing to silently replace"):
         run_stage._draw_split_pairing(tmp_path, RunPolicy())
