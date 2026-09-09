@@ -1,0 +1,821 @@
+{
+  "mode": "offline_source_bim_decoupling",
+  "model_calls": 0,
+  "solver_calls": 0,
+  "source_flow": {
+    "argv": [
+      "/opt/venv/bin/python",
+      "scripts/tool_scripts/run_stage.py",
+      "flow",
+      "sm21_anchor",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_source_bim_run04/flow_sm21_run",
+      "--target",
+      "source-bim",
+      "--bim-out",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_source_bim_run04/flow_sm21_bim",
+      "--judge",
+      "off"
+    ],
+    "returncode": 0,
+    "upstream_output_hashes_unchanged": {
+      "0_reading": "2f1168552f17293fddc676857ec461315e492ad669e73de74ae2522c9f2060da",
+      "1_correction": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf"
+    },
+    "legacy_stages_created": false,
+    "approval_created": false,
+    "mode": "historical_upstream_replay"
+  },
+  "code_commit": "d6fd8732604b5bf6c812adf4895bb2f25138b504",
+  "working_tree_diff_sha256": "c0b30494e6464c09be6f7028f74c2823a7a7c39096532a1efe9c29f68841a497",
+  "implementation_sha256": {
+    "src/agent/geometry/source_bim.py": "f5051fc3493e2d9f05f41e229c435dc8957ec1a95dc47e13d64018c75462bf49",
+    "src/agent/execution/source_bim.py": "3bd935ce87bd3ccd1485a55b4c8cf09f590cdc413ce1058360245745d204c67e",
+    "src/agent/geometry/source_model.py": "9232a70189d4bbd7581284ad182af030626b4b8ffcee9fc4604dc952125074c2",
+    "src/agent/geometry/build.py": "8141bcb490cffa033d8ba7cb9579f9b9ec3322013417495691419b72ddfcb2bc",
+    "src/agent/judge/partition_evidence.py": "b7f582c8a11854845d17f726f09c499035d32d5047283ea462540d269a761dad",
+    "scripts/tool_scripts/render_geometry_viewer.py": "7ef269b20b1639099d3e368ee05a23ef6947fe62560fa91fb12d4ce39defcaae",
+    "scripts/tool_scripts/run_stage.py": "dfaefa8b0543339c0f84eb1c9935bb79ca0fb2cc086768ebb8b8301574478628",
+    "scripts/tool_scripts/diagnose_source_bim.py": "fe145b62db7755df1275bc5811f1587e408bf6b24210ce61ea507b3d7df0803b"
+  },
+  "cases": {
+    "sm21": {
+      "mode": "historical_rebuild",
+      "source_run": "/workspaces/EnergyPlus-Agent-dev/case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e",
+      "candidate_attempt": null,
+      "capability_profile": "orthogonal_polygon",
+      "model_calls": 0,
+      "solver_calls": 0,
+      "input_artifacts": {
+        "1_correction/attempts/001/output.json": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf",
+        "1_correction/attempts/001/checks.json": "c350780d369d5904193a460c91504b72288d284eb41334f569c6eac9e8e598d9",
+        "1_correction/attempts/001/judge.json": "0e7257d0bcd535b691c7ddd2cd38239cce3662b526f7278ec988f27a3bcadc3e"
+      },
+      "scope": "correction to independent source BIM; not a new image reading",
+      "not_evaluated": [
+        "original image cold start",
+        "human confirmation",
+        "editing",
+        "EnergyPlus"
+      ],
+      "input_authority": "accepted_correction",
+      "input_trust": "run manifest is V1 (grandfathered legacy); legacy stage-root geometry continues under the pre-F-20 audit path",
+      "input_checks": {
+        "stage": "1_correction",
+        "capability_profile": "rectangular",
+        "run_profile": "exploratory",
+        "artifact_hash": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf",
+        "attempt_hash": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf",
+        "report_schema_version": "2.1",
+        "run_policy_sha256": null,
+        "run_policy_source": null,
+        "results": [
+          {
+            "check_id": "correction.coverage",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "floor": "Floor 1",
+              "covered_m2": 115.44
+            }
+          },
+          {
+            "check_id": "correction.coverage",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "floor": "Floor 2",
+              "covered_m2": 115.44
+            }
+          },
+          {
+            "check_id": "correction.nondegenerate",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.zstack_continuity",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.zone_count_tripwire",
+            "status": "pass",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "actual": 14,
+              "expected": 14,
+              "per_floor": {
+                "Floor 1": 7,
+                "Floor 2": 7
+              }
+            }
+          },
+          {
+            "check_id": "correction.window_on_wall",
+            "status": "pass",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "windows": 15
+            }
+          },
+          {
+            "check_id": "correction.cross_image_reconcile",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "no elevation widths supplied",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.audit_completeness",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "audit_entries": 36
+            }
+          },
+          {
+            "check_id": "correction.evidence_debt_coverage",
+            "status": "pass",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "scope": "all",
+              "debt_items": 6
+            }
+          },
+          {
+            "check_id": "correction.facade_area_residuals",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.wwr_residuals",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.area_residuals",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.unsupported_count_by_severity",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          }
+        ]
+      },
+      "input_judge": {
+        "stage": "1_correction",
+        "rubric_id": "J1",
+        "criteria": [
+          {
+            "criterion": "zonification fidelity",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "Filled zone plan vs original + gt: Floor 1 = 3 north rooms + corridor + 3 south rooms (7 regions); Floor 2 = 2 conference + corridor + 4 offices (7 regions). No rooms wrongly merged, split, missing, or invented. gt reconciliation: walls 9/9 (interior partitions x=5/10 on 1f, x=3.75/7.5/11.25 on 2f; corridor y=3/5), 0 extra walls, 0.0 m offset. Overlay confirms red correction cells seat exactly on gt gray cells."
+          },
+          {
+            "criterion": "cross-floor consistency",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "Corridor walls at y=3.0 / y=5.0 align exactly across Floor 1 and Floor 2 (both 0.0 m offset vs gt); no ~5 cm jitter class. Envelope 15x8 shared. The cross-floor reconcile in the deterministic core had nothing to fix — reading already gave identical corridor axes both floors."
+          },
+          {
+            "criterion": "window position fidelity",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "windows 15/15 land on the correct facade/floor/position vs gt, all centre_delta 0.0 m: 1f N3/S3/E1, 2f N2/S4/E1/W1. Overlay window ticks align with gt facade windows."
+          },
+          {
+            "criterion": "count vs reference",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "Zone regions 7+7 match testdata thermal_zones=7 per floor; window count 15 matches gt (1f 7 + 2f 8). Deterministic zone-count tripwire did not fire (gate① 0 block / 0 flag). No merge/split to adjudicate."
+          },
+          {
+            "criterion": "overall redraw",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "The original building can be redrawn from this corrected geometry with no qualitative error: envelope, both corridors, all interior partitions, and every per-facade window are present and correctly placed against both the originals and gt. gate① correction checks passed clean (coverage/closure/zstack/window-on-wall all pass)."
+          }
+        ],
+        "root_stage": null,
+        "root_confidence": 0.0,
+        "retriable": true,
+        "judge_disabled": false,
+        "notes": "PASS on all 5 J1 criteria. Correction (DeepSeek + deterministic core) faithfully carried the above-floor J0 reading through with zero degradation: correction↔gt = walls 9/9, windows 15/15, 0 extra, 0.0 m offset on both floors; gate① 0 block / 0 flag. No J0 pass-through defect to confirm (J0 was clean). Out-of-band commentary only."
+      },
+      "source_validation": {
+        "status": "pass",
+        "findings": [],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ]
+      },
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "drawing_fidelity": "not_evaluated",
+      "counts": {
+        "spaces": 14,
+        "boundaries": 84,
+        "openings": 15,
+        "connections": 0,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      },
+      "source_model_sha256": "33f5913724379a4c1998cb767db501f379d60d29cda542a9f734e9a17307bc9b",
+      "original_input": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e",
+      "partition_status": "not_evaluated",
+      "combined_quality_status": "not_evaluated",
+      "topology_findings": 0,
+      "opening_vertices_preserved": true,
+      "viewer_scripts_checked": 4
+    },
+    "sm24_wrong_partition": {
+      "mode": "historical_counterexample",
+      "source_run": "/workspaces/EnergyPlus-Agent-dev/case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading",
+      "candidate_attempt": null,
+      "capability_profile": "orthogonal_polygon",
+      "model_calls": 0,
+      "solver_calls": 0,
+      "input_artifacts": {
+        "1_correction/attempts/002/output.json": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+        "1_correction/attempts/002/checks.json": "f7b7e2cc9648c138a01c0fc63d5a00dafd7ff8d5c6a44f56aa62b21235462bec",
+        "1_correction/attempts/002/judge.json": "db6f6bbf8a009a9f85f87f5555b555e7def5b4670e593becd900ba839df44eb6"
+      },
+      "scope": "correction to independent source BIM; not a new image reading",
+      "not_evaluated": [
+        "original image cold start",
+        "human confirmation",
+        "editing",
+        "EnergyPlus"
+      ],
+      "input_authority": "accepted_correction",
+      "input_trust": "run manifest is V1 (grandfathered legacy); legacy stage-root geometry continues under the pre-F-20 audit path",
+      "input_checks": {
+        "stage": "1_correction",
+        "capability_profile": "rectangular",
+        "run_profile": "regression",
+        "artifact_hash": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+        "attempt_hash": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+        "report_schema_version": "2.0",
+        "run_policy_sha256": null,
+        "run_policy_source": null,
+        "results": [
+          {
+            "check_id": "correction.coverage",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "floor": "Floor 1",
+              "covered_m2": 200.0
+            }
+          },
+          {
+            "check_id": "correction.nondegenerate",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.zstack_continuity",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.zone_count_tripwire",
+            "status": "fail",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "cell count 11 != testdata thermal_zones 8",
+            "evidence": {
+              "actual": 11,
+              "expected": 8,
+              "per_floor": {
+                "Floor 1": 11
+              }
+            }
+          },
+          {
+            "check_id": "correction.window_on_wall",
+            "status": "pass",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "windows": 11
+            }
+          },
+          {
+            "check_id": "correction.cross_image_reconcile",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "no elevation widths supplied",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.audit_completeness",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "audit_entries": 25
+            }
+          }
+        ]
+      },
+      "input_judge": {
+        "stage": "1_correction",
+        "rubric_id": "J1",
+        "criteria": [
+          {
+            "criterion": "zonation_layout",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "Zonation matches the clean Opus reading: N reception, left column (3 offices/conference), right column (small/middle/bottom offices), central N-S corridor. Layout faithful to plan."
+          },
+          {
+            "criterion": "zone_count",
+            "status": "minor",
+            "recoverability": "correction_recoverable",
+            "evidence": "Tripwire 11 cells != testdata 8 thermal_zones. NOT an error: the deterministic rectangular-decomposition kernel splits the two NON-RECTANGULAR rooms into rectangles — the L-shaped corridor -> cell_corridor + cell_corridor_lower, and the stepped bottom-right office -> bottom_upper/mid/lower. Expected behavior for this non-square probe case; downstream zone-grouping (whether the split cells re-merge into one EP zone) is the real question to observe."
+          },
+          {
+            "criterion": "window_placement",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "Facade windows placed on perimeter walls (west/east/north/south) per elevations; blue marks on facade cells in render."
+          },
+          {
+            "criterion": "cross_floor",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "Single floor; not applicable."
+          },
+          {
+            "criterion": "overall_redraw",
+            "status": "pass",
+            "recoverability": null,
+            "evidence": "No global redraw needed; footprint 10x20m, corrections=24 conflicts=1 unsupported=0."
+          }
+        ],
+        "root_stage": "1_correction",
+        "root_confidence": 0.9,
+        "retriable": false,
+        "judge_disabled": false,
+        "notes": "Non-blocking. Non-square decomposition inflates cell count (11 vs 8) by design; advancing to observe how the kernel + downstream handle the non-rectangular corridor/office end-to-end. No gt for this case (intentional)."
+      },
+      "source_validation": {
+        "status": "pass",
+        "findings": [],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ]
+      },
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "drawing_fidelity": "not_evaluated",
+      "counts": {
+        "spaces": 11,
+        "boundaries": 66,
+        "openings": 11,
+        "connections": 0,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      },
+      "source_model_sha256": "8f0e6e49821cf7339ab38c0366ba6bc917d3e76e20e3c1fbeed25d7df580f6d3",
+      "original_input": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading",
+      "partition_status": "severe",
+      "combined_quality_status": "severe",
+      "topology_findings": 7,
+      "opening_vertices_preserved": true,
+      "viewer_scripts_checked": 4
+    },
+    "sm24_assisted": {
+      "mode": "historical_assisted_partition_and_one_door",
+      "source_run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_source_bim_run04/inputs/sm24_assisted",
+      "candidate_attempt": null,
+      "capability_profile": "orthogonal_polygon",
+      "model_calls": 0,
+      "solver_calls": 0,
+      "input_artifacts": {
+        "1_correction/correction_geometry_snapped.json": "4b41bc2fbed5cf059839e8c83a88c5386db712419415b460381d2d05a69b4ac9"
+      },
+      "scope": "correction to independent source BIM; not a new image reading",
+      "not_evaluated": [
+        "original image cold start",
+        "human confirmation",
+        "editing",
+        "EnergyPlus"
+      ],
+      "input_authority": "legacy_stage_root",
+      "input_trust": "no run manifest; legacy stage-root geometry continues under the pre-F-20 audit path",
+      "source_validation": {
+        "status": "pass",
+        "findings": [],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ]
+      },
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "drawing_fidelity": "not_evaluated",
+      "counts": {
+        "spaces": 8,
+        "boundaries": 52,
+        "openings": 12,
+        "connections": 1,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      },
+      "source_model_sha256": "56c04d87d0f8400b921b6e556b2449cafc1693c27343c0827c7d7a4fddb12b32",
+      "original_input": "AI_agent/logs/experiments/2026-09-09_m0_wall_openings_run01/assisted_model",
+      "partition_status": "severe",
+      "combined_quality_status": "severe",
+      "topology_findings": 3,
+      "opening_vertices_preserved": true,
+      "viewer_scripts_checked": 4
+    },
+    "sm25": {
+      "mode": "historical_assisted_wall_gap_decisions",
+      "source_run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_m0_wall_gap_review_run01",
+      "candidate_attempt": 1,
+      "capability_profile": "orthogonal_polygon",
+      "model_calls": 0,
+      "solver_calls": 0,
+      "input_artifacts": {
+        "1_correction/attempts/001/output.json": "49a90d5a184f35ed8ff5d40cfc1b42b609b20471358dc5412c5ebd224578442d",
+        "1_correction/attempts/001/checks.json": "a850cf6b24b0a17e26a7cb83aa9f81432e0bfb672b54e8f8cc611b3e6cc24c64",
+        "1_correction/attempts/001/feature_states.json": "ea013aff95849ff5f5eb1c25cabee7f6287c361256b4045c6833c51ac75be3b9",
+        "1_correction/attempts/001/window_resolver_inputs.json": "23511db3b5c508d9263cff02d8a13ca937340ce048f6660a02029187edbf2166",
+        "1_correction/attempts/001/window_hosts.json": "5c29fe1b3dd3b29ee0854d0e0c3e0e777a4b07bf6f142249c0aa57a6615cc140"
+      },
+      "scope": "correction to independent source BIM; not a new image reading",
+      "not_evaluated": [
+        "original image cold start",
+        "human confirmation",
+        "editing",
+        "EnergyPlus"
+      ],
+      "input_authority": "explicit_candidate_preview",
+      "input_trust": "verified B5 candidate bundle",
+      "input_checks": {
+        "stage": "1_correction",
+        "capability_profile": "orthogonal_polygon",
+        "run_profile": "exploratory",
+        "artifact_hash": "49a90d5a184f35ed8ff5d40cfc1b42b609b20471358dc5412c5ebd224578442d",
+        "attempt_hash": "49a90d5a184f35ed8ff5d40cfc1b42b609b20471358dc5412c5ebd224578442d",
+        "report_schema_version": "2.2",
+        "run_policy_sha256": null,
+        "run_policy_source": null,
+        "results": [
+          {
+            "check_id": "correction.schema_version_supported",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "schema_version": "3"
+            }
+          },
+          {
+            "check_id": "correction.capability_profile_shapes",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "capability_profile": "orthogonal_polygon",
+              "declared_shapes": [
+                "orthogonal_polygon",
+                "rectangular"
+              ],
+              "allowed_shapes": [
+                "orthogonal_polygon",
+                "rectangular"
+              ]
+            }
+          },
+          {
+            "check_id": "correction.cell_polygon_contract",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.coverage",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "floor": "1f",
+              "coverage_gate_version": "v2",
+              "footprint_source": "floor_footprint",
+              "footprint_area_m2": 279.186494,
+              "cells_union_area_m2": 279.186494,
+              "area_delta_m2": 0.0,
+              "coverage_area_tol_m2": 0.05,
+              "overlap_m2": 0.0,
+              "hole_m2": 0.0,
+              "outside_footprint_m2": 0.0
+            }
+          },
+          {
+            "check_id": "correction.coverage",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "floor": "2f",
+              "coverage_gate_version": "v2",
+              "footprint_source": "floor_footprint",
+              "footprint_area_m2": 279.186494,
+              "cells_union_area_m2": 279.186494,
+              "area_delta_m2": 0.0,
+              "coverage_area_tol_m2": 0.05,
+              "overlap_m2": 0.0,
+              "hole_m2": 0.0,
+              "outside_footprint_m2": 0.0
+            }
+          },
+          {
+            "check_id": "correction.nondegenerate",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.zstack_continuity",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.zone_count_tripwire",
+            "status": "pass",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "actual": 29,
+              "expected": null
+            }
+          },
+          {
+            "check_id": "correction.window_host_resolution",
+            "status": "pass",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "windows": 31,
+              "aggregate_sha256": "ba7aa7c5e6e57d12df3388e539e22765195f38d9d0e0be2f45a8a90c4807275b"
+            }
+          },
+          {
+            "check_id": "correction.cross_image_reconcile",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "no elevation widths supplied",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.facade_frame_cross_check",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "no elevation reading artifacts supplied",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.audit_completeness",
+            "status": "not_applicable",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "no material change / no testdata reliance detected",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.plan_opening_completeness",
+            "status": "fail",
+            "layer": "invariant",
+            "check_version": "1",
+            "message": "Explicitly identified plan openings remain unbuilt; the source model is incomplete.",
+            "evidence": {
+              "unbuilt": [
+                {
+                  "kind": "as_drawn_opening_unbuilt",
+                  "input_id": "2f_view",
+                  "observation_ids": [
+                    "L029g3"
+                  ],
+                  "floor_id": "2f",
+                  "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+                  "anchor_observation_id": "L029g3",
+                  "span_m": [
+                    9.9038,
+                    10.9286
+                  ],
+                  "compiled_half_thickness_m": 0.06,
+                  "reason": "opening_crosses_room_boundaries",
+                  "candidate_space_ids": [
+                    "2f-c000",
+                    "2f-c002",
+                    "2f-c006"
+                  ]
+                },
+                {
+                  "kind": "as_drawn_opening_unbuilt",
+                  "input_id": "2f_view",
+                  "observation_ids": [
+                    "L030g2"
+                  ],
+                  "floor_id": "2f",
+                  "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3",
+                  "anchor_observation_id": "L030g2",
+                  "span_m": [
+                    10.1219,
+                    11.1248
+                  ],
+                  "compiled_half_thickness_m": 0.06,
+                  "reason": "opening_crosses_room_boundaries",
+                  "candidate_space_ids": [
+                    "2f-c000",
+                    "2f-c006",
+                    "2f-c011"
+                  ]
+                }
+              ],
+              "built_openings": 29
+            }
+          },
+          {
+            "check_id": "correction.facade_area_residuals",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.wwr_residuals",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.area_residuals",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.unsupported_count_by_severity",
+            "status": "not_applicable",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "deferred until evidence is richer",
+            "evidence": {}
+          },
+          {
+            "check_id": "correction.window_position_evidence_shadow",
+            "status": "pass",
+            "layer": "cross_check",
+            "check_version": "1",
+            "message": "",
+            "evidence": {
+              "producer_draw_sha256": "8996e7992dcf73071dd12f143852567c35b1b9e40178277efcd41792eac019de",
+              "resolver_inputs_sha256": "2ef2a4e8616f0740af8080484825550b7dbe1b3d217ba30d5ec10ca6817d6110",
+              "window_count": 31,
+              "rejected_window_ids": [],
+              "rejected_reject_codes": [],
+              "max_legacy_span_delta_m": 0.042500000000000426,
+              "ruleset_version": "f9_route2_s2_position_evidence_ruleset_v2",
+              "evaluated_conditions": [
+                "ambiguity_margin",
+                "claim_consistency",
+                "distance_within_tolerance",
+                "scope_resolution",
+                "source_not_reused",
+                "unique_mutual_nearest"
+              ],
+              "unevaluated_conditions": [],
+              "content_sha256": "d385e91449d6072ebfc611c6ded44a9a6ffe58fd41cae7948d5a4fa960eec697"
+            }
+          }
+        ]
+      },
+      "source_validation": {
+        "status": "severe",
+        "findings": [
+          {
+            "code": "source.unresolved_observations",
+            "severity": "severe",
+            "count": 2
+          }
+        ],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ]
+      },
+      "status": "severe",
+      "source_geometry_ready": false,
+      "drawing_fidelity": "not_evaluated",
+      "counts": {
+        "spaces": 29,
+        "boundaries": 190,
+        "openings": 60,
+        "connections": 29,
+        "unbuilt_openings": 0,
+        "unsupported": 2
+      },
+      "source_model_sha256": "1d78c53e58e50bec4d4f00e65a91f5c9b8c2bc287d6f0d41f11630255602264e",
+      "original_input": "AI_agent/logs/experiments/2026-09-09_m0_wall_gap_review_run01",
+      "partition_status": "not_evaluated",
+      "combined_quality_status": "severe",
+      "topology_findings": 0,
+      "opening_vertices_preserved": true,
+      "viewer_scripts_checked": 4
+    }
+  },
+  "not_evaluated": [
+    "new image reading",
+    "human confirmation",
+    "browser WebGL interaction",
+    "EP adapter"
+  ]
+}

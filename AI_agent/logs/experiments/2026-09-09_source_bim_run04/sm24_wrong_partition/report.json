@@ -1,0 +1,174 @@
+{
+  "mode": "historical_counterexample",
+  "source_run": "/workspaces/EnergyPlus-Agent-dev/case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading",
+  "candidate_attempt": null,
+  "capability_profile": "orthogonal_polygon",
+  "model_calls": 0,
+  "solver_calls": 0,
+  "input_artifacts": {
+    "1_correction/attempts/002/output.json": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+    "1_correction/attempts/002/checks.json": "f7b7e2cc9648c138a01c0fc63d5a00dafd7ff8d5c6a44f56aa62b21235462bec",
+    "1_correction/attempts/002/judge.json": "db6f6bbf8a009a9f85f87f5555b555e7def5b4670e593becd900ba839df44eb6"
+  },
+  "scope": "correction to independent source BIM; not a new image reading",
+  "not_evaluated": [
+    "original image cold start",
+    "human confirmation",
+    "editing",
+    "EnergyPlus"
+  ],
+  "input_authority": "accepted_correction",
+  "input_trust": "run manifest is V1 (grandfathered legacy); legacy stage-root geometry continues under the pre-F-20 audit path",
+  "input_checks": {
+    "stage": "1_correction",
+    "capability_profile": "rectangular",
+    "run_profile": "regression",
+    "artifact_hash": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+    "attempt_hash": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+    "report_schema_version": "2.0",
+    "run_policy_sha256": null,
+    "run_policy_source": null,
+    "results": [
+      {
+        "check_id": "correction.coverage",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "floor": "Floor 1",
+          "covered_m2": 200.0
+        }
+      },
+      {
+        "check_id": "correction.nondegenerate",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.zstack_continuity",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.zone_count_tripwire",
+        "status": "fail",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "cell count 11 != testdata thermal_zones 8",
+        "evidence": {
+          "actual": 11,
+          "expected": 8,
+          "per_floor": {
+            "Floor 1": 11
+          }
+        }
+      },
+      {
+        "check_id": "correction.window_on_wall",
+        "status": "pass",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "windows": 11
+        }
+      },
+      {
+        "check_id": "correction.cross_image_reconcile",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "no elevation widths supplied",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.audit_completeness",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "audit_entries": 25
+        }
+      }
+    ]
+  },
+  "input_judge": {
+    "stage": "1_correction",
+    "rubric_id": "J1",
+    "criteria": [
+      {
+        "criterion": "zonation_layout",
+        "status": "pass",
+        "recoverability": null,
+        "evidence": "Zonation matches the clean Opus reading: N reception, left column (3 offices/conference), right column (small/middle/bottom offices), central N-S corridor. Layout faithful to plan."
+      },
+      {
+        "criterion": "zone_count",
+        "status": "minor",
+        "recoverability": "correction_recoverable",
+        "evidence": "Tripwire 11 cells != testdata 8 thermal_zones. NOT an error: the deterministic rectangular-decomposition kernel splits the two NON-RECTANGULAR rooms into rectangles — the L-shaped corridor -> cell_corridor + cell_corridor_lower, and the stepped bottom-right office -> bottom_upper/mid/lower. Expected behavior for this non-square probe case; downstream zone-grouping (whether the split cells re-merge into one EP zone) is the real question to observe."
+      },
+      {
+        "criterion": "window_placement",
+        "status": "pass",
+        "recoverability": null,
+        "evidence": "Facade windows placed on perimeter walls (west/east/north/south) per elevations; blue marks on facade cells in render."
+      },
+      {
+        "criterion": "cross_floor",
+        "status": "pass",
+        "recoverability": null,
+        "evidence": "Single floor; not applicable."
+      },
+      {
+        "criterion": "overall_redraw",
+        "status": "pass",
+        "recoverability": null,
+        "evidence": "No global redraw needed; footprint 10x20m, corrections=24 conflicts=1 unsupported=0."
+      }
+    ],
+    "root_stage": "1_correction",
+    "root_confidence": 0.9,
+    "retriable": false,
+    "judge_disabled": false,
+    "notes": "Non-blocking. Non-square decomposition inflates cell count (11 vs 8) by design; advancing to observe how the kernel + downstream handle the non-rectangular corridor/office end-to-end. No gt for this case (intentional)."
+  },
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  },
+  "status": "not_evaluated",
+  "source_geometry_ready": true,
+  "drawing_fidelity": "not_evaluated",
+  "counts": {
+    "spaces": 11,
+    "boundaries": 66,
+    "openings": 11,
+    "connections": 0,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "source_model_sha256": "8f0e6e49821cf7339ab38c0366ba6bc917d3e76e20e3c1fbeed25d7df580f6d3",
+  "original_input": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading",
+  "partition_status": "severe",
+  "combined_quality_status": "severe",
+  "topology_findings": 7,
+  "opening_vertices_preserved": true,
+  "viewer_scripts_checked": 4
+}

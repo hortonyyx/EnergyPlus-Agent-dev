@@ -1,0 +1,50 @@
+{
+  "mode": "historical_assisted_partition_and_one_door",
+  "source_run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_source_bim_run04/inputs/sm24_assisted",
+  "candidate_attempt": null,
+  "capability_profile": "orthogonal_polygon",
+  "model_calls": 0,
+  "solver_calls": 0,
+  "input_artifacts": {
+    "1_correction/correction_geometry_snapped.json": "4b41bc2fbed5cf059839e8c83a88c5386db712419415b460381d2d05a69b4ac9"
+  },
+  "scope": "correction to independent source BIM; not a new image reading",
+  "not_evaluated": [
+    "original image cold start",
+    "human confirmation",
+    "editing",
+    "EnergyPlus"
+  ],
+  "input_authority": "legacy_stage_root",
+  "input_trust": "no run manifest; legacy stage-root geometry continues under the pre-F-20 audit path",
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  },
+  "status": "not_evaluated",
+  "source_geometry_ready": true,
+  "drawing_fidelity": "not_evaluated",
+  "counts": {
+    "spaces": 8,
+    "boundaries": 52,
+    "openings": 12,
+    "connections": 1,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "source_model_sha256": "56c04d87d0f8400b921b6e556b2449cafc1693c27343c0827c7d7a4fddb12b32",
+  "original_input": "AI_agent/logs/experiments/2026-09-09_m0_wall_openings_run01/assisted_model",
+  "partition_status": "severe",
+  "combined_quality_status": "severe",
+  "topology_findings": 3,
+  "opening_vertices_preserved": true,
+  "viewer_scripts_checked": 4
+}

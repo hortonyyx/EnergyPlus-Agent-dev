@@ -4,6 +4,8 @@
 
 ## 实际调用链
 
+09-09 新主线已有独立源出口：`flow --target source-bim --bim-out NEW_DIRECTORY` 复用 0_reading/1_correction，随后由 `geometry/source_bim.py` 生成完整源边界、接触关系、门窗/连通和检查，不调用旧 EP 建模/切配。`bim` 子命令可重建已接受校正或显式预览候选。三案例源产物与 sm21 实际 flow 已离线验证，223 项相关测试通过。原图 reading 仍未自动调用；旧默认 EP flow 和确认入口继续保留。详见 [实现与证据](../logs/worklog/2026-09-09_source_bim_pipeline.md)。以下历史链不代表新源目标已完成冷启动或 EP 插件迁移。
+
 历史链路已有实际成功产物：sm21 `run_2026-07-02_sonnet_flow_e2e` 为 14 区/100 面/15 窗，sm24 `run_2026-06-24_opus_reading` 为 11 区/76 面/11 窗，两者的 EP 完成文件均为成功、0 severe。**sm24 是下游运行成功、源分区失真的资产**：用户确认 reading 正确、C2 之前 correction 切房；`1_correction/attempts/002/output.json` 已有 11 个矩形 cell，走廊分为两片、右下办公室分为三片，随后生成三个内部 Wall 配对。历史 judge 的 minor 判定不符合当前源 BIM 标准，应作为回归反例。历史人工参与、模型配置和表示限制不能当成当前自动运行成绩。sm25 已定位到 reading/correction/modelling 阶段产物，未定位到历史 EP 成功文件。最新证据见 [复杂度与分区核对](../logs/worklog/2026-09-09_drawing_route_execution_plan.md)。
 
 | 阶段 | 当前行为与产物 | 实现 |

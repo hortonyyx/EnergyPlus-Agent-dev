@@ -15,6 +15,30 @@
 
 ## 2. 检查和推进
 
+当前主线使用独立源 BIM 目标（`d6fd8732`）。在原图观测已准备好、并已核对上游模型配置时：
+
+```bash
+python -m scripts.tool_scripts.run_stage --capability-profile orthogonal_polygon flow CASE RUN --target source-bim --bim-out NEW_SOURCE_DIRECTORY --judge off
+```
+
+它执行/复用 reading、correction，然后直接生成源模型、显示投影和 HTML；不执行旧 Stage 2–5，不授予人工确认。输入仍经过已有阶段检查；`--judge off` 不等于解除结构检查。run 配置明确排除 correction 时会拒绝，`--with-ep`/旧 `--record` 不可与源目标混用。输出目录必须新建。
+
+仅重建已有校正、不调用模型时，可用：
+
+```bash
+python -m scripts.tool_scripts.run_stage --capability-profile orthogonal_polygon bim CASE RUN --out NEW_SOURCE_DIRECTORY
+```
+
+默认核验已接受校正来源；`--candidate-attempt N` 显式查看指定候选，B5 候选仍核验输入证明，不伪造接受记录。保存 `source_model.json`（完整边界及关系）、`display_geometry.json`、`viewer.html`、`report.json`；局部几何可显示时，未建项仍保留并阻塞几何就绪。`source_geometry_ready` 只表示当前源几何检查状态，图纸保真默认未评价；独立分区报告必须另检。无参数的旧 flow 仍默认 EP 路径。
+
+真实原图 reading 自动调用尚未接通。当前全局 LLM 配置仍含 DeepSeek；新生成调用前必须显式选已授权通道，不能因新增 source 目标就直接使用默认模型。
+
+本轮离线复现（含 sm24 错分区反例、历史辅助模型与 sm21 实际 source flow）：
+
+```bash
+python scripts/tool_scripts/diagnose_source_bim.py --out AI_agent/logs/experiments/NEW_SOURCE_BIM_RUN
+```
+
 从仓库根运行；先看帮助与已有 run 状态：
 
 ```bash
