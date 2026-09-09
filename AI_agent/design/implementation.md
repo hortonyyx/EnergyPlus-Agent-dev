@@ -1,6 +1,6 @@
 # 现有实现与能力边界
 
-旧能力基线依据业务代码 `461dfc98` 和 [2026-09-08 代码审计](../logs/experiments/2026-09-08_management_audit/README.md)。09-09 已新增 M0 源投影、分区比较与提前 HTML 查看；当前 case 的具体状态只在 [路线与任务](../project/roadmap.md) 维护。
+旧能力基线依据业务代码 `461dfc98` 和 [2026-09-08 代码审计](../logs/experiments/2026-09-08_management_audit/README.md)。09-09 已新增 M0 源投影、分区比较、显式门/空开口及提前 HTML 查看，并修复贴边窗误拦；当前 case 的具体状态只在 [路线与任务](../project/roadmap.md) 维护。
 
 ## 实际调用链
 
@@ -10,8 +10,8 @@
 |---|---|---|
 | 0_reading | 读取并检查预生成的 `*_view.json`，不自动调用视觉模型读原图 | [run_stage.py](../../scripts/tool_scripts/run_stage.py)、[reading](../../src/agent/reading/) |
 | 1_correction | legacy/as-drawn 分派、多层证据整合、坐标校正、补窗与 finalize，输出 CorrectedGeometry/V3 | [pipeline.py](../../src/agent/pipeline.py)、[correction](../../src/agent/correction/) |
-| 2_modelling | 构建 BuildingGeometry，build 内已造面、切配和挂窗；附带 source_model.json 与源映射检查，CLI 提前生成 HTML | [build.py](../../src/agent/geometry/build.py)、[source_model.py](../../src/agent/geometry/source_model.py) |
-| 3_split_pairing | 当前 CLI 再从校正产物重建，序列化 specs 并与前段几何核对 | [split_pairing.py](../../src/agent/geometry/split_pairing.py)、run_stage.py |
+| 2_modelling | 构建 BuildingGeometry，造面、切配、挂窗及明确给定的门洞；附带 source_model.json 与源映射检查，CLI 提前生成扣洞 HTML | [build.py](../../src/agent/geometry/build.py)、[source_model.py](../../src/agent/geometry/source_model.py)、[openings.py](../../src/agent/geometry/openings.py) |
+| 3_split_pairing | 当前 CLI 再从校正产物重建，序列化 specs 并与前段几何核对；新门洞尚无 EP 适配，遇到时明确停止 | [split_pairing.py](../../src/agent/geometry/split_pairing.py)、run_stage.py |
 | 4_mep | 生成非几何语义；HVAC specs 由代码按 zones 替换并合入保留 schedules | pipeline.py、[intakeoutput.py](../../src/agent/intakeoutput.py) |
 | 5_intakeoutput | 朝向/坐标合同、已接受产物核对、装配 IntakeOutput 和 sidecar | [output_coordinates.py](../../src/agent/output_coordinates.py) |
 | 下游 | IntakeOutput → IDF → EnergyPlus | [graph.py](../../src/agent/graph.py)、[run_full_pipeline.py](../../scripts/run_full_pipeline.py) |
@@ -29,7 +29,7 @@ as-drawn 的 reading 检查覆盖契约、标定和尺寸链，旧字段检查�
 ## 模型和几何内核
 
 [correction/schema.py](../../src/agent/correction/schema.py) 中 Cell 以米表达平面、Floor 给出高度；legacy 注释使用 world-frame/centerline，V3 配合当前建筑坐标合同，带 footprint、立面段、来源等字段。
-[geometry/modelling.py](../../src/agent/geometry/modelling.py) 提供 ZoneVolume、Surface 和 BuildingGeometry；后者主要承载 zone/surface/window，并非完整通用 BIM。当前切配按楼层分组处理墙和相邻层水平面，不能据几何原语支持 polygon 就宣称任意通高、中庭、斜屋面均可运行。
+[geometry/modelling.py](../../src/agent/geometry/modelling.py) 提供 ZoneVolume、Surface、Opening 和 BuildingGeometry；后者承载 zone/surface/window/显式门洞派生片，并非完整通用 BIM。当前切配按楼层分组处理墙和相邻层水平面，不能据几何原语支持 polygon 就宣称任意通高、中庭、斜屋面均可运行。
 
 E4 的建筑坐标、Relative、Zone 归零和来源朝向已经接入装配及导出检查；并非全部 legacy 入口都等价消费。[state.py](../../src/agent/state.py) 中 IntakeOutput 仍以 building、site_location 及九类 specs 交接下游，多数 specs 是文本，不能替代可编辑的建筑模型。
 V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/family 范围匹配，还会拒绝部分 assumed existence；不能直接用于任意外壳或全推断开口。
@@ -61,7 +61,7 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 
 | 能力 | 已有基础 | 缺口 |
 |---|---|---|
-| 窗与开口 | 补窗已接线并有实际产物 | 门等仍有未分类台账；通用开口、连通和源隔断不完整 |
+| 窗与开口 | 补窗、唯一墙段贴边窗及明确给定的门/空开口、两侧关系和扣洞显示已接线 | 自动提取全部门、房间变换后同步开口、一般楼板孔洞与新开口仿真适配仍未完成 |
 | 朝向与视图匹配 | 候选/假设朝向与 manifest | 枚举槽不是自动多源匹配和仲裁 |
 | 查看与编辑 | 离线交互式 3D 查看器、确认/恢复 | 窗移动、墙推拉、自然语言修改的完整回写尚需实现 |
 | 外皮体量 | 可复用几何与查看出口 | 专用适配、内部推断及其简化策略尚待建立 |

@@ -55,6 +55,8 @@ _APP_JS = r"""
   const $ = (id) => document.getElementById(id);
   const SURF = (GEO.surfaces || []).filter(s => (s.verts || []).length >= 3);
   const WINS = (GEO.windows || []).filter(w => (w.verts || []).length >= 3);
+  const OPENS = (GEO.openings || []).filter(o => (o.verts || []).length >= 3);
+  const WALL_PARTS = GEO.visible_wall_parts || {};
   const ZONES = (GEO.zones || []).slice().sort((a, b) => b.length - a.length);
   const SOURCE = GEO.source_model || null;
   const SOURCE_MAP = SOURCE ? SOURCE.derived : {zones:{}, surfaces:{}, windows:{}};
@@ -193,7 +195,7 @@ _APP_JS = r"""
   function activePlanes(){ return AX.filter(a=>a.enabled).map(a=>a.plane); }
 
   // ---- build meshes (keep ALL faces; reciprocal dup hidden at rest, windows popped out) ----
-  const surfMeshes=[], winMeshes=[], edgeSegs=[];
+  const surfMeshes=[], winMeshes=[], openingMeshes=[], edgeSegs=[];
   const root=new THREE.Group(); scene.add(root);
   function fanTriangulate(n){ const idx=[]; for(let i=1;i<n-1;i++) idx.push(0,i,i+1); return idx; }
   function projectRing(ring){
@@ -236,8 +238,9 @@ _APP_JS = r"""
     if(verts.length===3) idx.push(verts[0],verts[1],verts[2]);
     return idx.length ? idx : fanTriangulate(n);
   }
-  function ringGeom(ring){ const pos=[]; ring.forEach(v=>pos.push(v[0],v[1],v[2]));
-    const idx=earTriangulate(ring);
+  function ringGeom(ring, holes=[]){ const pos=[]; [ring,...holes].forEach(r=>r.forEach(v=>pos.push(v[0],v[1],v[2])));
+    const vec = r => projectRing(r).map(p=>new THREE.Vector2(p[0],p[1]));
+    const idx=holes.length ? THREE.ShapeUtils.triangulateShape(vec(ring),holes.map(vec)).flat() : earTriangulate(ring);
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
     g.setIndex(idx); g.computeVertexNormals(); return g; }
   function edgeGeom(ring){ const pos=[]; for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];
@@ -249,11 +252,18 @@ _APP_JS = r"""
     // FLAT (unlit) fill so every face of a zone renders the EXACT same colour — no
     // lighting wash that made horizontal (roof/floor) faces read near-white. Edges keep form.
     const m=new THREE.MeshBasicMaterial({side:THREE.DoubleSide, transparent:true, opacity:1});
-    const mesh=new THREE.Mesh(ringGeom(s.verts), m);
-    mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup, area:polyArea(s.verts)};
-    surfMeshes.push(mesh); root.add(mesh);
-    const em=new THREE.LineSegments(edgeGeom(s.verts), new THREE.LineBasicMaterial({color:0x303030}));
-    em.userData={zone, floor:fi, dup}; edgeSegs.push(em); root.add(em);
+    const parts = Object.prototype.hasOwnProperty.call(WALL_PARTS,s.name) ? WALL_PARTS[s.name] : [{verts:s.verts,holes:[]}];
+    parts.forEach(part=>{
+      const mesh=new THREE.Mesh(ringGeom(part.verts,part.holes||[]), m.clone());
+      mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup,
+        area:polyArea(part.verts)-(part.holes||[]).reduce((sum,r)=>sum+polyArea(r),0)};
+      surfMeshes.push(mesh); root.add(mesh);
+      [part.verts,...(part.holes||[])].forEach(ring=>{
+        const em=new THREE.LineSegments(edgeGeom(ring), new THREE.LineBasicMaterial({color:0x303030}));
+        em.userData={zone, floor:fi, dup}; edgeSegs.push(em); root.add(em);
+      });
+    });
+    m.dispose();
   });
   WINS.forEach(w=>{
     const zone=zoneOfWindow(w), sv=popOut(w.verts, zone);  // proud of wall → clean + pickable
@@ -262,7 +272,20 @@ _APP_JS = r"""
     mesh.userData={zone, floor:nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), type:'Window', name:w.name, kind:'window', dup:false, area:polyArea(w.verts)};
     winMeshes.push(mesh); root.add(mesh);
   });
-  const allMeshes = () => surfMeshes.concat(winMeshes);
+  OPENS.forEach(o=>{
+    const zone=_surfZoneByName[o.parent], dup=Boolean(o.partner && o.name>o.partner);
+    const color=o.kind==='door'?0xa5672a:0x16877b;
+    const m=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,
+      opacity:o.state==='closed'?0.7:0.12,depthWrite:false});
+    const mesh=new THREE.Mesh(ringGeom(o.verts),m);
+    mesh.userData={zone,floor:zoneFloor[zone]||0,type:o.kind==='door'?'门':'空开口',name:o.name,
+      kind:'opening',dup,area:polyArea(o.verts),baseColor:color,sourceId:o.source_opening_id,
+      spaceId:o.space_id,otherSpaceId:o.other_space_id,state:o.state};
+    openingMeshes.push(mesh);root.add(mesh);
+    const em=new THREE.LineSegments(edgeGeom(o.verts),new THREE.LineBasicMaterial({color}));
+    em.userData={zone,floor:zoneFloor[zone]||0,dup,kind:'opening'};edgeSegs.push(em);root.add(em);
+  });
+  const allMeshes = () => surfMeshes.concat(winMeshes,openingMeshes);
 
   function applyClipping(){ const p=activePlanes();
     allMeshes().forEach(m=>{m.material.clippingPlanes=p; m.material.needsUpdate=true;});
@@ -314,6 +337,7 @@ _APP_JS = r"""
   const CAND=[];  // {v: true world Vector3, zone}
   SURF.forEach(s=>s.verts.forEach(v=>CAND.push({v:new THREE.Vector3(v[0],v[1],v[2]), zone:s.zone||'?'})));
   WINS.forEach(w=>{const z=zoneOfWindow(w); w.verts.forEach(v=>CAND.push({v:new THREE.Vector3(v[0],v[1],v[2]), zone:z}));});
+  OPENS.forEach(o=>o.verts.forEach(v=>CAND.push({v:new THREE.Vector3(...v),zone:_surfZoneByName[o.parent]})));
   function clearPair(){ while(mGroup.children.length) mGroup.remove(mGroup.children[0]); measurePts=[]; }
   function clearMeasure(){ measuring=false; snap.visible=false; clearPair();
     $('meas').style.display='none'; renderer.domElement.style.cursor='default'; }
@@ -342,11 +366,12 @@ _APP_JS = r"""
       len:Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])}); } }
   SURF.forEach(s=>{ const z=s.zone||'?'; pushEdges(s.verts, z, zoneFloor[z]??nearestBase(zmin(s),BASES), isDup(s), 'surface'); });
   WINS.forEach(w=>{ const z=zoneOfWindow(w); pushEdges(w.verts, z, nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), false, 'window'); });
+  OPENS.forEach(o=>{const z=_surfZoneByName[o.parent];pushEdges(o.verts,z,zoneFloor[z]||0,Boolean(o.partner&&o.name>o.partner),'opening');});
   // only pick an edge whose source face is currently shown (same predicate as applyFilter)
   function edgeVisible(e){ const f=parseInt($('floorSel').value,10); const exploded=parseFloat($('explode').value)>0;
     if(!(f<0||e.floor===f)) return false;
     if(!exploded && e.dup) return false;
-    return (e.kind==='window') ? $('showWin').checked : $('showWalls').checked; }
+    return (e.kind==='window') ? $('showWin').checked : (e.kind==='opening') ? $('showOpen').checked : $('showWalls').checked; }
   function segDist(px,py,ax,ay,bx,by){ const dx=bx-ax,dy=by-ay, L2=dx*dx+dy*dy||1;
     let t=((px-ax)*dx+(py-ay)*dy)/L2; t=Math.max(0,Math.min(1,t));
     return (px-(ax+t*dx))**2 + (py-(ay+t*dy))**2; }
@@ -372,16 +397,19 @@ _APP_JS = r"""
   // structured selection readout: a titled block of label→value rows (one per line)
   function kv(pairs){ return pairs.filter(p=>p[1]!=null && p[1]!=='').map(p=>row(p[0], esc(p[1]))).join(''); }
   function describe(mode,o){ const u=o.userData;
+    if(u.kind==='opening') return '<div class="hh">'+esc(u.type)+'</div>'+kv([
+      ['源开口 ID',u.sourceId],['连通',u.spaceId+' ↔ '+(u.otherSpaceId||'室外')],
+      ['开闭状态',({open:'开放',closed:'关闭',unknown:'未确定'})[u.state]],['面积',u.area.toFixed(2)+' m²']]);
     if(mode==='floor') return '<div class="hh">floor</div>'+kv([['floor','F'+(u.floor+1)]]);
     if(mode==='zone'){ const r=roleOf(u.zone);
       return '<div class="hh">zone</div>'+kv([['name',u.zone],['type',r||'—'],
         ['源空间 ID',SOURCE_MAP.zones[u.zone]],
         ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']]); }
-    // surface: gross area (a wall's polygon is the FULL rectangle — window openings are
-    // separate child surfaces and are NOT subtracted)
+    // Area of the selected visible fragment: wall apertures are cut out;
+    // windows remain separate child surfaces and are not subtracted here.
     return '<div class="hh">surface</div>'+kv([['name',u.name],['type',u.type],
       ['源对象 ID',SOURCE_MAP.surfaces[u.name] || SOURCE_MAP.windows[u.name]],
-      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'gross (windows not deducted)':'']]);
+      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前可见片面积；门洞已扣除，窗面积未扣除':'']]);
   }
   function handleClick(ev){
     if(measuring){ const r=renderer.domElement.getBoundingClientRect();
@@ -420,13 +448,15 @@ _APP_JS = r"""
     const okF=(u)=>(f<0||u.floor===f) && (exploded || !u.dup);
     surfMeshes.forEach(m=>m.visible = sw && okF(m.userData));
     winMeshes.forEach(m=>m.visible = swin && okF(m.userData));
-    edgeSegs.forEach(e=>e.visible = se && okF(e.userData)); }
+    openingMeshes.forEach(m=>m.visible=$('showOpen').checked && okF(m.userData));
+    edgeSegs.forEach(e=>e.visible = se && okF(e.userData) && (e.userData.kind!=='opening'||$('showOpen').checked)); }
   function explodeOffset(zone){ const amt=parseFloat($('explode').value); if(amt<=0) return new THREE.Vector3();
     if($('explodeMode').value==='floor') return new THREE.Vector3(0,0, (zoneFloor[zone]||0)*amt*radius*1.0);
     return (zoneDir[zone]||new THREE.Vector3()).clone().multiplyScalar(amt*radius*1.2);  // zone: full 3D radial
   }
   function applyExplode(){ surfMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     winMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
+    openingMeshes.forEach(m=>m.position.copy(explodeOffset(m.userData.zone)));
     edgeSegs.forEach(e=>e.position.copy(explodeOffset(e.userData.zone)));
     applyFilter(); }  // re-evaluate dup visibility when crossing explode 0 ↔ >0
 
@@ -439,7 +469,8 @@ _APP_JS = r"""
   if(SOURCE) $('hud').innerHTML += '<div class="hh">源建筑模型</div>' +
     row('源空间',SOURCE.spaces.length) + row('源边界',SOURCE.boundaries.length) +
     row('源开口',SOURCE.openings.length) + row('派生映射检查',esc(SOURCE.validation.status)) +
-    '<p>映射通过仅表示建模保留了校正对象。图纸分区正确性、门洞连通及人工确认另行评价。</p>';
+    row('已记录的门/开口连接',(SOURCE.connections||[]).length) +
+    '<p>检查只覆盖已记录的对象。没有记录门洞不等于没有门；图纸完整性及人工确认另行评价。</p>';
 
   // ---- room-type legend (shown in zone mode: colour swatch → room type) ----
   function updateLegend(mode){
@@ -468,6 +499,7 @@ _APP_JS = r"""
   const fs=$('floorSel'); BASES.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.textContent='F'+(i+1)+' (z='+b.toFixed(2)+')'; fs.appendChild(o);});
   $('colorBy').onchange=()=>{ refreshColors(); clearSelection(); }; fs.onchange=applyFilter;
   $('showWalls').onchange=applyFilter; $('showWin').onchange=applyFilter; $('showEdges').onchange=applyFilter;
+  $('showOpen').onchange=applyFilter;
   $('opacity').oninput=e=>{const v=parseFloat(e.target.value); surfMeshes.forEach(m=>{m.material.opacity=v; m.material.transparent=v<1;});};
   $('explode').oninput=applyExplode; $('explodeMode').onchange=applyExplode;
   $('measure').onclick=()=>{ measuring ? clearMeasure() : startMeasure(); };  // toggle
@@ -503,6 +535,7 @@ _PANEL_HTML = r"""
   <input type="range" id="explode" min="0" max="1" step="0.02" value="0">
   <label class="chk"><input type="checkbox" id="showWalls" checked> wall / floor / roof faces</label>
   <label class="chk"><input type="checkbox" id="showWin" checked> windows</label>
+  <label class="chk"><input type="checkbox" id="showOpen" checked> 门 / 空开口</label>
   <label class="chk"><input type="checkbox" id="showEdges" checked> edges</label>
 
   <div id="sections"></div>
@@ -624,10 +657,14 @@ def discover_roles(bg_path: Path) -> dict:
 def build_viewer_html(data: dict, *, title: str = "building geometry", roles: dict | None = None) -> str:
     three_js = (_VENDOR / "three.min.js").read_text(encoding="utf-8")
     orbit_js = (_VENDOR / "OrbitControls.js").read_text(encoding="utf-8")
+    from src.agent.geometry.openings import visible_wall_parts
+
     geo = {
         "zones": data.get("zones", []),
         "surfaces": data.get("surfaces", []),
         "windows": data.get("windows", []),
+        "openings": data.get("openings", []),
+        "visible_wall_parts": visible_wall_parts(data),
         "roles": roles if roles is not None else data.get("roles", {}),
         "source_model": data.get("source_model"),
     }

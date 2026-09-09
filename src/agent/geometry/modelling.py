@@ -92,6 +92,21 @@ class Window:
 
 
 @dataclass
+class Opening:
+    """One derived side/piece of an identified source door or empty opening."""
+
+    name: str
+    parent: str
+    verts: list[tuple[float, float, float]]
+    source_opening_id: str
+    kind: Literal["door", "open"]
+    space_id: str
+    other_space_id: str | None
+    state: Literal["unknown", "open", "closed"]
+    partner: str = ""
+
+
+@dataclass
 class ZoneVolume:
     """One zone's volume: footprint polygon + z range. The leg-agnostic unit
     `split_pairing` consumes — any zonification (faithful rooms / re-topologized
@@ -116,6 +131,7 @@ class BuildingGeometry:
     notes: list[str] = field(default_factory=list)
     zone_volumes: list[ZoneVolume] = field(default_factory=list)  # for serialization
     geometry_contract: Literal["legacy", "c2_b5_v1"] = "legacy"
+    openings: list[Opening] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -454,18 +470,57 @@ def window_verts_on_line(
     return _orient(v, np.array([nx, ny, 0.0], dtype=float))
 
 
+def _window_wall_source_span(
+    wall: Surface,
+    span_axis: int,
+    shared_endpoints: set[tuple[float, float]],
+) -> tuple[float, float]:
+    """Recover only the endpoint erosion made by ``pair_surfaces``.
+
+    split_pairing subtracts shared walls with ``buffer(1e-6)``. Its original
+    endpoint remains on the paired interior wall, so use that evidence instead
+    of expanding every exterior wall by a generic window tolerance. Neither
+    wall nor window vertices are changed. Near-cardinal, slanted walls do not
+    receive this axis-aligned endpoint recovery.
+    """
+    normal_axis = 1 - span_axis
+    along = [v[span_axis] for v in wall.verts]
+    across = [v[normal_axis] for v in wall.verts]
+    result = [min(along), max(along)]
+    plane = across[0]
+    plane_eps = 8 * max(math.ulp(value) for value in across)
+    if max(across) - min(across) > plane_eps:
+        return tuple(result)
+    for index, direction in ((0, -1), (1, 1)):
+        clipped = result[index]
+        for point in sorted(shared_endpoints):
+            eps = 8 * max(math.ulp(value) for value in (*point, clipped, 1e-6))
+            if (abs(point[normal_axis] - plane) <= plane_eps
+                    and abs(point[span_axis] - clipped - direction * 1e-6) <= eps):
+                result[index] = point[span_axis]
+                break
+    return tuple(result)
+
+
 def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
     """Pick the zone's exterior wall on the window facade whose XY span covers it.
 
     The wall's outward normal must point in the facade direction — a span/axis
     match alone is not enough (a full-depth room has constant-y exterior walls
     on BOTH north and south; without the normal check a South window would
-    silently attach to whichever matching wall came last)."""
+    silently attach to whichever matching wall came last). A window may end at
+    its unique host's endpoint; touching is not crossing into a second wall.
+    """
     span = sorted(float(s) for s in w.span)
     axis = _facade_axis(w.facade)
     want = _FACADE_NORMAL[w.facade.strip().lower()]
     matches: list[Surface] = []
-    seam_hits: list[dict] = []
+    shared_endpoints = {
+        (float(v[0]), float(v[1]))
+        for s in surfaces
+        if s.zone == zone and s.stype == "Wall" and s.obc == "Surface"
+        for v in s.verts
+    }
     for s in surfaces:
         if s.zone != zone or s.stype != "Wall" or s.obc != "Outdoors":
             continue
@@ -478,23 +533,18 @@ def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
         if axis == "y":  # N/S facade: wall runs along x, ~constant y
             if max(ys) - min(ys) > 0.05:
                 continue
-            seg = (min(xs), max(xs))
+            span_axis = 0
         else:            # E/W facade: wall runs along y, ~constant x
             if max(xs) - min(xs) > 0.05:
                 continue
-            seg = (min(ys), max(ys))
-        on_lower_seam = abs(span[0] - seg[0]) <= 0.05 or abs(span[0] - seg[1]) <= 0.05
-        on_upper_seam = abs(span[1] - seg[0]) <= 0.05 or abs(span[1] - seg[1]) <= 0.05
-        if on_lower_seam or on_upper_seam:
-            seam_hits.append({"surface": s.name, "segment_span": seg})
-            continue
-        if seg[0] + 0.05 < span[0] and span[1] < seg[1] - 0.05:
+            span_axis = 1
+        seg = _window_wall_source_span(s, span_axis, shared_endpoints)
+        # Only floating-point representation slack remains after recovering
+        # the proven cut endpoint. Real overruns, even sub-micrometre ones,
+        # cannot be absorbed by the pairing buffer a second time.
+        eps = 8 * max(math.ulp(value) for value in (*span, *seg))
+        if seg[0] - eps <= span[0] and span[1] <= seg[1] + eps:
             matches.append(s)
-    if seam_hits:
-        raise ValueError(
-            f"window {w.id}: ambiguous parent wall on {w.facade} for {w.room}; "
-            f"window span {span} lands on wall segment seam(s): {seam_hits}"
-        )
     if len(matches) > 1:
         raise ValueError(
             f"window {w.id}: ambiguous parent wall on {w.facade} for {w.room}; "

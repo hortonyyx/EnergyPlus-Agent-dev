@@ -100,7 +100,7 @@ def test_v1_default_and_explicit_schema_version_are_byte_identical_geometry():
     assert building_geometry_dict(default_bg) == building_geometry_dict(explicit_bg)
 
 
-def test_window_on_wall_segment_seam_fails_kernel_build():
+def test_window_touching_its_unique_wall_edge_preserves_geometry():
     geom = CorrectedGeometry.model_validate(
         {
             "footprint_x": [0.0, 10.0],
@@ -129,8 +129,10 @@ def test_window_on_wall_segment_seam_fails_kernel_build():
         }
     )
 
-    with pytest.raises(ValueError, match="ambiguous parent wall"):
-        build_geometry(geom)
+    bg = build_geometry(geom)
+    assert len(bg.windows) == 1
+    assert sorted({v[0] for v in bg.windows[0].verts}) == [4.0, 5.0]
+    assert sorted({v[2] for v in bg.windows[0].verts}) == [1.0, 2.0]
 
 
 def test_coverage_check_uses_shared_expected_interface_helper():

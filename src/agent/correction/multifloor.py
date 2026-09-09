@@ -1170,6 +1170,8 @@ def assemble_multifloor_geometry(
     ``single_floor_geometries`` supplies only the XY (id/name/footprint/cells),
     one per storey, ground-up (``ladder[i]`` pairs with
     ``single_floor_geometries[i]``).
+    Explicit doors/passages are refused until assembly can preserve their
+    positions while restamping storey elevations; they must not disappear.
 
     Loud, never silent (T4):
       * ``ladder`` is not a ``ValidatedFloorLadder`` -> ``UNSEALED_FLOOR_LADDER``;
@@ -1245,6 +1247,15 @@ def assemble_multifloor_geometry(
     ys_lo: list[float] = []
     ys_hi: list[float] = []
     for level, geom in zip(levels, single_floor_geometries):
+        if geom.openings:
+            raise MultiFloorAssemblyError(
+                "WALL_OPENING_ASSEMBLY_UNSUPPORTED",
+                {
+                    "floor_index": level.floor_index,
+                    "opening_ids": sorted(o.id for o in geom.openings),
+                    "reason": "multi-floor assembly does not yet support source doors/open passages; refusing to silently discard them",
+                },
+            )
         if level.ceiling_height_m <= 0.0:
             raise MultiFloorAssemblyError(
                 "NONPOSITIVE_CEILING_HEIGHT",

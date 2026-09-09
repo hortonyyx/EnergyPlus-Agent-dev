@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import asdict
 from urllib.parse import quote
 
 from shapely.geometry import LineString, Point, Polygon
@@ -45,7 +46,8 @@ def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> d
     and face subdivision. Topology edits that add/remove source edges need an
     explicit identity migration; dimensional edits preserve boundary order.
     The current correction contract only produces physical, single-ring rooms.
-    Door/void support is deliberately listed as unevaluated.
+    Explicit wall apertures are checked; unrecorded drawing openings and voids
+    remain unevaluated.
     """
     from src.agent.geometry.specs import building_geometry_dict
 
@@ -215,6 +217,47 @@ def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> d
         fail("source.opening_completeness", expected_ids=sorted(source_windows),
              actual_ids=sorted(window_map.values()))
 
+    from src.agent.geometry.openings import attach_openings, OpeningBindingError
+
+    opening_map: dict[str, str] = {}
+    try:
+        expected_apertures = attach_openings(geom, bg)
+    except OpeningBindingError as exc:
+        expected_apertures = []
+        fail("source.opening_binding", message=str(exc))
+    expected_by_name = {o.name: o for o in expected_apertures}
+    for aperture in bg.openings:
+        if aperture.name in opening_map:
+            fail("source.duplicate_opening", opening=aperture.name, source_id=aperture.source_opening_id)
+        expected = expected_by_name.get(aperture.name)
+        if expected is None or asdict(aperture) != asdict(expected):
+            fail("source.aperture_realization_changed", opening=aperture.name,
+                 source_id=aperture.source_opening_id)
+        opening_map[aperture.name] = aperture.source_opening_id
+    if set(opening_map) != set(expected_by_name):
+        fail("source.aperture_completeness", expected_names=sorted(expected_by_name),
+             actual_names=sorted(opening_map))
+    connections = []
+    for source in geom.openings:
+        owned = [o for o in expected_apertures if o.source_opening_id == source.id and o.space_id == source.space_id]
+        host_ids = {surface_map.get(o.parent) for o in owned}
+        if len(host_ids) != 1 or None in host_ids:
+            fail("source.aperture_without_unique_source_boundary", source_id=source.id)
+            continue
+        bid = next(iter(host_ids))
+        linked_spaces = [source.space_id] + ([source.other_space_id] if source.other_space_id is not None else [])
+        openings.append(SourceOpening(
+            id=source.id, kind=source.kind, host_boundary_id=bid,
+            space_ids=linked_spaces, exterior=source.other_space_id is None,
+            vertices=[[*source.p1, source.z[0]], [*source.p2, source.z[0]],
+                      [*source.p2, source.z[1]], [*source.p1, source.z[1]]],
+            connectivity=source.state, source_refs=list(source.source_refs), assumptions=list(source.assumptions),
+        ))
+        connections.append({
+            "opening_id": source.id, "kind": source.kind, "space_ids": linked_spaces,
+            "exterior": source.other_space_id is None, "state": source.state,
+        })
+
     for boundary in boundaries.values():
         boundary.adjacent_space_ids = sorted(set(boundary.adjacent_space_ids))
         boundary.counterpart_ids = sorted(set(boundary.counterpart_ids))
@@ -225,11 +268,14 @@ def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> d
         "spaces": [s.model_dump() for s in sorted(spaces, key=lambda s: s.id)],
         "boundaries": [boundaries[k].model_dump() for k in sorted(boundaries)],
         "openings": [o.model_dump() for o in sorted(openings, key=lambda o: o.id)],
-        "derived": {"zones": zone_map, "surfaces": surface_map, "windows": window_map},
+        "derived": {"zones": zone_map, "surfaces": surface_map, "windows": window_map,
+                    "openings": opening_map},
+        "connections": connections,
         "assumptions": [
             "Correction cell rings represent physical source room boundaries.",
             "Boundary IDs survive dimensions/face subdivision; topology edits require identity migration.",
             "Adjacency does not imply traversability; window connectivity is unknown.",
+            "Only explicitly supplied doors/passages are represented; absent records do not prove no opening exists.",
         ],
         "corrections": geom.corrections,
         "conflicts": geom.conflicts,
@@ -238,7 +284,7 @@ def materialize_source_model(geom: CorrectedGeometry, bg: BuildingGeometry) -> d
             "status": "severe" if findings else "pass", "findings": findings,
             "realization_tolerance_m": eps,
             "scope": "source-to-derived realization only",
-            "not_evaluated": ["drawing partition fidelity", "doors/open passages/connectivity",
+            "not_evaluated": ["drawing partition fidelity", "drawing opening completeness/operating state",
                               "voids and false slabs", "downstream solver acceptance"],
         },
     }

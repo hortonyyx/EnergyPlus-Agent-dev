@@ -251,6 +251,7 @@ class SourceOpening(BaseModel):
     vertices: list[list[float]]
     connectivity: Literal["unknown", "open", "closed"] = "unknown"
     source_refs: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
 
 
 class Window(BaseModel):
@@ -280,6 +281,43 @@ class Floor(BaseModel):
     cells: list[Cell]
 
 
+class WallOpening(BaseModel):
+    """An explicit door or empty aperture on a source room's wall (metres).
+
+    ``other_space_id=None`` means outdoors, never an unspecified neighbour.
+    The plan endpoints and world z interval define a rectangle, with no door-leaf
+    solids. Door operating state may be unknown; an unfilled passage is open.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    kind: Literal["door", "open"]
+    space_id: str
+    other_space_id: str | None
+    p1: tuple[Annotated[float, AllowInfNan(False)], Annotated[float, AllowInfNan(False)]]
+    p2: tuple[Annotated[float, AllowInfNan(False)], Annotated[float, AllowInfNan(False)]]
+    z: tuple[Annotated[float, AllowInfNan(False)], Annotated[float, AllowInfNan(False)]]
+    state: Literal["unknown", "open", "closed"] | None = None
+    source_refs: list[str] = Field(min_length=1)
+    assumptions: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _opening_contract(self):
+        if self.space_id == self.other_space_id:
+            raise ValueError("wall opening must connect distinct spaces or outdoors")
+        if self.p1 == self.p2 or not self.z[0] < self.z[1]:
+            raise ValueError("wall opening requires positive width and height")
+        if self.p1[0] != self.p2[0] and self.p1[1] != self.p2[1]:
+            raise ValueError("only orthogonal wall openings are currently supported")
+        if self.state is None:
+            self.state = "open" if self.kind == "open" else "unknown"
+        if self.kind == "open" and self.state != "open":
+            raise ValueError("an unfilled opening cannot be declared closed or unknown")
+        if not all(ref.strip() for ref in self.source_refs):
+            raise ValueError("opening source references must not be blank")
+        return self
+
+
 class CorrectedGeometry(BaseModel):
     """Corrected, world-frame, centerline geometry primitives — the correction-stage output."""
 
@@ -289,6 +327,8 @@ class CorrectedGeometry(BaseModel):
     footprint_y: list[float]  # [min, max]
     floors: list[Floor]
     windows: list[Window] = Field(default_factory=list)
+    # Excluding an empty list preserves the established v1/v2/v3 byte contract.
+    openings: list[WallOpening] = Field(default_factory=list, exclude_if=lambda value: not value)
     # Audit (A0 schema, kept as flexible dicts so a stage need not over-specify).
     corrections: list[dict] = Field(default_factory=list)
     conflicts: list[dict] = Field(default_factory=list)

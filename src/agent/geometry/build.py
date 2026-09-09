@@ -268,4 +268,8 @@ def build_geometry(
     # `out.surfaces[*].verts` / `out.windows[*].verts` from.
     _canonicalize_bg_vertices(out)
 
+    from src.agent.geometry.openings import attach_openings
+
+    out.openings = attach_openings(geom, out)
+
     return out

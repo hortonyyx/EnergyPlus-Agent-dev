@@ -2570,7 +2570,7 @@ def materialize_kernel_geometry(
         from src.agent.geometry.source_model import materialize_source_model
 
         source_model = materialize_source_model(geom, bg)
-        issues = validate_interzone_surface_pairs(building_to_idf(bg))
+        issues = validate_interzone_surface_pairs(building_to_idf(bg, boundary_validation_only=True))
         issues.extend(
             f"{finding['code']}: {json.dumps(finding, ensure_ascii=False)}"
             for finding in source_model["validation"]["findings"]

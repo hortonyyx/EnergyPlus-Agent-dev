@@ -16,7 +16,15 @@ from src.agent._share import ensure_schema_initialized
 from src.agent.geometry.build import BuildingGeometry
 
 
-def building_to_idf(bg: BuildingGeometry, *, construction: str = "Default") -> IDF:
+def building_to_idf(
+    bg: BuildingGeometry, *, construction: str = "Default", boundary_validation_only: bool = False,
+) -> IDF:
+    # The boundary checker needs closed parent faces. This explicit projection
+    # is never the actual downstream aperture adapter.
+    if not boundary_validation_only:
+        from src.agent.geometry.openings import require_supported_ep_openings
+
+        require_supported_ep_openings(bg)
     ensure_schema_initialized()
     idf = IDF(StringIO(""))
 

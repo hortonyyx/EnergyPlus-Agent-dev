@@ -201,7 +201,7 @@ def _pairing_gate(
             from src.agent.geometry.to_idf import building_to_idf
             from src.validator.interzone import validate_interzone_surface_pairs
 
-            interzone_issues = validate_interzone_surface_pairs(building_to_idf(bg))
+            interzone_issues = validate_interzone_surface_pairs(building_to_idf(bg, boundary_validation_only=True))
         except Exception as e:  # noqa: BLE001 — surfaced as a fail-closed error
             rep.add("kernel.pairing_gate", CheckStatus.ERROR, CheckLayer.INVARIANT,
                     message=f"pairing gate could not run: {type(e).__name__}: {e}")

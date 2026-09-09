@@ -25,6 +25,12 @@ SKIP_EXIT = 3  # distinct from success(0)/error(1) so callers can tell SKIP apar
 
 
 def _load_scene(data: dict):
+    if data.get("openings"):
+        raise ValueError(
+            "GLB/PNG export does not yet support source doors/open passages; "
+            "refusing to replace their openings with solid walls. "
+            "Use render_geometry_viewer.py for a view that preserves openings."
+        )
     import numpy as np
     import trimesh
 

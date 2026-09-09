@@ -123,6 +123,10 @@ def building_geometry_dict(
         payload["windows"].append(row)
     if contract == "c2_b5_v1":
         payload["geometry_contract"] = contract
+    if bg.openings:
+        from dataclasses import asdict
+
+        payload["openings"] = [asdict(o) for o in sorted(bg.openings, key=lambda o: o.name)]
     return payload
 
 
@@ -237,6 +241,9 @@ def serialize_geometry(
     vertex/coordinate VALUES emitted below are identical either way — this
     function never rotates or translates geometry.
     """
+    from src.agent.geometry.openings import require_supported_ep_openings
+
+    require_supported_ep_openings(bg)
     if frame_label not in _FRAME_LABEL_TEXT:
         raise ValueError(f"serialize_geometry: unknown frame_label {frame_label!r}")
     contract = _selected_contract(bg, geometry_contract)

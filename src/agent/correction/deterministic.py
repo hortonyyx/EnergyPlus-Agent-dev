@@ -201,7 +201,7 @@ def core_owned_projection_v1(geom: CorrectedGeometryV3) -> dict:
         {"id": window.id, "floor_id": window.floor_id, "z": [float(v) for v in window.z]}
         for window in sorted(geom.windows, key=lambda w: w.id)
     ]
-    return {
+    projection = {
         "footprint_x": [float(v) for v in geom.footprint_x],
         "footprint_y": [float(v) for v in geom.footprint_y],
         "floors": floors,
@@ -210,6 +210,12 @@ def core_owned_projection_v1(geom: CorrectedGeometryV3) -> dict:
         "unsupported": list(geom.unsupported),
         "corrections": list(geom.corrections),
     }
+    # No later host-resolution stage owns door/passage edits. Retain their
+    # complete declared geometry and evidence in replay verification, while
+    # preserving existing proof hashes for artifacts without these openings.
+    if geom.openings:
+        projection["openings"] = [o.model_dump(mode="json") for o in sorted(geom.openings, key=lambda o: o.id)]
+    return projection
 
 
 def _v3_rectangular_ring(floor) -> bool:
