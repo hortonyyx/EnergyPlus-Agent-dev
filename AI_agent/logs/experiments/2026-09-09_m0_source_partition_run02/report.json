@@ -1,0 +1,860 @@
+{
+  "manifest": {
+    "mode": "historical_replay_with_assisted_partition_fixture",
+    "code_commit": "d37ae2f956cdc6022f7170afe45239aef3962ccb",
+    "working_tree_diff_sha256": "ee9e63d0eff0b55636c3a250e748d41002c236bfc9001d0dbb83a34a3b19d54f",
+    "model_calls": 0,
+    "inputs": [
+      {
+        "path": "tests/fixtures/sm24_source_partition_groups.json",
+        "sha256": "3b9a1843cbcdcc9102f49d6980e14bf8608773fceb8e2dff27a714e56c946e8a"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e/1_correction/correction_geometry_snapped.json",
+        "sha256": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e/2_modelling/building_geometry.json",
+        "sha256": "bdd53a71a15fceef770d9b1120175a13d65e24f5ee1c7656471c75a401c4bc41"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e/2_modelling/kernel_gate_report.json",
+        "sha256": "2e59f5ce9389bf2a0e47cefedd73f37cf6f75cdf8caceb385e6c8561c952991d"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e/EP/EP_run/eplusout.end",
+        "sha256": "d72043a8c869642b647e959a7e9a8acb8412cae391fe43840f0e7f9ba30b99d6"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/1_correction/correction_geometry_snapped.json",
+        "sha256": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/2_modelling/building_geometry.json",
+        "sha256": "1b43f68e10d12863a182a1b7e8004bbe0cca204ffd56651b394188b0d2df8a02"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/2_modelling/kernel_gate_report.json",
+        "sha256": "2e59f5ce9389bf2a0e47cefedd73f37cf6f75cdf8caceb385e6c8561c952991d"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/EP/EP_run/eplusout.end",
+        "sha256": "2ad57561d8e039e2013e1abc94e10dbdb7cd4d0bab5f72e2b6385914705d6a00"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/1f_view.json",
+        "sha256": "bf8d6856679dbfc40ec8447d295733d914c79df4d51889337cc2a97513258f5c"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/correction_geometry_snapped.json",
+        "sha256": "3005228fb9b27b8958dc9ff1b33858e07220077d487b10bf433531de92e9d7a5"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/2_modelling/building_geometry.json",
+        "sha256": "ef6635a0b6871c4e70c407aee10e88b0dfd55fff1830f6dd2220f0b5af848f8f"
+      },
+      {
+        "path": "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/2_modelling/kernel_gate_report.json",
+        "sha256": "29a2239d8bcd9fd73098bb624e8d97ab4c29a404099d4dc1a4d1dda0bd45476c"
+      },
+      {
+        "kind": "accepted_output",
+        "sha256": "3005228fb9b27b8958dc9ff1b33858e07220077d487b10bf433531de92e9d7a5"
+      },
+      {
+        "kind": "resolver_inputs",
+        "sha256": "65c53cf8b44c3eb5f1bd83cd7410f7409b171f7f85b9f9c462ce831617bb7ccf"
+      },
+      {
+        "kind": "window_hosts",
+        "sha256": "8a744c06ba353fd8f892a79206402532069c69aafab593b8abff9e792506b1c0"
+      }
+    ],
+    "human_intervention": "Two declared sm24 source-space groups from the documented user-confirmed split defect; no new drawing interpretation."
+  },
+  "cases": {
+    "sm21": {
+      "mode": "historical_replay",
+      "input": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e",
+      "source_space_count": 14,
+      "window_count": 15,
+      "archived_gate": {
+        "gate_issues": [],
+        "build_notes": []
+      },
+      "archived_viewer": "sm21/archived_viewer.html",
+      "not_evaluated": [
+        "原图冷启动",
+        "门洞与连通",
+        "完整源 BIM 正确性",
+        "本批 EnergyPlus 运行",
+        "人工确认"
+      ],
+      "historical_ep": "EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  5.50sec",
+      "current_rebuild": {
+        "status": "pass",
+        "issues": []
+      },
+      "source_mapping": {
+        "status": "pass",
+        "findings": [],
+        "realization_tolerance_m": 2e-06,
+        "scope": "source-to-derived realization only",
+        "not_evaluated": [
+          "drawing partition fidelity",
+          "doors/open passages/connectivity",
+          "voids and false slabs",
+          "downstream solver acceptance"
+        ]
+      },
+      "current_viewer": "sm21/current_viewer.html",
+      "partition_comparison": {
+        "schema_version": 1,
+        "status": "not_evaluated",
+        "tolerance_m": 0.02,
+        "reference_count": 0,
+        "candidate_count": 14,
+        "matched_count": 0,
+        "matches": [],
+        "findings": [
+          {
+            "code": "reference_unavailable",
+            "severity": "info",
+            "reference_ids": [],
+            "candidate_ids": [],
+            "message": "No usable reference partition; candidate correctness is not established."
+          }
+        ],
+        "evaluated": [],
+        "not_evaluated": [
+          "doors",
+          "openings",
+          "connectivity",
+          "false_slabs",
+          "physical_wall_types"
+        ]
+      }
+    },
+    "sm24": {
+      "mode": "historical_replay",
+      "input": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading",
+      "source_space_count": 11,
+      "window_count": 11,
+      "archived_gate": {
+        "gate_issues": [],
+        "build_notes": []
+      },
+      "archived_viewer": "sm24/archived_viewer.html",
+      "not_evaluated": [
+        "原图冷启动",
+        "门洞与连通",
+        "完整源 BIM 正确性",
+        "本批 EnergyPlus 运行",
+        "人工确认"
+      ],
+      "historical_ep": "EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  4.10sec",
+      "current_rebuild": {
+        "status": "failed",
+        "issues": [
+          "kernel-error: ValueError: window win_east_2: ambiguous parent wall on East for cell_office_right_small; window span [15.05, 15.58] lands on wall segment seam(s): [{'surface': 'Z02_W2', 'segment_span': (15.050001, 16.099999)}]"
+        ]
+      },
+      "extra_physical_wall_pairs": [
+        {
+          "surface_pair": [
+            "Z06_W1",
+            "Z10_W5"
+          ],
+          "source_space_id": "cell_corridor",
+          "cell_ids": [
+            "cell_corridor_upper",
+            "cell_corridor_lower"
+          ],
+          "vertices": [
+            [
+              4.1,
+              4.95,
+              0.0
+            ],
+            [
+              5.9,
+              4.95,
+              0.0
+            ],
+            [
+              5.9,
+              4.95,
+              4.5
+            ],
+            [
+              4.1,
+              4.95,
+              4.5
+            ]
+          ],
+          "severity": "severe"
+        },
+        {
+          "surface_pair": [
+            "Z07_W2",
+            "Z08_W3"
+          ],
+          "source_space_id": "cell_office_right_bottom",
+          "cell_ids": [
+            "cell_office_right_bottom_upper",
+            "cell_office_right_bottom_mid"
+          ],
+          "vertices": [
+            [
+              9.6,
+              4.95,
+              0.0
+            ],
+            [
+              9.9,
+              4.95,
+              0.0
+            ],
+            [
+              9.9,
+              4.95,
+              4.5
+            ],
+            [
+              9.6,
+              4.95,
+              4.5
+            ]
+          ],
+          "severity": "severe"
+        },
+        {
+          "surface_pair": [
+            "Z08_W1",
+            "Z11_W3"
+          ],
+          "source_space_id": "cell_office_right_bottom",
+          "cell_ids": [
+            "cell_office_right_bottom_mid",
+            "cell_office_right_bottom_lower"
+          ],
+          "vertices": [
+            [
+              9.6,
+              4.05,
+              0.0
+            ],
+            [
+              9.9,
+              4.05,
+              0.0
+            ],
+            [
+              9.9,
+              4.05,
+              4.5
+            ],
+            [
+              9.6,
+              4.05,
+              4.5
+            ]
+          ],
+          "severity": "severe"
+        }
+      ],
+      "reference_basis": {
+        "kind": "assisted_partition_regression",
+        "scope": "Isolate the three known artificial partition walls in the archived correction; not a complete reading reconstruction or ground truth.",
+        "basis": "User-confirmed correction split defect; AI_agent/logs/worklog/2026-09-09_drawing_route_execution_plan.md",
+        "groups": [
+          {
+            "source_id": "cell_corridor",
+            "members": [
+              "cell_corridor_upper",
+              "cell_corridor_lower"
+            ]
+          },
+          {
+            "source_id": "cell_office_right_bottom",
+            "members": [
+              "cell_office_right_bottom_upper",
+              "cell_office_right_bottom_mid",
+              "cell_office_right_bottom_lower"
+            ]
+          }
+        ],
+        "not_evaluated": [
+          "Source door geometry and connectivity, including the open corridor mouth",
+          "Whether the retained correction coordinates/remaining partitions match all drawing details",
+          "Window hosting in the reconstructed source"
+        ]
+      },
+      "partition_preview": {
+        "mode": "assisted_partition_only",
+        "viewer": "sm24/partition_preview.html",
+        "space_count": 8,
+        "unrealized_window_ids": [
+          "win_south_1",
+          "win_south_2",
+          "win_north_1",
+          "win_east_1",
+          "win_east_2",
+          "win_east_3",
+          "win_west_1",
+          "win_west_2",
+          "win_west_3",
+          "win_west_4",
+          "win_west_5"
+        ],
+        "source_mapping": {
+          "status": "pass",
+          "findings": [],
+          "realization_tolerance_m": 2e-06,
+          "scope": "source-to-derived realization only",
+          "not_evaluated": [
+            "drawing partition fidelity",
+            "doors/open passages/connectivity",
+            "voids and false slabs",
+            "downstream solver acceptance"
+          ]
+        },
+        "kernel_issues": [],
+        "partition_comparison": {
+          "schema_version": 1,
+          "status": "pass",
+          "tolerance_m": 0.02,
+          "reference_count": 8,
+          "candidate_count": 8,
+          "matched_count": 8,
+          "matches": [
+            {
+              "reference_id": "cell_north_reception",
+              "candidate_id": "cell_north_reception",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 37.99999999999997,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_office_left_upper",
+              "candidate_id": "cell_office_left_upper",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 13.020000000000003,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_office_left_middle",
+              "candidate_id": "cell_office_left_middle",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 20.58,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_conference_left_bottom",
+              "candidate_id": "cell_conference_left_bottom",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 34.43999999999999,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_office_right_small",
+              "candidate_id": "cell_office_right_small",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 4.200000000000003,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_office_right_middle",
+              "candidate_id": "cell_office_right_middle",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 27.800000000000004,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_corridor",
+              "candidate_id": "cell_corridor",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 47.84500000000001,
+              "reference_coverage_fraction": 1.0000000000000002,
+              "candidate_coverage_fraction": 1.0000000000000002,
+              "iou": 1.0000000000000002,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            },
+            {
+              "reference_id": "cell_office_right_bottom",
+              "candidate_id": "cell_office_right_bottom",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "pass",
+              "intersection_area_m2": 14.115000000000002,
+              "reference_coverage_fraction": 1.0,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 1.0,
+              "symmetric_difference_area_m2": 0.0,
+              "boundary_hausdorff_m": 0.0,
+              "boundary_within_tolerance": true,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            }
+          ],
+          "findings": [],
+          "evaluated": [
+            "source_space_correspondence",
+            "partition_geometry",
+            "floor_assignment",
+            "vertical_extent"
+          ],
+          "not_evaluated": [
+            "doors",
+            "openings",
+            "connectivity",
+            "false_slabs",
+            "physical_wall_types"
+          ]
+        }
+      },
+      "partition_comparison": {
+        "schema_version": 1,
+        "status": "severe",
+        "tolerance_m": 0.02,
+        "reference_count": 8,
+        "candidate_count": 11,
+        "matched_count": 8,
+        "matches": [
+          {
+            "reference_id": "cell_north_reception",
+            "candidate_id": "cell_north_reception",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "pass",
+            "intersection_area_m2": 37.99999999999997,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 1.0,
+            "symmetric_difference_area_m2": 0.0,
+            "boundary_hausdorff_m": 0.0,
+            "boundary_within_tolerance": true,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_office_left_upper",
+            "candidate_id": "cell_office_left_upper",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "pass",
+            "intersection_area_m2": 13.020000000000003,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 1.0,
+            "symmetric_difference_area_m2": 0.0,
+            "boundary_hausdorff_m": 0.0,
+            "boundary_within_tolerance": true,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_office_left_middle",
+            "candidate_id": "cell_office_left_middle",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "pass",
+            "intersection_area_m2": 20.58,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 1.0,
+            "symmetric_difference_area_m2": 0.0,
+            "boundary_hausdorff_m": 0.0,
+            "boundary_within_tolerance": true,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_conference_left_bottom",
+            "candidate_id": "cell_conference_left_bottom",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "pass",
+            "intersection_area_m2": 34.43999999999999,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 1.0,
+            "symmetric_difference_area_m2": 0.0,
+            "boundary_hausdorff_m": 0.0,
+            "boundary_within_tolerance": true,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_office_right_small",
+            "candidate_id": "cell_office_right_small",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "pass",
+            "intersection_area_m2": 4.200000000000003,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 1.0,
+            "symmetric_difference_area_m2": 0.0,
+            "boundary_hausdorff_m": 0.0,
+            "boundary_within_tolerance": true,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_office_right_middle",
+            "candidate_id": "cell_office_right_middle",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "pass",
+            "intersection_area_m2": 27.800000000000004,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 1.0,
+            "symmetric_difference_area_m2": 0.0,
+            "boundary_hausdorff_m": 0.0,
+            "boundary_within_tolerance": true,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_corridor",
+            "candidate_id": "cell_corridor_lower",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "severe",
+            "intersection_area_m2": 27.775,
+            "reference_coverage_fraction": 0.5805204305570069,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 0.5805204305570069,
+            "symmetric_difference_area_m2": 20.07000000000001,
+            "boundary_hausdorff_m": 11.150000000000002,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          },
+          {
+            "reference_id": "cell_office_right_bottom",
+            "candidate_id": "cell_office_right_bottom_upper",
+            "reference_floor_id": "Floor 1",
+            "candidate_floor_id": "Floor 1",
+            "status": "severe",
+            "intersection_area_m2": 12.599999999999998,
+            "reference_coverage_fraction": 0.8926673751328371,
+            "candidate_coverage_fraction": 1.0,
+            "iou": 0.8926673751328371,
+            "symmetric_difference_area_m2": 1.5150000000000035,
+            "boundary_hausdorff_m": 5.05,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 0.0
+          }
+        ],
+        "findings": [
+          {
+            "code": "partition_boundary_changed",
+            "severity": "severe",
+            "reference_ids": [
+              "cell_corridor"
+            ],
+            "candidate_ids": [
+              "cell_corridor_lower"
+            ],
+            "message": "Matched source space boundaries differ beyond tolerance.",
+            "match": {
+              "reference_id": "cell_corridor",
+              "candidate_id": "cell_corridor_lower",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "severe",
+              "intersection_area_m2": 27.775,
+              "reference_coverage_fraction": 0.5805204305570069,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 0.5805204305570069,
+              "symmetric_difference_area_m2": 20.07000000000001,
+              "boundary_hausdorff_m": 11.150000000000002,
+              "boundary_within_tolerance": false,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            }
+          },
+          {
+            "code": "partition_boundary_changed",
+            "severity": "severe",
+            "reference_ids": [
+              "cell_office_right_bottom"
+            ],
+            "candidate_ids": [
+              "cell_office_right_bottom_upper"
+            ],
+            "message": "Matched source space boundaries differ beyond tolerance.",
+            "match": {
+              "reference_id": "cell_office_right_bottom",
+              "candidate_id": "cell_office_right_bottom_upper",
+              "reference_floor_id": "Floor 1",
+              "candidate_floor_id": "Floor 1",
+              "status": "severe",
+              "intersection_area_m2": 12.599999999999998,
+              "reference_coverage_fraction": 0.8926673751328371,
+              "candidate_coverage_fraction": 1.0,
+              "iou": 0.8926673751328371,
+              "symmetric_difference_area_m2": 1.5150000000000035,
+              "boundary_hausdorff_m": 5.05,
+              "boundary_within_tolerance": false,
+              "z_floor_delta_m": 0.0,
+              "height_delta_m": 0.0,
+              "z_top_delta_m": 0.0
+            }
+          },
+          {
+            "code": "extra_source_space",
+            "severity": "severe",
+            "reference_ids": [],
+            "candidate_ids": [
+              "cell_corridor_upper"
+            ],
+            "message": "Candidate space has no one-to-one reference counterpart.",
+            "floor_id": "Floor 1",
+            "area_m2": 20.07000000000001
+          },
+          {
+            "code": "extra_source_space",
+            "severity": "severe",
+            "reference_ids": [],
+            "candidate_ids": [
+              "cell_office_right_bottom_mid"
+            ],
+            "message": "Candidate space has no one-to-one reference counterpart.",
+            "floor_id": "Floor 1",
+            "area_m2": 0.27000000000000074
+          },
+          {
+            "code": "extra_source_space",
+            "severity": "severe",
+            "reference_ids": [],
+            "candidate_ids": [
+              "cell_office_right_bottom_lower"
+            ],
+            "message": "Candidate space has no one-to-one reference counterpart.",
+            "floor_id": "Floor 1",
+            "area_m2": 1.2450000000000028
+          },
+          {
+            "code": "source_space_split",
+            "severity": "severe",
+            "reference_ids": [
+              "cell_corridor"
+            ],
+            "candidate_ids": [
+              "cell_corridor_upper",
+              "cell_corridor_lower"
+            ],
+            "message": "Multiple candidate source spaces substantially cover one reference space.",
+            "floor_id": "Floor 1",
+            "overlaps": [
+              {
+                "candidate_id": "cell_corridor_upper",
+                "intersection_area_m2": 20.07000000000001,
+                "candidate_coverage_fraction": 1.0
+              },
+              {
+                "candidate_id": "cell_corridor_lower",
+                "intersection_area_m2": 27.775,
+                "candidate_coverage_fraction": 1.0
+              }
+            ]
+          },
+          {
+            "code": "source_space_split",
+            "severity": "severe",
+            "reference_ids": [
+              "cell_office_right_bottom"
+            ],
+            "candidate_ids": [
+              "cell_office_right_bottom_upper",
+              "cell_office_right_bottom_mid",
+              "cell_office_right_bottom_lower"
+            ],
+            "message": "Multiple candidate source spaces substantially cover one reference space.",
+            "floor_id": "Floor 1",
+            "overlaps": [
+              {
+                "candidate_id": "cell_office_right_bottom_upper",
+                "intersection_area_m2": 12.599999999999998,
+                "candidate_coverage_fraction": 1.0
+              },
+              {
+                "candidate_id": "cell_office_right_bottom_mid",
+                "intersection_area_m2": 0.27000000000000074,
+                "candidate_coverage_fraction": 1.0
+              },
+              {
+                "candidate_id": "cell_office_right_bottom_lower",
+                "intersection_area_m2": 1.2450000000000028,
+                "candidate_coverage_fraction": 1.0
+              }
+            ]
+          }
+        ],
+        "evaluated": [
+          "source_space_correspondence",
+          "partition_geometry",
+          "floor_assignment",
+          "vertical_extent"
+        ],
+        "not_evaluated": [
+          "doors",
+          "openings",
+          "connectivity",
+          "false_slabs",
+          "physical_wall_types"
+        ]
+      }
+    },
+    "sm25": {
+      "mode": "historical_replay",
+      "input": "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e",
+      "source_space_count": 27,
+      "window_count": 31,
+      "archived_gate": {
+        "gate_issues": [
+          "degenerate surface 'Z04_Ceiling2': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)",
+          "degenerate surface 'Z20_Floor1': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)"
+        ],
+        "build_notes": []
+      },
+      "archived_viewer": "sm25/archived_viewer.html",
+      "not_evaluated": [
+        "原图冷启动",
+        "门洞与连通",
+        "完整源 BIM 正确性",
+        "本批 EnergyPlus 运行",
+        "人工确认"
+      ],
+      "historical_ep": "not_run",
+      "current_rebuild": {
+        "status": "blocked",
+        "issues": [
+          "degenerate surface 'Z04_Ceiling2': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)",
+          "degenerate surface 'Z20_Floor1': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)"
+        ]
+      },
+      "source_mapping": {
+        "status": "pass",
+        "findings": [],
+        "realization_tolerance_m": 2e-06,
+        "scope": "source-to-derived realization only",
+        "not_evaluated": [
+          "drawing partition fidelity",
+          "doors/open passages/connectivity",
+          "voids and false slabs",
+          "downstream solver acceptance"
+        ]
+      },
+      "current_viewer": "sm25/current_viewer.html",
+      "partition_comparison": {
+        "schema_version": 1,
+        "status": "not_evaluated",
+        "tolerance_m": 0.02,
+        "reference_count": 0,
+        "candidate_count": 27,
+        "matched_count": 0,
+        "matches": [],
+        "findings": [
+          {
+            "code": "reference_unavailable",
+            "severity": "info",
+            "reference_ids": [],
+            "candidate_ids": [],
+            "message": "No usable reference partition; candidate correctness is not established."
+          }
+        ],
+        "evaluated": [],
+        "not_evaluated": [
+          "doors",
+          "openings",
+          "connectivity",
+          "false_slabs",
+          "physical_wall_types"
+        ]
+      }
+    }
+  }
+}

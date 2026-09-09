@@ -1,0 +1,787 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>M0 源分区诊断</title>
+<style>body{font:16px/1.7 system-ui;max-width:1120px;margin:40px auto;padding:0 24px;color:#183044;background:#f6f8fa}
+table{border-collapse:collapse;width:100%;background:white}td,th{padding:12px;border:1px solid #ccd6dd;text-align:left}a{color:#0768a0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}details{margin:16px 0}section{background:white;padding:20px;border:1px solid #ccd6dd}h1{font-size:28px}</style>
+<h1>M0 · 源分区诊断</h1><p>sm24 历史校正多出三道物理隔墙，分区评价为 severe。明确分组后的 8 空间诊断保留非矩形房间。</p>
+<p>本次为旧产物重放和人工分组回归，模型调用 0 次。不是原图冷启动；门洞连通、完整 BIM 正确性和人工确认尚未完成。not_evaluated 不等于通过。</p>
+<table><tr><th>案例</th><th>历史源空间</th><th>历史窗</th><th>分区评价</th><th>当前重建</th><th>查看</th></tr><tr><th>sm21</th><td>14</td><td>15</td><td>not_evaluated</td><td>pass</td><td><a href="sm21/archived_viewer.html">历史查看</a> · <a href="sm21/current_viewer.html">当前重放</a></td></tr><tr><th>sm24</th><td>11</td><td>11</td><td>severe</td><td>failed</td><td><a href="sm24/archived_viewer.html">历史查看</a> · <a href="sm24/partition_preview.html">8 空间分区诊断（未建窗）</a></td></tr><tr><th>sm25</th><td>27</td><td>31</td><td>not_evaluated</td><td>blocked</td><td><a href="sm25/archived_viewer.html">历史查看</a> · <a href="sm25/current_viewer.html">当前重放</a></td></tr></table>
+<section><h2>sm24 三道额外隔墙</h2><p>红线为同一声明源空间内的历史 Wall 配对；底图只隔离已确认的切割错误，其他几何与开放口未据此验收。</p><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.0 21.0" style="max-height:560px;width:100%" role="img" aria-label="sm24 三道错误隔墙标为红色"><polygon points="0.5,4.299999999999997 10.5,4.299999999999997 10.5,0.5 0.5,0.5" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="0.5,7.399999999999999 4.699999999999999,7.399999999999999 4.699999999999999,4.299999999999997 0.5,4.299999999999997" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="0.5,12.299999999999999 4.699999999999999,12.299999999999999 4.699999999999999,7.399999999999999 0.5,7.399999999999999" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="0.5,20.5 4.699999999999999,20.5 4.699999999999999,12.299999999999999 0.5,12.299999999999999" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="6.5,5.349999999999998 10.5,5.349999999999998 10.5,4.299999999999997 6.5,4.299999999999997" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="6.5,12.299999999999999 10.5,12.299999999999999 10.5,5.349999999999998 6.5,5.349999999999998" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="4.699999999999999,20.5 10.2,20.5 10.2,15.45 6.5,15.45 6.5,4.299999999999997 4.699999999999999,4.299999999999997" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polygon points="6.5,15.45 10.2,15.45 10.2,20.5 10.5,20.5 10.5,12.299999999999999 6.5,12.299999999999999" fill="#d4e6f1" stroke="#284b63" stroke-width=".035"/><polyline points="4.699999999999999,15.45 6.5,15.45" fill="none" stroke="#c0392b" stroke-width=".12"/><polyline points="10.2,15.45 10.5,15.45" fill="none" stroke="#c0392b" stroke-width=".12"/><polyline points="10.2,16.349999999999998 10.5,16.349999999999998" fill="none" stroke="#c0392b" stroke-width=".12"/></svg></section><details><summary>sm21 具体证据与未完成项</summary><pre>{
+  &quot;mode&quot;: &quot;historical_replay&quot;,
+  &quot;input&quot;: &quot;case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e&quot;,
+  &quot;source_space_count&quot;: 14,
+  &quot;window_count&quot;: 15,
+  &quot;archived_gate&quot;: {
+    &quot;gate_issues&quot;: [],
+    &quot;build_notes&quot;: []
+  },
+  &quot;archived_viewer&quot;: &quot;sm21/archived_viewer.html&quot;,
+  &quot;not_evaluated&quot;: [
+    &quot;原图冷启动&quot;,
+    &quot;门洞与连通&quot;,
+    &quot;完整源 BIM 正确性&quot;,
+    &quot;本批 EnergyPlus 运行&quot;,
+    &quot;人工确认&quot;
+  ],
+  &quot;historical_ep&quot;: &quot;EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  5.50sec&quot;,
+  &quot;current_rebuild&quot;: {
+    &quot;status&quot;: &quot;pass&quot;,
+    &quot;issues&quot;: []
+  },
+  &quot;source_mapping&quot;: {
+    &quot;status&quot;: &quot;pass&quot;,
+    &quot;findings&quot;: [],
+    &quot;realization_tolerance_m&quot;: 2e-06,
+    &quot;scope&quot;: &quot;source-to-derived realization only&quot;,
+    &quot;not_evaluated&quot;: [
+      &quot;drawing partition fidelity&quot;,
+      &quot;doors/open passages/connectivity&quot;,
+      &quot;voids and false slabs&quot;,
+      &quot;downstream solver acceptance&quot;
+    ]
+  },
+  &quot;current_viewer&quot;: &quot;sm21/current_viewer.html&quot;,
+  &quot;partition_comparison&quot;: {
+    &quot;schema_version&quot;: 1,
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;tolerance_m&quot;: 0.02,
+    &quot;reference_count&quot;: 0,
+    &quot;candidate_count&quot;: 14,
+    &quot;matched_count&quot;: 0,
+    &quot;matches&quot;: [],
+    &quot;findings&quot;: [
+      {
+        &quot;code&quot;: &quot;reference_unavailable&quot;,
+        &quot;severity&quot;: &quot;info&quot;,
+        &quot;reference_ids&quot;: [],
+        &quot;candidate_ids&quot;: [],
+        &quot;message&quot;: &quot;No usable reference partition; candidate correctness is not established.&quot;
+      }
+    ],
+    &quot;evaluated&quot;: [],
+    &quot;not_evaluated&quot;: [
+      &quot;doors&quot;,
+      &quot;openings&quot;,
+      &quot;connectivity&quot;,
+      &quot;false_slabs&quot;,
+      &quot;physical_wall_types&quot;
+    ]
+  }
+}</pre></details><details><summary>sm24 具体证据与未完成项</summary><pre>{
+  &quot;mode&quot;: &quot;historical_replay&quot;,
+  &quot;input&quot;: &quot;case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading&quot;,
+  &quot;source_space_count&quot;: 11,
+  &quot;window_count&quot;: 11,
+  &quot;archived_gate&quot;: {
+    &quot;gate_issues&quot;: [],
+    &quot;build_notes&quot;: []
+  },
+  &quot;archived_viewer&quot;: &quot;sm24/archived_viewer.html&quot;,
+  &quot;not_evaluated&quot;: [
+    &quot;原图冷启动&quot;,
+    &quot;门洞与连通&quot;,
+    &quot;完整源 BIM 正确性&quot;,
+    &quot;本批 EnergyPlus 运行&quot;,
+    &quot;人工确认&quot;
+  ],
+  &quot;historical_ep&quot;: &quot;EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  4.10sec&quot;,
+  &quot;current_rebuild&quot;: {
+    &quot;status&quot;: &quot;failed&quot;,
+    &quot;issues&quot;: [
+      &quot;kernel-error: ValueError: window win_east_2: ambiguous parent wall on East for cell_office_right_small; window span [15.05, 15.58] lands on wall segment seam(s): [{&#x27;surface&#x27;: &#x27;Z02_W2&#x27;, &#x27;segment_span&#x27;: (15.050001, 16.099999)}]&quot;
+    ]
+  },
+  &quot;extra_physical_wall_pairs&quot;: [
+    {
+      &quot;surface_pair&quot;: [
+        &quot;Z06_W1&quot;,
+        &quot;Z10_W5&quot;
+      ],
+      &quot;source_space_id&quot;: &quot;cell_corridor&quot;,
+      &quot;cell_ids&quot;: [
+        &quot;cell_corridor_upper&quot;,
+        &quot;cell_corridor_lower&quot;
+      ],
+      &quot;vertices&quot;: [
+        [
+          4.1,
+          4.95,
+          0.0
+        ],
+        [
+          5.9,
+          4.95,
+          0.0
+        ],
+        [
+          5.9,
+          4.95,
+          4.5
+        ],
+        [
+          4.1,
+          4.95,
+          4.5
+        ]
+      ],
+      &quot;severity&quot;: &quot;severe&quot;
+    },
+    {
+      &quot;surface_pair&quot;: [
+        &quot;Z07_W2&quot;,
+        &quot;Z08_W3&quot;
+      ],
+      &quot;source_space_id&quot;: &quot;cell_office_right_bottom&quot;,
+      &quot;cell_ids&quot;: [
+        &quot;cell_office_right_bottom_upper&quot;,
+        &quot;cell_office_right_bottom_mid&quot;
+      ],
+      &quot;vertices&quot;: [
+        [
+          9.6,
+          4.95,
+          0.0
+        ],
+        [
+          9.9,
+          4.95,
+          0.0
+        ],
+        [
+          9.9,
+          4.95,
+          4.5
+        ],
+        [
+          9.6,
+          4.95,
+          4.5
+        ]
+      ],
+      &quot;severity&quot;: &quot;severe&quot;
+    },
+    {
+      &quot;surface_pair&quot;: [
+        &quot;Z08_W1&quot;,
+        &quot;Z11_W3&quot;
+      ],
+      &quot;source_space_id&quot;: &quot;cell_office_right_bottom&quot;,
+      &quot;cell_ids&quot;: [
+        &quot;cell_office_right_bottom_mid&quot;,
+        &quot;cell_office_right_bottom_lower&quot;
+      ],
+      &quot;vertices&quot;: [
+        [
+          9.6,
+          4.05,
+          0.0
+        ],
+        [
+          9.9,
+          4.05,
+          0.0
+        ],
+        [
+          9.9,
+          4.05,
+          4.5
+        ],
+        [
+          9.6,
+          4.05,
+          4.5
+        ]
+      ],
+      &quot;severity&quot;: &quot;severe&quot;
+    }
+  ],
+  &quot;reference_basis&quot;: {
+    &quot;kind&quot;: &quot;assisted_partition_regression&quot;,
+    &quot;scope&quot;: &quot;Isolate the three known artificial partition walls in the archived correction; not a complete reading reconstruction or ground truth.&quot;,
+    &quot;basis&quot;: &quot;User-confirmed correction split defect; AI_agent/logs/worklog/2026-09-09_drawing_route_execution_plan.md&quot;,
+    &quot;groups&quot;: [
+      {
+        &quot;source_id&quot;: &quot;cell_corridor&quot;,
+        &quot;members&quot;: [
+          &quot;cell_corridor_upper&quot;,
+          &quot;cell_corridor_lower&quot;
+        ]
+      },
+      {
+        &quot;source_id&quot;: &quot;cell_office_right_bottom&quot;,
+        &quot;members&quot;: [
+          &quot;cell_office_right_bottom_upper&quot;,
+          &quot;cell_office_right_bottom_mid&quot;,
+          &quot;cell_office_right_bottom_lower&quot;
+        ]
+      }
+    ],
+    &quot;not_evaluated&quot;: [
+      &quot;Source door geometry and connectivity, including the open corridor mouth&quot;,
+      &quot;Whether the retained correction coordinates/remaining partitions match all drawing details&quot;,
+      &quot;Window hosting in the reconstructed source&quot;
+    ]
+  },
+  &quot;partition_preview&quot;: {
+    &quot;mode&quot;: &quot;assisted_partition_only&quot;,
+    &quot;viewer&quot;: &quot;sm24/partition_preview.html&quot;,
+    &quot;space_count&quot;: 8,
+    &quot;unrealized_window_ids&quot;: [
+      &quot;win_south_1&quot;,
+      &quot;win_south_2&quot;,
+      &quot;win_north_1&quot;,
+      &quot;win_east_1&quot;,
+      &quot;win_east_2&quot;,
+      &quot;win_east_3&quot;,
+      &quot;win_west_1&quot;,
+      &quot;win_west_2&quot;,
+      &quot;win_west_3&quot;,
+      &quot;win_west_4&quot;,
+      &quot;win_west_5&quot;
+    ],
+    &quot;source_mapping&quot;: {
+      &quot;status&quot;: &quot;pass&quot;,
+      &quot;findings&quot;: [],
+      &quot;realization_tolerance_m&quot;: 2e-06,
+      &quot;scope&quot;: &quot;source-to-derived realization only&quot;,
+      &quot;not_evaluated&quot;: [
+        &quot;drawing partition fidelity&quot;,
+        &quot;doors/open passages/connectivity&quot;,
+        &quot;voids and false slabs&quot;,
+        &quot;downstream solver acceptance&quot;
+      ]
+    },
+    &quot;kernel_issues&quot;: [],
+    &quot;partition_comparison&quot;: {
+      &quot;schema_version&quot;: 1,
+      &quot;status&quot;: &quot;pass&quot;,
+      &quot;tolerance_m&quot;: 0.02,
+      &quot;reference_count&quot;: 8,
+      &quot;candidate_count&quot;: 8,
+      &quot;matched_count&quot;: 8,
+      &quot;matches&quot;: [
+        {
+          &quot;reference_id&quot;: &quot;cell_north_reception&quot;,
+          &quot;candidate_id&quot;: &quot;cell_north_reception&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 37.99999999999997,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_office_left_upper&quot;,
+          &quot;candidate_id&quot;: &quot;cell_office_left_upper&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 13.020000000000003,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_office_left_middle&quot;,
+          &quot;candidate_id&quot;: &quot;cell_office_left_middle&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 20.58,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_conference_left_bottom&quot;,
+          &quot;candidate_id&quot;: &quot;cell_conference_left_bottom&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 34.43999999999999,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_office_right_small&quot;,
+          &quot;candidate_id&quot;: &quot;cell_office_right_small&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 4.200000000000003,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_office_right_middle&quot;,
+          &quot;candidate_id&quot;: &quot;cell_office_right_middle&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 27.800000000000004,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_corridor&quot;,
+          &quot;candidate_id&quot;: &quot;cell_corridor&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 47.84500000000001,
+          &quot;reference_coverage_fraction&quot;: 1.0000000000000002,
+          &quot;candidate_coverage_fraction&quot;: 1.0000000000000002,
+          &quot;iou&quot;: 1.0000000000000002,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;cell_office_right_bottom&quot;,
+          &quot;candidate_id&quot;: &quot;cell_office_right_bottom&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;pass&quot;,
+          &quot;intersection_area_m2&quot;: 14.115000000000002,
+          &quot;reference_coverage_fraction&quot;: 1.0,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 1.0,
+          &quot;symmetric_difference_area_m2&quot;: 0.0,
+          &quot;boundary_hausdorff_m&quot;: 0.0,
+          &quot;boundary_within_tolerance&quot;: true,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        }
+      ],
+      &quot;findings&quot;: [],
+      &quot;evaluated&quot;: [
+        &quot;source_space_correspondence&quot;,
+        &quot;partition_geometry&quot;,
+        &quot;floor_assignment&quot;,
+        &quot;vertical_extent&quot;
+      ],
+      &quot;not_evaluated&quot;: [
+        &quot;doors&quot;,
+        &quot;openings&quot;,
+        &quot;connectivity&quot;,
+        &quot;false_slabs&quot;,
+        &quot;physical_wall_types&quot;
+      ]
+    }
+  },
+  &quot;partition_comparison&quot;: {
+    &quot;schema_version&quot;: 1,
+    &quot;status&quot;: &quot;severe&quot;,
+    &quot;tolerance_m&quot;: 0.02,
+    &quot;reference_count&quot;: 8,
+    &quot;candidate_count&quot;: 11,
+    &quot;matched_count&quot;: 8,
+    &quot;matches&quot;: [
+      {
+        &quot;reference_id&quot;: &quot;cell_north_reception&quot;,
+        &quot;candidate_id&quot;: &quot;cell_north_reception&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;pass&quot;,
+        &quot;intersection_area_m2&quot;: 37.99999999999997,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 1.0,
+        &quot;symmetric_difference_area_m2&quot;: 0.0,
+        &quot;boundary_hausdorff_m&quot;: 0.0,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_office_left_upper&quot;,
+        &quot;candidate_id&quot;: &quot;cell_office_left_upper&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;pass&quot;,
+        &quot;intersection_area_m2&quot;: 13.020000000000003,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 1.0,
+        &quot;symmetric_difference_area_m2&quot;: 0.0,
+        &quot;boundary_hausdorff_m&quot;: 0.0,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_office_left_middle&quot;,
+        &quot;candidate_id&quot;: &quot;cell_office_left_middle&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;pass&quot;,
+        &quot;intersection_area_m2&quot;: 20.58,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 1.0,
+        &quot;symmetric_difference_area_m2&quot;: 0.0,
+        &quot;boundary_hausdorff_m&quot;: 0.0,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_conference_left_bottom&quot;,
+        &quot;candidate_id&quot;: &quot;cell_conference_left_bottom&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;pass&quot;,
+        &quot;intersection_area_m2&quot;: 34.43999999999999,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 1.0,
+        &quot;symmetric_difference_area_m2&quot;: 0.0,
+        &quot;boundary_hausdorff_m&quot;: 0.0,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_office_right_small&quot;,
+        &quot;candidate_id&quot;: &quot;cell_office_right_small&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;pass&quot;,
+        &quot;intersection_area_m2&quot;: 4.200000000000003,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 1.0,
+        &quot;symmetric_difference_area_m2&quot;: 0.0,
+        &quot;boundary_hausdorff_m&quot;: 0.0,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_office_right_middle&quot;,
+        &quot;candidate_id&quot;: &quot;cell_office_right_middle&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;pass&quot;,
+        &quot;intersection_area_m2&quot;: 27.800000000000004,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 1.0,
+        &quot;symmetric_difference_area_m2&quot;: 0.0,
+        &quot;boundary_hausdorff_m&quot;: 0.0,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_corridor&quot;,
+        &quot;candidate_id&quot;: &quot;cell_corridor_lower&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 27.775,
+        &quot;reference_coverage_fraction&quot;: 0.5805204305570069,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.5805204305570069,
+        &quot;symmetric_difference_area_m2&quot;: 20.07000000000001,
+        &quot;boundary_hausdorff_m&quot;: 11.150000000000002,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      },
+      {
+        &quot;reference_id&quot;: &quot;cell_office_right_bottom&quot;,
+        &quot;candidate_id&quot;: &quot;cell_office_right_bottom_upper&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 12.599999999999998,
+        &quot;reference_coverage_fraction&quot;: 0.8926673751328371,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.8926673751328371,
+        &quot;symmetric_difference_area_m2&quot;: 1.5150000000000035,
+        &quot;boundary_hausdorff_m&quot;: 5.05,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 0.0
+      }
+    ],
+    &quot;findings&quot;: [
+      {
+        &quot;code&quot;: &quot;partition_boundary_changed&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [
+          &quot;cell_corridor&quot;
+        ],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_corridor_lower&quot;
+        ],
+        &quot;message&quot;: &quot;Matched source space boundaries differ beyond tolerance.&quot;,
+        &quot;match&quot;: {
+          &quot;reference_id&quot;: &quot;cell_corridor&quot;,
+          &quot;candidate_id&quot;: &quot;cell_corridor_lower&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;severe&quot;,
+          &quot;intersection_area_m2&quot;: 27.775,
+          &quot;reference_coverage_fraction&quot;: 0.5805204305570069,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 0.5805204305570069,
+          &quot;symmetric_difference_area_m2&quot;: 20.07000000000001,
+          &quot;boundary_hausdorff_m&quot;: 11.150000000000002,
+          &quot;boundary_within_tolerance&quot;: false,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        }
+      },
+      {
+        &quot;code&quot;: &quot;partition_boundary_changed&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [
+          &quot;cell_office_right_bottom&quot;
+        ],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_office_right_bottom_upper&quot;
+        ],
+        &quot;message&quot;: &quot;Matched source space boundaries differ beyond tolerance.&quot;,
+        &quot;match&quot;: {
+          &quot;reference_id&quot;: &quot;cell_office_right_bottom&quot;,
+          &quot;candidate_id&quot;: &quot;cell_office_right_bottom_upper&quot;,
+          &quot;reference_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;candidate_floor_id&quot;: &quot;Floor 1&quot;,
+          &quot;status&quot;: &quot;severe&quot;,
+          &quot;intersection_area_m2&quot;: 12.599999999999998,
+          &quot;reference_coverage_fraction&quot;: 0.8926673751328371,
+          &quot;candidate_coverage_fraction&quot;: 1.0,
+          &quot;iou&quot;: 0.8926673751328371,
+          &quot;symmetric_difference_area_m2&quot;: 1.5150000000000035,
+          &quot;boundary_hausdorff_m&quot;: 5.05,
+          &quot;boundary_within_tolerance&quot;: false,
+          &quot;z_floor_delta_m&quot;: 0.0,
+          &quot;height_delta_m&quot;: 0.0,
+          &quot;z_top_delta_m&quot;: 0.0
+        }
+      },
+      {
+        &quot;code&quot;: &quot;extra_source_space&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_corridor_upper&quot;
+        ],
+        &quot;message&quot;: &quot;Candidate space has no one-to-one reference counterpart.&quot;,
+        &quot;floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;area_m2&quot;: 20.07000000000001
+      },
+      {
+        &quot;code&quot;: &quot;extra_source_space&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_office_right_bottom_mid&quot;
+        ],
+        &quot;message&quot;: &quot;Candidate space has no one-to-one reference counterpart.&quot;,
+        &quot;floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;area_m2&quot;: 0.27000000000000074
+      },
+      {
+        &quot;code&quot;: &quot;extra_source_space&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_office_right_bottom_lower&quot;
+        ],
+        &quot;message&quot;: &quot;Candidate space has no one-to-one reference counterpart.&quot;,
+        &quot;floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;area_m2&quot;: 1.2450000000000028
+      },
+      {
+        &quot;code&quot;: &quot;source_space_split&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [
+          &quot;cell_corridor&quot;
+        ],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_corridor_upper&quot;,
+          &quot;cell_corridor_lower&quot;
+        ],
+        &quot;message&quot;: &quot;Multiple candidate source spaces substantially cover one reference space.&quot;,
+        &quot;floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;overlaps&quot;: [
+          {
+            &quot;candidate_id&quot;: &quot;cell_corridor_upper&quot;,
+            &quot;intersection_area_m2&quot;: 20.07000000000001,
+            &quot;candidate_coverage_fraction&quot;: 1.0
+          },
+          {
+            &quot;candidate_id&quot;: &quot;cell_corridor_lower&quot;,
+            &quot;intersection_area_m2&quot;: 27.775,
+            &quot;candidate_coverage_fraction&quot;: 1.0
+          }
+        ]
+      },
+      {
+        &quot;code&quot;: &quot;source_space_split&quot;,
+        &quot;severity&quot;: &quot;severe&quot;,
+        &quot;reference_ids&quot;: [
+          &quot;cell_office_right_bottom&quot;
+        ],
+        &quot;candidate_ids&quot;: [
+          &quot;cell_office_right_bottom_upper&quot;,
+          &quot;cell_office_right_bottom_mid&quot;,
+          &quot;cell_office_right_bottom_lower&quot;
+        ],
+        &quot;message&quot;: &quot;Multiple candidate source spaces substantially cover one reference space.&quot;,
+        &quot;floor_id&quot;: &quot;Floor 1&quot;,
+        &quot;overlaps&quot;: [
+          {
+            &quot;candidate_id&quot;: &quot;cell_office_right_bottom_upper&quot;,
+            &quot;intersection_area_m2&quot;: 12.599999999999998,
+            &quot;candidate_coverage_fraction&quot;: 1.0
+          },
+          {
+            &quot;candidate_id&quot;: &quot;cell_office_right_bottom_mid&quot;,
+            &quot;intersection_area_m2&quot;: 0.27000000000000074,
+            &quot;candidate_coverage_fraction&quot;: 1.0
+          },
+          {
+            &quot;candidate_id&quot;: &quot;cell_office_right_bottom_lower&quot;,
+            &quot;intersection_area_m2&quot;: 1.2450000000000028,
+            &quot;candidate_coverage_fraction&quot;: 1.0
+          }
+        ]
+      }
+    ],
+    &quot;evaluated&quot;: [
+      &quot;source_space_correspondence&quot;,
+      &quot;partition_geometry&quot;,
+      &quot;floor_assignment&quot;,
+      &quot;vertical_extent&quot;
+    ],
+    &quot;not_evaluated&quot;: [
+      &quot;doors&quot;,
+      &quot;openings&quot;,
+      &quot;connectivity&quot;,
+      &quot;false_slabs&quot;,
+      &quot;physical_wall_types&quot;
+    ]
+  }
+}</pre></details><details><summary>sm25 具体证据与未完成项</summary><pre>{
+  &quot;mode&quot;: &quot;historical_replay&quot;,
+  &quot;input&quot;: &quot;case_tests/e2e_tests/sm25-L_anchor/run_win_e2e&quot;,
+  &quot;source_space_count&quot;: 27,
+  &quot;window_count&quot;: 31,
+  &quot;archived_gate&quot;: {
+    &quot;gate_issues&quot;: [
+      &quot;degenerate surface &#x27;Z04_Ceiling2&#x27;: shortest edge 0.0650 m &lt; 0.1 m (sub-tolerance sliver — EP may segfault in input processing)&quot;,
+      &quot;degenerate surface &#x27;Z20_Floor1&#x27;: shortest edge 0.0650 m &lt; 0.1 m (sub-tolerance sliver — EP may segfault in input processing)&quot;
+    ],
+    &quot;build_notes&quot;: []
+  },
+  &quot;archived_viewer&quot;: &quot;sm25/archived_viewer.html&quot;,
+  &quot;not_evaluated&quot;: [
+    &quot;原图冷启动&quot;,
+    &quot;门洞与连通&quot;,
+    &quot;完整源 BIM 正确性&quot;,
+    &quot;本批 EnergyPlus 运行&quot;,
+    &quot;人工确认&quot;
+  ],
+  &quot;historical_ep&quot;: &quot;not_run&quot;,
+  &quot;current_rebuild&quot;: {
+    &quot;status&quot;: &quot;blocked&quot;,
+    &quot;issues&quot;: [
+      &quot;degenerate surface &#x27;Z04_Ceiling2&#x27;: shortest edge 0.0650 m &lt; 0.1 m (sub-tolerance sliver — EP may segfault in input processing)&quot;,
+      &quot;degenerate surface &#x27;Z20_Floor1&#x27;: shortest edge 0.0650 m &lt; 0.1 m (sub-tolerance sliver — EP may segfault in input processing)&quot;
+    ]
+  },
+  &quot;source_mapping&quot;: {
+    &quot;status&quot;: &quot;pass&quot;,
+    &quot;findings&quot;: [],
+    &quot;realization_tolerance_m&quot;: 2e-06,
+    &quot;scope&quot;: &quot;source-to-derived realization only&quot;,
+    &quot;not_evaluated&quot;: [
+      &quot;drawing partition fidelity&quot;,
+      &quot;doors/open passages/connectivity&quot;,
+      &quot;voids and false slabs&quot;,
+      &quot;downstream solver acceptance&quot;
+    ]
+  },
+  &quot;current_viewer&quot;: &quot;sm25/current_viewer.html&quot;,
+  &quot;partition_comparison&quot;: {
+    &quot;schema_version&quot;: 1,
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;tolerance_m&quot;: 0.02,
+    &quot;reference_count&quot;: 0,
+    &quot;candidate_count&quot;: 27,
+    &quot;matched_count&quot;: 0,
+    &quot;matches&quot;: [],
+    &quot;findings&quot;: [
+      {
+        &quot;code&quot;: &quot;reference_unavailable&quot;,
+        &quot;severity&quot;: &quot;info&quot;,
+        &quot;reference_ids&quot;: [],
+        &quot;candidate_ids&quot;: [],
+        &quot;message&quot;: &quot;No usable reference partition; candidate correctness is not established.&quot;
+      }
+    ],
+    &quot;evaluated&quot;: [],
+    &quot;not_evaluated&quot;: [
+      &quot;doors&quot;,
+      &quot;openings&quot;,
+      &quot;connectivity&quot;,
+      &quot;false_slabs&quot;,
+      &quot;physical_wall_types&quot;
+    ]
+  }
+}</pre></details><p><a href="report.json">完整 JSON 报告与输入哈希</a></p></html>

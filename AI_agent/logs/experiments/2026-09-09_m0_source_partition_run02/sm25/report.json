@@ -1,0 +1,68 @@
+{
+  "mode": "historical_replay",
+  "input": "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e",
+  "source_space_count": 27,
+  "window_count": 31,
+  "archived_gate": {
+    "gate_issues": [
+      "degenerate surface 'Z04_Ceiling2': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)",
+      "degenerate surface 'Z20_Floor1': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)"
+    ],
+    "build_notes": []
+  },
+  "archived_viewer": "sm25/archived_viewer.html",
+  "not_evaluated": [
+    "原图冷启动",
+    "门洞与连通",
+    "完整源 BIM 正确性",
+    "本批 EnergyPlus 运行",
+    "人工确认"
+  ],
+  "historical_ep": "not_run",
+  "current_rebuild": {
+    "status": "blocked",
+    "issues": [
+      "degenerate surface 'Z04_Ceiling2': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)",
+      "degenerate surface 'Z20_Floor1': shortest edge 0.0650 m < 0.1 m (sub-tolerance sliver — EP may segfault in input processing)"
+    ]
+  },
+  "source_mapping": {
+    "status": "pass",
+    "findings": [],
+    "realization_tolerance_m": 2e-06,
+    "scope": "source-to-derived realization only",
+    "not_evaluated": [
+      "drawing partition fidelity",
+      "doors/open passages/connectivity",
+      "voids and false slabs",
+      "downstream solver acceptance"
+    ]
+  },
+  "current_viewer": "sm25/current_viewer.html",
+  "partition_comparison": {
+    "schema_version": 1,
+    "status": "not_evaluated",
+    "tolerance_m": 0.02,
+    "reference_count": 0,
+    "candidate_count": 27,
+    "matched_count": 0,
+    "matches": [],
+    "findings": [
+      {
+        "code": "reference_unavailable",
+        "severity": "info",
+        "reference_ids": [],
+        "candidate_ids": [],
+        "message": "No usable reference partition; candidate correctness is not established."
+      }
+    ],
+    "evaluated": [],
+    "not_evaluated": [
+      "doors",
+      "openings",
+      "connectivity",
+      "false_slabs",
+      "physical_wall_types"
+    ]
+  }
+}

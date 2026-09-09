@@ -1,0 +1,62 @@
+{
+  "mode": "historical_replay",
+  "input": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e",
+  "source_space_count": 14,
+  "window_count": 15,
+  "archived_gate": {
+    "gate_issues": [],
+    "build_notes": []
+  },
+  "archived_viewer": "sm21/archived_viewer.html",
+  "not_evaluated": [
+    "原图冷启动",
+    "门洞与连通",
+    "完整源 BIM 正确性",
+    "本批 EnergyPlus 运行",
+    "人工确认"
+  ],
+  "historical_ep": "EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  5.50sec",
+  "current_rebuild": {
+    "status": "pass",
+    "issues": []
+  },
+  "source_mapping": {
+    "status": "pass",
+    "findings": [],
+    "realization_tolerance_m": 2e-06,
+    "scope": "source-to-derived realization only",
+    "not_evaluated": [
+      "drawing partition fidelity",
+      "doors/open passages/connectivity",
+      "voids and false slabs",
+      "downstream solver acceptance"
+    ]
+  },
+  "current_viewer": "sm21/current_viewer.html",
+  "partition_comparison": {
+    "schema_version": 1,
+    "status": "not_evaluated",
+    "tolerance_m": 0.02,
+    "reference_count": 0,
+    "candidate_count": 14,
+    "matched_count": 0,
+    "matches": [],
+    "findings": [
+      {
+        "code": "reference_unavailable",
+        "severity": "info",
+        "reference_ids": [],
+        "candidate_ids": [],
+        "message": "No usable reference partition; candidate correctness is not established."
+      }
+    ],
+    "evaluated": [],
+    "not_evaluated": [
+      "doors",
+      "openings",
+      "connectivity",
+      "false_slabs",
+      "physical_wall_types"
+    ]
+  }
+}
