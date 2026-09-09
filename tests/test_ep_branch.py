@@ -48,7 +48,8 @@ def test_branch_preserves_source_and_uses_changed_window_vertices(source, bindin
 @pytest.mark.parametrize("damage,match", [
     ("digest", "digest mismatch"), ("boundary", "source boundary"),
     ("contact", "contact absent"), ("adjacency", "adjacency disagrees"),
-    ("door", "doors/open passages"), ("unbuilt", "unresolved geometry"),
+    ("door", "door"), ("unbuilt", "unresolved geometry"),
+    ("unknown_kind", "unsupported source opening kind"),
     ("binding", "cover every source space"),
 ])
 def test_fail_closed_on_source_or_branch_mismatch(source, bindings, damage, match):
@@ -57,6 +58,7 @@ def test_fail_closed_on_source_or_branch_mismatch(source, bindings, damage, matc
     if damage == "contact": source["boundary_relations"].pop(0)
     if damage == "adjacency": source["boundaries"][0]["adjacent_space_ids"] = []
     if damage == "door": source["openings"][0]["kind"] = "door"
+    if damage == "unknown_kind": source["openings"][0]["kind"] = "unsupported_kind"
     if damage == "unbuilt": source["unbuilt_openings"] = [{"id": "unresolved"}]
     if damage == "binding": bindings.pop(next(iter(bindings)))
     if damage != "digest": resign(source)

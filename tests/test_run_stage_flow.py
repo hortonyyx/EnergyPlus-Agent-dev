@@ -98,15 +98,17 @@ def test_ep_flow_branches_from_the_exported_source_bim(tmp_path, monkeypatch):
     monkeypatch.setattr(rs, "_draw_modelling", forbidden)
     monkeypatch.setattr(rs, "_flow_ep", forbidden)
     seen = []
-    def branch(source, physics, bindings, out, *, epw):
+    def branch(source, physics, bindings, out, *, epw, opening_policy_path=None):
         seen.append(source)
         assert source == tmp_path/"bim/source_model.json"
         assert json.loads(source.read_bytes())["schema_version"] == "source_bim_v2"
         assert epw == Path("data/weather/Shenzhen.epw")
+        assert opening_policy_path == tmp_path/"door_policy.json"
         return {"status": "passed"}
     monkeypatch.setattr("src.agent.execution.ep_branch.export_ep_branch", branch)
     args = _args(tmp_path, target="ep", bim_out=tmp_path/"bim", backend_out=tmp_path/"ep",
-                 physics_template=tmp_path/"physics.idf", zone_bindings=tmp_path/"bindings.json", with_ep=True)
+                 physics_template=tmp_path/"physics.idf", zone_bindings=tmp_path/"bindings.json",
+                 opening_policy=tmp_path/"door_policy.json", with_ep=True)
     assert rs.cmd_flow(args) == rs.FLOW_EXIT_OK
     assert len(seen) == 1
     assert not (tmp_path/"case/run/2_modelling").exists()

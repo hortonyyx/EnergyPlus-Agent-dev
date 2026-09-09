@@ -1,8 +1,8 @@
 """EnergyPlus branch of a frozen source BIM, with independent physics inputs.
 
 No correction, drawing, or historical model geometry is read by this adapter.
-The first adapter keeps one thermal zone per source space and supports exterior
-windows. Doors/open passages must await an explicit EP policy, never be dropped.
+The adapter keeps one thermal zone per source space and supports exterior
+windows plus explicitly closed doors. Open passages are never silently sealed.
 """
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def _covers(parent, child):
     return child is not None and child.is_valid and child.area > 0 and parent.buffer(TOL).covers(child)
 
 
-def derive_ep_geometry(source: dict, zone_names: dict[str, str]):
+def derive_ep_geometry(source: dict, zone_names: dict[str, str], *, opening_policy: dict | None = None):
     """Return derived geometry and audited many-to-one source mappings."""
     if source.get("schema_version") != "source_bim_v2":
         raise ValueError("EP branch requires source_bim_v2")
@@ -52,8 +52,10 @@ def derive_ep_geometry(source: dict, zone_names: dict[str, str]):
         raise ValueError("source BIM has unresolved geometry; EP branch blocked")
     if source["coordinate_system"]["units"] != "m" or source["coordinate_system"]["up_axis"] != "Z":
         raise ValueError("EP branch requires metres and Z-up")
-    if any(o["kind"] != "window" or not o["exterior"] for o in source["openings"]):
-        raise ValueError("EP branch currently supports exterior windows only; doors/open passages require an explicit adapter")
+    if any(o["kind"] not in {"window", "door", "open"} for o in source["openings"]):
+        raise ValueError("unsupported source opening kind")
+    if any(o["kind"] == "window" and not o["exterior"] for o in source["openings"]):
+        raise ValueError("EP branch currently supports exterior windows only")
     spaces = {s["id"]: s for s in source["spaces"]}
     if not spaces or len(spaces) != len(source["spaces"]) or set(zone_names) != set(spaces):
         raise ValueError("physics zone bindings must cover every source space exactly once")
@@ -153,6 +155,8 @@ def derive_ep_geometry(source: dict, zone_names: dict[str, str]):
     windows = {}
     apertures = {}
     for opening in source["openings"]:
+        if opening["kind"] != "window":
+            continue
         bid = opening["host_boundary_id"]
         if (opening["id"] in windows or source["opening_hosts"].get(opening["id"]) != [bid]
                 or opening["space_ids"] != [boundaries[bid]["space_id"]]):
@@ -168,8 +172,11 @@ def derive_ep_geometry(source: dict, zone_names: dict[str, str]):
         name = f"EP_Window_{len(windows)+1:03d}"
         bg.windows.append(Window(name, hosts[0].name, [tuple(v) for v in opening["vertices"]], source_window_id=opening["id"]))
         windows[opening["id"]] = name
+    from src.agent.execution.ep_openings import derive_ep_doors
+    bg.openings, doors = derive_ep_doors(source, bg, mapping, {} if opening_policy is None else opening_policy)
     return bg, {"source_model_sha256": source["source_model_sha256"],
                 "zones": zone_names, "surfaces": mapping, "windows": windows,
+                "doors": doors,
                 "assumptions": ["one thermal zone per source space", "lowest source floor is ground-contact"],
                 "coverage_tolerance_m": TOL}
 
@@ -186,7 +193,7 @@ PHYSICS_OBJECTS = frozenset({
 })
 
 
-def assemble_idf(bg, physics_text: str, source: dict):
+def assemble_idf(bg, physics_text: str, source: dict, *, door_audit: dict | None = None):
     from eppy.modeleditor import IDF
     from src.agent._share import ensure_schema_initialized
     from src.agent.geometry.specs import _construction_for
@@ -215,7 +222,9 @@ def assemble_idf(bg, physics_text: str, source: dict):
     if len(systems) != len(zone_set) or {o.Zone_Name.casefold() for o in systems} != zone_set:
         raise ValueError("initial EP adapter requires exactly one ideal-loads system per source zone")
     constructions = {o.Name.casefold() for o in idf.idfobjects["CONSTRUCTION"]}
-    geo = building_to_idf(bg)
+    # Parent-face/window projection only; doors are added by the explicit
+    # backend adapter below, so the legacy aperture guard is not a bypass.
+    geo = building_to_idf(bg, boundary_validation_only=True)
     by_name = {s.name:s for s in bg.surfaces}
     for obj in geo.idfobjects["BUILDINGSURFACE:DETAILED"]:
         obj.Construction_Name = _construction_for(by_name[obj.Name])
@@ -229,10 +238,14 @@ def assemble_idf(bg, physics_text: str, source: dict):
     for key in ("ZONE", "BUILDINGSURFACE:DETAILED", "FENESTRATIONSURFACE:DETAILED"):
         for obj in geo.idfobjects[key]:
             idf.copyidfobject(obj)
+    from src.agent.execution.ep_openings import write_ep_doors
+    write_ep_doors(idf, bg.openings, door_audit if door_audit is not None else
+                   {"source_doors": 0, "door_surfaces": 0, "doors": {}})
     return idf
 
 
-def export_ep_branch(source_path: Path, physics_path: Path, bindings_path: Path, out_dir: Path, *, epw: Path | None = None):
+def export_ep_branch(source_path: Path, physics_path: Path, bindings_path: Path, out_dir: Path, *, epw: Path | None = None,
+                     opening_policy_path: Path | None = None):
     """Create an immutable branch run. Failure evidence survives in report.json."""
     from src.agent.geometry.specs import building_geometry_dict
     from src.validator.checks.kernel import check_kernel
@@ -257,12 +270,18 @@ def export_ep_branch(source_path: Path, physics_path: Path, bindings_path: Path,
                             "source_model_sha256": source.get("source_model_sha256"),
                             "physics_sha256": sha256(physics_raw).hexdigest(),
                             "zone_bindings_sha256": sha256(bindings_raw).hexdigest()}
-        bg, mapping = derive_ep_geometry(source, json.loads(bindings_raw))
+        opening_policy = None
+        if opening_policy_path is not None:
+            policy_raw = Path(opening_policy_path).read_bytes()
+            opening_policy = json.loads(policy_raw)
+            (out_dir/"opening_policy.json").write_bytes(policy_raw)
+            report["inputs"]["opening_policy_sha256"] = sha256(policy_raw).hexdigest()
+        bg, mapping = derive_ep_geometry(source, json.loads(bindings_raw), opening_policy=opening_policy)
         checks = check_kernel(bg, capability_profile="orthogonal_polygon")
         save("geometry_checks.json", checks.model_dump(mode="json"))
         if checks.blocking():
             raise ValueError("EP derived geometry failed kernel checks")
-        idf = assemble_idf(bg, physics_raw.decode("utf-8"), source)
+        idf = assemble_idf(bg, physics_raw.decode("utf-8"), source, door_audit=mapping["doors"])
         issues = validate_interzone_surface_pairs(idf)
         save("idf_pair_checks.json", {"issues": issues})
         if issues:
@@ -278,6 +297,7 @@ def export_ep_branch(source_path: Path, physics_path: Path, bindings_path: Path,
         save("building_geometry.json", building_geometry_dict(bg))
         idf.saveas(str(out_dir/"model.idf"))
         report["counts"] = {"zones": len(bg.zones), "surfaces": len(bg.surfaces), "windows": len(bg.windows)}
+        report["counts"].update(source_doors=len({o.source_opening_id for o in bg.openings}), door_surfaces=len(bg.openings))
         report["status"] = "exported"
         if epw is not None:
             from src.runner.runner import EnergyPlusRunner, read_ep_end

@@ -3499,7 +3499,8 @@ def cmd_flow(args) -> int:
             from src.agent.execution.ep_branch import export_ep_branch
             branch = export_ep_branch(args.bim_out / "source_model.json", args.physics_template,
                                       args.zone_bindings, args.backend_out,
-                                      epw=Path(args.epw) if args.with_ep else None)
+                                      epw=Path(args.epw) if args.with_ep else None,
+                                      opening_policy_path=getattr(args, "opening_policy", None))
             print(json.dumps(branch, ensure_ascii=False))
             return FLOW_EXIT_OK if branch["status"] in ("exported", "passed") else FLOW_EXIT_STOP
         return FLOW_EXIT_OK if report["source_geometry_ready"] else FLOW_EXIT_STOP
@@ -3664,7 +3665,8 @@ def cmd_bim(args) -> int:
 def cmd_backend_ep(args) -> int:
     from src.agent.execution.ep_branch import export_ep_branch
     report = export_ep_branch(args.source, args.physics_template, args.zone_bindings,
-                              args.out, epw=args.epw if args.with_ep else None)
+                              args.out, epw=args.epw if args.with_ep else None,
+                              opening_policy_path=args.opening_policy)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["status"] in ("exported", "passed") else 1
 
@@ -3702,6 +3704,7 @@ def main() -> int:
     pe.add_argument("--source", type=Path, required=True)
     pe.add_argument("--physics-template", type=Path, required=True)
     pe.add_argument("--zone-bindings", type=Path, required=True)
+    pe.add_argument("--opening-policy", type=Path, help="explicit per-source-door closed state/construction/reason JSON")
     pe.add_argument("--out", type=Path, required=True)
     pe.add_argument("--with-ep", action="store_true", help="also run the actual EnergyPlus simulation")
     pe.add_argument("--epw", type=Path, default=Path("data/weather/Shenzhen.epw"))
@@ -3732,6 +3735,7 @@ def main() -> int:
     pf.add_argument("--bim-out", type=Path, help="new source output directory, required for --target source-bim")
     pf.add_argument("--physics-template", type=Path, help="geometry-free EP physics template")
     pf.add_argument("--zone-bindings", type=Path, help="JSON source space ID to physics zone name map")
+    pf.add_argument("--opening-policy", type=Path, help="explicit per-source-door backend policy JSON")
     pf.add_argument("--backend-out", type=Path, help="new EP branch directory")
     pf.add_argument("--from", dest="from_stage", default="auto",
                     choices=["auto", *_STAGES])
