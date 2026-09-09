@@ -6,6 +6,7 @@
 |---|---|
 | 做什么、做到什么程度 | [产品目标](project/goal.md) |
 | 现在做到哪里、下一步做什么 | [路线与当前任务](project/roadmap.md) |
+| 图纸精准重建怎样分阶段推进 | [图纸重建计划](project/drawing_reconstruction_plan.md) |
 | 已经确定的选择和原因 | [关键决策](project/decisions.md) |
 | 两路输入如何组成同一个产品 | [系统设计](design/architecture.md) |
 | 共同模型、单位、坐标和编辑对象 | [轻量建筑模型](design/model.md) |
