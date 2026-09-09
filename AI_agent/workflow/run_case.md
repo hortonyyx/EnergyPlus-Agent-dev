@@ -1,17 +1,44 @@
 # 用现有入口跑 case
 
 本文是现有工具的最短使用指引，不把正式评测流程当作每次探索的必经步骤。
-已有 sm21/sm24 的历史 EP 成功产物，当前最新 sm25 尚未贯通，状态见 [路线与当前任务](../project/roadmap.md)。本页说明现有码的运行方法，不代表已经具备从原图开始的无人值守入口。
+已有 sm21/sm24 的历史 EP 成功产物，当前最新 sm25 尚未贯通，状态见 [路线与当前任务](../project/roadmap.md)。本页说明现有码的运行方法；原图自动入口为显式启用，当前实验结果见路线页。
 
 ## 1. 准备独立 run
 
 - 素材放 `case_tests/e2e_tests/<case>/case_data/`，用 `testdata_prompt.json` 提供声明；新实验放 `<case>/run_<说明>/`，不覆盖旧 run。
 - 观测放 `<case>/<run>/0_reading/*_view.json`。当前 as-drawn 接受 plan v2 + elevation v0；缺立面会报 `ELEVATION_EVIDENCE_MISSING`，混用 legacy/as-drawn 会报 `CORRECTION_MIXED_CONTRACTS`。
-- 先从原始素材生成符合输入契约的 `*_view.json`、view manifest / run metadata。当前 `flow` 的 `_draw_reading` 只检查这些预先生成的观测，不调用视觉模型读原图；只有下面的 flow 命令还不能完成冷启动生成。
-- 上游 reading 生成可从 [reading_toolbox.py](../../scripts/tool_scripts/reading_toolbox.py) 及 [reading 工具](../../src/agent/reading) 复用；它们仍需配置、观测准备和调用顺序，尚不能冒称一键生成入口。记录模型和人工处理。不能把 GT 编译结果当成无答案读图。
+- 默认 `flow` 仍核验已有 `*_view.json`。需要从原图启动时，显式加下面的 `--reading-model` 和完整校正模型配置；自动入口复用隔离读图及原有合并检查。
+- 上游 reading 复用隔离查看、[reading_toolbox.py](../../scripts/tool_scripts/reading_toolbox.py) 和 [reading 工具](../../src/agent/reading)。记录模型和人工处理。不能把 GT 编译结果当成无答案读图。
 - 复用历史 reading 要标明来源；它可用于工程诊断，不等于本次冷启动识图。
 - 新输入若不满足现有契约，明确缺口；混合输入/体量的降级能力尚待开发。
 - GT 留在评测侧；生成执行器只看本次原始输入与声明。
+
+## 原图自动启动（显式选择订阅模型）
+
+先准备新 RUN 与无密钥 `LLM.yaml`：
+
+```yaml
+intake_correction:
+  provider: claude_subscription
+  model_name: claude-sonnet-4-6
+  timeout_seconds: 600
+correction_decision:
+  provider: claude_subscription
+  model_name: claude-sonnet-4-6
+  timeout_seconds: 600
+```
+
+```bash
+python -m scripts.tool_scripts.run_stage --budget-draws 1 flow CASE RUN --target source-bim --bim-out NEW_SOURCE_DIRECTORY --reading-model haiku --reading-timeout 900 --llm-config LLM.yaml --judge off
+```
+
+`--reading-model` 支持 haiku/sonnet，对应显式固定版本；自动校正当前要求上述 Claude 订阅 provider，Haiku/Sonnet 为允许档位，不接 API key 或 base URL。本机须有已登录订阅的 Claude CLI，环境按订阅路径隔离，不继承 API 端点/密钥或全局 DeepSeek 配置。校正 CLI 禁用工具与 MCP，只接收文本 JSON 请求；订阅估算用量不等于实际账单。
+
+`--budget-draws 1` 限制 stage 抽取轮数；旧校正函数仍可在一轮内对格式/调用失败做最多 3 次同模型请求，各次分别留档。这不等于全程只调用一次模型。
+
+原图根据已冻结的视图清单复制到隔离目录，读图从自己的工具及输入开始，无逐图人工停点。仅启动一次；已有已接受读图则复用，存在失败/未接受产物或启动记录则停止，保留结果供定位。默认 900 秒超时，运行报告在 `_run/automatic_reading.json`；其中链接隔离输出、调用记录和检查。失败不靠丢图、换模型或再抽一次自动掩盖；重试应明确新实验或已有受控恢复入口。
+
+`--llm-config` 现从 flow 启动时覆盖整个主干，退出时恢复调用者环境。优先级为显式参数、`EP_AGENT_LLM_CONFIG`、run/case/global 配置。已有 run_config 的 judge/scope 设置仍生效（如 `judge: {mode: off}`、`scope: {stages: [0_reading, 1_correction]}`），不要把裸 `judge: off` 当作同一格式。
 
 ## 2. 检查和推进
 
@@ -69,7 +96,7 @@ python -m scripts.tool_scripts.run_stage flow CASE RUN --target ep --bim-out NEW
 python scripts/tool_scripts/diagnose_ep_doors.py --out AI_agent/logs/experiments/NEW_EP_DOORS_RUN --with-ep
 ```
 
-真实原图 reading 自动调用尚未接通。当前全局 LLM 配置仍含 DeepSeek；新生成调用前必须显式选已授权通道，不能因新增 source 目标就直接使用默认模型。
+原图自动入口已经接线；是否成功生成及保真必须看具体实验。未显式启用该入口的默认 flow 仍复用预先生成观测。全局 LLM 配置仍含 DeepSeek；新生成调用必须明确选择已授权通道。
 
 本轮离线复现（含 sm24 错分区反例、历史辅助模型与 sm21 实际 source flow）：
 

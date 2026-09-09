@@ -477,7 +477,7 @@ _APP_JS = r"""
       ['显示语义',u.kind==='surface'?(u.enclosureCondition==='unknown'?'未知围护（未当作实体墙）':'实体围护'):'窗'],
       ['边界围护',boundary&&enclosureLabel(boundary.enclosure||boundary.kind)],['边界覆盖',coverageFor(boundary)],
       ['证据类型',boundaryEvidenceKinds(boundary)],['来源',boundaryEvidence(boundary,'source_refs')],['假设',boundaryEvidence(boundary,'assumptions')],
-      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前显示片面积；开敞区域已扣除，未知围护以琥珀色标示':'']]);
+      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前实体片面积；开敞或未知区域另以半透明灰色辅助面显示':'']]);
   }
   function handleClick(ev){
     if(measuring){ const r=renderer.domElement.getBoundingClientRect();

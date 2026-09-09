@@ -1,0 +1,198 @@
+{
+  "mode": "fresh_original_drawings_cold_start_then_accepted_reading_resume",
+  "status": "not_ready",
+  "source_bim_created": false,
+  "source_geometry_ready": false,
+  "drawing_fidelity": "severe_visual_findings_in_reading; no complete candidate to evaluate",
+  "models": {
+    "reading": {
+      "model": "claude-haiku-4-5-20251001",
+      "calls": 1,
+      "cli_is_error": false,
+      "num_turns": 44,
+      "usage": {
+        "input_tokens": 263,
+        "cache_creation_input_tokens": 89615,
+        "cache_read_input_tokens": 1867022,
+        "output_tokens": 30510,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 89615,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 8,
+            "output_tokens": 498,
+            "cache_read_input_tokens": 88953,
+            "cache_creation_input_tokens": 662,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 662
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 1091,
+          "outputTokens": 30526,
+          "cacheReadInputTokens": 1867022,
+          "cacheCreationInputTokens": 89615,
+          "webSearchRequests": 0,
+          "costUSD": 0.5196532000000001,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "estimated_cost_usd": 0.5196532000000001
+    },
+    "correction_requests": [
+      {
+        "artifact_dir": "run/1_correction/correction_claude_subscription_attempt_1_78572687e49c4d668ebea9b61cce3e0f",
+        "model": "claude-sonnet-4-6",
+        "attempt": 1,
+        "status": "timeout",
+        "usage": {
+          "estimated_cost_note": "No cost estimate available after timeout; not a bill.",
+          "timed_out": true,
+          "timeout_seconds": 600.0
+        },
+        "requested_attempt_limit": 3
+      },
+      {
+        "artifact_dir": "run/1_correction/correction_claude_subscription_attempt_2_dcc4891dd0b545dd88b883296193c267",
+        "model": "claude-sonnet-4-6",
+        "attempt": 2,
+        "status": "controller_interrupted",
+        "usage": null,
+        "requested_attempt_limit": 3
+      }
+    ]
+  },
+  "estimated_cost_note": "CLI estimates are not bills. Correction usage is unavailable after timeout/interruption; do not treat it as zero or claim an exact total.",
+  "solver_calls": 0,
+  "deepseek_calls": 0,
+  "gt_used_in_generation": false,
+  "historical_observations_copied": false,
+  "reading_technical_acceptance": "accepted",
+  "reading_check_counts": {
+    "pass": 97,
+    "not_applicable": 24,
+    "fail": 8
+  },
+  "reading_failed_checks": [
+    "1f_view.reading.dimension_chain_closure",
+    "1f_view.reading.partition_on_window_jamb",
+    "2f_view.reading.dimension_chain_closure",
+    "2f_view.reading.partition_on_window_jamb",
+    "East_view.reading.dimension_chain_closure",
+    "North_view.reading.dimension_chain_closure",
+    "South_view.reading.dimension_chain_closure",
+    "West_view.reading.dimension_chain_closure"
+  ],
+  "accepted_reading_sha256": "5839844052ae4a0949503223483f03f480ffa0fd9bd973abffca72ab639e4461",
+  "accepted_reading_hash_matches_original_checks": true,
+  "reading_reused_after_integration_fix": true,
+  "first_invocation": {
+    "argv": [
+      "/opt/venv/bin/python",
+      "scripts/tool_scripts/run_stage.py",
+      "--budget-draws",
+      "1",
+      "flow",
+      "sm21_anchor",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_automatic_source_sm21_run01/run",
+      "--target",
+      "source-bim",
+      "--bim-out",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_automatic_source_sm21_run01/bim",
+      "--reading-model",
+      "haiku",
+      "--reading-timeout",
+      "900",
+      "--llm-config",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_automatic_source_sm21_run01/llm.yaml",
+      "--judge",
+      "off"
+    ],
+    "mode": "fresh original drawings; no prior reading/correction copied",
+    "llm_config_sha256": "2f4961216428e5868f5389f55609987d9bdd873c374d29cda10274f4ff166648",
+    "returncode": 1,
+    "elapsed_seconds": 349.57
+  },
+  "resumed_invocation": {
+    "argv": [
+      "/opt/venv/bin/python",
+      "scripts/tool_scripts/run_stage.py",
+      "--budget-draws",
+      "1",
+      "flow",
+      "sm21_anchor",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_automatic_source_sm21_run01/run",
+      "--target",
+      "source-bim",
+      "--bim-out",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_automatic_source_sm21_run01/bim",
+      "--reading-model",
+      "haiku",
+      "--reading-timeout",
+      "900",
+      "--llm-config",
+      "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_automatic_source_sm21_run01/llm.yaml",
+      "--judge",
+      "off"
+    ],
+    "mode": "fresh original drawings; no prior reading/correction copied",
+    "llm_config_sha256": "2f4961216428e5868f5389f55609987d9bdd873c374d29cda10274f4ff166648",
+    "returncode": -2,
+    "elapsed_seconds": 633.06,
+    "resume_reason": "fixed missing manifest-loader import; accepted original reading reused without another model draw"
+  },
+  "controller_stop": {
+    "interrupted_at": "2026-09-09T16:09:04.346498+00:00",
+    "reason": "Reading visual review found incorrect source partitions and lost door geometry. First correction request timed out after 600 seconds; the legacy automatic second request is stopped to avoid repeating on known-invalid observations. No source BIM is certified.",
+    "first_request": "timeout",
+    "second_request": "controller_interrupted",
+    "signal": "SIGINT",
+    "controller_pid": 59004
+  },
+  "reading_archive": "reading_isolation.tar.gz",
+  "tests": {
+    "core_final": {
+      "passed": 74,
+      "warnings": 18
+    },
+    "isolation_recheck": {
+      "passed": 3
+    },
+    "development_combined": {
+      "passed": 438,
+      "failed": 3,
+      "note": "Earlier loaded code/fixtures; all three failures repaired and covered by final core / isolation checks. Do not sum overlapping counts."
+    }
+  },
+  "code_commit": "9223785fa8efe31e1caf876beafc5467a1eaeb74",
+  "implementation_sha256": {
+    "src/agent/execution/automatic_reading.py": "e26eac9555f8705c8e289400cd7e3aa6884ede17b22072f1b14fb00d33461b52",
+    "src/agent/execution/subscription_json.py": "24a2a2f767a65e81a826ea00e859f4837f6ba4c6af1113c65868d23b50ff4ff5",
+    "src/agent/execution/isolation.py": "99cc54b9d7eb8a12b1b9def81106742f017e5cb99a3404fefc3cb862e43b586d",
+    "src/agent/pipeline.py": "c347f9ca5e6df7891db8b75dc14aa50ba81de19beda39b1f8a38544ab09920f9",
+    "scripts/tool_scripts/run_stage.py": "e27314e7d40164abae7800ddcb449af7e6582ca9b8138299d70e80704138f94f",
+    "scripts/tool_scripts/render_geometry_viewer.py": "e6cf3422398e98a3dcffc3e22d91174b614fd30774d7e6f1c99143d1a0c13f7f"
+  },
+  "not_completed": [
+    "usable new source BIM",
+    "automated drawing fidelity evaluation",
+    "browser WebGL inspection",
+    "gray-space automatic perception",
+    "persistent editing"
+  ]
+}

@@ -34,4 +34,4 @@
 
 既有脚本：[GLM](../../scripts/glm_code.sh)、[DeepSeek](../../scripts/deepseek_code.sh)。具体运行参数看实际脚本及有效接口。
 
-当前 flow 的配置生效范围有接线差异，固定本次全链模型时按 [case 指南](run_case.md) 设置子进程 `EP_AGENT_LLM_CONFIG`；不要只凭 `--llm-config` 推断前面各阶段用了指定模型。
+当前 flow 已修复配置作用域：`--llm-config` 从主干启动时生效，退出恢复原环境；也可显式用 `EP_AGENT_LLM_CONFIG`。`--reading-model` 单独选择隔离读图 Haiku/Sonnet，校正可设 `provider: claude_subscription` 复用本机已登录订阅（无工具/MCP文本JSON调用）。该新路径拒绝 API key/base URL，无 DeepSeek 或其他模型回退。源码和使用方法见 [case 指南](run_case.md)；实际模型与用量以保存的 CLI 记录为准，估算费用不等于账单。

@@ -4,6 +4,8 @@
 
 ## 实际调用链
 
+原图入口增量：`flow --reading-model haiku|sonnet --llm-config FILE` 复用隔离读图启动、同门合并和原有检查，再进入共同源主干；仅启动一次，失败/超时留证据，已有接受观测可复用。`pipeline._call_json_llm` 新增显式 `claude_subscription` 文本 JSON 适配，不继承 API 配置、不回退其他模型。`--llm-config` 已从 flow 启动阶段生效。真实实验状态只在路线页维护，不能以入口接线或离线测试代替冷启动保真结果。
+
 当前源底座增量：`bim` / `flow --target source-bim` 接受绑定源摘要的 `--enclosure-input`，生成含整面/局部开敞及未知围护的 v3；完整逻辑空间不变，显示独立扣除开放区域并标示未知。查看器支持 v2/v3、逻辑边界开关和开敞轮廓拾取。未声明仍为 v2；旧 EP 明确拒绝 v3。三种受控历史几何场景已走正常 flow，不包含原图自动识读、水平洞口或空气交换。见 [共同模型](model.md#显式实际围护09-09-v3-增量) 和 [本轮记录](../logs/worklog/2026-09-09_source_enclosure.md)。
 
 此前后端增量支持显式关闭门：`--opening-policy` 按源门 ID 提供关闭状态、构造和理由，门可在后端跨父墙切片，内门两侧 reciprocal、外门单侧，源开闭状态不改。sm24 已实际全年成功（8 热区/58 基面/11 窗/1 源门/2 门面，0 severe），115 项检查通过。门/空通道已知敞开仍明确拒绝，不假装实体门；协作者接口见 [最小物性契约](ep_physics_contract.md)，证据见 [本轮记录](../logs/worklog/2026-09-09_ep_doors.md)。
@@ -16,7 +18,7 @@
 
 | 阶段 | 当前行为与产物 | 实现 |
 |---|---|---|
-| 0_reading | 读取并检查预生成的 `*_view.json`，不自动调用视觉模型读原图 | [run_stage.py](../../scripts/tool_scripts/run_stage.py)、[reading](../../src/agent/reading/) |
+| 0_reading | 默认核验预生成观测；显式 `--reading-model` 可经隔离订阅执行器读取原图并由既有检查接收 | [run_stage.py](../../scripts/tool_scripts/run_stage.py)、[reading](../../src/agent/reading/) |
 | 1_correction | legacy/as-drawn 分派、多层证据整合、坐标校正、补窗、已有结构化门/通道记录自动接入与 finalize；明确开口未建会阻塞完整性 | [pipeline.py](../../src/agent/pipeline.py)、[as_drawn_openings.py](../../src/agent/correction/as_drawn_openings.py)、[correction](../../src/agent/correction/) |
 | 2_modelling | 构建 BuildingGeometry，造面、切配、挂窗及明确给定的门洞；附带 source_model.json 与源映射检查，CLI 提前生成扣洞 HTML | [build.py](../../src/agent/geometry/build.py)、[source_model.py](../../src/agent/geometry/source_model.py)、[openings.py](../../src/agent/geometry/openings.py) |
 | 3_split_pairing | 当前 CLI 再从校正产物重建，序列化 specs 并与前段几何核对；新门洞尚无 EP 适配，遇到时明确停止 | [split_pairing.py](../../src/agent/geometry/split_pairing.py)、run_stage.py |
@@ -28,7 +30,7 @@ CLI `flow` 保存 attempts、checks、停止原因和可选 judge/确认。`run_
 
 ## 图纸观测与证据
 
-reading 工具箱、CV、隔离和模型工具可复用，但需要调用者准备配置、观测和执行顺序。`flow` 本身没有完整冷启动识图入口。
+reading 工具箱、CV、隔离和模型工具可复用，但需要调用者准备配置、观测和执行顺序。`flow` 可显式调用隔离 reading 执行器；真实生成质量按实验判断。
 [vector_contract.py](../../src/agent/reading/vector_contract.py) 将 legacy ReadingView 作为消费格式，as-drawn plan v2 / elevation v0 可适配，plan v0 尚不消费；现有 as-drawn 路由要求相应平立面材料，混用或缺失会拒绝。
 
 as-drawn 的 reading 检查覆盖契约、标定和尺寸链，旧字段检查为 NA；来源引用还依赖校正等消费者验证，独立像素自检不等于自动接进 flow。尺寸链和纯像素是不同证据条件，像素量测不能凭统一量化变成尺寸标注精度。
@@ -82,3 +84,5 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 | 质量与成本 | checks、judge、配置和记录工具 | 目标档模型仍需形成可比较的实跑基线 |
 
 GT 修订、AnswerCompiler 和评分已有部分接线，尚未统一消费 frozen facts，详见 [验证与评价](evaluation.md)。相关模块按用途复用，设计建议只有落实并实测后才成为能力声明。
+
+09-09 首次显式自动入口实验已执行：[sm21 原图对照与记录](../logs/experiments/2026-09-09_automatic_source_sm21_run01/README.md)。读图技术接受但源分区/门信息失真；CV 候选尚未与输出标定对应。Sonnet 校正超时后停止重试，未产出新 BIM。入口接线不等于图纸重建能力验收；下一步针对保存的实质结构反例改进，不能靠全面提升尺寸启发式门槛代替保真判断。
