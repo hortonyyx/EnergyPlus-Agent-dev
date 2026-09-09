@@ -224,10 +224,10 @@ def _fixed_responses(rdir: Path, product_filename: str):
 
 
 def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
-    """The routed flow draw is LIVE and runs the REAL chain: window
-    population (31 windows — the ⛔ windows=0 false-green trap) →
-    finalize → gate① zero blocking, in the standard (result, report)
-    shape the StageRunner archives.
+    """The real flow retains windows and builds structured plan doors.
+
+    Unbuilt explicit openings must block completeness even in exploratory
+    mode; a partial source model must not archive as an accepted result.
 
     The model beat is the ONLY thing replaced: ``run_correction`` is
     wrapped to inject the deterministic fixed-responses decision (the
@@ -260,9 +260,9 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
     result, rep = _draw_correction_as_drawn(run_dir, None, False, policy)
     # the flow's standard shape
     assert result.window_host_claims is not None
-    assert not rep.blocking(), [
-        (r.check_id, r.message) for r in rep.blocking()
-    ]
+    assert {r.check_id for r in rep.blocking()} == {
+        "correction.plan_opening_completeness"
+    }
     # ⭐ population is wired at the flow entry: a building WITHOUT windows
     # must never archive as a success (the windows=0 false-green trap)
     assert len(result.geom.windows) == 31
@@ -291,6 +291,17 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
     )
     assert account["windows_built"] == 31
     assert len(account["plan_records_folded"]) == 29
+    openings = json.loads(
+        (run_dir / "1_correction" / "as_drawn_opening_account.json").read_text("utf-8")
+    )
+    assert openings["observations_considered"] == 61
+    assert openings["built_count"] == len(result.geom.openings) == 29
+    assert len(openings["unbuilt"]) == 3
+    assert len([
+        row for row in result.geom.unsupported
+        if row.get("kind") == "as_drawn_opening_unbuilt"
+    ]) == 3
+    assert result.chain_provenance.wall_opening_policy.assumed_height_m == 2.1
 
 
 def test_strict_run_profile_rides_the_chain_strict_side(tmp_path, monkeypatch):

@@ -283,6 +283,17 @@ def replay_as_drawn_chain(
             endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
         ),
     )
+    # Historical runs did not derive doors. New runs record an explicit recipe
+    # so replay reproduces their openings and assumptions from the same bytes.
+    if provenance.wall_opening_policy is not None:
+        from src.agent.correction.as_drawn_openings import populate_as_drawn_openings
+
+        producer, _opening_account = populate_as_drawn_openings(
+            producer, raw_view_manifest_bytes=marker.raw_view_manifest_bytes,
+            raw_reading_artifacts=reading_bytes,
+            raw_wall_compilations={row.input_id: row.compilation_bytes for row in provenance.floors},
+            assumed_height_m=provenance.wall_opening_policy.assumed_height_m,
+        )
     # Mirror the production marker constructor BEFORE comparing its bytes.
     # Its schema validation derives WindowV3.floor from floor_id; comparing
     # the unvalidated populate result instead leaves every window.floor null.

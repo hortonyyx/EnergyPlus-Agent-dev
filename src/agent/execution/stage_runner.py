@@ -432,16 +432,9 @@ class StageRunner:
                 # different elements, dict-vs-list, changed floats — still
                 # reds on the canonical bytes.
                 if any(
-                    canonical_json_bytes(replayed_projection[key])
-                    != canonical_json_bytes(candidate_projection[key])
-                    for key in (
-                        "footprint_x",
-                        "footprint_y",
-                        "floors",
-                        "windows",
-                        "conflicts",
-                        "unsupported",
-                    )
+                    canonical_json_bytes(replayed_projection.get(key))
+                    != canonical_json_bytes(candidate_projection.get(key))
+                    for key in (replayed_projection.keys() | candidate_projection.keys()) - {"corrections"}
                 ):
                     raise ValueError("writer_core_projection_drift")
                 # `corrections` is append-only downstream of the core: window

@@ -137,6 +137,13 @@ def check_correction(
     _facade_frame_cross_check(rep, geom, reading_views)
     _audit_completeness(rep, geom, raw_geom, relied_on_testdata)
     _evidence_debt_coverage(rep, geom, evidence_debt)
+    unresolved_openings = [row for row in geom.unsupported if row.get("kind") == "as_drawn_opening_unbuilt"]
+    if unresolved_openings:
+        rep.add_fail(
+            "correction.plan_opening_completeness", CheckLayer.INVARIANT,
+            "Explicitly identified plan openings remain unbuilt; the source model is incomplete.",
+            evidence={"unbuilt": unresolved_openings, "built_openings": len(geom.openings)},
+        )
     _deferred_residual_placeholders(rep)
     _window_position_evidence_shadow(rep, geom, verified_window_inputs)
     return rep

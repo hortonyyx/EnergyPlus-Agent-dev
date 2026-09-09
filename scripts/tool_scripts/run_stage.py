@@ -560,7 +560,7 @@ def _draw_correction_as_drawn(
     wires them in the flow's standard (result, report) shape so the SAME
     StageRunner writer archives the attempt.
     """
-    from src.agent.correction.chain_provenance import build_chain_provenance
+    from src.agent.correction.chain_provenance import build_chain_provenance, PlanWallOpeningPolicyV1
     from src.agent.correction.finalize import finalize_as_drawn_chain_geometry
     from src.agent.correction.parse import correction_target
     from src.agent.correction.window_sources import (
@@ -649,11 +649,6 @@ def _draw_correction_as_drawn(
         json.dumps(window_account.to_payload(), indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    vwi = build_verified_window_inputs_as_drawn(
-        producer_draw=geom,
-        raw_view_manifest_bytes=raw_manifest_bytes,
-        raw_reading_artifacts=raw_readings,
-    )
     # W#3 (dispatch 2026-09-08c S-A): freeze each chain run's FINAL wall
     # compilation — filed by the chain itself next to its outcome — into the
     # candidate's provenance carrier.  The StageRunner writer then re-drives
@@ -672,6 +667,7 @@ def _draw_correction_as_drawn(
         m = _re.search(r"(\d+)\s*f", stem, _re.I)
         return m.group(0).lower() if m else stem
 
+    opening_policy = PlanWallOpeningPolicyV1()
     provenance = build_chain_provenance([
         {
             "input_id": entry.input_id,
@@ -685,7 +681,23 @@ def _draw_correction_as_drawn(
             ).hexdigest(),
         }
         for entry in plan_entries
-    ])
+    ], wall_opening_policy=opening_policy)
+    from src.agent.correction.as_drawn_openings import populate_as_drawn_openings
+
+    geom, opening_account = populate_as_drawn_openings(
+        geom, raw_view_manifest_bytes=raw_manifest_bytes,
+        raw_reading_artifacts=raw_readings,
+        raw_wall_compilations={row.input_id: row.compilation_bytes for row in provenance.floors},
+        assumed_height_m=opening_policy.assumed_height_m,
+    )
+    (s1 / "as_drawn_opening_account.json").write_text(
+        json.dumps(opening_account.to_payload(), indent=2, ensure_ascii=False), encoding="utf-8",
+    )
+    vwi = build_verified_window_inputs_as_drawn(
+        producer_draw=geom,
+        raw_view_manifest_bytes=raw_manifest_bytes,
+        raw_reading_artifacts=raw_readings,
+    )
     result = finalize_as_drawn_chain_geometry(
         geom, verified_window_inputs=vwi, target=target,
         chain_provenance=provenance,

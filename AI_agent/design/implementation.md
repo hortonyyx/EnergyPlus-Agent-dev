@@ -9,7 +9,7 @@
 | 阶段 | 当前行为与产物 | 实现 |
 |---|---|---|
 | 0_reading | 读取并检查预生成的 `*_view.json`，不自动调用视觉模型读原图 | [run_stage.py](../../scripts/tool_scripts/run_stage.py)、[reading](../../src/agent/reading/) |
-| 1_correction | legacy/as-drawn 分派、多层证据整合、坐标校正、补窗与 finalize，输出 CorrectedGeometry/V3 | [pipeline.py](../../src/agent/pipeline.py)、[correction](../../src/agent/correction/) |
+| 1_correction | legacy/as-drawn 分派、多层证据整合、坐标校正、补窗、已有结构化门/通道记录自动接入与 finalize；明确开口未建会阻塞完整性 | [pipeline.py](../../src/agent/pipeline.py)、[as_drawn_openings.py](../../src/agent/correction/as_drawn_openings.py)、[correction](../../src/agent/correction/) |
 | 2_modelling | 构建 BuildingGeometry，造面、切配、挂窗及明确给定的门洞；附带 source_model.json 与源映射检查，CLI 提前生成扣洞 HTML | [build.py](../../src/agent/geometry/build.py)、[source_model.py](../../src/agent/geometry/source_model.py)、[openings.py](../../src/agent/geometry/openings.py) |
 | 3_split_pairing | 当前 CLI 再从校正产物重建，序列化 specs 并与前段几何核对；新门洞尚无 EP 适配，遇到时明确停止 | [split_pairing.py](../../src/agent/geometry/split_pairing.py)、run_stage.py |
 | 4_mep | 生成非几何语义；HVAC specs 由代码按 zones 替换并合入保留 schedules | pipeline.py、[intakeoutput.py](../../src/agent/intakeoutput.py) |
@@ -24,7 +24,7 @@ reading 工具箱、CV、隔离和模型工具可复用，但需要调用者准�
 [vector_contract.py](../../src/agent/reading/vector_contract.py) 将 legacy ReadingView 作为消费格式，as-drawn plan v2 / elevation v0 可适配，plan v0 尚不消费；现有 as-drawn 路由要求相应平立面材料，混用或缺失会拒绝。
 
 as-drawn 的 reading 检查覆盖契约、标定和尺寸链，旧字段检查为 NA；来源引用还依赖校正等消费者验证，独立像素自检不等于自动接进 flow。尺寸链和纯像素是不同证据条件，像素量测不能凭统一量化变成尺寸标注精度。
-校正证据链已接多层求解、楼层协调和窗口构建；projection bridge 的 `outer_skin` 尚未实现，`complete` 只说明对应算法的完成条件，不证明所有房间都已读出。窗位置路线②的 citation 仍有 shadow 阶段，完整替代模型 span 尚未交付。
+校正证据链已接多层求解、楼层协调、窗口构建与明确门/通道记录的确定性提取。新门洞在楼层装配之后加入，来源配方同步进入独立重放；旧无配方档案不追补新门。projection bridge 的 `outer_skin` 尚未实现，`complete` 只说明对应算法的完成条件，不证明所有房间都已读出。窗位置路线②的 citation 仍有 shadow 阶段，完整替代模型 span 尚未交付。
 
 ## 模型和几何内核
 
@@ -61,7 +61,7 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 
 | 能力 | 已有基础 | 缺口 |
 |---|---|---|
-| 窗与开口 | 补窗、唯一墙段贴边窗及明确给定的门/空开口、两侧关系和扣洞显示已接线 | 自动提取全部门、房间变换后同步开口、一般楼板孔洞与新开口仿真适配仍未完成 |
+| 窗与开口 | 补窗、唯一墙段贴边窗、明确门/空开口及结构化读图记录自动接入、两侧关系和扣洞显示已接线 | 从原图读全门洞、说明文字到可靠开口证据、房间编辑后同步开口、楼板孔洞与新开口仿真适配仍未完成 |
 | 朝向与视图匹配 | 候选/假设朝向与 manifest | 枚举槽不是自动多源匹配和仲裁 |
 | 查看与编辑 | 离线交互式 3D 查看器、确认/恢复 | 窗移动、墙推拉、自然语言修改的完整回写尚需实现 |
 | 外皮体量 | 可复用几何与查看出口 | 专用适配、内部推断及其简化策略尚待建立 |

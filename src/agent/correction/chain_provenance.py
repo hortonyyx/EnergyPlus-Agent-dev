@@ -22,6 +22,8 @@ from FROZEN UPSTREAM BYTES through the real production functions:
   plan bytes       -> ``read_plan_calibration_declaration`` +
                       ``snap_footprints_to_reference``       (cross-floor snap)
   ladder + snapped -> ``assemble_multifloor_geometry``       (the producer)
+  plan + producer  -> window population, then optional
+                      ``populate_as_drawn_openings``          (explicit recipe)
   producer         -> ``build_verified_window_inputs_as_drawn`` +
                       ``finalize_as_drawn_chain_geometry``   (the final geom)
 
@@ -47,10 +49,10 @@ from __future__ import annotations
 import hashlib
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from typing import Annotated
 
-from src.agent.correction.window_sources import Hex64, canonical_sha256
+from src.agent.correction.window_sources import Hex64, canonical_json_bytes, canonical_sha256
 
 
 def _without_content_hash(model: BaseModel) -> dict:
@@ -92,6 +94,14 @@ class AsDrawnFloorCompilationV1(BaseModel):
     source_bytes_sha256: Hex64
 
 
+class PlanWallOpeningPolicyV1(BaseModel):
+    """Explicit derivation recipe; absent on historical window-only runs."""
+
+    model_config = _CFG
+    version: Literal["plan_wall_openings_v1"] = "plan_wall_openings_v1"
+    assumed_height_m: float = Field(default=2.1, gt=0, allow_inf_nan=False)
+
+
 class AsDrawnChainProvenanceV1(BaseModel):
     """The as_drawn leg's replay anchor, ground-up, one entry per storey."""
 
@@ -99,6 +109,7 @@ class AsDrawnChainProvenanceV1(BaseModel):
 
     schema_version: Literal["as_drawn_chain_provenance_v1"]
     floors: tuple[AsDrawnFloorCompilationV1, ...]
+    wall_opening_policy: PlanWallOpeningPolicyV1 | None = Field(default=None, exclude_if=lambda value: value is None)
     content_sha256: Hex64
 
     def storey_floor_refs(self) -> tuple[str, ...]:
@@ -106,16 +117,18 @@ class AsDrawnChainProvenanceV1(BaseModel):
 
     @property
     def replay_input_hash(self) -> str:
-        """The hash of exactly the model-product bytes the replay consumes.
+        """Hash frozen model products and the explicit derivation recipe.
 
         The legacy proof's ``input_hash`` is the sha256 of the replayed
         producer bytes; this is the same role for this leg — one hash over
-        every floor's frozen compilation bytes, in ground-up order, so the
-        signed proof binds to the precise replays that produced it.
+        every floor's frozen compilation bytes, in ground-up order, plus
+        the opening recipe when present. Historical hashes stay unchanged.
         """
         digest = hashlib.sha256()
         for entry in self.floors:
             digest.update(entry.compilation_bytes)
+        if self.wall_opening_policy is not None:
+            digest.update(canonical_json_bytes(self.wall_opening_policy.model_dump(mode="json")))
         return digest.hexdigest()
 
     @model_validator(mode="after")
@@ -148,6 +161,7 @@ class AsDrawnChainProvenanceV1(BaseModel):
 
 def build_chain_provenance(
     floors: "list[dict]",
+    *, wall_opening_policy: PlanWallOpeningPolicyV1 | None = None,
 ) -> AsDrawnChainProvenanceV1:
     """Assemble + self-hash a provenance carrier from per-floor fields.
 
@@ -174,11 +188,13 @@ def build_chain_provenance(
     staged = AsDrawnChainProvenanceV1.model_construct(
         schema_version="as_drawn_chain_provenance_v1",
         floors=tuple(entries),
+        wall_opening_policy=wall_opening_policy,
         content_sha256="0" * 64,
     )
     return AsDrawnChainProvenanceV1(
         schema_version="as_drawn_chain_provenance_v1",
         floors=tuple(entries),
+        wall_opening_policy=wall_opening_policy,
         content_sha256=canonical_sha256(_without_content_hash(staged)),
     )
 
@@ -186,5 +202,6 @@ def build_chain_provenance(
 __all__ = [
     "AsDrawnChainProvenanceV1",
     "AsDrawnFloorCompilationV1",
+    "PlanWallOpeningPolicyV1",
     "build_chain_provenance",
 ]
