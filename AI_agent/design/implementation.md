@@ -4,6 +4,8 @@
 
 ## 实际调用链
 
+历史链路已有实际成功产物：sm21 `run_2026-07-02_sonnet_flow_e2e` 为 14 区/100 面/15 窗，sm24 `run_2026-06-24_opus_reading` 为 11 区/76 面/11 窗，两者的 EP 完成文件均为成功、0 severe。sm24 的 11 区相对声明 8 区，历史 judge 归因为非矩形空间拆分并判 minor。它们可复用为功能资产，历史人工参与、模型配置和表示限制不能当成当前自动运行成绩。sm25 本轮定位到 reading/correction/modelling 的阶段产物，未定位到历史 EP 成功文件；不据此断言用户提及的其他 sm25 成功产物不存在。路径与核对见 [本轮记录](../logs/worklog/2026-09-09_qualitative_reconstruction.md)。
+
 | 阶段 | 当前行为与产物 | 实现 |
 |---|---|---|
 | 0_reading | 读取并检查预生成的 `*_view.json`，不自动调用视觉模型读原图 | [run_stage.py](../../scripts/tool_scripts/run_stage.py)、[reading](../../src/agent/reading/) |
@@ -33,6 +35,16 @@ E4 的建筑坐标、Relative、Zone 归零和来源朝向已经接入装配及�
 V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/family 范围匹配，还会拒绝部分 assumed existence；不能直接用于任意外壳或全推断开口。
 
 ## 面向目标的缺口
+
+### gate、judge、GT 的当前接线
+
+- `stage_runner.py` 定义 0–5 的阶段与依赖；`step_orchestrator.py` 在 gate① 后进入 judge/几何确认或继续。reading 自动调用缺口仍在，历史 flow 成功不意味着今日已经是一键无人值守。
+- [CheckReport](../../src/validator/checks/schema.py) 已区分 invariant 的阻塞与 cross_check 的提示，并有 profile 例外；[StageVerdict](../../src/agent/judge/verdict.py) 明确采用定性清单，minor 放行，severe/fatal 阻塞（J0 有可交校正恢复的例外）。[judge 注册](../../src/agent/judge/executor.py) 当前启用 J0/J1，J4 是停用的 stub。
+- 评分并非全部毫米级：legacy 墙位默认容差 0.30 m、窗中心 0.40 m；[typed 评分配置](../../src/configs/judge_score.yaml) 同样包含厘米/分米级阈值；as-drawn 平面位置默认 0.08 m，并纳入两侧量化误差下限。它们是不同消费者的现值，不是本轮推荐的统一容差。
+- [GT 配置](../../src/configs/judge_gt.yaml) 的 DXF 节点连接/轴对齐为 0.001 m；as-drawn 分母仍从签字源 DXF 生成。GT 准备/规整精度与最后产品评价容差属于不同环节，不能只修改评分配置便声称解决了前者。
+- sm25 当前 J0/J1 已放行，建模的 `kernel.pairing_gate` 将 [InterZone 检查](../../src/validator/interzone.py) 的短边问题升为 invariant，0.065 m 小于硬编码 0.1 m 后停止。该规则来自历史崩溃防护，尚未证明是所有模型/EP 版本的普遍下限；也不是 GT 逐点比较导致的这次直接停止。
+
+09-09 已将 [评价原则](evaluation.md) 调整为定性优先、容差规整和自动判断。以上代码行为本轮未改；下一批先用真实产物与扰动对照选择具体改动，不能把文档更新当作 gate 已放宽。
 
 | 能力 | 已有基础 | 缺口 |
 |---|---|---|

@@ -1,7 +1,7 @@
 # 用现有入口跑 case
 
 本文是现有工具的最短使用指引，不把正式评测流程当作每次探索的必经步骤。
-当前完整 case 尚未跑通，状态见 [路线与当前任务](../project/roadmap.md)；本页说明现有码的运行方法，不代表已经从原图贯通。
+已有 sm21/sm24 的历史 EP 成功产物，当前最新 sm25 尚未贯通，状态见 [路线与当前任务](../project/roadmap.md)。本页说明现有码的运行方法，不代表已经具备从原图开始的无人值守入口。
 
 ## 1. 准备独立 run
 
@@ -49,7 +49,7 @@ python -m scripts.tool_scripts.run_stage --run-profile exploratory --capability-
 ## 3. 看产物判断进度
 
 检查各阶段的 `attempts/NNN/output.json`、`checks.json` 和对应几何图。
-至少核对外形/楼层、房间或分区、窗、来源/假设及未完成阶段。
+优先由 checks、judge 与可用 GT 自动核对外形/楼层、房间或分区、窗、来源/假设及未完成阶段，生成带对象定位的定性报告；人工只抽查代表结果和当前无法自动裁决的异常。细小偏差按 [评价原则](../design/evaluation.md) 处理，不要求每次人工逐房或逐顶点对账。
 `accepted` 数量、exit code 或单测全绿都不能替代对模型内容的检查。
 当前 case 的数量、失败和完整性风险见 [计划](../project/roadmap.md)。没有 expected 数量的 PASS 与 NA 项不能证明房间完整。
 
