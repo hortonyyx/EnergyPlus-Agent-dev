@@ -1,0 +1,109 @@
+{
+  "schema_version": "ep_branch_v1",
+  "status": "passed",
+  "simulation": {
+    "status": "passed",
+    "end": {
+      "completed": true,
+      "warnings": 4,
+      "severe": 0,
+      "raw": "EnergyPlus Completed Successfully-- 4 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  7.74sec"
+    },
+    "warning_messages": [
+      "** Warning ** No Timestep object found.  Number of TimeSteps in Hour defaulted to 4.",
+      "** Warning ** CheckEnvironmentSpecifications: SimulationControl specified doing design day simulations, but no design environments specified.",
+      "** Warning ** Weather file location will be used rather than entered (IDF) Location object.",
+      "** Warning ** GetHTSurfaceData: Surfaces with interface to Ground found but no \"Ground Temperatures\" were input."
+    ]
+  },
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_input": "AI_agent/logs/experiments/2026-09-09_ep_branch_sm21/flow_bim/source_model.json",
+  "source_evidence_conflicts": [
+    {
+      "id": "CONF1",
+      "stage": "A2-detect",
+      "method_profile": "room_identity",
+      "entity_type": "axis",
+      "entity_id": "1F_right_chain",
+      "floor_id": "1f_view",
+      "coordinate_frame": "world",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "8.00 m overall (C_left, testdata)",
+          "source_ids": [
+            "1f_view.D22",
+            "testdata_prompt"
+          ],
+          "evidence_grade": "direct_measurement",
+          "confidence": "high"
+        },
+        {
+          "value": "7.76 m segment sum (C_right)",
+          "source_ids": [
+            "1f_view.D28",
+            "1f_view.D29",
+            "1f_view.D30",
+            "1f_view.D31",
+            "1f_view.D32"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "evidence debt check 1f_view.reading.dimension_chain_closure – chain incomplete, but resolved by adopting overall and inserting partition thickness gaps (see corrections C3).",
+      "fallback_action": "resolved per C3; recorded as conflict to preserve original evidence mismatch."
+    },
+    {
+      "id": "CONF2",
+      "stage": "A2-detect",
+      "method_profile": "room_identity",
+      "entity_type": "axis",
+      "entity_id": "2F_right_chain",
+      "floor_id": "2f_view",
+      "coordinate_frame": "world",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "8.00 m overall (C_left, testdata)",
+          "source_ids": [
+            "2f_view.D20",
+            "testdata_prompt"
+          ],
+          "evidence_grade": "direct_measurement",
+          "confidence": "high"
+        },
+        {
+          "value": "7.76 m segment sum (C_right)",
+          "source_ids": [
+            "2f_view.D26",
+            "2f_view.D27",
+            "2f_view.D28",
+            "2f_view.D29",
+            "2f_view.D30"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "evidence debt check 2f_view.reading.dimension_chain_closure – chain incomplete, resolved via partition gaps (correction C5).",
+      "fallback_action": "resolved per C5; recorded as conflict."
+    }
+  ],
+  "inputs": {
+    "source_file_sha256": "6c8717fc632a69331247e6e546a477db80b5c7ffa2f7e1d7dd945b090e106c7b",
+    "source_model_sha256": "33f5913724379a4c1998cb767db501f379d60d29cda542a9f734e9a17307bc9b",
+    "physics_sha256": "d53c04503378e3e4751142a6d2c3f339ce9cc184afbae33d44e252cf5cf0f4d8",
+    "zone_bindings_sha256": "f19cf46ea2c2758c690e380a8c37f91e4255a90b71533855d3f8ed8bbdaafffe",
+    "weather_sha256": "3f99b7d5f279f4dc1d050e26d6d54b23294f6c73be4089b49072bd612fb4fce6"
+  },
+  "counts": {
+    "zones": 14,
+    "surfaces": 100,
+    "windows": 15
+  },
+  "weather": "data/weather/Shenzhen.epw",
+  "source_file_unchanged": true
+}

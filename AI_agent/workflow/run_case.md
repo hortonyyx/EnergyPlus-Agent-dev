@@ -29,7 +29,21 @@ python -m scripts.tool_scripts.run_stage --capability-profile orthogonal_polygon
 python -m scripts.tool_scripts.run_stage --capability-profile orthogonal_polygon bim CASE RUN --out NEW_SOURCE_DIRECTORY
 ```
 
-默认核验已接受校正来源；`--candidate-attempt N` 显式查看指定候选，B5 候选仍核验输入证明，不伪造接受记录。保存 `source_model.json`（完整边界及关系）、`display_geometry.json`、`viewer.html`、`report.json`；局部几何可显示时，未建项仍保留并阻塞几何就绪。`source_geometry_ready` 只表示当前源几何检查状态，图纸保真默认未评价；独立分区报告必须另检。无参数的旧 flow 仍默认 EP 路径。
+默认核验已接受校正来源；`--candidate-attempt N` 显式查看指定候选，B5 候选仍核验输入证明，不伪造接受记录。保存 `source_model.json`（完整边界及关系）、`display_geometry.json`、`viewer.html`、`report.json`；局部几何可显示时，未建项仍保留并阻塞几何就绪。`source_geometry_ready` 只表示当前源几何检查状态，图纸保真默认未评价；独立分区报告必须另检。`flow` 默认目标为 `source-bim`，必须指定新的 `--bim-out`；重放旧 Stage 2–5 流程请显式加 `--target legacy-ep`（包括旧确认恢复、`--record` 用法）。
+
+从这份 BIM 接 EP 分叉，不回读 correction，也不调用模型：
+
+```bash
+python -m scripts.tool_scripts.run_stage backend-ep --source SOURCE_DIR/source_model.json --physics-template PHYSICS.idf --zone-bindings ZONE_BINDINGS.json --out NEW_EP_DIRECTORY --with-ep --epw data/weather/Shenzhen.epw
+```
+
+共同主干连同 EP 分叉一次执行：
+
+```bash
+python -m scripts.tool_scripts.run_stage flow CASE RUN --target ep --bim-out NEW_SOURCE_DIRECTORY --physics-template PHYSICS.idf --zone-bindings ZONE_BINDINGS.json --backend-out NEW_EP_DIRECTORY --with-ep --judge off
+```
+
+物性模板只含材料、构造、作息、负荷、理想负荷系统和仿真设置，包含旧 Zone/墙面/窗等几何会拒绝。`ZONE_BINDINGS.json` 是源空间 ID → 模板所用热区名的完整一对一映射；现成示例见 [sm21 输入](../logs/experiments/2026-09-09_ep_branch_sm21/inputs/zone_bindings.json)。一房一热区、最低层接地、未知北向取模板值均记录为后端假设；源有北向时优先使用，坐标以 Relative + 全零 zone 变换输出。首版外窗和理想负荷模板已跑通，门/空开口仍明确阻塞。未加 `--with-ep` 只导出，报告为 `exported/not_run`，不能当成仿真成功。保存源快照、物性/绑定、EP 几何、源映射、检查、IDF 和运行报告；输出目录须新建。跨 case 目录的 RUN 请传绝对路径。见 [本轮证据](../logs/experiments/2026-09-09_ep_branch_sm21/README.md)。
 
 真实原图 reading 自动调用尚未接通。当前全局 LLM 配置仍含 DeepSeek；新生成调用前必须显式选已授权通道，不能因新增 source 目标就直接使用默认模型。
 

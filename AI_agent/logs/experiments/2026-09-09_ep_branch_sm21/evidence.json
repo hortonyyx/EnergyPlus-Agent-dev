@@ -1,0 +1,30 @@
+{
+  "mode": "historical upstream replay, then shared source BIM trunk and actual EP branch",
+  "model_calls": 0,
+  "energyplus_calls": 2,
+  "current_run": "run02",
+  "early_run": "run01 (before explicit Relative orientation contract)",
+  "prior_checkpoint_bytes_preserved": true,
+  "flow_source_bytes_equal_branch_snapshot": true,
+  "upstream_output_hashes_unchanged": {
+    "0_reading": "2f1168552f17293fddc676857ec461315e492ad669e73de74ae2522c9f2060da",
+    "1_correction": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf"
+  },
+  "legacy_geometry_stages_created": false,
+  "human_source_confirmation": "not_recorded; authorized development experiment",
+  "source_fidelity": "previous independent report retained; not newly evaluated",
+  "tests": [
+    {
+      "passed": 234,
+      "warnings": 16,
+      "log": "tests_234.txt"
+    },
+    {
+      "passed": 27,
+      "warnings": 4,
+      "log": "tests_27_supplement.txt",
+      "note": "includes overlapping EP tests; do not sum counts"
+    }
+  ],
+  "failed_invocation": "relative RUN resolved inside case directory; reading gate stopped before correction/models/EP; evidence retained in failed_relative_run and failed_relative_stdout.txt"
+}
