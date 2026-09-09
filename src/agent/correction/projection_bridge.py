@@ -589,20 +589,14 @@ class ExtensionOutcome:
 def close_collinear_gaps(
     lines: Sequence[CutLineV1], *, resolution_m: float
 ) -> tuple[tuple[CutLineV1, ...], tuple[CollinearGapRecordV1, ...]]:
-    """Close every gap between co-linear segments OF THE SAME wall (§9.1 ①).
+    """Close co-linear gaps within each declared continuity group.
 
-    The dispatch has ALREADY chosen option ① (⛔ non-negotiable): a
-    collinear gap is an opening continuation and gets a cut segment of its
-    own.  The gap's scope is the segments' OWN wall — ``origin_id`` groups
-    them (in the production shape that is one ``ResolvedWallV1``'s
-    ``resolved_along_intervals``, which §9.1 names as the very thing that is
-    multi-segment).  ⚠️ Measured on real sm25 (dispatch acceptance #6 is
-    ⛔ non-negotiable F1=14/F2=15): closing gaps BETWEEN DIFFERENT walls
-    over-cuts one face (15≠14) — the 2.24 m opening between two independent
-    wall ids is a real open connection the gt signs as connected, so
-    bridging it fabricates a wall.  A gap inside ONE wall is a drawn break
-    of that wall (the §9.1 probe's 100 mm separator-wall split), and that —
-    only that — is closed.
+    Historical callers use the compiled wall's origin_id as that group.
+    This is a derivation assumption, not proof that every missing segment
+    is a physical separator. Explicit source-space reviews split a wall's
+    continuity groups BEFORE projection (wall_gap_review), so a corridor
+    between disconnected runs is not automatically closed. Other groups
+    retain their existing door/window boundary continuation behavior.
 
     Closing segments borrow the START-side segment's own declared half
     thickness (read from the data, ⛔ never a constant); declared openings

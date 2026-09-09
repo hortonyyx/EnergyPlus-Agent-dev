@@ -38,6 +38,7 @@ class AsDrawnOpeningAccount:
     built: list[dict] = field(default_factory=list)
     unbuilt: list[dict] = field(default_factory=list)
     folded: list[dict] = field(default_factory=list)
+    reclassified: list[dict] = field(default_factory=list)
     host_moves: list[dict] = field(default_factory=list)
     assumed_height_m: float = 2.1
     views: list[dict] = field(default_factory=list)
@@ -266,12 +267,16 @@ def populate_as_drawn_openings(
     geom: CorrectedGeometry, *, raw_view_manifest_bytes: bytes,
     raw_reading_artifacts: Mapping[str, bytes], raw_wall_compilations: Mapping[str, bytes],
     assumed_height_m: float = 2.1,
+    wall_gap_decisions: tuple = (),
 ) -> tuple[CorrectedGeometry, AsDrawnOpeningAccount]:
     """Return an immutable-input enrichment plus complete positive-observation ledger.
 
     ``built`` counts physical source openings, while ``folded`` names extra
     face observations. ``unbuilt`` records all positive IDs in each rejected
-    group and is also persisted in ``geometry.unsupported``. No source room,
+    group and is also persisted in ``geometry.unsupported``. Explicit reviewed
+    continuous-space gaps retain positive observations in ``reclassified``
+    and source correction records, rather than inventing internal openings.
+    No source room,
     window, existing opening or observed along-span is removed or resized.
     """
     if not math.isfinite(assumed_height_m) or assumed_height_m <= 0:
@@ -317,7 +322,29 @@ def populate_as_drawn_openings(
             continue
         owners = _compiled_owners(compilation_raw, doc=doc, input_id=entry.input_id,
                                   expected_output_id=entry.expected_output_id, output_sha=output_sha)
+        from src.agent.correction.wall_gap_review import resolve_wall_gap_decisions
+
+        reviews = resolve_wall_gap_decisions(
+            wall_gap_decisions, input_id=entry.input_id, raw_reading=raw, raw_compilation=compilation_raw)
+        reclassified_ids = set()
+        for review in reviews:
+            ids = sorted(c["id"] for c in review["opening_classifications"] if c["id"] in positives)
+            if not ids:
+                continue
+            # Reclassification applies to fresh source reconstruction, never
+            # silently deletes an existing stored opening during enrichment.
+            old_id = "plan_opening:" + canonical_sha256({"input_id": entry.input_id, "observation_ids": ids})[:24]
+            if any(o.id == old_id for o in geom.openings):
+                raise ValueError("wall_gap_review_requires_source_rebuild")
+            row = {"input_id": entry.input_id, "observation_ids": ids,
+                   "reason": "reviewed_continuous_source_space", "review": review}
+            account.reclassified.append(row)
+            correction = {"kind": "wall_gap_opening_reclassification", **row}
+            if correction not in result.corrections:
+                result.corrections.append(correction)
+            reclassified_ids.update(ids)
         rows = _observations(doc, owners)
+        rows = {oid: row for oid, row in rows.items() if oid not in reclassified_ids}
         for positive_ids, all_ids, problem in _groups(doc, rows):
             row = {"input_id": entry.input_id, "observation_ids": positive_ids,
                    "floor_id": floor_key(geom, floor)}

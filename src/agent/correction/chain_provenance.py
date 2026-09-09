@@ -53,6 +53,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 from typing import Annotated
 
 from src.agent.correction.window_sources import Hex64, canonical_json_bytes, canonical_sha256
+from src.agent.correction.wall_gap_review import WallGapDecisionV1
 
 
 def _without_content_hash(model: BaseModel) -> dict:
@@ -114,6 +115,7 @@ class AsDrawnChainProvenanceV1(BaseModel):
         default=None, exclude_if=lambda value: value is None
     )
     wall_opening_policy: PlanWallOpeningPolicyV1 | None = Field(default=None, exclude_if=lambda value: value is None)
+    wall_gap_decisions: tuple[WallGapDecisionV1, ...] = Field(default=(), exclude_if=lambda value: not value)
     content_sha256: Hex64
 
     def storey_floor_refs(self) -> tuple[str, ...]:
@@ -135,6 +137,8 @@ class AsDrawnChainProvenanceV1(BaseModel):
             digest.update(canonical_json_bytes(self.wall_opening_policy.model_dump(mode="json")))
         if self.endpoint_connection_policy is not None:
             digest.update(canonical_json_bytes(self.endpoint_connection_policy))
+        if self.wall_gap_decisions:
+            digest.update(canonical_json_bytes([d.model_dump(mode="json") for d in self.wall_gap_decisions]))
         return digest.hexdigest()
 
     @model_validator(mode="after")
@@ -142,6 +146,8 @@ class AsDrawnChainProvenanceV1(BaseModel):
         if not self.floors:
             raise ValueError("as_drawn chain provenance carries no storeys")
         refs = self.storey_floor_refs()
+        if any(d.input_id not in {f.input_id for f in self.floors} for d in self.wall_gap_decisions):
+            raise ValueError("wall_gap_review_unknown_plan")
         if len(set(refs)) != len(refs):
             raise ValueError("floor_ref values must be unique per storey")
         if tuple(sorted(refs)) != refs:
@@ -169,6 +175,7 @@ def build_chain_provenance(
     floors: "list[dict]",
     *, wall_opening_policy: PlanWallOpeningPolicyV1 | None = None,
     endpoint_connection_policy: Literal["preserve_endpoint_connections_v1"] | None = None,
+    wall_gap_decisions: tuple[WallGapDecisionV1, ...] = (),
 ) -> AsDrawnChainProvenanceV1:
     """Assemble + self-hash a provenance carrier from per-floor fields.
 
@@ -197,6 +204,7 @@ def build_chain_provenance(
         floors=tuple(entries),
         wall_opening_policy=wall_opening_policy,
         endpoint_connection_policy=endpoint_connection_policy,
+        wall_gap_decisions=wall_gap_decisions,
         content_sha256="0" * 64,
     )
     return AsDrawnChainProvenanceV1(
@@ -204,6 +212,7 @@ def build_chain_provenance(
         floors=tuple(entries),
         wall_opening_policy=wall_opening_policy,
         endpoint_connection_policy=endpoint_connection_policy,
+        wall_gap_decisions=wall_gap_decisions,
         content_sha256=canonical_sha256(_without_content_hash(staged)),
     )
 

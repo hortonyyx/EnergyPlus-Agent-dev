@@ -28,6 +28,8 @@ as-drawn 的 reading 检查覆盖契约、标定和尺寸链，旧字段检查�
 
 外墙声明尺寸校正和楼层墙位对齐现保留校正前已有的端点连接：只使用原物理墙带和端点关系证明宿主，把原本可延伸到旧墙轴的有效端头接到移动后的宿主轴。不同候选宿主有冲突、墙坍缩或两方向同时移动后连接仍断开时明确拒绝；不扩大延伸容差，也不将门窗跨度随意缩短。正常链保存端点及宿主移动记录，新来源配方显式标记 `preserve_endpoint_connections_v1`；缺该字段的历史档案仍按旧逻辑重放，摘要保持原意。新候选的保存检查仍从冻结 reading/墙编译字节独立重建，不能靠删除配方把新几何冒充旧档案。`derive_as_drawn_chain_producer` 仅重建候选，不授予接受状态。
 
+同一编墙对象可以包含不相连的墙段，不再把对象身份本身当成缺口有物理隔断的证明。现可通过 `_run/wall_gap_decisions.json` 提交显式连续空间决定，绑定 plan/image/compilation 摘要、墙 ID、已有缺口序号、判读方式和理由；[wall_gap_review.py](../../src/agent/correction/wall_gap_review.py) 从输入推导跨度，不接收 GT 或任意删墙坐标。决定拆开连续分组，原实墙段保持，其余门窗逻辑边界仍按原规则续接。旧门/通道正观测若因此改判，保留在 reclassified 台账和源修改记录中；不能静默丢掉。正常校正入口及独立 writer 重放均消费冻结决定，改变输入/图片或删去新决定会使验证拒绝；历史无决定配方仍按旧行为重放。该能力尚不自动生成语义决定，sm25 首案由开发助手核对原图辅助，未宣称冷启动。
+
 ## 模型和几何内核
 
 [correction/schema.py](../../src/agent/correction/schema.py) 中 Cell 以米表达平面、Floor 给出高度；legacy 注释使用 world-frame/centerline，V3 配合当前建筑坐标合同，带 footprint、立面段、来源等字段。

@@ -34,7 +34,8 @@ from src.validator.checks.correction import check_correction
 DEFAULT_ARCHIVE = ROOT / "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e"
 
 
-def derive_candidate(old: Path, *, assumed_height_m: float = 2.1, rebuild_partitions: bool = False, connection_audit: dict | None = None):
+def derive_candidate(old: Path, *, assumed_height_m: float = 2.1, rebuild_partitions: bool = False, connection_audit: dict | None = None,
+                     wall_gap_decisions: tuple = ()):
     """Re-use verified historical inputs, deriving openings before finalization."""
     from src.agent.correction.as_drawn_openings import populate_as_drawn_openings
 
@@ -53,6 +54,8 @@ def derive_candidate(old: Path, *, assumed_height_m: float = 2.1, rebuild_partit
         for row in old_provenance.floors
     ]
     endpoint_policy = "preserve_endpoint_connections_v1" if rebuild_partitions else old_provenance.endpoint_connection_policy
+    if wall_gap_decisions and not rebuild_partitions:
+        raise ValueError("wall gap decisions require source partition rebuild")
     if rebuild_partitions:
         from src.agent.correction.chain_replay import derive_as_drawn_chain_producer
 
@@ -63,7 +66,8 @@ def derive_candidate(old: Path, *, assumed_height_m: float = 2.1, rebuild_partit
                 raise RuntimeError("historical producer replay drifted")
             connection_audit["historical_recipe"] = historical_audit
         rebuilt_marker = derive_as_drawn_chain_producer(
-            old_marker, build_chain_provenance(rows, endpoint_connection_policy=endpoint_policy),
+            old_marker, build_chain_provenance(rows, endpoint_connection_policy=endpoint_policy,
+                                              wall_gap_decisions=wall_gap_decisions),
             audit=connection_audit)
         producer = ensure_corrected_geometry(json.loads(rebuilt_marker.producer_draw_canonical_bytes))
     policy = PlanWallOpeningPolicyV1(assumed_height_m=assumed_height_m)
@@ -72,13 +76,15 @@ def derive_candidate(old: Path, *, assumed_height_m: float = 2.1, rebuild_partit
         raw_reading_artifacts=readings,
         raw_wall_compilations={row.input_id: row.compilation_bytes for row in old_provenance.floors},
         assumed_height_m=policy.assumed_height_m,
+        wall_gap_decisions=wall_gap_decisions,
     )
     marker = build_verified_window_inputs_as_drawn(
         producer_draw=producer, raw_view_manifest_bytes=old_marker.raw_view_manifest_bytes,
         raw_reading_artifacts=readings,
     )
     provenance = build_chain_provenance(
-        rows, wall_opening_policy=policy, endpoint_connection_policy=endpoint_policy)
+        rows, wall_opening_policy=policy, endpoint_connection_policy=endpoint_policy,
+        wall_gap_decisions=wall_gap_decisions)
     result = finalize_as_drawn_chain_geometry(
         producer, verified_window_inputs=marker, target=correction_target("orthogonal_polygon"),
         chain_provenance=provenance,
@@ -108,15 +114,16 @@ def record_candidate(out: Path, result):
     return record, checks, attempt
 
 
-def run(out: Path, old: Path = DEFAULT_ARCHIVE, *, rebuild_partitions: bool = False) -> dict:
+def run(out: Path, old: Path = DEFAULT_ARCHIVE, *, rebuild_partitions: bool = False, wall_gap_decisions: tuple = ()) -> dict:
     out.mkdir(parents=True, exist_ok=False)
     connection_audit = {} if rebuild_partitions else None
     result, account, original, archived_attempt = derive_candidate(
-        old, rebuild_partitions=rebuild_partitions, connection_audit=connection_audit)
+        old, rebuild_partitions=rebuild_partitions, connection_audit=connection_audit,
+        wall_gap_decisions=wall_gap_decisions)
     if connection_audit is not None:
         write_json(out / "endpoint_connections.json", connection_audit)
     payload = account.to_payload()
-    accounted = [(row["input_id"], oid) for row in payload["built"] + payload["unbuilt"]
+    accounted = [(row["input_id"], oid) for row in payload["built"] + payload["unbuilt"] + payload["reclassified"]
                  for oid in row["observation_ids"]]
     if len(accounted) != payload["observations_considered"] or len(set(accounted)) != len(accounted):
         raise RuntimeError("plan opening observations were omitted or counted twice")
@@ -155,7 +162,7 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE, *, rebuild_partitions: bool = Fa
         raise RuntimeError("known unbuilt doors were accepted as a complete correction")
     report = {
         "manifest": {
-            "mode": "historical_structured_reading_and_wall_decision_replay",
+            "mode": "assisted_wall_gap_review_replay" if wall_gap_decisions else "historical_structured_reading_and_wall_decision_replay",
             "code_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "working_tree_diff_sha256": hashlib.sha256(subprocess.check_output(["git", "diff", "HEAD"], cwd=ROOT)).hexdigest(),
             "archive": str(old.relative_to(ROOT)),
@@ -165,6 +172,7 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE, *, rebuild_partitions: bool = Fa
             "model_calls": 0, "solver_calls": 0, "manual_door_positions_or_room_groups": 0,
             "assumed_height_m": 2.1,
             "endpoint_connection_policy": result.chain_provenance.endpoint_connection_policy,
+            "wall_gap_reviews": [d.model_dump(mode="json") for d in wall_gap_decisions],
         },
         "opening_account": payload,
         "correction": {"accepted": record.accepted, "checks": checks.model_dump(mode="json"),
@@ -203,6 +211,12 @@ def run(out: Path, old: Path = DEFAULT_ARCHIVE, *, rebuild_partitions: bool = Fa
         if rebuild_partitions else
         f"原有 {len(source['spaces'])} 个空间、{len(bg.windows)} 扇窗均保留，房间形状和窗的位置、尺寸未改。"
     )
+    reading_description = "本次没有重新看原图或调用模型；仍沿用历史读图判断和墙的处理结果。"
+    if wall_gap_decisions:
+        change_description = (f"根据带来源记录的 {len(wall_gap_decisions)} 处连续空间决定重建，得到 {len(source['spaces'])} 个空间；"
+                              f"{len(bg.windows)} 扇窗的位置和尺寸保留。缺口判读为辅助输入，原始读图未改。")
+        reading_description = (f"本次复用了原始平面图的辅助核对决定，没有重新运行读图模型；"
+                               f"{len(payload['reclassified'])} 条旧门/通道记录已明确改判为连续空间，原分类与理由保存在台账。")
     page = f'''<!doctype html><html lang="zh"><meta charset="utf-8"><title>从已有读图记录自动接入门洞</title>
 <style>body{{font:16px/1.8 system-ui;max-width:980px;margin:40px auto;padding:0 24px;color:#183044;background:#f6f8fa}}
 section{{background:white;padding:20px;margin:20px 0}}a{{color:#0768a0}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}}li{{overflow-wrap:anywhere}}</style>
@@ -210,7 +224,7 @@ section{{background:white;padding:20px;margin:20px 0}}a{{color:#0768a0}}pre{{whi
 <p>这次自动接入了 {built} 处门/通道。{change_description}</p>
 <p><a href="viewer.html">打开建筑模型</a> · <a href="opening_account.json">查看逐项门洞记录</a></p>
 <section><h2>减少了什么人工操作</h2><p>直接读取已经保存的门/通道类型和位置，借用已确定的墙找到两侧房间。同一扇门在墙两面留下的记录会归并，不再逐门手工填写房间和坐标。</p>
-<p>本次没有重新看原图或调用模型；仍沿用历史读图判断和墙的处理结果。门高/通道高暂按 2.1 米并逐项记为假设；门的实际开闭状态未知。</p></section>
+<p>{reading_description}门高/通道高暂按 2.1 米并逐项记为假设；门的实际开闭状态未知。</p></section>
 <section><h2>仍未完成</h2><p>{completeness}</p><ul>{rows}</ul>
 <p>原有短边检查问题继续保留，新增开口的仿真出口尚未支持。图纸整体是否读全、房间分区是否全对、正式人工确认和浏览器截图均未在本次验收。</p></section>
 <details><summary>完整报告与来源</summary><pre>{html.escape(json.dumps(report, ensure_ascii=False, indent=2))}</pre></details>
@@ -223,8 +237,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--rebuild-partitions", action="store_true", help="Rebuild wall partitions with preserved endpoint connections")
+    parser.add_argument("--wall-gap-decisions", type=Path, help="Explicit source-bound continuous-space reviews; requires --rebuild-partitions")
     args = parser.parse_args()
-    report = run(args.out.resolve(), rebuild_partitions=args.rebuild_partitions)
+    from src.agent.correction.wall_gap_review import load_wall_gap_decisions
+    decisions = load_wall_gap_decisions(args.wall_gap_decisions, image_root=ROOT) if args.wall_gap_decisions else ()
+    report = run(args.out.resolve(), rebuild_partitions=args.rebuild_partitions, wall_gap_decisions=decisions)
     print(json.dumps({"built": report["opening_account"]["built_count"],
                       "unbuilt_groups": len(report["opening_account"]["unbuilt"]),
                       "correction_accepted": report["correction"]["accepted"],

@@ -685,11 +685,33 @@ def _draw_correction_as_drawn(
        endpoint_connection_policy="preserve_endpoint_connections_v1")
     from src.agent.correction.as_drawn_openings import populate_as_drawn_openings
 
+    gap_review_path = run_meta_path(run_dir, "wall_gap_decisions.json")
+    if gap_review_path.exists():
+        from src.agent.correction.wall_gap_review import load_wall_gap_decisions
+        from src.agent.correction.chain_replay import derive_as_drawn_chain_producer
+        from src.agent.correction.parse import ensure_corrected_geometry
+
+        decisions = load_wall_gap_decisions(gap_review_path, image_root=_REPO_ROOT)
+        rows = [dict(input_id=f.input_id, product_filename=f.product_filename, floor_ref=f.floor_ref,
+                     compilation_bytes=f.compilation_bytes, source_bytes_sha256=f.source_bytes_sha256)
+                for f in provenance.floors]
+        projection_recipe = build_chain_provenance(
+            rows, endpoint_connection_policy=provenance.endpoint_connection_policy,
+            wall_gap_decisions=decisions)
+        seed = build_verified_window_inputs_as_drawn(
+            producer_draw=geom, raw_view_manifest_bytes=raw_manifest_bytes, raw_reading_artifacts=raw_readings)
+        reviewed = derive_as_drawn_chain_producer(seed, projection_recipe)
+        geom = ensure_corrected_geometry(json.loads(reviewed.producer_draw_canonical_bytes))
+        provenance = build_chain_provenance(
+            rows, endpoint_connection_policy=provenance.endpoint_connection_policy,
+            wall_opening_policy=opening_policy, wall_gap_decisions=decisions)
+
     geom, opening_account = populate_as_drawn_openings(
         geom, raw_view_manifest_bytes=raw_manifest_bytes,
         raw_reading_artifacts=raw_readings,
         raw_wall_compilations={row.input_id: row.compilation_bytes for row in provenance.floors},
         assumed_height_m=opening_policy.assumed_height_m,
+        wall_gap_decisions=provenance.wall_gap_decisions,
     )
     (s1 / "as_drawn_opening_account.json").write_text(
         json.dumps(opening_account.to_payload(), indent=2, ensure_ascii=False), encoding="utf-8",

@@ -202,6 +202,10 @@ def derive_as_drawn_chain_producer(
         e.input_id: e for e in entries if e.view_type == "plan"
     }
     provenance_ids = {row.input_id for row in provenance.floors}
+    for decision in provenance.wall_gap_decisions:
+        slot = plan_slots.get(decision.input_id)
+        if slot is None or slot.image_sha256 != decision.image_sha256:
+            raise ValueError("wall_gap_review_manifest_image_drift")
     if provenance_ids != set(plan_slots):
         raise ValueError(
             "chain_replay_plan_slots_drift: provenance rows and manifest plan "
@@ -217,6 +221,7 @@ def derive_as_drawn_chain_producer(
         audit["floors"] = []
     per_floor_lines: list = []
     per_floor_project: list = []
+    all_gap_reviews = []
     declarations = []
     for row, level in zip(provenance.floors, ladder):
         raw = reading_bytes.get(row.input_id)
@@ -255,6 +260,14 @@ def derive_as_drawn_chain_producer(
             )
         spans = opening_spans_from_artifact(artifact)
         lines, _ = cut_lines_from_wall_compilation(compilation.walls, spans)
+        from src.agent.correction.wall_gap_review import resolve_wall_gap_decisions, apply_wall_gap_decisions
+
+        gap_reviews = resolve_wall_gap_decisions(
+            provenance.wall_gap_decisions, input_id=row.input_id,
+            raw_reading=raw, raw_compilation=row.compilation_bytes,
+        )
+        lines = apply_wall_gap_decisions(lines, gap_reviews)
+        all_gap_reviews.extend(gap_reviews)
         # W#6: the SAME exterior-frame declaration snap the production chain
         # ran before its cut (pipeline.run_correction_evidence_chain) — the
         # replay re-drives it from the marker's own frozen plan bytes, so a
@@ -300,6 +313,7 @@ def derive_as_drawn_chain_producer(
         if audit is not None:
             audit["floors"].append({
                 "floor_id": floor_ref, "endpoint_connections": list(_endpoint_records),
+                "wall_gap_reviews": gap_reviews,
                 "walls": [{"wall_id": w.wall_id,
                            "observation_ids": sorted({r.observation_id for r in w.source_refs})}
                           for w in compilation.walls],
@@ -323,6 +337,8 @@ def derive_as_drawn_chain_producer(
         for row, geom in zip(audit["floors"], snapped):
             row["spaces_after_alignment"] = len(geom.floors[0].cells)
     producer = assemble_multifloor_geometry(ladder, tuple(snapped))
+    if all_gap_reviews:
+        producer.corrections.append({"kind": "wall_gap_continuity_review", "reviews": all_gap_reviews})
     # ⭐ 2026-09-08 补窗：重放必须**镜像生产方的推导**，否则 producer 必然不等。
     # 生产侧在建 marker 之前调 `populate_as_drawn_windows` 把 31 个窗填进几何
     # （投影的 `windows=[]` 是硬写的，窗由「平面 opening_types × 立面 z_range」
@@ -352,6 +368,7 @@ def derive_as_drawn_chain_producer(
             raw_reading_artifacts=reading_bytes,
             raw_wall_compilations={row.input_id: row.compilation_bytes for row in provenance.floors},
             assumed_height_m=provenance.wall_opening_policy.assumed_height_m,
+            wall_gap_decisions=provenance.wall_gap_decisions,
         )
     # Mirror the production marker constructor BEFORE comparing its bytes.
     # Its schema validation derives WindowV3.floor from floor_id; comparing
