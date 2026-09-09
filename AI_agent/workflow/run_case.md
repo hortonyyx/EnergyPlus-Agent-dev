@@ -31,7 +31,23 @@ python -m scripts.tool_scripts.run_stage --capability-profile orthogonal_polygon
 
 默认核验已接受校正来源；`--candidate-attempt N` 显式查看指定候选，B5 候选仍核验输入证明，不伪造接受记录。保存 `source_model.json`（完整边界及关系）、`display_geometry.json`、`viewer.html`、`report.json`；局部几何可显示时，未建项仍保留并阻塞几何就绪。`source_geometry_ready` 只表示当前源几何检查状态，图纸保真默认未评价；独立分区报告必须另检。`flow` 默认目标为 `source-bim`，必须指定新的 `--bim-out`；重放旧 Stage 2–5 流程请显式加 `--target legacy-ep`（包括旧确认恢复、`--record` 用法）。
 
-从这份 BIM 接 EP 分叉，不回读 correction，也不调用模型：
+明确整面/局部开敞或未知围护时，先导出基准 BIM，按其中的源边界 ID 与 `source_model_sha256` 准备声明，再在新的源目录生成：
+
+```bash
+python -m scripts.tool_scripts.run_stage bim CASE RUN --out NEW_ENCLOSURE_DIRECTORY --enclosure-input ENCLOSURE.json
+```
+
+`flow --target source-bim` 同样接受 `--enclosure-input`。声明格式及三种可复制例见 [受控场景](../logs/experiments/2026-09-09_source_enclosure_run05/README.md)，契约见 [共同模型](../design/model.md#显式实际围护09-09-v3-增量)。声明必须绑定当前基准摘要；改变上游后需重新核对，旧声明不会自动套用。原始声明、副本摘要及应用记录随源输出保存。unknown 允许生成带告警的可查看几何，报告同时标记围护信息不完整。`source_bim_v3` 当前不进入 EP；显式 `legacy-ep` 加围护声明也会拒绝。
+
+离线复现三种表达（历史几何 + 明确标注的人工例，不调用模型/求解器）：
+
+```bash
+python scripts/tool_scripts/diagnose_source_enclosure.py --out AI_agent/logs/experiments/NEW_ENCLOSURE_RUN
+```
+
+直接查看源文件也可运行 `python scripts/tool_scripts/render_geometry_viewer.py SOURCE_DIR/source_model.json --out NEW_VIEWER.html`。HTML 依赖现有 Three.js CDN；本轮未做浏览器渲染验收，附图仅为声明侧面的正投影检查。
+
+从 v2 BIM 接 EP 分叉，不回读 correction，也不调用模型：
 
 ```bash
 python -m scripts.tool_scripts.run_stage backend-ep --source SOURCE_DIR/source_model.json --physics-template PHYSICS.idf --zone-bindings ZONE_BINDINGS.json --out NEW_EP_DIRECTORY --with-ep --epw data/weather/Shenzhen.epw

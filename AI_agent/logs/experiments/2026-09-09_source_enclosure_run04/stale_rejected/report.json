@@ -1,0 +1,214 @@
+{
+  "mode": "existing_correction_rebuild",
+  "source_run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_source_enclosure_run04/upstream_run",
+  "candidate_attempt": null,
+  "capability_profile": "rectangular",
+  "model_calls": 0,
+  "solver_calls": 0,
+  "input_artifacts": {
+    "1_correction/attempts/001/output.json": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf",
+    "1_correction/attempts/001/checks.json": "3a31a32489c37bfba2c6d9c6b3e5082b540bf12e61b7b4fbe01f952c6247d332"
+  },
+  "scope": "correction to independent source BIM; not a new image reading",
+  "not_evaluated": [
+    "original image cold start",
+    "human confirmation",
+    "editing",
+    "EnergyPlus"
+  ],
+  "input_authority": "accepted_correction",
+  "input_trust": "V2 accepted attempt is a verified legacy (non-B5) correction",
+  "input_checks": {
+    "stage": "1_correction",
+    "capability_profile": "rectangular",
+    "run_profile": "exploratory",
+    "artifact_hash": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf",
+    "attempt_hash": "97b69556c128808835c73e84d5b26918cc21d637f98652886cff4d2a74cff2bf",
+    "report_schema_version": "2.2",
+    "run_policy_sha256": null,
+    "run_policy_source": null,
+    "results": [
+      {
+        "check_id": "correction.schema_version_supported",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "schema_version": "1"
+        }
+      },
+      {
+        "check_id": "correction.capability_profile_shapes",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "capability_profile": "rectangular",
+          "declared_shapes": [
+            "rectangular"
+          ],
+          "allowed_shapes": [
+            "rectangular"
+          ]
+        }
+      },
+      {
+        "check_id": "correction.cell_polygon_contract",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.coverage",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "floor": "Floor 1",
+          "coverage_gate_version": "v2",
+          "footprint_source": "floor_footprint",
+          "footprint_area_m2": 115.44,
+          "cells_union_area_m2": 115.44,
+          "area_delta_m2": 0.0,
+          "coverage_area_tol_m2": 0.05,
+          "overlap_m2": -0.0,
+          "hole_m2": -0.0,
+          "outside_footprint_m2": 0.0
+        }
+      },
+      {
+        "check_id": "correction.coverage",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "floor": "Floor 2",
+          "coverage_gate_version": "v2",
+          "footprint_source": "floor_footprint",
+          "footprint_area_m2": 115.44,
+          "cells_union_area_m2": 115.44,
+          "area_delta_m2": 0.0,
+          "coverage_area_tol_m2": 0.05,
+          "overlap_m2": -0.0,
+          "hole_m2": -0.0,
+          "outside_footprint_m2": 0.0
+        }
+      },
+      {
+        "check_id": "correction.nondegenerate",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.zstack_continuity",
+        "status": "pass",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.zone_count_tripwire",
+        "status": "pass",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "actual": 14,
+          "expected": null
+        }
+      },
+      {
+        "check_id": "correction.window_on_wall",
+        "status": "pass",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "",
+        "evidence": {
+          "windows": 15
+        }
+      },
+      {
+        "check_id": "correction.cross_image_reconcile",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "no elevation widths supplied",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.facade_frame_cross_check",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "no elevation reading artifacts supplied",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.audit_completeness",
+        "status": "not_applicable",
+        "layer": "invariant",
+        "check_version": "1",
+        "message": "no material change / no testdata reliance detected",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.facade_area_residuals",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "deferred until evidence is richer",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.wwr_residuals",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "deferred until evidence is richer",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.area_residuals",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "deferred until evidence is richer",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.unsupported_count_by_severity",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "deferred until evidence is richer",
+        "evidence": {}
+      },
+      {
+        "check_id": "correction.window_position_evidence_shadow",
+        "status": "not_applicable",
+        "layer": "cross_check",
+        "check_version": "1",
+        "message": "no v3 verified_window_inputs supplied — shadow evidence did not run",
+        "evidence": {}
+      }
+    ]
+  },
+  "enclosure_input": {
+    "path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_source_enclosure_run04/stale_input.json",
+    "sha256": "e5c09cc13259c977ff94dec313f2510c34fe14c21de3c2b504d07d8d9cda23b1",
+    "mode": "explicit_source_geometry_declaration"
+  },
+  "status": "error",
+  "source_geometry_ready": false,
+  "error": "ValueError: source enclosure: declaration base_source_model_sha256 does not match source BIM digest"
+}
