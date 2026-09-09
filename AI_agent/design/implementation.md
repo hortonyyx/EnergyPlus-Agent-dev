@@ -4,6 +4,8 @@
 
 ## 实际调用链
 
+最新增量支持显式关闭门：`--opening-policy` 按源门 ID 提供关闭状态、构造和理由，门可在后端跨父墙切片，内门两侧 reciprocal、外门单侧，源开闭状态不改。sm24 已实际全年成功（8 热区/58 基面/11 窗/1 源门/2 门面，0 severe），115 项检查通过。门/空通道已知敞开仍明确拒绝，不假装实体门；协作者接口见 [最小物性契约](ep_physics_contract.md)，证据见 [本轮记录](../logs/worklog/2026-09-09_ep_doors.md)。
+
 最新主线为共同源 BIM 主干后的后端分叉：`flow --target ep --bim-out ... --physics-template ... --zone-bindings ... --backend-out ... --with-ep` 先导出 v2，再由 [ep_branch.py](../../src/agent/execution/ep_branch.py) 读取该文件派生 EP，最后用本机 EnergyPlus 运行。`backend-ep` 单独接已有停点 BIM；物性模板不含几何。sm21 已实际全年成功、14 热区/100 面/15 窗、0 severe、4 条物性模板相关警告，源 BIM 不变。默认 `flow` 现在是 `source-bim`；旧流程需显式 `legacy-ep`。新后端支持范围与证据见 [最新记录](../logs/worklog/2026-09-09_ep_branch.md)。
 
 上一程已有独立源出口：`flow --target source-bim --bim-out NEW_DIRECTORY` 复用 0_reading/1_correction，随后由 `geometry/source_bim.py` 生成完整源边界、接触关系、门窗/连通和检查，不调用旧 EP 建模/切配。`bim` 子命令可重建已接受校正或显式预览候选。三案例源产物与 sm21 实际 flow 已离线验证，223 项相关测试通过。原图 reading 仍未自动调用；旧 EP flow 和确认入口显式保留。详见 [实现与证据](../logs/worklog/2026-09-09_source_bim_pipeline.md)。以下为历史链，不能代表新源目标已经完成冷启动。

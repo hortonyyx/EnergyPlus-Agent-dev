@@ -1,0 +1,41 @@
+{
+  "schema_version": "ep_branch_v1",
+  "status": "failed",
+  "simulation": {
+    "status": "not_run"
+  },
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_input": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run01/inputs/source_model.json",
+  "source_evidence_conflicts": [
+    {
+      "id": "conf_1",
+      "stage": "A3",
+      "method_profile": "room_identity",
+      "entity_type": "window",
+      "entity_id": "win_south_2",
+      "floor_id": "Floor 1",
+      "coordinate_frame": "world",
+      "conflict_type": "semantic_size_prior",
+      "claim_type": "semantic",
+      "candidates": [
+        {
+          "value": "belongs to corridor cell",
+          "source_ids": [
+            "South_view S3"
+          ],
+          "evidence_grade": "direct_measurement",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Window falls on the south facade where the corridor wall segment is located; a corridor by convention rarely has a direct exterior window, but the geometry forces the assignment. No alternate room is adjacent at that x coordinate.",
+      "fallback_action": "Assigned to cell_corridor_lower with a warning; may be re‑evaluated after thermal zoning."
+    }
+  ],
+  "inputs": {
+    "source_file_sha256": "5401e162a181d99b8b74da4b95c97f70525904d4a658f7d529700e4885fd0b3d",
+    "source_model_sha256": "56c04d87d0f8400b921b6e556b2449cafc1693c27343c0827c7d7a4fddb12b32",
+    "physics_sha256": "3fa8ad673f45e60eaec85f6f1563aee321d7b37162d04bbfb33df6155dd3140f",
+    "zone_bindings_sha256": "f82d1d7673386e1858cd159144777aa72171b374fdf82d5c5bfebc786268a903"
+  },
+  "error": "EPOpeningError: door corridor_north_mouth: explicit closed-door policy is required"
+}

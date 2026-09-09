@@ -1,0 +1,72 @@
+{
+  "command": [
+    "/opt/venv/bin/python",
+    "/workspaces/EnergyPlus-Agent-dev/scripts/tool_scripts/run_stage.py",
+    "backend-ep",
+    "--source",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run02/inputs/source_model.json",
+    "--physics-template",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run02/inputs/physics.idf",
+    "--zone-bindings",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run02/inputs/zone_bindings.json",
+    "--opening-policy",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run02/inputs/opening_policy.json",
+    "--out",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run02/ep",
+    "--with-ep",
+    "--epw",
+    "/workspaces/EnergyPlus-Agent-dev/data/weather/Shenzhen.epw"
+  ],
+  "returncode": 0,
+  "model_calls": 0,
+  "source_file_unchanged": true,
+  "without_policy": {
+    "schema_version": "ep_branch_v1",
+    "status": "failed",
+    "simulation": {
+      "status": "not_run"
+    },
+    "drawing_fidelity": "not_evaluated",
+    "source_geometry_input": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-09_ep_doors_sm24_run02/inputs/source_model.json",
+    "source_evidence_conflicts": [
+      {
+        "id": "conf_1",
+        "stage": "A3",
+        "method_profile": "room_identity",
+        "entity_type": "window",
+        "entity_id": "win_south_2",
+        "floor_id": "Floor 1",
+        "coordinate_frame": "world",
+        "conflict_type": "semantic_size_prior",
+        "claim_type": "semantic",
+        "candidates": [
+          {
+            "value": "belongs to corridor cell",
+            "source_ids": [
+              "South_view S3"
+            ],
+            "evidence_grade": "direct_measurement",
+            "confidence": "high"
+          }
+        ],
+        "reason_unresolved": "Window falls on the south facade where the corridor wall segment is located; a corridor by convention rarely has a direct exterior window, but the geometry forces the assignment. No alternate room is adjacent at that x coordinate.",
+        "fallback_action": "Assigned to cell_corridor_lower with a warning; may be re‑evaluated after thermal zoning."
+      }
+    ],
+    "inputs": {
+      "source_file_sha256": "5401e162a181d99b8b74da4b95c97f70525904d4a658f7d529700e4885fd0b3d",
+      "source_model_sha256": "56c04d87d0f8400b921b6e556b2449cafc1693c27343c0827c7d7a4fddb12b32",
+      "physics_sha256": "3fa8ad673f45e60eaec85f6f1563aee321d7b37162d04bbfb33df6155dd3140f",
+      "zone_bindings_sha256": "f82d1d7673386e1858cd159144777aa72171b374fdf82d5c5bfebc786268a903"
+    },
+    "error": "EPOpeningError: door corridor_north_mouth: explicit closed-door policy is required"
+  },
+  "source_fidelity": "known historical differences; not newly evaluated",
+  "code_commit": "818df391e2d20e67f96a43b964869fc7e5d37e35",
+  "implementation_sha256": {
+    "src/agent/execution/ep_branch.py": "c450ee5125548eaf8aed2fcd9c2b01c348c2cae63fee6d0acc051f8947410216",
+    "src/agent/execution/ep_openings.py": "25ecfa604135560dc02281f6cae4f82fe9c7450fdc14f295d53281e7435d8526",
+    "scripts/tool_scripts/run_stage.py": "a79123fd10ff416f8210d946b8ccde462b433487effe904f39a67ad215830def",
+    "scripts/tool_scripts/diagnose_ep_doors.py": "5fae03e8f8be4c5ef3fa682e907a845dae77a86a160ec36afff61c89a32a0b45"
+  }
+}
