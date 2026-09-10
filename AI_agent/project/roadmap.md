@@ -2,7 +2,7 @@
 
 更新：2026-09-10。产品范围见 [目标](goal.md)，实现与缺口见 [现有实现](../design/implementation.md)。
 
-**本轮临时任务：课题汇报的两份展示资产已制作。** 七页结构见 [汇报安排](../logs/worklog/2026-09-10_research_presentation_outline.md)，[资产入口](../../showcase/2026-09-11-research-report/assets.html) 可离线打开，尚未制作完整 slides。sm25 展示副本为 29 空间/31 窗/30 门，其中一门为人工修订；原 severe 状态保留。用户明确选择 Voimatalo 并要求主助手 SOTA 直接尝试较高精度 BIM：已做外壳版（12 空间体）与内部推理版（164 空间体），均保留八层主楼及 316 窗组，支持真实贴图/BIM/叠合、典型层与展开。源几何检查仅保留未知围护 warning，实际内部未核实、未验证仿真，不计生产模型自动生成成功。两份资产已离线浏览器检查，旧展示已迁至 `showcase/previous-showcase/`。详见 [本轮成果与限制](../logs/worklog/2026-09-10_research_showcase_assets.md)。常规还原开发仍从下方交接恢复；本次 SOTA 展示探索不改变产品模型上限。
+**本轮临时任务：课题汇报展示资产已制作，Voimatalo 已按用户反馈修订。** 七页结构见 [汇报安排](../logs/worklog/2026-09-10_research_presentation_outline.md)，[资产入口](../../showcase/2026-09-11-research-report/assets.html) 可离线打开，完整 slides 尚未制作。sm25 展示副本仍为 29 空间/31 窗/30 门；其人工修订与原 severe 状态保留。Voimatalo 当前两版为 13/165 个空间体、均 322 窗组、10/173 门：结合裁剪前局部实景，分别推断并补全贴邻端面和带窄窗的凸出交通盒，原 316 窗组保留。新增交通盒跨八层且没有中间假楼板，页面统一为 sm25 原生查看器。源几何检查 pass，但实际内部与隐藏开口仍含推断，未验证仿真，不计生产模型自动生成成功。[本次修订与证据](../logs/worklog/2026-09-10_voimatalo_missing_faces.md) 说明新增辅助信息和验证边界；[首版记录](../logs/worklog/2026-09-10_research_showcase_assets.md) 保留。常规还原从下方交接恢复，产品模型上限不变。
 
 ## 当前交接
 
