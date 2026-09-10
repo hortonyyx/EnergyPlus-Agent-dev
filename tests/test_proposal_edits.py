@@ -70,9 +70,9 @@ def test_reflection_preserves_nonrectangular_rooms_openings_and_source_buildabil
 def test_updates_removal_and_notes_keep_full_audit_history():
     proposal = _proposal()
     revised = apply_proposal_edits(proposal, [
-        {"op": "update_window", "id": "west", "changes": {"z": [1.2, 2.2]},
+        {"op": "update_window", "id": "west", "changes": {"z": [1.2, 2.2], "assumptions": ["elevation replaces placeholder"]},
          "reason": "elevation confirms sill", "source_refs": ["elevation:west"]},
-        {"op": "update_opening", "id": "door", "changes": {"state": "closed"},
+        {"op": "update_opening", "id": "door", "changes": {"state": "closed", "assumptions": ["leaf state observed"]},
          "reason": "door leaf visible", "source_refs": ["plan:door-leaf"]},
         {"op": "remove_opening", "id": "door", "reason": "later view disproves opening",
          "source_refs": ["elevation:no-door"]},
@@ -83,6 +83,11 @@ def test_updates_removal_and_notes_keep_full_audit_history():
     audit = revised["geometry"]["corrections"]
     assert [row["operation"] for row in audit] == ["update_window", "update_opening", "remove_opening", "set_notes"]
     assert audit[0]["before"]["z"] == [1, 2] and audit[0]["after"]["z"] == [1.2, 2.2]
+    assert revised["geometry"]["windows"][3]["source_refs"] == ["elevation:west"]
+    assert revised["geometry"]["windows"][3]["assumptions"] == ["elevation replaces placeholder"]
+    assert audit[1]["before"]["source_refs"] == ["fixture:door"]
+    assert audit[1]["after"]["source_refs"] == ["plan:door-leaf"]
+    assert audit[1]["after"]["assumptions"] == ["leaf state observed"]
     assert audit[2]["before"]["id"] == "door" and audit[2]["after"] is None
     assert audit[2]["source_refs"] == ["elevation:no-door"]
     assert revised["assumptions"] == ["new orientation"] and revised["unresolved"] == []

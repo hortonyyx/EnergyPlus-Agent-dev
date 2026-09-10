@@ -1,6 +1,7 @@
 """Direct geometry proposals stay inspectable without claiming a correction run."""
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 
@@ -82,3 +83,27 @@ def test_proposal_output_never_overwrites_or_invents_a_run_record(tmp_path):
     assert report["status"] == "error"
     assert "unknown windows" in report["error"]
     assert json.loads((failed / "report.json").read_text())["status"] == "error"
+
+
+def test_export_retains_complete_local_edit_audit_and_rehashes_source(tmp_path):
+    from src.agent.geometry.proposal_edits import apply_proposal_edits
+    from src.agent.geometry.source_model import _digest
+
+    parent = _proposal()
+    original = copy.deepcopy(parent)
+    revised = apply_proposal_edits(parent, [
+        {"op": "update_opening", "id": "door", "changes": {"state": "closed", "assumptions": ["leaf checked"]},
+         "reason": "new drawing evidence", "source_refs": ["detail:door"]},
+        {"op": "remove_opening", "id": "door", "reason": "opening contradicted",
+         "source_refs": ["detail:solid-wall"]},
+    ])
+    assert parent == original
+    export_source_proposal(revised, tmp_path / "candidate")
+    source = json.loads((tmp_path / "candidate" / "source_model.json").read_text())
+
+    audit = revised["geometry"]["corrections"]
+    assert source["generation"]["corrections"] == audit
+    assert audit[-1]["before"]["id"] == "door" and audit[-1]["before"]["source_refs"] == ["detail:door"]
+    assert source["source_model_sha256"] == _digest({
+        key: value for key, value in source.items() if key != "source_model_sha256"
+    })

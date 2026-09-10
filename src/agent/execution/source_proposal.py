@@ -112,6 +112,9 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             "provenance": provenance or {},
             "unresolved": unresolved,
             "notes": geom.notes,
+            # This remains in the independently exported source record so a
+            # removed opening's previous geometry/source basis is auditable.
+            "corrections": geom.corrections,
         }
         source["source_model_sha256"] = _digest(
             {key: value for key, value in source.items() if key != "source_model_sha256"}

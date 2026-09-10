@@ -9,8 +9,8 @@ from src.agent.correction.schema import Window
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration"}
-_WINDOW_FIELDS = {"facade", "span", "z", "room", "floor"}
-_OPENING_FIELDS = {"space_id", "other_space_id", "p1", "p2", "z", "state"}
+_WINDOW_FIELDS = {"facade", "span", "z", "room", "floor", "assumptions"}
+_OPENING_FIELDS = {"space_id", "other_space_id", "p1", "p2", "z", "state", "assumptions"}
 _FACADE_REFLECTIONS = {
     "x": {"East": "West", "West": "East", "North": "North", "South": "South"},
     "y": {"North": "South", "South": "North", "East": "East", "West": "West"},
@@ -153,9 +153,14 @@ def _update(geometry: dict, operation: dict, *, target: str) -> dict:
     unknown = set(changes) - allowed
     if unknown:
         raise ValueError(f"{name}: unsupported changes {sorted(unknown)}")
+    if "assumptions" in changes:
+        _notes(changes["assumptions"], field="changes.assumptions")
     row = _find(geometry[f"{target}s"], identity, operation=name)
     before = copy.deepcopy(row)
     row.update(copy.deepcopy(changes))
+    # New sources replace the edited object's active basis. The complete prior
+    # record, including old sources, stays in the append-only audit below.
+    row["source_refs"] = refs
     return {"operation": name, "id": identity, "reason": reason, "source_refs": refs,
             "before": before, "after": copy.deepcopy(row)}
 
