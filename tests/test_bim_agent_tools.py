@@ -86,6 +86,7 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
             assert {"inputs", "view_image", "pixel_profile", "map_pixels"} <= tools
             assert "build_bim" not in tools and "review_detail" not in tools
             assert "revise_bim" not in tools and "inspect_candidate" not in tools
+            assert "check_openings" not in tools
 
             inventory = _json_result(await session.call_tool("inputs", {}))
             assert set(inventory["images"]) == {"plan.png"}
@@ -131,6 +132,18 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert (run / "candidate_01" / "proposal.json").read_bytes() == original
             inspected = _json_result(await session.call_tool("inspect_candidate", {"candidate":"candidate_02"}))
             assert inspected["proposal"]["geometry"]["floors"][0]["cells"][0]["x"] == [3, 6]
+            review = {"floor_id":"F1", "kind":"door", "image":"plan.png", "coverage":"complete",
+                      "marks":[{"mark_id":"m1", "box":[1,1,6,7], "opening_ids":["door"],
+                                "space_ids":["left","right"], "basis":"visible", "note":"synthetic aperture"}]}
+            before = (run / "candidate_02/source_model.json").read_bytes()
+            checked = _json_result(await session.call_tool("check_openings", {
+                "candidate":"candidate_02", "review_json":json.dumps(review)}))
+            assert checked["drawing_fidelity"] == "not_evaluated"
+            saved = json.loads((run / checked["review_file"]).read_text())
+            assert saved["observations"] == review
+            assert (run / "candidate_02/source_model.json").read_bytes() == before
+            assert not checked["findings"]
+            assert "opening_reviews/review_001.json" == checked["review_file"]
 
     asyncio.run(scenario())
 

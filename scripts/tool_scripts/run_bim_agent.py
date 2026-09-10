@@ -51,6 +51,26 @@ Use revise_bim for local changes and code-computed reflections. Never change
 facade labels merely to satisfy a host check: geometry and drawing directions
 must agree. Door swings, dimension ticks and window marks are different things.
 When correcting an unsupported opening, preserve the reason and source reference.
+Before concluding, reconcile the actual opening inventory with distinct marks
+on the original plans, including asymmetric details. A note saying "one door"
+does not remove a second modeled door. check_openings(candidate) lists the
+actual objects; its optional review_json checks your observed marks against
+that inventory. Use complete only after inspecting all openings of that kind
+on that floor, partial for a local check. Each mark represents ONE aperture
+and connection, not a broad crop containing several doors. Review uncertainty
+is allowed; do not fabricate observations to make a checklist pass. Recheck
+reported mismatches and review any changed candidate again. No GT is used.
+
+check_openings review_json example (unrelated to supplied drawings):
+{"floor_id":"F1","kind":"door","image":"plan.png","coverage":"complete",
+ "marks":[{"mark_id":"door-mark-1","box":[10,20,40,60],
+ "opening_ids":["D1"],"space_ids":["room","hall"],"basis":"visible",
+ "note":"one leaf and arc in a wall gap"}]}.
+Use original-image pixels for box. Outside is a single space_id. Use no
+opening_ids when an observed aperture has not been modeled. Separate paired
+arcs serving different rooms into separate marks; a double-leaf door serving
+one connection is one aperture. basis may be visible, inferred or uncertain.
+The tool checks consistency with your observations, not their visual truth.
 
 revise_bim takes candidate plus an operations_json list. Operations include:
 {"op":"reflect","axis":"y","reason":"explain the chosen frame change"};
@@ -231,6 +251,11 @@ class Toolkit:
         if operations is not None:
             dump(self.run/candidate/"operations.json", operations)
         result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report}
+        source_path = self.run / candidate / "source_model.json"
+        if source_path.exists():
+            from src.agent.geometry.opening_review import opening_inventory
+            result["opening_inventory"] = opening_inventory(json.loads(source_path.read_text()))
+            result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
         self.log(action, result)
         return result
 
@@ -363,6 +388,31 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
+        def check_openings(candidate: str, review_json: str = "") -> dict:
+            """List actual openings, or check original-image marks against them.
+            review_json is documented in the brief. Saves a source-hash-bound
+            review independently; never modifies the BIM or certifies image truth.
+            """
+            from src.agent.geometry.opening_review import opening_inventory, review_openings
+            path = toolkit.candidate_path(candidate)
+            source = json.loads((path / "source_model.json").read_text())
+            if not review_json:
+                result = {"candidate": candidate, "inventory": opening_inventory(source),
+                          "drawing_fidelity": "not_evaluated"}
+            else:
+                observations = json.loads(review_json)
+                toolkit.image_path(observations["image"])
+                report = review_openings(source, observations, toolkit.manifest["images"])
+                folder = run / "opening_reviews"
+                folder.mkdir(exist_ok=True)
+                target = folder / f"review_{len(list(folder.glob('review_*.json'))) + 1:03d}.json"
+                result = {"candidate": candidate, "review_file": str(target.relative_to(run)), **report}
+                dump(target, {**result, "observations": observations})
+            result["remaining_seconds"] = toolkit.remaining_seconds()
+            toolkit.log("check_openings", result)
+            return result
+
+        @server.tool()
         def revise_bim(candidate: str, operations_json: str) -> dict:
             """Apply local edits/reflection with code and save a new checked BIM.
             See brief for operations. The prior candidate remains unchanged.
@@ -458,7 +508,8 @@ def run_experiment(args):
                              "implementation_sha256": {
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
-                                 "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py")},
+                                 "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
+                                 "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
@@ -494,6 +545,7 @@ def run_experiment(args):
                bool(record.get("result")) and not record["result"].get("is_error",False),
                "has_viewable_candidate":any(c["viewer_exists"] for c in candidates),
                "elapsed_seconds":record["elapsed_seconds"],"drawing_fidelity":"not_evaluated",
+               "opening_reviews":[str(p.relative_to(run)) for p in sorted((run/"opening_reviews").glob("review_*.json"))],
                "subscription_invocations":len(receipts),
                "estimated_cost_usd":reported_estimate if estimates_complete else None,
                "cost_receipts_complete":estimates_complete,
