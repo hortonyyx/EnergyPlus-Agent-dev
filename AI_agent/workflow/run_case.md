@@ -70,6 +70,8 @@ python scripts/tool_scripts/evaluate_bim_agent.py \
 
 受控缺信息实验使用 `--modelling-task partial_inference`，并在 `--reference-scope` 说明哪些输入给了生成、哪些只留在评价侧。原始完整参照差异照常保存，但**没有提供的内部格局不按还原任务判漏房/错分区**；已有外形、立面等约束仍须核对，推断合理性与源简化另评。工具不自动决定整案通过，分区结果也不验证门洞连通、跨层挑空或像素语义。GT 和本报告不得送入生成输入目录。
 
+分区支持现有 v2/v3 参照；窗评分目前只接旧 v2 参照。遇到 v3（如 sm24）会保留分区报告并明确窗匹配 `not_evaluated`，数量不当匹配成绩，不将 v3 强压成旧格式。实际立面窗差仍需用原图或后续 typed 评分接线核对。
+
 ## 1. 准备独立 run
 
 - 素材放 `case_tests/e2e_tests/<case>/case_data/`，用 `testdata_prompt.json` 提供声明；新实验放 `<case>/run_<说明>/`，不覆盖旧 run。

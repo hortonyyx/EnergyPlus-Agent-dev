@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.judge.gt import load_gt_document, gt_path
+from src.agent.judge.gt_schema import LegacyGroundTruthV2
 from src.agent.judge.partition_evidence import reference_partition
 from src.agent.judge.elevation_score import score_correction_elevation_windows
 from scripts.tool_scripts.diagnose_partition_evidence import overlay
@@ -34,6 +35,8 @@ def evaluate(run: Path, reference_case: str, *, modelling_task: str,
         raise RuntimeError("evaluation must wait until generator finishes")
     target = out.resolve() if out is not None else run / "evaluation"
     gt = load_gt_document(reference_case)
+    if gt is None:
+        raise ValueError(f"no verified reference available for {reference_case}")
     reference_path = gt_path(reference_case).resolve()
     target.mkdir(parents=True, exist_ok=False)
     candidates = ([run / "seed"] if (run / "seed/source_model.json").is_file() else [])
@@ -48,9 +51,22 @@ def evaluate(run: Path, reference_case: str, *, modelling_task: str,
         built_window_ids = {o["id"] for o in source["openings"] if o["kind"] == "window"}
         built_geom = geom.model_copy(deep=True)
         built_geom.windows = [w for w in geom.windows if w.id in built_window_ids]
-        window_score = score_correction_elevation_windows(
-            built_geom, gt.model_dump(mode="json"), floor_map=report.get("floor_mapping", {}), evidence=[])
-        dump(target / f"{candidate.name}_windows.json", asdict(window_score))
+        if isinstance(gt, LegacyGroundTruthV2):
+            window_score = score_correction_elevation_windows(
+                built_geom, gt.model_dump(mode="json"), floor_map=report.get("floor_mapping", {}), evidence=[])
+            dump(target / f"{candidate.name}_windows.json", asdict(window_score))
+            window_summary = window_score.summary()
+        else:
+            # The old elevation scorer accepts v2 only. Do not flatten a typed
+            # v3 reference or manufacture an empty denominator from its shape.
+            window_summary = {
+                "status": "not_evaluated",
+                "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+                "reference_window_count": sum(o.kind == "window" for o in gt.openings),
+                "built_window_count": len(built_window_ids),
+                "count_is_not_a_match_score": True,
+            }
+            dump(target / f"{candidate.name}_windows.json", window_summary)
         row = {
             "candidate": candidate.name, "is_recovery_seed": candidate.name == "seed",
             "source_sha256": source["source_model_sha256"],
@@ -58,7 +74,7 @@ def evaluate(run: Path, reference_case: str, *, modelling_task: str,
             "reference_spaces": len(report.get("reference_spaces", [])),
             "candidate_spaces": len(source["spaces"]),
             "openings": dict(Counter(o["kind"] for o in source["openings"])),
-            "built_window_comparison": window_score.summary(),
+            "built_window_comparison": window_summary,
             "topology_findings": report.get("topology_findings", []),
             "internal_boundary_comparison": report.get("internal_boundary_comparison", []),
         }
