@@ -218,6 +218,35 @@ def _ended_or_zombie(pid: int) -> bool:
     return state.startswith("Z")
 
 
+def test_interrupted_run_keeps_candidate_and_labels_delivery_incomplete(tmp_path, monkeypatch):
+    from scripts.tool_scripts import run_bim_agent as runner
+    images = tmp_path / "images"
+    images.mkdir()
+    Image.new("RGB", (12, 8), "white").save(images / "plan.png")
+
+    def interrupted_subscription(run, prompt, **kwargs):
+        runner.Toolkit(run).build(json.loads(_two_room_proposal()))
+        receipt = {"elapsed_seconds": 2, "returncode": 1,
+                   "result":{"is_error":True,"total_cost_usd":0,
+                             "result":"You've hit your session limit"}}
+        runner.dump(run / "agent_receipt.json", receipt)
+        return receipt
+
+    monkeypatch.setattr(runner, "subscription", interrupted_subscription)
+    args = SimpleNamespace(images=images, out=tmp_path / "interrupted", scope="synthetic run",
+                           timeout=30, resume_candidate=None)
+    runner.run_experiment(args)
+    delivery = json.loads((args.out / "delivery.json").read_text())
+    summary = json.loads((args.out / "summary.json").read_text())
+    assert summary["has_viewable_candidate"] and not summary["agent_response_completed"]
+    assert delivery["candidate"] == "candidate_01"
+    assert delivery["generation_status"]["state"] == "interrupted"
+    assert delivery["generation_status"]["error"] == "You've hit your session limit"
+    assert "未正常完成" in (args.out / "delivery.html").read_text()
+    assert (args.out / "candidate_01/viewer.html").exists()
+    assert delivery["drawing_fidelity"] == "not_evaluated"
+
+
 def test_terminate_subscription_stops_parent_and_nested_session_child(tmp_path):
     child_pid_path = tmp_path / "nested-child.pid"
     parent_code = """

@@ -246,7 +246,7 @@ class Toolkit:
         deadline = self.manifest.get("deadline_epoch")
         return max(0, round(deadline - time.time())) if deadline else None
 
-    def delivery(self, candidate, *, selection_origin):
+    def delivery(self, candidate, *, selection_origin, generation_status=None):
         """Build the handoff from saved source/check records, never model prose."""
         from src.agent.geometry.bim_delivery import summarize_delivery
         path = self.candidate_path(candidate)
@@ -255,6 +255,8 @@ class Toolkit:
                    sorted((self.run / "opening_reviews").glob("review_*.json"))]
         result = {"candidate": candidate, "selection_origin": selection_origin,
                   "viewer": f"{candidate}/viewer.html", "source_model": f"{candidate}/source_model.json",
+                  "viewer_exists": (path / "viewer.html").is_file(),
+                  "generation_status": generation_status or {"state":"in_progress"},
                   **summarize_delivery(source, reviews)}
         dump(self.run / "delivery.json", result)
         # A separate handoff preserves the immutable candidate's original report.
@@ -273,6 +275,11 @@ class Toolkit:
         geometry_status = {"pass":"通过", "warning":"有警告", "severe":"有严重问题"}.get(
             (result.get("source_validation") or {}).get("status"), "未评价")
         selected = "模型选定" if selection_origin == "agent_selected" else "系统保留的最新候选，模型未显式选定"
+        run_status = result["generation_status"]
+        run_note = {"completed":"本次模型调用正常结束。", "in_progress":"模型调用尚未结束。",
+                    "interrupted":"本次模型调用未正常完成，以下保留已生成候选。"}[run_status["state"]]
+        if run_status.get("error"):
+            run_note += " " + html.escape(run_status["error"])
         (self.run / "delivery.html").write_text(
             '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
             '<title>BIM 候选与实际检查</title><style>body{font:16px system-ui;'
@@ -281,6 +288,7 @@ class Toolkit:
             'iframe{width:100%;height:680px;border:1px solid #ccc}</style>'
             '<h1>BIM 候选与实际检查</h1><p>以下状态来自保存的源模型和回查记录。'
             '几何自洽或观察对应不等于原图保真；未核查和待处理问题见下方记录。</p>'
+            f'<p>{run_note}</p>'
             f'<p>{selected}：{html.escape(candidate)}。{counts["spaces"]} 个空间，'
             f'{counts["openings"]} 个已建开口，{counts["unbuilt_openings"]} 个未建开口。'
             f'几何自洽：{geometry_status}；原图保真：未评价。</p>'
@@ -658,23 +666,31 @@ def run_experiment(args):
                            "counts":report.get("counts")})
     selection = run / "delivery_selection.json"
     delivery = None
+    response_completed = bool(record.get("result")) and not record["result"].get("is_error",False)
+    generation_status = {"state":"completed" if response_completed else "interrupted",
+                         "agent_response_completed":response_completed,
+                         "elapsed_seconds":record["elapsed_seconds"],
+                         "returncode":record.get("returncode"),
+                         "timed_out":record.get("timed_out", False)}
+    if record.get("result", {}).get("is_error"):
+        generation_status["error"] = str(record["result"].get("result", "Model invocation failed"))[:1000]
     if selection.exists():
         chosen = json.loads(selection.read_text())["candidate"]
-        delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected")
+        delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected", generation_status=generation_status)
     else:
         saved = sorted(run.glob("candidate_*/source_model.json"))
         if not saved and (run / "seed/source_model.json").exists():
             saved = [run / "seed/source_model.json"]
         if saved:
             delivery = Toolkit(run).delivery(saved[-1].parent.name,
-                selection_origin="latest_saved_fallback_not_agent_selected")
+                selection_origin="latest_saved_fallback_not_agent_selected", generation_status=generation_status)
     receipts = [json.loads(path.read_text()) for path in sorted(run.glob("*_receipt.json"))]
     estimates = [r.get("result", {}).get("total_cost_usd") for r in receipts]
     estimates_complete = all(isinstance(value, (int, float)) for value in estimates)
     reported_estimate = sum(value for value in estimates if isinstance(value, (int, float)))
-    summary = {"input_mode":manifest["input_mode"], "candidate_results":candidates,"agent_response_completed":
-               bool(record.get("result")) and not record["result"].get("is_error",False),
-               "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or delivery is not None,
+    summary = {"input_mode":manifest["input_mode"], "candidate_results":candidates,
+               "agent_response_completed":response_completed,
+               "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or bool(delivery and delivery["viewer_exists"]),
                "elapsed_seconds":record["elapsed_seconds"],"drawing_fidelity":"not_evaluated",
                "opening_reviews":[str(p.relative_to(run)) for p in sorted((run/"opening_reviews").glob("review_*.json"))],
                "delivery": {"candidate":delivery["candidate"], "selection_origin":delivery["selection_origin"],
