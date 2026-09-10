@@ -4,7 +4,9 @@
 
 ## 当前交接
 
-**本轮已收工：[09-10 BIM Agent 会话收工](../logs/worklog/2026-09-10_bim_agent_session_close.md)。** 用户已确认 Claude 恢复后可重新做一次。下一次使用当前代码，从 run06/candidate_03 和六张原图新建恢复 run，重做被额度中断的验证；不把 run07 未验证的四门坐标当更可靠起点。原实验保留，未安排本次收工期间的模型调用。
+**本次最新交接：[09-10 带贴图体量调研与首批素材](../logs/worklog/2026-09-10_textured_mass_research.md)。** 用户报告 Claude 侧仍未恢复，当前先收束到已有几何和贴图的三维体量；纯照片另列输入分类。各类输入仍应尽量产出有用模型，缺信息可在生成中交互补足，与停点编辑分开。已实际下载并检查 **3 个 SUM / Helsinki 实景瓦片及 2 个人工模型对照**；去标签 GLB、贴图查看页及六张选材预览已生成。见 [案例入口](../logs/experiments/2026-09-10_textured_mass_survey/README.md) 和 [路线判断](../design/textured_mass_route.md)。墨尔本 570 区域链接和两个下载包可达性已核实；尚未裁单栋、运行体量到 BIM 或验证浏览器运行。下一建议从独立体量片区选主体做最小实验，保留下述图纸恢复入口。
+
+**上一轮图纸收工：[09-10 BIM Agent 会话收工](../logs/worklog/2026-09-10_bim_agent_session_close.md)。** 用户已确认 Claude 恢复后可重新做一次。下一次使用当前代码，从 run06/candidate_03 和六张原图新建恢复 run，重做被额度中断的验证；不把 run07 未验证的四门坐标当更可靠起点。原实验保留，未安排本次收工期间的模型调用。
 
 **最后一程：[09-10 原图叠图与实际交付](../logs/worklog/2026-09-10_bim_overlay_delivery.md)。** `3d523ba0` 接通 `overlay_candidate` 和 `finish_bim`，复用既有像素标定器把实际源房间/开口画回原图，交付页直接引用真实检查并区分旧源/未查/待处理。23 项相关离线检查通过。
 
