@@ -1,0 +1,7 @@
+[
+  {
+    "op": "reflect",
+    "axis": "y",
+    "reason": "North_view.png elevation matches the plan's top-of-image row (offices N1/N2/N3: 3-window spacing 1240/2400/2660/2400/2660/2400/1240 aligns with dimensioned office windows), and South_view.png matches the plan's bottom-of-image row (lounges S1/S2/S3 + entrance door at 3440mm offset, matching plan's 540+900+2000=3440mm entrance position). Since the model convention defines y=8 as North and y=0 as South, the top-of-image offices must be at high-y (North) and bottom-of-image lounges at low-y (South) -- the seed had these inverted (offices placed at y=[0,3], lounges at y=[5,8]), contradicted by the elevation evidence citations already embedded in the seed's own source_refs (W_F1_N1 cites North_view.png but was labeled facade South; W_F1_S1 cites South_view.png but was labeled facade North). Reflecting on y corrects the geometry to match elevation evidence while preserving all room/opening identities and connectivity."
+  }
+]

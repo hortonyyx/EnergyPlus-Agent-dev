@@ -1,0 +1,132 @@
+[
+  {
+    "op": "update_window",
+    "id": "W_F1_S1",
+    "changes": {
+      "span": [
+        3.44,
+        4.64
+      ],
+      "z": [
+        1.5,
+        2.1
+      ]
+    },
+    "reason": "Pixel/dimension reconciliation of South_view.png bottom chain (3440,1200,1660,2400,...) and direct cyan-outline pixel run at x-pixels 511-580 (mm 3479-4686) shows the small secondary window sits at x=3.44-4.64m, not at the previously placeholdered 1.8-2.5m. Vertical sub-chain 900/600/1500 (top-down within the 3000mm F1 zone) gives sill=1.5m, head=2.1m.",
+    "source_refs": [
+      "South_view.png: bottom dimension chain 3440/1200/1660/2400...; cyan window box at orig px [511-580,~470-500]"
+    ]
+  },
+  {
+    "op": "remove_opening",
+    "id": "D_F2_O1_C",
+    "reason": "No visible second door arc for O1 near x=0.8-1.6m. Zoomed inspection of 2f_view.png office row (orig crop [300,770,1900,950]) shows O1 has exactly one door arc, located at the O1/O2 shared partition (paired with O2's own arc there). The previously modeled door at x=0.8-1.6 is unsupported/duplicated relative to D_F2_O1_O2 which already represents O1's sole corridor door.",
+    "source_refs": [
+      "2f_view.png orig crop [300,770,1900,950]: only one arc pair visible, straddling the O1/O2 partition near x=3.75m; no arc near x=0.8-1.6m"
+    ]
+  },
+  {
+    "op": "remove_opening",
+    "id": "D_F2_O4_C",
+    "reason": "No visible second door arc for O4 near x=13.4-14.2m. Same crop shows O4 has exactly one door arc, at the O3/O4 shared partition (paired with O3's own arc there). The door at x=13.4-14.2 is unsupported/duplicated relative to D_F2_O3_O4 which already represents O4's sole corridor door.",
+    "source_refs": [
+      "2f_view.png orig crop [300,770,1900,950]: only one arc pair visible, straddling the O3/O4 partition near x=11.25m; no arc near x=13.4-14.2m"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_F2_O1_O2",
+    "changes": {
+      "p1": [
+        2.19,
+        3.0
+      ],
+      "p2": [
+        3.39,
+        3.0
+      ]
+    },
+    "reason": "Corrected span using 2f_view.png bottom-half dimension chain for the O1/O2 module (2190,1200,360,360,1200,2190 cumulative to 7500mm): O1's door occupies 2190-3390mm, matching cyan door-frame lines flanking the x=3.75m partition. Matches the same x-span as window W_F2_O1 (already 2.19-3.39), confirming the grid.",
+    "source_refs": [
+      "2f_view.png bottom dimension chain 2190/1200/360/360/1200/2190 (first 7500mm half); door arc immediately left of x=3.75m partition"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_F2_O2_C",
+    "changes": {
+      "p1": [
+        4.11,
+        3.0
+      ],
+      "p2": [
+        5.31,
+        3.0
+      ]
+    },
+    "reason": "Corrected span: O2's door occupies 4110-5310mm per same dimension chain, matching window W_F2_O2 span (4.11-5.31) and the arc immediately right of the x=3.75m partition.",
+    "source_refs": [
+      "2f_view.png bottom dimension chain (first 7500mm half); door arc immediately right of x=3.75m partition"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_F2_O3_C",
+    "changes": {
+      "p1": [
+        9.69,
+        3.0
+      ],
+      "p2": [
+        10.89,
+        3.0
+      ]
+    },
+    "reason": "Corrected span: mirrored second-half chain (7500+2190=9690 to 9690+1200=10890mm) matches window W_F2_O3 span (9.69-10.89) and the arc immediately left of the x=11.25m partition.",
+    "source_refs": [
+      "2f_view.png bottom dimension chain, mirrored second 7500mm half; door arc left of x=11.25m partition"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_F2_O3_O4",
+    "changes": {
+      "p1": [
+        11.61,
+        3.0
+      ],
+      "p2": [
+        12.81,
+        3.0
+      ]
+    },
+    "reason": "Corrected span: mirrored chain gives O4's door at 11610-12810mm, matching window W_F2_O4 span (11.61-12.81) and the arc immediately right of the x=11.25m partition.",
+    "source_refs": [
+      "2f_view.png bottom dimension chain, mirrored second 7500mm half; door arc right of x=11.25m partition"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Plan coordinate convention retained from seed: x=0 West, x=15 East, y=0 South, y=8 North, reflect-corrected and confirmed by North/South elevation window+door spacing matches.",
+      "Uniform wall abstraction; centerline grid at x=0/5/7.5/10/11.25/15, y=0/3/5/8.",
+      "Floor heights F1=3.0m, F2=3.6m (absolute F2 z_floor=3.0), per elevations.",
+      "F1 South row door D_F1_S1_ext at x=0.54-1.44m verified directly against South_view.png cyan door outline pixels (orig px 344-395, mm 560-1451) - matches seed, unchanged.",
+      "F1_S1 secondary window corrected to x=3.44-4.64m, z=1.5-2.1m based on direct pixel measurement of South_view.png cyan window box and the 900/600/1500 vertical sub-chain.",
+      "F2 office row doors corrected: each of O1-O4 has exactly one door to the corridor, positioned immediately adjacent to its shared partition (O1@2.19-3.39, O2@4.11-5.31, O3@9.69-10.89, O4@11.61-12.81), matching the paired-arc image evidence and coinciding x-spans with the south-facade windows above. The seed's extra doors at O1 (0.8-1.6) and O4 (13.4-14.2) were unsupported duplicates and removed.",
+      "No door confirmed between F2 O2 and O3 (plain wall, no arcs) - retained from seed.",
+      "F1 corridor doors (N1/N2/N3 and mirrored S1/S2/S3) verified directly: paired arcs at N1/N2 and S1/S2 partitions, single arcs flanking N2/N3 and S2/S3 partitions - matches seed geometry, unchanged.",
+      "F2 M1/M2 paired doors at the central partition verified visually (arcs present); exact span kept from seed pending finer dimension-chain reconciliation (minor <1m uncertainty, not a duplication/identity issue).",
+      "No staircase is drawn on either plan; F1-F2 vertical connectivity remains unmodeled.",
+      "Door swing state remains unknown for all doors (not indicated in drawings)."
+    ],
+    "unresolved": [
+      "No staircase/vertical circulation drawn; F1-F2 connectivity not modeled.",
+      "Wall thicknesses vary (240/340/360mm); represented by a single centerline grid, not literal face offsets.",
+      "Door swing/open state not indicated on drawings; all doors state=unknown.",
+      "F2 M1/M2 door span kept from seed's estimate (6.6-7.5 / 7.5-8.4m); direct pixel measurement of the central jamb lines suggested a slightly different span (~7.05-7.81m envelope) but the exact leaf width was not independently re-dimensioned; treated as a minor offset, not a duplication/identity error.",
+      "Exact corridor clear width has a <0.3m discrepancy between two plan dimension chains; 2.0m adopted.",
+      "F1 exterior West door (D_F1_W_ext) and East/West corridor windows retained from seed as originally sourced; not re-verified pixel-by-pixel in this audit pass (verified only doors/windows explicitly targeted by the one-to-one opening audit: F1 south row, F1_S1 window, and all F2 office-row doors)."
+    ]
+  }
+]

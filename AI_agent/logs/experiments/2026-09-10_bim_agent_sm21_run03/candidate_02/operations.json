@@ -1,0 +1,61 @@
+[
+  {
+    "op": "update_opening",
+    "id": "D_F2_O1_O2",
+    "changes": {
+      "other_space_id": "F2_Corridor",
+      "p1": [
+        2.95,
+        3.0
+      ],
+      "p2": [
+        3.75,
+        3.0
+      ]
+    },
+    "reason": "Zoomed inspection of 2f_view.png at the O1/O2 partition shows a T-shaped partition wall with two separate door arcs both hinging from the corridor wall (y=3 line), one swinging into O1 and one swinging into O2 (matching the already-modeled D_F2_O2_C nearby). There is no opening through the vertical partition itself connecting O1 to O2 directly -- the partition is a continuous double-line wall. Reclassified this opening as O1's second corridor door rather than a direct O1-O2 connection.",
+    "source_refs": [
+      "2f_view.png: zoomed crop at O1/O2 partition shows two corridor-side door arcs, no partition-through opening"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_F2_O3_O4",
+    "changes": {
+      "space_id": "F2_O4",
+      "other_space_id": "F2_Corridor",
+      "p1": [
+        11.25,
+        3.0
+      ],
+      "p2": [
+        12.05,
+        3.0
+      ]
+    },
+    "reason": "Zoomed inspection of 2f_view.png at the O3/O4 partition shows the same T-shaped partition pattern as O1/O2: two door arcs both hinging from the corridor wall, one into O3 (already captured as D_F2_O3_C) and one into O4. No opening exists through the vertical partition connecting O3 to O4 directly. Reclassified this opening as O4's corridor door.",
+    "source_refs": [
+      "2f_view.png: zoomed crop at O3/O4 partition shows two corridor-side door arcs, no partition-through opening"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Plan coordinate convention: x=0 West, x=15 East, y=0 South (min Y), y=8 North (max Y) -- confirmed by matching elevation window/door spacing to plan dimension chains: North_view.png bottom band (3 windows, 1240/2400/2660/2400/2660/2400/1240) matches the plan's top-of-image office row (now F1_N1/N2/N3 at y=[5,8]); South_view.png bottom band (entry door at 3440mm offset + 3 windows) matches the plan's bottom-of-image lounge row (now F1_S1/S2/S3 at y=[0,3], with entry door D_F1_S1_ext at y=0). The seed had these two rows swapped in Y (and consequently mislabeled window facades N/S) relative to this evidence; corrected via a y-axis reflect.",
+      "Uniform wall abstraction: exterior/partition wall thickness not individually modeled; rooms defined on a centerline grid (bays at x=0/5/7.5/10/11.25/15, y=0/3/5/8) derived from the dimension strings, reconciling to the 15.0 x 8.0 m envelope.",
+      "Floor-to-floor heights (F1=3.0 m, F2=3.6 m, total 6.6 m) taken directly from all four elevation drawings; F2 elevations use absolute world Z (z_floor=3.0).",
+      "Window sill/height per elevation dimension chains: F1 South/North row windows sill 1.0/h1.6m; East/West and all F2 windows sill1.0/h1.8m.",
+      "Interior door heights standardized to 2.1 m (not dimensioned on plan); F1 South entrance and West corridor exterior doors set to 2.4 m based on elevation glazing proportions.",
+      "Room F1_S1 small secondary window (South facade near entrance) has no explicit dimension string; size/position (0.7m wide, sill1.8m) is an inferred placeholder.",
+      "Redundant paired door leaves at shared partitions (F1 N/S rows, F2 M1/M2, and F2 O1/O2 & O3/O4) are each modeled as two separate corridor-facing doors (one per room), matching the two-arc pattern visible at every such partition in the drawings, rather than as a single direct room-to-room opening.",
+      "No door was modeled between F2 offices O2 and O3: zoomed inspection of that partition shows a plain continuous wall with no arc marks, unlike the O1/O2 and O3/O4 partitions which each show two corridor-facing arcs."
+    ],
+    "unresolved": [
+      "No staircase/vertical circulation is drawn on either floor plan; F1-F2 connectivity is not represented as a modeled opening (would require fabricating an unevidenced stair location).",
+      "Exact wall thicknesses vary (240mm exterior, 340mm corridor partitions, 360mm office partitions); a single representative centerline grid was used instead of literal face-to-face offsets.",
+      "Door swing/open-closed state is not indicated on the drawings; all doors marked state=unknown.",
+      "Minor (<0.3 m) discrepancies exist between two independent plan dimension chains for the corridor width (1500mm vs 1200mm implied); 2.0 m corridor clear span adopted as reconciling value.",
+      "Exact widths of the newly reclassified O1 and O4 corridor doors (near the O1/O2 and O3/O4 partitions) are estimated at 0.8m by symmetry with neighboring doors; not independently dimensioned in the available crops."
+    ]
+  }
+]

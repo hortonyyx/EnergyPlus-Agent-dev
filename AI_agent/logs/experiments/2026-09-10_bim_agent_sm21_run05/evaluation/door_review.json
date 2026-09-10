@@ -1,0 +1,129 @@
+{
+  "review_kind": "developer_visual_door_and_provenance_review",
+  "reviewed_candidate": "candidate_01/proposal.json",
+  "reviewed_images": [
+    "images/1f_view.png",
+    "images/2f_view.png",
+    "images/South_view.png",
+    "candidate_01/plan_F1.png"
+  ],
+  "scope": "Post-run developer visual check of the four previously observed categories. It checks visible door arcs/walls and coarse placement only. It is not GT acceptance, human approval, a complete drawing-fidelity assessment, or input to any generator.",
+  "coordinate_note": "Pixel boxes are [left, top, right, bottom] in the original plan PNG and bound visible cyan door-leaf/arc ink or the continuous-wall area. They are not calibrated doorway endpoints.",
+  "overall": {
+    "candidate_counts": {
+      "spaces": 14,
+      "doors": 14,
+      "windows": 15
+    },
+    "targeted_severe_errors_found": 0,
+    "qualitative_result": "The prior severe room-side, extra-door, and false-door errors are absent from the final opening inventory. Remaining items are dimensional/provenance limits, not a newly observed missing or extra internal door.",
+    "source_geometry_note": "The candidate report records a self-consistent, viewable source geometry. This review does not turn that result into an original-drawing fidelity claim."
+  },
+  "categories": [
+    {
+      "name": "north_south_partition_assignment",
+      "assessment": "resolved",
+      "candidate_evidence": "F1 rooms N1/N2/N3 occupy y=5..8 and S1/S2/S3 occupy y=0..3. The retained north/south window and entrance records use the matching facades after the y reflection.",
+      "drawing_evidence": "North and South elevations respectively show the office-row and entrance/lounge-row patterns used by the correction. The F1 candidate plan places their door rows on the corresponding high-y and low-y sides.",
+      "uncertainty": "This is a coarse orientation and room-row check. It does not remeasure every elevation opening."
+    },
+    {
+      "name": "f1_second_partition_false_doors",
+      "assessment": "resolved",
+      "candidate_evidence": "D_F1_N2_Cb and D_F1_S2_Cb are absent. At each second vertical partition only D_F1_N3_C or D_F1_S3_C remains, connected to the corridor from the N3/S3 side.",
+      "drawing_evidence": [
+        {
+          "image": "1f_view.png",
+          "bbox": [1200, 542, 1384, 624],
+          "meaning": "N2-side horizontal wall at the second upper partition is continuous; no jamb, gap, or swing arc."
+        },
+        {
+          "image": "1f_view.png",
+          "bbox": [1385, 542, 1469, 624],
+          "meaning": "Single upper arc/leaf on the N3 side."
+        },
+        {
+          "image": "1f_view.png",
+          "bbox": [1200, 809, 1384, 891],
+          "meaning": "S2-side horizontal wall at the second lower partition is continuous; no jamb, gap, or swing arc."
+        },
+        {
+          "image": "1f_view.png",
+          "bbox": [1385, 809, 1469, 891],
+          "meaning": "Single lower arc/leaf on the S3 side."
+        }
+      ],
+      "uncertainty": "The surviving spans are approximate; the visual result supports existence and room side, not exact endpoints or swing state."
+    },
+    {
+      "name": "f2_office_duplicate_or_wrong_connections",
+      "assessment": "resolved",
+      "candidate_evidence": "The final inventory contains exactly four office doors: O1-to-corridor (legacy ID D_F2_O1_O2), O2-to-corridor, O3-to-corridor, and O4-to-corridor (legacy ID D_F2_O3_O4). D_F2_O1_C and D_F2_O4_C are absent. No final office door has another office as other_space_id.",
+      "drawing_evidence": [
+        {
+          "image": "2f_view.png",
+          "bbox": [657, 793, 740, 875],
+          "meaning": "O1 leaf at the O1/O2 seam, facing the corridor."
+        },
+        {
+          "image": "2f_view.png",
+          "bbox": [807, 793, 890, 874],
+          "meaning": "O2 leaf at the same seam, facing the corridor."
+        },
+        {
+          "image": "2f_view.png",
+          "bbox": [1350, 793, 1433, 875],
+          "meaning": "O3 leaf at the O3/O4 seam, facing the corridor."
+        },
+        {
+          "image": "2f_view.png",
+          "bbox": [1500, 793, 1583, 874],
+          "meaning": "O4 leaf at the same seam, facing the corridor."
+        }
+      ],
+      "uncertainty": "No F2 candidate-plan PNG was saved for this run, so this checks the final proposal relationships and the original plan, rather than a second rendered F2 plan. The exact four door spans are still modeled approximations."
+    },
+    {
+      "name": "f1_small_south_window",
+      "assessment": "coarsely_resolved_with_explicit_assumption",
+      "candidate_evidence": "W_F1_S1 is on the South facade near the entrance at span 3.44..4.64 and z 1.5..2.1, replacing the old placeholder position. Its object assumptions continue to say exact width and sill are inferred.",
+      "drawing_evidence": "South_view.png shows the small cyan window adjacent to the ground-floor entrance. The correction audit cites the bottom dimension chain and cyan outline at original pixels approximately [511,470,580,500].",
+      "uncertainty": "The retained object source text labels the size as assumed. This review supports coarse placement beside the entrance, not a precise sill, head, or width certification."
+    }
+  ],
+  "remaining_nonsevere_items": [
+    {
+      "item": "F1 west exterior door",
+      "detail": "The exterior door is present, but its modeled 1.2 m span remains unverified against the roughly 1.5 m visible dimension-chain indication."
+    },
+    {
+      "item": "F2 M1/M2 doors",
+      "detail": "The paired central door arcs are present; their spans remain seed estimates and are explicitly unresolved."
+    },
+    {
+      "item": "door states",
+      "detail": "Open/closed swing state remains unknown for all doors."
+    }
+  ],
+  "provenance_review": {
+    "current_run05_updates": "The run05 F1 removals preserve complete before objects in geometry.corrections. The surviving D_F1_N3_C and D_F1_S3_C now carry their new single-arc source_refs and assumptions directly on the active objects.",
+    "historic_unmigrated_text": [
+      {
+        "objects": ["D_F2_O1_O2", "D_F2_O3_O4"],
+        "detail": "These objects were corrected before source-ref propagation was added. Their active source_refs still say 'double-door between office1/2' and 'double-door between office3/4', and their legacy IDs retain the same appearance, although their current other_space_id is F2_Corridor and the correction audit explains the corridor-side arcs.",
+        "impact": "This is a provenance/naming ambiguity, not a remaining office-to-office connection."
+      },
+      {
+        "objects": ["W_F1_S1"],
+        "detail": "Its active source_ref says the size is assumed while the correction audit records a pixel/dimension reconciliation. The object assumption still correctly preserves that exact size and sill are not fully dimensioned.",
+        "impact": "Evidence granularity is mixed; it is not an unsupported claim of exact measurement."
+      }
+    ],
+    "audit_limit": "The new helper propagates source_refs for subsequent update operations only. It does not retroactively rewrite active source text for run03/run04 updates. Therefore the complete audit preserves old before records and some active legacy wording; this review does not claim that all historic text has been cleaned."
+  },
+  "limitations": [
+    "An earlier quick review mistakenly counted left-side doors at the second F1 vertical partition. Enlarged inspection of the original pixels corrected that mistake; this record uses only the corrected single-arc conclusion.",
+    "Door arcs and continuous walls support existence, coarse side, and coarse room relationship only. They do not certify all dimensions, hinge state, construction, source-BIM completeness, or original-drawing fidelity.",
+    "This developer record was created after run05 and was not supplied to the subscription/model that generated the candidate."
+  ]
+}

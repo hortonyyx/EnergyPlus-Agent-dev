@@ -21,6 +21,8 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 从保存候选继续时，在以上命令加 `--resume-candidate <旧 candidate_XX 目录>`。输出仍须是新目录；只读取旧 `proposal.json`，在新 run 的 `seed/` 重建源 BIM 与检查，不读旧报告或 GT 对照。此次身份为 `saved_candidate_recovery`，不能记作新冷启动。模型可选择 `inspect_candidate`、`revise_bim` 和候选平面查看；局部门窗修改/删除须记录理由与来源，整体反射由代码统一变换房间与开口，并提示复核旧方向备注。
 
+门窗更新会将新 `source_refs` 写回对象，旧来源保留在 before 审计；`changes.assumptions` 可显式替换对象假设，缺省则保留。独立 `source_model.json` 的 `generation.corrections` 同步保存完整修订历史，包括删掉开口的旧对象，源摘要随之重新计算。
+
 局部变换仅支持当前 legacy v1/v2 方案；含显式围护声明、独立楼层 footprint 或额外方向元数据的整体反射会拒绝，避免漏改关联几何。它不是持久编辑界面，也不迁移完整源边界历史。
 
 ## 1. 准备独立 run

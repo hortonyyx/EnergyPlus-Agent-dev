@@ -1,0 +1,26 @@
+{
+  "mode": "post_generation_evaluation",
+  "overall_status": "severe",
+  "partition": "pass",
+  "built_windows_matched": 15,
+  "built_windows_total": 15,
+  "door_fidelity": "severe",
+  "door_findings": [
+    {
+      "id": "D_F1_N2_Cb",
+      "finding": "retained unsupported extra corridor door at F1 second partition; original cyan arc exists on right only"
+    },
+    {
+      "id": "D_F1_S2_Cb",
+      "finding": "retained unsupported extra corridor door at F1 second partition; original cyan arc exists on right only"
+    }
+  ],
+  "door_review_basis": "Original plan + run03/evaluation/door_review.json. Door heights and exact jamb offsets remain assumptions; not full GT door certification.",
+  "generation_evidence": "saved proposal + original drawings only",
+  "model_self_contradiction": "Notes say single arcs at F1 second partition, while geometry keeps a corridor door on both sides. This contradiction can be checked without GT.",
+  "limits": [
+    "developer-focused recovery, not cold start",
+    "two colored-ink measurements do not establish generally reliable measurement",
+    "no model evaluation feedback supplied"
+  ]
+}

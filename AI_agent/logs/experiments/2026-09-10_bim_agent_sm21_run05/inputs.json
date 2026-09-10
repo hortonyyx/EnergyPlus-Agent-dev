@@ -1,0 +1,61 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Resolve an internal consistency issue in the saved proposal: its own notes say the F1 second room partition has single arcs, but its opening inventory still describes corridor openings on both sides of that partition. Recheck those marks against original 1f_view.png, reconcile the actual geometry with the visible apertures, and save the correction promptly. This is a focused continuation; do not redo dimensions or already checked elevations. Preserve supported geometry. Reconcile stale per-object source/assumption notes with evidence already recorded in the proposal edits; update_window/update_opening can now set changes.assumptions, and new source_refs are written to the object. Inspect the resulting floor plan and conclude with remaining limitations. No target door count or coordinates are supplied.",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789014456.6586547,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "be37650239fa83429aceb0bf348be40616ca994b10daea816ae4f1f59a7453ec",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "65da4f1e277f164281fb261839834a986adce33c6be152fa239f63aed9ed1f31",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run04/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

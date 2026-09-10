@@ -4,7 +4,7 @@
 
 ## 实际调用链
 
-09-10 新增独立实验入口 `run_bim_agent.py` 和 `execution/source_proposal.py`：订阅 Sonnet 原图工具循环直接送共同源内核，保存候选并消费实际检查反馈；按需 Haiku 局部复核，工具没有仓库或任意文件访问。sm21 已实跑两版候选，但方向、分区及门洞保真失败，主运行超时；未替换 `flow` 或完成生产级总 Agent。职责与范围见 [系统设计](architecture.md#现有能力与首个增量)，真实结果见 [当前任务](../project/roadmap.md)。
+09-10 新增独立实验入口 `run_bim_agent.py` 和 `execution/source_proposal.py`：订阅 Sonnet 原图工具循环直接送共同源内核，保存候选并消费实际检查反馈；按需 Haiku 局部复核，工具没有仓库或任意文件访问。首个 sm21 冷启动保存两版候选，但方向、分区及门洞保真失败，主运行超时。随后已接 `--resume-candidate`、`inspect_candidate` 与确定性 `revise_bim`；保存方案恢复只读取 proposal、重新建生产检查，记录修订历史。三次恢复后保留 14 空间/15 窗/14 门：分区对照通过、窗 15/15，已知错连/假门消除；门宽/局部位置与来源仍有限制。最后一次由开发助手指出备注和几何清单矛盾，恢复实验不算新的冷启动。独立源文件现保存完整修订审计，新更新会同步对象来源和假设。图片响应现附原尺寸、裁图范围和缩放换算。尚未替换 `flow` 或完成生产级总 Agent。职责与范围见 [系统设计](architecture.md#现有能力与首个增量)，真实结果见 [当前任务](../project/roadmap.md)。
 
 原图入口增量：`flow --reading-model haiku|sonnet --llm-config FILE` 复用隔离读图启动、同门合并和原有检查，再进入共同源主干；仅启动一次，失败/超时留证据，已有接受观测可复用。`pipeline._call_json_llm` 新增显式 `claude_subscription` 文本 JSON 适配，不继承 API 配置、不回退其他模型。`--llm-config` 已从 flow 启动阶段生效。真实实验状态只在路线页维护，不能以入口接线或离线测试代替冷启动保真结果。
 

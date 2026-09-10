@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 240,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 86.73,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 84087,
+    "duration_api_ms": 83159,
+    "ttft_ms": 1802,
+    "ttft_stream_ms": 1091,
+    "time_to_request_ms": 21,
+    "num_turns": 10,
+    "result": "The plan now shows: N1/N2 partition with a door pair spanning both sides (double-leaf, kept as before), and N2/N3 partition with a single door entirely on the N3 side — matching the drawing. Same pattern mirrored for S1/S2/S3. This matches the original 1f_view.png evidence I re-checked.\n\n## Summary\n\n**Candidate:** `candidate_01` (parent: `seed`)\n\n**Issue found and fixed:** The seed's own notes stated the F1 second partition (N2/N3 and mirrored S2/S3) has a \"single arc,\" but its opening inventory still carried two separate doors at each of those partitions (`D_F1_N2_Cb` + `D_F1_N3_C`, and `D_F1_S2_Cb` + `D_F1_S3_C`), duplicating the N1/N2-style paired-door pattern where it didn't belong.\n\n**Verification against 1f_view.png:** Zoomed crops at both partitions (orig px ~[750–1400, 380–830] for N2/N3, and ~[850–1400, 580–830] for S2/S3) confirm only one door arc exists at each — hinged at the partition and swinging entirely into N3 / S3 respectively. The N2/S2 side of each partition is a plain double wall line with no arc mark.\n\n**Correction applied:**\n- Removed `D_F1_N2_Cb` and `D_F1_S2_Cb` as unsupported duplicates (with reason + source_refs preserved per instructions).\n- Kept `D_F1_N3_C` and `D_F1_S3_C` as the sole evidenced doors, and attached updated `assumptions` to them reconciling the single-arc evidence.\n- Updated `set_notes` assumptions/unresolved to remove the stale contradiction and describe the corrected partition pattern.\n- Left N1/N2 and S1/S2 paired doors, all F2 geometry, windows, and other previously-verified openings untouched.\n\n**Result:** openings 31→29, connections 16→14, `source_validation.status = pass`, no unsupported openings. Visual candidate render confirms geometry now agrees with the drawing (paired doors only at N1/N2 and S1/S2; single door at N2/N3 and S2/S3, hosted by N3/S3).\n\n**Not re-verified in this pass (carried over limitations):** F2 M1/M2 exact door span, corridor width discrepancy (~0.3 m between two dimension chains), F1 exterior west door/E-W corridor windows, and door swing states — none of these were in scope for this focused correction.",
+    "stop_reason": "end_turn",
+    "session_id": "26cff82c-cd70-4eb7-ad27-40929185c608",
+    "total_cost_usd": 0.3756483,
+    "usage": {
+      "input_tokens": 20,
+      "cache_creation_input_tokens": 32177,
+      "cache_read_input_tokens": 232711,
+      "output_tokens": 7457,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 32177,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 859,
+          "cache_read_input_tokens": 34626,
+          "cache_creation_input_tokens": 1281,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1281
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 753,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0008579999999999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 20,
+        "outputTokens": 7457,
+        "cacheReadInputTokens": 232711,
+        "cacheCreationInputTokens": 32177,
+        "webSearchRequests": 0,
+        "costUSD": 0.3747903,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "e24dbbdb-b1e0-4bf7-9e23-4a35a59bd8e3"
+  }
+}

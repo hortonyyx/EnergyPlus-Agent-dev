@@ -1,0 +1,69 @@
+{
+  "agent_assumptions": [
+    "Plan coordinate convention retained from seed: x=0 West, x=15 East, y=0 South, y=8 North, reflect-corrected and confirmed by North/South elevation window+door spacing matches.",
+    "Uniform wall abstraction; centerline grid at x=0/5/7.5/10/11.25/15, y=0/3/5/8.",
+    "Floor heights F1=3.0m, F2=3.6m (absolute F2 z_floor=3.0), per elevations.",
+    "F1 South row door D_F1_S1_ext at x=0.54-1.44m verified directly against South_view.png cyan door outline pixels (orig px 344-395, mm 560-1451) - matches seed, unchanged.",
+    "F1_S1 secondary window corrected to x=3.44-4.64m, z=1.5-2.1m based on direct pixel measurement of South_view.png cyan window box and the 900/600/1500 vertical sub-chain.",
+    "F2 office row doors corrected: each of O1-O4 has exactly one door to the corridor, positioned immediately adjacent to its shared partition (O1@2.19-3.39, O2@4.11-5.31, O3@9.69-10.89, O4@11.61-12.81), matching the paired-arc image evidence and coinciding x-spans with the south-facade windows above. The seed's extra doors at O1 (0.8-1.6) and O4 (13.4-14.2) were unsupported duplicates and removed.",
+    "No door confirmed between F2 O2 and O3 (plain wall, no arcs) - retained from seed.",
+    "F1 corridor doors (N1/N2/N3 and mirrored S1/S2/S3) verified directly: paired arcs at N1/N2 and S1/S2 partitions, single arcs flanking N2/N3 and S2/S3 partitions - matches seed geometry, unchanged.",
+    "F2 M1/M2 paired doors at the central partition verified visually (arcs present); exact span kept from seed pending finer dimension-chain reconciliation (minor <1m uncertainty, not a duplication/identity issue).",
+    "No staircase is drawn on either plan; F1-F2 vertical connectivity remains unmodeled.",
+    "Door swing state remains unknown for all doors (not indicated in drawings)."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 16,
+    "openings": 31,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "65da4f1e277f164281fb261839834a986adce33c6be152fa239f63aed9ed1f31",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "65da4f1e277f164281fb261839834a986adce33c6be152fa239f63aed9ed1f31",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run04/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "66b48ec80435c28507360300967984db27bdf83363d92692ff9b1ad01182bff5",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "No staircase/vertical circulation drawn; F1-F2 connectivity not modeled.",
+    "Wall thicknesses vary (240/340/360mm); represented by a single centerline grid, not literal face offsets.",
+    "Door swing/open state not indicated on drawings; all doors state=unknown.",
+    "F2 M1/M2 door span kept from seed's estimate (6.6-7.5 / 7.5-8.4m); direct pixel measurement of the central jamb lines suggested a slightly different span (~7.05-7.81m envelope) but the exact leaf width was not independently re-dimensioned; treated as a minor offset, not a duplication/identity error.",
+    "Exact corridor clear width has a <0.3m discrepancy between two plan dimension chains; 2.0m adopted.",
+    "F1 exterior West door (D_F1_W_ext) and East/West corridor windows retained from seed as originally sourced; not re-verified pixel-by-pixel in this audit pass (verified only doors/windows explicitly targeted by the one-to-one opening audit: F1 south row, F1_S1 window, and all F2 office-row doors)."
+  ]
+}

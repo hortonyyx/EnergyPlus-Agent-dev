@@ -1,0 +1,64 @@
+{
+  "agent_assumptions": [
+    "Plan orientation: x=0 assigned West, x=15 East; the tool's convention places North at y=8 (max Y) and South at y=0 (min Y), cross-checked against the plan's single west-side ground-floor door / east-side corridor windows matching the labelled West/East elevations (no north arrow present on plans).",
+    "Uniform wall abstraction: exterior/partition wall thickness not individually modeled; rooms defined on a centerline grid (bays at x=0/5/7.5/10/11.25/15, y=0/3/5/8) derived from the dimension strings, which already reconcile to the 15.0 x 8.0 m envelope.",
+    "Floor-to-floor heights (F1=3.0 m, F2=3.6 m, total 6.6 m) taken directly and consistently from all four elevation drawings; F2 elevations use absolute world Z as required (z_floor=3.0).",
+    "Window sill/height taken from elevation dimension chains: y=0-row (plan 'North', built facade 'South') and y=8-row windows sill1.0/h1.6m; East/West and all F2 windows sill1.0/h1.8m.",
+    "Interior door heights standardized to 2.1 m (not separately dimensioned on plan); the ground-floor South(y=8) entrance and West corridor exterior doors set to 2.4 m based on elevation glazing proportions (literal glazing divisions summed to a full 3.0 m storey height, simplified down to a more conventional tall-door height).",
+    "Room F1_S1 (y=5-8 row) small secondary window has no explicit dimension string; its size/position (0.7 m wide, sill 1.8 m) is an inferred placeholder.",
+    "Redundant paired door leaves drawn at shared partitions (e.g., F1 N2 and F2 M1/M2 each show two adjacent door arcs to the corridor) are preserved as two separate door objects rather than merged into one, matching the drawing.",
+    "No door was modeled between F2 offices O2 and O3 (large 4.38 m gap with no door-leaf marks in the dimension string at that spine wall), even though an automated visual review suggested a possible connecting door there; the dimensioned evidence for the other two office pairs (O1-O2, O3-O4) shows explicit 360+360mm door-leaf markers absent at the O2-O3 wall, so this was treated as a solid wall."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 18,
+    "openings": 33,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f0cf198a750be501bcde0428bab4459e5848da82e3c484b7d6253dd327d9b794",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "f0cf198a750be501bcde0428bab4459e5848da82e3c484b7d6253dd327d9b794",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run02/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9df8d577da8a8724e70de3517ff2a205f822c25e138b3010da8635fa37d851e3",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "No staircase/vertical circulation is drawn on either floor plan; connectivity between F1 and F2 is therefore not represented as a modeled opening (would require fabricating an unevidenced stair location).",
+    "Exact wall thicknesses vary in the drawings (240mm exterior, 340mm at corridor partitions, 360mm at some office partitions); the tool's rectangular-cell schema does not carry per-wall thickness, so a single representative centerline grid was used instead of literal face-to-face offsets.",
+    "Door swing/open-closed state is not indicated on the drawings for any opening; all doors marked state=unknown.",
+    "Minor (<0.3 m) discrepancies exist between the plan's own two independent dimension chains for the corridor width (1500mm vs 1200mm implied by different chains); 2.0 m corridor clear span was adopted as the reconciling value."
+  ]
+}
