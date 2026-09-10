@@ -84,6 +84,15 @@ opening_ids when an observed aperture has not been modeled. Separate paired
 arcs serving different rooms into separate marks; a double-leaf door serving
 one connection is one aperture. basis may be visible, inferred or uncertain.
 The tool checks consistency with your observations, not their visual truth.
+For an elevation review, add optional facade: North, South, East or West.
+It limits coverage to exterior openings whose actual source host faces that
+direction; a file name alone does not establish the physical facade. Complete
+then means the WHOLE named facade for that floor/kind, not every facade on the
+floor. Submit marks:[] when a fully inspected facade has no aperture of that
+kind. All actual exterior directions, including zero-opening directions, need
+complete reviews before facade reviews can cover a floor/kind. Interior or
+unclassifiable openings stay explicitly uncovered. Without facade the original
+whole-floor plan scope remains unchanged. Use partial for incomplete views.
 
 revise_bim takes candidate plus an operations_json list. Operations include:
 {"op":"reflect","axis":"y","reason":"explain the chosen frame change"};
@@ -273,6 +282,18 @@ class Toolkit:
             f'<tr><td>{html.escape(s["floor_id"])}</td><td>{kinds[s["kind"]]}</td>'
             f'<td>{s["built_count"]}</td><td>{statuses[s["review_status"]]}</td></tr>'
             for s in scopes)
+        facades = {"North":"北", "South":"南", "East":"东", "West":"西"}
+        facade_scopes = result.get("facade_review_scopes", [])
+        facade_rows = "".join(
+            f'<tr><td>{html.escape(s["floor_id"])}</td><td>{facades[s["facade"]]}</td>'
+            f'<td>{kinds[s["kind"]]}</td><td>{s["built_count"]}</td>'
+            f'<td>{statuses[s["review_status"]]}</td></tr>' for s in facade_scopes)
+        facade_table = (
+            '<details><summary>逐立面回查范围</summary>'
+            '<p>零个已建开口也需明确观察；内部及无法确定方向的开口不能靠立面回查覆盖。'
+            '与所报观察一致仍不代表原图保真。</p><table>'
+            '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr>'
+            f'{facade_rows}</table></details>' if facade_rows else '')
         notes = "".join(f'<li>{html.escape(s)}</li>' for s in result["generation"]["unresolved"])
         assumptions = "".join(f'<li>{html.escape(s)}</li>' for s in result["assumptions"])
         counts = result["counts"]
@@ -301,6 +322,7 @@ class Toolkit:
             '<a href="delivery.json">检查记录</a></p>'
             '<table><tr><th>楼层</th><th>类别</th><th>已建数量</th><th>原图观察回查</th></tr>'
             f'{rows}</table><p>{len(result["stale_reviews"])} 份旧源回查未用于当前候选。</p>'
+            f'{facade_table}'
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
             f'<iframe title="保存的 BIM 候选" src="{result["viewer"]}"></iframe>'
@@ -481,11 +503,12 @@ def serve(run: Path, readonly=False):
             review_json is documented in the brief. Saves a source-hash-bound
             review independently; never modifies the BIM or certifies image truth.
             """
-            from src.agent.geometry.opening_review import opening_inventory, review_openings
+            from src.agent.geometry.opening_review import facade_inventory, opening_inventory, review_openings
             path = toolkit.candidate_path(candidate)
             source = json.loads((path / "source_model.json").read_text())
             if not review_json:
                 result = {"candidate": candidate, "inventory": opening_inventory(source),
+                          "facade_inventory": facade_inventory(source),
                           "drawing_fidelity": "not_evaluated"}
             else:
                 observations = json.loads(review_json)

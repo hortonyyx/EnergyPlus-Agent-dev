@@ -150,6 +150,12 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert (run / "candidate_02/source_model.json").read_bytes() == before
             assert not checked["findings"]
             assert "opening_reviews/review_001.json" == checked["review_file"]
+            empty_north = _json_result(await session.call_tool("check_openings", {
+                "candidate": "candidate_02", "review_json": json.dumps({
+                    "floor_id": "F1", "kind": "window", "image": "plan.png",
+                    "facade": "North", "coverage": "complete", "marks": []})}))
+            assert empty_north["review_scope"]["facade"] == "North"
+            assert empty_north["model_opening_ids"] == []
 
             overlaid = await session.call_tool("overlay_candidate", {
                 "candidate":"candidate_02", "image":"plan.png", "floor_id":"F1",
@@ -170,6 +176,13 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert finished["selection_origin"] == "agent_selected"
             assert finished["drawing_fidelity"] == "not_evaluated"
             assert (run / "delivery.html").is_file()
+            assert "逐立面回查范围" in (run / "delivery.html").read_text()
+            north_windows = next(s for s in finished["facade_review_scopes"]
+                                 if s["floor_id"] == "F1" and s["facade"] == "North" and s["kind"] == "window")
+            assert north_windows["review_status"] == "consistent_with_supplied_observations"
+            all_windows = next(s for s in finished["opening_review_scopes"]
+                               if s["floor_id"] == "F1" and s["kind"] == "window")
+            assert all_windows["review_status"] == "partial"
             assert json.loads((run / "delivery.json").read_text())["source_model_sha256"] == checked["source_model_sha256"]
             assert json.loads((run / "delivery_selection.json").read_text())["candidate"] == "candidate_02"
 

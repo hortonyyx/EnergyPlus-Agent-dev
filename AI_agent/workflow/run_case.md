@@ -50,6 +50,8 @@ python scripts/tool_scripts/run_bim_agent.py run \
 }
 ```
 
+单张立面可另加 `facade: "North"|"South"|"East"|"West"`，此时 complete 只指该层、该类开口在该立面的完整观察。方向按源宿主外墙几何确定，不从文件名猜；其他面、内门或方向未知开口明确列为范围外。所有实际外墙方向都需完整观察，包含明确 `marks: []` 的零开口立面，才能合并成整层完整；没有 facade 保持原平面回查含义。交付 JSON 和 HTML 保留逐面状态。
+
 工具拒绝未知图片、越界或非有限像素框、错误字段和重复 mark ID；并报告多 ID mark、同 review 的重复开口 ID/像素框、未知 ID、漏列模型开口以及连接、类别和楼层不符。`inferred` 与 `uncertain` 会保留为待核，不冒称已见。结果保存到本次 run 的 `opening_reviews/`，绑定当前 `source_model_sha256` 和图像 SHA-256，并列出各房间的实际、对应和缺失 ID。候选修改后必须重新回查；没有 finding 只表示与这份供给观察一致，`drawing_fidelity` 仍为 `not_evaluated`，不能把模型自报观察当成 GT 或原图保真通过。
 
 ### 原图叠图与实际交付
