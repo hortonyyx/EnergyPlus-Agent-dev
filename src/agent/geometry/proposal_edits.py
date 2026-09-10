@@ -241,8 +241,10 @@ def _move_shared_wall(proposal: dict, geometry: dict, operation: dict) -> dict:
     coordinate = _finite_coordinate(operation.get("coordinate_m"), operation=name)
 
     matches = []
+    space_floors = {}
     for floor in geometry.get("floors", []):
         cells = {cell.get("id"): cell for cell in floor.get("cells", [])}
+        space_floors.update({identity: floor for identity in cells})
         if all(identity in cells for identity in space_ids):
             matches.append((floor, cells[space_ids[0]], cells[space_ids[1]]))
     if len(matches) != 1:
@@ -266,6 +268,11 @@ def _move_shared_wall(proposal: dict, geometry: dict, operation: dict) -> dict:
     pair = set(space_ids)
     moved_openings = []
     for opening in geometry.get("openings", []):
+        # The proposal has no opening-level floor field.  Its owning space is
+        # the authoritative floor binding, so matching XY coordinates on a
+        # different storey must never make this local edit reject or move it.
+        if space_floors.get(opening.get("space_id")) is not floor:
+            continue
         opening_pair = {opening.get("space_id"), opening.get("other_space_id")}
         on_old_wall = _opening_on_wall(opening, axis=axis, coordinate=old_coordinate, span=span)
         if opening_pair == pair:

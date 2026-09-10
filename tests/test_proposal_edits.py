@@ -50,7 +50,8 @@ def _rectangular_wall_proposal():
                     {"id": "right", "role": "office", "x": [4, 10], "y": [0, 4]},
                 ]},
                 {"name": "F2", "z_floor": 3, "ceiling_height": 3, "cells": [
-                    {"id": "upper", "role": "office", "x": [0, 10], "y": [0, 4]},
+                    {"id": "upper_left", "role": "office", "x": [0, 4], "y": [0, 4]},
+                    {"id": "upper_right", "role": "office", "x": [4, 10], "y": [0, 4]},
                 ]},
             ],
             "windows": [{"id": "left_south", "floor": "F1", "facade": "South", "span": [1, 2],
@@ -60,6 +61,8 @@ def _rectangular_wall_proposal():
                  "p1": [4, 1], "p2": [4, 2], "z": [0, 2.1], "source_refs": ["fixture:shared wall"]},
                 {"id": "south", "kind": "door", "space_id": "left", "other_space_id": None,
                  "p1": [2, 0], "p2": [3, 0], "z": [0, 2.1], "source_refs": ["fixture:south wall"]},
+                {"id": "upper_between", "kind": "door", "space_id": "upper_left", "other_space_id": "upper_right",
+                 "p1": [4, 1], "p2": [4, 2], "z": [3, 5.1], "source_refs": ["fixture:upper shared wall"]},
             ],
         },
         "assumptions": ["synthetic rectangle"], "unresolved": [],
@@ -133,6 +136,7 @@ def test_move_shared_wall_preserves_unrelated_geometry_and_hosts_its_door():
     assert openings["between"]["p1"] == [4.5, 1]
     assert openings["between"]["p2"] == [4.5, 2]
     assert openings["south"] == proposal["geometry"]["openings"][1]
+    assert openings["upper_between"] == proposal["geometry"]["openings"][2]
     assert revised["geometry"]["windows"] == proposal["geometry"]["windows"]
     assert revised["geometry"]["floors"][1] == proposal["geometry"]["floors"][1]
     audit = revised["geometry"]["corrections"][-1]
@@ -186,3 +190,16 @@ def test_move_shared_wall_rejects_partial_polygon_and_enclosure_cases():
         apply_proposal_edits(partial, [operation])
     with pytest.raises(ValueError, match="explicit enclosure_declaration"):
         apply_proposal_edits(enclosed, [operation])
+
+
+def test_move_shared_wall_rejects_same_floor_wrong_host_but_not_other_floor_xy_match():
+    proposal = _rectangular_wall_proposal()
+    operation = {"op": "move_shared_wall", "space_ids": ["left", "right"], "coordinate_m": 4.5,
+                 "reason": "synthetic", "source_refs": ["plan: synthetic"]}
+    moved = apply_proposal_edits(proposal, [operation])
+    assert next(row for row in moved["geometry"]["openings"] if row["id"] == "upper_between") == proposal["geometry"]["openings"][2]
+
+    wrong_host = copy.deepcopy(proposal)
+    wrong_host["geometry"]["openings"][1].update({"p1": [4, 1], "p2": [4, 2]})
+    with pytest.raises(ValueError, match="different spaces"):
+        apply_proposal_edits(wrong_host, [operation])
