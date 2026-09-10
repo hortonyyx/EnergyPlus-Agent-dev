@@ -27,6 +27,7 @@ if str(ROOT) not in sys.path:
 
 from PIL import Image as PILImage, ImageDraw
 from mcp.server.fastmcp import Image
+from mcp.types import CallToolResult, TextContent
 
 
 GUIDE = """Build a viewable lightweight BIM from the supplied drawings. You choose
@@ -55,6 +56,15 @@ overlay_candidate can project a saved floor back onto an original plan using
 your observed pixel/metre anchors. It is useful for spotting misplaced walls
 and openings that a separately scaled model view hides. Its calibration is
 your hypothesis, not an automatic image match; inspect the overlaid result.
+By default an explicit overlay registers that exact image+floor calibration
+for later candidates. After build_bim or revise_bim, every registered view is
+projected again from the newly saved source BIM and returned with its real
+metadata, so you can inspect the new image before deciding whether to revise.
+Each image and floor has its own calibration; a later explicit calibration
+replaces only that pair for future projections. Reuse never refits anchors to
+new walls. A returned image is not proof that you looked at it or that it is
+faithful: calibration remains independently unverified. Keep unresolved
+items in set_notes until the new projection has actually been considered.
 Geometric consistency is not drawing fidelity. Conclude with exact candidate,
 assumptions, unresolved issues and what was/was not verified. Select the saved
 candidate with finish_bim before concluding. This records the ACTUAL checks
@@ -393,6 +403,7 @@ class Toolkit:
                   "viewer_exists": (path / "viewer.html").is_file(),
                   "generation_status": generation_status or {"state":"in_progress"},
                   **summarize_delivery(source, reviews)}
+        result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
         dump(self.run / "delivery.json", result)
         # A separate handoff preserves the immutable candidate's original report.
         statuses = {"not_reviewed":"未回查", "partial":"仅有局部回查",
@@ -427,6 +438,35 @@ class Toolkit:
                     "interrupted":"本次模型调用未正常完成，以下保留已生成候选。"}[run_status["state"]]
         if run_status.get("error"):
             run_note += " " + html.escape(run_status["error"])
+        feedback = result["source_image_feedback"]
+        current_projection_rows = "".join(
+            f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}：'
+            f'<a href="{html.escape(row["overlay_image"])}">当前源回叠图</a></li>'
+            for row in feedback["current_source_projections"])
+        old_projection_rows = "".join(
+            f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}：'
+            f'{html.escape(row["source_model_sha256"][:12])}</li>'
+            for row in feedback["old_source_projections"])
+        uncovered_rows = "".join(
+            f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}（当前源无该楼层）</li>'
+            for row in feedback["registered_calibration_uncovered_floors"])
+        unregistered_floor_rows = "".join(
+            f'<li>{html.escape(floor_id)}（当前源没有任何登记图面）</li>'
+            for floor_id in feedback["floors_without_registered_views"])
+        projection_error_rows = "".join(
+            f'<li>{html.escape(str(row.get("image")))} / {html.escape(str(row.get("floor_id")))}：'
+            f'{html.escape(row["error"])}</li>' for row in feedback["projection_errors"])
+        missing_or_failed_rows = uncovered_rows + projection_error_rows
+        feedback_html = (
+            '<h2>原图回叠反馈</h2><p>标定由模型提供，尚未独立验证；图像已生成不代表已审视或原图保真。</p>'
+            f'<p>当前源投影 {len(feedback["current_source_projections"])} 份；旧源投影 '
+            f'{len(feedback["old_source_projections"])} 份；登记但当前楼层未覆盖 '
+            f'{len(feedback["registered_calibration_uncovered_floors"])} 份；当前源无登记图面楼层 '
+            f'{len(feedback["floors_without_registered_views"])} 个。</p>'
+            f'<ul>{current_projection_rows or "<li>当前源没有成功的回叠图。</li>"}</ul>'
+            f'<details><summary>旧源投影</summary><ul>{old_projection_rows or "<li>无</li>"}</ul></details>'
+            f'<details><summary>未覆盖或失败</summary><ul>{missing_or_failed_rows or "<li>无</li>"}'
+            f'{unregistered_floor_rows}</ul></details>')
         (self.run / "delivery.html").write_text(
             '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
             '<title>BIM 候选与实际检查</title><style>body{font:16px system-ui;'
@@ -447,6 +487,7 @@ class Toolkit:
             f'{facade_table}'
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
+            f'{feedback_html}'
             f'<iframe title="保存的 BIM 候选" src="{result["viewer"]}"></iframe>'
             '</html>', encoding="utf-8")
         return result
@@ -472,6 +513,9 @@ class Toolkit:
             from src.agent.geometry.opening_review import opening_inventory
             result["opening_inventory"] = opening_inventory(json.loads(source_path.read_text()))
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
+            projections, errors = self.project_registered_calibrations(candidate, action)
+            result["source_image_projections"] = projections
+            result["projection_errors"] = errors
         self.log(action, result)
         return result
 
@@ -482,6 +526,210 @@ class Toolkit:
         if digest(path) != self.manifest["images"][name]["sha256"]:
             raise ValueError("input image changed")
         return path
+
+    def _calibration_records(self):
+        """Return immutable explicit calibration records in registration order."""
+        folder = self.run / "overlay_calibrations"
+        records = []
+        for path in sorted(folder.glob("calibration_*.json")) if folder.is_dir() else []:
+            record = json.loads(path.read_text())
+            if not isinstance(record, dict):
+                raise ValueError(f"invalid overlay calibration record: {path.name}")
+            records.append((path, record))
+        return records
+
+    def registered_calibrations(self):
+        """The latest explicit calibration for each exact original-image/floor pair."""
+        latest = {}
+        for path, record in self._calibration_records():
+            image = record.get("image")
+            floor_id = record.get("floor_id")
+            if not isinstance(image, str) or not isinstance(floor_id, str):
+                raise ValueError(f"invalid overlay calibration identity: {path.name}")
+            latest[(image, floor_id)] = (path, record)
+        return list(latest.values())
+
+    def _save_calibration(self, *, candidate, image, floor_id, x_anchors, y_anchors, basis, metadata):
+        """Append an explicit calibration. Later records supersede only the same pair."""
+        folder = self.run / "overlay_calibrations"
+        folder.mkdir(exist_ok=True)
+        index = len(list(folder.glob("calibration_*.json"))) + 1
+        path = folder / f"calibration_{index:03d}.json"
+        record = {
+            "schema_version": "source_overlay_calibration_v1",
+            "calibration_id": path.stem,
+            "image": image,
+            "floor_id": floor_id,
+            "image_sha256": self.manifest["images"][image]["sha256"],
+            "x_anchors": x_anchors,
+            "y_anchors": y_anchors,
+            "basis": basis,
+            "registered_by_candidate": candidate,
+            "registered_source_model_sha256": metadata["source_model_sha256"],
+            "calibration_basis": "caller_supplied_not_independently_verified",
+            "calibration_unverified": True,
+        }
+        dump(path, record)
+        return path, record
+
+    def _save_overlay(self, pic, metadata, *, box=None):
+        """Persist a full immutable projection and make the corresponding tool view."""
+        folder = self.run / "image_overlays"
+        folder.mkdir(exist_ok=True)
+        stem = f"overlay_{len(list(folder.glob('overlay_*.json'))) + 1:03d}"
+        original_size = list(pic.size)
+        region = box or [0, 0, pic.width, pic.height]
+        if box is not None:
+            x0, y0, x1, y1 = box
+            if not (0 <= x0 < x1 <= pic.width and 0 <= y0 < y1 <= pic.height):
+                raise ValueError("crop outside original image bounds")
+        # The stored overlay is full resolution.  The returned image follows the
+        # same bounded presentation convention as view_image.
+        pic.save(folder / f"{stem}.png")
+        presented = pic.crop(region)
+        presented.thumbnail((1600, 1600))
+        metadata.update(
+            overlay_image=f"image_overlays/{stem}.png",
+            original_size=original_size,
+            box_original_pixels=region,
+            returned_size=list(presented.size),
+            original_pixels_per_returned_pixel=[
+                (region[2] - region[0]) / presented.width,
+                (region[3] - region[1]) / presented.height,
+            ],
+            remaining_seconds=self.remaining_seconds(),
+        )
+        dump(folder / f"{stem}.json", metadata)
+        data = io.BytesIO()
+        presented.save(data, "PNG")
+        return Image(data=data.getvalue(), format="png"), metadata
+
+    def project_overlay(self, candidate, image, floor_id, x_anchors, y_anchors, basis, *,
+                        trigger_action, box=None, calibration=None, automatic=False):
+        """Render and persist one projection from an immutable saved source BIM."""
+        from src.agent.geometry.source_image_overlay import render_source_overlay
+        path = self.candidate_path(candidate)
+        source = json.loads((path / "source_model.json").read_text())
+        image_path = self.image_path(image)
+        with PILImage.open(image_path) as raw:
+            pic, metadata = render_source_overlay(source, raw, floor_id=floor_id,
+                x_anchors=x_anchors, y_anchors=y_anchors, basis=basis)
+        metadata.update(
+            candidate=candidate,
+            image=image,
+            image_sha256=self.manifest["images"][image]["sha256"],
+            trigger_action=trigger_action,
+            automatic_projection=automatic,
+        )
+        if calibration is not None:
+            calibration_path, calibration_record = calibration
+            metadata["reused_calibration"] = {
+                "calibration_id": calibration_record["calibration_id"],
+                "calibration_file": str(calibration_path.relative_to(self.run)),
+                "registered_by_candidate": calibration_record["registered_by_candidate"],
+                "registered_source_model_sha256": calibration_record["registered_source_model_sha256"],
+                "image_sha256": calibration_record["image_sha256"],
+                "x_anchors": calibration_record["x_anchors"],
+                "y_anchors": calibration_record["y_anchors"],
+                "basis": calibration_record["basis"],
+            }
+        return self._save_overlay(pic, metadata, box=box)
+
+    def project_registered_calibrations(self, candidate, action):
+        """Reuse only caller-registered frames; projection failures preserve the BIM."""
+        projections = []
+        errors = []
+        try:
+            calibrations = self.registered_calibrations()
+        except Exception as error:
+            calibrations = []
+            errors.append({"candidate": candidate, "trigger_action": action,
+                           "error": f"could not load registered calibrations: {error}"})
+        for calibration in calibrations:
+            calibration_path, record = calibration
+            error_context = {
+                "candidate": candidate,
+                "trigger_action": action,
+                "image": record.get("image"),
+                "floor_id": record.get("floor_id"),
+                "calibration_file": str(calibration_path.relative_to(self.run)),
+            }
+            try:
+                _, metadata = self.project_overlay(
+                    candidate, record["image"], record["floor_id"], record["x_anchors"],
+                    record["y_anchors"], record["basis"], trigger_action=action,
+                    calibration=calibration, automatic=True)
+                projections.append(metadata)
+            except Exception as error:
+                errors.append({**error_context, "error": str(error)})
+        if errors:
+            dump(self.candidate_path(candidate) / "projection_errors.json", {
+                "candidate": candidate,
+                "trigger_action": action,
+                "projection_errors": errors,
+            })
+        return projections, errors
+
+    def overlay_image(self, metadata):
+        """Load only a projection created by this toolkit for MCP image content."""
+        relative = metadata.get("overlay_image")
+        if not isinstance(relative, str) or not relative.startswith("image_overlays/"):
+            raise ValueError("invalid saved overlay reference")
+        path = (self.run / relative).resolve()
+        folder = (self.run / "image_overlays").resolve()
+        if not path.is_file() or folder not in path.parents:
+            raise ValueError("saved overlay is unavailable")
+        with PILImage.open(path) as raw:
+            pic = raw.convert("RGB")
+            pic.thumbnail((1600, 1600))
+            data = io.BytesIO()
+            pic.save(data, "PNG")
+        return Image(data=data.getvalue(), format="png")
+
+    def _delivery_projection_status(self, candidate, source):
+        """Describe stored projection evidence without treating it as a visual verdict."""
+        source_hash = source.get("source_model_sha256")
+        folder = self.run / "image_overlays"
+        projections = []
+        for path in sorted(folder.glob("overlay_*.json")) if folder.is_dir() else []:
+            record = json.loads(path.read_text())
+            if isinstance(record, dict) and record.get("mode") == "source_image_overlay":
+                projections.append(record)
+        current = [row for row in projections
+                   if row.get("candidate") == candidate and row.get("source_model_sha256") == source_hash]
+        old = [row for row in projections if row.get("source_model_sha256") != source_hash]
+        floor_ids = {row.get("id") for row in source.get("floors", []) if isinstance(row, dict)}
+        uncovered = []
+        try:
+            calibrations = self.registered_calibrations()
+            calibration_load_errors = []
+        except Exception as error:
+            calibrations = []
+            calibration_load_errors = [{"candidate": candidate, "trigger_action": "finish_bim",
+                                        "error": f"could not load registered calibrations: {error}"}]
+        registered_floor_ids = {calibration["floor_id"] for _, calibration in calibrations}
+        for calibration_path, calibration in calibrations:
+            if calibration["floor_id"] not in floor_ids:
+                uncovered.append({
+                    "image": calibration["image"], "floor_id": calibration["floor_id"],
+                    "calibration_file": str(calibration_path.relative_to(self.run)),
+                })
+        error_path = self.candidate_path(candidate) / "projection_errors.json"
+        errors = json.loads(error_path.read_text()).get("projection_errors", []) if error_path.is_file() else []
+        errors = [*errors, *calibration_load_errors]
+        fields = ("image", "floor_id", "overlay_image", "source_model_sha256", "trigger_action",
+                  "automatic_projection", "reused_calibration", "anchors", "basis", "image_sha256")
+        compact = lambda row: {field: row[field] for field in fields if field in row}
+        return {
+            "current_source_projections": [compact(row) for row in current],
+            "old_source_projections": [compact(row) for row in old],
+            "registered_calibration_uncovered_floors": uncovered,
+            "floors_without_registered_views": sorted(floor_id for floor_id in floor_ids
+                                                       if floor_id not in registered_floor_ids),
+            "projection_errors": errors,
+            "calibration_independently_verified": False,
+            "drawing_fidelity": "not_evaluated",
+        }
 
     def view(self, name, box=None):
         from mcp.server.fastmcp import Image
@@ -576,6 +824,21 @@ def serve(run: Path, readonly=False):
         toolkit.log("map_dimension_chain", {"lengths": lengths, "result": result})
         return result
 
+    def candidate_result(result) -> CallToolResult:
+        """Keep JSON structured output while attaching newly generated feedback views."""
+        content = []
+        for metadata in result.get("source_image_projections", []):
+            try:
+                content.append(toolkit.overlay_image(metadata).to_image_content())
+            except Exception as error:
+                result.setdefault("projection_errors", []).append({
+                    "candidate": result.get("candidate"), "trigger_action": "mcp_result_packaging",
+                    "image": metadata.get("image"), "floor_id": metadata.get("floor_id"),
+                    "overlay_image": metadata.get("overlay_image"), "error": str(error),
+                })
+        content.append(TextContent(type="text", text=json.dumps(result, ensure_ascii=False)))
+        return CallToolResult(content=content, structuredContent=result)
+
     @server.tool()
     def map_pixels(points: list[list[float]], x_anchors: list[list[float]],
                    y_anchors: list[list[float]]) -> dict:
@@ -661,48 +924,40 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def overlay_candidate(candidate: str, image: str, floor_id: str,
                               x_anchors: list[list[float]], y_anchors: list[list[float]],
-                              basis: str, box: list[int] | None = None):
+                              basis: str, box: list[int] | None = None,
+                              reuse_on_revision: bool = True):
             """Project actual source geometry onto an AXIS-ALIGNED original plan.
             Each axis needs two [ORIGINAL pixel position, world metres] anchors,
             like map_pixels; basis explains the observed dimension and wall reference.
             No GT, auto-registration, perspective correction or visual verdict.
             Optional box crops the result in ORIGINAL pixels. Colours: magenta
             source boundaries, orange doors/passages, lime windows.
+            By default, this explicit caller-supplied calibration is saved and only
+            reused for the same image/floor after later build_bim or revise_bim.
             """
-            from src.agent.geometry.source_image_overlay import render_source_overlay
-            path = toolkit.candidate_path(candidate)
-            source = json.loads((path / "source_model.json").read_text())
-            image_path = toolkit.image_path(image)
-            with PILImage.open(image_path) as raw:
-                pic, metadata = render_source_overlay(source, raw, floor_id=floor_id,
-                    x_anchors=x_anchors, y_anchors=y_anchors, basis=basis)
-            folder = run / "image_overlays"
-            folder.mkdir(exist_ok=True)
-            stem = f"overlay_{len(list(folder.glob('overlay_*.json'))) + 1:03d}"
-            original_size = list(pic.size)
-            region = box or [0, 0, pic.width, pic.height]
-            if box is not None:
-                x0,y0,x1,y1 = box
-                if not (0 <= x0 < x1 <= pic.width and 0 <= y0 < y1 <= pic.height):
-                    raise ValueError("crop outside original image bounds")
-            # Save the full-resolution projection, not only the returned crop.
-            pic.save(folder / f"{stem}.png")
-            pic = pic.crop(region)
-            pic.thumbnail((1600, 1600))
-            metadata.update(candidate=candidate, image=image,
-                image_sha256=toolkit.manifest["images"][image]["sha256"],
-                overlay_image=f"image_overlays/{stem}.png", original_size=original_size,
-                box_original_pixels=region, returned_size=list(pic.size),
-                original_pixels_per_returned_pixel=[(region[2]-region[0])/pic.width,
-                                                     (region[3]-region[1])/pic.height],
-                remaining_seconds=toolkit.remaining_seconds())
-            dump(folder / f"{stem}.json", metadata)
+            image_content, metadata = toolkit.project_overlay(
+                candidate, image, floor_id, x_anchors, y_anchors, basis,
+                trigger_action="overlay_candidate", box=box)
+            if reuse_on_revision:
+                calibration_path, calibration = toolkit._save_calibration(
+                    candidate=candidate, image=image, floor_id=floor_id,
+                    x_anchors=metadata["anchors"]["x"], y_anchors=metadata["anchors"]["y"],
+                    basis=basis, metadata=metadata)
+                metadata["registered_calibration"] = {
+                    "calibration_id": calibration["calibration_id"],
+                    "calibration_file": str(calibration_path.relative_to(run)),
+                    "reuse_on_revision": True,
+                }
+                # This sidecar was created during this same explicit request;
+                # earlier projection files are never changed or replaced.
+                dump(run / metadata["overlay_image"].replace(".png", ".json"), metadata)
+            else:
+                metadata["registered_calibration"] = {"reuse_on_revision": False}
             toolkit.log("overlay_candidate", metadata)
-            data = io.BytesIO(); pic.save(data, "PNG")
-            return [Image(data=data.getvalue(), format="png"), json.dumps(metadata)]
+            return [image_content, json.dumps(metadata)]
 
         @server.tool()
-        def revise_bim(candidate: str, operations_json: str) -> dict:
+        def revise_bim(candidate: str, operations_json: str) -> CallToolResult:
             """Apply local edits/reflection with code and save a new checked BIM.
             See brief for operations. The prior candidate remains unchanged.
             Opening changes/removals and shared-wall moves require a reason and source_refs.
@@ -712,7 +967,8 @@ def serve(run: Path, readonly=False):
             proposal = json.loads((path/"proposal.json").read_text())
             operations = json.loads(operations_json)
             updated = apply_proposal_edits(proposal, operations)
-            return toolkit.build(updated, action="revise_bim", parent=candidate, operations=operations)
+            return candidate_result(toolkit.build(
+                updated, action="revise_bim", parent=candidate, operations=operations))
 
         @server.tool()
         def review_detail(question: str, images: list[str]) -> dict:
@@ -728,11 +984,11 @@ def serve(run: Path, readonly=False):
             return response
 
         @server.tool()
-        def build_bim(proposal_json: str) -> dict:
+        def build_bim(proposal_json: str) -> CallToolResult:
             """Build/check/save a candidate from the proposal JSON described in your brief.
             Returns errors or actual geometry checks. Six immutable candidates maximum.
             """
-            return toolkit.build(json.loads(proposal_json))
+            return candidate_result(toolkit.build(json.loads(proposal_json)))
 
         @server.tool()
         def view_candidate(candidate: str, floor_id: str) -> Image:

@@ -88,6 +88,17 @@ def _two_room_proposal() -> str:
     })
 
 
+def _two_floor_proposal() -> str:
+    proposal = json.loads(_two_room_proposal())
+    proposal["geometry"]["floors"].append({
+        "name": "F2", "z_floor": 3, "ceiling_height": 3, "cells": [
+            {"id": "upper_left", "role": "office", "x": [0, 3], "y": [0, 4]},
+            {"id": "upper_right", "role": "corridor", "x": [3, 6], "y": [0, 4]},
+        ],
+    })
+    return json.dumps(proposal)
+
+
 def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)
@@ -234,6 +245,7 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             built = _json_result(await session.call_tool("build_bim", {"proposal_json": _two_room_proposal()}))
             assert built["candidate"] == "candidate_01"
             assert built["source_geometry_ready"]
+            assert built["source_image_projections"] == [] and built["projection_errors"] == []
             viewed = await session.call_tool("view_candidate", {"candidate": built["candidate"], "floor_id": "F1"})
             assert not viewed.isError
             assert viewed.content[0].type == "image"
@@ -316,6 +328,115 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert len(moved_delivery["stale_reviews"]) == 2
             assert all(scope["review_status"] == "not_reviewed"
                        for scope in moved_delivery["opening_review_scopes"])
+
+    asyncio.run(scenario())
+
+
+def test_registered_source_overlay_feedback_reuses_only_explicit_image_floor_calibrations(tmp_path):
+    from src.agent.execution.source_proposal import export_source_proposal
+
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        _add_image(run, "upper.png", "black")
+        proposal_json = _two_floor_proposal()
+        export_source_proposal(json.loads(proposal_json), run / "seed")
+        async with _server_session(run, readonly=False) as session:
+            # A model chooses this frame explicitly on a recovered seed.  Nothing
+            # registers the other image/floor until the model calls this tool.
+            seed_overlay = await session.call_tool("overlay_candidate", {
+                "candidate": "seed", "image": "plan.png", "floor_id": "F1",
+                "x_anchors": [[0, 0], [11, 6]], "y_anchors": [[7, 0], [0, 4]],
+                "basis": "synthetic seed frame"})
+            assert not seed_overlay.isError and seed_overlay.content[0].type == "image"
+            seed_info = json.loads(seed_overlay.content[1].text)
+            assert seed_info["registered_calibration"]["calibration_id"] == "calibration_001"
+            seed_overlay_path = run / seed_info["overlay_image"]
+            seed_overlay_bytes = seed_overlay_path.read_bytes()
+            seed_overlay_metadata = (seed_overlay_path.with_suffix(".json")).read_bytes()
+
+            # build_bim retains its structured JSON and now returns the actual
+            # automatic overlay image with the source-bound projection metadata.
+            first_call = await session.call_tool("build_bim", {"proposal_json": proposal_json})
+            first = _json_result(first_call)
+            assert first["source_image_projections"], first["projection_errors"]
+            assert first["projection_errors"] == []
+            assert first_call.content[0].type == "image"
+            first_projection = first["source_image_projections"]
+            assert len(first_projection) == 1
+            assert first_projection[0]["automatic_projection"] is True
+            assert first_projection[0]["trigger_action"] == "build_bim"
+            assert first_projection[0]["anchors"] == {"x": [[0.0, 0.0], [11.0, 6.0]],
+                                                        "y": [[7.0, 0.0], [0.0, 4.0]]}
+            assert first_projection[0]["reused_calibration"]["registered_by_candidate"] == "seed"
+            assert first_projection[0]["source_model_sha256"] == json.loads(
+                (run / "candidate_01/source_model.json").read_text())["source_model_sha256"]
+            first_projection_bytes = (run / first_projection[0]["overlay_image"]).read_bytes()
+
+            upper_overlay = await session.call_tool("overlay_candidate", {
+                "candidate": "candidate_01", "image": "upper.png", "floor_id": "F2",
+                "x_anchors": [[0, 0], [11, 6]], "y_anchors": [[7, 0], [0, 4]],
+                "basis": "synthetic upper floor frame"})
+            upper_info = json.loads(upper_overlay.content[1].text)
+            assert upper_info["registered_calibration"]["calibration_id"] == "calibration_002"
+
+            # A changed wall creates fresh source-bound views.  The old seed and
+            # first-candidate projection artifacts stay byte-for-byte unchanged.
+            second = _json_result(await session.call_tool("revise_bim", {
+                "candidate": "candidate_01", "operations_json": json.dumps([{
+                    "op": "move_shared_wall", "space_ids": ["left", "right"],
+                    "coordinate_m": 3.5, "reason": "synthetic overlay correction",
+                    "source_refs": ["plan.png: synthetic observation"]}])}))
+            assert len(second["source_image_projections"]) == 2
+            second_by_floor = {row["floor_id"]: row for row in second["source_image_projections"]}
+            assert second_by_floor["F1"]["reused_calibration"]["calibration_id"] == "calibration_001"
+            assert second_by_floor["F2"]["reused_calibration"]["calibration_id"] == "calibration_002"
+            assert (run / second_by_floor["F1"]["overlay_image"]).read_bytes() != first_projection_bytes
+            assert seed_overlay_path.read_bytes() == seed_overlay_bytes
+            assert seed_overlay_path.with_suffix(".json").read_bytes() == seed_overlay_metadata
+
+            # Recalibrating one exact image/floor supersedes only that pair.
+            replaced = await session.call_tool("overlay_candidate", {
+                "candidate": "candidate_02", "image": "plan.png", "floor_id": "F1",
+                "x_anchors": [[0, 0], [10, 6]], "y_anchors": [[7, 0], [0, 4]],
+                "basis": "synthetic corrected F1 frame"})
+            assert json.loads(replaced.content[1].text)["registered_calibration"]["calibration_id"] == "calibration_003"
+            third = _json_result(await session.call_tool("revise_bim", {
+                "candidate": "candidate_02", "operations_json": json.dumps([{
+                    "op": "reflect", "axis": "x", "reason": "synthetic new source"}])}))
+            third_by_floor = {row["floor_id"]: row for row in third["source_image_projections"]}
+            assert third_by_floor["F1"]["reused_calibration"]["calibration_id"] == "calibration_003"
+            assert third_by_floor["F1"]["anchors"]["x"] == [[0.0, 0.0], [10.0, 6.0]]
+            assert third_by_floor["F2"]["reused_calibration"]["calibration_id"] == "calibration_002"
+
+            # Hash validation happens through Toolkit.image_path before a failed
+            # explicit projection can affect the saved source candidate.
+            before_failure = (run / "candidate_03/source_model.json").read_bytes()
+            Image.new("RGB", (12, 8), "red").save(run / "images/plan.png")
+            failed = await session.call_tool("overlay_candidate", {
+                "candidate": "candidate_03", "image": "plan.png", "floor_id": "F1",
+                "x_anchors": [[0, 0], [11, 6]], "y_anchors": [[7, 0], [0, 4]],
+                "basis": "must reject changed input"})
+            assert "input image changed" in _error_text(failed)
+            assert (run / "candidate_03/source_model.json").read_bytes() == before_failure
+
+            # Automatic reuse reports the same input failure, but still returns
+            # the candidate and the unaffected F2 image instead of hiding feedback.
+            fourth_call = await session.call_tool("build_bim", {"proposal_json": proposal_json})
+            fourth = _json_result(fourth_call)
+            assert fourth["candidate"] == "candidate_04"
+            assert len(fourth["source_image_projections"]) == 1
+            assert fourth["source_image_projections"][0]["floor_id"] == "F2"
+            assert len(fourth["projection_errors"]) == 1
+            assert fourth["projection_errors"][0]["floor_id"] == "F1"
+            assert "input image changed" in fourth["projection_errors"][0]["error"]
+            assert fourth_call.content[0].type == "image"
+            delivery = _json_result(await session.call_tool("finish_bim", {"candidate": "candidate_04"}))
+            feedback = delivery["source_image_feedback"]
+            assert feedback["current_source_projections"][0]["floor_id"] == "F2"
+            assert feedback["old_source_projections"]
+            assert feedback["floors_without_registered_views"] == []
+            assert feedback["calibration_independently_verified"] is False
+            assert delivery["drawing_fidelity"] == "not_evaluated"
 
     asyncio.run(scenario())
 
