@@ -50,6 +50,12 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 工具拒绝未知图片、越界或非有限像素框、错误字段和重复 mark ID；并报告多 ID mark、同 review 的重复开口 ID/像素框、未知 ID、漏列模型开口以及连接、类别和楼层不符。`inferred` 与 `uncertain` 会保留为待核，不冒称已见。结果保存到本次 run 的 `opening_reviews/`，绑定当前 `source_model_sha256` 和图像 SHA-256，并列出各房间的实际、对应和缺失 ID。候选修改后必须重新回查；没有 finding 只表示与这份供给观察一致，`drawing_fidelity` 仍为 `not_evaluated`，不能把模型自报观察当成 GT 或原图保真通过。
 
+### 原图叠图与实际交付
+
+`overlay_candidate(candidate, image, floor_id, x_anchors, y_anchors, basis, box?)` 将当前源平面画回原图。每轴锚点沿用 `map_pixels` 的两组 `[原图像素位置, 世界米]`，`basis` 写明尺寸来源与墙面基准；可用 `box` 按原图坐标裁看细节。支持轴对齐平面，旋转/透视没有自动校正。品红表示源边界，橙色表示门/空通道，绿色表示窗；完整分辨率叠图和坐标侧车保存于 run 的 `image_overlays/`。标定和原图保真仍未独立评价，工具可按需调用。
+
+模型用 `finish_bim(candidate)` 选择最终保存候选，生成 run 的 `delivery.json` 与 `delivery.html`。摘要直接引用源几何检查和回查状态，不解释模型最后文字；旧源回查单列，未查或需跟进也可交付查看。后续仍可继续修订或重新选择，结束时刷新所选候选的实际回查。没有显式选择时保留最新已保存源（没有新候选时可保留 seed），并明确标记系统回退，不冒称模型已选定或已经通过。运行结束后还会写入本次调用正常结束/中断、实际错误消息和耗时；有源但没有查看器时不宣称已有可查看输出。
+
 ## 1. 准备独立 run
 
 - 素材放 `case_tests/e2e_tests/<case>/case_data/`，用 `testdata_prompt.json` 提供声明；新实验放 `<case>/run_<说明>/`，不覆盖旧 run。

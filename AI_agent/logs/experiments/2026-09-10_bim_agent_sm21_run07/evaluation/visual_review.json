@@ -1,0 +1,84 @@
+{
+  "schema_version": "visual_opening_review_v1",
+  "review_kind": "developer_posthoc_bounded_f2_office_door_review",
+  "reviewed_candidate": "candidate_01",
+  "source_model_sha256": "9fb61c6c7e8f75f8a4ad78e02957552def6b5d586a6bffab271edb6406d11332",
+  "run_status": {
+    "agent_response_completed": false,
+    "elapsed_seconds": 171.28,
+    "selection_origin": "latest_saved_fallback_not_agent_selected"
+  },
+  "input_image": {
+    "name": "2f_view.png",
+    "size_px": [2182, 1319],
+    "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+  },
+  "scope": [
+    "Compared only the four F2 office-to-corridor door endpoint updates in candidate_01/operations.json with the original 2f plan.",
+    "Did not use GT or send any position or verdict to the generation pipeline.",
+    "F1 door/window and partition problems are inherited from run06 because this run changed only these four F2 openings and notes."
+  ],
+  "findings": [
+    {
+      "code": "arc_apex_is_not_a_door_opening_center",
+      "severity": "review",
+      "evidence": [
+        "The plan shows office door arcs/leaf lines near the two office-pair partitions, supporting four office-to-corridor connections.",
+        "An arc apex is the swept-leaf extremity, not a labeled jamb or a midpoint of the wall opening. The stated two-anchor X conversion also does not establish a door span from one apex pixel.",
+        "The operations claim offices 1/2 flank x=3.75 and offices 3/4 flank x=11.25, but all four resulting spans remain about 0.86–0.92 m away from that claimed adjacent partition."
+      ],
+      "impact": "The revised spans are not supported as exact door positions. Their room-to-corridor connections remain plausible, but the endpoint correction is still pending rather than an improvement that can be accepted by count or self-consistency."
+    },
+    {
+      "code": "f2_office_door_claim_and_geometry_disagree",
+      "severity": "review",
+      "doors": [
+        {
+          "id": "D_Off1_C",
+          "model_span_m": [2.145, 2.895],
+          "claimed_adjacent_partition_m": 3.75,
+          "nearest_gap_m": 0.855
+        },
+        {
+          "id": "D_Off2_C",
+          "model_span_m": [4.665, 5.415],
+          "claimed_adjacent_partition_m": 3.75,
+          "nearest_gap_m": 0.915
+        },
+        {
+          "id": "D_Off3_C",
+          "model_span_m": [9.625, 10.375],
+          "claimed_adjacent_partition_m": 11.25,
+          "nearest_gap_m": 0.875
+        },
+        {
+          "id": "D_Off4_C",
+          "model_span_m": [12.135, 12.885],
+          "claimed_adjacent_partition_m": 11.25,
+          "nearest_gap_m": 0.885
+        }
+      ],
+      "conclusion": "If the claimed flanking-pair interpretation is retained, at least one endpoint of each door should be supported by a visible jamb/leaf pivot near the partition. The current geometry does not do that. This review deliberately does not assert replacement endpoints."
+    },
+    {
+      "code": "source_connections_remain_plausible_but_positions_unverified",
+      "severity": "review",
+      "evidence": "The source still connects D_Off1_C…D_Off4_C one-to-one from F2_Off1…F2_Off4 to F2_Corridor. No duplicate room pair was introduced by this operation. That preserves the broad connection claim, but does not prove the four physical openings are at their modeled spans."
+    },
+    {
+      "code": "run07_does_not_close_inherited_f1_findings",
+      "severity": "severe",
+      "evidence": "candidate_01 operations alter only D_Off1_C…D_Off4_C endpoints and notes. The F1 south exterior door/window swap and the material south-second-partition displacement recorded in run06 visual_review remain unchanged.",
+      "scope_note": "These inherited issues were not re-inspected here; this statement is a change-scope observation, not a new whole-building review."
+    }
+  ],
+  "recommended_next_step": [
+    "Keep each F2 office-to-corridor connection, but do not treat the current four spans as verified. In a later isolated review, locate each visible leaf pivot/jamb in the original 2182×1319 image and convert only after preserving the plan crop/scale relation.",
+    "Prioritize the unresolved F1 door/window identity and material partition error before another broad recovery run."
+  ],
+  "not_evaluated": [
+    "Exact replacement endpoints and widths for the four F2 office doors.",
+    "Door swing direction/leaf count, whole-building fidelity, GT score, EnergyPlus, and human approval."
+  ],
+  "generation_isolation": "This developer post-hoc observation was not supplied to the interrupted run, and no GT or proposed correction was passed to production generation."
+}

@@ -1,0 +1,64 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Review the saved lightweight BIM against the supplied original drawings and improve material discrepancies in rooms, partitions, doors, windows and their connections. Use available image alignment and inspection tools where useful. Preserve reliable source objects, distinguish drawing evidence from assumptions, and deliver the best supported saved candidate with its actual remaining checks.",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789021810.8937418,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "33a0048efc48b5c28baca4fb60111cbfd233da86bce1623ba6b206da59b1be3f",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278",
+    "src/agent/geometry/opening_review.py": "f47fbbc60fdb0763a348acfd988d5d1766ded594a4f6405dd43c5e75c120e25f",
+    "src/agent/geometry/bim_delivery.py": "95c4803d2e4f40bfa498a4a49fc1033464d27822eb5684f16838deb5344a95e5",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "929e248c91f670020bb9c261b72a361b3f42d1a01a1e47312c4c3624d4228b90",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run06/candidate_03",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

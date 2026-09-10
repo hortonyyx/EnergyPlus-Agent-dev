@@ -1,0 +1,65 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (confirmed by matching South elevation entrance door position and North elevation window pattern to plan).",
+    "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+    "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, per elevation vertical dimension breakdown.",
+    "Window sill/head heights: F1 z=[1.0,2.6]; F2 z=[4.0,5.8] absolute, from elevation dimension chains.",
+    "Door heights: 2.1m interior, 2.4m for the two exterior glazed doors (South main entrance, West corridor entrance).",
+    "East facade has a window (not door) into the corridor on both floors; West facade has a door into the corridor on F1 and a window in the same position on F2.",
+    "F1 top and bottom rows: each of the 3 rooms has a corridor door; at the first internal partition (x≈4.94 top / 4.82 bottom) both flanking rooms have doors (2 arcs observed), while at the second partition (x≈9.82 top / 10.68 bottom) only the room away from the corridor centerline (R3N/R3S) has a door (1 arc observed) - confirmed by direct pixel inspection of door arcs at both partitions.",
+    "F2 office doors (D_Off1_C..D_Off4_C) were re-measured by locating door-arc apex pixels in 2f_view.png and mapping via two-anchor pixel-to-metre conversion (anchors: building west/east wall faces at px 423/1814 = 0m/15m). Offices 1 and 2 both have doors flanking the x=3.75 partition (which carries a jamb/duct detail mark); offices 3 and 4 both flank the x=11.25 partition (same detail mark); the central x=7.5 partition (aligned with the ConfA/ConfB divide) is a plain wall with no office-side door pattern detected in the corridor-facing wall band.",
+    "Door width for F2 office doors assumed 0.75m, centered on the measured arc-apex pixel (arc apex approximates the door leaf outer corner/mid-swing, not a precisely labeled dimension)."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "ab7703cbbd0e7246a1e9a146f79a79ede3faac3f2513d37b0cd3c8868c456b2e",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "4b8527abf106f4883acf672558bd44e7e72d4262cc9143baa08fa770eff62735",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "929e248c91f670020bb9c261b72a361b3f42d1a01a1e47312c4c3624d4228b90"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9fb61c6c7e8f75f8a4ad78e02957552def6b5d586a6bffab271edb6406d11332",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact F2 office door widths are inferred from arc geometry (assumed 0.75m) rather than an explicit dimension callout; apex-based centering may be off by up to ~0.2m.",
+    "Door swing direction/leaf count (single vs double) not modeled, only presence and connectivity.",
+    "Room role labels (office/lounge/meeting) are descriptive, based on furniture drawn, not authoritative naming from the source drawings."
+  ]
+}

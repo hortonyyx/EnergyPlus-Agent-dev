@@ -1,0 +1,63 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "reference_path": "case_tests/test_baseline/gt/sm21_anchor/gt.json",
+  "reference_sha256": "a9be379b1735163528396c36d96653cdf71a67ffe54dde6f942c7c86f53f3f8a",
+  "candidates": [
+    {
+      "candidate": "candidate_01",
+      "source_sha256": "9fb61c6c7e8f75f8a4ad78e02957552def6b5d586a6bffab271edb6406d11332",
+      "partition_status": "severe",
+      "reference_spaces": 14,
+      "candidate_spaces": 14,
+      "openings": {
+        "door": 14,
+        "window": 14
+      },
+      "built_window_comparison": {
+        "gt_total": 15,
+        "matched_total": 14,
+        "complete_total": 12,
+        "within_tol_total": 2,
+        "placed_hit_total": 12,
+        "z_drift_total": 0,
+        "miss_total": 1,
+        "extra_total": 0,
+        "no_data_floor_facades": 0
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "Floor 1",
+          "missing_length_m": 11.839999992000001,
+          "extra_length_m": 11.839999992000003,
+          "missing_wkt": "MULTILINESTRING ((5 0.020000001, 5 2.979999999), (10 0.020000001, 10 2.979999999), (5 5.020000001, 5 7.979999999), (10 5.020000001, 10 7.979999999))",
+          "extra_wkt": "MULTILINESTRING ((4.94 5.020000001, 4.94 7.979999999), (4.82 0.020000001, 4.82 2.979999999), (9.82 5.020000001, 9.82 7.979999999), (10.68 0.020000001, 10.68 2.979999999))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "Floor 1",
+          "missing_length_m": 11.839999992000001,
+          "extra_length_m": 11.839999992000003,
+          "missing_wkt": "MULTILINESTRING ((5 0.020000001, 5 2.979999999), (10 0.020000001, 10 2.979999999), (5 5.020000001, 5 7.979999999), (10 5.020000001, 10 7.979999999))",
+          "extra_wkt": "MULTILINESTRING ((4.94 5.020000001, 4.94 7.979999999), (4.82 0.020000001, 4.82 2.979999999), (9.82 5.020000001, 9.82 7.979999999), (10.68 0.020000001, 10.68 2.979999999))"
+        },
+        {
+          "floor_id": "Floor 2",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "GT window and door completeness not certified by partition comparison",
+    "GT door list contains exterior doors only; not an internal-door inventory",
+    "Reference-plane differences retain their existing evaluator interpretation",
+    "No evaluation feedback supplied to generating model"
+  ]
+}

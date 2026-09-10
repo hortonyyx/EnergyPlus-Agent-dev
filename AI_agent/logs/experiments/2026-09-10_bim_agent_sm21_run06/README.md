@@ -29,9 +29,9 @@
 
 ## 用量、时间和验证
 
-主模型实际 `claude-sonnet-5`、medium effort，一次 Claude 订阅 CLI 调用，603.87 秒，预算 900 秒，正常结束。CLI 估算 **$1.7039702**，不是订阅账单。没有 `ask_detail` 视觉子任务；回执另含 CLI 内部 Haiku 用量 $0.000701，已计入总估算，不能表述成 Haiku 从未出现。未调用 DeepSeek、付费 API 或 EnergyPlus。
+主模型实际 `claude-sonnet-5`、medium effort，一次 Claude 订阅 CLI 调用，603.87 秒，预算 900 秒，正常结束。CLI 估算 **$1.7039702**，不是订阅账单。没有 `review_detail` 视觉子任务；回执另含 CLI 内部 Haiku 用量 $0.000701，已计入总估算，不能表述成 Haiku 从未出现。未调用 DeepSeek、付费 API 或 EnergyPlus。
 
-31 次记录工具调用：inputs 1、看原图 19、像素投影 4、build 1、revise 2、看候选 2、check_openings 2。未使用 map_coordinates 或 ask_detail。首候选距首次工具调用 **511.14 秒**，仍然偏晚；存在低支持像素查询，不能把四次投影等同可靠量测。模型修复二层门高度后尚有时间，却以局部近似为由结束。
+31 次记录工具调用：inputs 1、看原图 19、像素投影 4、build 1、revise 2、看候选 2、check_openings 2。未使用 map_pixels 或 review_detail。首候选距首次工具调用 **511.14 秒**，仍然偏晚；存在低支持像素查询，不能把四次投影等同可靠量测。模型修复二层门高度后尚有时间，却以局部近似为由结束。
 
 新增模块 11 项、真实 stdio/隔离边界 4 项离线测试通过，共 15 项，不重复累计前轮 27 项。另用历史开发观察重放 [run04/run05 开口差异](../2026-09-10_opening_review_replay/README.md)，准确指出两处旧多余门；该观察未进入本轮冷启动。
 
