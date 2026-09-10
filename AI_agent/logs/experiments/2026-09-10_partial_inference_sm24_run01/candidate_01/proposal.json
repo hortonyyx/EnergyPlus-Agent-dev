@@ -1,0 +1,319 @@
+{
+  "assumptions": [
+    "Only 4 elevations (S/N/E/W) supplied for a Shenzhen office building, 1F, ~200 sqm; no floor plan was provided.",
+    "Footprint derived from elevation width labels: South/North elevations both label overall width 10000mm (this is the East-West dimension, x-axis); East/West elevations both label overall width 20000mm (North-South dimension, y-axis). 10m x 20m = 200 sqm, matching stated area.",
+    "Left/right orientation on each elevation assumed via standard convention (viewer standing outside facing the wall): South image left=West..right=East; North image left=East..right=West; East image left=South..right=North; West image left=North..right=South. Cross-checked: matching 540mm corner margins and coincident window bands between East and West elevations at same y-ranges support this mapping, though it is not independently proven without a plan.",
+    "No interior partitions, room count, or internal doors are evidenced anywhere in the supplied drawings. Modeled as ONE merged open-plan space (F1_main) covering the full footprint, rather than inventing rooms or splitting by facade orientation.",
+    "Window/door sill and head heights grouped into 3 repeating dimension patterns observed consistently across facades: standard window (sill 1.0m, height 1.8m), large window >=4000mm wide (sill 1.0m, height 2.4m), exterior door (threshold 0.2m, height 2.4m). Applied uniformly to all openings of matching width/type.",
+    "Door leaf/swing direction and open/closed state not clearly resolvable from elevations; state left as 'unknown'.",
+    "Wall thickness abstracted to zero (single representative plane per facade); no interior structural grid assumed.",
+    "Ceiling height modeled as the full 4.5m elevation height (single storey, no separate slab/plenum breakdown given)."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "F1_main",
+            "role": "office_open_plan",
+            "source_refs": [
+              "No floor plan supplied; only 4 elevations. Single merged open-plan space assumed for entire ~200 sqm footprint (10m x 20m) derived from South/North width=10000mm and East/West width=20000mm."
+            ],
+            "x": [
+              0,
+              10
+            ],
+            "y": [
+              0,
+              20
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "assumptions": [
+          "Exterior entrance door, state unknown"
+        ],
+        "id": "D_S1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.54,
+          0
+        ],
+        "p2": [
+          5.44,
+          0
+        ],
+        "source_refs": [
+          "South_view.png: single-leaf glazed door with transom, width 900, dims 900 centered, height stack 1900/2400/200"
+        ],
+        "space_id": "F1_main",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [
+          "Exterior entrance door, likely main entrance given double-leaf width"
+        ],
+        "id": "D_N1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.54,
+          20
+        ],
+        "p2": [
+          2.14,
+          20
+        ],
+        "source_refs": [
+          "North_view.png: double-leaf glazed door width 1600, height stack 1900/2400/200"
+        ],
+        "space_id": "F1_main",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [
+          "Exterior entrance/exit door, state unknown"
+        ],
+        "id": "D_E1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10,
+          5.7
+        ],
+        "p2": [
+          10,
+          7.3
+        ],
+        "source_refs": [
+          "East_view.png: double-leaf glazed door width 1600, same height stack as North/South doors"
+        ],
+        "space_id": "F1_main",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S1",
+        "room": "F1_main",
+        "source_refs": [
+          "South_view.png: left window, dims 540/1500 from west corner, height stack 1700/1800/1000"
+        ],
+        "span": [
+          0.54,
+          2.04
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S2",
+        "room": "F1_main",
+        "source_refs": [
+          "South_view.png: right window, symmetric to W_S1, dims 1500/540 from east corner"
+        ],
+        "span": [
+          7.48,
+          8.98
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_N1",
+        "room": "F1_main",
+        "source_refs": [
+          "North_view.png: large window width 4800, height stack 1100/2400/1000 (large-type)"
+        ],
+        "span": [
+          4.66,
+          9.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E1",
+        "room": "F1_main",
+        "source_refs": [
+          "East_view.png: large window width 4800, large-type height stack"
+        ],
+        "span": [
+          8.84,
+          13.64
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E2",
+        "room": "F1_main",
+        "source_refs": [
+          "East_view.png: small window width 1200, standard-type height stack 1700/1800/1000"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E3",
+        "room": "F1_main",
+        "source_refs": [
+          "East_view.png: window width 1500 near north corner"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W1",
+        "room": "F1_main",
+        "source_refs": [
+          "West_view.png: window width 1500 near north corner, aligns with W_E3 position"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W2",
+        "room": "F1_main",
+        "source_refs": [
+          "West_view.png: window width 1200, aligns with W_E2 position"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W3",
+        "room": "F1_main",
+        "source_refs": [
+          "West_view.png: window width 1500"
+        ],
+        "span": [
+          11.14,
+          12.64
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W4",
+        "room": "F1_main",
+        "source_refs": [
+          "West_view.png: window width 1500"
+        ],
+        "span": [
+          8.42,
+          9.92
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W5",
+        "room": "F1_main",
+        "source_refs": [
+          "West_view.png: large window width 4800 near south corner, large-type height stack"
+        ],
+        "span": [
+          0.54,
+          5.34
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Actual interior room layout, partition walls, corridors, and any internal doors are completely unknown; only exterior envelope and openings are modeled.",
+    "Whether South/East doors are secondary exits vs the North double door being the main entrance is an inference from leaf width only, not confirmed by any plan or signage.",
+    "Orientation (which image edge is which compass direction) is an assumed convention, not verified against a site plan or plan drawing.",
+    "Exact wall thickness and true interior floor area (net vs gross 200 sqm) not established."
+  ]
+}

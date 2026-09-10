@@ -1,0 +1,51 @@
+{
+  "images": {
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "这是部分推理建模的辅助恢复实验。仍只提供四张立面、深圳办公一层约200平方米的声明，不提供平面、真实房间数或GT。保留现有明确的整层合并表达和内部未知，不擅自增添隔墙。请重新核对各立面的分段尺寸累计和门窗位置，使用 map_dimension_chain 做累计/反向换算，标注数字和方向仍须自行从图中确认。请安排一次 Haiku 局部视觉复核，独立读取一条完整立面尺寸链及各段门窗身份，再由主模型核对，作为目标档参与的受约束子任务。修正已给信息被算错的地方，不追逐无意义的细小数值差。请利用新增的显式 facade 回查范围，逐面核对窗和外门；完整看过但没有该类开口的面使用空观察，未知保持未查。原模型数量不作为正确答案，完整回查不代表图像真值。保持可查看模型并如实交付。",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789032071.9016027,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "4f2009e3ec234849bee38d651ea82000d222af7f6f0feec7075f2cc608b68c27",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "9c116246e7c15619c6b443753ff74030ff965c412bb49238de36428c07bfa157",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "6346e0b56f01370d2751c33474d44a1ff64798c46e638dccdf1a26020d6baa2b",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_partial_inference_sm24_run01/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

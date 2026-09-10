@@ -188,6 +188,8 @@ def main() -> None:
     parser.add_argument("--tile-glb", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
+    if args.out.exists():
+        raise FileExistsError(f"use a new output directory; refusing to overwrite {args.out}")
 
     selection = json.loads(args.selection.read_text(encoding="utf-8"))
     actual_source_sha = sha256(args.tile_glb)
@@ -247,7 +249,7 @@ def main() -> None:
     else:
         cropped.visual.material.image = jpeg_texture
 
-    args.out.mkdir(parents=True, exist_ok=True)
+    args.out.mkdir(parents=True, exist_ok=False)
     output_glb = args.out / "input.glb"
     def strip_export_extras(tree: dict) -> None:
         for exported_mesh in tree.get("meshes", []):

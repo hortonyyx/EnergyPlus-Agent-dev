@@ -1,0 +1,44 @@
+{
+  "images": {
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "部分推理建模独立冷启动。用户只提供：深圳普通办公建筑、一层、建筑面积约 200 平方米，以及南北东西四张立面。内部平面、房间数、隔墙、内部门与连通均未知。请利用立面中可见的外轮廓、尺寸和门窗证据，生成一个对现有信息有用、合理简化的通用轻量 BIM；逐项区分观察、估计、类型假设和未知。内部空间分隔必须有办公用途或实际隔墙假设依据，不要按朝向切源空间，不要为了凑数量造房间；允许直接表达合并后的空间，并说明合并和省略范围。不得假装恢复了真实内部布局。",
+  "input_mode": "original_images_agent_experiment",
+  "deadline_epoch": 1789031194.5908475,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "b692d78f0de93140b7ce219b8f942889177b2938d53e34c6fc1256405b99147a",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278",
+    "src/agent/geometry/opening_review.py": "f47fbbc60fdb0763a348acfd988d5d1766ded594a4f6405dd43c5e75c120e25f",
+    "src/agent/geometry/bim_delivery.py": "95c4803d2e4f40bfa498a4a49fc1033464d27822eb5684f16838deb5344a95e5",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"
+}

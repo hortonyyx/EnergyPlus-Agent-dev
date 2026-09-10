@@ -1,0 +1,91 @@
+{
+  "candidate": "candidate_01",
+  "review_file": "opening_reviews/review_004.json",
+  "schema_version": "opening_review_v1",
+  "source_model_sha256": "32a250097c9d9e48d84c4cbc776527bb3f18039ba0e04d148483a9bc5606410f",
+  "image": {
+    "name": "South_view.png",
+    "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+    "size": [
+      2434,
+      1457
+    ]
+  },
+  "review_scope": {
+    "floor_id": "F1",
+    "kind": "door",
+    "coverage": "complete"
+  },
+  "model_opening_ids": [
+    "D_E1",
+    "D_N1",
+    "D_S1"
+  ],
+  "matched_opening_ids": [
+    "D_S1"
+  ],
+  "referenced_opening_ids": [
+    "D_S1"
+  ],
+  "room_coverage": [
+    {
+      "space_id": "F1_main",
+      "actual_opening_ids": [
+        "D_E1",
+        "D_N1",
+        "D_S1"
+      ],
+      "actual_opening_count": 3,
+      "matched_opening_ids": [
+        "D_S1"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": [
+        "D_E1",
+        "D_N1"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_E1"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_N1"
+    }
+  ],
+  "conclusion": "observations_require_follow_up",
+  "drawing_fidelity": "not_evaluated",
+  "source_scope": {
+    "actual_openings": "only explicit built source openings were reviewed",
+    "unbuilt_opening_count": 0,
+    "unsupported_observation_count": 0
+  },
+  "observations": {
+    "floor_id": "F1",
+    "kind": "door",
+    "image": "South_view.png",
+    "coverage": "complete",
+    "marks": [
+      {
+        "mark_id": "south-d1",
+        "box": [
+          762,
+          393,
+          857,
+          635
+        ],
+        "opening_ids": [
+          "D_S1"
+        ],
+        "space_ids": [
+          "F1_main"
+        ],
+        "basis": "visible",
+        "note": "single-leaf glazed door with transom, south facade"
+      }
+    ]
+  }
+}

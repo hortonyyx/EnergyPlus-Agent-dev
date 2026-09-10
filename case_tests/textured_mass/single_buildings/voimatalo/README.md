@@ -6,7 +6,7 @@
 
 [完整 UV 贴图离线查看页](viewer.html) · [东南采色预览](view_southeast.png) · [近俯视采色预览](view_top.png) · [公开轮廓叠图](view_footprint_overlay.png) · [可供三维工具读取的单体 GLB](input.glb) · [机器检查](inspection.json) · [边界与来源](selection.json)
 
-页面中的静态 PNG 都是按每个三角面的 UV 中心取一个颜色的**选材/范围概览**，足以检查裁剪轮廓和主体方向，不是完整纹理渲染，不能用来精读窗、门或立面文字。`viewer.html` 沿用上一轮离线查看页方式，把每个顶点 UV 和目标面实际引用的贴图像素载入 Three.js；当前 worktree 没有浏览器，其运行状态仍待独立浏览器检查。
+页面中的静态 PNG 都是按每个三角面的 UV 中心取一个颜色的**选材/范围概览**，足以检查裁剪轮廓和主体方向，不是完整纹理渲染，不能用来精读窗、门或立面文字。`viewer.html` 沿用上一轮离线查看页方式，把每个顶点 UV 和目标面实际引用的贴图像素载入 Three.js；现已在主工作树的隔离 Chromium 中离线打开并实际旋转，见 [浏览器记录](../../../../AI_agent/logs/experiments/2026-09-10_parallel_modelling_browser_qa/README.md)。
 
 ## 为什么选它
 
@@ -38,7 +38,7 @@ City of Helsinki 说明其实景网格可在 ETRS-GK25/N2000 中量测，顶点�
 python case_tests/textured_mass/prepare_single_building.py \
   --selection case_tests/textured_mass/single_buildings/voimatalo/selection.json \
   --tile-glb /workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/derived/Tile_+1984_+2690/input.glb \
-  --out case_tests/textured_mass/single_buildings/voimatalo
+  --out /tmp/voimatalo-recrop
 ```
 
-实际检查为：源 SHA-256 命中；从 385,685 面中选出 12,520 面、8,242 顶点；输出重新加载仍保留 12,520 面和纹理映射；GLB 属性/metadata 白名单通过；三张面中心采色概览和一张公开轮廓叠图已实际打开检查。完整 UV 的 `viewer.html` 已生成并做脚本语法检查，但当前环境未发现 Chromium/Chrome/Firefox，故没有声称浏览器交互查看已验证。GLB 不是闭合体，尚未运行 BIM 生成。
+实际检查为：源 SHA-256 命中；从 385,685 面中选出 12,520 面、8,242 顶点；输出重新加载仍保留 12,520 面和纹理映射；GLB 属性/metadata 白名单通过；三张面中心采色概览和一张公开轮廓叠图已实际打开检查。完整 UV 的 `viewer.html` 后由主助手在离线 Chromium 中确认纹理实际加载、形态可见且可旋转，无页面异常或外部请求。原 `inspection.json` 保留准备时未有浏览器的历史状态，新增浏览器证据单独保存。复现必须使用不存在的新输出目录，脚本拒绝覆盖已有产物。GLB 不是闭合体，尚未运行 BIM 生成。

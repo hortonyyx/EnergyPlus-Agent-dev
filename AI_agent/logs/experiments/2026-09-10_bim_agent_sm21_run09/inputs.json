@@ -1,0 +1,64 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "这是开发助手提供复核重点的辅助恢复实验，不是独立冷启动，也不是无干预能力成绩。请重新审查保存候选中的既有假设，不能把旧 proposal 的文字当成原图证据。逐一核对立面与平面中的外部门和窗，特别辨清门弧、窗框与标注，确认每个已建外部开口都对应独立的实际图像对象，并核对是否漏掉可见开口。现有叠图存在跨轴比例警告，请从原图重新选择和量测尺寸延长线端点，不能未经核实就把百分之几的比例差当作正常 CAD 偏移；在可信标定下检查明显内墙错位。保留真实房间和连通，修正错误身份和位置时记录图证与假设；不追逐细小墙厚偏差。请自行使用局部复核和确定性工具，交付实际候选与诚实的未解事项。本任务未提供正确坐标、对象数量或 GT。",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789030977.0637004,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "b692d78f0de93140b7ce219b8f942889177b2938d53e34c6fc1256405b99147a",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278",
+    "src/agent/geometry/opening_review.py": "f47fbbc60fdb0763a348acfd988d5d1766ded594a4f6405dd43c5e75c120e25f",
+    "src/agent/geometry/bim_delivery.py": "95c4803d2e4f40bfa498a4a49fc1033464d27822eb5684f16838deb5344a95e5",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "17e83a8f37cec0940b1a955cec46ac7234e2282238af9eea4b82c425bcc35ff6",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run08/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

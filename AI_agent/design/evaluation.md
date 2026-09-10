@@ -50,6 +50,10 @@ sm24 历史 11/8 区数例子不再作为 minor 放行的正例：用户明确�
 
 每份结果绑定当前 source 和所用图像的 SHA-256，并按房间列实际、对应和缺失 ID。修改候选后 source 摘要会改变，必须重新回查，旧结果不能套用。没有 finding 仅表示 `consistent_with_supplied_observations`，`drawing_fidelity` 始终为 `not_evaluated`：模型观察与自身清单一致不是 GT，也不是原图保真的证明。模块不读像素、不解释自由文本、不修改 source；图像识别与语义判断仍由模型或人工提供，独立 GT 比较继续在生成完成后进行。
 
+09-10 四立面部分推理实跑后，回查新增可选 `facade` 范围。由实际源宿主外墙的方向筛开口，单面 complete 不再要求包含其他面；各面及整层状态分别保存。所有实际外墙方向（含零开口方向）都需要明确完整观察，内门/未知宿主/不支持方向及零开口斜外墙继续留为未覆盖；不能只按已建对象的方向合并成整层完整。无 facade 的旧平面回查保留原含义。实现及真实观察重放见 [立面回查增量](../logs/worklog/2026-09-10_facade_opening_review.md)。
+
+共用 `evaluate_bim_agent.py` 已把还原/部分推理的报告解释分开：完整参照差异仍保存，未提供的内部格局不按还原任务判漏房。分区支持 v2/v3 GT，旧窗分数目前只接 v2；v3 必须明确未评分，不能将其强压为旧格式或报零分母。sm24 另有直接读取 typed GT 与实际源顶点的有界坐标诊断，未替代完整 typed claim 评分，见 [首轮部分推理证据](../logs/experiments/2026-09-10_partial_inference_sm24_run01/README.md)。
+
 run06 实例暴露最终自述也需核对：两份已存回查均需跟进，模型却称全部匹配。验收应引用实际结果，不能用这段文字覆盖未匹配和 uncertain；窗身份误读则需独立原图证据，清单自洽本身检测不到。详见 [最新交接](../logs/worklog/2026-09-10_bim_agent_opening_review_cold_start.md)。
 
 `bim_delivery.summarize_delivery` 现从实际源和已存回查生成交付状态，按楼层/类别保留未回查、partial、供给观察一致或需跟进；零个已建开口也不能自动当完整。只消费当前源摘要的回查，其他源明确列为旧结果。同源/同图/同范围的新 complete 可以替代旧项，partial 不替代 complete，不同图像风险并列；实际 finding 优先于 conclusion 字段。原图保真始终未评价，不由交付汇总自动放行。模型自报的不确定项也保留在交付页。

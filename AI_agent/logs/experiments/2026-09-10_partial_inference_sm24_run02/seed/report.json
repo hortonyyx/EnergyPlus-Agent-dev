@@ -1,0 +1,64 @@
+{
+  "agent_assumptions": [
+    "Only 4 elevations (S/N/E/W) supplied for a Shenzhen office building, 1F, ~200 sqm; no floor plan was provided.",
+    "Footprint derived from elevation width labels: South/North elevations both label overall width 10000mm (this is the East-West dimension, x-axis); East/West elevations both label overall width 20000mm (North-South dimension, y-axis). 10m x 20m = 200 sqm, matching stated area.",
+    "Left/right orientation on each elevation assumed via standard convention (viewer standing outside facing the wall): South image left=West..right=East; North image left=East..right=West; East image left=South..right=North; West image left=North..right=South. Cross-checked: matching 540mm corner margins and coincident window bands between East and West elevations at same y-ranges support this mapping, though it is not independently proven without a plan.",
+    "No interior partitions, room count, or internal doors are evidenced anywhere in the supplied drawings. Modeled as ONE merged open-plan space (F1_main) covering the full footprint, rather than inventing rooms or splitting by facade orientation.",
+    "Window/door sill and head heights grouped into 3 repeating dimension patterns observed consistently across facades: standard window (sill 1.0m, height 1.8m), large window >=4000mm wide (sill 1.0m, height 2.4m), exterior door (threshold 0.2m, height 2.4m). Applied uniformly to all openings of matching width/type.",
+    "Door leaf/swing direction and open/closed state not clearly resolvable from elevations; state left as 'unknown'.",
+    "Wall thickness abstracted to zero (single representative plane per facade); no interior structural grid assumed.",
+    "Ceiling height modeled as the full 4.5m elevation height (single storey, no separate slab/plenum breakdown given)."
+  ],
+  "counts": {
+    "boundaries": 6,
+    "connections": 3,
+    "openings": 14,
+    "spaces": 1,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "6346e0b56f01370d2751c33474d44a1ff64798c46e638dccdf1a26020d6baa2b",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "6346e0b56f01370d2751c33474d44a1ff64798c46e638dccdf1a26020d6baa2b",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_partial_inference_sm24_run01/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "c40dc6d4bb18fa7d2416c73c062a28b3ef34a8c7115ae34b96769eab392c1a7b",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Actual interior room layout, partition walls, corridors, and any internal doors are completely unknown; only exterior envelope and openings are modeled.",
+    "Whether South/East doors are secondary exits vs the North double door being the main entrance is an inference from leaf width only, not confirmed by any plan or signage.",
+    "Orientation (which image edge is which compass direction) is an assumed convention, not verified against a site plan or plan drawing.",
+    "Exact wall thickness and true interior floor area (net vs gross 200 sqm) not established."
+  ]
+}

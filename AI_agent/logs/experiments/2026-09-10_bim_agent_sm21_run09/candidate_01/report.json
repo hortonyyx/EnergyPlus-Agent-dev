@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East, confirmed by matching South elevation entrance door and West elevation corridor door positions to plan.",
+    "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+    "F1 ceiling height 3.0m, F2 3.6m, per East/West elevation vertical dimension chains.",
+    "Window sill/head heights read from elevation dimension chains: F1 z=[1.0,2.6], F2 z=[4.0,5.8].",
+    "Door heights: 2.4m for the two main glazed exterior doors (South main entrance, West corridor entrance) per elevation proportions; 2.1m for all other doors including the secondary south door D_R1S_ext2 and interior room-to-corridor doors.",
+    "East facade has a window (not door) into the corridor on both floors; West facade has a door into the corridor on F1 and a window in the same position on F2 - confirmed via East_view.png/West_view.png.",
+    "F1_R1S has TWO exterior south doors: D_main (main glazed entrance) and D_R1S_ext2 (secondary door near SW corner, width 900mm per plan dimension chain 540/900). D_R1S_ext2 is supported by direct plan evidence (arc + dimension chain; geometry re-verified by overlay_candidate, which projects the modeled door exactly onto this plan arc) but is NOT corroborated by South_view.png, which shows a plain, ungapped wall across that span (re-checked directly, no second door glyph present). The seed proposal's prior claim of a matching South_view.png glyph could not be confirmed on re-inspection and is retracted; D_R1S_ext2 is retained on plan evidence alone.",
+    "Interior room-to-corridor door widths/positions are approximated (~0.75-1m) from arc marks; F2 office door jamb offsets are approximated/centered since no explicit dimension callout exists for them in 2f_view.png (the nearby dimension chain there measures the south-facade window positions, not the corridor doors).",
+    "Overlay calibration (both F1 on 1f_view.png and F2 on 2f_view.png) shows a ~1.5-2% cross-axis (x vs y) pixel/metre scale disagreement when independently reading the '15000' and '8000' dimension-line tick marks from freshly re-measured pixel positions. This was investigated: the overlay projection nonetheless aligns tightly with all wall, door-arc and window-hatch positions in both drawings (visually confirmed), so the discrepancy is attributed to sub-10px tick-reading imprecision at this image resolution rather than a modeled geometry error. The blended scale was not trusted uncritically; alignment was checked visually against the source raster instead."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 15,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "c0ee7cb91d2c167f2c5894ca2796e3b21b79a1222b3cde05382fd238298754ca",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "a4e2931efed2c34e046ff514e2b671eecb5ac1ac8cc30135f4a3ec58a60596cc",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "17e83a8f37cec0940b1a955cec46ac7234e2282238af9eea4b82c425bcc35ff6"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "2c008a352fe4e4103d5b1b595d665c41416c7b3b4a10d91f6b5deb7867bf5638",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "D_R1S_ext2 (secondary south door on F1) is evidenced only in the plan (1f_view.png: arc + 540/900mm dimension chain, overlay-confirmed), but South_view.png elevation shows plain wall (no door glyph) across that same span - an unresolved plan/elevation conflict in the source drawings, not silently resolved either way.",
+    "Exact interior door widths/positions, especially F2 office-to-corridor doors (D_Off1_C..D_Off4_C), are approximated/centered rather than pixel-verified, since the source provides no explicit dimension callout for these specific doors (the nearby 2f_view.png dimension chain covers the south window positions instead).",
+    "Door swing direction/leaf count (single vs double leaf) is not modeled, only presence and connectivity.",
+    "Room role labels (office/lounge/meeting) are descriptive based on furniture drawn, not authoritative room names from the source drawings.",
+    "Overlay cross-axis pixel-scale disagreement (~1.5-2%) noted on both floors during recalibration; treated as tick-reading noise given tight visual alignment of walls/openings, but not independently closed against a third dimension chain or higher-resolution source."
+  ]
+}

@@ -1,0 +1,901 @@
+{
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Only 4 elevations (S/N/E/W) supplied for a Shenzhen office building, 1F, ~200 sqm; no floor plan was provided.",
+    "Footprint derived from elevation width labels: South/North elevations both label overall width 10000mm (this is the East-West dimension, x-axis); East/West elevations both label overall width 20000mm (North-South dimension, y-axis). 10m x 20m = 200 sqm, matching stated area.",
+    "Left/right orientation on each elevation assumed via standard convention (viewer standing outside facing the wall): South image left=West..right=East; North image left=East..right=West; East image left=South..right=North; West image left=North..right=South. Cross-checked: matching 540mm corner margins and coincident window bands between East and West elevations at same y-ranges support this mapping, though it is not independently proven without a plan.",
+    "No interior partitions, room count, or internal doors are evidenced anywhere in the supplied drawings. Modeled as ONE merged open-plan space (F1_main) covering the full footprint, rather than inventing rooms or splitting by facade orientation.",
+    "Window/door sill and head heights grouped into 3 repeating dimension patterns observed consistently across facades: standard window (sill 1.0m, height 1.8m), large window >=4000mm wide (sill 1.0m, height 2.4m), exterior door (threshold 0.2m, height 2.4m). Applied uniformly to all openings of matching width/type.",
+    "Door leaf/swing direction and open/closed state not clearly resolvable from elevations; state left as 'unknown'.",
+    "Wall thickness abstracted to zero (single representative plane per facade); no interior structural grid assumed.",
+    "Ceiling height modeled as the full 4.5m elevation height (single storey, no separate slab/plenum breakdown given)."
+  ],
+  "boundaries": [
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/F1_main/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "space_id": "F1_main",
+      "vertices": [
+        [
+          0.0,
+          0.0,
+          4.5
+        ],
+        [
+          10.0,
+          0.0,
+          4.5
+        ],
+        [
+          10.0,
+          20.0,
+          4.5
+        ],
+        [
+          0.0,
+          20.0,
+          4.5
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/F1_main/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "space_id": "F1_main",
+      "vertices": [
+        [
+          0.0,
+          20.0,
+          0.0
+        ],
+        [
+          10.0,
+          20.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/F1_main/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "space_id": "F1_main",
+      "vertices": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0,
+          4.5
+        ],
+        [
+          0.0,
+          0.0,
+          4.5
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/F1_main/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "space_id": "F1_main",
+      "vertices": [
+        [
+          10.0,
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          20.0,
+          0.0
+        ],
+        [
+          10.0,
+          20.0,
+          4.5
+        ],
+        [
+          10.0,
+          0.0,
+          4.5
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/F1_main/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "space_id": "F1_main",
+      "vertices": [
+        [
+          10.0,
+          20.0,
+          0.0
+        ],
+        [
+          0.0,
+          20.0,
+          0.0
+        ],
+        [
+          0.0,
+          20.0,
+          4.5
+        ],
+        [
+          10.0,
+          20.0,
+          4.5
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/F1_main/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "space_id": "F1_main",
+      "vertices": [
+        [
+          0.0,
+          20.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          4.5
+        ],
+        [
+          0.0,
+          20.0,
+          4.5
+        ]
+      ]
+    }
+  ],
+  "boundary_relations": [],
+  "conflicts": [],
+  "connections": [
+    {
+      "exterior": true,
+      "kind": "door",
+      "opening_id": "D_S1",
+      "space_ids": [
+        "F1_main"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": true,
+      "kind": "door",
+      "opening_id": "D_N1",
+      "space_ids": [
+        "F1_main"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": true,
+      "kind": "door",
+      "opening_id": "D_E1",
+      "space_ids": [
+        "F1_main"
+      ],
+      "state": "unknown"
+    }
+  ],
+  "coordinate_system": {
+    "frame": "corrected building coordinates",
+    "north_axis": null,
+    "units": "m",
+    "up_axis": "Z"
+  },
+  "corrections": [],
+  "floors": [
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "footprint_basis": "legacy_common_footprint",
+      "height": 4.5,
+      "id": "F1",
+      "name": "F1",
+      "z_floor": 0.0
+    }
+  ],
+  "generation": {
+    "corrections": [],
+    "method": "agent_geometry_proposal",
+    "notes": null,
+    "proposal_sha256": "6346e0b56f01370d2751c33474d44a1ff64798c46e638dccdf1a26020d6baa2b",
+    "provenance": {
+      "generator": "Claude subscription tool loop",
+      "input_manifest_sha256": "274bb0faf3b862905875aa0c5ec8afd3e057fc3dedaeb154bcdbc11328005bc5",
+      "mode": "original_images_agent_experiment"
+    },
+    "unresolved": [
+      "Actual interior room layout, partition walls, corridors, and any internal doors are completely unknown; only exterior envelope and openings are modeled.",
+      "Whether South/East doors are secondary exits vs the North double door being the main entrance is an inference from leaf width only, not confirmed by any plan or signage.",
+      "Orientation (which image edge is which compass direction) is an assumed convention, not verified against a site plan or plan drawing.",
+      "Exact wall thickness and true interior floor area (net vs gross 200 sqm) not established."
+    ]
+  },
+  "opening_hosts": {
+    "D_E1": [
+      "space/F1_main/wall/1"
+    ],
+    "D_N1": [
+      "space/F1_main/wall/2"
+    ],
+    "D_S1": [
+      "space/F1_main/wall/0"
+    ],
+    "W_E1": [
+      "space/F1_main/wall/1"
+    ],
+    "W_E2": [
+      "space/F1_main/wall/1"
+    ],
+    "W_E3": [
+      "space/F1_main/wall/1"
+    ],
+    "W_N1": [
+      "space/F1_main/wall/2"
+    ],
+    "W_S1": [
+      "space/F1_main/wall/0"
+    ],
+    "W_S2": [
+      "space/F1_main/wall/0"
+    ],
+    "W_W1": [
+      "space/F1_main/wall/3"
+    ],
+    "W_W2": [
+      "space/F1_main/wall/3"
+    ],
+    "W_W3": [
+      "space/F1_main/wall/3"
+    ],
+    "W_W4": [
+      "space/F1_main/wall/3"
+    ],
+    "W_W5": [
+      "space/F1_main/wall/3"
+    ]
+  },
+  "openings": [
+    {
+      "assumptions": [
+        "Exterior entrance/exit door, state unknown"
+      ],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/1",
+      "id": "D_E1",
+      "kind": "door",
+      "source_refs": [
+        "East_view.png: double-leaf glazed door width 1600, same height stack as North/South doors"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          10.0,
+          5.7,
+          0.2
+        ],
+        [
+          10.0,
+          7.3,
+          0.2
+        ],
+        [
+          10.0,
+          7.3,
+          2.6
+        ],
+        [
+          10.0,
+          5.7,
+          2.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [
+        "Exterior entrance door, likely main entrance given double-leaf width"
+      ],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/2",
+      "id": "D_N1",
+      "kind": "door",
+      "source_refs": [
+        "North_view.png: double-leaf glazed door width 1600, height stack 1900/2400/200"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.54,
+          20.0,
+          0.2
+        ],
+        [
+          2.14,
+          20.0,
+          0.2
+        ],
+        [
+          2.14,
+          20.0,
+          2.6
+        ],
+        [
+          0.54,
+          20.0,
+          2.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [
+        "Exterior entrance door, state unknown"
+      ],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/0",
+      "id": "D_S1",
+      "kind": "door",
+      "source_refs": [
+        "South_view.png: single-leaf glazed door with transom, width 900, dims 900 centered, height stack 1900/2400/200"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          4.54,
+          0.0,
+          0.2
+        ],
+        [
+          5.44,
+          0.0,
+          0.2
+        ],
+        [
+          5.44,
+          0.0,
+          2.6
+        ],
+        [
+          4.54,
+          0.0,
+          2.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/1",
+      "id": "W_E1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_E1"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          10.0,
+          8.84,
+          1.0
+        ],
+        [
+          10.0,
+          13.64,
+          1.0
+        ],
+        [
+          10.0,
+          13.64,
+          3.4
+        ],
+        [
+          10.0,
+          8.84,
+          3.4
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/1",
+      "id": "W_E2",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_E2"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          10.0,
+          14.38,
+          1.0
+        ],
+        [
+          10.0,
+          15.58,
+          1.0
+        ],
+        [
+          10.0,
+          15.58,
+          2.8
+        ],
+        [
+          10.0,
+          14.38,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/1",
+      "id": "W_E3",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_E3"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          10.0,
+          17.96,
+          1.0
+        ],
+        [
+          10.0,
+          19.46,
+          1.0
+        ],
+        [
+          10.0,
+          19.46,
+          2.8
+        ],
+        [
+          10.0,
+          17.96,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/2",
+      "id": "W_N1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_N1"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          4.66,
+          20.0,
+          3.4
+        ],
+        [
+          9.46,
+          20.0,
+          3.4
+        ],
+        [
+          9.46,
+          20.0,
+          1.0
+        ],
+        [
+          4.66,
+          20.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/0",
+      "id": "W_S1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_S1"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.54,
+          0.0,
+          1.0
+        ],
+        [
+          2.04,
+          0.0,
+          1.0
+        ],
+        [
+          2.04,
+          0.0,
+          2.8
+        ],
+        [
+          0.54,
+          0.0,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/0",
+      "id": "W_S2",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_S2"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          7.48,
+          0.0,
+          1.0
+        ],
+        [
+          8.98,
+          0.0,
+          1.0
+        ],
+        [
+          8.98,
+          0.0,
+          2.8
+        ],
+        [
+          7.48,
+          0.0,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/3",
+      "id": "W_W1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_W1"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.0,
+          17.96,
+          2.8
+        ],
+        [
+          0.0,
+          19.46,
+          2.8
+        ],
+        [
+          0.0,
+          19.46,
+          1.0
+        ],
+        [
+          0.0,
+          17.96,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/3",
+      "id": "W_W2",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_W2"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.0,
+          14.38,
+          2.8
+        ],
+        [
+          0.0,
+          15.58,
+          2.8
+        ],
+        [
+          0.0,
+          15.58,
+          1.0
+        ],
+        [
+          0.0,
+          14.38,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/3",
+      "id": "W_W3",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_W3"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.0,
+          11.14,
+          2.8
+        ],
+        [
+          0.0,
+          12.64,
+          2.8
+        ],
+        [
+          0.0,
+          12.64,
+          1.0
+        ],
+        [
+          0.0,
+          11.14,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/3",
+      "id": "W_W4",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_W4"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.0,
+          8.42,
+          2.8
+        ],
+        [
+          0.0,
+          9.92,
+          2.8
+        ],
+        [
+          0.0,
+          9.92,
+          1.0
+        ],
+        [
+          0.0,
+          8.42,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/F1_main/wall/3",
+      "id": "W_W5",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_W5"
+      ],
+      "space_ids": [
+        "F1_main"
+      ],
+      "vertices": [
+        [
+          0.0,
+          0.54,
+          3.4
+        ],
+        [
+          0.0,
+          5.34,
+          3.4
+        ],
+        [
+          0.0,
+          5.34,
+          1.0
+        ],
+        [
+          0.0,
+          0.54,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "schema_version": "source_bim_v2",
+  "source_geometry_sha256": "fcc53e7b6b05b046579a09e35fe7250011acba94495de3fb649d9a022c4c124a",
+  "source_model_sha256": "32a250097c9d9e48d84c4cbc776527bb3f18039ba0e04d148483a9bc5606410f",
+  "spaces": [
+    {
+      "floor_id": "F1",
+      "height": 4.5,
+      "id": "F1_main",
+      "polygon": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "role": "office_open_plan",
+      "source_refs": [
+        "correction:floor/F1/cell/F1_main"
+      ],
+      "z_floor": 0.0
+    }
+  ],
+  "unbuilt_openings": [],
+  "unsupported": [],
+  "validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  }
+}

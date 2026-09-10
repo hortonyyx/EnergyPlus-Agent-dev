@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 451.63,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 448584,
+    "duration_api_ms": 445711,
+    "ttft_ms": 1655,
+    "ttft_stream_ms": 1143,
+    "time_to_request_ms": 22,
+    "num_turns": 50,
+    "result": "## Summary\n\n**Final candidate: `candidate_01`** (derived from seed via one `revise_bim` notes correction; all geometry, IDs and openings unchanged from seed).\n\n**What I did**\n- Inspected the seed proposal (14 spaces, 29 openings, 2 floors) and compared it against all six original drawings (1f/2f plans, four elevations).\n- Re-measured wall/dimension-line tick marks in `1f_view.png` and `2f_view.png` and ran `overlay_candidate` for both F1 and F2. The projected magenta walls and orange/lime openings land tightly on the actual plan lines/arcs/hatches for every room, door and window — geometry is confirmed sound. The tool flagged a ~1.5–2% cross-axis px/m disagreement from my two-anchor tick readings; given the otherwise excellent visual alignment, I treated this as tick-reading noise (sub-10px) rather than a real scale error, and recorded that judgement explicitly rather than hiding it.\n- Specifically re-investigated the seed's most unusual claim: a second exterior south door `D_R1S_ext2` (SW corner, 0.54–1.44 m). The plan (`1f_view.png`) does show a genuine door arc + matching 540/900mm dimension chain there, and the overlay projects the modeled door exactly onto that arc — so I kept it. However, I checked `South_view.png` directly and found **no** corresponding door glyph in that wall span (only plain wall before the main entrance) — contradicting the seed's claim that South_view.png corroborated it. I retracted that false source_ref/claim and re-recorded the opening as plan-evidenced only, with the plan/elevation conflict now explicit in assumptions and unresolved items.\n- Ran `check_openings` with full mark-by-mark `review_json` for all doors and all windows on both floors (4 reviews, complete coverage each) against the final candidate. All marks matched modeled openings with zero missing/unmatched, and these reviews are now \"current\" (re-run after the notes revision changed the source hash).\n\n**Not independently verified / limitations (unresolved, per candidate)**\n- `D_R1S_ext2`: plan-only evidence; elevation does not corroborate it — flagged, not silently resolved.\n- Exact jamb offsets for F2 office↔corridor doors and most interior doors are approximated (no explicit dimension callouts exist for them).\n- Door swing direction/leaf count not modeled (presence/connectivity only).\n- Room role labels are descriptive (from furniture), not authoritative.\n- Residual ~1.5–2% cross-axis calibration disagreement in the overlay tool noted but not closed against a third independent dimension chain.\n- Drawing partition fidelity/completeness, thermal properties, and EnergyPlus adaptation remain explicitly \"not_evaluated\" per the delivery record.\n\n`finish_bim` was called on `candidate_01`, which is now the selected/recorded delivery with 14 spaces, 84 boundaries, 29 openings, 15 connections, source_validation status \"pass\", and all four opening-kind reviews current and consistent.",
+    "stop_reason": "end_turn",
+    "session_id": "1bf0dc73-623f-4b02-a9c1-804f79e93a29",
+    "total_cost_usd": 1.794949,
+    "usage": {
+      "input_tokens": 66,
+      "cache_creation_input_tokens": 119611,
+      "cache_read_input_tokens": 1689260,
+      "output_tokens": 37951,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 119611,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1052,
+          "cache_read_input_tokens": 119365,
+          "cache_creation_input_tokens": 5603,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 5603
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 912,
+        "outputTokens": 26,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001042,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 66,
+        "outputTokens": 37951,
+        "cacheReadInputTokens": 1689260,
+        "cacheCreationInputTokens": 119611,
+        "webSearchRequests": 0,
+        "costUSD": 1.793907,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "776e2a69-b792-46bd-aa60-139a1086216e"
+  }
+}

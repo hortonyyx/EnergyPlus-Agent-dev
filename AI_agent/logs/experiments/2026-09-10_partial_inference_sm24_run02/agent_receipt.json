@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 420,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 295.48,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 292634,
+    "duration_api_ms": 96217,
+    "ttft_ms": 2304,
+    "ttft_stream_ms": 1445,
+    "time_to_request_ms": 24,
+    "num_turns": 20,
+    "result": "## Summary\n\n**Final candidate: `seed`** (finished/selected, unchanged from the saved proposal).\n\n**Work performed this session:**\n- Listed inputs (4 elevations only, no plan/GT, per scope).\n- Inspected the seed proposal: single merged open-plan space `F1_main`, footprint 10m(x, E‑W) × 20m(y, N‑S) = 200 m², 3 doors, 11 windows.\n- Re-read all four elevations directly and independently re-summed every dimension chain (South, North, East, West) using `map_dimension_chain`, confirming each closes to the stated overall dimension (10 m or 20 m).\n- Re-derived every window/door position and height stack from the segment labels and cross-checked against the seed's stated per-elevation left/right orientation convention (South/East direct, North/West reversed because those images' left edge maps to a higher world coordinate). All 14 openings' plan spans and z-heights matched the seed exactly, including the non-trivial reversed mapping on North and West.\n- Ran one Haiku local review (`review_detail`) on the West elevation dimension chain and opening identities as the required independent sub-task check: it confirmed 5 windows / 0 doors on West with no door detected, consistent with the model; its individual width estimates were rougher than my direct arithmetic, so I relied on the arithmetic reading for exact spans, using Haiku's result only as a coarse identity/count cross-check.\n- Ran `check_openings` with the full opening inventory, then submitted **complete facade reviews for every direction × kind (window and door) — North, South, East, West** using observed pixel marks on the original elevation images, with explicit empty-mark reviews for West door (no door observed on that facade). All 8 reviews returned `consistent_with_supplied_observations` with no findings.\n- No geometric edits were needed: the seed's arithmetic and orientation convention held up under independent recomputation, so I did not force cosmetic revisions.\n- Selected/finished `seed` as the delivered candidate.\n\n**Preserved as explicit, unverified assumptions (unchanged from seed, still true limitations):**\n- No floor plan was supplied; interior partitions, true room count, and internal doors remain completely unknown. Modeled as one merged space, per instruction not to invent walls.\n- Left/right-to-compass mapping per elevation is an assumed convention (corner-margin/window-band matching supports it, but it is not independently provable without a plan).\n- Door leaf swing/open state is unknown (not resolvable from elevations).\n- Wall thickness abstracted to zero; ceiling height = full 4.5 m elevation height (no slab/plenum breakdown given).\n- Net vs. gross 200 m² not distinguished.\n\n**Reviewed vs. not reviewed:**\n- Window and door openings: **complete** facade-by-facade review on all 4 facades (N/S/E/W) — done and recorded in this session's checked reviews.\n- Passage-kind openings: not applicable (0 built) and left `not_reviewed` (no passages exist in the model).\n- Interior connectivity/partitions: **unresolved/unreviewed** — no plan evidence exists to review.\n\nNo candidate revision was required; the seed's own numbers and orientation logic held up against a full independent re-check of the source dimension chains and a constrained Haiku sub-review.",
+    "stop_reason": "end_turn",
+    "session_id": "e37cf249-2f43-40a5-b8ea-3d0b2a77b270",
+    "total_cost_usd": 0.5043732,
+    "usage": {
+      "input_tokens": 16,
+      "cache_creation_input_tokens": 52151,
+      "cache_read_input_tokens": 156934,
+      "output_tokens": 9553,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 52151,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1118,
+          "cache_read_input_tokens": 43266,
+          "cache_creation_input_tokens": 8885,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 8885
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 919,
+        "outputTokens": 25,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001044,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 16,
+        "outputTokens": 9553,
+        "cacheReadInputTokens": 156934,
+        "cacheCreationInputTokens": 52151,
+        "webSearchRequests": 0,
+        "costUSD": 0.5033292,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "9b94bc3e-6df4-4e97-9e7b-20f74e8a802d"
+  }
+}

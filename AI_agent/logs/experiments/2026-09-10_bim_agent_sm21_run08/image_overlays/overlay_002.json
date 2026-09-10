@@ -1,0 +1,525 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "69ccfd73b0aab15aefe6a4ea87fcf4e56e3de47d61251733c2f0aa8cf39c3b76",
+  "floor_id": "F2",
+  "basis": "Outer wall bounding box of 2f_view.png: left wall inner-face ~x=440px maps to world x=0, right wall inner-face ~x=1773px maps to world x=15 (15000mm overall dimension line); top wall ~y=340px maps to world y=8 (north/top), bottom wall ~y=1086px maps to world y=0 (south/bottom), per the 15000x8000 overall dimension chains on the plan.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        440.0,
+        0.0
+      ],
+      [
+        1773.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        340.0,
+        8.0
+      ],
+      [
+        1086.0,
+        0.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.011252813203300824,
+      "y": -0.010723860589812333
+    },
+    "pixels_per_world_metre": {
+      "x": 88.86666666666667,
+      "y": -93.25
+    },
+    "axis_px_per_m": {
+      "x": 88.86666666666666,
+      "y": 93.25
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 88.86666666666666,
+        "y_px_per_m": 93.25,
+        "relative_deviation": 0.04813764070650689,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=88.8666667 px/m and y=93.25 px/m disagree by 4.813764%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "x",
+        "dimension_ref": "caller_x_anchors",
+        "span_px": 1333.0,
+        "value_m": 15.0,
+        "residual_px": -14.560553633217978,
+        "residual_m": -0.16207680160228
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "y",
+        "dimension_ref": "caller_y_anchors",
+        "span_px": 746.0,
+        "value_m": 8.0,
+        "residual_px": 27.301038062283737,
+        "residual_m": 0.3038940030042753
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "F2_ConfA",
+      "pixel_polygon": [
+        [
+          440.0,
+          619.75
+        ],
+        [
+          1106.5,
+          619.75
+        ],
+        [
+          1106.5,
+          340.0
+        ],
+        [
+          440.0,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_ConfB",
+      "pixel_polygon": [
+        [
+          1106.5,
+          619.75
+        ],
+        [
+          1773.0,
+          619.75
+        ],
+        [
+          1773.0,
+          340.0
+        ],
+        [
+          1106.5,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_Corridor",
+      "pixel_polygon": [
+        [
+          440.0,
+          806.25
+        ],
+        [
+          1773.0,
+          806.25
+        ],
+        [
+          1773.0,
+          619.75
+        ],
+        [
+          440.0,
+          619.75
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_Off1",
+      "pixel_polygon": [
+        [
+          440.0,
+          1086.0
+        ],
+        [
+          773.25,
+          1086.0
+        ],
+        [
+          773.25,
+          806.25
+        ],
+        [
+          440.0,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_Off2",
+      "pixel_polygon": [
+        [
+          773.25,
+          1086.0
+        ],
+        [
+          1106.5,
+          1086.0
+        ],
+        [
+          1106.5,
+          806.25
+        ],
+        [
+          773.25,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_Off3",
+      "pixel_polygon": [
+        [
+          1106.5,
+          1086.0
+        ],
+        [
+          1439.75,
+          1086.0
+        ],
+        [
+          1439.75,
+          806.25
+        ],
+        [
+          1106.5,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_Off4",
+      "pixel_polygon": [
+        [
+          1439.75,
+          1086.0
+        ],
+        [
+          1773.0,
+          1086.0
+        ],
+        [
+          1773.0,
+          806.25
+        ],
+        [
+          1439.75,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_ConfA_C",
+      "kind": "door",
+      "space_ids": [
+        "F2_ConfA",
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1053.18,
+          619.75
+        ],
+        [
+          1106.5,
+          619.75
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_ConfB_C",
+      "kind": "door",
+      "space_ids": [
+        "F2_ConfB",
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1106.5,
+          619.75
+        ],
+        [
+          1159.82,
+          619.75
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Off1_C",
+      "kind": "door",
+      "space_ids": [
+        "F2_Off1",
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          573.3,
+          806.25
+        ],
+        [
+          639.95,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Off2_C",
+      "kind": "door",
+      "space_ids": [
+        "F2_Off2",
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          906.55,
+          806.25
+        ],
+        [
+          973.2,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Off3_C",
+      "kind": "door",
+      "space_ids": [
+        "F2_Off3",
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1239.8,
+          806.25
+        ],
+        [
+          1306.45,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Off4_C",
+      "kind": "door",
+      "space_ids": [
+        "F2_Off4",
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1573.05,
+          806.25
+        ],
+        [
+          1639.7,
+          806.25
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_E",
+      "kind": "window",
+      "space_ids": [
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1773.0,
+          768.95
+        ],
+        [
+          1773.0,
+          657.05
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_N1",
+      "kind": "window",
+      "space_ids": [
+        "F2_ConfA"
+      ],
+      "pixel_endpoints": [
+        [
+          613.29,
+          340.0
+        ],
+        [
+          933.21,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_N2",
+      "kind": "window",
+      "space_ids": [
+        "F2_ConfB"
+      ],
+      "pixel_endpoints": [
+        [
+          1279.79,
+          340.0
+        ],
+        [
+          1599.71,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_S1",
+      "kind": "window",
+      "space_ids": [
+        "F2_Off1"
+      ],
+      "pixel_endpoints": [
+        [
+          634.618,
+          1086.0
+        ],
+        [
+          741.258,
+          1086.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_S2",
+      "kind": "window",
+      "space_ids": [
+        "F2_Off2"
+      ],
+      "pixel_endpoints": [
+        [
+          805.242,
+          1086.0
+        ],
+        [
+          911.882,
+          1086.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_S3",
+      "kind": "window",
+      "space_ids": [
+        "F2_Off3"
+      ],
+      "pixel_endpoints": [
+        [
+          1301.118,
+          1086.0
+        ],
+        [
+          1407.758,
+          1086.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_S4",
+      "kind": "window",
+      "space_ids": [
+        "F2_Off4"
+      ],
+      "pixel_endpoints": [
+        [
+          1471.742,
+          1086.0
+        ],
+        [
+          1578.382,
+          1086.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F2_W",
+      "kind": "window",
+      "space_ids": [
+        "F2_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          440.0,
+          768.95
+        ],
+        [
+          440.0,
+          657.05
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "candidate": "seed",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "overlay_image": "image_overlays/overlay_002.png",
+  "original_size": [
+    2182,
+    1319
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2182,
+    1319
+  ],
+  "returned_size": [
+    1600,
+    967
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.36375,
+    1.3640124095139607
+  ],
+  "remaining_seconds": 861
+}
