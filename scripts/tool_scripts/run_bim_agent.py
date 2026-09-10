@@ -33,14 +33,38 @@ partitions, windows, doors and connectivity; never split a room to make a box.
 Annotation + pixels is stronger than pixels alone, which is stronger than
 inference. Missing evidence permits explicit assumptions, not silent omission.
 Use measurements where useful; tools are optional methods, not a fixed workflow.
-Use review_detail (Haiku subscription) for at least one small verifiable visual
-question; you remain responsible for checking its answer against the drawing.
+Use review_detail (Haiku subscription) when a local second look is useful;
+you remain responsible for checking its answer against the drawing. Its prose
+is a hypothesis, not proof of an opening or connection.
 Do not ask the user for routine geometry choices. No EP/materials are needed.
 build_bim saves immutable candidates and returns actual checks. Revise if a
 check fails, keep stable object IDs and do not drop known openings to pass.
 Inspect the resulting plan with view_candidate and compare to original images.
 Geometric consistency is not drawing fidelity. Conclude with exact candidate,
 assumptions, unresolved issues and what was/was not verified.
+Produce an initial or revised candidate early, then improve it. Do not spend
+the whole budget chasing small dimension offsets. When a seed is available,
+inspect_candidate('seed') gives the saved proposal and production checks;
+continue from it rather than regenerating the whole building. Compare its plan
+with the original, resolve coordinate conventions, and review opening identity.
+Use revise_bim for local changes and code-computed reflections. Never change
+facade labels merely to satisfy a host check: geometry and drawing directions
+must agree. Door swings, dimension ticks and window marks are different things.
+When correcting an unsupported opening, preserve the reason and source reference.
+
+revise_bim takes candidate plus an operations_json list. Operations include:
+{"op":"reflect","axis":"y","reason":"explain the chosen frame change"};
+{"op":"update_window","id":"W1","changes":{"span":[1,2]},
+ "reason":"explain","source_refs":["image: observation or explicit assumption"]};
+{"op":"update_opening","id":"D1","changes":{"p1":[3,1],"p2":[3,2]},
+ "reason":"explain","source_refs":["image: observation or explicit assumption"]};
+{"op":"remove_opening","id":"D1","reason":"explain reclassification",
+ "source_refs":["image: observation"]};
+{"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
+Reflect transforms the entire proposal around the footprint midpoint on that
+axis, including rooms, window directions/spans and door coordinates. It preserves
+identities and connectivity. Replace stale directional assumptions with set_notes.
+Source IDs remain stable even if they contain an obsolete direction in their name.
 
 Geometry adapter input is a JSON string containing:
 {"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],
@@ -121,8 +145,13 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                "--settings", '{"disableAllHooks":true}',
                "--no-session-persistence", "--output-format", "stream-json", "--verbose",
                "--system-prompt", ("Answer only the supplied local visual question using tools. "
-                                    "State uncertainty. Do not plan the whole building."
+                                    "Inspect a suitable crop; cite original pixel locations of marks. "
+                                    "Separate door arcs, gaps and dimension ticks. State uncertainty; "
+                                    "do not infer a connection just because rooms are adjacent. "
+                                    "Do not plan the whole building."
                                     if readonly else GUIDE)]
+    if not readonly:
+        command.extend(["--effort", "medium"])
     server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run)]
     if readonly:
         server.append("--readonly")
@@ -130,7 +159,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         "command": server[0], "args": server[1:], "alwaysLoad": True}}})])
     started = time.monotonic()
     record = {"requested_model": model, "channel": "Claude subscription; no API/fallback",
-              "readonly": readonly, "timeout_seconds": timeout}
+              "readonly": readonly, "timeout_seconds": timeout,
+              "effort": None if readonly else "medium"}
     dump(run / f"{name}_request.json", {**record, "prompt": prompt,
                                        "system_prompt": command[command.index("--system-prompt")+1]})
     stdout_path, stderr_path = run / f"{name}_stream.jsonl", run / f"{name}_stderr.log"
@@ -173,6 +203,37 @@ class Toolkit:
             stream.write(json.dumps({"time": time.time(), "readonly": self.readonly,
                                      "action": action, "data": data}, ensure_ascii=False) + "\n")
 
+    def candidate_path(self, candidate):
+        allowed = {p.name for p in self.run.glob("candidate_*") if p.is_dir()}
+        if (self.run / "seed").is_dir():
+            allowed.add("seed")
+        if candidate not in allowed:
+            raise ValueError("unknown candidate")
+        return self.run / candidate
+
+    def remaining_seconds(self):
+        deadline = self.manifest.get("deadline_epoch")
+        return max(0, round(deadline - time.time())) if deadline else None
+
+    def build(self, proposal, *, action="build_bim", parent=None, operations=None):
+        from src.agent.execution.source_proposal import export_source_proposal
+        index = len(list(self.run.glob("candidate_*"))) + 1
+        if index > 6:
+            return {"error": "candidate budget exhausted; report saved partial results"}
+        candidate = f"candidate_{index:02d}"
+        provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
+                      "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
+                      "generator": "Claude subscription tool loop"}
+        if parent is not None:
+            provenance.update(parent_candidate=parent,
+                              parent_proposal_sha256=digest(self.candidate_path(parent)/"proposal.json"))
+        report = export_source_proposal(proposal, self.run/candidate, provenance=provenance)
+        if operations is not None:
+            dump(self.run/candidate/"operations.json", operations)
+        result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report}
+        self.log(action, result)
+        return result
+
     def image_path(self, name):
         if name not in self.manifest["images"]:
             raise ValueError("choose an exact image name from input inventory")
@@ -185,6 +246,8 @@ class Toolkit:
         from mcp.server.fastmcp import Image
         with PILImage.open(self.image_path(name)) as raw:
             pic = raw.convert("RGB")
+            original_size = list(pic.size)
+            region = box or [0, 0, pic.width, pic.height]
             if box is not None:
                 x0,y0,x1,y1 = box
                 if not (0 <= x0 < x1 <= pic.width and 0 <= y0 < y1 <= pic.height):
@@ -192,9 +255,14 @@ class Toolkit:
                 pic = pic.crop(box)
             pic.thumbnail((1600,1600))
             data = io.BytesIO(); pic.save(data, "PNG")
-        self.log("view_image", {"name": name, "box_original_pixels": box,
-                                "returned_size": list(pic.size)})
-        return Image(data=data.getvalue(), format="png")
+        metadata = {"name": name, "original_size": original_size,
+                    "box_original_pixels": region, "returned_size": list(pic.size),
+                    "original_pixels_per_returned_pixel": [
+                        (region[2] - region[0]) / pic.width,
+                        (region[3] - region[1]) / pic.height],
+                    "coordinate_note": "Original pixel = crop origin + returned pixel * scale. Use ORIGINAL pixels for the next crop or measurement."}
+        self.log("view_image", metadata)
+        return [Image(data=data.getvalue(), format="png"), json.dumps(metadata)]
 
     def profile(self, name, box, axis, rgb, tolerance):
         import numpy as np
@@ -234,10 +302,10 @@ def serve(run: Path, readonly=False):
     def inputs() -> dict:
         """List available original images, original pixel dimensions and input scope."""
         toolkit.log("inputs", {})
-        return toolkit.manifest
+        return {**toolkit.manifest, "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
-    def view_image(name: str, box: list[int] | None = None) -> Image:
+    def view_image(name: str, box: list[int] | None = None):
         """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
         Full views fit 1600 px; use inventory dimensions when choosing crops.
         """
@@ -280,6 +348,34 @@ def serve(run: Path, readonly=False):
 
     if not readonly:
         @server.tool()
+        def inspect_candidate(candidate: str = "seed") -> dict:
+            """Read a saved candidate's proposal and production geometry checks.
+            No independent evaluation or reference answer is exposed.
+            """
+            path = toolkit.candidate_path(candidate)
+            proposal = json.loads((path/"proposal.json").read_text())
+            report = json.loads((path/"report.json").read_text())
+            result = {"candidate": candidate, "proposal": proposal,
+                      "source_validation": report.get("source_validation"),
+                      "counts": report.get("counts"),
+                      "remaining_seconds": toolkit.remaining_seconds()}
+            toolkit.log("inspect_candidate", {"candidate": candidate})
+            return result
+
+        @server.tool()
+        def revise_bim(candidate: str, operations_json: str) -> dict:
+            """Apply local edits/reflection with code and save a new checked BIM.
+            See brief for operations. The prior candidate remains unchanged.
+            Opening changes/removals require a reason and source_refs.
+            """
+            from src.agent.geometry.proposal_edits import apply_proposal_edits
+            path = toolkit.candidate_path(candidate)
+            proposal = json.loads((path/"proposal.json").read_text())
+            operations = json.loads(operations_json)
+            updated = apply_proposal_edits(proposal, operations)
+            return toolkit.build(updated, action="revise_bim", parent=candidate, operations=operations)
+
+        @server.tool()
         def review_detail(question: str, images: list[str]) -> dict:
             """Ask Haiku one small visual question, e.g. count/locate doors in a region.
             Give image names and original crop coordinates; answer is evidence to check.
@@ -305,18 +401,7 @@ def serve(run: Path, readonly=False):
             """Build/check/save a candidate from the proposal JSON described in your brief.
             Returns errors or actual geometry checks. Six immutable candidates maximum.
             """
-            from src.agent.execution.source_proposal import export_source_proposal
-            index = len(list(run.glob("candidate_*")))+1
-            if index > 6:
-                return {"error": "candidate budget exhausted; report saved partial results"}
-            candidate = f"candidate_{index:02d}"
-            report = export_source_proposal(json.loads(proposal_json), run/candidate,
-                provenance={"input_manifest_sha256": digest(run/"inputs.json"),
-                            "mode": "original_images_agent_experiment",
-                            "generator": "Claude subscription tool loop"})
-            result = {"candidate": candidate, **report}
-            toolkit.log("build_bim", result)
-            return result
+            return toolkit.build(json.loads(proposal_json))
 
         @server.tool()
         def view_candidate(candidate: str, floor_id: str) -> Image:
@@ -324,9 +409,8 @@ def serve(run: Path, readonly=False):
             Use exact candidate from build_bim; floor_id is the proposed floor name.
             This is an inspection projection, not evidence from the original drawing.
             """
-            if candidate not in {p.name for p in run.glob("candidate_*") if p.is_dir()}:
-                raise ValueError("unknown candidate")
-            source = json.loads((run/candidate/"source_model.json").read_text())
+            path = toolkit.candidate_path(candidate)
+            source = json.loads((path/"source_model.json").read_text())
             rooms = [s for s in source["spaces"] if s["floor_id"] == floor_id]
             if not rooms: raise ValueError("unknown floor_id")
             points = [p for s in rooms for p in s["polygon"]]
@@ -335,6 +419,9 @@ def serve(run: Path, readonly=False):
             scale = min(1000/(x1-x0),700/(y1-y0))
             convert = lambda p: (40+(p[0]-x0)*scale,40+(y1-p[1])*scale)
             pic = PILImage.new("RGB", (1080,800), "white"); draw = ImageDraw.Draw(pic)
+            draw.text((1040, 15), "+Y / N", fill="black", anchor="rt")
+            draw.line([(1050,70),(1050,30)], fill="black", width=3)
+            draw.polygon([(1050,25),(1045,35),(1055,35)], fill="black")
             from shapely.geometry import Polygon
             for i,space in enumerate(rooms):
                 ring = [convert(p) for p in space["polygon"]]
@@ -364,13 +451,33 @@ def run_experiment(args):
         with PILImage.open(target) as im: size=list(im.size)
         images[path.name] = {"size":size,"sha256":digest(target)}
     if not images: raise ValueError("no PNG drawings in input directory")
-    dump(run/"inputs.json", {"images":images,"scope":args.scope,
+    seed_path = getattr(args, "resume_candidate", None)
+    manifest = {"images":images,"scope":args.scope,
+                             "input_mode": "saved_candidate_recovery" if seed_path else "original_images_agent_experiment",
+                             "deadline_epoch": time.time() + args.timeout,
                              "implementation_sha256": {
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
-                                 "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py")},
-                             "only_input": "original image bytes and user scope; no GT/history"})
-    record = subscription(run, f"Scope: {args.scope}\nStart by listing the supplied images. "
-                          "Generate and inspect a useful BIM candidate; report limitations honestly.",
+                                 "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
+                                 "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py")},
+                             "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
+    if seed_path:
+        raw = (seed_path/"proposal.json").read_bytes()
+        # Only the proposal is imported, never a report that might hold evaluation.
+        proposal = json.loads(raw)
+        manifest["seed"] = {"candidate": "seed", "proposal_sha256":hashlib.sha256(raw).hexdigest(),
+                            "source":str(seed_path.resolve()), "mode":"previous_generated_proposal_recovery"}
+        from src.agent.execution.source_proposal import export_source_proposal
+        report = export_source_proposal(proposal, run/"seed", provenance=manifest["seed"])
+        if not (run/"seed"/"source_model.json").exists():
+            raise ValueError(f"seed cannot be materialized: {report.get('error')}")
+    dump(run/"inputs.json", manifest)
+    continuation = ("A saved proposal is available as seed. Inspect it and compare to the original "
+                    "images; prioritize coordinate conventions and opening identity. Use local edits "
+                    "to preserve reliable existing geometry. Do not redo a full reading." if seed_path else
+                    "Generate an initial candidate early, then inspect and revise it.")
+    record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
+                          f"Start by listing supplied inputs. {continuation} "
+                          "Report limitations honestly, and finish within the budget.",
                           model="sonnet", name="agent", timeout=args.timeout)
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
@@ -383,7 +490,7 @@ def run_experiment(args):
     estimates = [r.get("result", {}).get("total_cost_usd") for r in receipts]
     estimates_complete = all(isinstance(value, (int, float)) for value in estimates)
     reported_estimate = sum(value for value in estimates if isinstance(value, (int, float)))
-    summary = {"candidate_results":candidates,"agent_response_completed":
+    summary = {"input_mode":manifest["input_mode"], "candidate_results":candidates,"agent_response_completed":
                bool(record.get("result")) and not record["result"].get("is_error",False),
                "has_viewable_candidate":any(c["viewer_exists"] for c in candidates),
                "elapsed_seconds":record["elapsed_seconds"],"drawing_fidelity":"not_evaluated",
@@ -405,6 +512,7 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--resume-candidate",type=Path,help="Recover from a saved proposal directory, not an independent cold start")
     server=commands.add_parser("serve")
     server.add_argument("run",type=Path)
     server.add_argument("--readonly",action="store_true")

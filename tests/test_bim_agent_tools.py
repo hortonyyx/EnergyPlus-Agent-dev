@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -84,9 +85,16 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
             tools = {tool.name for tool in (await session.list_tools()).tools}
             assert {"inputs", "view_image", "pixel_profile", "map_pixels"} <= tools
             assert "build_bim" not in tools and "review_detail" not in tools
+            assert "revise_bim" not in tools and "inspect_candidate" not in tools
 
             inventory = _json_result(await session.call_tool("inputs", {}))
             assert set(inventory["images"]) == {"plan.png"}
+            viewed = await session.call_tool("view_image", {"name":"plan.png", "box":[2, 3, 12, 8]})
+            assert viewed.content[0].type == "image"
+            metadata = json.loads(viewed.content[1].text)
+            assert metadata["box_original_pixels"] == [2, 3, 12, 8]
+            assert metadata["returned_size"] == [10, 5]
+            assert metadata["original_pixels_per_returned_pixel"] == [1, 1]
             assert inventory["images"]["plan.png"]["sha256"] == hashlib.sha256(
                 (run / "images/plan.png").read_bytes()).hexdigest()
             assert (await session.call_tool("view_image", {"name": "plan.png"})).content[0].type == "image"
@@ -113,8 +121,49 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert viewed.content[0].type == "image"
             assert viewed.content[0].mimeType == "image/png"
             assert (run / "candidate_01" / "source_model.json").exists()
+            original = (run / "candidate_01" / "proposal.json").read_bytes()
+            revised = _json_result(await session.call_tool("revise_bim", {
+                "candidate": "candidate_01",
+                "operations_json": json.dumps([{"op":"reflect", "axis":"x", "reason":"synthetic frame reflection"}]),
+            }))
+            assert revised["candidate"] == "candidate_02"
+            assert revised["source_geometry_ready"]
+            assert (run / "candidate_01" / "proposal.json").read_bytes() == original
+            inspected = _json_result(await session.call_tool("inspect_candidate", {"candidate":"candidate_02"}))
+            assert inspected["proposal"]["geometry"]["floors"][0]["cells"][0]["x"] == [3, 6]
 
     asyncio.run(scenario())
+
+
+def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path, monkeypatch):
+    from scripts.tool_scripts import run_bim_agent as runner
+    from src.agent.execution.source_proposal import export_source_proposal
+    source = tmp_path / "old_candidate"
+    proposal = json.loads(_two_room_proposal())
+    export_source_proposal(proposal, source)
+    old_report = source / "report.json"
+    # An old directory may later acquire evaluator output. It must not enter
+    # a generating model's new recovery workspace.
+    old_report.write_text(json.dumps({"independent_evaluation":"DO_NOT_EXPOSE"}))
+    images = tmp_path / "images"
+    images.mkdir()
+    Image.new("RGB", (12, 8), "white").save(images / "plan.png")
+
+    def offline_subscription(run, prompt, **kwargs):
+        manifest = json.loads((run / "inputs.json").read_text())
+        assert manifest["input_mode"] == "saved_candidate_recovery"
+        assert json.loads((run / "seed/proposal.json").read_text()) == proposal
+        assert "DO_NOT_EXPOSE" not in (run / "seed/report.json").read_text()
+        assert json.loads((run / "seed/report.json").read_text())["source_geometry_ready"]
+        receipt = {"elapsed_seconds": 0, "result":{"is_error":False,"total_cost_usd":0}}
+        runner.dump(run / "agent_receipt.json", receipt)
+        return receipt
+
+    monkeypatch.setattr(runner, "subscription", offline_subscription)
+    args = SimpleNamespace(images=images, out=tmp_path / "recovery", scope="synthetic recovery",
+                           timeout=30, resume_candidate=source)
+    runner.run_experiment(args)
+    assert json.loads(old_report.read_text())["independent_evaluation"] == "DO_NOT_EXPOSE"
 
 
 def _ended_or_zombie(pid: int) -> bool:

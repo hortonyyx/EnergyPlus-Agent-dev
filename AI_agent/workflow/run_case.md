@@ -17,7 +17,11 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 输出目录须不存在。每个 `candidate_XX` 保存原方案、源 BIM、查看器和检查报告；`tools.jsonl`、订阅回执及流式记录说明真实执行过程。模型回复结束不代表已有候选；以实际保存的 `viewer.html`、`source_model.json` 及报告为准。源 BIM 的几何检查通过也不等于原图保真验收，独立对照须在生成结束后另做，不反馈 GT。
 
-运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。此入口尚未接正式恢复/编辑流程，也未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
+运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。主模型当前使用 medium effort；以回执中的实际版本为准。此入口未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
+
+从保存候选继续时，在以上命令加 `--resume-candidate <旧 candidate_XX 目录>`。输出仍须是新目录；只读取旧 `proposal.json`，在新 run 的 `seed/` 重建源 BIM 与检查，不读旧报告或 GT 对照。此次身份为 `saved_candidate_recovery`，不能记作新冷启动。模型可选择 `inspect_candidate`、`revise_bim` 和候选平面查看；局部门窗修改/删除须记录理由与来源，整体反射由代码统一变换房间与开口，并提示复核旧方向备注。
+
+局部变换仅支持当前 legacy v1/v2 方案；含显式围护声明、独立楼层 footprint 或额外方向元数据的整体反射会拒绝，避免漏改关联几何。它不是持久编辑界面，也不迁移完整源边界历史。
 
 ## 1. 准备独立 run
 
