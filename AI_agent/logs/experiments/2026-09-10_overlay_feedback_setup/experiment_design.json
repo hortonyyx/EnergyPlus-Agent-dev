@@ -1,0 +1,25 @@
+{
+  "mode": "saved_candidate_recovery_with_original_image_feedback_focus",
+  "seed": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run12/candidate_01",
+  "images": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run12/images",
+  "planned_output": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run13",
+  "timeout_seconds": 600,
+  "scope": "本轮继续还原保存的建筑模型，重点把实际产出回叠原始平面作为生成中的反馈。请自行选择需核对的图面、楼层与局部，从各图自身的可见标注和图形确定像素/米锚点及墙面基准，通过原图回叠比较实际源房间分隔、门窗和连通。登记的图面会在候选修改后自动使用同一标定返回新叠图，请根据真实反馈判断修改是否有帮助、是否还需回看或重新标定。标定与尺寸链应有原图依据，不能通过贴合当前候选来隐藏差异；工具结果和目视判断有冲突时说明取舍。优先处理有图证且影响房间形状或空间关系的实质问题，保留已有可靠对象，不追无意义的小偏差，也不要求为证明迭代而强改。方法和检查范围由你选择，可按需调用局部观察。请将本轮真实假设、仍未核实范围及未解决项写回源模型备注，避免只留在最终回答或沿用过期的本轮说明，然后选定实际保存候选交付。本轮没有提供具体错误楼层、墙、位置、正确坐标、开发侧锚点或GT。",
+  "developer_intervention_this_run": [
+    "choose previously saved candidate and supplied originals",
+    "focus on original-image projection feedback without case-specific error hints",
+    "add automatic projections after candidate changes using model-registered calibration"
+  ],
+  "not_supplied_to_generation": [
+    "GT and prior independent evaluations",
+    "known remaining error locations, ids, values or correct geometry",
+    "developer-selected image calibration anchors or local observations"
+  ],
+  "limits": [
+    "historically assisted seed, not a cold start",
+    "explicit original-image feedback focus; not an unprompted choice of evaluation aspect",
+    "multiple implementation and scope factors, not an ablation",
+    "projection returned does not prove correct interpretation or calibration",
+    "experimental BIM Agent entry; legacy flow not replaced"
+  ]
+}

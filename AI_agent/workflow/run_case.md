@@ -71,7 +71,9 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 ### 原图叠图与实际交付
 
-`overlay_candidate(candidate, image, floor_id, x_anchors, y_anchors, basis, box?)` 将当前源平面画回原图。每轴锚点沿用 `map_pixels` 的两组 `[原图像素位置, 世界米]`，`basis` 写明尺寸来源与墙面基准；可用 `box` 按原图坐标裁看细节。支持轴对齐平面，旋转/透视没有自动校正。品红表示源边界，橙色表示门/空通道，绿色表示窗；完整分辨率叠图和坐标侧车保存于 run 的 `image_overlays/`。标定和原图保真仍未独立评价，工具可按需调用。
+`overlay_candidate(candidate, image, floor_id, x_anchors, y_anchors, basis, box?, reuse_on_revision=True)` 将当前源平面画回原图。每轴锚点沿用 `map_pixels` 的两组 `[原图像素位置, 世界米]`，`basis` 写明尺寸来源与墙面基准；可用 `box` 按原图坐标裁看细节。支持轴对齐平面，旋转/透视没有自动校正。品红表示源边界，橙色表示门/空通道，绿色表示窗；完整分辨率叠图和坐标侧车保存于 run 的 `image_overlays/`。
+
+默认将本次模型选择的标定追加到 `overlay_calibrations/`。同一原图/楼层取最新显式登记，其他图面独立；后续 `build_bim` / `revise_bim` 保存新候选后自动复用这些锚点，返回实际新叠图及源/图像摘要、标定来源和触发动作。自动投影返回整图缩略图，细节可再次显式裁看；不随墙位自动拟合。`reuse_on_revision=False` 只生成本次查看图，不更新已有登记。投影失败通过 `projection_errors` 明示，已保存 BIM 保留。交付区分当前源与旧源投影、未登记视图的楼层及失败；登记和收到图片都不证明标定正确或模型已正确核验。模型应据原图反馈判断是否修订，并用 `set_notes` 保存实际假设和未解决项。此反馈当前接在实验 BIM Agent 入口，效果见 [本轮记录](../logs/worklog/2026-09-10_overlay_feedback.md)。
 
 模型用 `finish_bim(candidate)` 选择最终保存候选，生成 run 的 `delivery.json` 与 `delivery.html`。摘要直接引用源几何检查和回查状态，不解释模型最后文字；旧源回查单列，未查或需跟进也可交付查看。后续仍可继续修订或重新选择，结束时刷新所选候选的实际回查。没有显式选择时保留最新已保存源（没有新候选时可保留 seed），并明确标记系统回退，不冒称模型已选定或已经通过。运行结束后还会写入本次调用正常结束/中断、实际错误消息和耗时；有源但没有查看器时不宣称已有可查看输出。
 

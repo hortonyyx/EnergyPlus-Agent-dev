@@ -1,0 +1,87 @@
+{
+  "checks": {
+    "image:1f_view.png": true,
+    "image:2f_view.png": true,
+    "image:East_view.png": true,
+    "image:North_view.png": true,
+    "image:South_view.png": true,
+    "image:West_view.png": true,
+    "implementation:scripts/tool_scripts/run_bim_agent.py": true,
+    "implementation:src/agent/execution/source_proposal.py": true,
+    "implementation:src/agent/geometry/proposal_edits.py": true,
+    "implementation:src/agent/geometry/opening_review.py": true,
+    "implementation:src/agent/geometry/bim_delivery.py": true,
+    "implementation:src/agent/geometry/source_image_overlay.py": true,
+    "implementation:src/agent/geometry/dimension_chain.py": true,
+    "seed_proposal": true
+  },
+  "selected_candidate": "candidate_01",
+  "tool_actions": {
+    "inputs": 1,
+    "inspect_candidate": 1,
+    "view_image": 10,
+    "overlay_candidate": 2,
+    "check_openings": 9,
+    "revise_bim": 1,
+    "finish_bim": 2
+  },
+  "floors_equal": true,
+  "floor_changes": {
+    "added": [],
+    "removed": [],
+    "updated": {}
+  },
+  "footprint_equal": true,
+  "geometry_changes": {
+    "windows": {
+      "added": [],
+      "removed": [],
+      "updated": {}
+    },
+    "openings": {
+      "added": [],
+      "removed": [],
+      "updated": {}
+    }
+  },
+  "prose_changes": {
+    "assumptions": {
+      "before": [
+        "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed, confirmed by South elevation door/window layout matching plan south wall).",
+        "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+        "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown.",
+        "F1 south wall has exactly ONE exterior door (D_R1S_ext2, x=0.54-1.44m, z=0-2.1m); all other south wall gaps at that row are windows.",
+        "F2 office-to-corridor doors (Off1-4) are positioned adjacent to their shared partition walls (offset by the 360mm partition half-thickness), not centered in the room, per pixel measurement of 2f_view.png door arcs against the calibrated 15000mm dimension chain; corrected from an earlier centered-door assumption.",
+        "F2 ConfA/ConfB doors to corridor are symmetric about the central partition at x=7.5, each ~0.6m wide, per visible arc geometry; not independently re-measured this pass.",
+        "F1 room-to-corridor doors (R1N-R3N, R1S-R3S) are adjacent to their partitions, consistent with the same 360/900mm module; retained from seed pixel-based placement.",
+        "Interior door widths generally ~0.9m except ConfA/B (~0.6m each) and the F1 west corridor entrance and south exterior door, per elevation glazing widths.",
+        "Door heights: 2.1m for interior doors and D_R1S_ext2; 2.4m for the West corridor entrance glazed door on F1."
+      ],
+      "after": [
+        "Plan top edge = North, bottom edge = South, left = West, right = East, confirmed again this round by North_view/South_view window-span dimension chains matching modeled window spans on both floors.",
+        "Overlay calibration for 1f_view.png (calibration_001) and 2f_view.png (calibration_002) registered this round from each image's own outer-wall dimension-chain ticks (15000mm horizontal, 8000mm vertical); 1f overlay showed sub-0.5% cross-axis agreement and close visual alignment of all partitions, doors and windows to source wall lines and arcs. 2f overlay showed a larger cross-axis disagreement (~2.7%) and x/y residuals up to ~0.09-0.17m in the calibration transform itself (projection/display precision), but independent dimension-chain arithmetic (2190/1200/720/1200/4380/... on South, 1950/3600/3900/3600/1950 on North) matches the modeled F2 window spans on North/South exactly, and door arc pixel positions in 2f_view.png align closely with the modeled Off1-4/ConfA/ConfB door spans, so the underlying F2 geometry is corroborated independently of the imperfect overlay calibration; the calibration itself was not further refined this round.",
+        "F1 south exterior door D_R1S_ext2 and window W_F1_S1 positions were re-confirmed by direct pixel measurement against the South_view.png bottom dimension chain (0-3440mm segment contains the door near x=540-1440mm; the 3440-4640mm segment is the window), consistent with the existing model - not a mislabeled/mirrored opening as an initial mis-reading of the chain briefly suggested.",
+        "F1 north-row window spans (W_F1_N2, W_F1_N3) show a small residual ~0.12-0.24m versus a strict North_view.png dimension-chain sum (modeled 6.18-8.58/11.12-13.52 vs chain-implied 6.30-8.70/11.36-13.76); treated as a minor, non-substantive offset per scope guidance and left unrevised.",
+        "F1 east window W_F1_E sill/head (z=1.0-2.6) is ~0.2m short of the East_view.png elevation chain reading (implies 1.0-2.8); treated as a minor offset and left unrevised.",
+        "All door and window openings on F1 and F2 (interior and exterior, all four facades) were reviewed this round via check_openings against 1f_view.png/2f_view.png marks and found consistent with the built inventory (four 'complete' reviews, no findings)."
+      ]
+    },
+    "unresolved": {
+      "before": [
+        "F2 ConfA/ConfB corridor door split exact widths not independently pixel-verified this pass (visually near-symmetric ~0.6m each side of x=7.5).",
+        "Door swing direction/leaf count not modeled, only presence and connectivity.",
+        "Room role labels are descriptive based on furniture, not authoritative source naming.",
+        "North/East/West facade window placements and F1 interior partition door exact widths retain prior seed pixel-based values, not re-verified in this pass.",
+        "This pass focused on F2 office-to-corridor door positions found to be mis-centered; other geometry retained from seed."
+      ],
+      "after": [
+        "2f_view.png overlay calibration (calibration_002) has a ~2.7% cross-axis pixel/metre disagreement and residuals vs the caller's own anchor dimensions; not re-calibrated this round. Geometry was instead cross-checked via direct dimension-chain arithmetic on North/South/East/West elevations, which matched, but the overlay projection itself should be tightened before being used for finer positional claims.",
+        "F1 north-row window spans (W_F1_N2, W_F1_N3) and the F1 east window sill/head height (W_F1_E) carry small (~0.12-0.24m) residuals against elevation dimension chains; not corrected this round as non-substantive.",
+        "F2 ConfA/ConfB corridor door exact 0.6m/0.6m split about x=7.5 remains visually approximated, not independently re-pixel-verified this round.",
+        "Door swing direction/leaf count, and room role labels (furniture-based, not authoritative naming) remain as prior unresolved items.",
+        "Partition wall thickness/host-plane abstraction (zero-thickness centerline convention) not re-examined this round beyond the already-corrected F1 R2S/R3S shared-wall position."
+      ]
+    }
+  },
+  "local_observations": []
+}

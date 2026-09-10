@@ -1,0 +1,84 @@
+{
+  "mode": "post_generation_tool_claim_audit_not_generation_input",
+  "operations": [
+    "set_notes"
+  ],
+  "automatic_projection_pixels_equal_seed": {
+    "F1": true,
+    "F2": true
+  },
+  "source_hash_changed": true,
+  "model_side_measurement_tools_called": [],
+  "calibration_claims": {
+    "F1_claimed_north_subchain": {
+      "raw_mm": [
+        1240,
+        2400,
+        1300,
+        1240,
+        2400,
+        1240,
+        1300,
+        2400,
+        1240
+      ],
+      "sum_mm": 14760,
+      "claimed_total_mm": 15000,
+      "difference_mm": -240
+    },
+    "F2_claimed_north_subchain": {
+      "raw_mm": [
+        1950,
+        3600,
+        1889,
+        1891,
+        3600,
+        1950
+      ],
+      "sum_mm": 14880,
+      "claimed_total_mm": 15000,
+      "difference_mm": -120
+    }
+  },
+  "cross_axis_deviation_percent": {
+    "F1": 0.5265271518450689,
+    "F2": 2.7190738995827224
+  },
+  "findings": [
+    {
+      "claim": "Both listed northern subchains equal 15000 mm.",
+      "evidence": "The exact values in the model calibration basis sum to 14760 mm (F1) and 14880 mm (F2). The original overall dimension separately says 15000 mm; it does not make these subchain sums true.",
+      "impact": "Claimed independent arithmetic/closure is not established; anchors remain model estimates."
+    },
+    {
+      "claim": "F1 cross-axis agreement is sub-0.5%.",
+      "evidence": "Actual warning is 0.526527151845069%; F2 is 2.7190738995827225%. Neither view was explicitly recalibrated.",
+      "impact": "Small F1 wording discrepancy; F2 warning is acknowledged and persisted but not resolved."
+    },
+    {
+      "claim": "All F1 partitions align tightly, including the previously moved wall.",
+      "evidence": "Same-frame seed/final images are identical. F1 lower-left source wall visibly falls to the left of the drawn partition, while the right partition remains left of the drawn line. Post-generation partition comparison retains its severe result.",
+      "impact": "Visual interpretation is overconfident; no geometrical improvement this run. This does not require chasing small tolerances just to change a GT label."
+    },
+    {
+      "claim": "Independent direct pixel measurement and dimension-chain arithmetic corroborate geometry.",
+      "evidence": "This run used view_image, overlay_candidate and check_openings, but no pixel_profile, map_pixels or map_dimension_chain tool. Visual estimates and mental arithmetic may have occurred; no successful deterministic measurement trace exists.",
+      "impact": "Do not label these claims as tool-verified measurements."
+    }
+  ],
+  "positive_changes": [
+    "Model chose separate image/floor calibrations from supplied originals.",
+    "Automatic images and source bindings reached the actual main-model tool response.",
+    "Current assumptions/unresolved items persisted via set_notes; new-hash opening reviews followed."
+  ],
+  "limits": [
+    "Returned images and supplied-observation consistency are not drawing fidelity.",
+    "Historical assisted seed; no new cold start or controlled ablation.",
+    "Both full-resolution automatic PNGs equal seed PNGs because only notes changed."
+  ],
+  "proposal_geometry_dict_equal": false,
+  "physical_geometry_equal": true,
+  "changed_geometry_container_fields": [
+    "corrections"
+  ]
+}

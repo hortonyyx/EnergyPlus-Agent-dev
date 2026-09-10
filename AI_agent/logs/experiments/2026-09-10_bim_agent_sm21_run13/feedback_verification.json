@@ -1,0 +1,96 @@
+{
+  "mode": "post_generation_execution_audit_not_visual_verdict",
+  "all_projection_checks_passed": true,
+  "projection_count": 4,
+  "automatic_projection_count": 2,
+  "projections": [
+    {
+      "metadata": "image_overlays/overlay_001.json",
+      "candidate": "seed",
+      "floor_id": "F1",
+      "automatic": false,
+      "trigger": "overlay_candidate",
+      "checks": {
+        "source_binding": true,
+        "image_binding": true,
+        "fidelity_not_certified": true,
+        "calibration_unverified": true,
+        "pixels_match_actual_source_projection": true
+      }
+    },
+    {
+      "metadata": "image_overlays/overlay_002.json",
+      "candidate": "seed",
+      "floor_id": "F2",
+      "automatic": false,
+      "trigger": "overlay_candidate",
+      "checks": {
+        "source_binding": true,
+        "image_binding": true,
+        "fidelity_not_certified": true,
+        "calibration_unverified": true,
+        "pixels_match_actual_source_projection": true
+      }
+    },
+    {
+      "metadata": "image_overlays/overlay_003.json",
+      "candidate": "candidate_01",
+      "floor_id": "F1",
+      "automatic": true,
+      "trigger": "revise_bim",
+      "checks": {
+        "source_binding": true,
+        "image_binding": true,
+        "fidelity_not_certified": true,
+        "calibration_unverified": true,
+        "pixels_match_actual_source_projection": true,
+        "registered_anchors_unchanged": true,
+        "registered_basis_unchanged": true,
+        "registered_image_floor_match": true,
+        "registration_source_binding": true
+      }
+    },
+    {
+      "metadata": "image_overlays/overlay_004.json",
+      "candidate": "candidate_01",
+      "floor_id": "F2",
+      "automatic": true,
+      "trigger": "revise_bim",
+      "checks": {
+        "source_binding": true,
+        "image_binding": true,
+        "fidelity_not_certified": true,
+        "calibration_unverified": true,
+        "pixels_match_actual_source_projection": true,
+        "registered_anchors_unchanged": true,
+        "registered_basis_unchanged": true,
+        "registered_image_floor_match": true,
+        "registration_source_binding": true
+      }
+    }
+  ],
+  "model_tool_responses": [
+    {
+      "tool": "mcp__bim__overlay_candidate",
+      "tool_use_id": "toolu_01UNNxGzeAkGLQ9AjzL7sSjk",
+      "returned_image_count": 1,
+      "is_error": false
+    },
+    {
+      "tool": "mcp__bim__overlay_candidate",
+      "tool_use_id": "toolu_016McjrZp7YdhvyfiMu6L6AV",
+      "returned_image_count": 1,
+      "is_error": false
+    },
+    {
+      "tool": "mcp__bim__revise_bim",
+      "tool_use_id": "toolu_01XMPvcf4U1QmSehmGH9aynR",
+      "returned_image_count": 2,
+      "is_error": false
+    }
+  ],
+  "limits": [
+    "Returned image content does not prove it was correctly interpreted.",
+    "Matching saved source projection does not independently validate the calibration or BIM."
+  ]
+}

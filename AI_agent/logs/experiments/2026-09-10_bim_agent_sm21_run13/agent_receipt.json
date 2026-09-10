@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 272.66,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 269232,
+    "duration_api_ms": 268969,
+    "ttft_ms": 1729,
+    "ttft_stream_ms": 1235,
+    "time_to_request_ms": 21,
+    "num_turns": 27,
+    "result": "## Summary\n\n**Delivered candidate:** `candidate_01` (finalized via `finish_bim`), derived from the saved `seed` recovery proposal with no geometry changes this round — only notes/documentation were updated after verification.\n\n**What was actually done this round:**\n- Registered original-image overlay calibrations for `1f_view.png`→F1 and `2f_view.png`→F2 from each drawing's own outer-wall dimension-chain ticks (15000×8000mm), and inspected the projected candidate against the source plans.\n- F1 overlay: sub-0.5% cross-axis agreement; all room partitions, the previously-corrected F1_R2S/R3S shared wall (moved to x=9.82m), and all door/window positions visually aligned tightly with the source plan.\n- F2 overlay: showed a ~2.7% cross-axis calibration disagreement and 0.09–0.17m residuals in the *projection* itself. Rather than trust that projection, I independently cross-checked F2 geometry against South/North/East/West elevation dimension chains (2190/1200/720/1200/4380/…, 1950/3600/3900/3600/1950) — these matched all 8 F2 window spans and both floors' door arc positions exactly, corroborating the underlying model independent of the imperfect overlay display.\n- Verified F1 south door vs. window assignment (D_R1S_ext2 vs W_F1_S1) directly against `South_view.png`'s bottom dimension chain — confirmed correct, not swapped.\n- Ran 4 `check_openings` reviews (F1 doors, F2 doors, F1 windows, F2 windows — each \"complete\" coverage) against `1f_view.png`/`2f_view.png` marks: all consistent with the built inventory, no findings, no missing/extra openings.\n- Wrote this round's real assumptions/unresolved items back into the source model via `set_notes` (persisted, not just in this reply), then re-ran the 4 opening reviews against the new source hash so they show as **current**, not stale.\n\n**Explicitly unresolved / not verified:**\n- The F2 overlay calibration itself (2.7% cross-axis deviation) was not re-tightened; only cross-checked via independent dimension arithmetic.\n- Small residuals (~0.12–0.24m) on F1 north windows W_F1_N2/N3 and ~0.2m on F1 east window W_F1_E sill/head vs. elevation chains — left uncorrected as non-substantive per scope guidance.\n- F2 ConfA/ConfB door 0.6/0.6m split about x=7.5 remains visually approximated, not independently re-pixel-verified.\n- Door swing/leaf direction and furniture-based room role labels remain unresolved as before.\n- Wall-thickness/centerline abstraction not re-examined beyond the already-corrected F1 R2S/R3S partition.\n\nNo GT was used or available. Geometric consistency checks passed, but this is not a certification of full original-drawing fidelity — see `not_evaluated` scope in the tool outputs (drawing partition completeness, thermal properties).",
+    "stop_reason": "end_turn",
+    "session_id": "76b41efc-0c42-46d8-9ac0-bbcebcb8f6ce",
+    "total_cost_usd": 1.5339005,
+    "usage": {
+      "input_tokens": 28,
+      "cache_creation_input_tokens": 150873,
+      "cache_read_input_tokens": 859435,
+      "output_tokens": 24642,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 150873,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1036,
+          "cache_read_input_tokens": 131603,
+          "cache_creation_input_tokens": 19270,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 19270
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 1003,
+        "outputTokens": 23,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001118,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 28,
+        "outputTokens": 24642,
+        "cacheReadInputTokens": 859435,
+        "cacheCreationInputTokens": 150873,
+        "webSearchRequests": 0,
+        "costUSD": 1.5327825,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "46dd53f9-6964-4f15-9ca0-f28b4613740a"
+  }
+}
