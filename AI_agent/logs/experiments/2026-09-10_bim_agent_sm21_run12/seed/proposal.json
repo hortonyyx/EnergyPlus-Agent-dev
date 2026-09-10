@@ -1,0 +1,1139 @@
+{
+  "assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed, confirmed by South elevation door/window layout matching plan south wall).",
+    "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+    "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown.",
+    "F1 south wall has exactly ONE exterior door (D_R1S_ext2, x=0.54-1.44m, z=0-2.1m); all other south wall gaps at that row are windows.",
+    "F2 office-to-corridor doors (Off1-4) are positioned adjacent to their shared partition walls (offset by the 360mm partition half-thickness), not centered in the room, per pixel measurement of 2f_view.png door arcs against the calibrated 15000mm dimension chain; corrected from an earlier centered-door assumption.",
+    "F2 ConfA/ConfB doors to corridor are symmetric about the central partition at x=7.5, each ~0.6m wide, per visible arc geometry; not independently re-measured this pass.",
+    "F1 room-to-corridor doors (R1N-R3N, R1S-R3S) are adjacent to their partitions, consistent with the same 360/900mm module; retained from seed pixel-based placement.",
+    "Interior door widths generally ~0.9m except ConfA/B (~0.6m each) and the F1 west corridor entrance and south exterior door, per elevation glazing widths.",
+    "Door heights: 2.1m for interior doors and D_R1S_ext2; 2.4m for the West corridor entrance glazed door on F1."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off1_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            2.49,
+            3.0
+          ],
+          "p2": [
+            3.39,
+            3.0
+          ],
+          "source_refs": [
+            "2f_view.png crop [650,760,1000,900] and [300,750,1900,830]: door arcs converge at each office partition, not centered in room walls; pixel_profile cyan-arc peaks at x=657/736 (Off1) mapped via 15000mm dimension-chain calibration (px 427=x0, px1813=x15000)"
+          ],
+          "space_id": "F2_Off1",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off1_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            1.5,
+            3
+          ],
+          "p2": [
+            2.25,
+            3
+          ],
+          "source_refs": [
+            "2f_view.png: office1 door to corridor"
+          ],
+          "space_id": "F2_Off1",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "id": "D_Off1_C",
+        "operation": "update_opening",
+        "reason": "Pixel measurement of 2f_view.png office-row door arcs shows F2 office-to-corridor doors sit adjacent to the shared partition wall (offset by the 360mm partition half-thickness visible in the south dimension chain), not centered in each office as originally assumed. Off1 door measured at ~x=2.49-3.34m (partition at x=3.75), snapped to 2.49-3.39 using the consistent 360mm/900mm module seen elsewhere in the plan.",
+        "source_refs": [
+          "2f_view.png crop [650,760,1000,900] and [300,750,1900,830]: door arcs converge at each office partition, not centered in room walls; pixel_profile cyan-arc peaks at x=657/736 (Off1) mapped via 15000mm dimension-chain calibration (px 427=x0, px1813=x15000)"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off2_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            4.11,
+            3.0
+          ],
+          "p2": [
+            5.01,
+            3.0
+          ],
+          "source_refs": [
+            "2f_view.png pixel_profile cyan-arc peaks at x=807/890 mapped via same calibration"
+          ],
+          "space_id": "F2_Off2",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off2_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            5.25,
+            3
+          ],
+          "p2": [
+            6.0,
+            3
+          ],
+          "source_refs": [
+            "2f_view.png: office2 door to corridor"
+          ],
+          "space_id": "F2_Off2",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "id": "D_Off2_C",
+        "operation": "update_opening",
+        "reason": "Same evidence as D_Off1_C: Off2 door sits adjacent to the same shared partition on its other side, measured ~x=4.11-5.01m, matching the 360mm offset pattern from partition at x=3.75.",
+        "source_refs": [
+          "2f_view.png pixel_profile cyan-arc peaks at x=807/890 mapped via same calibration"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off3_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            9.99,
+            3.0
+          ],
+          "p2": [
+            10.89,
+            3.0
+          ],
+          "source_refs": [
+            "2f_view.png pixel_profile cyan-arc peaks at x=1350/1429 mapped via same calibration"
+          ],
+          "space_id": "F2_Off3",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off3_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            9.0,
+            3
+          ],
+          "p2": [
+            9.75,
+            3
+          ],
+          "source_refs": [
+            "2f_view.png: office3 door to corridor"
+          ],
+          "space_id": "F2_Off3",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "id": "D_Off3_C",
+        "operation": "update_opening",
+        "reason": "Mirrors Off1 pattern at the Off3/Off4 partition (x=11.25): door measured adjacent to partition at ~x=9.99-10.84m, snapped to 9.99-10.89 using the same 360/900mm module.",
+        "source_refs": [
+          "2f_view.png pixel_profile cyan-arc peaks at x=1350/1429 mapped via same calibration"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off4_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            11.61,
+            3.0
+          ],
+          "p2": [
+            12.51,
+            3.0
+          ],
+          "source_refs": [
+            "2f_view.png pixel_profile cyan-arc peaks at x=1500/1583 mapped via same calibration"
+          ],
+          "space_id": "F2_Off4",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "exact position along wall approximated, centered"
+          ],
+          "id": "D_Off4_C",
+          "kind": "door",
+          "other_space_id": "F2_Corridor",
+          "p1": [
+            12.75,
+            3
+          ],
+          "p2": [
+            13.5,
+            3
+          ],
+          "source_refs": [
+            "2f_view.png: office4 door to corridor"
+          ],
+          "space_id": "F2_Off4",
+          "state": "unknown",
+          "z": [
+            3.0,
+            5.1
+          ]
+        },
+        "id": "D_Off4_C",
+        "operation": "update_opening",
+        "reason": "Mirrors Off2 pattern: door measured adjacent to partition at x=11.25, span ~11.61-12.51m.",
+        "source_refs": [
+          "2f_view.png pixel_profile cyan-arc peaks at x=1500/1583 mapped via same calibration"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed, confirmed by South elevation door/window layout matching plan south wall).",
+            "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+            "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown.",
+            "F1 south wall has exactly ONE exterior door (D_R1S_ext2, x=0.54-1.44m, z=0-2.1m); all other south wall gaps at that row are windows.",
+            "F2 office-to-corridor doors (Off1-4) are positioned adjacent to their shared partition walls (offset by the 360mm partition half-thickness), not centered in the room, per pixel measurement of 2f_view.png door arcs against the calibrated 15000mm dimension chain; corrected from an earlier centered-door assumption.",
+            "F2 ConfA/ConfB doors to corridor are symmetric about the central partition at x=7.5, each ~0.6m wide, per visible arc geometry; not independently re-measured this pass.",
+            "F1 room-to-corridor doors (R1N-R3N, R1S-R3S) are adjacent to their partitions, consistent with the same 360/900mm module; retained from seed pixel-based placement.",
+            "Interior door widths generally ~0.9m except ConfA/B (~0.6m each) and the F1 west corridor entrance and south exterior door, per elevation glazing widths.",
+            "Door heights: 2.1m for interior doors and D_R1S_ext2; 2.4m for the West corridor entrance glazed door on F1."
+          ],
+          "unresolved": [
+            "F2 ConfA/ConfB corridor door split exact widths not independently pixel-verified this pass (visually near-symmetric ~0.6m each side of x=7.5).",
+            "Door swing direction/leaf count not modeled, only presence and connectivity.",
+            "Room role labels are descriptive based on furniture, not authoritative source naming.",
+            "North/East/West facade window placements and F1 interior partition door exact widths retain prior seed pixel-based values, not re-verified in this pass.",
+            "This pass focused on F2 office-to-corridor door positions found to be mis-centered; other geometry retained from seed."
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed, confirmed by South elevation door/window layout matching plan south wall).",
+            "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+            "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown.",
+            "F1 south wall has exactly ONE exterior door (D_R1S_ext2, x=0.54-1.44m, z=0-2.1m), re-verified by pixel measurement of South_view.png (door glyph spans y=448-569px = z 0-2.1m, matching plan swing arc + 540/900 dims) and by absence of any second door arc/gap in 1f_view.png south wall.",
+            "The shape previously modeled as door D_main at x=3.44-4.64m on the F1 south wall is corrected to window W_F1_S1 (sill 1.5m, height 0.6m), per pixel measurement (short rectangle, not floor-reaching) and plan hatch evidence (window fill, not door gap) at that wall segment.",
+            "Window sill/head heights: other F1 windows z=[1.0,2.6]; F2 windows z=[4.0,5.8], read from elevation vertical dimension chains.",
+            "Door heights: 2.1m for interior doors and D_R1S_ext2; 2.4m for the West corridor entrance glazed door.",
+            "CORRECTION: South ground-floor exterior door count is ONE (D_R1S_ext2). D_main removed, replaced by window W_F1_S1 at same span.",
+            "East facade has a window (not door) into the corridor on both floors; West facade has a matching-position door into the corridor on F1 and a window in the same position on F2.",
+            "Each of the 3 north and 3 south F1 rooms, and each F2 room, has exactly one door to the central corridor, per arc marks in 1f_view.png/2f_view.png.",
+            "Interior room-to-corridor door exact widths/positions are approximated (~0.75-1m) near visible jamb/arc marks; not all individually pixel-verified."
+          ],
+          "unresolved": [
+            "Exact interior door widths/positions for F2 office-to-corridor doors are approximated, not pixel-verified against small jamb dimensions.",
+            "Door swing direction/leaf count not modeled, only presence and connectivity.",
+            "Room role labels are descriptive based on furniture, not authoritative source naming.",
+            "This revision re-examined the South facade F1 (ground floor) openings only; other facades/floors' opening positions and interior partitions retain prior seed values, not independently re-verified in this pass.",
+            "North/East/West facade openings and F2 openings were not re-checked in this pass; carried over from seed unchanged."
+          ]
+        },
+        "operation": "set_notes"
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "F1_R1N",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: top-left office, 2 desks, dims 1240/2400/1300"
+            ],
+            "x": [
+              0,
+              4.94
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F1_R2N",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: top-middle office"
+            ],
+            "x": [
+              4.94,
+              9.82
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F1_R3N",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: top-right office"
+            ],
+            "x": [
+              9.82,
+              15
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F1_Corridor",
+            "role": "corridor",
+            "source_refs": [
+              "1f_view.png: middle band, dims 250/1500/250"
+            ],
+            "x": [
+              0,
+              15
+            ],
+            "y": [
+              3,
+              5
+            ]
+          },
+          {
+            "id": "F1_R1S",
+            "role": "lounge",
+            "source_refs": [
+              "1f_view.png: bottom-left, L-shaped sofa"
+            ],
+            "x": [
+              0,
+              4.82
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F1_R2S",
+            "role": "lounge",
+            "source_refs": [
+              "1f_view.png: bottom-middle, L-shaped sofa"
+            ],
+            "x": [
+              4.82,
+              10.68
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F1_R3S",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png: bottom-right, round table"
+            ],
+            "x": [
+              10.68,
+              15
+            ],
+            "y": [
+              0,
+              3
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      },
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "id": "F2_ConfA",
+            "role": "meeting",
+            "source_refs": [
+              "2f_view.png: top-left, oval conference table"
+            ],
+            "x": [
+              0,
+              7.5
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F2_ConfB",
+            "role": "meeting",
+            "source_refs": [
+              "2f_view.png: top-right, oval conference table"
+            ],
+            "x": [
+              7.5,
+              15
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F2_Corridor",
+            "role": "corridor",
+            "source_refs": [
+              "2f_view.png: middle band, dims 400/1200/400"
+            ],
+            "x": [
+              0,
+              15
+            ],
+            "y": [
+              3,
+              5
+            ]
+          },
+          {
+            "id": "F2_Off1",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: bottom row, desk+monitor, 1 of 4"
+            ],
+            "x": [
+              0,
+              3.75
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F2_Off2",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: bottom row, desk+monitor, 2 of 4"
+            ],
+            "x": [
+              3.75,
+              7.5
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F2_Off3",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: bottom row, desk+monitor, 3 of 4"
+            ],
+            "x": [
+              7.5,
+              11.25
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F2_Off4",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: bottom row, desk+monitor, 4 of 4"
+            ],
+            "x": [
+              11.25,
+              15
+            ],
+            "y": [
+              0,
+              3
+            ]
+          }
+        ],
+        "name": "F2",
+        "z_floor": 3.0
+      }
+    ],
+    "footprint_x": [
+      0,
+      15
+    ],
+    "footprint_y": [
+      0,
+      8
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_R1S_ext2",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.54,
+          0
+        ],
+        "p2": [
+          1.44,
+          0
+        ],
+        "source_refs": [
+          "1f_view.png: south wall gap+arc at x=540-1440mm from SW corner",
+          "South_view.png: pixel-measured door glyph x=340-395px (=547-1432mm), y=448-569px (=z 0-2.1m), double-leaf floor-reaching door"
+        ],
+        "space_id": "F1_R1S",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_west_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0,
+          3.4
+        ],
+        "p2": [
+          0,
+          4.6
+        ],
+        "source_refs": [
+          "1f_view.png west wall arc into corridor; West_view.png ground floor glass double door centered 1200"
+        ],
+        "space_id": "F1_Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width along wall assumed 0.9m"
+        ],
+        "id": "D_R1N_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          4.04,
+          5
+        ],
+        "p2": [
+          4.94,
+          5
+        ],
+        "source_refs": [
+          "1f_view.png: arc at partition near room1/room2 boundary"
+        ],
+        "space_id": "F1_R1N",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width assumed 0.9m"
+        ],
+        "id": "D_R2N_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          4.94,
+          5
+        ],
+        "p2": [
+          5.84,
+          5
+        ],
+        "source_refs": [
+          "1f_view.png: arc at partition, room2 left side"
+        ],
+        "space_id": "F1_R2N",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width assumed 0.9m"
+        ],
+        "id": "D_R3N_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          9.86,
+          5
+        ],
+        "p2": [
+          10.76,
+          5
+        ],
+        "source_refs": [
+          "1f_view.png: arc at partition2, room3 left side"
+        ],
+        "space_id": "F1_R3N",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width assumed 0.9m"
+        ],
+        "id": "D_R1S_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          3.92,
+          3
+        ],
+        "p2": [
+          4.82,
+          3
+        ],
+        "source_refs": [
+          "1f_view.png: south row arc at partition1"
+        ],
+        "space_id": "F1_R1S",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width assumed 0.9m"
+        ],
+        "id": "D_R2S_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          4.82,
+          3
+        ],
+        "p2": [
+          5.72,
+          3
+        ],
+        "source_refs": [
+          "1f_view.png: south row arc, room2 side"
+        ],
+        "space_id": "F1_R2S",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width assumed 0.9m"
+        ],
+        "id": "D_R3S_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          10.68,
+          3
+        ],
+        "p2": [
+          11.58,
+          3
+        ],
+        "source_refs": [
+          "1f_view.png: south row arc at partition2, room3 side"
+        ],
+        "space_id": "F1_R3S",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_ConfA_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          6.9,
+          5
+        ],
+        "p2": [
+          7.5,
+          5
+        ],
+        "source_refs": [
+          "2f_view.png: double-door arcs at center partition x=7.5"
+        ],
+        "space_id": "F2_ConfA",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_ConfB_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          7.5,
+          5
+        ],
+        "p2": [
+          8.1,
+          5
+        ],
+        "source_refs": [
+          "2f_view.png: double-door arcs at center partition x=7.5"
+        ],
+        "space_id": "F2_ConfB",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact position along wall approximated, centered"
+        ],
+        "id": "D_Off1_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          2.49,
+          3.0
+        ],
+        "p2": [
+          3.39,
+          3.0
+        ],
+        "source_refs": [
+          "2f_view.png crop [650,760,1000,900] and [300,750,1900,830]: door arcs converge at each office partition, not centered in room walls; pixel_profile cyan-arc peaks at x=657/736 (Off1) mapped via 15000mm dimension-chain calibration (px 427=x0, px1813=x15000)"
+        ],
+        "space_id": "F2_Off1",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact position along wall approximated, centered"
+        ],
+        "id": "D_Off2_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          4.11,
+          3.0
+        ],
+        "p2": [
+          5.01,
+          3.0
+        ],
+        "source_refs": [
+          "2f_view.png pixel_profile cyan-arc peaks at x=807/890 mapped via same calibration"
+        ],
+        "space_id": "F2_Off2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact position along wall approximated, centered"
+        ],
+        "id": "D_Off3_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          9.99,
+          3.0
+        ],
+        "p2": [
+          10.89,
+          3.0
+        ],
+        "source_refs": [
+          "2f_view.png pixel_profile cyan-arc peaks at x=1350/1429 mapped via same calibration"
+        ],
+        "space_id": "F2_Off3",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact position along wall approximated, centered"
+        ],
+        "id": "D_Off4_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          11.61,
+          3.0
+        ],
+        "p2": [
+          12.51,
+          3.0
+        ],
+        "source_refs": [
+          "2f_view.png pixel_profile cyan-arc peaks at x=1500/1583 mapped via same calibration"
+        ],
+        "space_id": "F2_Off4",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_F1_N1",
+        "room": "F1_R1N",
+        "source_refs": [
+          "1f_view.png: top wall hatch, North_view.png bottom block 2400 window"
+        ],
+        "span": [
+          1.24,
+          3.64
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_F1_N2",
+        "room": "F1_R2N",
+        "source_refs": [
+          "1f_view.png/North_view.png"
+        ],
+        "span": [
+          6.18,
+          8.58
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_F1_N3",
+        "room": "F1_R3N",
+        "source_refs": [
+          "1f_view.png/North_view.png"
+        ],
+        "span": [
+          11.12,
+          13.52
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_F1_S1",
+        "room": "F1_R1S",
+        "source_refs": [
+          "South_view.png: pixel-measured x=511-580px (=3448-4642mm), y=448-482px (=z 1509-2098mm), short high window band, NOT a door",
+          "1f_view.png: south wall at x=3440-4640mm shows cyan window hatch fill, no door arc/gap"
+        ],
+        "span": [
+          3.44,
+          4.64
+        ],
+        "z": [
+          1.5,
+          2.1
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_F1_S2",
+        "room": "F1_R2S",
+        "source_refs": [
+          "1f_view.png/South_view.png bottom block"
+        ],
+        "span": [
+          6.3,
+          8.7
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_F1_S3",
+        "room": "F1_R3S",
+        "source_refs": [
+          "1f_view.png/South_view.png bottom block"
+        ],
+        "span": [
+          11.36,
+          13.76
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_F1_E",
+        "room": "F1_Corridor",
+        "source_refs": [
+          "East_view.png bottom block centered window 1200"
+        ],
+        "span": [
+          3.4,
+          4.6
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W_F2_N1",
+        "room": "F2_ConfA",
+        "source_refs": [
+          "North_view.png top block, 2f_view.png"
+        ],
+        "span": [
+          1.95,
+          5.55
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W_F2_N2",
+        "room": "F2_ConfB",
+        "source_refs": [
+          "North_view.png top block, 2f_view.png"
+        ],
+        "span": [
+          9.45,
+          13.05
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W_F2_S1",
+        "room": "F2_Off1",
+        "source_refs": [
+          "South_view.png top block"
+        ],
+        "span": [
+          2.19,
+          3.39
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W_F2_S2",
+        "room": "F2_Off2",
+        "source_refs": [
+          "South_view.png top block"
+        ],
+        "span": [
+          4.11,
+          5.31
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W_F2_S3",
+        "room": "F2_Off3",
+        "source_refs": [
+          "South_view.png top block"
+        ],
+        "span": [
+          9.69,
+          10.89
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W_F2_S4",
+        "room": "F2_Off4",
+        "source_refs": [
+          "South_view.png top block"
+        ],
+        "span": [
+          11.61,
+          12.81
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F2",
+        "id": "W_F2_E",
+        "room": "F2_Corridor",
+        "source_refs": [
+          "East_view.png top block centered window"
+        ],
+        "span": [
+          3.4,
+          4.6
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F2",
+        "id": "W_F2_W",
+        "room": "F2_Corridor",
+        "source_refs": [
+          "West_view.png top block centered window"
+        ],
+        "span": [
+          3.4,
+          4.6
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "F2 ConfA/ConfB corridor door split exact widths not independently pixel-verified this pass (visually near-symmetric ~0.6m each side of x=7.5).",
+    "Door swing direction/leaf count not modeled, only presence and connectivity.",
+    "Room role labels are descriptive based on furniture, not authoritative source naming.",
+    "North/East/West facade window placements and F1 interior partition door exact widths retain prior seed pixel-based values, not re-verified in this pass.",
+    "This pass focused on F2 office-to-corridor door positions found to be mis-centered; other geometry retained from seed."
+  ]
+}

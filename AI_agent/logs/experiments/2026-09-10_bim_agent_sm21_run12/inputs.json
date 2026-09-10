@@ -1,0 +1,65 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "本轮继续还原保存的建筑模型，重点核对空间分隔。请根据原始平面中的隔墙、实际房间范围和尺寸依据，检查源模型的房间边界是否受图纸支持；不要只沿用旧候选未解决项或以几何自洽、门窗清单一致代替这项核对。自行选择需要看的楼层、局部和量测方法，可按需使用原图叠图或局部Haiku观察；明确像素标定与所采用墙面基准，优先处理影响房间形状和空间关系的实质差异。发现有图证的隔墙偏移时，可用move_shared_wall原子移动两个矩形空间的共同整边，其余情形仍可提交完整方案。保留有依据的已有房间、门窗和连通，观察与几何相符时不要强改，也不追逐无意义的小偏差。本轮没有给出具体错误楼层、墙、偏移数值、正确坐标或GT。请选定实际保存的候选，并如实说明空间分隔已核和未核范围、依据与未解决项。",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789038730.97775,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "f64ab47c608c3982937757bf8668a0822d10891144a155efd800c4c247e422ed",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "facea45dce1e851d867f8bef78cabc139c4826c25a47486ba55d359cab2d8986",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "9c116246e7c15619c6b443753ff74030ff965c412bb49238de36428c07bfa157",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "96bcb4e8d1ccdf6e28293c340fe2201a03f544b68dcf0d971d48f8cb33e0d905",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run11/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "implementation_commit": "84633d6f5d1adafe7cd390a92531c2391f7e71f3",
+  "checks": [
+    {
+      "command": "python -m pytest -n 2 tests/test_proposal_edits.py",
+      "result": "10 passed",
+      "scope": "same-floor full shared edge, hosted openings, unrelated objects and other floors, invalid operations; existing reflections/edits"
+    },
+    {
+      "command": "python -m pytest -n 2 tests/test_bim_agent_tools.py",
+      "result": "8 passed",
+      "scope": "public shared-wall revision, source-bound stale reviews, candidate preservation and existing stdio/recovery/local observation paths"
+    },
+    {
+      "command": "python -m py_compile scripts/tool_scripts/run_bim_agent.py tests/test_bim_agent_tools.py src/agent/geometry/proposal_edits.py tests/test_proposal_edits.py",
+      "result": "passed via two module-scope invocations"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "model_calls_during_tests": false,
+  "limits": [
+    "CLI stdio result predates the subsequent isolated same-XY cross-floor fix; that change has focused geometry test coverage.",
+    "Offline checks do not establish drawing fidelity or model use."
+  ]
+}

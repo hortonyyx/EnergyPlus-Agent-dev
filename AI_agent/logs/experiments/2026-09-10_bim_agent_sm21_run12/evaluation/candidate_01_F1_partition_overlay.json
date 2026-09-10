@@ -1,0 +1,527 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "98367066fafe0d326258b6ea7a7eae5473b9424061271bf870908ca1a0d78af8",
+  "floor_id": "F1",
+  "basis": "Post-generation original-image audit: approximate outer wall extent of 1f_view.png, checked against 15000mm/8000mm overall labels. Independent per-image anchors, not candidate-fitted or GT-fed generation.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1816.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        1085.0,
+        0.0
+      ],
+      [
+        348.0,
+        8.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.010783608914450037,
+      "y": -0.010854816824966078
+    },
+    "pixels_per_world_metre": {
+      "x": 92.73333333333333,
+      "y": -92.12500000000001
+    },
+    "axis_px_per_m": {
+      "x": 92.73333333333333,
+      "y": 92.125
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 92.73333333333333,
+        "y_px_per_m": 92.125,
+        "relative_deviation": 0.006581616553216436,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=92.7333333 px/m and y=92.125 px/m disagree by 0.658162%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "x",
+        "dimension_ref": "caller_x_anchors",
+        "span_px": 1391.0,
+        "value_m": 15.0,
+        "residual_px": 2.0207612456747484,
+        "residual_m": 0.021822801838496407
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "y",
+        "dimension_ref": "caller_y_anchors",
+        "span_px": 737.0,
+        "value_m": 8.0,
+        "residual_px": -3.7889273356400963,
+        "residual_m": -0.04091775344718015
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "F1_Corridor",
+      "pixel_polygon": [
+        [
+          425.0,
+          808.625
+        ],
+        [
+          1816.0,
+          808.625
+        ],
+        [
+          1816.0,
+          624.375
+        ],
+        [
+          425.0,
+          624.375
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1_R1N",
+      "pixel_polygon": [
+        [
+          425.0,
+          624.375
+        ],
+        [
+          883.102667,
+          624.375
+        ],
+        [
+          883.102667,
+          348.0
+        ],
+        [
+          425.0,
+          348.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1_R1S",
+      "pixel_polygon": [
+        [
+          425.0,
+          1085.0
+        ],
+        [
+          871.974667,
+          1085.0
+        ],
+        [
+          871.974667,
+          808.625
+        ],
+        [
+          425.0,
+          808.625
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1_R2N",
+      "pixel_polygon": [
+        [
+          883.102667,
+          624.375
+        ],
+        [
+          1335.641333,
+          624.375
+        ],
+        [
+          1335.641333,
+          348.0
+        ],
+        [
+          883.102667,
+          348.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1_R2S",
+      "pixel_polygon": [
+        [
+          871.974667,
+          1085.0
+        ],
+        [
+          1335.641333,
+          1085.0
+        ],
+        [
+          1335.641333,
+          808.625
+        ],
+        [
+          871.974667,
+          808.625
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1_R3N",
+      "pixel_polygon": [
+        [
+          1335.641333,
+          624.375
+        ],
+        [
+          1816.0,
+          624.375
+        ],
+        [
+          1816.0,
+          348.0
+        ],
+        [
+          1335.641333,
+          348.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1_R3S",
+      "pixel_polygon": [
+        [
+          1335.641333,
+          1085.0
+        ],
+        [
+          1816.0,
+          1085.0
+        ],
+        [
+          1816.0,
+          808.625
+        ],
+        [
+          1335.641333,
+          808.625
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_R1N_C",
+      "kind": "door",
+      "space_ids": [
+        "F1_R1N",
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          799.642667,
+          624.375
+        ],
+        [
+          883.102667,
+          624.375
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_R1S_C",
+      "kind": "door",
+      "space_ids": [
+        "F1_R1S",
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          788.514667,
+          808.625
+        ],
+        [
+          871.974667,
+          808.625
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_R1S_ext2",
+      "kind": "door",
+      "space_ids": [
+        "F1_R1S"
+      ],
+      "pixel_endpoints": [
+        [
+          475.076,
+          1085.0
+        ],
+        [
+          558.536,
+          1085.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_R2N_C",
+      "kind": "door",
+      "space_ids": [
+        "F1_R2N",
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          883.102667,
+          624.375
+        ],
+        [
+          966.562667,
+          624.375
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_R2S_C",
+      "kind": "door",
+      "space_ids": [
+        "F1_R2S",
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          871.974667,
+          808.625
+        ],
+        [
+          955.434667,
+          808.625
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_R3N_C",
+      "kind": "door",
+      "space_ids": [
+        "F1_R3N",
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1339.350667,
+          624.375
+        ],
+        [
+          1422.810667,
+          624.375
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_R3S_C",
+      "kind": "door",
+      "space_ids": [
+        "F1_R3S",
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1415.392,
+          808.625
+        ],
+        [
+          1498.852,
+          808.625
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_west_ext",
+      "kind": "door",
+      "space_ids": [
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          425.0,
+          771.775
+        ],
+        [
+          425.0,
+          661.225
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_E",
+      "kind": "window",
+      "space_ids": [
+        "F1_Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1816.0,
+          771.775
+        ],
+        [
+          1816.0,
+          661.225
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_N1",
+      "kind": "window",
+      "space_ids": [
+        "F1_R1N"
+      ],
+      "pixel_endpoints": [
+        [
+          539.989333,
+          348.0
+        ],
+        [
+          762.549333,
+          348.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_N2",
+      "kind": "window",
+      "space_ids": [
+        "F1_R2N"
+      ],
+      "pixel_endpoints": [
+        [
+          998.092,
+          348.0
+        ],
+        [
+          1220.652,
+          348.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_N3",
+      "kind": "window",
+      "space_ids": [
+        "F1_R3N"
+      ],
+      "pixel_endpoints": [
+        [
+          1456.194667,
+          348.0
+        ],
+        [
+          1678.754667,
+          348.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_S1",
+      "kind": "window",
+      "space_ids": [
+        "F1_R1S"
+      ],
+      "pixel_endpoints": [
+        [
+          744.002667,
+          1085.0
+        ],
+        [
+          855.282667,
+          1085.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_S2",
+      "kind": "window",
+      "space_ids": [
+        "F1_R2S"
+      ],
+      "pixel_endpoints": [
+        [
+          1009.22,
+          1085.0
+        ],
+        [
+          1231.78,
+          1085.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_F1_S3",
+      "kind": "window",
+      "space_ids": [
+        "F1_R3S"
+      ],
+      "pixel_endpoints": [
+        [
+          1478.450667,
+          1085.0
+        ],
+        [
+          1701.010667,
+          1085.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "audit_origin": "post_generation_developer_review_not_agent_action",
+  "crop_original_pixels": [
+    1220,
+    330,
+    1510,
+    1095
+  ]
+}

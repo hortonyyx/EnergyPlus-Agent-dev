@@ -1,0 +1,15 @@
+[
+  {
+    "op": "move_shared_wall",
+    "space_ids": [
+      "F1_R2S",
+      "F1_R3S"
+    ],
+    "coordinate_m": 9.82,
+    "reason": "Seed placed the F1_R2S/F1_R3S partition at x=10.68m, derived from an ambiguous south dimension-chain reading. Pixel measurement of 1f_view.png shows this partition as a single continuous vertical wall line (px~1335-1365, both crops [1320,1380]x[400,900] and earlier [950,1550]x[250,1000]) running unbroken from the F1_R2N/F1_R3N office partition (north row) through the corridor into the south row, i.e. the south partition is physically aligned with the north partition at x=9.82m (confirmed independently by the north dimension chain 1240+2400+1300+1240+2400+1240=9820mm), not at 10.68m. Pixel calibration: x=427px->0m, x=1813px->15.0m (per seed's established 15000mm dimension-chain calibration), giving the observed wall at (1350-427)/1386*15=9.99m, consistent with 9.82m within pixel-reading tolerance and far from the seed's 10.68m.",
+    "source_refs": [
+      "1f_view.png crop [1320,1380,1380,900]: continuous unbroken vertical wall line at px~1335-1365 spanning office+corridor+lounge rows",
+      "1f_view.png north dimension chain 1240,2400,1300,1240,2400,1240 -> partition at 9820mm"
+    ]
+  }
+]

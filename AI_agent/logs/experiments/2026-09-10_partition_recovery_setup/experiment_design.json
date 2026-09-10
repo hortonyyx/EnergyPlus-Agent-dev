@@ -1,0 +1,24 @@
+{
+  "mode": "saved_candidate_recovery_with_generic_partition_focus",
+  "seed": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run11/candidate_01",
+  "images": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run11/images",
+  "planned_output": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run12",
+  "timeout_seconds": 600,
+  "scope": "本轮继续还原保存的建筑模型，重点核对空间分隔。请根据原始平面中的隔墙、实际房间范围和尺寸依据，检查源模型的房间边界是否受图纸支持；不要只沿用旧候选未解决项或以几何自洽、门窗清单一致代替这项核对。自行选择需要看的楼层、局部和量测方法，可按需使用原图叠图或局部Haiku观察；明确像素标定与所采用墙面基准，优先处理影响房间形状和空间关系的实质差异。发现有图证的隔墙偏移时，可用move_shared_wall原子移动两个矩形空间的共同整边，其余情形仍可提交完整方案。保留有依据的已有房间、门窗和连通，观察与几何相符时不要强改，也不追逐无意义的小偏差。本轮没有给出具体错误楼层、墙、偏移数值、正确坐标或GT。请选定实际保存的候选，并如实说明空间分隔已核和未核范围、依据与未解决项。",
+  "developer_intervention_this_run": [
+    "choose saved candidate and originals",
+    "focus the task on spatial partitions without case-specific error locations/values",
+    "add deterministic local shared-wall move and make opening-review procedure conditional"
+  ],
+  "not_supplied_to_generation": [
+    "GT and prior independent evaluations",
+    "known wrong wall ids, floor, coordinates, or error magnitude",
+    "developer-selected raw observations or corrected geometry"
+  ],
+  "limits": [
+    "historically assisted seed; not a cold start",
+    "scope now prioritizes partitions, so this is a developer-selected aspect",
+    "multiple intervention factors; one run is not an ablation study",
+    "local tools remain optional; no fixed workflow or forced Haiku call"
+  ]
+}
