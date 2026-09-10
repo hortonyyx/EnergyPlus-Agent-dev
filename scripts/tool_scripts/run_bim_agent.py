@@ -18,6 +18,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,8 +40,13 @@ reversed facade directions, and reports residual against an overall dimension.
 Use it for arithmetic instead of mentally adding long chains. The labels and
 coordinate convention still need image evidence; a closed sum is not proof.
 Use review_detail (Haiku subscription) when a local second look is useful;
-you remain responsible for checking its answer against the drawing. Its prose
-is a hypothesis, not proof of an opening or connection.
+you choose whether to use it and what substantive local question to ask. It
+runs with only the selected original images and your submitted question, so it
+cannot inspect this run's scope, seed, candidates, history or other images.
+That is file-context isolation only: the question is passed through as written,
+not cleaned of claims you put in it. You remain responsible for checking its
+answer against the drawing. Its prose is a hypothesis, not proof of an opening
+or connection.
 Do not ask the user for routine geometry choices. No EP/materials are needed.
 build_bim saves immutable candidates and returns actual checks. Revise if a
 check fails, keep stable object IDs and do not drop known openings to pass.
@@ -57,8 +63,10 @@ but must not be described as verified. Your prose cannot override this record.
 Produce an initial or revised candidate early, then improve it. Do not spend
 the whole budget chasing small dimension offsets. When a seed is available,
 inspect_candidate('seed') gives the saved proposal and production checks;
-continue from it rather than regenerating the whole building. Compare its plan
-with the original, resolve coordinate conventions, and review opening identity.
+continue from it rather than regenerating the whole building. Compare actual
+spatial partitions, openings and connectivity with the original, resolve
+coordinate conventions, and choose substantive discrepancies for local review
+or revision.
 Use revise_bim for local changes and code-computed reflections. Never change
 facade labels merely to satisfy a host check: geometry and drawing directions
 must agree. Door swings, dimension ticks and window marks are different things.
@@ -178,10 +186,17 @@ def terminate_subscription(process):
 
 
 def subscription(run: Path, prompt: str, *, model: str, name: str,
-                 readonly: bool = False, timeout: int = 900):
-    """Only the logged-in subscription; isolated cwd/env, explicit MCP tools."""
+                 readonly: bool = False, timeout: int = 900,
+                 log_run: Path | None = None, receipt_context: dict | None = None):
+    """Only the logged-in subscription; isolated cwd/env, explicit MCP tools.
+
+    ``run`` is the MCP-visible workspace. ``log_run`` can retain a child
+    observation's request, stream and receipt alongside its parent run.
+    """
     if model not in {"sonnet", "haiku"}:
         raise ValueError("only configured subscription aliases are allowed")
+    run = run.resolve()
+    log_run = (log_run or run).resolve()
     from src.agent.execution.subscription_json import _isolated_env, _redact_secrets
     command = ["claude", "-p", "--model", model, "--tools", "",
                "--allowedTools", "mcp__bim__*", "--permission-mode", "dontAsk",
@@ -205,9 +220,11 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     record = {"requested_model": model, "channel": "Claude subscription; no API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
               "effort": None if readonly else "medium"}
-    dump(run / f"{name}_request.json", {**record, "prompt": prompt,
+    if receipt_context:
+        record.update(receipt_context)
+    dump(log_run / f"{name}_request.json", {**record, "prompt": prompt,
                                        "system_prompt": command[command.index("--system-prompt")+1]})
-    stdout_path, stderr_path = run / f"{name}_stream.jsonl", run / f"{name}_stderr.log"
+    stdout_path, stderr_path = log_run / f"{name}_stream.jsonl", log_run / f"{name}_stderr.log"
     with tempfile.TemporaryDirectory(prefix="bim-agent-cwd-") as cwd:
         with stdout_path.open("x") as stdout, stderr_path.open("x") as stderr:
             env = {**_isolated_env(), "ENABLE_TOOL_SEARCH": "false"}
@@ -232,8 +249,100 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
             record["actual_model"] = event.get("model")
         if event.get("type") == "result":
             record["result"] = event
-    dump(run / f"{name}_receipt.json", record)
+    dump(log_run / f"{name}_receipt.json", record)
     return record
+
+
+DETAIL_MAX_TIMEOUT_SECONDS = 240
+DETAIL_COMPLETION_RESERVE_SECONDS = 45
+DETAIL_MIN_TIMEOUT_SECONDS = 15
+DETAIL_OBSERVATION_LOCK = threading.Lock()
+
+
+def prepare_detail_observation(toolkit: "Toolkit", question: str, images: list[str], name: str):
+    """Make one immutable, image-only MCP workspace for a local observation."""
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("local review question must be non-empty")
+    if not images:
+        raise ValueError("choose at least one original image for local review")
+    if len(set(images)) != len(images):
+        raise ValueError("choose each local review image only once")
+    sources = {image: toolkit.image_path(image) for image in images}
+    child = toolkit.run / name
+    child.mkdir(exist_ok=False)
+    child_images = child / "images"
+    child_images.mkdir()
+    selected = {}
+    for image, source in sources.items():
+        target = child_images / image
+        shutil.copy2(source, target)
+        with PILImage.open(target) as picture:
+            size = list(picture.size)
+        selected[image] = {"size": size, "sha256": digest(target)}
+        if selected[image]["sha256"] != toolkit.manifest["images"][image]["sha256"]:
+            raise ValueError("selected original image changed while preparing local review")
+    # Keep the caller's wording verbatim. File isolation cannot make a leading
+    # question independent if the caller itself includes a candidate claim.
+    (child / "question.txt").write_text(question, encoding="utf-8")
+    manifest = {
+        "images": selected,
+        "input_mode": "isolated_detail_observation",
+        "only_input": (
+            "selected original image copies and local question; no parent scope, "
+            "seed, candidates, history or evaluation"
+        ),
+        "question_sha256": hashlib.sha256(question.encode("utf-8")).hexdigest(),
+    }
+    dump(child / "inputs.json", manifest)
+    return child, digest(child / "inputs.json")
+
+
+def review_detail_observation(
+        toolkit: "Toolkit", question: str, images: list[str], *, invoke=subscription) -> dict:
+    """Run one bounded, readonly local observation and retain parent receipts."""
+    # FastMCP may serve sync tools concurrently. Keep allocation, receipt creation
+    # and the bounded invocation together so two calls cannot both claim detail_01.
+    with DETAIL_OBSERVATION_LOCK:
+        used = len(list(toolkit.run.glob("detail_*_request.json")))
+        if used >= 2:
+            return {"error": "local review budget exhausted", "completed": False}
+        remaining = toolkit.remaining_seconds()
+        if remaining is not None:
+            timeout = min(DETAIL_MAX_TIMEOUT_SECONDS, remaining - DETAIL_COMPLETION_RESERVE_SECONDS)
+            if timeout < DETAIL_MIN_TIMEOUT_SECONDS:
+                return {"error": "insufficient remaining budget for local review",
+                        "completed": False, "remaining_seconds": remaining}
+        else:
+            timeout = DETAIL_MAX_TIMEOUT_SECONDS
+        name = f"detail_{used + 1:02d}"
+        child, input_sha256 = prepare_detail_observation(toolkit, question, images, name)
+        source = {"run": name, "input_sha256": input_sha256,
+                  "images": {image: toolkit.manifest["images"][image]["sha256"] for image in images}}
+        result = invoke(child, f"Images: {images}\nQuestion: {question}", model="haiku", name=name,
+                        readonly=True, timeout=timeout, log_run=toolkit.run,
+                        receipt_context={"observation_source": source})
+        result_event = result.get("result")
+        completed = (bool(result_event) and not result_event.get("is_error", False)
+                     and not result.get("timed_out", False) and result.get("returncode") == 0)
+        return {"actual_model": result.get("actual_model"),
+                "timed_out": result.get("timed_out", False),
+                "returncode": result.get("returncode"),
+                "result": result_event.get("result", "No completed answer") if result_event else "No completed answer",
+                "is_error": result_event.get("is_error", False) if result_event else True,
+                "completed": completed,
+                "observation_source": source,
+                "remaining_seconds": toolkit.remaining_seconds()}
+
+
+def cost_receipt_summary(run: Path):
+    """Read each root receipt once; detail child folders deliberately have none."""
+    receipts = [json.loads(path.read_text()) for path in sorted(run.glob("*_receipt.json"))]
+    estimates = [receipt.get("result", {}).get("total_cost_usd") for receipt in receipts]
+    complete = all(isinstance(value, (int, float)) for value in estimates)
+    partial = sum(value for value in estimates if isinstance(value, (int, float)))
+    return receipts, {"estimated_cost_usd": partial if complete else None,
+                      "cost_receipts_complete": complete,
+                      "reported_partial_cost_usd": partial}
 
 
 class Toolkit:
@@ -595,20 +704,12 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def review_detail(question: str, images: list[str]) -> dict:
             """Ask Haiku one small visual question, e.g. count/locate doors in a region.
-            Give image names and original crop coordinates; answer is evidence to check.
-            At most two local reviews are available in this experiment.
+            Give image names and original crop coordinates, and describe observable
+            original-image evidence rather than a candidate conclusion. The submitted
+            question is not text-cleaned, so this only isolates file context. At most
+            two local reviews are available in this experiment.
             """
-            for name in images: toolkit.image_path(name)
-            used = len(list(run.glob("detail_*_request.json")))
-            if used >= 2:
-                return {"error": "local review budget exhausted"}
-            result = subscription(run, f"Images: {images}\nQuestion: {question}",
-                                  model="haiku", name=f"detail_{used+1:02d}",
-                                  readonly=True, timeout=240)
-            response = {"actual_model": result.get("actual_model"),
-                        "timed_out": result.get("timed_out", False),
-                        "result": result.get("result", {}).get("result", "No completed answer"),
-                        "is_error": result.get("result", {}).get("is_error", False)}
+            response = review_detail_observation(toolkit, question, images)
             toolkit.log("review_detail", {"question": question, "images": images,
                                           "response": response})
             return response
@@ -692,9 +793,10 @@ def run_experiment(args):
         if not (run/"seed"/"source_model.json").exists():
             raise ValueError(f"seed cannot be materialized: {report.get('error')}")
     dump(run/"inputs.json", manifest)
-    continuation = ("A saved proposal is available as seed. Inspect it and compare to the original "
-                    "images; prioritize coordinate conventions and opening identity. Use local edits "
-                    "to preserve reliable existing geometry. Do not redo a full reading." if seed_path else
+    continuation = ("A saved proposal is available as seed. Compare its actual spatial partitions, "
+                    "openings and connectivity with the original images. Choose substantive "
+                    "discrepancies for local review or revision, while preserving reliable geometry; "
+                    "do not redo a full reading." if seed_path else
                     "Generate an initial candidate early, then inspect and revise it.")
     record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
                           f"Start by listing supplied inputs. {continuation} "
@@ -727,10 +829,7 @@ def run_experiment(args):
         if saved:
             delivery = Toolkit(run).delivery(saved[-1].parent.name,
                 selection_origin="latest_saved_fallback_not_agent_selected", generation_status=generation_status)
-    receipts = [json.loads(path.read_text()) for path in sorted(run.glob("*_receipt.json"))]
-    estimates = [r.get("result", {}).get("total_cost_usd") for r in receipts]
-    estimates_complete = all(isinstance(value, (int, float)) for value in estimates)
-    reported_estimate = sum(value for value in estimates if isinstance(value, (int, float)))
+    receipts, cost_summary = cost_receipt_summary(run)
     summary = {"input_mode":manifest["input_mode"], "candidate_results":candidates,
                "agent_response_completed":response_completed,
                "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or bool(delivery and delivery["viewer_exists"]),
@@ -739,9 +838,7 @@ def run_experiment(args):
                "delivery": {"candidate":delivery["candidate"], "selection_origin":delivery["selection_origin"],
                             "report":"delivery.json", "viewer":"delivery.html"} if delivery else None,
                "subscription_invocations":len(receipts),
-               "estimated_cost_usd":reported_estimate if estimates_complete else None,
-               "cost_receipts_complete":estimates_complete,
-               "reported_partial_cost_usd":reported_estimate,
+               **cost_summary,
                "not_evaluated":["independent GT comparison","human approval","EnergyPlus"],
                "estimated_cost_note":"CLI estimates are not subscription bills"}
     dump(run/"summary.json",summary)

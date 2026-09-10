@@ -16,7 +16,9 @@ from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from PIL import Image
 
-from scripts.tool_scripts.run_bim_agent import terminate_subscription
+from scripts.tool_scripts.run_bim_agent import (Toolkit, cost_receipt_summary, digest,
+                                                review_detail_observation,
+                                                terminate_subscription)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +37,14 @@ def _run_with_one_image(tmp_path: Path) -> Path:
         "only_input": "original image bytes and user scope; no GT/history",
     }), encoding="utf-8")
     return run
+
+
+def _add_image(run: Path, name: str, color: str = "white") -> None:
+    path = run / "images" / name
+    Image.new("RGB", (12, 8), color).save(path)
+    manifest = json.loads((run / "inputs.json").read_text())
+    manifest["images"][name] = {"size": [12, 8], "sha256": digest(path)}
+    (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
 
 
 @asynccontextmanager
@@ -112,6 +122,107 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
             assert "input image changed" in _error_text(await session.call_tool("view_image", {"name": "plan.png"}))
 
     asyncio.run(scenario())
+
+
+def test_detail_review_uses_isolated_image_only_workspace_and_parent_receipt(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    _add_image(run, "unselected.png", "black")
+    manifest = json.loads((run / "inputs.json").read_text())
+    manifest.update(scope="PARENT_SCOPE_MUST_NOT_LEAK", seed={"secret":"PARENT_SEED_MUST_NOT_LEAK"},
+                    historical_candidate="PARENT_HISTORY_MUST_NOT_LEAK")
+    (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (run / "candidate_01").mkdir()
+    (run / "candidate_01" / "proposal.json").write_text("PARENT_CANDIDATE_MUST_NOT_LEAK")
+    calls = []
+
+    def fake_subscription(mcp_run, prompt, **kwargs):
+        calls.append((mcp_run, prompt, kwargs))
+        assert kwargs["model"] == "haiku" and kwargs["readonly"]
+        assert kwargs["name"] == "detail_01"
+        assert kwargs["log_run"] == run
+        assert kwargs["receipt_context"]["observation_source"]["run"] == "detail_01"
+        return {"actual_model":"offline-haiku", "returncode":0,
+                "result":{"is_error":False, "result":"observed mark", "total_cost_usd":0.75}}
+
+    response = review_detail_observation(Toolkit(run), "What mark is visible at [1,2,3,4]?", ["plan.png"],
+                                         invoke=fake_subscription)
+    child, prompt, _ = calls[0]
+    assert child == run / "detail_01"
+    assert prompt == "Images: ['plan.png']\nQuestion: What mark is visible at [1,2,3,4]?"
+    assert response["completed"] and response["observation_source"]["input_sha256"] == digest(child / "inputs.json")
+    assert response["observation_source"]["images"]["plan.png"] == digest(child / "images/plan.png")
+    assert set(json.loads((child / "inputs.json").read_text())["images"]) == {"plan.png"}
+    assert (child / "question.txt").read_text() == "What mark is visible at [1,2,3,4]?"
+    assert not (child / "images/unselected.png").exists()
+    child_text = "\n".join(path.read_text(errors="ignore") for path in child.rglob("*") if path.is_file())
+    for secret in ("PARENT_SCOPE_MUST_NOT_LEAK", "PARENT_SEED_MUST_NOT_LEAK",
+                   "PARENT_HISTORY_MUST_NOT_LEAK", "PARENT_CANDIDATE_MUST_NOT_LEAK"):
+        assert secret not in child_text
+
+    async def readonly_boundary():
+        async with _server_session(child, readonly=True) as session:
+            tools = {tool.name for tool in (await session.list_tools()).tools}
+            assert "review_detail" not in tools and "build_bim" not in tools
+            inventory = _json_result(await session.call_tool("inputs", {}))
+            assert set(inventory["images"]) == {"plan.png"}
+            assert inventory["images"]["plan.png"]["sha256"] == digest(child / "images/plan.png")
+
+    asyncio.run(readonly_boundary())
+    # subscription writes detail receipts in the parent, so the root summary sees
+    # this invocation once and does not recurse into the isolated child workspace.
+    (run / "agent_receipt.json").write_text(json.dumps({"result":{"total_cost_usd":0.5}}))
+    (run / "detail_01_receipt.json").write_text(json.dumps({"result":{"total_cost_usd":0.75}}))
+    receipts, costs = cost_receipt_summary(run)
+    assert len(receipts) == 2 and costs == {"estimated_cost_usd":1.25,
+                                             "cost_receipts_complete":True,
+                                             "reported_partial_cost_usd":1.25}
+
+
+def test_detail_review_refuses_budget_exhaustion_or_too_little_time_without_calling(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    manifest = json.loads((run / "inputs.json").read_text())
+    manifest["deadline_epoch"] = time.time() + 50
+    (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+    invoked = False
+
+    def fake_subscription(*args, **kwargs):
+        nonlocal invoked
+        invoked = True
+        return {}
+
+    response = review_detail_observation(Toolkit(run), "Check the visible mark.", ["plan.png"],
+                                         invoke=fake_subscription)
+    assert response["completed"] is False and "insufficient remaining budget" in response["error"]
+    assert not invoked and not (run / "detail_01").exists()
+
+    manifest.pop("deadline_epoch")
+    (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+    for number in (1, 2):
+        (run / f"detail_{number:02d}_request.json").write_text("{}")
+    response = review_detail_observation(Toolkit(run), "Check the visible mark.", ["plan.png"],
+                                         invoke=fake_subscription)
+    assert response == {"error":"local review budget exhausted", "completed":False}
+    assert not invoked
+
+
+def test_detail_review_keeps_partial_text_but_marks_timeout_or_error_unfinished(tmp_path):
+    run = _run_with_one_image(tmp_path)
+
+    def interrupted_subscription(*args, **kwargs):
+        return {"timed_out":True, "returncode":1,
+                "result":{"is_error":False, "result":"partial observation"}}
+
+    response = review_detail_observation(Toolkit(run), "Check the visible mark.", ["plan.png"],
+                                         invoke=interrupted_subscription)
+    assert response["result"] == "partial observation"
+    assert response["timed_out"] and response["completed"] is False
+    assert response["is_error"] is False
+
+    empty_run = _run_with_one_image(tmp_path / "empty")
+    response = review_detail_observation(Toolkit(empty_run), "Check the visible mark.", ["plan.png"],
+                                         invoke=lambda *args, **kwargs: {"returncode":1})
+    assert response["result"] == "No completed answer"
+    assert response["is_error"] and response["completed"] is False
 
 
 def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
