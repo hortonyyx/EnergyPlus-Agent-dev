@@ -83,13 +83,18 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
         run = _run_with_one_image(tmp_path)
         async with _server_session(run, readonly=True) as session:
             tools = {tool.name for tool in (await session.list_tools()).tools}
-            assert {"inputs", "view_image", "pixel_profile", "map_pixels"} <= tools
+            assert {"inputs", "view_image", "pixel_profile", "map_pixels", "map_dimension_chain"} <= tools
             assert "build_bim" not in tools and "review_detail" not in tools
             assert "revise_bim" not in tools and "inspect_candidate" not in tools
             assert "check_openings" not in tools
             assert "finish_bim" not in tools and "overlay_candidate" not in tools
 
             inventory = _json_result(await session.call_tool("inputs", {}))
+            chain = _json_result(await session.call_tool("map_dimension_chain", {
+                "lengths": [540, 4800, 2520, 1600, 540], "origin_m": 10,
+                "direction": -1, "expected_total": 10000}))
+            assert chain["segments"][3]["span_m"] == [0.54, 2.14]
+            assert chain["closure_error_m"] == 0
             assert set(inventory["images"]) == {"plan.png"}
             viewed = await session.call_tool("view_image", {"name":"plan.png", "box":[2, 3, 12, 8]})
             assert viewed.content[0].type == "image"

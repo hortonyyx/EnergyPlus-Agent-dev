@@ -19,6 +19,8 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。主模型当前使用 medium effort；以回执中的实际版本为准。此入口未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
 
+`map_dimension_chain` 可将模型读出的连续尺寸累计为米制分段坐标，支持 mm/m、指定起点和反向累计，并报告与给定总长的闭合差。模型/Haiku 可按需使用；工具只做算术，不识读数字，不判断段的门窗身份，也不以总长相等证明标注正确。输入、结果和实现摘要随新 run 保存。
+
 从保存候选继续时，在以上命令加 `--resume-candidate <旧 candidate_XX 目录>`。输出仍须是新目录；只读取旧 `proposal.json`，在新 run 的 `seed/` 重建源 BIM 与检查，不读旧报告或 GT 对照。此次身份为 `saved_candidate_recovery`，不能记作新冷启动。模型可选择 `inspect_candidate`、`revise_bim` 和候选平面查看；局部门窗修改/删除须记录理由与来源，整体反射由代码统一变换房间与开口，并提示复核旧方向备注。
 
 门窗更新会将新 `source_refs` 写回对象，旧来源保留在 before 审计；`changes.assumptions` 可显式替换对象假设，缺省则保留。独立 `source_model.json` 的 `generation.corrections` 同步保存完整修订历史，包括删掉开口的旧对象，源摘要随之重新计算。

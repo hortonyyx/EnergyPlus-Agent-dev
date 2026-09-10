@@ -34,6 +34,10 @@ partitions, windows, doors and connectivity; never split a room to make a box.
 Annotation + pixels is stronger than pixels alone, which is stronger than
 inference. Missing evidence permits explicit assumptions, not silent omission.
 Use measurements where useful; tools are optional methods, not a fixed workflow.
+map_dimension_chain accumulates dimension labels into metre intervals, including
+reversed facade directions, and reports residual against an overall dimension.
+Use it for arithmetic instead of mentally adding long chains. The labels and
+coordinate convention still need image evidence; a closed sum is not proof.
 Use review_detail (Haiku subscription) when a local second look is useful;
 you remain responsible for checking its answer against the drawing. Its prose
 is a hypothesis, not proof of an opening or connection.
@@ -414,6 +418,21 @@ def serve(run: Path, readonly=False):
         return toolkit.profile(name, box, axis, rgb, tolerance)
 
     @server.tool()
+    def map_dimension_chain(lengths: list[float], unit: str = "mm",
+                            origin_m: float = 0.0, direction: int = 1,
+                            expected_total: float | None = None) -> dict:
+        """Accumulate observed dimension labels into ordered world-metre spans.
+        lengths and expected_total use unit mm or m; origin_m is always metres.
+        direction -1 walks from a known high coordinate toward lower coordinates.
+        No OCR or semantic validation: retain evidence for labels and orientation.
+        """
+        from src.agent.geometry.dimension_chain import map_dimension_chain as calculate
+        result = calculate(lengths, unit=unit, origin_m=origin_m,
+                           direction=direction, expected_total=expected_total)
+        toolkit.log("map_dimension_chain", {"lengths": lengths, "result": result})
+        return result
+
+    @server.tool()
     def map_pixels(points: list[list[float]], x_anchors: list[list[float]],
                    y_anchors: list[list[float]]) -> dict:
         """Convert selected original pixel points to metres with two anchors per axis.
@@ -636,7 +655,8 @@ def run_experiment(args):
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
                                  "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
-                                 "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py")},
+                                 "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
+                                 "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
