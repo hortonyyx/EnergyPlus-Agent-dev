@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 
 from src.agent.geometry.bim_delivery import summarize_delivery
+from src.agent.geometry.opening_review import review_openings
+from tests.test_opening_review import _facade_review, _images, _source
 
 
 RUN06 = Path(__file__).resolve().parents[1] / "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run06"
@@ -123,3 +125,46 @@ def test_complete_consistency_is_not_downgraded_by_partial_coverage_notice_alone
     assert scope["partial_review_refs"] == ["detail.json"]
     assert scope["finding_codes"] == ["partial_review_not_complete"]
     assert scope["review_status"] == "consistent_with_supplied_observations"
+
+
+def _facade_reports(source, kind):
+    ids = {"window": {"South": "W1"}, "door": {"West": "DOUT"}}[kind]
+    reports = []
+    for facade in ("North", "South", "East", "West"):
+        opening_id = ids.get(facade)
+        marks = [] if opening_id is None else [{
+            "mark_id": f"{facade}-{kind}", "box": [1, 2, 10, 12], "opening_ids": [opening_id],
+            "space_ids": ["A"], "basis": "visible", "note": f"{facade} facade",
+        }]
+        report = review_openings(source, _facade_review(facade, kind=kind, marks=marks), _images())
+        report["review_file"] = f"{facade}-{kind}.json"
+        reports.append(report)
+    return reports
+
+
+def test_facade_delivery_requires_each_exterior_direction_including_empty_facades():
+    source = _source()
+    reports = _facade_reports(source, "window")
+
+    incomplete = summarize_delivery(source, reports[:-1])
+    assert _scope(incomplete, "F1", "window")["review_status"] == "partial"
+    west = next(row for row in incomplete["facade_review_scopes"]
+                if row["floor_id"] == "F1" and row["kind"] == "window" and row["facade"] == "West")
+    assert west["built_count"] == 0
+    assert west["review_status"] == "not_reviewed"
+
+    merged = summarize_delivery(source, reports)
+    assert _scope(merged, "F1", "window")["review_status"] == "consistent_with_supplied_observations"
+    assert [row["facade"] for row in merged["facade_review_scopes"]
+            if row["floor_id"] == "F1" and row["kind"] == "window"] == ["North", "South", "East", "West"]
+
+
+def test_facade_delivery_does_not_silently_pass_interior_openings():
+    source = _source()
+    summary = summarize_delivery(source, _facade_reports(source, "door"))
+    scope = _scope(summary, "F1", "door")
+
+    assert scope["review_status"] == "partial"
+    assert scope["facade_coverage"]["non_facade_openings"] == [{
+        "opening_id": "D1", "kind": "door", "floor_id": "F1", "facade": None, "reason": "not_exterior",
+    }]

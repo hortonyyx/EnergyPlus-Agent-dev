@@ -9,7 +9,7 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from .opening_review import opening_inventory
+from .opening_review import facade_inventory, opening_inventory
 
 
 _KINDS = ("door", "passage", "window")
@@ -48,6 +48,8 @@ def _review_ref(review: dict, index: int, *, state: str, reason: str | None = No
             if isinstance(row, dict) and isinstance(row.get("code"), str)
         ),
     }
+    if isinstance(scope, dict) and isinstance(scope.get("facade"), str):
+        result["facade"] = scope["facade"]
     if reason is not None:
         result["stale_reason"] = reason
     return result
@@ -85,6 +87,30 @@ def _scope_status(effective_complete: list[dict], partial: list[dict]) -> str:
     return _CONSISTENT
 
 
+def _effective_scope_refs(refs: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
+    """Apply replacement only within one exact scope and one identical image."""
+    complete = [ref for ref in refs if ref["coverage"] == "complete"]
+    partial = [ref for ref in refs if ref["coverage"] == "partial"]
+    latest_complete_by_image: dict[tuple[str, str] | tuple[str, int], dict] = {}
+    for ref in complete:
+        image_key = _image_identity(ref) or ("review_index", ref["review_index"])
+        latest_complete_by_image[image_key] = ref
+    effective_complete = sorted(latest_complete_by_image.values(), key=lambda row: row["review_index"])
+    effective_by_image = {
+        _image_identity(ref) or ("review_index", ref["review_index"]): ref
+        for ref in effective_complete
+    }
+    superseded = []
+    for ref in refs:
+        image_key = _image_identity(ref) or ("review_index", ref["review_index"])
+        replacement = effective_by_image.get(image_key)
+        if replacement is None or ref is replacement:
+            continue
+        if ref["coverage"] == "complete" or ref["review_index"] < replacement["review_index"]:
+            superseded.append(ref)
+    return effective_complete, [ref for ref in partial if ref not in superseded], superseded
+
+
 def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
     """Summarize a source BIM and only reviews bound to that exact source.
 
@@ -102,6 +128,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
         raise ValueError("reviews must be a list of review objects")
 
     inventory = opening_inventory(source)
+    facade_index = facade_inventory(source)
     source_hash = inventory["source_model_sha256"]
     current_reviews: list[dict] = []
     stale_reviews: list[dict] = []
@@ -114,56 +141,83 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
             current_reviews.append(_review_ref(review, index, state="current"))
 
     # Only a valid scope can influence the status of source opening scopes.
-    scope_refs: dict[tuple[str, str], list[dict]] = {}
+    scope_refs: dict[tuple[str, str, str | None], list[dict]] = {}
     for ref in current_reviews:
-        key = (ref["floor_id"], ref["kind"])
+        key = (ref["floor_id"], ref["kind"], ref.get("facade"))
         if key[0] is not None and key[1] in _KINDS:
             scope_refs.setdefault(key, []).append(ref)
 
     opening_review_scopes = []
+    facade_review_scopes = []
+    facade_floor_rows = {row["floor_id"]: row for row in facade_index["floors"]}
     for floor in inventory["floors"]:
         floor_id = floor["floor_id"]
         counts = floor["counts"]
+        facade_floor = facade_floor_rows[floor_id]
+        available_facades = [row["facade"] for row in facade_floor["facades"]]
         for kind in _KINDS:
-            refs = scope_refs.get((floor_id, kind), [])
-            complete = [ref for ref in refs if ref["coverage"] == "complete"]
-            partial = [ref for ref in refs if ref["coverage"] == "partial"]
-
-            # Same source + image + scope: the later complete review replaces
-            # all earlier records for that image.  Missing image identity is
-            # intentionally not merged with another record.
-            latest_complete_by_image: dict[tuple[str, str] | tuple[str, int], dict] = {}
-            for ref in complete:
-                image_key = _image_identity(ref) or ("review_index", ref["review_index"])
-                latest_complete_by_image[image_key] = ref
-            effective_complete = sorted(latest_complete_by_image.values(), key=lambda row: row["review_index"])
-            effective_by_image = {
-                _image_identity(ref) or ("review_index", ref["review_index"]): ref
-                for ref in effective_complete
-            }
-            superseded = []
-            for ref in refs:
-                image_key = _image_identity(ref) or ("review_index", ref["review_index"])
-                replacement = effective_by_image.get(image_key)
-                if replacement is None or ref is replacement:
-                    continue
-                # A complete report replaces an earlier report of the same
-                # image, including an earlier partial.  A later partial is
-                # retained as additional, non-complete evidence.
-                if ref["coverage"] == "complete" or ref["review_index"] < replacement["review_index"]:
-                    superseded.append(ref)
-            # A same-image complete review also supersedes earlier partial
-            # evidence for that scope; a partial from another image, or a
-            # later partial, remains explicit.
-            effective_partial = [
-                ref for ref in partial
-                if ref not in superseded
-            ]
-
-            finding_codes = sorted({
-                code for ref in [*effective_complete, *effective_partial]
-                for code in ref["finding_codes"]
-            })
+            # A review with no facade is the original plan-style whole
+            # floor/kind claim.  It keeps its old behavior exactly; facade
+            # reviews are assembled separately below.
+            refs = scope_refs.get((floor_id, kind, None), [])
+            effective_complete, effective_partial, superseded = _effective_scope_refs(refs)
+            facade_rows = []
+            for facade in available_facades:
+                facade_refs = scope_refs.get((floor_id, kind, facade), [])
+                facade_complete, facade_partial, facade_superseded = _effective_scope_refs(facade_refs)
+                built_ids = [opening_id for opening_id in floor["opening_ids"]
+                             if (facade_index["opening_classifications"][opening_id].get("facade") == facade and
+                                 next(row["kind"] for row in floor["openings"] if row["id"] == opening_id) == kind)]
+                row = {
+                    "floor_id": floor_id, "kind": kind, "facade": facade,
+                    "exterior_boundary_ids": next(item["exterior_boundary_ids"] for item in facade_floor["facades"]
+                                                   if item["facade"] == facade),
+                    "built_count": len(built_ids), "built_opening_ids": built_ids,
+                    "review_status": _scope_status(facade_complete, facade_partial),
+                    "current_review_refs": [ref["review_ref"] for ref in facade_refs],
+                    "effective_complete_review_refs": [ref["review_ref"] for ref in facade_complete],
+                    "partial_review_refs": [ref["review_ref"] for ref in facade_partial],
+                    "superseded_review_refs": [ref["review_ref"] for ref in facade_superseded],
+                    "finding_codes": sorted({code for ref in [*facade_complete, *facade_partial]
+                                               for code in ref["finding_codes"]}),
+                }
+                facade_rows.append(row)
+                facade_review_scopes.append(row)
+            unavailable_facade_refs = [ref for key, candidates in scope_refs.items()
+                                       if key[:2] == (floor_id, kind) and key[2] is not None and key[2] not in available_facades
+                                       for ref in candidates]
+            non_facade_openings = [row for row in facade_floor["non_facade_openings"] if row["kind"] == kind]
+            facade_has_current = any(row["current_review_refs"] for row in facade_rows) or unavailable_facade_refs
+            facade_findings = {code for row in facade_rows for code in row["finding_codes"]}
+            facade_findings.update(code for ref in unavailable_facade_refs for code in ref["finding_codes"])
+            facade_statuses = [row["review_status"] for row in facade_rows]
+            if effective_complete:
+                review_status = _scope_status(effective_complete, effective_partial)
+                # A material contradiction in an independent facade image is
+                # retained instead of being hidden by a plan review.
+                if (any(status == _FOLLOW_UP for status in facade_statuses) or
+                        any(code != "partial_review_not_complete" for code in facade_findings)):
+                    review_status = _FOLLOW_UP
+            elif any(status == _FOLLOW_UP for status in facade_statuses) or unavailable_facade_refs:
+                review_status = _FOLLOW_UP
+            elif effective_partial:
+                # Preserve the original plan-review meaning: a partial record
+                # is useful evidence, but it cannot establish consistency.
+                review_status = "partial"
+            elif (facade_rows and all(status == _CONSISTENT for status in facade_statuses) and
+                  not non_facade_openings):
+                # Every exterior direction is required, even directions with
+                # no built opening.  An empty complete review is the evidence
+                # that a missing whole facade has not been silently accepted.
+                review_status = _CONSISTENT
+            elif facade_has_current:
+                review_status = "partial"
+            else:
+                review_status = "not_reviewed"
+            finding_codes = sorted({code for ref in [*effective_complete, *effective_partial]
+                                    for code in ref["finding_codes"]} | facade_findings)
+            all_refs = [*refs, *[ref for row in facade_rows for ref in
+                                  scope_refs.get((floor_id, kind, row["facade"]), [])], *unavailable_facade_refs]
             opening_review_scopes.append({
                 "floor_id": floor_id,
                 "kind": kind,
@@ -172,12 +226,18 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
                     opening_id for opening_id in floor["opening_ids"]
                     if next(row["kind"] for row in floor["openings"] if row["id"] == opening_id) == kind
                 ],
-                "review_status": _scope_status(effective_complete, effective_partial),
-                "current_review_refs": [ref["review_ref"] for ref in refs],
+                "review_status": review_status,
+                "current_review_refs": [ref["review_ref"] for ref in all_refs],
                 "effective_complete_review_refs": [ref["review_ref"] for ref in effective_complete],
                 "partial_review_refs": [ref["review_ref"] for ref in effective_partial],
                 "superseded_review_refs": [ref["review_ref"] for ref in superseded],
                 "finding_codes": finding_codes,
+                "facade_coverage": {
+                    "required_facades": available_facades,
+                    "facade_scope_refs": [row["current_review_refs"] for row in facade_rows],
+                    "non_facade_openings": copy.deepcopy(non_facade_openings),
+                    "unavailable_facade_review_refs": [ref["review_ref"] for ref in unavailable_facade_refs],
+                },
             })
 
     generation = source.get("generation", {})
@@ -199,6 +259,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
         "generation": {"unresolved": _as_list(generation.get("unresolved"), "generation.unresolved")},
         "opening_inventory": inventory,
         "opening_review_scopes": opening_review_scopes,
+        "facade_review_scopes": facade_review_scopes,
         "current_reviews": current_reviews,
         "stale_reviews": stale_reviews,
         "drawing_fidelity": "not_evaluated",

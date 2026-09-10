@@ -37,6 +37,11 @@ def _review(*, kind="door", coverage="complete", marks=None):
                 "space_ids": ["A"], "basis": "visible", "note": "outside door"}]}
 
 
+def _facade_review(facade, *, kind="window", marks=None):
+    return {"floor_id": "F1", "kind": kind, "facade": facade, "image": "plan.png",
+            "coverage": "complete", "marks": marks if marks is not None else []}
+
+
 def test_inventory_exposes_actual_openings_by_floor_and_space_without_mutating_source():
     source = _source()
     before = copy.deepcopy(source)
@@ -99,6 +104,49 @@ def test_partial_review_never_claims_complete_coverage_or_consistency():
     report = review_openings(_source(), review, _images())
     assert [row["code"] for row in report["findings"]] == ["partial_review_not_complete"]
     assert report["conclusion"] != "consistent_with_supplied_observations"
+
+
+def test_facade_scope_uses_actual_exterior_host_direction_not_image_name():
+    south = _facade_review("South", marks=[{
+        "mark_id": "south-window", "box": [1, 2, 10, 12], "opening_ids": ["W1"],
+        "space_ids": ["A"], "basis": "visible", "note": "south elevation window",
+    }])
+    report = review_openings(_source(), south, _images())
+
+    assert report["model_opening_ids"] == ["W1"]
+    assert report["matched_opening_ids"] == ["W1"]
+    assert report["findings"] == []
+    assert report["review_scope"]["facade"] == "South"
+    assert report["facade_scope"]["exterior_boundary_ids"] == ["space/A/wall/0", "space/B/wall/0"]
+
+
+def test_facade_scope_keeps_interior_and_unknown_host_openings_explicit():
+    west = _facade_review("West", kind="door", marks=[{
+        "mark_id": "west-door", "box": [1, 2, 10, 12], "opening_ids": ["DOUT"],
+        "space_ids": ["A"], "basis": "visible", "note": "exterior door",
+    }])
+    report = review_openings(_source(), west, _images())
+    assert report["model_opening_ids"] == ["DOUT"]
+    assert report["facade_scope"]["excluded_openings"] == [{
+        "opening_id": "D1", "kind": "door", "floor_id": "F1", "facade": None, "reason": "not_exterior",
+    }]
+
+    source = _source()
+    next(row for row in source["openings"] if row["id"] == "DOUT")["host_boundary_id"] = "missing-wall"
+    source["source_model_sha256"] = _digest({key: value for key, value in source.items() if key != "source_model_sha256"})
+    unknown = review_openings(source, _facade_review("West", kind="door"), _images())
+    assert unknown["model_opening_ids"] == []
+    assert {row["reason"] for row in unknown["facade_scope"]["excluded_openings"]} == {
+        "not_exterior", "unknown_host_boundary"}
+
+
+def test_facade_mark_cannot_claim_an_interior_door():
+    report = review_openings(_source(), _facade_review("West", kind="door", marks=[{
+        "mark_id": "wrong-door", "box": [1, 2, 10, 12], "opening_ids": ["D1"],
+        "space_ids": ["A", "B"], "basis": "visible", "note": "not on west facade",
+    }]), _images())
+    assert {row["code"] for row in report["findings"]} >= {
+        "mark_facade_mismatch", "unaccounted_model_opening"}
 
 
 @pytest.mark.parametrize("mutate", [

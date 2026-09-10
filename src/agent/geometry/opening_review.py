@@ -16,8 +16,14 @@ from collections import Counter
 
 _SOURCE_TO_REVIEW_KIND = {"door": "door", "window": "window", "open": "passage"}
 _REVIEW_KINDS = frozenset(_SOURCE_TO_REVIEW_KIND.values())
-_REVIEW_FIELDS = frozenset({"floor_id", "kind", "image", "coverage", "marks"})
+_REVIEW_FIELDS = frozenset({"floor_id", "kind", "image", "coverage", "marks", "facade"})
 _MARK_FIELDS = frozenset({"mark_id", "box", "opening_ids", "space_ids", "basis", "note"})
+_FACADES = ("North", "South", "East", "West")
+_FACADE_NORMALS = {
+    "North": (0.0, 1.0), "South": (0.0, -1.0),
+    "East": (1.0, 0.0), "West": (-1.0, 0.0),
+}
+_FACADE_EPS = 1e-7
 
 
 def _canonical_sha256(value: dict) -> str:
@@ -96,6 +102,12 @@ def _source_index(source: dict) -> tuple[str, dict, dict, dict]:
             "floor_id": next(iter(floor_ids)),
             "plan_endpoints": endpoints,
             "vertices": copy.deepcopy(vertices),
+            # These are intentionally retained from the immutable source
+            # record.  They are needed only when a reviewer explicitly limits
+            # a review to one exterior facade; the legacy plan-review path
+            # never depends on them.
+            "host_boundary_id": row.get("host_boundary_id"),
+            "exterior": row.get("exterior"),
         }
     return source_hash, floors, spaces, openings
 
@@ -154,6 +166,139 @@ def opening_inventory(source: dict) -> dict:
     }
 
 
+def _finite_xy(vertex: object) -> tuple[float, float] | None:
+    if not isinstance(vertex, (list, tuple)) or len(vertex) < 2:
+        return None
+    try:
+        x, y = float(vertex[0]), float(vertex[1])
+    except (TypeError, ValueError):
+        return None
+    return (x, y) if math.isfinite(x) and math.isfinite(y) else None
+
+
+def _signed_area(points: list[tuple[float, float]]) -> float:
+    return sum(a[0] * b[1] - b[0] * a[1]
+               for a, b in zip(points, points[1:] + points[:1])) / 2
+
+
+def _facade_for_boundary(boundary: object, space: object) -> tuple[str | None, str | None]:
+    """Return a cardinal outward facade or an explicit reason it is unavailable.
+
+    Source boundaries use their owning source-space ring.  The ring's winding,
+    rather than an image name or an opening identifier, determines which side
+    of the directed wall is outside.
+    """
+    if not isinstance(boundary, dict) or boundary.get("geometry_type") != "wall":
+        return None, "host_not_wall"
+    vertices = boundary.get("vertices")
+    if not isinstance(vertices, list) or len(vertices) < 2:
+        return None, "host_geometry_invalid"
+    a, b = _finite_xy(vertices[0]), _finite_xy(vertices[1])
+    if a is None or b is None:
+        return None, "host_geometry_invalid"
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(dx, dy)
+    if length <= _FACADE_EPS:
+        return None, "host_geometry_invalid"
+    if not isinstance(space, dict) or not isinstance(space.get("polygon"), list):
+        return None, "host_space_geometry_missing"
+    ring = [_finite_xy(point) for point in space["polygon"]]
+    if any(point is None for point in ring) or len(ring) < 3:
+        return None, "host_space_geometry_missing"
+    area = _signed_area(ring)  # type: ignore[arg-type]
+    if abs(area) <= _FACADE_EPS:
+        return None, "host_space_geometry_invalid"
+    # For a CCW ring space is on the left of each directed edge, so its
+    # exterior is the right-hand normal.  Reverse that for a CW ring.
+    nx, ny = ((dy / length, -dx / length) if area > 0
+              else (-dy / length, dx / length))
+    for facade, expected in _FACADE_NORMALS.items():
+        if abs(nx - expected[0]) <= _FACADE_EPS and abs(ny - expected[1]) <= _FACADE_EPS:
+            return facade, None
+    return None, "host_direction_unsupported"
+
+
+def facade_inventory(source: dict) -> dict:
+    """Expose source-derived exterior-facade scope without guessing from images.
+
+    A row is emitted for every cardinal exterior wall direction on each floor,
+    including directions with zero built openings.  That makes an explicit
+    empty-facade review necessary before a collection of facade reviews can
+    describe a whole floor/kind scope.
+    """
+    source_hash, floors, spaces, openings = _source_index(source)
+    raw_boundaries = source.get("boundaries", [])
+    if not isinstance(raw_boundaries, list):
+        raw_boundaries = []
+    boundaries = {
+        row.get("id"): row for row in raw_boundaries
+        if isinstance(row, dict) and isinstance(row.get("id"), str) and row["id"]
+    }
+    related_boundaries = {
+        boundary_id for relation in source.get("boundary_relations", [])
+        if isinstance(relation, dict) and isinstance(relation.get("boundary_ids"), list)
+        for boundary_id in relation["boundary_ids"] if isinstance(boundary_id, str)
+    }
+    source_spaces = {
+        row.get("id"): row for row in source.get("spaces", [])
+        if isinstance(row, dict) and isinstance(row.get("id"), str) and row["id"]
+    }
+    exterior_boundaries: dict[tuple[str, str], list[str]] = {}
+    for boundary_id, boundary in boundaries.items():
+        if boundary_id in related_boundaries or boundary.get("geometry_type") != "wall":
+            continue
+        space_id = boundary.get("space_id")
+        space = spaces.get(space_id)
+        if space is None:
+            continue
+        facade, reason = _facade_for_boundary(boundary, source_spaces.get(space_id))
+        if facade is not None:
+            exterior_boundaries.setdefault((space["floor_id"], facade), []).append(boundary_id)
+
+    classifications: dict[str, dict] = {}
+    for opening_id, opening in openings.items():
+        result = {"opening_id": opening_id, "kind": opening["kind"],
+                  "floor_id": opening["floor_id"], "facade": None}
+        if opening.get("exterior") is not True:
+            result["reason"] = "not_exterior"
+        else:
+            host_id = opening.get("host_boundary_id")
+            boundary = boundaries.get(host_id)
+            if boundary is None:
+                result["reason"] = "unknown_host_boundary"
+            elif boundary.get("space_id") not in opening["space_ids"]:
+                result["reason"] = "host_space_mismatch"
+            elif host_id in related_boundaries:
+                result["reason"] = "host_not_exterior"
+            else:
+                facade, reason = _facade_for_boundary(boundary, source_spaces.get(boundary.get("space_id")))
+                result["facade"] = facade
+                if reason is not None:
+                    result["reason"] = reason
+                elif host_id not in exterior_boundaries.get((opening["floor_id"], facade), []):
+                    result["facade"] = None
+                    result["reason"] = "host_not_exterior"
+        classifications[opening_id] = result
+
+    by_floor = []
+    for floor_id in sorted(floors):
+        facades = []
+        for facade in _FACADES:
+            boundary_ids = sorted(exterior_boundaries.get((floor_id, facade), []))
+            if not boundary_ids:
+                continue
+            opening_ids = sorted(opening_id for opening_id, row in classifications.items()
+                                 if row["floor_id"] == floor_id and row.get("facade") == facade)
+            facades.append({"facade": facade, "exterior_boundary_ids": boundary_ids,
+                            "opening_ids": opening_ids})
+        unresolved = [copy.deepcopy(row) for row in classifications.values()
+                      if row["floor_id"] == floor_id and row.get("facade") is None]
+        by_floor.append({"floor_id": floor_id, "facades": facades,
+                         "non_facade_openings": sorted(unresolved, key=lambda row: row["opening_id"])})
+    return {"schema_version": "opening_facade_inventory_v1", "source_model_sha256": source_hash,
+            "floors": by_floor, "opening_classifications": classifications}
+
+
 def _reject(message: str) -> None:
     raise ValueError(f"invalid opening review: {message}")
 
@@ -174,14 +319,17 @@ def _image_info(images: dict, image_name: str) -> tuple[int, int, str]:
 
 
 def _validate_review(review: dict, images: dict) -> tuple[int, int, str]:
-    if not isinstance(review, dict) or set(review) != _REVIEW_FIELDS:
-        _reject("review fields must be floor_id, kind, image, coverage, and marks")
+    if (not isinstance(review, dict) or not set(review) in
+            {_REVIEW_FIELDS, _REVIEW_FIELDS - {"facade"}}):
+        _reject("review fields must be floor_id, kind, image, coverage, marks, and optional facade")
     if not isinstance(review["floor_id"], str) or not review["floor_id"]:
         _reject("floor_id must be a nonempty string")
     if review["kind"] not in _REVIEW_KINDS or review["coverage"] not in {"complete", "partial"}:
         _reject("kind or coverage is invalid")
     if not isinstance(review["image"], str) or not isinstance(review["marks"], list):
         _reject("image and marks have invalid types")
+    if "facade" in review and review["facade"] not in _FACADES:
+        _reject("facade must be North, South, East, or West when supplied")
     width, height, image_hash = _image_info(images, review["image"])
     mark_ids: set[str] = set()
     for mark in review["marks"]:
@@ -223,8 +371,26 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
 
     if review["floor_id"] not in floors:
         finding("unknown_floor", floor_id=review["floor_id"])
-    scope = {opening_id for opening_id, opening in openings.items()
-             if opening["floor_id"] == review["floor_id"] and opening["kind"] == review["kind"]}
+    facade_index = facade_inventory(source) if "facade" in review else None
+    facade = review.get("facade")
+    floor_kind_ids = {opening_id for opening_id, opening in openings.items()
+                      if opening["floor_id"] == review["floor_id"] and opening["kind"] == review["kind"]}
+    if facade_index is None:
+        scope = floor_kind_ids
+        exclusions = []
+        exterior_boundary_ids = []
+    else:
+        classifications = facade_index["opening_classifications"]
+        scope = {opening_id for opening_id in floor_kind_ids
+                 if classifications[opening_id].get("facade") == facade}
+        floor_row = next((row for row in facade_index["floors"]
+                          if row["floor_id"] == review["floor_id"]), None)
+        facade_row = next((row for row in (floor_row or {}).get("facades", [])
+                           if row["facade"] == facade), None)
+        exterior_boundary_ids = list((facade_row or {}).get("exterior_boundary_ids", []))
+        exclusions = [copy.deepcopy(classifications[opening_id]) for opening_id in sorted(floor_kind_ids - scope)]
+        if review["floor_id"] in floors and facade_row is None:
+            finding("facade_not_present", floor_id=review["floor_id"], facade=facade)
     matched_ids: set[str] = set()
     referenced_ids: set[str] = set()
     reused_ids: set[str] = set()
@@ -265,6 +431,13 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
                 finding("mark_kind_mismatch", mark_id=mark_id, opening_id=opening_id,
                         actual_kind=opening["kind"], review_kind=review["kind"])
                 valid_mark = False
+            if facade_index is not None:
+                classification = facade_index["opening_classifications"][opening_id]
+                if classification.get("facade") != facade:
+                    finding("mark_facade_mismatch", mark_id=mark_id, opening_id=opening_id,
+                            review_facade=facade, actual_facade=classification.get("facade"),
+                            reason=classification.get("reason"))
+                    valid_mark = False
             if set(mark["space_ids"]) != set(opening["space_ids"]) or len(mark["space_ids"]) != len(opening["space_ids"]):
                 finding("mark_space_ids_mismatch", mark_id=mark_id, opening_id=opening_id,
                         actual_space_ids=list(opening["space_ids"]), marked_space_ids=list(mark["space_ids"]))
@@ -300,11 +473,14 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
         })
 
     conclusion = "consistent_with_supplied_observations" if not findings else "observations_require_follow_up"
+    review_scope = {"floor_id": review["floor_id"], "kind": review["kind"], "coverage": review["coverage"]}
+    if facade is not None:
+        review_scope["facade"] = facade
     return {
         "schema_version": "opening_review_v1",
         "source_model_sha256": source_hash,
         "image": {"name": review["image"], "sha256": image_hash, "size": [width, height]},
-        "review_scope": {"floor_id": review["floor_id"], "kind": review["kind"], "coverage": review["coverage"]},
+        "review_scope": review_scope,
         "model_opening_ids": sorted(scope),
         "matched_opening_ids": sorted(matched_ids),
         "referenced_opening_ids": sorted(referenced_ids),
@@ -317,4 +493,9 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
             "unbuilt_opening_count": len(source.get("unbuilt_openings", [])),
             "unsupported_observation_count": len(source.get("unsupported", [])),
         },
+        **({"facade_scope": {"facade": facade,
+                               "exterior_boundary_ids": exterior_boundary_ids,
+                               "excluded_openings": exclusions,
+                               "coverage_requires_explicit_empty_review": True}}
+           if facade is not None else {}),
     }
