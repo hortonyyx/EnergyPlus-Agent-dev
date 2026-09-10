@@ -1,0 +1,72 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 180,
+  "effort": null,
+  "returncode": 0,
+  "elapsed_seconds": 166.68,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 163718,
+    "duration_api_ms": 162572,
+    "ttft_ms": 3407,
+    "ttft_stream_ms": 1008,
+    "time_to_request_ms": 20,
+    "num_turns": 30,
+    "result": "由于时间限制，让我快速总结当前分析。基于像素测量和尺寸对应关系：\n\n**下层可见开口清单：**\n\n**开口1（左端竖长门）**\n- 像素包围框：[313, 440, 430, 575]\n- 宽度：~2000mm（估计）\n- 高度：~2300mm（估计，可能为标准门高）\n- 形状特征：竖长矩形框，中部有水平分割线\n- 落地情况：下端接近底部，可能落地或设有门槛\n- 类型判断：门（推拉门或开放式门框）\n\n**开口2（中左小横窗）**\n- 像素包围框：[490, 440, 630, 505]  \n- 宽度：~2400mm（估计）\n- 高度：~1100mm（估计）\n- 形状特征：横向矩形窗\n- 落地情况：窗台较高，不落地\n- 类型判断：窗\n\n**开口3（中间大竖窗）**\n- 像素包围框：[665, 415, 810, 530]\n- 宽度：~2400mm（对应尺寸链中的2400段）\n- 高度：~1950mm（估计）\n- 形状特征：矩形大窗，无分割\n- 落地情况：不落地\n- 类型判断：窗\n\n**开口4（右侧大竖窗）**  \n- 像素包围框：[870, 415, 1015, 530]\n- 宽度：~2400mm（对应尺寸链中的2400段）\n- 高度：~1950mm（估计）\n- 形状特征：矩形大窗，与开口3对称\n- 落地情况：不落地  \n- 类型判断：窗\n\n**不确定项：** 开口2实际宽度（跨越两个尺寸段）；各开口高度及窗台高度需图纸标注确认；开口1是否真正落地。",
+    "stop_reason": "end_turn",
+    "session_id": "53c18755-d0a4-469e-a61d-f83486db16a1",
+    "total_cost_usd": 0.14995650000000002,
+    "usage": {
+      "input_tokens": 5165,
+      "cache_creation_input_tokens": 23114,
+      "cache_read_input_tokens": 319975,
+      "output_tokens": 13145,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 23114,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 8,
+          "output_tokens": 1151,
+          "cache_read_input_tokens": 22129,
+          "cache_creation_input_tokens": 985,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 985
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 5911,
+        "outputTokens": 13164,
+        "cacheReadInputTokens": 319975,
+        "cacheCreationInputTokens": 23114,
+        "webSearchRequests": 0,
+        "costUSD": 0.14995650000000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "04e8f0b7-bcb0-43dd-b67e-080b389ba5b6"
+  }
+}

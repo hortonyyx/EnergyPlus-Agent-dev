@@ -1,0 +1,65 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "这是还原建模的局部观察辅助恢复实验，不是独立冷启动。\n你仍有原六张图和保存方案。另一模型只看了南立面下层，没有看旧候选、平面、GT或历史观察。\n下面原样提供它的观察，它可能错误，不是真值。请自行查原图，将可证实的开口身份/位置与\n实际源对象逐一核对，处理相互矛盾、重复或遗漏；需要时结合原平面判断宿主。\n不要仅改说明，若实际几何不符就保存修订；若观察不可信则说明依据。\n保持本轮只处理已观察的南侧下层开口，其他房间分区等既存问题诚实保留，不伪称全图通过。\n保留可靠几何和来源，未知不填作已核。最终选定真实可查看候选，并说明变化与尚未验证范围。\n没有给GT、正确数量或开发助手手填的坐标。以下是未改写的模型观察：\n<independent_visual_observation>\n由于时间限制，让我快速总结当前分析。基于像素测量和尺寸对应关系：\n\n**下层可见开口清单：**\n\n**开口1（左端竖长门）**\n- 像素包围框：[313, 440, 430, 575]\n- 宽度：~2000mm（估计）\n- 高度：~2300mm（估计，可能为标准门高）\n- 形状特征：竖长矩形框，中部有水平分割线\n- 落地情况：下端接近底部，可能落地或设有门槛\n- 类型判断：门（推拉门或开放式门框）\n\n**开口2（中左小横窗）**\n- 像素包围框：[490, 440, 630, 505]  \n- 宽度：~2400mm（估计）\n- 高度：~1100mm（估计）\n- 形状特征：横向矩形窗\n- 落地情况：窗台较高，不落地\n- 类型判断：窗\n\n**开口3（中间大竖窗）**\n- 像素包围框：[665, 415, 810, 530]\n- 宽度：~2400mm（对应尺寸链中的2400段）\n- 高度：~1950mm（估计）\n- 形状特征：矩形大窗，无分割\n- 落地情况：不落地\n- 类型判断：窗\n\n**开口4（右侧大竖窗）**  \n- 像素包围框：[870, 415, 1015, 530]\n- 宽度：~2400mm（对应尺寸链中的2400段）\n- 高度：~1950mm（估计）\n- 形状特征：矩形大窗，与开口3对称\n- 落地情况：不落地  \n- 类型判断：窗\n\n**不确定项：** 开口2实际宽度（跨越两个尺寸段）；各开口高度及窗台高度需图纸标注确认；开口1是否真正落地。\n</independent_visual_observation>",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789035306.1277475,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "4f2009e3ec234849bee38d651ea82000d222af7f6f0feec7075f2cc608b68c27",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "9c116246e7c15619c6b443753ff74030ff965c412bb49238de36428c07bfa157",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "17e83a8f37cec0940b1a955cec46ac7234e2282238af9eea4b82c425bcc35ff6",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run08/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "checks": {
+    "image:1f_view.png": true,
+    "image:2f_view.png": true,
+    "image:East_view.png": true,
+    "image:North_view.png": true,
+    "image:South_view.png": true,
+    "image:West_view.png": true,
+    "implementation:scripts/tool_scripts/run_bim_agent.py": true,
+    "implementation:src/agent/execution/source_proposal.py": true,
+    "implementation:src/agent/geometry/proposal_edits.py": true,
+    "implementation:src/agent/geometry/opening_review.py": true,
+    "implementation:src/agent/geometry/bim_delivery.py": true,
+    "implementation:src/agent/geometry/source_image_overlay.py": true,
+    "implementation:src/agent/geometry/dimension_chain.py": true,
+    "seed_proposal": true
+  },
+  "tool_actions": {
+    "inputs": 1,
+    "inspect_candidate": 2,
+    "view_image": 6,
+    "pixel_profile": 9,
+    "revise_bim": 1,
+    "build_bim": 1,
+    "check_openings": 2,
+    "finish_bim": 1
+  },
+  "floors_equal": true,
+  "footprint_equal": true,
+  "geometry_changes": {
+    "windows": {
+      "added": [
+        {
+          "facade": "South",
+          "floor": "F1",
+          "id": "W_F1_S1",
+          "room": "F1_R1S",
+          "source_refs": [
+            "South_view.png: pixel-measured x=511-580px (=3448-4642mm), y=448-482px (=z 1509-2098mm), short high window band, NOT a door",
+            "1f_view.png: south wall at x=3440-4640mm shows cyan window hatch fill, no door arc/gap"
+          ],
+          "span": [
+            3.44,
+            4.64
+          ],
+          "z": [
+            1.5,
+            2.1
+          ]
+        }
+      ],
+      "removed": [],
+      "updated": {}
+    },
+    "openings": {
+      "added": [],
+      "removed": [
+        {
+          "assumptions": [],
+          "id": "D_main",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            3.44,
+            0
+          ],
+          "p2": [
+            4.64,
+            0
+          ],
+          "source_refs": [
+            "1f_view.png bottom wall gap; South_view.png ground floor glass double door 1200 wide at 3440"
+          ],
+          "space_id": "F1_R1S",
+          "state": "unknown",
+          "z": [
+            0,
+            2.4
+          ]
+        }
+      ],
+      "updated": {
+        "D_R1S_ext2": {
+          "source_refs": {
+            "before": [
+              "1f_view.png: south wall gap+arc at x=540-1440mm from SW corner, distinct from D_main",
+              "South_view.png: single-leaf door glyph near x=340-400px original, left of the two ground-floor windows"
+            ],
+            "after": [
+              "1f_view.png: south wall gap+arc at x=540-1440mm from SW corner",
+              "South_view.png: pixel-measured door glyph x=340-395px (=547-1432mm), y=448-569px (=z 0-2.1m), double-leaf floor-reaching door"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "prose_notes_changed": true
+}

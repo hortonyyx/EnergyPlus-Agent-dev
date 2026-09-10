@@ -1,0 +1,19 @@
+{
+  "images": {
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    }
+  },
+  "scope": "只分析所给立面图的下层全部可见开口，不规划整栋建筑。\n先查看原图，再自行选合适局部。逐个列出开口的门/窗/不确定类型、\n原始像素包围框、支持身份判断的可见形状，以及可读到的宽度、窗台/门槛和顶高。\n尺寸链与开口的对应关系要由图确认，未标注的尺寸只能估计并明确标注。\n请把落地与否、框线和尺寸引线分开；不提供预定开口数。\n可以用现有计算工具。最后只给简短观察清单和不确定项，不超过500汉字。\n你看不到旧模型，没有模型答案需要迎合。",
+  "input_mode": "independent_local_image_observation",
+  "deadline_epoch": 1789034846.7863748,
+  "only_input": "one original elevation and a local question; no seed, plan, GT, or previous observations",
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "4f2009e3ec234849bee38d651ea82000d222af7f6f0feec7075f2cc608b68c27",
+    "AI_agent/logs/experiments/2026-09-10_sm21_independent_observation/run_probe.py": "0643cf665232ab7eed3e455829accaab9ce57dc85ad50aa3f9c9b330d5cbef4c"
+  }
+}

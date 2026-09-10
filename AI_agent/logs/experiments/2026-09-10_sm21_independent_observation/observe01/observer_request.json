@@ -1,0 +1,9 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 180,
+  "effort": null,
+  "prompt": "只分析所给立面图的下层全部可见开口，不规划整栋建筑。\n先查看原图，再自行选合适局部。逐个列出开口的门/窗/不确定类型、\n原始像素包围框、支持身份判断的可见形状，以及可读到的宽度、窗台/门槛和顶高。\n尺寸链与开口的对应关系要由图确认，未标注的尺寸只能估计并明确标注。\n请把落地与否、框线和尺寸引线分开；不提供预定开口数。\n可以用现有计算工具。最后只给简短观察清单和不确定项，不超过500汉字。\n你看不到旧模型，没有模型答案需要迎合。",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. Do not plan the whole building."
+}

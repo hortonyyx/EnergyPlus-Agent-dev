@@ -1,0 +1,34 @@
+[
+  {
+    "op": "remove_opening",
+    "id": "D_main",
+    "reason": "Pixel measurement of South_view.png shows the shape at x=3440-4640mm is a SHORT rectangle (y spans sill~1500mm to head~2100mm, height ~600mm), not a floor-reaching door leaf. The matching plan wall segment (1f_view.png, x=3440-4640 on south wall) shows a cyan window hatch, not a door arc/gap. Only ONE south door exists (the one at x=540-1440mm, D_R1S_ext2, confirmed by swing arc in plan and floor-to-2.1m double-leaf glyph in elevation). D_main was a misidentification of this window as a second main entrance door.",
+    "source_refs": [
+      "South_view.png: pixel-measured box x=511-580px (=3448-4642mm), y=448-482px (=1509-2098mm), a short high window band, not a door",
+      "1f_view.png: south wall at x=3440-4640mm shows cyan window hatch fill, no door arc/gap present"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed, confirmed by South elevation door/window layout matching plan south wall).",
+      "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+      "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown.",
+      "F1 south wall has exactly ONE exterior door (D_R1S_ext2, x=0.54-1.44m, z=0-2.1m), re-verified by pixel measurement of South_view.png (door glyph spans y=448-569px = z 0-2.1m, matching plan swing arc + 540/900 dims) and by absence of any second door arc/gap in 1f_view.png south wall.",
+      "The shape previously modeled as door D_main at x=3.44-4.64m on the F1 south wall is corrected to a window W_F1_S1 (sill 1.5m, height 0.6m, i.e. z=[1.5,2.1]), per pixel measurement (short rectangle, not floor-reaching) and plan hatch evidence (window fill, not door gap) at that wall segment.",
+      "Window sill/head heights: other F1 windows z=[1.0,2.6]; F2 windows z=[4.0,5.8] (absolute), read from elevation vertical dimension chains.",
+      "Door heights: 2.1m for interior doors and for D_R1S_ext2; 2.4m for the two main exterior glazed doors (South main entrance now reclassified as removed -- see below; West corridor entrance) per elevation door proportions.",
+      "CORRECTION: there is no second South F1 exterior door; the South ground-floor exterior door count is ONE (D_R1S_ext2), not two as previously modeled. D_main removed and replaced by window W_F1_S1.",
+      "East facade has a window (not door) into the corridor on both floors; West facade has a matching-position door into the corridor on F1 and a window in the same position on F2.",
+      "Each of the 3 north and 3 south F1 rooms, and each F2 room, has exactly one door to the central corridor, per arc marks in 1f_view.png/2f_view.png.",
+      "Interior room-to-corridor door exact widths/positions are approximated (~0.75-1m) near visible jamb/arc marks; not all individually pixel-verified."
+    ],
+    "unresolved": [
+      "Exact interior door widths/positions for F2 office-to-corridor doors are approximated, not pixel-verified against small jamb dimensions.",
+      "Door swing direction/leaf count not modeled, only presence and connectivity.",
+      "Room role labels are descriptive based on furniture, not authoritative source naming.",
+      "This revision only re-examined the South facade F1 (ground floor) openings per current scope; other facades/floors' opening positions and interior partitions retain prior, not independently re-verified in this pass.",
+      "North/East/West facade openings and F2 openings were not re-checked in this pass; carried over from seed unchanged."
+    ]
+  }
+]

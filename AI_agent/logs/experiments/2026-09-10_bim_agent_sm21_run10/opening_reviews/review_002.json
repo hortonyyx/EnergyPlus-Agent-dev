@@ -1,0 +1,208 @@
+{
+  "candidate": "candidate_02",
+  "review_file": "opening_reviews/review_002.json",
+  "schema_version": "opening_review_v1",
+  "source_model_sha256": "421e97deb69f751709155a330ba9b5545ded1f137cf08f3c1e9d90873b00d20e",
+  "image": {
+    "name": "South_view.png",
+    "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "size": [
+      1423,
+      794
+    ]
+  },
+  "review_scope": {
+    "floor_id": "F1",
+    "kind": "window",
+    "coverage": "complete",
+    "facade": "South"
+  },
+  "model_opening_ids": [
+    "W_F1_S1",
+    "W_F1_S2",
+    "W_F1_S3"
+  ],
+  "matched_opening_ids": [
+    "W_F1_S1",
+    "W_F1_S2",
+    "W_F1_S3"
+  ],
+  "referenced_opening_ids": [
+    "W_F1_S1",
+    "W_F1_S2",
+    "W_F1_S3"
+  ],
+  "room_coverage": [
+    {
+      "space_id": "F1_Corridor",
+      "actual_opening_ids": [],
+      "actual_opening_count": 0,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R1N",
+      "actual_opening_ids": [],
+      "actual_opening_count": 0,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R1S",
+      "actual_opening_ids": [
+        "W_F1_S1"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "W_F1_S1"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R2N",
+      "actual_opening_ids": [],
+      "actual_opening_count": 0,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R2S",
+      "actual_opening_ids": [
+        "W_F1_S2"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "W_F1_S2"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R3N",
+      "actual_opening_ids": [],
+      "actual_opening_count": 0,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R3S",
+      "actual_opening_ids": [
+        "W_F1_S3"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "W_F1_S3"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    }
+  ],
+  "findings": [],
+  "conclusion": "consistent_with_supplied_observations",
+  "drawing_fidelity": "not_evaluated",
+  "source_scope": {
+    "actual_openings": "only explicit built source openings were reviewed",
+    "unbuilt_opening_count": 0,
+    "unsupported_observation_count": 0
+  },
+  "facade_scope": {
+    "facade": "South",
+    "exterior_boundary_ids": [
+      "space/F1_R1S/wall/0",
+      "space/F1_R2S/wall/0",
+      "space/F1_R3S/wall/0"
+    ],
+    "excluded_openings": [
+      {
+        "opening_id": "W_F1_E",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "East"
+      },
+      {
+        "opening_id": "W_F1_N1",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "North"
+      },
+      {
+        "opening_id": "W_F1_N2",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "North"
+      },
+      {
+        "opening_id": "W_F1_N3",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "North"
+      }
+    ],
+    "coverage_requires_explicit_empty_review": true
+  },
+  "observations": {
+    "floor_id": "F1",
+    "kind": "window",
+    "image": "South_view.png",
+    "facade": "South",
+    "coverage": "complete",
+    "marks": [
+      {
+        "mark_id": "south-window-1",
+        "box": [
+          511,
+          448,
+          580,
+          482
+        ],
+        "opening_ids": [
+          "W_F1_S1"
+        ],
+        "space_ids": [
+          "F1_R1S"
+        ],
+        "basis": "visible",
+        "note": "short high window band, sill~1500mm head~2100mm, pixel-measured x=3448-4642mm; previously misclassified as door D_main"
+      },
+      {
+        "mark_id": "south-window-2",
+        "box": [
+          675,
+          419,
+          813,
+          511
+        ],
+        "opening_ids": [
+          "W_F1_S2"
+        ],
+        "space_ids": [
+          "F1_R2S"
+        ],
+        "basis": "visible",
+        "note": "large window, z approx 1.0-2.6m"
+      },
+      {
+        "mark_id": "south-window-3",
+        "box": [
+          969,
+          419,
+          1105,
+          511
+        ],
+        "opening_ids": [
+          "W_F1_S3"
+        ],
+        "space_ids": [
+          "F1_R3S"
+        ],
+        "basis": "visible",
+        "note": "large window, symmetric to window-2, z approx 1.0-2.6m"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "checks": {
+    "only_one_original_image": true,
+    "no_seed_manifest": true,
+    "no_candidate_files": true,
+    "all_tools_readonly": true,
+    "only_allowed_tools": true,
+    "only_original_image_viewed": true,
+    "image_sha256": true,
+    "implementation:scripts/tool_scripts/run_bim_agent.py": true,
+    "implementation:AI_agent/logs/experiments/2026-09-10_sm21_independent_observation/run_probe.py": true
+  },
+  "tools": {
+    "inputs": 1,
+    "view_image": 22,
+    "pixel_profile": 3,
+    "map_pixels": 1,
+    "map_dimension_chain": 1
+  },
+  "elapsed_seconds": 166.68,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "cli_estimated_cost_usd_not_bill": 0.14995650000000002,
+  "assessment": {
+    "identity": "one lower-storey door and three windows correctly identified; small opening correctly called a raised window",
+    "localization": "boxes largely repeat broad crop regions rather than opening contours; rightmost box does not enclose the rightmost window",
+    "dimensions": "incorrect: small window estimated 2400x1100mm despite image labels 1200x600mm; door width estimated about2000mm instead of about900mm; large-window heights overstated",
+    "scope": "post-observation developer reading of original pixels; this assessment is not passed to recovery"
+  }
+}
