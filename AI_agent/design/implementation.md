@@ -59,13 +59,13 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 | 平面非正交 | 底层 polygon/线段及法向原语可复用 | `cell_geometry.cell_polygon` 和 facade visibility 明确拒绝非正交边，run_config 只接受 rectangular/orthogonal_polygon；读图/校正/评分的轴向假设也要变 |
 | 整栋旋转/真北 | 建筑局部坐标与朝向出口已有实现 | 旋转的正交建筑与内部斜墙不是同一能力；输入方向识别与未命名立面匹配需分别验收 |
 
-上述为复杂度边界；M0 已执行确定性分区回归和旧产物重放，尚无新原图冷启动实验。施工顺序、样例和完成依据见 [执行计划](../project/drawing_reconstruction_plan.md)。
+上述为复杂度边界；M0 已执行确定性分区回归和旧产物重放，09-09 新冷启动实验失败，未新增复杂度能力证明。施工顺序、样例和完成依据见 [执行计划](../project/drawing_reconstruction_plan.md)。
 
 ## 面向目标的缺口
 
 ### gate、judge、GT 的当前接线
 
-- `stage_runner.py` 定义 0–5 的阶段与依赖；`step_orchestrator.py` 在 gate① 后进入 judge/几何确认或继续。正式源确认已在 Stage 2 后阻塞 Stage 3–5，绑定已显示快照并核对可信上游与当前检查；恢复不重抽上游，旧确认随源/检查/查看产物变化失效。reading 自动调用缺口仍在，历史 flow 成功不意味着今日已经是一键无人值守。
+- `stage_runner.py` 定义 0–5 的阶段与依赖；`step_orchestrator.py` 在 gate① 后进入 judge/几何确认或继续。正式源确认已在 Stage 2 后阻塞 Stage 3–5，绑定已显示快照并核对可信上游与当前检查；恢复不重抽上游，旧确认随源/检查/查看产物变化失效。旧 ReadingView 自动调用已接；as-drawn 原图自动生产及完整两步裁定仍需贯通，历史 flow 成功不意味着今日已经是一键无人值守。
 - [CheckReport](../../src/validator/checks/schema.py) 已区分 invariant 的阻塞与 cross_check 的提示，并有 profile 例外；[StageVerdict](../../src/agent/judge/verdict.py) 明确采用定性清单，minor 放行，severe/fatal 阻塞（J0 有可交校正恢复的例外）。[judge 注册](../../src/agent/judge/executor.py) 当前启用 J0/J1，J4 是停用的 stub。
 - 评分并非全部毫米级：legacy 墙位默认容差 0.30 m、窗中心 0.40 m；[typed 评分配置](../../src/configs/judge_score.yaml) 同样包含厘米/分米级阈值；as-drawn 平面位置默认 0.08 m，并纳入两侧量化误差下限。它们是不同消费者的现值，不是本轮推荐的统一容差。
 - [GT 配置](../../src/configs/judge_gt.yaml) 的 DXF 节点连接/轴对齐为 0.001 m；as-drawn 分母仍从签字源 DXF 生成。GT 准备/规整精度与最后产品评价容差属于不同环节，不能只修改评分配置便声称解决了前者。
@@ -86,3 +86,5 @@ V3 外皮事务和 B5 的部分窗宿主/可见性链要求楼层 footprint/fami
 GT 修订、AnswerCompiler 和评分已有部分接线，尚未统一消费 frozen facts，详见 [验证与评价](evaluation.md)。相关模块按用途复用，设计建议只有落实并实测后才成为能力声明。
 
 09-09 首次显式自动入口实验已执行：[sm21 原图对照与记录](../logs/experiments/2026-09-09_automatic_source_sm21_run01/README.md)。读图技术接受但源分区/门信息失真；CV 候选尚未与输出标定对应。Sonnet 校正超时后停止重试，未产出新 BIM。入口接线不等于图纸重建能力验收；下一步针对保存的实质结构反例改进，不能靠全面提升尺寸启发式门槛代替保真判断。
+
+09-10 收工前核对：本次自动入口实际产出 legacy ReadingView，`_w1_route_correction` 因此进入整案 JSON 校正；`correction_decision` 配置不会改变输入路由。已有 as-drawn 生产工序、决定执行器、多层与门窗装配应作为下轮接线基础，不能把旧归档的“零生产调用”照抄成当前状态。历史好跑测及具体源码入口见 [读图与校正依据](reading_correction.md)。

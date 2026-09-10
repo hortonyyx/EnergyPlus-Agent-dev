@@ -9,6 +9,7 @@
 | 图纸路线的工作包、复杂度递进与自动验收 | [详细执行计划](project/drawing_reconstruction_plan.md) |
 | 已经确定的选择和原因 | [关键决策](project/decisions.md) |
 | 两路输入如何组成同一个产品 | [系统设计](design/architecture.md) |
+| 历史好读图如何复用、reading/correction 如何接线 | [读图与校正设计依据](design/reading_correction.md) |
 | 共同模型、单位、坐标和编辑对象 | [轻量建筑模型](design/model.md) |
 | 已有代码、接口和真实能力缺口 | [现有实现](design/implementation.md) |
 | 怎样判断输出有用、完整和可信 | [验证与评价](design/evaluation.md) |
