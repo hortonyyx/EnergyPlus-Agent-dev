@@ -1,0 +1,23 @@
+{
+  "implementation_commit": "8c14fd4c",
+  "checks": [
+    {
+      "command": "python -m pytest -n 2 tests/test_bim_agent_tools.py",
+      "result": "8 passed",
+      "scope": "readonly stdio boundary, selected image isolation, child receipts/cost aggregation, budget and incomplete answers; existing candidate/recovery/delivery checks"
+    },
+    {
+      "command": "python -m py_compile scripts/tool_scripts/run_bim_agent.py tests/test_bim_agent_tools.py",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "model_calls": false,
+  "limits": [
+    "Offline tests do not establish visual reading correctness or model-selected tool use.",
+    "ruff was not installed; no dependency changes were made."
+  ]
+}

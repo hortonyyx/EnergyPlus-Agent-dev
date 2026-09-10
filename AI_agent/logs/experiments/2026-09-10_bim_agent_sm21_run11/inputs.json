@@ -1,0 +1,65 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "请根据所给原始图纸检查并继续还原保存的建筑模型。自行比较实际空间分隔、门窗和连通，决定哪些地方需要查看、量测、局部第二次观察或修改；已有方案和来源文字都需要图证，几何自洽与观察清单一致不能代替图纸保真。优先处理对建筑空间和使用有影响的实质问题，保留有依据的已有内容，不追逐无意义的小偏差。需要局部观察时可用review_detail，由你选择原图、范围和问题；局部回答可能出错，你负责核对。不要求固定步骤或每次调用子模型。本轮没有提供具体错误清单、正确数量、正确坐标或GT。请保存实际修订并选定最终候选，如实说明已验证范围和未解决问题。",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789037125.8342824,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "8f1e50e82516c63235e66ccbe4815b3812a26e5b95596225149339f9631cf63b",
+    "src/agent/execution/source_proposal.py": "707e64d78d574c89e3d1fa8b67b134a327094f517802d2e74bde48abbab7bbf5",
+    "src/agent/geometry/proposal_edits.py": "41460f3129c9a85ea4ec51bbf3b80d94a5c1c2b7bafad16e3574979231896278",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "9c116246e7c15619c6b443753ff74030ff965c412bb49238de36428c07bfa157",
+    "src/agent/geometry/source_image_overlay.py": "b134193bd5bfa916b41dec9dd11cae1dc37ae2e5ab7675f93bc72434828de6cc",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "27217d78a88782c98c4d48103a764e088cc8fbb6a4689afaf5dd657f6fbbb789",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run10/candidate_02",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

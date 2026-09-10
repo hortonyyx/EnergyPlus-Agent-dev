@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed, confirmed by South elevation door/window layout matching plan south wall).",
+    "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines.",
+    "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown.",
+    "F1 south wall has exactly ONE exterior door (D_R1S_ext2, x=0.54-1.44m, z=0-2.1m); all other south wall gaps at that row are windows.",
+    "F2 office-to-corridor doors (Off1-4) are positioned adjacent to their shared partition walls (offset by the 360mm partition half-thickness), not centered in the room, per pixel measurement of 2f_view.png door arcs against the calibrated 15000mm dimension chain; corrected from an earlier centered-door assumption.",
+    "F2 ConfA/ConfB doors to corridor are symmetric about the central partition at x=7.5, each ~0.6m wide, per visible arc geometry; not independently re-measured this pass.",
+    "F1 room-to-corridor doors (R1N-R3N, R1S-R3S) are adjacent to their partitions, consistent with the same 360/900mm module; retained from seed pixel-based placement.",
+    "Interior door widths generally ~0.9m except ConfA/B (~0.6m each) and the F1 west corridor entrance and south exterior door, per elevation glazing widths.",
+    "Door heights: 2.1m for interior doors and D_R1S_ext2; 2.4m for the West corridor entrance glazed door on F1."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "96bcb4e8d1ccdf6e28293c340fe2201a03f544b68dcf0d971d48f8cb33e0d905",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "570a46aa3bceac9521f579ea8a0a7de6fd75e56afe73810e559088de90190a72",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "27217d78a88782c98c4d48103a764e088cc8fbb6a4689afaf5dd657f6fbbb789"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "b8ad390b2ca46ef46ad98a38c3200e1f86dfa315dafb6a9ded816fb5e8d0c940",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F2 ConfA/ConfB corridor door split exact widths not independently pixel-verified this pass (visually near-symmetric ~0.6m each side of x=7.5).",
+    "Door swing direction/leaf count not modeled, only presence and connectivity.",
+    "Room role labels are descriptive based on furniture, not authoritative source naming.",
+    "North/East/West facade window placements and F1 interior partition door exact widths retain prior seed pixel-based values, not re-verified in this pass.",
+    "This pass focused on F2 office-to-corridor door positions found to be mis-centered; other geometry retained from seed."
+  ]
+}

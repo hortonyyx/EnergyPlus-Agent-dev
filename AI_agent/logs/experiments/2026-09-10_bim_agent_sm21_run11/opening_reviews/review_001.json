@@ -1,0 +1,341 @@
+{
+  "candidate": "candidate_01",
+  "review_file": "opening_reviews/review_001.json",
+  "schema_version": "opening_review_v1",
+  "source_model_sha256": "b8ad390b2ca46ef46ad98a38c3200e1f86dfa315dafb6a9ded816fb5e8d0c940",
+  "image": {
+    "name": "2f_view.png",
+    "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "size": [
+      2182,
+      1319
+    ]
+  },
+  "review_scope": {
+    "floor_id": "F2",
+    "kind": "door",
+    "coverage": "complete"
+  },
+  "model_opening_ids": [
+    "D_ConfA_C",
+    "D_ConfB_C",
+    "D_Off1_C",
+    "D_Off2_C",
+    "D_Off3_C",
+    "D_Off4_C"
+  ],
+  "matched_opening_ids": [],
+  "referenced_opening_ids": [
+    "D_ConfA_C",
+    "D_ConfB_C",
+    "D_Off1_C",
+    "D_Off2_C",
+    "D_Off3_C",
+    "D_Off4_C"
+  ],
+  "room_coverage": [
+    {
+      "space_id": "F2_ConfA",
+      "actual_opening_ids": [
+        "D_ConfA_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_ConfA_C"
+      ]
+    },
+    {
+      "space_id": "F2_ConfB",
+      "actual_opening_ids": [
+        "D_ConfB_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_ConfB_C"
+      ]
+    },
+    {
+      "space_id": "F2_Corridor",
+      "actual_opening_ids": [
+        "D_ConfA_C",
+        "D_ConfB_C",
+        "D_Off1_C",
+        "D_Off2_C",
+        "D_Off3_C",
+        "D_Off4_C"
+      ],
+      "actual_opening_count": 6,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_ConfA_C",
+        "D_ConfB_C",
+        "D_Off1_C",
+        "D_Off2_C",
+        "D_Off3_C",
+        "D_Off4_C"
+      ]
+    },
+    {
+      "space_id": "F2_Off1",
+      "actual_opening_ids": [
+        "D_Off1_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_Off1_C"
+      ]
+    },
+    {
+      "space_id": "F2_Off2",
+      "actual_opening_ids": [
+        "D_Off2_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_Off2_C"
+      ]
+    },
+    {
+      "space_id": "F2_Off3",
+      "actual_opening_ids": [
+        "D_Off3_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_Off3_C"
+      ]
+    },
+    {
+      "space_id": "F2_Off4",
+      "actual_opening_ids": [
+        "D_Off4_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [],
+      "matched_opening_count": 0,
+      "missing_opening_ids": [
+        "D_Off4_C"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "code": "mark_multiple_opening_ids",
+      "mark_id": "door-mark-1",
+      "opening_ids": [
+        "D_ConfA_C",
+        "D_ConfB_C"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-mark-1",
+      "opening_id": "D_ConfA_C",
+      "actual_space_ids": [
+        "F2_ConfA",
+        "F2_Corridor"
+      ],
+      "marked_space_ids": [
+        "F2_ConfA",
+        "F2_ConfB",
+        "F2_Corridor"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-mark-1",
+      "opening_id": "D_ConfB_C",
+      "actual_space_ids": [
+        "F2_ConfB",
+        "F2_Corridor"
+      ],
+      "marked_space_ids": [
+        "F2_ConfA",
+        "F2_ConfB",
+        "F2_Corridor"
+      ]
+    },
+    {
+      "code": "mark_multiple_opening_ids",
+      "mark_id": "door-mark-2",
+      "opening_ids": [
+        "D_Off1_C",
+        "D_Off2_C"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-mark-2",
+      "opening_id": "D_Off1_C",
+      "actual_space_ids": [
+        "F2_Off1",
+        "F2_Corridor"
+      ],
+      "marked_space_ids": [
+        "F2_Off1",
+        "F2_Off2",
+        "F2_Corridor"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-mark-2",
+      "opening_id": "D_Off2_C",
+      "actual_space_ids": [
+        "F2_Off2",
+        "F2_Corridor"
+      ],
+      "marked_space_ids": [
+        "F2_Off1",
+        "F2_Off2",
+        "F2_Corridor"
+      ]
+    },
+    {
+      "code": "mark_multiple_opening_ids",
+      "mark_id": "door-mark-3",
+      "opening_ids": [
+        "D_Off3_C",
+        "D_Off4_C"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-mark-3",
+      "opening_id": "D_Off3_C",
+      "actual_space_ids": [
+        "F2_Off3",
+        "F2_Corridor"
+      ],
+      "marked_space_ids": [
+        "F2_Off3",
+        "F2_Off4",
+        "F2_Corridor"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-mark-3",
+      "opening_id": "D_Off4_C",
+      "actual_space_ids": [
+        "F2_Off4",
+        "F2_Corridor"
+      ],
+      "marked_space_ids": [
+        "F2_Off3",
+        "F2_Off4",
+        "F2_Corridor"
+      ]
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_ConfA_C"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_ConfB_C"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_Off1_C"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_Off2_C"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_Off3_C"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_Off4_C"
+    }
+  ],
+  "conclusion": "observations_require_follow_up",
+  "drawing_fidelity": "not_evaluated",
+  "source_scope": {
+    "actual_openings": "only explicit built source openings were reviewed",
+    "unbuilt_opening_count": 0,
+    "unsupported_observation_count": 0
+  },
+  "observations": {
+    "floor_id": "F2",
+    "kind": "door",
+    "image": "2f_view.png",
+    "coverage": "complete",
+    "marks": [
+      {
+        "mark_id": "door-mark-1",
+        "box": [
+          705,
+          570,
+          940,
+          650
+        ],
+        "opening_ids": [
+          "D_ConfA_C",
+          "D_ConfB_C"
+        ],
+        "space_ids": [
+          "F2_ConfA",
+          "F2_ConfB",
+          "F2_Corridor"
+        ],
+        "basis": "visible",
+        "note": "two door arcs converging at central partition x=7.5 between ConfA and ConfB, opening into corridor"
+      },
+      {
+        "mark_id": "door-mark-2",
+        "box": [
+          650,
+          760,
+          950,
+          900
+        ],
+        "opening_ids": [
+          "D_Off1_C",
+          "D_Off2_C"
+        ],
+        "space_ids": [
+          "F2_Off1",
+          "F2_Off2",
+          "F2_Corridor"
+        ],
+        "basis": "visible",
+        "note": "two door arcs adjacent to the Off1/Off2 partition wall, pixel-measured and re-positioned from an earlier incorrect centered assumption"
+      },
+      {
+        "mark_id": "door-mark-3",
+        "box": [
+          1300,
+          760,
+          1650,
+          900
+        ],
+        "opening_ids": [
+          "D_Off3_C",
+          "D_Off4_C"
+        ],
+        "space_ids": [
+          "F2_Off3",
+          "F2_Off4",
+          "F2_Corridor"
+        ],
+        "basis": "visible",
+        "note": "two door arcs adjacent to the Off3/Off4 partition wall, mirrors Off1/Off2 pattern"
+      }
+    ]
+  }
+}

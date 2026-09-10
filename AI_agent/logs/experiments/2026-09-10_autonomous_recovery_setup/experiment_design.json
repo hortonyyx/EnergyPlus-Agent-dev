@@ -1,0 +1,30 @@
+{
+  "mode": "saved_candidate_recovery_without_new_case_specific_error_hints",
+  "seed": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run10/candidate_02",
+  "images": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run08/images",
+  "planned_output": "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run11",
+  "timeout_seconds": 600,
+  "scope": "请根据所给原始图纸检查并继续还原保存的建筑模型。自行比较实际空间分隔、门窗和连通，决定哪些地方需要查看、量测、局部第二次观察或修改；已有方案和来源文字都需要图证，几何自洽与观察清单一致不能代替图纸保真。优先处理对建筑空间和使用有影响的实质问题，保留有依据的已有内容，不追逐无意义的小偏差。需要局部观察时可用review_detail，由你选择原图、范围和问题；局部回答可能出错，你负责核对。不要求固定步骤或每次调用子模型。本轮没有提供具体错误清单、正确数量、正确坐标或GT。请保存实际修订并选定最终候选，如实说明已验证范围和未解决问题。",
+  "developer_intervention_this_run": [
+    "select a saved candidate and original-image inventory",
+    "supply a generic reconstruction objective and a bounded runtime",
+    "implement optional isolated local review as a model-selectable tool"
+  ],
+  "not_supplied_to_generation": [
+    "known remaining error locations or magnitudes",
+    "previous independent evaluations or GT",
+    "developer-selected local observation or corrected geometry"
+  ],
+  "post_run_questions": [
+    "Which original images and local tasks did the main model choose?",
+    "Were local questions free of candidate-specific suggested answers?",
+    "Did the model identify and change physical geometry, or only its prose?",
+    "Did source geometry remain usable and existing reliable openings survive?",
+    "What does independent reference comparison support, and what remains unresolved?"
+  ],
+  "limits": [
+    "The seed has a history of developer-assisted recovery; this is not a cold start.",
+    "File-context isolation does not sanitize the model-written local question.",
+    "One case does not establish general autonomy or isolate a causal factor."
+  ]
+}
