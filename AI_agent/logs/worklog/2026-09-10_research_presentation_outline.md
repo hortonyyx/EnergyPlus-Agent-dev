@@ -1,6 +1,6 @@
 # 课题汇报：页面安排草案
 
-用户准备 2026-09-11 课题汇报，暂缓常规开发。以下七页内容已获用户认可；随后用户要求先完成两份成果展示资产，完整 slides 尚未制作。实施结果见 [资产记录](2026-09-10_research_showcase_assets.md)。
+用户准备 2026-09-11 课题汇报，暂缓常规开发。以下七页内容已获用户认可；随后先完成两份成果资产及 Voimatalo 修订。用户进一步确认制作极简克制科研风格、少文字、关键文字双语的第一版，现已实现 [七页 HTML slides](../../../showcase/2026-09-11-research-report/index.html)。制作与验证见 [slides 记录](2026-09-10_research_slides.md)，前期实施见 [资产记录](2026-09-10_research_showcase_assets.md)。
 
 ## 用户明确的内容与制作范围
 
@@ -29,6 +29,6 @@
 - sm25：[既有查看器](../experiments/2026-09-09_source_bim_run04/sm25/viewer.html)，历史辅助模型 29 空间/31 窗/29 门，两组未建门等限制见该实验说明；须在展示副本中实际检查和处理。
 - 真实体量：[Voimatalo 输入](../../../case_tests/textured_mass/single_buildings/voimatalo/README.md)，Helsinki 真实贴图单体已准备，完整 UV 查看曾验证；此前尚未生成 BIM。可作为 Google Earth 类输入的首选尝试，素材来源不得标为 Google Earth。
 - 旧展示：[归档展示](../../../showcase/previous-showcase/README.md)，包含十个动画场景及其资源，现已迁移。
-- 已建立仓库根 `showcase/2026-09-11-research-report/`，当前入口 `assets.html`，成果分别放 `demos/sm25/`、`demos/textured-mass/`；完整 slides 的 `index.html` 待下一步制作。旧展示整体迁至 `showcase/previous-showcase/`。管理与实验记录继续放 `AI_agent/`。
+- 已建立仓库根 `showcase/2026-09-11-research-report/`，汇报入口为 `index.html`，独立模型入口为 `assets.html`；成果分别放 `demos/sm25/`、`demos/textured-mass/`。旧展示整体迁至 `showcase/previous-showcase/`。管理与实验记录继续放 `AI_agent/`。
 
 最初页面梳理只读取文档、同步研究目标；后续已分别记录 sm25 展示修订与 Voimatalo 主助手直接探索。产品代码、原始输入、历史成果和 GT 未改，未运行 EP。
