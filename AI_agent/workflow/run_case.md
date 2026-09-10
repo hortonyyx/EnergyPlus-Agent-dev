@@ -56,6 +56,20 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 模型用 `finish_bim(candidate)` 选择最终保存候选，生成 run 的 `delivery.json` 与 `delivery.html`。摘要直接引用源几何检查和回查状态，不解释模型最后文字；旧源回查单列，未查或需跟进也可交付查看。后续仍可继续修订或重新选择，结束时刷新所选候选的实际回查。没有显式选择时保留最新已保存源（没有新候选时可保留 seed），并明确标记系统回退，不冒称模型已选定或已经通过。运行结束后还会写入本次调用正常结束/中断、实际错误消息和耗时；有源但没有查看器时不宣称已有可查看输出。
 
+### 生成后的独立参照诊断
+
+共用 [evaluate_bim_agent.py](../../scripts/tool_scripts/evaluate_bim_agent.py) 在本次生成结束后比较 seed（若有）及保存候选，复用既有分区与窗比较器，不改容差。默认新建 `run/evaluation/`，已有输出会拒绝覆盖；复核旧结果可指定新的 `--out`。
+
+```bash
+python scripts/tool_scripts/evaluate_bim_agent.py \
+  --run AI_agent/logs/experiments/<本次运行> \
+  --reference-case sm21_anchor \
+  --modelling-task reconstruction \
+  --reference-scope '提供了全部平立面；独立参照只在生成结束后使用'
+```
+
+受控缺信息实验使用 `--modelling-task partial_inference`，并在 `--reference-scope` 说明哪些输入给了生成、哪些只留在评价侧。原始完整参照差异照常保存，但**没有提供的内部格局不按还原任务判漏房/错分区**；已有外形、立面等约束仍须核对，推断合理性与源简化另评。工具不自动决定整案通过，分区结果也不验证门洞连通、跨层挑空或像素语义。GT 和本报告不得送入生成输入目录。
+
 ## 1. 准备独立 run
 
 - 素材放 `case_tests/e2e_tests/<case>/case_data/`，用 `testdata_prompt.json` 提供声明；新实验放 `<case>/run_<说明>/`，不覆盖旧 run。
