@@ -4,7 +4,7 @@
 
 **用户后续收束：** 近期只做普通办公、住宿与商业单体，不考虑环境，复杂公共建筑暂不优先；这批片区仅为素材池。需要先核实用途并提取单栋，周边分离属于输入准备。用户生成前选择源 BIM 空间块复杂度，再选模拟后端；当前尚无相应生成结果。
 
-[可查看案例与调研证据](../../AI_agent/logs/experiments/2026-09-10_textured_mass_survey/README.md) · [路线判断](../../AI_agent/design/textured_mass_route.md)
+[可查看案例与调研证据](../../AI_agent/logs/experiments/2026-09-10_textured_mass_survey/README.md) · [输入调研](../../AI_agent/design/textured_mass_route.md) · [部分推理建模研究计划](../../AI_agent/project/partial_inference_research_plan.md)
 
 | 本地 ID | 内容与用途 | 实际三角面数 | 贴图 |
 |---|---|---:|---|
