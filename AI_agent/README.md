@@ -18,6 +18,7 @@
 | 怎样开发、维护文档和收工 | [工作方式](workflow/development.md) |
 | 用什么模型、哪些调用需要同意 | [模型与费用](workflow/models.md) |
 | 怎样启动和检查一个 case | [运行 case](workflow/run_case.md) |
+| 课题汇报可嵌入的展示资产 | [showcase 入口](../showcase/index.html) · [本轮范围与证据](logs/worklog/2026-09-10_research_showcase_assets.md) |
 | 怎样让每次会话加载同一上下文 | [会话设置](workflow/session_setup.md) |
 
 `project/` 管目标和推进，`design/` 管系统与实现，`workflow/` 管操作方法。

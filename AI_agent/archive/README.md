@@ -9,7 +9,7 @@
 | Codex 与 Claude 原记忆 | [Codex](2026-09-08_codex_memory/README.md)、[Claude](2026-09-08_claude_memory/README.md) |
 | 原工作树与分支存档清单 | [takeover_inventory.json](2026-09-08_takeover_inventory.json) |
 | 旧 prescan 实现与测试片段 | [reading_prescan](reading_prescan/) |
-| 历史演示素材 | [showcase_animation](showcase_animation/) |
+| 历史演示素材 | [之前的展示](../../showcase/previous-showcase/) |
 | 原本地代码备份 | `local_backup/`，已忽略，不提交；缺少该目录的新克隆可按接手恢复包查找 |
 
 完整 Git bundle、未提交差异和私有配置仍在既有本地 `backup/2026-09-08_takeover/`，恢复办法见 [接手记录](../logs/worklog/2026-09-08_takeover.md)。

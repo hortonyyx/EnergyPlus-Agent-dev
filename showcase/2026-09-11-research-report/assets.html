@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>09-11 课题汇报 · 展示资产</title>
+  <style>
+    :root { color:#172033; background:#f4f6fa; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    body { margin:0; } main { width:min(1080px,calc(100% - 48px)); margin:0 auto; padding:42px 0 56px; }
+    h1 { font-size:30px; margin:0 0 7px; } .intro { color:#5e6b80; margin:0 0 28px; }
+    .cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+    article { overflow:hidden; border:1px solid #d8dfeb; border-radius:15px; background:#fff; box-shadow:0 8px 22px #203a6512; }
+    .thumb { height:260px; display:grid; place-items:center; overflow:hidden; background:linear-gradient(135deg,#e9eff8,#d7e2f3); color:#52647c; }
+    .thumb img { width:100%; height:100%; object-fit:cover; object-position:center; } .thumb.future { text-align:center; padding:20px; }
+    .body { padding:20px 22px 22px; } h2 { font-size:21px; margin:0 0 8px; } p { margin:0 0 16px; color:#546177; }
+    .tag { display:inline-block; padding:3px 9px; margin:0 0 12px; border-radius:999px; background:#e9f1fc; color:#245b9d; font-size:12px; font-weight:650; }
+    .tag.pending { background:#fff3dc; color:#8a5b12; } .links { display:flex; flex-wrap:wrap; gap:8px; }
+    .links a { padding:7px 10px; border:1px solid #b9cce5; border-radius:7px; color:#155da8; font-weight:650; text-decoration:none; } .links a:hover { background:#f1f6fd; }
+    .note { margin-top:28px; padding:14px 16px; border-left:3px solid #809bc1; color:#5c6980; background:#eaf0f8; }
+    @media (max-width:720px) { main { width:min(100% - 30px,1080px); padding-top:28px; } .cards { grid-template-columns:1fr; } .thumb { height:220px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>09-11 课题汇报 · 展示资产</h1>
+    <p class="intro">两份独立、可嵌入的离线演示资产。它们展示不同输入条件下的轻量 BIM 工作，不构成完整 slides。</p>
+    <section class="cards" aria-label="展示资产">
+      <article>
+        <div class="thumb"><img src="demos/sm25/preview.png" alt="sm25 按空间展开的三维轻量 BIM 预览"></div>
+        <div class="body">
+          <span class="tag">离线查看与交互已检查</span>
+          <h2>sm25 · 图纸还原展示</h2>
+          <p>29 个空间、31 扇窗、30 樘门的可旋转、可分层三维展示。二层一樘门为明确标注的人工展示修订；原始源模型仍保留 severe 状态，不作为自动还原成功成绩。</p>
+          <div class="links">
+            <a href="demos/sm25/sm25_showcase.html">打开三维展示</a>
+            <a href="demos/sm25/README.md">查看范围说明</a>
+          </div>
+        </div>
+      </article>
+      <article>
+        <div class="thumb"><img src="demos/textured-mass/preview.png" alt="Voimatalo 真实贴图体量生成的轻量 BIM 预览"></div>
+        <div class="body">
+          <span class="tag">离线交互已检查 · 内部为推理方案</span>
+          <h2>Voimatalo · 真实贴图体量探索</h2>
+          <p>主助手直接判读真实贴图单体，保留八层主楼、附属体、退台及 316 个窗组。可切换外壳版与 164 个空间体的内部推理方案，并与原贴图叠合对照；真实内部尚未核实。</p>
+          <div class="links">
+            <a href="demos/textured-mass/index.html">打开交互展示</a>
+            <a href="demos/textured-mass/input_viewer.html">查看输入体量</a>
+            <a href="demos/textured-mass/input.glb">下载输入 GLB</a>
+            <a href="demos/textured-mass/README.md">查看范围说明</a>
+          </div>
+        </div>
+      </article>
+    </section>
+    <p class="note">两份资产均独立保存。人工展示修订与内部推理均有记录；浏览器及几何检查不代表真实建筑保真、生产 Agent 自动生成或仿真验收通过。</p>
+  </main>
+</body>
+</html>
