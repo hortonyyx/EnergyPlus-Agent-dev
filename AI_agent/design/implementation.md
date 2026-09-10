@@ -87,4 +87,4 @@ GT 修订、AnswerCompiler 和评分已有部分接线，尚未统一消费 froz
 
 09-09 首次显式自动入口实验已执行：[sm21 原图对照与记录](../logs/experiments/2026-09-09_automatic_source_sm21_run01/README.md)。读图技术接受但源分区/门信息失真；CV 候选尚未与输出标定对应。Sonnet 校正超时后停止重试，未产出新 BIM。入口接线不等于图纸重建能力验收；下一步针对保存的实质结构反例改进，不能靠全面提升尺寸启发式门槛代替保真判断。
 
-09-10 收工前核对：本次自动入口实际产出 legacy ReadingView，`_w1_route_correction` 因此进入整案 JSON 校正；`correction_decision` 配置不会改变输入路由。已有 as-drawn 生产工序、决定执行器、多层与门窗装配应作为下轮接线基础，不能把旧归档的“零生产调用”照抄成当前状态。历史好跑测及具体源码入口见 [读图与校正依据](reading_correction.md)。
+09-10 收工前核对：本次自动入口实际产出 legacy ReadingView，`_w1_route_correction` 因此进入整案 JSON 校正；`correction_decision` 配置不会改变输入路由。已有 as-drawn 生产工序、决定执行器、多层与门窗装配可评估复用；用户后续明确下轮先由 Claude 完整梳理单线/双线等架构形态，不预设接 as-drawn，不能把旧归档的“零生产调用”照抄成当前状态。历史好跑测及具体源码入口见 [读图与校正依据](reading_correction.md)。

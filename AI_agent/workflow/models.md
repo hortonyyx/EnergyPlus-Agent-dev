@@ -36,3 +36,5 @@
 既有脚本：[GLM](../../scripts/glm_code.sh)、[DeepSeek](../../scripts/deepseek_code.sh)。具体运行参数看实际脚本及有效接口。
 
 当前 flow 已修复配置作用域：`--llm-config` 从主干启动时生效，退出恢复原环境；也可显式用 `EP_AGENT_LLM_CONFIG`。`--reading-model` 单独选择隔离读图 Haiku/Sonnet，校正可设 `provider: claude_subscription` 复用本机已登录订阅（无工具/MCP文本JSON调用）。该新路径拒绝 API key/base URL，无 DeepSeek 或其他模型回退。源码和使用方法见 [case 指南](run_case.md)；实际模型与用量以保存的 CLI 记录为准，估算费用不等于账单。
+
+09-10 收工后用户指定下轮历史跑测与架构完整梳理可启几位 **Claude**；该项通过已授权订阅通道安排，覆盖历史实跑、架构演变和独立方案比较，主助手汇总。当前仅登记，下轮启动；不将现有 Terra/Sol 分工替代这次明确的 Claude 偏好，不预设采用 as-drawn。
