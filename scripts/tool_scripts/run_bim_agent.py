@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import io
 import json
 import os
@@ -40,8 +41,15 @@ Do not ask the user for routine geometry choices. No EP/materials are needed.
 build_bim saves immutable candidates and returns actual checks. Revise if a
 check fails, keep stable object IDs and do not drop known openings to pass.
 Inspect the resulting plan with view_candidate and compare to original images.
+overlay_candidate can project a saved floor back onto an original plan using
+your observed pixel/metre anchors. It is useful for spotting misplaced walls
+and openings that a separately scaled model view hides. Its calibration is
+your hypothesis, not an automatic image match; inspect the overlaid result.
 Geometric consistency is not drawing fidelity. Conclude with exact candidate,
-assumptions, unresolved issues and what was/was not verified.
+assumptions, unresolved issues and what was/was not verified. Select the saved
+candidate with finish_bim before concluding. This records the ACTUAL checks
+and current/old opening reviews; follow-up or unreviewed scopes are allowed,
+but must not be described as verified. Your prose cannot override this record.
 Produce an initial or revised candidate early, then improve it. Do not spend
 the whole budget chasing small dimension offsets. When a seed is available,
 inspect_candidate('seed') gives the saved proposal and production checks;
@@ -66,7 +74,8 @@ check_openings review_json example (unrelated to supplied drawings):
  "marks":[{"mark_id":"door-mark-1","box":[10,20,40,60],
  "opening_ids":["D1"],"space_ids":["room","hall"],"basis":"visible",
  "note":"one leaf and arc in a wall gap"}]}.
-Use original-image pixels for box. Outside is a single space_id. Use no
+Use original-image pixels for box. An exterior opening lists only its indoor
+space ID in space_ids; never add an ID named 'outside' or 'outdoors'. Use no
 opening_ids when an observed aperture has not been modeled. Separate paired
 arcs serving different rooms into separate marks; a double-leaf door serving
 one connection is one aperture. basis may be visible, inferred or uncertain.
@@ -85,6 +94,8 @@ Reflect transforms the entire proposal around the footprint midpoint on that
 axis, including rooms, window directions/spans and door coordinates. It preserves
 identities and connectivity. Replace stale directional assumptions with set_notes.
 Source IDs remain stable even if they contain an obsolete direction in their name.
+For edits not supported by revise_bim, submit a complete revised proposal with
+build_bim, retaining the reliable geometry, IDs, source references and caveats.
 
 Geometry adapter input is a JSON string containing:
 {"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],
@@ -235,6 +246,55 @@ class Toolkit:
         deadline = self.manifest.get("deadline_epoch")
         return max(0, round(deadline - time.time())) if deadline else None
 
+    def delivery(self, candidate, *, selection_origin):
+        """Build the handoff from saved source/check records, never model prose."""
+        from src.agent.geometry.bim_delivery import summarize_delivery
+        path = self.candidate_path(candidate)
+        source = json.loads((path / "source_model.json").read_text())
+        reviews = [json.loads(p.read_text()) for p in
+                   sorted((self.run / "opening_reviews").glob("review_*.json"))]
+        result = {"candidate": candidate, "selection_origin": selection_origin,
+                  "viewer": f"{candidate}/viewer.html", "source_model": f"{candidate}/source_model.json",
+                  **summarize_delivery(source, reviews)}
+        dump(self.run / "delivery.json", result)
+        # A separate handoff preserves the immutable candidate's original report.
+        statuses = {"not_reviewed":"未回查", "partial":"仅有局部回查",
+                    "consistent_with_supplied_observations":"与所报观察一致",
+                    "observations_require_follow_up":"仍需跟进"}
+        kinds = {"door":"门洞", "window":"窗", "passage":"空通道"}
+        scopes = result["opening_review_scopes"]
+        rows = "".join(
+            f'<tr><td>{html.escape(s["floor_id"])}</td><td>{kinds[s["kind"]]}</td>'
+            f'<td>{s["built_count"]}</td><td>{statuses[s["review_status"]]}</td></tr>'
+            for s in scopes)
+        notes = "".join(f'<li>{html.escape(s)}</li>' for s in result["generation"]["unresolved"])
+        assumptions = "".join(f'<li>{html.escape(s)}</li>' for s in result["assumptions"])
+        counts = result["counts"]
+        geometry_status = {"pass":"通过", "warning":"有警告", "severe":"有严重问题"}.get(
+            (result.get("source_validation") or {}).get("status"), "未评价")
+        selected = "模型选定" if selection_origin == "agent_selected" else "系统保留的最新候选，模型未显式选定"
+        (self.run / "delivery.html").write_text(
+            '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
+            '<title>BIM 候选与实际检查</title><style>body{font:16px system-ui;'
+            'max-width:1100px;margin:30px auto;padding:0 16px;line-height:1.6}'
+            'table{border-collapse:collapse;width:100%}td,th{padding:8px;border:1px solid #ccc;text-align:left}'
+            'iframe{width:100%;height:680px;border:1px solid #ccc}</style>'
+            '<h1>BIM 候选与实际检查</h1><p>以下状态来自保存的源模型和回查记录。'
+            '几何自洽或观察对应不等于原图保真；未核查和待处理问题见下方记录。</p>'
+            f'<p>{selected}：{html.escape(candidate)}。{counts["spaces"]} 个空间，'
+            f'{counts["openings"]} 个已建开口，{counts["unbuilt_openings"]} 个未建开口。'
+            f'几何自洽：{geometry_status}；原图保真：未评价。</p>'
+            f'<p><a href="{result["viewer"]}">打开模型</a>'
+            f' · <a href="{result["source_model"]}">源 BIM</a> · '
+            '<a href="delivery.json">检查记录</a></p>'
+            '<table><tr><th>楼层</th><th>类别</th><th>已建数量</th><th>原图观察回查</th></tr>'
+            f'{rows}</table><p>{len(result["stale_reviews"])} 份旧源回查未用于当前候选。</p>'
+            f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
+            f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
+            f'<iframe title="保存的 BIM 候选" src="{result["viewer"]}"></iframe>'
+            '</html>', encoding="utf-8")
+        return result
+
     def build(self, proposal, *, action="build_bim", parent=None, operations=None):
         from src.agent.execution.source_proposal import export_source_proposal
         index = len(list(self.run.glob("candidate_*"))) + 1
@@ -286,6 +346,7 @@ class Toolkit:
                         (region[2] - region[0]) / pic.width,
                         (region[3] - region[1]) / pic.height],
                     "coordinate_note": "Original pixel = crop origin + returned pixel * scale. Use ORIGINAL pixels for the next crop or measurement."}
+        metadata["remaining_seconds"] = self.remaining_seconds()
         self.log("view_image", metadata)
         return [Image(data=data.getvalue(), format="png"), json.dumps(metadata)]
 
@@ -413,6 +474,62 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
+        def finish_bim(candidate: str) -> dict:
+            """Select a saved BIM and persist a handoff based on actual checks.
+            Unreviewed/pending scopes remain explicit. This does not certify image
+            fidelity or prevent further work; call again to choose another candidate.
+            """
+            result = toolkit.delivery(candidate, selection_origin="agent_selected")
+            dump(run / "delivery_selection.json", {
+                "candidate": candidate, "source_model_sha256": result["source_model_sha256"]})
+            toolkit.log("finish_bim", result)
+            return {**{k:v for k,v in result.items() if k != "opening_inventory"},
+                    "remaining_seconds": toolkit.remaining_seconds()}
+
+        @server.tool()
+        def overlay_candidate(candidate: str, image: str, floor_id: str,
+                              x_anchors: list[list[float]], y_anchors: list[list[float]],
+                              basis: str, box: list[int] | None = None):
+            """Project actual source geometry onto an AXIS-ALIGNED original plan.
+            Each axis needs two [ORIGINAL pixel position, world metres] anchors,
+            like map_pixels; basis explains the observed dimension and wall reference.
+            No GT, auto-registration, perspective correction or visual verdict.
+            Optional box crops the result in ORIGINAL pixels. Colours: magenta
+            source boundaries, orange doors/passages, lime windows.
+            """
+            from src.agent.geometry.source_image_overlay import render_source_overlay
+            path = toolkit.candidate_path(candidate)
+            source = json.loads((path / "source_model.json").read_text())
+            image_path = toolkit.image_path(image)
+            with PILImage.open(image_path) as raw:
+                pic, metadata = render_source_overlay(source, raw, floor_id=floor_id,
+                    x_anchors=x_anchors, y_anchors=y_anchors, basis=basis)
+            folder = run / "image_overlays"
+            folder.mkdir(exist_ok=True)
+            stem = f"overlay_{len(list(folder.glob('overlay_*.json'))) + 1:03d}"
+            original_size = list(pic.size)
+            region = box or [0, 0, pic.width, pic.height]
+            if box is not None:
+                x0,y0,x1,y1 = box
+                if not (0 <= x0 < x1 <= pic.width and 0 <= y0 < y1 <= pic.height):
+                    raise ValueError("crop outside original image bounds")
+            # Save the full-resolution projection, not only the returned crop.
+            pic.save(folder / f"{stem}.png")
+            pic = pic.crop(region)
+            pic.thumbnail((1600, 1600))
+            metadata.update(candidate=candidate, image=image,
+                image_sha256=toolkit.manifest["images"][image]["sha256"],
+                overlay_image=f"image_overlays/{stem}.png", original_size=original_size,
+                box_original_pixels=region, returned_size=list(pic.size),
+                original_pixels_per_returned_pixel=[(region[2]-region[0])/pic.width,
+                                                     (region[3]-region[1])/pic.height],
+                remaining_seconds=toolkit.remaining_seconds())
+            dump(folder / f"{stem}.json", metadata)
+            toolkit.log("overlay_candidate", metadata)
+            data = io.BytesIO(); pic.save(data, "PNG")
+            return [Image(data=data.getvalue(), format="png"), json.dumps(metadata)]
+
+        @server.tool()
         def revise_bim(candidate: str, operations_json: str) -> dict:
             """Apply local edits/reflection with code and save a new checked BIM.
             See brief for operations. The prior candidate remains unchanged.
@@ -509,7 +626,9 @@ def run_experiment(args):
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
-                                 "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py")},
+                                 "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
+                                 "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
+                                 "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
@@ -537,15 +656,29 @@ def run_experiment(args):
                            "source_geometry_ready":report.get("source_geometry_ready"),
                            "viewer_exists":(path.parent/"viewer.html").is_file(),
                            "counts":report.get("counts")})
+    selection = run / "delivery_selection.json"
+    delivery = None
+    if selection.exists():
+        chosen = json.loads(selection.read_text())["candidate"]
+        delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected")
+    else:
+        saved = sorted(run.glob("candidate_*/source_model.json"))
+        if not saved and (run / "seed/source_model.json").exists():
+            saved = [run / "seed/source_model.json"]
+        if saved:
+            delivery = Toolkit(run).delivery(saved[-1].parent.name,
+                selection_origin="latest_saved_fallback_not_agent_selected")
     receipts = [json.loads(path.read_text()) for path in sorted(run.glob("*_receipt.json"))]
     estimates = [r.get("result", {}).get("total_cost_usd") for r in receipts]
     estimates_complete = all(isinstance(value, (int, float)) for value in estimates)
     reported_estimate = sum(value for value in estimates if isinstance(value, (int, float)))
     summary = {"input_mode":manifest["input_mode"], "candidate_results":candidates,"agent_response_completed":
                bool(record.get("result")) and not record["result"].get("is_error",False),
-               "has_viewable_candidate":any(c["viewer_exists"] for c in candidates),
+               "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or delivery is not None,
                "elapsed_seconds":record["elapsed_seconds"],"drawing_fidelity":"not_evaluated",
                "opening_reviews":[str(p.relative_to(run)) for p in sorted((run/"opening_reviews").glob("review_*.json"))],
+               "delivery": {"candidate":delivery["candidate"], "selection_origin":delivery["selection_origin"],
+                            "report":"delivery.json", "viewer":"delivery.html"} if delivery else None,
                "subscription_invocations":len(receipts),
                "estimated_cost_usd":reported_estimate if estimates_complete else None,
                "cost_receipts_complete":estimates_complete,

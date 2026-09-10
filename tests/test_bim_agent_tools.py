@@ -87,6 +87,7 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
             assert "build_bim" not in tools and "review_detail" not in tools
             assert "revise_bim" not in tools and "inspect_candidate" not in tools
             assert "check_openings" not in tools
+            assert "finish_bim" not in tools and "overlay_candidate" not in tools
 
             inventory = _json_result(await session.call_tool("inputs", {}))
             assert set(inventory["images"]) == {"plan.png"}
@@ -145,6 +146,28 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert not checked["findings"]
             assert "opening_reviews/review_001.json" == checked["review_file"]
 
+            overlaid = await session.call_tool("overlay_candidate", {
+                "candidate":"candidate_02", "image":"plan.png", "floor_id":"F1",
+                "x_anchors":[[0,0],[11,6]], "y_anchors":[[7,0],[0,4]],
+                "basis":"synthetic image extent represents the building footprint",
+                "box":[1,1,11,7]})
+            assert not overlaid.isError
+            assert overlaid.content[0].type == "image"
+            overlay_info = json.loads(overlaid.content[1].text)
+            assert overlay_info["box_original_pixels"] == [1,1,11,7]
+            assert overlay_info["returned_size"] == [10,6]
+            assert overlay_info["drawing_fidelity"] == "not_evaluated"
+            assert (run / overlay_info["overlay_image"]).is_file()
+            assert (run / "candidate_02/source_model.json").read_bytes() == before
+
+            finished = _json_result(await session.call_tool("finish_bim", {"candidate":"candidate_02"}))
+            assert finished["candidate"] == "candidate_02"
+            assert finished["selection_origin"] == "agent_selected"
+            assert finished["drawing_fidelity"] == "not_evaluated"
+            assert (run / "delivery.html").is_file()
+            assert json.loads((run / "delivery.json").read_text())["source_model_sha256"] == checked["source_model_sha256"]
+            assert json.loads((run / "delivery_selection.json").read_text())["candidate"] == "candidate_02"
+
     asyncio.run(scenario())
 
 
@@ -177,6 +200,11 @@ def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path,
                            timeout=30, resume_candidate=source)
     runner.run_experiment(args)
     assert json.loads(old_report.read_text())["independent_evaluation"] == "DO_NOT_EXPOSE"
+    delivery = json.loads((args.out / "delivery.json").read_text())
+    assert delivery["candidate"] == "seed"
+    assert delivery["selection_origin"] == "latest_saved_fallback_not_agent_selected"
+    assert delivery["drawing_fidelity"] == "not_evaluated"
+    assert "DO_NOT_EXPOSE" not in json.dumps(delivery)
 
 
 def _ended_or_zombie(pid: int) -> bool:
