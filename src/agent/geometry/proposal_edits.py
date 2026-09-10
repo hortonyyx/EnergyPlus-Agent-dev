@@ -178,6 +178,123 @@ def _remove_opening(geometry: dict, operation: dict) -> dict:
             "before": before, "after": None}
 
 
+def _finite_coordinate(value: object, *, operation: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise ValueError(f"{operation}: coordinate_m must be a finite number")
+    return float(value)
+
+
+def _shared_rectangular_wall(left: dict, right: dict, *, operation: str) -> tuple[str, float, list[float], dict, dict]:
+    """Return a complete common side, oriented from lower to higher coordinate."""
+    if left.get("polygon") is not None or right.get("polygon") is not None:
+        raise ValueError(f"{operation}: requires two rectangular cells without polygon")
+    for cell in (left, right):
+        for axis in ("x", "y"):
+            interval = cell.get(axis)
+            if (not isinstance(interval, list) or len(interval) != 2
+                    or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                           or not math.isfinite(value) for value in interval)):
+                raise ValueError(f"{operation}: rectangular cell {cell.get('id')!r} has invalid {axis} interval")
+
+    # A local move is deliberately limited to one complete shared side.  Partial
+    # contacts and polygon rings need a topology edit, rather than guessing which
+    # vertices and neighbouring contacts should follow this wall.
+    if left["y"] == right["y"]:
+        if left["x"][1] == right["x"][0]:
+            return "x", left["x"][1], list(left["y"]), left, right
+        if right["x"][1] == left["x"][0]:
+            return "x", right["x"][1], list(left["y"]), right, left
+    if left["x"] == right["x"]:
+        if left["y"][1] == right["y"][0]:
+            return "y", left["y"][1], list(left["x"]), left, right
+        if right["y"][1] == left["y"][0]:
+            return "y", right["y"][1], list(left["x"]), right, left
+    raise ValueError(f"{operation}: spaces must share one complete axis-aligned rectangular side")
+
+
+def _opening_on_wall(opening: dict, *, axis: str, coordinate: float, span: list[float]) -> bool:
+    points = [opening.get("p1"), opening.get("p2")]
+    if any(not isinstance(point, (list, tuple)) or len(point) != 2 for point in points):
+        return False
+    normal = 0 if axis == "x" else 1
+    along = 1 - normal
+    try:
+        return (all(point[normal] == coordinate for point in points)
+                and all(span[0] <= point[along] <= span[1] for point in points))
+    except TypeError:
+        return False
+
+
+def _move_shared_wall(proposal: dict, geometry: dict, operation: dict) -> dict:
+    """Move one full rectangular interior side while preserving the source topology."""
+    name = "move_shared_wall"
+    _require_fields(operation, {"op", "space_ids", "coordinate_m", "reason", "source_refs"}, operation=name)
+    if proposal.get("enclosure_declaration") is not None:
+        raise ValueError("move_shared_wall: explicit enclosure_declaration requires an explicit enclosure edit")
+    space_ids = operation.get("space_ids")
+    if (not isinstance(space_ids, list) or len(space_ids) != 2
+            or any(not isinstance(identity, str) or not identity.strip() for identity in space_ids)
+            or space_ids[0] == space_ids[1]):
+        raise ValueError("move_shared_wall: space_ids must contain two distinct nonblank space ids")
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    refs = _source_refs(operation.get("source_refs"), operation=name)
+    coordinate = _finite_coordinate(operation.get("coordinate_m"), operation=name)
+
+    matches = []
+    for floor in geometry.get("floors", []):
+        cells = {cell.get("id"): cell for cell in floor.get("cells", [])}
+        if all(identity in cells for identity in space_ids):
+            matches.append((floor, cells[space_ids[0]], cells[space_ids[1]]))
+    if len(matches) != 1:
+        raise ValueError("move_shared_wall: spaces must occur together on exactly one floor")
+    floor, first, second = matches[0]
+    axis, old_coordinate, span, lower, higher = _shared_rectangular_wall(first, second, operation=name)
+    interval_name = f"footprint_{axis}"
+    footprint = geometry.get(interval_name)
+    if (not isinstance(footprint, list) or len(footprint) != 2
+            or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                   or not math.isfinite(value) for value in footprint)
+            or not footprint[0] < old_coordinate < footprint[1]):
+        raise ValueError(f"move_shared_wall: shared side is not an interior {axis} wall in the declared footprint")
+    if not lower[axis][0] < coordinate < higher[axis][1]:
+        raise ValueError("move_shared_wall: coordinate_m would collapse or invert a source space")
+
+    before_cells = {cell["id"]: copy.deepcopy(cell) for cell in (lower, higher)}
+    lower[axis][1] = coordinate
+    higher[axis][0] = coordinate
+
+    pair = set(space_ids)
+    moved_openings = []
+    for opening in geometry.get("openings", []):
+        opening_pair = {opening.get("space_id"), opening.get("other_space_id")}
+        on_old_wall = _opening_on_wall(opening, axis=axis, coordinate=old_coordinate, span=span)
+        if opening_pair == pair:
+            if not on_old_wall:
+                raise ValueError(f"move_shared_wall: opening {opening.get('id')!r} between selected spaces is not fully hosted on their shared wall")
+            before = copy.deepcopy(opening)
+            normal = 0 if axis == "x" else 1
+            opening["p1"][normal] = coordinate
+            opening["p2"][normal] = coordinate
+            moved_openings.append({"id": opening.get("id"), "before": before, "after": copy.deepcopy(opening)})
+        elif on_old_wall:
+            raise ValueError(f"move_shared_wall: opening {opening.get('id')!r} on the moved wall has different spaces")
+
+    return {
+        "operation": name,
+        "space_ids": list(space_ids),
+        "floor": floor.get("name"),
+        "axis": axis,
+        "from_coordinate_m": old_coordinate,
+        "coordinate_m": coordinate,
+        "shared_span_m": span,
+        "reason": reason,
+        "source_refs": refs,
+        "before": {"cells": before_cells},
+        "after": {"cells": {cell["id"]: copy.deepcopy(cell) for cell in (lower, higher)}},
+        "moved_openings": moved_openings,
+    }
+
+
 def _set_notes(proposal: dict, operation: dict) -> dict:
     _require_fields(operation, {"op", "assumptions", "unresolved"}, operation="set_notes")
     assumptions = _notes(operation.get("assumptions"), field="assumptions")
@@ -225,6 +342,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _update(geometry, operation, target="opening")
         elif name == "remove_opening":
             audit = _remove_opening(geometry, operation)
+        elif name == "move_shared_wall":
+            audit = _move_shared_wall(result, geometry, operation)
         elif name == "set_notes":
             audit = _set_notes(result, operation)
         else:

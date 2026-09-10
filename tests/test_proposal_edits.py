@@ -40,6 +40,32 @@ def _without_audit(geometry):
     return result
 
 
+def _rectangular_wall_proposal():
+    return {
+        "geometry": {
+            "schema_version": "2", "footprint_x": [0, 10], "footprint_y": [0, 4],
+            "floors": [
+                {"name": "F1", "z_floor": 0, "ceiling_height": 3, "cells": [
+                    {"id": "left", "role": "office", "x": [0, 4], "y": [0, 4]},
+                    {"id": "right", "role": "office", "x": [4, 10], "y": [0, 4]},
+                ]},
+                {"name": "F2", "z_floor": 3, "ceiling_height": 3, "cells": [
+                    {"id": "upper", "role": "office", "x": [0, 10], "y": [0, 4]},
+                ]},
+            ],
+            "windows": [{"id": "left_south", "floor": "F1", "facade": "South", "span": [1, 2],
+                         "z": [1, 2], "room": "left"}],
+            "openings": [
+                {"id": "between", "kind": "door", "space_id": "left", "other_space_id": "right",
+                 "p1": [4, 1], "p2": [4, 2], "z": [0, 2.1], "source_refs": ["fixture:shared wall"]},
+                {"id": "south", "kind": "door", "space_id": "left", "other_space_id": None,
+                 "p1": [2, 0], "p2": [3, 0], "z": [0, 2.1], "source_refs": ["fixture:south wall"]},
+            ],
+        },
+        "assumptions": ["synthetic rectangle"], "unresolved": [],
+    }
+
+
 def test_reflection_preserves_nonrectangular_rooms_openings_and_source_buildability():
     proposal = _proposal()
     x_reflected = apply_proposal_edits(proposal, [{"op": "reflect", "axis": "x", "reason": "plan is mirrored"}])
@@ -93,6 +119,30 @@ def test_updates_removal_and_notes_keep_full_audit_history():
     assert revised["assumptions"] == ["new orientation"] and revised["unresolved"] == []
 
 
+def test_move_shared_wall_preserves_unrelated_geometry_and_hosts_its_door():
+    proposal = _rectangular_wall_proposal()
+    revised = apply_proposal_edits(proposal, [{
+        "op": "move_shared_wall", "space_ids": ["left", "right"], "coordinate_m": 4.5,
+        "reason": "plan dimension locates the complete interior wall", "source_refs": ["plan: wall dimension"],
+    }])
+    floor = revised["geometry"]["floors"][0]
+    cells = {cell["id"]: cell for cell in floor["cells"]}
+    openings = {opening["id"]: opening for opening in revised["geometry"]["openings"]}
+    assert cells["left"]["x"] == [0, 4.5]
+    assert cells["right"]["x"] == [4.5, 10]
+    assert openings["between"]["p1"] == [4.5, 1]
+    assert openings["between"]["p2"] == [4.5, 2]
+    assert openings["south"] == proposal["geometry"]["openings"][1]
+    assert revised["geometry"]["windows"] == proposal["geometry"]["windows"]
+    assert revised["geometry"]["floors"][1] == proposal["geometry"]["floors"][1]
+    audit = revised["geometry"]["corrections"][-1]
+    assert audit["axis"] == "x" and audit["from_coordinate_m"] == 4
+    assert audit["moved_openings"][0]["id"] == "between"
+    assert proposal == _rectangular_wall_proposal()
+    assert build_source_bim(ensure_corrected_geometry(revised["geometry"]),
+                            capability_profile="orthogonal_polygon")["validation"]["status"] == "pass"
+
+
 def test_invalid_operations_do_not_mutate_input_or_silently_ignore_unknowns():
     proposal = _proposal()
     original = copy.deepcopy(proposal)
@@ -107,3 +157,32 @@ def test_invalid_operations_do_not_mutate_input_or_silently_ignore_unknowns():
         with_footprint = copy.deepcopy(proposal)
         with_footprint["geometry"]["floors"][0]["footprint"] = {"vertices": [[0, 0], [8, 0], [8, 6], [0, 6]]}
         apply_proposal_edits(with_footprint, [{"op": "reflect", "axis": "x", "reason": "would omit footprint"}])
+
+
+@pytest.mark.parametrize("coordinate", [True, float("inf"), 0, 10])
+def test_move_shared_wall_rejects_invalid_coordinate_without_mutating_input(coordinate):
+    proposal = _rectangular_wall_proposal()
+    original = copy.deepcopy(proposal)
+    with pytest.raises(ValueError, match="coordinate_m"):
+        apply_proposal_edits(proposal, [{
+            "op": "move_shared_wall", "space_ids": ["left", "right"], "coordinate_m": coordinate,
+            "reason": "synthetic", "source_refs": ["plan: synthetic"],
+        }])
+    assert proposal == original
+
+
+def test_move_shared_wall_rejects_partial_polygon_and_enclosure_cases():
+    proposal = _rectangular_wall_proposal()
+    polygon = copy.deepcopy(proposal)
+    polygon["geometry"]["floors"][0]["cells"][0]["polygon"] = [[0, 0], [4, 0], [4, 4], [0, 4]]
+    partial = copy.deepcopy(proposal)
+    partial["geometry"]["floors"][0]["cells"][1]["y"] = [1, 4]
+    enclosed = {**proposal, "enclosure_declaration": {"declared": True}}
+    operation = {"op": "move_shared_wall", "space_ids": ["left", "right"], "coordinate_m": 4.5,
+                 "reason": "synthetic", "source_refs": ["plan: synthetic"]}
+    with pytest.raises(ValueError, match="without polygon"):
+        apply_proposal_edits(polygon, [operation])
+    with pytest.raises(ValueError, match="complete axis-aligned"):
+        apply_proposal_edits(partial, [operation])
+    with pytest.raises(ValueError, match="explicit enclosure_declaration"):
+        apply_proposal_edits(enclosed, [operation])
