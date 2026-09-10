@@ -297,6 +297,26 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert json.loads((run / "delivery.json").read_text())["source_model_sha256"] == checked["source_model_sha256"]
             assert json.loads((run / "delivery_selection.json").read_text())["candidate"] == "candidate_02"
 
+            # Move the shared wall through the public MCP path. Both room sides
+            # and the door on that wall move, while prior candidates/reviews stay.
+            moved = _json_result(await session.call_tool("revise_bim", {
+                "candidate": "candidate_02", "operations_json": json.dumps([{
+                    "op": "move_shared_wall", "space_ids": ["left", "right"],
+                    "coordinate_m": 3.5, "reason": "synthetic observed partition",
+                    "source_refs": ["plan.png: synthetic wall observation"]}])}))
+            assert moved["candidate"] == "candidate_03" and moved["source_geometry_ready"]
+            assert (run / "candidate_02/source_model.json").read_bytes() == before
+            moved_proposal = json.loads((run / "candidate_03/proposal.json").read_text())
+            rooms = {cell["id"]: cell for cell in moved_proposal["geometry"]["floors"][0]["cells"]}
+            assert rooms["left"]["x"] == [3.5, 6] and rooms["right"]["x"] == [0, 3.5]
+            assert moved_proposal["geometry"]["openings"][0]["p1"][0] == 3.5
+            assert moved_proposal["geometry"]["openings"][0]["p2"][0] == 3.5
+            moved_delivery = _json_result(await session.call_tool("finish_bim", {"candidate":"candidate_03"}))
+            assert moved_delivery["source_model_sha256"] != finished["source_model_sha256"]
+            assert len(moved_delivery["stale_reviews"]) == 2
+            assert all(scope["review_status"] == "not_reviewed"
+                       for scope in moved_delivery["opening_review_scopes"])
+
     asyncio.run(scenario())
 
 

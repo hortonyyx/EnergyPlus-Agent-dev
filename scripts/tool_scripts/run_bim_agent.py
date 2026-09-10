@@ -66,12 +66,16 @@ inspect_candidate('seed') gives the saved proposal and production checks;
 continue from it rather than regenerating the whole building. Compare actual
 spatial partitions, openings and connectivity with the original, resolve
 coordinate conventions, and choose substantive discrepancies for local review
-or revision.
+or revision. For spatial partitions, compare the actual room extents and shared
+walls with image evidence, not only the saved unresolved list. Crops, measured
+coordinates or a calibrated overlay can expose displaced partitions; choose
+which is useful. State which partition scope remains unexamined. Do not infer
+that reviewing openings also verified the walls or room layout.
 Use revise_bim for local changes and code-computed reflections. Never change
 facade labels merely to satisfy a host check: geometry and drawing directions
 must agree. Door swings, dimension ticks and window marks are different things.
 When correcting an unsupported opening, preserve the reason and source reference.
-Before concluding, reconcile the actual opening inventory with distinct marks
+When reviewing openings, reconcile the actual inventory with distinct marks
 on the original plans, including asymmetric details. A note saying "one door"
 does not remove a second modeled door. check_openings(candidate) lists the
 actual objects; its optional review_json checks your observed marks against
@@ -108,6 +112,8 @@ revise_bim takes candidate plus an operations_json list. Operations include:
  "reason":"explain","source_refs":["image: observation or explicit assumption"]};
 {"op":"update_opening","id":"D1","changes":{"p1":[3,1],"p2":[3,2]},
  "reason":"explain","source_refs":["image: observation or explicit assumption"]};
+{"op":"move_shared_wall","space_ids":["F1_left","F1_right"],"coordinate_m":3.5,
+ "reason":"explain observed partition displacement","source_refs":["plan: observed wall"]};
 {"op":"remove_opening","id":"D1","reason":"explain reclassification",
  "source_refs":["image: observation"]};
 {"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
@@ -115,6 +121,13 @@ Reflect transforms the entire proposal around the footprint midpoint on that
 axis, including rooms, window directions/spans and door coordinates. It preserves
 identities and connectivity. Replace stale directional assumptions with set_notes.
 Source IDs remain stable even if they contain an obsolete direction in their name.
+move_shared_wall is a local operation for two same-floor rectangular cells
+sharing one complete edge. It derives the wall axis from their existing geometry
+and moves both sides to coordinate_m together; openings hosted between those
+two cells move with the wall. Other objects retain their world coordinates and
+are checked by the normal builder. Polygon cells, partial shared sides and
+explicit enclosure declarations are unsupported by this edit; no new rooms or
+walls are invented. Preserve image basis and check the resulting geometry.
 For edits not supported by revise_bim, submit a complete revised proposal with
 build_bim, retaining the reliable geometry, IDs, source references and caveats.
 
@@ -692,7 +705,7 @@ def serve(run: Path, readonly=False):
         def revise_bim(candidate: str, operations_json: str) -> dict:
             """Apply local edits/reflection with code and save a new checked BIM.
             See brief for operations. The prior candidate remains unchanged.
-            Opening changes/removals require a reason and source_refs.
+            Opening changes/removals and shared-wall moves require a reason and source_refs.
             """
             from src.agent.geometry.proposal_edits import apply_proposal_edits
             path = toolkit.candidate_path(candidate)
