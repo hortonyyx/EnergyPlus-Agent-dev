@@ -1,0 +1,97 @@
+{
+  "case_id": "helsinki_voimatalo",
+  "target": {
+    "name": "Voimatalo",
+    "address": "Malminrinne 3 / Malminkatu 16, Helsinki",
+    "type": "office_and_street_level_commercial",
+    "selection_reason": "A bounded office case within the current ordinary office/accommodation/commercial scope. Its public footprint is wholly inside the acquired tile and its use is confirmed independently of its appearance."
+  },
+  "public_sources": [
+    {
+      "role": "identity_use_storeys",
+      "publisher": "Helsinki City Museum via Finna",
+      "url": "https://www.finna.fi/Record/hkm.223B0A4A-8232-4304-BA56-752B1E559A7C?lng=fi",
+      "facts_used": "Voimatalo at Malminrinne 3 / Malminkatu 16; current use office; eight storeys with six repeating office floors, a recessed top floor, and street-level commercial space."
+    },
+    {
+      "role": "footprint_address_tags",
+      "publisher": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/way/15242619",
+      "retrieved_osm_base": "2026-09-10T08:51:15Z",
+      "license": "ODbL",
+      "facts_used": "Building footprint, Voimatalo name, Malminrinne 3 address, building=office, building:levels=7 and roof:levels=1."
+    },
+    {
+      "role": "mesh_scale_crs_accuracy",
+      "publisher": "City of Helsinki",
+      "url": "https://www.hel.fi/en/decision-making/information-on-helsinki/maps-and-geospatial-data/helsinki-3d",
+      "facts_used": "The mesh supports measurements in ETRS-GK25/N2000 and City of Helsinki reports its vertices within about 20 cm of real positions."
+    },
+    {
+      "role": "city_model_local_origin",
+      "publisher": "kinotus / public hki-3d-blender repository",
+      "url": "https://github.com/kinotus/hki-3d-blender",
+      "facts_used": "2017 OBJ uses metres, north +Y/east +X, and city-model local origin EPSG:3879 easting 25490000, northing 6668000."
+    }
+  ],
+  "source_tile": {
+    "id": "Tile_+1984_+2690",
+    "sanitised_input_path": "case_tests/textured_mass/derived/Tile_+1984_+2690/input.glb",
+    "sanitised_input_sha256": "10ed0a02f89cdd14b1895a54b745955cbb191157864068813c1e18869d1cb6ff",
+    "input_transform": {
+      "origin_original": [6125.0, 4625.0, 28.377655],
+      "mapping": "(x,y,z) -> (x-origin_x,z-origin_z,-(y-origin_y))"
+    },
+    "registration_basis": "The SUM tile coordinates and 250 m bounds align with the documented Helsinki city-model local grid. Transforming the public footprint through EPSG:3879 and subtracting the documented city origin places it on the visible Voimatalo facade. This cross-source registration is an inference checked by overlay, not metadata embedded in the sanitised GLB."
+  },
+  "footprint": {
+    "source_way_id": 15242619,
+    "source_crs": "EPSG:4326",
+    "target_crs": "Helsinki city-model local XY metres = EPSG:3879 minus (25490000, 6668000)",
+    "wgs84_lon_lat": [
+      [24.9317399, 60.1670873],
+      [24.9316359, 60.1671006],
+      [24.9314971, 60.1668351],
+      [24.9312801, 60.1668638],
+      [24.9312271, 60.1667601],
+      [24.930976, 60.1667941],
+      [24.9309992, 60.1668375],
+      [24.9310157, 60.1668685],
+      [24.9310787, 60.1669865],
+      [24.9312515, 60.16731],
+      [24.9314169, 60.1672879],
+      [24.9315449, 60.1672708],
+      [24.9317197, 60.1672474],
+      [24.9317895, 60.1672381],
+      [24.931818, 60.1672338],
+      [24.9317399, 60.1670873]
+    ],
+    "helsinki_local_xy_m": [
+      [6210.3098, 4690.5937],
+      [6204.5374, 4692.0815],
+      [6196.8008, 4662.5088],
+      [6184.7565, 4665.7189],
+      [6181.802, 4654.1682],
+      [6167.8652, 4657.9709],
+      [6169.1583, 4662.8049],
+      [6170.0779, 4666.2579],
+      [6173.5893, 4679.4012],
+      [6183.2204, 4715.434],
+      [6192.4006, 4712.9621],
+      [6199.5049, 4711.0496],
+      [6209.2068, 4708.4324],
+      [6213.0809, 4707.3922],
+      [6214.6626, 4706.9115],
+      [6210.3098, 4690.5937]
+    ]
+  },
+  "crop": {
+    "horizontal_buffer_m": 0.35,
+    "reason": "The public footprint and photogrammetry mesh are independent sources with approximately decimetre registration uncertainty. A 0.35 m buffer keeps facade triangles at the boundary while limiting the retained ground/context strip. No semantic labels select faces."
+  },
+  "generation_boundary": {
+    "provided_to_future_agent": ["input.glb", "static exterior views", "verified office/commercial use", "eight above-ground storeys"],
+    "not_provided": ["museum floor-plan image", "SUM semantic labels", "interior room truth", "historical BIM proposals"],
+    "unknown_or_inferred": ["current interior partitions", "room count", "internal doors and connectivity", "which historic repeating-floor details remain current"]
+  }
+}
