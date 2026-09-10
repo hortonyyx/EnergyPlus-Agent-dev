@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 900,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 603.87,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 600050,
+    "duration_api_ms": 598758,
+    "ttft_ms": 4352,
+    "ttft_stream_ms": 2928,
+    "time_to_request_ms": 712,
+    "num_turns": 35,
+    "result": "## Final Candidate: `candidate_03`\n\n**Summary:** A two-floor, 15m × 8m rectangular building reconstructed from the plan (1f_view, 2f_view) and four elevations (North/South/East/West). Geometry passes all self-consistency checks (14 spaces, 28 openings, 14 connections, 0 unbuilt/unsupported).\n\n**Layout:**\n- **F1 (ground, 0–3.0m):** 3 north offices (windows on North wall) + corridor (y 3–5) + 2 south lounges + 1 south meeting room (round table). Main double-leaf glazed entrance door on South wall (x 3.44–4.64); secondary double door on West wall into the corridor. Every room has one door into the corridor.\n- **F2 (upper, 3.0–6.6m):** 2 large conference rooms (North, wide windows) + corridor + 4 offices (South, narrow windows). Center double-door between the two conference rooms and corridor; each office has one corridor door.\n- Corridor has a window (not door) on the East wall on both floors, and on the West wall only at F2 (F1's west opening is a door instead) — confirmed by comparing East_view.png and West_view.png glyphs at identical spans.\n\n**Verification performed:**\n- Cross-checked dimension strings on plan vs. matching elevation dimension strings (e.g., South door span 3440–4640mm appears identically in 1f_view.png and South_view.png) to fix the N/S/E/W orientation, since no compass mark exists.\n- Fixed a real geometry bug: F2 interior doors initially used floor-relative z instead of absolute z (world height), causing 6 \"unbuilt opening\" errors; corrected to z=[3.0,5.1].\n- Ran `check_openings` for F1 doors (complete) and F2 doors (complete): all modeled openings matched marks; no unaccounted or missing openings.\n- Visually compared `view_candidate` renders for F1 and F2 against the original plans — room subdivision, window/door placement and corridor connectivity all agree.\n\n**Assumptions (recorded in candidate notes):**\n- Orientation (top=North) inferred from matching door/window dimension strings across plan and elevations.\n- Wall thickness (~0.24m) abstracted as zero-thickness planes.\n- Floor heights 3.0m (F1) / 3.6m (F2) and window sill/head heights derived from elevation vertical dimension chains.\n- Door heights: 2.1m interior, 2.4m for the two glazed exterior doors.\n- Each room has exactly one door to the corridor (paired arcs at F1 partitions belong to the two adjacent rooms, not one double door).\n\n**Unresolved / not pixel-verified:**\n- Exact widths/positions of F2 office-to-corridor doors (approximated/centered rather than measured against the small 360/660mm jamb marks).\n- Door swing direction and single- vs double-leaf detail not modeled (only presence/connectivity).\n- Room-role labels (office/lounge/meeting) are descriptive from furniture, not authoritative drawing text.\n\nNo further revisions were made beyond this point since remaining discrepancies are sub-metre placement details, not structural/connectivity errors — consistent with budget guidance not to chase small dimension offsets.",
+    "stop_reason": "end_turn",
+    "session_id": "cc6d442c-3938-433f-8103-d856f4787b03",
+    "total_cost_usd": 1.7039701999999997,
+    "usage": {
+      "input_tokens": 48,
+      "cache_creation_input_tokens": 110235,
+      "cache_read_input_tokens": 1055484,
+      "output_tokens": 48338,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 110235,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1103,
+          "cache_read_input_tokens": 98636,
+          "cache_creation_input_tokens": 11599,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 11599
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 616,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000701,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 48,
+        "outputTokens": 48338,
+        "cacheReadInputTokens": 1055484,
+        "cacheCreationInputTokens": 110235,
+        "webSearchRequests": 0,
+        "costUSD": 1.7032691999999996,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "4c0012ef-76f5-4721-9412-26fddca86426"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (no compass mark provided; confirmed by matching South elevation entrance door position x=[3.44,4.64] to plan bottom-row door, and North elevation 3-window pattern to plan top-row offices).",
+    "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines (cells abut at shared coordinate, no interior wall voids added).",
+    "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown (3600+3000 blocks split by mid slab).",
+    "Window sill/head heights: F1 windows z=[1.0,2.6]; F2 windows z=[4.0,5.8] (absolute), read from elevation vertical dimension chains (1000 sill/1600 or 1800 height/remainder to ceiling).",
+    "Door heights: 2.1m for interior doors; 2.4m for the two exterior glazed doors (South main entrance, West corridor entrance) per elevation door proportions.",
+    "East facade has a window (not door) into the corridor on both floors; West facade has a matching-position door into the corridor on F1 and a window in the same position on F2, confirmed by comparing East_view.png and West_view.png door/window glyphs.",
+    "Each of the 3 north and 3 south F1 rooms, and each F2 room (2 conference + 4 offices), has exactly one door to the central corridor, per arc marks in 1f_view.png/2f_view.png; F1's two arcs flanking each internal partition belong to the two different adjacent rooms, not a single double door.",
+    "Interior room-to-corridor door exact widths/positions along the shared wall are approximated (~0.75-1m, placed near the partition/jamb marks visible in the drawing); precise jamb offsets for F2 office doors were not individually pixel-verified (flagged uncertain in review)."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "929e248c91f670020bb9c261b72a361b3f42d1a01a1e47312c4c3624d4228b90",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "cc8a561439362d6a35b436b43f83469a143086813e8c48e963fb0eac6ec506a3",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "0f039aa99adc4f0267154cb843f7fc0bbf2e18b60acf2419ae5ff2fd5673a3ed"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "0c27a1d687f837452a015bcef1c1582f6f9bea905143799221431b17502e023c",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact interior door widths/positions for F2 office-to-corridor doors (D_Off1_C..D_Off4_C) are approximated/centered rather than pixel-verified against the small 360/660mm jamb dimensions on 2f_view.png.",
+    "Door swing direction/leaf count (single vs double) not modeled, only presence and connectivity.",
+    "Room role labels (office/lounge/meeting) are descriptive, based on furniture drawn, not authoritative naming from the source drawings."
+  ]
+}

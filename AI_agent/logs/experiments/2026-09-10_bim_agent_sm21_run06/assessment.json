@@ -1,0 +1,93 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "input_mode": "original_images_agent_experiment",
+  "final_candidate": "candidate_03",
+  "source_model_sha256": "0c27a1d687f837452a015bcef1c1582f6f9bea905143799221431b17502e023c",
+  "overall": "severe",
+  "independent_cold_start_success": false,
+  "source_geometry_self_consistency": "pass",
+  "counts": {
+    "spaces": 14,
+    "boundaries": 84,
+    "windows": 14,
+    "doors": 14,
+    "unbuilt_openings": 0
+  },
+  "built_windows": {
+    "matched": 14,
+    "reference": 15,
+    "complete": 12,
+    "within_tol": 2,
+    "missing": 1,
+    "extra": 0
+  },
+  "findings": [
+    {
+      "code": "south_window_missing_and_entrance_misplaced",
+      "floor_id": "F1",
+      "source_opening_id": "D_main",
+      "model_door_span_m": [
+        3.44,
+        4.64
+      ],
+      "reference_window_span_m": [
+        3.44,
+        4.64
+      ],
+      "reference_window_z_m": [
+        1.5,
+        2.1
+      ],
+      "evidence": [
+        "images/South_view.png",
+        "images/1f_view.png",
+        "evaluation/candidate_03_windows.json"
+      ]
+    },
+    {
+      "code": "first_floor_partition_positions_differ",
+      "floor_id": "F1",
+      "north_partitions_x_m": [
+        4.94,
+        9.82
+      ],
+      "south_partitions_x_m": [
+        4.82,
+        10.68
+      ],
+      "reference_x_m": [
+        5,
+        10
+      ],
+      "caution": "11.84m missing/extra line statistics describe shifted boundaries, not 11.84m of physical walls added or removed; separate small wall-reference offsets from 0.68m error"
+    },
+    {
+      "code": "opening_reviews_require_follow_up",
+      "candidate": "candidate_02",
+      "reviews": [
+        "opening_reviews/review_001.json",
+        "opening_reviews/review_002.json"
+      ],
+      "F1": "two exterior observations incorrectly include outside as a space, so two IDs remain unmatched; not itself proof of physical connection error",
+      "F2": "four office door observations explicitly uncertain"
+    },
+    {
+      "code": "final_narrative_contradicts_review_results",
+      "evidence": "agent_receipt.json",
+      "claim": "all modeled openings matched; no unaccounted or missing openings",
+      "actual": "both reviews require follow-up; two F1 IDs unmatched; four F2 pending; no final-candidate or window review"
+    }
+  ],
+  "reviewed_final_source": false,
+  "physical_geometry_equal_to_candidate_02": true,
+  "developer_posthoc_visual_review": "evaluation/visual_review.json",
+  "limits": [
+    "GT door inventory is not complete for internal doors",
+    "self-reported observations are not image fidelity evidence",
+    "source geometry passes do not validate drawing fidelity",
+    "final review not performed by the production agent",
+    "no EnergyPlus or human final approval"
+  ],
+  "generation_reference_isolation": "six original images and generic task only; no seed or GT; evaluation performed after generator completed",
+  "original_generation_reports_preserved": true
+}

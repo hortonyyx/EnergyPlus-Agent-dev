@@ -1,0 +1,95 @@
+{
+  "schema_version": "visual_opening_review_v1",
+  "review_kind": "developer_posthoc_original_drawing_review",
+  "reviewed_candidate": "candidate_03",
+  "source_model_sha256": "0c27a1d687f837452a015bcef1c1582f6f9bea905143799221431b17502e023c",
+  "input_images": {
+    "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+  },
+  "method": [
+    "Read candidate_03 proposal and source model, then inspected the original F1/F2 plans and South elevation.",
+    "Used candidate_03 partition/window reports only as post-generation evaluation evidence; they were not supplied to the generator and are not a replacement for the image check.",
+    "Did not modify the candidate, production code, source model, or opening-review records."
+  ],
+  "findings": [
+    {
+      "code": "f1_south_exterior_door_at_window_position",
+      "severity": "severe",
+      "source_opening_id": "D_main",
+      "model": {
+        "kind": "door",
+        "space_ids": ["F1_R1S"],
+        "span_m": [3.44, 4.64],
+        "z_m": [0.0, 2.4]
+      },
+      "drawing_evidence": [
+        "In 1f_view.png, the actual south exterior door opening is at x=0.54–1.44 m in F1_R1S; the plan shows one 900 mm door arc, so leaf count is not asserted.",
+        "The x=3.44–4.64 m opening is a small exterior window, not that door.",
+        "South_view.png shows the same small opening at x=3.44–4.64 m and the ground-floor exterior door separately at the west end."
+      ],
+      "impact": "The source has an exterior connection to the correct room but at the wrong physical opening: it invents a door where the window belongs and omits the actual exterior door."
+    },
+    {
+      "code": "f1_south_window_missing_at_3_44_to_4_64",
+      "severity": "severe",
+      "location": {
+        "facade": "South",
+        "floor_id": "F1",
+        "span_m": [3.44, 4.64],
+        "z_m": [1.5, 2.1]
+      },
+      "evidence": "evaluation/candidate_03_windows.json reports this as its sole South/F1 window miss. Direct plan/elevation review confirms it is a window; the source contains D_main at this span and no window object.",
+      "scope_note": "This is a real source opening-type/location problem, not merely a window-scoring convention."
+    },
+    {
+      "code": "f1_partitions_not_just_wall_reference_tolerance",
+      "severity": "severe",
+      "model_partition_x_m": {
+        "north_of_corridor": [4.94, 9.82],
+        "south_of_corridor": [4.82, 10.68]
+      },
+      "drawing_interpretation": "The two vertical room-partition axes shown on 1f_view.png are visually near x=5 and x=10 m across the corridor. Different edge/center references may explain the 0.06–0.18 m deviations, which need a wall-reference check before change. They cannot explain the south second partition at x=10.68 m: its 0.68 m displacement changes the middle and east room widths and is visible in the plan.",
+      "evaluation_evidence": "candidate_03_partition.json independently reports F1 internal missing/extra partition length 11.84 m and offsets from x=5/10. This report uses that GT-derived comparison only after generation; the original-plan inspection is the basis for classifying the 0.68 m displacement as material.",
+      "conclusion": "Do not waive the 0.68 m south-second-partition offset as wall-surface tolerance. Correct it first; decide the remaining 0.06–0.18 m offsets only after checking their wall reference plane."
+    },
+    {
+      "code": "f1_and_f2_corridor_door_inventory_needs_recheck_after_geometry_fix",
+      "severity": "review",
+      "drawing_evidence": [
+        "F1 visibly supports the six room-to-corridor leaves represented by D_R1N_C, D_R2N_C, D_R3N_C, D_R1S_C, D_R2S_C, and D_R3S_C; the paired leaves at the first partition are separate room doors, not a duplicated one.",
+        "D_west_ext is visibly an exterior corridor door. The F2 plan visibly supports the two conference-room leaves and four office-to-corridor doors; the four office positions remain coarse/uncertain as their saved review states."
+      ],
+      "scope_note": "No additional obvious duplicate source door or wrong room-pair was found in this bounded pass. This does not make a count of 14 doors a fidelity pass, because D_main is mislocated and the F1 partition grid is wrong."
+    },
+    {
+      "code": "opening_review_result_and_agent_summary_do_not_support_all_matched_claim",
+      "severity": "review",
+      "evidence": [
+        "opening_reviews/review_001.json is bound to candidate_02, not candidate_03. Candidate_03 changes the source hash even though its floors/openings/windows/footprint are inherited, so the old review cannot validate the final source.",
+        "That F1 complete review records two mark_space_ids_mismatch and two unaccounted_model_opening findings for D_main and D_west_ext. The mismatch comes from marking exterior as a second space ID (outside), whereas source openings correctly record only the indoor space; it is an observation-format mismatch, not a source connection error.",
+        "opening_reviews/review_002.json keeps all four F2 office marks as uncertain. Both saved reviews conclude observations_require_follow_up, while the agent receipt says all openings matched with no unaccounted/missing entries. The receipt summary is therefore not supported by its saved evidence."
+      ],
+      "impact": "Correct the exterior-mark representation and rerun reviews against the repaired final candidate; do not use the model summary as an acceptance verdict."
+    },
+    {
+      "code": "secondary_window_deltas",
+      "severity": "review",
+      "evidence": [
+        "candidate_03_windows.json also records F1 north W_F1_N3 shifted 0.24 m west and F1 east W_F1_E head 0.20 m low relative to its evaluation reference.",
+        "These are lower-priority dimensional issues than the F1 south door/window swap and partition placement; their exact treatment should follow the repaired F1 geometry."
+      ]
+    }
+  ],
+  "recommended_minimum_next_fix": [
+    "Move the F1_R1S exterior door to x=0.54–1.44 m, preserve its outside connection, and add the South/F1 window at x=3.44–4.64 m with the observed window vertical interval.",
+    "Correct the F1 south second partition at x=10.68 m to the observed x=10 m axis, then rehost and recheck affected F1 corridor doors/windows deterministically. Check the remaining 0.06–0.18 m offsets against wall-face/centerline evidence before changing them.",
+    "Create fresh F1 and F2 opening reviews for the repaired candidate. Exterior marks must list only the indoor space ID; retain the four F2 office doors as uncertain until their jamb positions are inspected."
+  ],
+  "not_evaluated": [
+    "Overall drawing fidelity beyond the bounded F1 partition, door/window, and visible corridor-door checks.",
+    "Door swing state, leaf construction, exact F2 office jamb positions, thermal properties, EnergyPlus, and human approval."
+  ],
+  "generation_isolation": "This is a developer post-hoc review. GT-derived files remained in evaluation only and no observation, GT value, or verdict was returned to the generation pipeline."
+}

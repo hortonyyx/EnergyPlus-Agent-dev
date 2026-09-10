@@ -1,0 +1,342 @@
+{
+  "candidate": "candidate_02",
+  "review_file": "opening_reviews/review_001.json",
+  "schema_version": "opening_review_v1",
+  "source_model_sha256": "0cda32be209076b8e2832103a514f02118bf8073dab6d5568bc53b7790869b51",
+  "image": {
+    "name": "1f_view.png",
+    "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "size": [
+      2133,
+      1345
+    ]
+  },
+  "review_scope": {
+    "floor_id": "F1",
+    "kind": "door",
+    "coverage": "complete"
+  },
+  "model_opening_ids": [
+    "D_R1N_C",
+    "D_R1S_C",
+    "D_R2N_C",
+    "D_R2S_C",
+    "D_R3N_C",
+    "D_R3S_C",
+    "D_main",
+    "D_west_ext"
+  ],
+  "matched_opening_ids": [
+    "D_R1N_C",
+    "D_R1S_C",
+    "D_R2N_C",
+    "D_R2S_C",
+    "D_R3N_C",
+    "D_R3S_C"
+  ],
+  "referenced_opening_ids": [
+    "D_R1N_C",
+    "D_R1S_C",
+    "D_R2N_C",
+    "D_R2S_C",
+    "D_R3N_C",
+    "D_R3S_C",
+    "D_main",
+    "D_west_ext"
+  ],
+  "room_coverage": [
+    {
+      "space_id": "F1_Corridor",
+      "actual_opening_ids": [
+        "D_R1N_C",
+        "D_R1S_C",
+        "D_R2N_C",
+        "D_R2S_C",
+        "D_R3N_C",
+        "D_R3S_C",
+        "D_west_ext"
+      ],
+      "actual_opening_count": 7,
+      "matched_opening_ids": [
+        "D_R1N_C",
+        "D_R1S_C",
+        "D_R2N_C",
+        "D_R2S_C",
+        "D_R3N_C",
+        "D_R3S_C"
+      ],
+      "matched_opening_count": 6,
+      "missing_opening_ids": [
+        "D_west_ext"
+      ]
+    },
+    {
+      "space_id": "F1_R1N",
+      "actual_opening_ids": [
+        "D_R1N_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "D_R1N_C"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R1S",
+      "actual_opening_ids": [
+        "D_R1S_C",
+        "D_main"
+      ],
+      "actual_opening_count": 2,
+      "matched_opening_ids": [
+        "D_R1S_C"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": [
+        "D_main"
+      ]
+    },
+    {
+      "space_id": "F1_R2N",
+      "actual_opening_ids": [
+        "D_R2N_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "D_R2N_C"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R2S",
+      "actual_opening_ids": [
+        "D_R2S_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "D_R2S_C"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R3N",
+      "actual_opening_ids": [
+        "D_R3N_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "D_R3N_C"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    },
+    {
+      "space_id": "F1_R3S",
+      "actual_opening_ids": [
+        "D_R3S_C"
+      ],
+      "actual_opening_count": 1,
+      "matched_opening_ids": [
+        "D_R3S_C"
+      ],
+      "matched_opening_count": 1,
+      "missing_opening_ids": []
+    }
+  ],
+  "findings": [
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-main",
+      "opening_id": "D_main",
+      "actual_space_ids": [
+        "F1_R1S"
+      ],
+      "marked_space_ids": [
+        "F1_R1S",
+        "outside"
+      ]
+    },
+    {
+      "code": "mark_space_ids_mismatch",
+      "mark_id": "door-west",
+      "opening_id": "D_west_ext",
+      "actual_space_ids": [
+        "F1_Corridor"
+      ],
+      "marked_space_ids": [
+        "F1_Corridor",
+        "outside"
+      ]
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_main"
+    },
+    {
+      "code": "unaccounted_model_opening",
+      "opening_id": "D_west_ext"
+    }
+  ],
+  "conclusion": "observations_require_follow_up",
+  "drawing_fidelity": "not_evaluated",
+  "source_scope": {
+    "actual_openings": "only explicit built source openings were reviewed",
+    "unbuilt_opening_count": 0,
+    "unsupported_observation_count": 0
+  },
+  "observations": {
+    "floor_id": "F1",
+    "kind": "door",
+    "image": "1f_view.png",
+    "coverage": "complete",
+    "marks": [
+      {
+        "mark_id": "door-main",
+        "box": [
+          520,
+          1030,
+          660,
+          1090
+        ],
+        "opening_ids": [
+          "D_main"
+        ],
+        "space_ids": [
+          "F1_R1S",
+          "outside"
+        ],
+        "basis": "visible",
+        "note": "double glass door in south exterior wall"
+      },
+      {
+        "mark_id": "door-west",
+        "box": [
+          300,
+          780,
+          340,
+          900
+        ],
+        "opening_ids": [
+          "D_west_ext"
+        ],
+        "space_ids": [
+          "F1_Corridor",
+          "outside"
+        ],
+        "basis": "visible",
+        "note": "double door swing arcs in west exterior wall into corridor"
+      },
+      {
+        "mark_id": "door-r1n",
+        "box": [
+          560,
+          590,
+          700,
+          700
+        ],
+        "opening_ids": [
+          "D_R1N_C"
+        ],
+        "space_ids": [
+          "F1_R1N",
+          "F1_Corridor"
+        ],
+        "basis": "visible",
+        "note": "arc from room1-north into corridor near partition"
+      },
+      {
+        "mark_id": "door-r2n",
+        "box": [
+          700,
+          590,
+          900,
+          700
+        ],
+        "opening_ids": [
+          "D_R2N_C"
+        ],
+        "space_ids": [
+          "F1_R2N",
+          "F1_Corridor"
+        ],
+        "basis": "visible",
+        "note": "arc from room2-north into corridor near same partition"
+      },
+      {
+        "mark_id": "door-r3n",
+        "box": [
+          1330,
+          590,
+          1450,
+          700
+        ],
+        "opening_ids": [
+          "D_R3N_C"
+        ],
+        "space_ids": [
+          "F1_R3N",
+          "F1_Corridor"
+        ],
+        "basis": "visible",
+        "note": "arc from room3-north into corridor near partition2"
+      },
+      {
+        "mark_id": "door-r1s",
+        "box": [
+          560,
+          780,
+          700,
+          880
+        ],
+        "opening_ids": [
+          "D_R1S_C"
+        ],
+        "space_ids": [
+          "F1_R1S",
+          "F1_Corridor"
+        ],
+        "basis": "visible",
+        "note": "arc from room1-south into corridor near partition"
+      },
+      {
+        "mark_id": "door-r2s",
+        "box": [
+          700,
+          780,
+          900,
+          880
+        ],
+        "opening_ids": [
+          "D_R2S_C"
+        ],
+        "space_ids": [
+          "F1_R2S",
+          "F1_Corridor"
+        ],
+        "basis": "visible",
+        "note": "arc from room2-south into corridor near same partition"
+      },
+      {
+        "mark_id": "door-r3s",
+        "box": [
+          1330,
+          780,
+          1450,
+          880
+        ],
+        "opening_ids": [
+          "D_R3S_C"
+        ],
+        "space_ids": [
+          "F1_R3S",
+          "F1_Corridor"
+        ],
+        "basis": "visible",
+        "note": "arc from room3-south into corridor near partition2"
+      }
+    ]
+  }
+}

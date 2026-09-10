@@ -1,0 +1,64 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (no compass mark provided; inferred from matching South elevation door position (x=3.44-4.64) to plan bottom-row door, and North elevation window pattern to plan top-row 3-window pattern).",
+    "Wall thickness ~0.24m per plan annotations; modeled as zero-thickness representative planes at wall centerlines (cells abut at shared coordinate).",
+    "Ground floor (F1) height 3.0m, first floor (F2) height 3.6m, total 6.6m, per East/West elevation vertical dimension breakdown (3600+3000 blocks split by a mid slab line).",
+    "Window sill/head heights: F1 windows z=[1.0,2.6] (1.6m tall, 1.0m sill) and F2 windows z=[4.0,5.8] (1.8m tall, 1.0m sill above its floor), read from elevation vertical dimension chains 1000/1600/400 and 1000/1800/800.",
+    "Door heights assumed 2.1m for interior doors, 2.4m for the two exterior glazed doors (South main entrance, West corridor entrance) per elevation door height chains.",
+    "Interior room-to-corridor door exact widths/positions along the shared wall are approximated (~0.9m, placed near the partition where arc marks were observed); precise jamb offsets not individually measured.",
+    "F2 office-to-corridor door exact positions approximated as centered in each office's corridor wall span; plan shows small jamb-detail dimensions (360/660) suggesting doors near partitions, but exact side not fully resolved from available crops.",
+    "East facade has a window (not door) into the corridor on both floors; West facade has a door into the corridor on F1 and a window in the same position on F2, per East_view/West_view comparison."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0f039aa99adc4f0267154cb843f7fc0bbf2e18b60acf2419ae5ff2fd5673a3ed",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "cc8a561439362d6a35b436b43f83469a143086813e8c48e963fb0eac6ec506a3",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "293c2b23d8030cbfef7eb07094cbe5fce3ca6aaf9f71859ba2b3c89e268a999b"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "0cda32be209076b8e2832103a514f02118bf8073dab6d5568bc53b7790869b51",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact interior door widths/positions (assumed ~0.9-1.2m near partitions) not pixel-verified beyond visual arc identification.",
+    "Whether F1 north/south rooms have single or double leaf doors to corridor not fully distinguished (drawn as simple arcs).",
+    "Furniture/room use labels (office/lounge/meeting) are descriptive based on furniture drawn, not authoritative room names."
+  ]
+}
