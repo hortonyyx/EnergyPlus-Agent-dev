@@ -244,6 +244,7 @@ def facade_inventory(source: dict) -> dict:
         if isinstance(row, dict) and isinstance(row.get("id"), str) and row["id"]
     }
     exterior_boundaries: dict[tuple[str, str], list[str]] = {}
+    unsupported_exterior_boundaries: dict[str, list[dict]] = {}
     for boundary_id, boundary in boundaries.items():
         if boundary_id in related_boundaries or boundary.get("geometry_type") != "wall":
             continue
@@ -254,6 +255,13 @@ def facade_inventory(source: dict) -> dict:
         facade, reason = _facade_for_boundary(boundary, source_spaces.get(space_id))
         if facade is not None:
             exterior_boundaries.setdefault((space["floor_id"], facade), []).append(boundary_id)
+        else:
+            # A wall with no currently built opening still matters: otherwise
+            # a missing whole facade could vanish from the required coverage.
+            unsupported_exterior_boundaries.setdefault(space["floor_id"], []).append({
+                "boundary_id": boundary_id,
+                "reason": reason or "host_direction_unsupported",
+            })
 
     classifications: dict[str, dict] = {}
     for opening_id, opening in openings.items():
@@ -294,7 +302,11 @@ def facade_inventory(source: dict) -> dict:
         unresolved = [copy.deepcopy(row) for row in classifications.values()
                       if row["floor_id"] == floor_id and row.get("facade") is None]
         by_floor.append({"floor_id": floor_id, "facades": facades,
-                         "non_facade_openings": sorted(unresolved, key=lambda row: row["opening_id"])})
+                         "non_facade_openings": sorted(unresolved, key=lambda row: row["opening_id"]),
+                         "unsupported_exterior_boundaries": sorted(
+                             unsupported_exterior_boundaries.get(floor_id, []),
+                             key=lambda row: row["boundary_id"]),
+                         })
     return {"schema_version": "opening_facade_inventory_v1", "source_model_sha256": source_hash,
             "floors": by_floor, "opening_classifications": classifications}
 

@@ -3,8 +3,8 @@ import json
 from pathlib import Path
 
 from src.agent.geometry.bim_delivery import summarize_delivery
-from src.agent.geometry.opening_review import review_openings
-from tests.test_opening_review import _facade_review, _images, _source
+from src.agent.geometry.opening_review import facade_inventory, review_openings
+from tests.test_opening_review import _digest, _facade_review, _images, _source
 
 
 RUN06 = Path(__file__).resolve().parents[1] / "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run06"
@@ -168,3 +168,37 @@ def test_facade_delivery_does_not_silently_pass_interior_openings():
     assert scope["facade_coverage"]["non_facade_openings"] == [{
         "opening_id": "D1", "kind": "door", "floor_id": "F1", "facade": None, "reason": "not_exterior",
     }]
+
+
+def test_unsupported_zero_opening_exterior_wall_blocks_facade_only_whole_floor_pass():
+    source = _source()
+    # This is a source-model fixture, not a request to add diagonal geometry
+    # support.  The changed wall is exterior and has no opening, so old
+    # opening-only enumeration would have omitted it entirely.
+    boundary = next(row for row in source["boundaries"] if row["id"] == "space/A/wall/2")
+    boundary["vertices"] = [[2.0, 2.0, 0.0], [0.5, 2.5, 0.0],
+                            [0.5, 2.5, 3.0], [2.0, 2.0, 3.0]]
+    source["source_model_sha256"] = _digest({key: value for key, value in source.items()
+                                              if key != "source_model_sha256"})
+
+    facade_data = facade_inventory(source)
+    assert facade_data["floors"][0]["unsupported_exterior_boundaries"] == [{
+        "boundary_id": "space/A/wall/2", "reason": "host_direction_unsupported",
+    }]
+    facade_only = summarize_delivery(source, _facade_reports(source, "window"))
+    scope = _scope(facade_only, "F1", "window")
+    assert scope["review_status"] == "partial"
+    assert scope["facade_coverage"]["unsupported_exterior_boundaries"] == [{
+        "boundary_id": "space/A/wall/2", "reason": "host_direction_unsupported",
+    }]
+
+    # An old whole-floor plan review is intentionally unchanged: it does not
+    # claim a facade-only aggregation and retains its established semantics.
+    plan = review_openings(source, {
+        "floor_id": "F1", "kind": "window", "image": "plan.png", "coverage": "complete",
+        "marks": [{"mark_id": "window", "box": [1, 2, 10, 12], "opening_ids": ["W1"],
+                   "space_ids": ["A"], "basis": "visible", "note": "plan window"}],
+    }, _images())
+    plan["review_file"] = "plan.json"
+    assert _scope(summarize_delivery(source, [plan]), "F1", "window")["review_status"] == (
+        "consistent_with_supplied_observations")

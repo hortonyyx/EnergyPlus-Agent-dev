@@ -187,6 +187,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
                                        if key[:2] == (floor_id, kind) and key[2] is not None and key[2] not in available_facades
                                        for ref in candidates]
             non_facade_openings = [row for row in facade_floor["non_facade_openings"] if row["kind"] == kind]
+            unsupported_exterior_boundaries = facade_floor["unsupported_exterior_boundaries"]
             facade_has_current = any(row["current_review_refs"] for row in facade_rows) or unavailable_facade_refs
             facade_findings = {code for row in facade_rows for code in row["finding_codes"]}
             facade_findings.update(code for ref in unavailable_facade_refs for code in ref["finding_codes"])
@@ -205,7 +206,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
                 # is useful evidence, but it cannot establish consistency.
                 review_status = "partial"
             elif (facade_rows and all(status == _CONSISTENT for status in facade_statuses) and
-                  not non_facade_openings):
+                  not non_facade_openings and not unsupported_exterior_boundaries):
                 # Every exterior direction is required, even directions with
                 # no built opening.  An empty complete review is the evidence
                 # that a missing whole facade has not been silently accepted.
@@ -236,6 +237,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
                     "required_facades": available_facades,
                     "facade_scope_refs": [row["current_review_refs"] for row in facade_rows],
                     "non_facade_openings": copy.deepcopy(non_facade_openings),
+                    "unsupported_exterior_boundaries": copy.deepcopy(unsupported_exterior_boundaries),
                     "unavailable_facade_review_refs": [ref["review_ref"] for ref in unavailable_facade_refs],
                 },
             })
@@ -258,6 +260,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
         "assumptions": _as_list(source.get("assumptions"), "assumptions"),
         "generation": {"unresolved": _as_list(generation.get("unresolved"), "generation.unresolved")},
         "opening_inventory": inventory,
+        "facade_inventory": facade_index,
         "opening_review_scopes": opening_review_scopes,
         "facade_review_scopes": facade_review_scopes,
         "current_reviews": current_reviews,
