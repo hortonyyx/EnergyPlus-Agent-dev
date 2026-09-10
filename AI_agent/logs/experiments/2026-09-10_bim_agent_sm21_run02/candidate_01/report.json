@@ -1,0 +1,305 @@
+{
+  "agent_assumptions": [
+    "Plan orientation: x=0 assigned West, x=15 East, y=0 North, y=8 South, inferred by cross-matching the plan's single west-side ground-floor door/east-side corridor windows against the four labelled elevation drawings (no north arrow present on plans).",
+    "Uniform wall abstraction: exterior/partition wall thickness not individually modeled; rooms defined on a centerline grid (bays at x=0/5/7.5/10/11.25/15, y=0/3/5/8) derived from the dimension strings, which already reconcile to the 15.0 x 8.0 m envelope.",
+    "Floor-to-floor heights (F1=3.0 m, F2=3.6 m, total 6.6 m) taken directly and consistently from all four elevation drawings.",
+    "Window sill/height taken from elevation dimension chains: North/South standard windows sill1.0/h1.6m; East/West and all F2 windows sill1.0/h1.8m.",
+    "Interior door heights standardized to 2.1 m (not separately dimensioned on plan); the South entrance and West corridor exterior doors set to 2.4 m based on elevation glazing proportions (literal glazing divisions summed to a full 3.0 m storey height, simplified down to a more conventional tall-door height).",
+    "South room F1_S1's small secondary window has no explicit dimension string; its size/position (0.7 m wide, sill 1.8 m) is an inferred placeholder.",
+    "Redundant paired door leaves drawn at shared partitions (e.g., F1 N2 and F2 M1/M2 each show two adjacent door arcs to the corridor) are preserved as two separate door objects rather than merged into one, matching the drawing.",
+    "No door was modeled between F2 offices O2 and O3 (large 4.38 m gap with no door-leaf marks in the dimension string at that spine wall), even though an automated visual review suggested a possible connecting door there; the dimensioned evidence for the other two office pairs (O1-O2, O3-O4) shows explicit 360+360mm door-leaf markers absent at the O2-O3 wall, so this was treated as a solid wall."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 10,
+    "openings": 13,
+    "spaces": 14,
+    "unbuilt_openings": 20,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "14147794683bfcba5c2a47adcf57055c5bc47c85edc5e8228f042e4875b3eb52",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "ae718a6947464fbc6592555157a59c16b78657f94bb48d2561e06068ba4b36ca",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_N1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_N2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_N3",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_S1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_S2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_S3",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_M1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_M2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O3",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O4",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_M1_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_M2_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O1_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O1_O2",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O2_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O3_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O3_O4",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O4_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "12051d3c7a19c128284c81f19540f755c62dd39bb98d5e349fb88e05e02c0df4",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_N1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_N2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_N3",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_S1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_S2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F1_S3",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_M1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_M2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O1",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O2",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O3",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_F2_O4",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_M1_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_M2_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O1_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O1_O2",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O2_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O3_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O3_O4",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "D_F2_O4_C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "No staircase/vertical circulation is drawn on either floor plan; connectivity between F1 and F2 is therefore not represented as a modeled opening (would require fabricating an unevidenced stair location).",
+    "Exact wall thicknesses vary in the drawings (240mm exterior, 340mm at corridor partitions, 360mm at some office partitions); the tool's rectangular-cell schema does not carry per-wall thickness, so a single representative centerline grid was used instead of literal face-to-face offsets.",
+    "Door swing/open-closed state is not indicated on the drawings for any opening; all doors marked state=unknown.",
+    "Minor (<0.3 m) discrepancies exist between the plan's own two independent dimension chains for the corridor width (1500mm vs 1200mm implied by different chains); 2.0 m corridor clear span was adopted as the reconciling value."
+  ]
+}

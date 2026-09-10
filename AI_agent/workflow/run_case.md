@@ -3,6 +3,22 @@
 本文是现有工具的最短使用指引，不把正式评测流程当作每次探索的必经步骤。
 已有 sm21/sm24 的历史 EP 成功产物，当前最新 sm25 尚未贯通，状态见 [路线与当前任务](../project/roadmap.md)。本页说明现有码的运行方法；原图自动入口为显式启用，当前实验结果见路线页。
 
+## 最小 BIM Agent 实验入口（09-10）
+
+独立于旧 `flow`，用已登录 Claude 订阅的 Sonnet 自主选择原图查看、量测、局部 Haiku 复核和源 BIM 生成/检查。当前支持输入目录中的 PNG；不要把 GT、历史生成图或辅助答案放进该目录。
+
+```bash
+python scripts/tool_scripts/run_bim_agent.py run \
+  --images case_tests/e2e_tests/sm21_anchor/case_data \
+  --out AI_agent/logs/experiments/<新的实验目录> \
+  --scope '根据所给平面与立面生成保留房间、门窗和连通的可查看 BIM' \
+  --timeout 900
+```
+
+输出目录须不存在。每个 `candidate_XX` 保存原方案、源 BIM、查看器和检查报告；`tools.jsonl`、订阅回执及流式记录说明真实执行过程。模型回复结束不代表已有候选；以实际保存的 `viewer.html`、`source_model.json` 及报告为准。源 BIM 的几何检查通过也不等于原图保真验收，独立对照须在生成结束后另做，不反馈 GT。
+
+运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。此入口尚未接正式恢复/编辑流程，也未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
+
 ## 1. 准备独立 run
 
 - 素材放 `case_tests/e2e_tests/<case>/case_data/`，用 `testdata_prompt.json` 提供声明；新实验放 `<case>/run_<说明>/`，不覆盖旧 run。

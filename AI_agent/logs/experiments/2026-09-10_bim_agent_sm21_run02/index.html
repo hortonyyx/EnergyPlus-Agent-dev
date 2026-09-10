@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>sm21 原图生成实验：可查看候选，保真未通过</title>
+<style>body{font:16px/1.65 system-ui,sans-serif;color:#17212c;margin:24px auto;padding:0 20px;max-width:1200px;background:#f5f6f8}h1{font-size:26px}.notice{background:#fff1e9;border-left:5px solid #b64018;padding:16px}nav{display:flex;flex-wrap:wrap;gap:20px;margin:20px 0}a{color:#095cab}.facts{font-size:20px;font-weight:600}iframe{width:100%;height:720px;border:1px solid #ccd1d8;background:white}.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px}figure{margin:0}img{width:100%;background:white}figcaption{font-size:14px;color:#56616e}@media(max-width:700px){.compare{grid-template-columns:1fr}iframe{height:560px}}</style>
+<h1>已生成可查看候选，原图保真未通过</h1>
+<div class="notice">第二版通过几何自洽检查，但二层南北分区放反，并多出了办公室之间的门。请把它当作待修实验候选，不能作为正确重建交付。主模型在 15 分钟时限结束，未完成最终回复。</div>
+<p class="facts">14 个空间 · 15 扇窗 · 18 个门洞 · 2 次自主生成</p>
+<p>模型从六张原图起跑，根据首版检查反馈修复了开口挂接问题。独立评价随后发现分区和连通仍不正确：几何自洽不等于读图准确。</p>
+<nav><a href="candidate_02/viewer.html">全屏查看第二版</a><a href="evaluation/index.html">独立分区对照</a><a href="README.md">过程与限制</a><a href="candidate_02/source_model.json">源 BIM</a><a href="candidate_01/viewer.html">查看第一版失败候选</a></nav>
+<iframe src="candidate_02/viewer.html" title="第二版三维候选，原图保真未通过"></iframe>
+<h2>二层方向和门洞需要修正</h2>
+<div class="compare"><figure><img src="images/2f_view.png" alt="原始二层平面，上方两个会议室、下方四间办公室"><figcaption>原图：上方两间大房间，下方四间小房间。办公室之间没有图示门洞。</figcaption></figure><figure><img src="candidate_02/plan_F2.png" alt="第二版二层平面，大小房间上下反置，办公室隔墙上多出两个红色门洞"><figcaption>候选：上下分区相反，小房间隔墙上多出了两处门洞（红色）。蓝色为窗。</figcaption></figure></div>
+<p>独立参照与开发助手原图核对均在评价侧使用，没有反馈给本次生成模型。门洞尚无完整自动参照，具体人工核对范围见过程记录。</p>
+</html>

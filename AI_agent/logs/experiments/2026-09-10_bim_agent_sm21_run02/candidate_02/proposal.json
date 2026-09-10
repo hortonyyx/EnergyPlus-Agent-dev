@@ -1,0 +1,926 @@
+{
+  "assumptions": [
+    "Plan orientation: x=0 assigned West, x=15 East; the tool's convention places North at y=8 (max Y) and South at y=0 (min Y), cross-checked against the plan's single west-side ground-floor door / east-side corridor windows matching the labelled West/East elevations (no north arrow present on plans).",
+    "Uniform wall abstraction: exterior/partition wall thickness not individually modeled; rooms defined on a centerline grid (bays at x=0/5/7.5/10/11.25/15, y=0/3/5/8) derived from the dimension strings, which already reconcile to the 15.0 x 8.0 m envelope.",
+    "Floor-to-floor heights (F1=3.0 m, F2=3.6 m, total 6.6 m) taken directly and consistently from all four elevation drawings; F2 elevations use absolute world Z as required (z_floor=3.0).",
+    "Window sill/height taken from elevation dimension chains: y=0-row (plan 'North', built facade 'South') and y=8-row windows sill1.0/h1.6m; East/West and all F2 windows sill1.0/h1.8m.",
+    "Interior door heights standardized to 2.1 m (not separately dimensioned on plan); the ground-floor South(y=8) entrance and West corridor exterior doors set to 2.4 m based on elevation glazing proportions (literal glazing divisions summed to a full 3.0 m storey height, simplified down to a more conventional tall-door height).",
+    "Room F1_S1 (y=5-8 row) small secondary window has no explicit dimension string; its size/position (0.7 m wide, sill 1.8 m) is an inferred placeholder.",
+    "Redundant paired door leaves drawn at shared partitions (e.g., F1 N2 and F2 M1/M2 each show two adjacent door arcs to the corridor) are preserved as two separate door objects rather than merged into one, matching the drawing.",
+    "No door was modeled between F2 offices O2 and O3 (large 4.38 m gap with no door-leaf marks in the dimension string at that spine wall), even though an automated visual review suggested a possible connecting door there; the dimensioned evidence for the other two office pairs (O1-O2, O3-O4) shows explicit 360+360mm door-leaf markers absent at the O2-O3 wall, so this was treated as a solid wall."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "F1_N1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png plan: left office, desk+2 chairs"
+            ],
+            "x": [
+              0,
+              5
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F1_N2",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png plan: middle office"
+            ],
+            "x": [
+              5,
+              10
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F1_N3",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png plan: right office"
+            ],
+            "x": [
+              10,
+              15
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F1_Corridor",
+            "role": "corridor",
+            "source_refs": [
+              "1f_view.png plan: central band 1200-1500mm clear between 340mm partitions"
+            ],
+            "x": [
+              0,
+              15
+            ],
+            "y": [
+              3,
+              5
+            ]
+          },
+          {
+            "id": "F1_S1",
+            "role": "lounge",
+            "source_refs": [
+              "1f_view.png plan: L-shaped seating, south entrance door"
+            ],
+            "x": [
+              0,
+              5
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F1_S2",
+            "role": "lounge",
+            "source_refs": [
+              "1f_view.png plan: L-shaped seating"
+            ],
+            "x": [
+              5,
+              10
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F1_S3",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png plan: round table + 6 chairs"
+            ],
+            "x": [
+              10,
+              15
+            ],
+            "y": [
+              5,
+              8
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      },
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "id": "F2_M1",
+            "role": "meeting",
+            "source_refs": [
+              "2f_view.png plan: large oval table meeting room, left"
+            ],
+            "x": [
+              0,
+              7.5
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F2_M2",
+            "role": "meeting",
+            "source_refs": [
+              "2f_view.png plan: large oval table meeting room, right"
+            ],
+            "x": [
+              7.5,
+              15
+            ],
+            "y": [
+              0,
+              3
+            ]
+          },
+          {
+            "id": "F2_Corridor",
+            "role": "corridor",
+            "source_refs": [
+              "2f_view.png plan: central corridor band"
+            ],
+            "x": [
+              0,
+              15
+            ],
+            "y": [
+              3,
+              5
+            ]
+          },
+          {
+            "id": "F2_O1",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png plan: office 1 of 4, desk+2 chairs"
+            ],
+            "x": [
+              0,
+              3.75
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F2_O2",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png plan: office 2 of 4"
+            ],
+            "x": [
+              3.75,
+              7.5
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F2_O3",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png plan: office 3 of 4"
+            ],
+            "x": [
+              7.5,
+              11.25
+            ],
+            "y": [
+              5,
+              8
+            ]
+          },
+          {
+            "id": "F2_O4",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png plan: office 4 of 4"
+            ],
+            "x": [
+              11.25,
+              15
+            ],
+            "y": [
+              5,
+              8
+            ]
+          }
+        ],
+        "name": "F2",
+        "z_floor": 3.0
+      }
+    ],
+    "footprint_x": [
+      0,
+      15
+    ],
+    "footprint_y": [
+      0,
+      8
+    ],
+    "openings": [
+      {
+        "id": "D_F1_N1_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          4.1,
+          3.0
+        ],
+        "p2": [
+          5.0,
+          3.0
+        ],
+        "source_refs": [
+          "1f_view.png: door arc from N1 into corridor near shared partition"
+        ],
+        "space_id": "F1_N1",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_N2_Ca",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          5.0,
+          3.0
+        ],
+        "p2": [
+          5.9,
+          3.0
+        ],
+        "source_refs": [
+          "1f_view.png: door arc from N2 into corridor near left partition"
+        ],
+        "space_id": "F1_N2",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_N2_Cb",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          9.1,
+          3.0
+        ],
+        "p2": [
+          10.0,
+          3.0
+        ],
+        "source_refs": [
+          "1f_view.png: door arc from N2 into corridor near right partition"
+        ],
+        "space_id": "F1_N2",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_N3_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          10.0,
+          3.0
+        ],
+        "p2": [
+          10.9,
+          3.0
+        ],
+        "source_refs": [
+          "1f_view.png: door arc from N3 into corridor"
+        ],
+        "space_id": "F1_N3",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_S1_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          4.1,
+          5.0
+        ],
+        "p2": [
+          5.0,
+          5.0
+        ],
+        "source_refs": [
+          "1f_view.png south row mirrors north row door pattern"
+        ],
+        "space_id": "F1_S1",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_S2_Ca",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          5.0,
+          5.0
+        ],
+        "p2": [
+          5.9,
+          5.0
+        ],
+        "source_refs": [
+          "1f_view.png"
+        ],
+        "space_id": "F1_S2",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_S2_Cb",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          9.1,
+          5.0
+        ],
+        "p2": [
+          10.0,
+          5.0
+        ],
+        "source_refs": [
+          "1f_view.png"
+        ],
+        "space_id": "F1_S2",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_S3_C",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          10.0,
+          5.0
+        ],
+        "p2": [
+          10.9,
+          5.0
+        ],
+        "source_refs": [
+          "1f_view.png"
+        ],
+        "space_id": "F1_S3",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "id": "D_F1_S1_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.54,
+          8.0
+        ],
+        "p2": [
+          1.44,
+          8.0
+        ],
+        "source_refs": [
+          "1f_view.png dim 540/900",
+          "South_view.png main glazed entry door"
+        ],
+        "space_id": "F1_S1",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_F1_W_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0,
+          3.4
+        ],
+        "p2": [
+          0,
+          4.6
+        ],
+        "source_refs": [
+          "1f_view.png west door arc into corridor",
+          "West_view.png ground floor double glazed door"
+        ],
+        "space_id": "F1_Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_F2_M1_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          6.6,
+          3.0
+        ],
+        "p2": [
+          7.5,
+          3.0
+        ],
+        "source_refs": [
+          "2f_view.png: paired door arcs at meeting-room partition into corridor"
+        ],
+        "space_id": "F2_M1",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_M2_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          7.5,
+          3.0
+        ],
+        "p2": [
+          8.4,
+          3.0
+        ],
+        "source_refs": [
+          "2f_view.png"
+        ],
+        "space_id": "F2_M2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_O1_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          0.8,
+          5.0
+        ],
+        "p2": [
+          1.6,
+          5.0
+        ],
+        "source_refs": [
+          "2f_view.png office row door arcs"
+        ],
+        "space_id": "F2_O1",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_O1_O2",
+        "kind": "door",
+        "other_space_id": "F2_O2",
+        "p1": [
+          3.75,
+          6.0
+        ],
+        "p2": [
+          3.75,
+          7.0
+        ],
+        "source_refs": [
+          "2f_view.png double-door between office1/2"
+        ],
+        "space_id": "F2_O1",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_O2_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          4.2,
+          5.0
+        ],
+        "p2": [
+          5.0,
+          5.0
+        ],
+        "source_refs": [
+          "2f_view.png"
+        ],
+        "space_id": "F2_O2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_O3_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          10.0,
+          5.0
+        ],
+        "p2": [
+          10.8,
+          5.0
+        ],
+        "source_refs": [
+          "2f_view.png"
+        ],
+        "space_id": "F2_O3",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_O3_O4",
+        "kind": "door",
+        "other_space_id": "F2_O4",
+        "p1": [
+          11.25,
+          6.0
+        ],
+        "p2": [
+          11.25,
+          7.0
+        ],
+        "source_refs": [
+          "2f_view.png double-door between office3/4"
+        ],
+        "space_id": "F2_O3",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "id": "D_F2_O4_C",
+        "kind": "door",
+        "other_space_id": "F2_Corridor",
+        "p1": [
+          13.4,
+          5.0
+        ],
+        "p2": [
+          14.2,
+          5.0
+        ],
+        "source_refs": [
+          "2f_view.png"
+        ],
+        "space_id": "F2_O4",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_F1_N1",
+        "room": "F1_N1",
+        "source_refs": [
+          "North_view.png elevation lower zone: sill1000/h1600",
+          "1f_view.png dim 1240/2400"
+        ],
+        "span": [
+          1.24,
+          3.64
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_F1_N2",
+        "room": "F1_N2",
+        "source_refs": [
+          "North_view.png",
+          "1f_view.png"
+        ],
+        "span": [
+          6.3,
+          8.7
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_F1_N3",
+        "room": "F1_N3",
+        "source_refs": [
+          "North_view.png",
+          "1f_view.png"
+        ],
+        "span": [
+          11.36,
+          13.76
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [
+          "Exact width/sill of the small south window near the entrance not dimensioned; approximate placement/size assumed."
+        ],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_F1_S1",
+        "room": "F1_S1",
+        "source_refs": [
+          "South_view.png elevation: small window near entrance (assumed size)"
+        ],
+        "span": [
+          1.8,
+          2.5
+        ],
+        "z": [
+          1.8,
+          2.4
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_F1_S2",
+        "room": "F1_S2",
+        "source_refs": [
+          "South_view.png",
+          "1f_view.png"
+        ],
+        "span": [
+          6.3,
+          8.7
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_F1_S3",
+        "room": "F1_S3",
+        "source_refs": [
+          "South_view.png",
+          "1f_view.png"
+        ],
+        "span": [
+          11.36,
+          13.76
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_F1_E",
+        "room": "F1_Corridor",
+        "source_refs": [
+          "East_view.png elevation lower window, sill1000/h1800"
+        ],
+        "span": [
+          3.4,
+          4.6
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W_F2_M1",
+        "room": "F2_M1",
+        "source_refs": [
+          "North_view.png upper zone sill1000/h1800",
+          "2f_view.png dim 1950/3600"
+        ],
+        "span": [
+          1.95,
+          5.55
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W_F2_M2",
+        "room": "F2_M2",
+        "source_refs": [
+          "North_view.png",
+          "2f_view.png"
+        ],
+        "span": [
+          9.33,
+          12.93
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W_F2_O1",
+        "room": "F2_O1",
+        "source_refs": [
+          "South_view.png upper zone",
+          "2f_view.png dim 2190/1200"
+        ],
+        "span": [
+          2.19,
+          3.39
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W_F2_O2",
+        "room": "F2_O2",
+        "source_refs": [
+          "South_view.png",
+          "2f_view.png"
+        ],
+        "span": [
+          4.11,
+          5.31
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W_F2_O3",
+        "room": "F2_O3",
+        "source_refs": [
+          "South_view.png",
+          "2f_view.png"
+        ],
+        "span": [
+          9.69,
+          10.89
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W_F2_O4",
+        "room": "F2_O4",
+        "source_refs": [
+          "South_view.png",
+          "2f_view.png"
+        ],
+        "span": [
+          11.61,
+          12.81
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F2",
+        "id": "W_F2_E",
+        "room": "F2_Corridor",
+        "source_refs": [
+          "East_view.png upper window"
+        ],
+        "span": [
+          3.4,
+          4.6
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F2",
+        "id": "W_F2_W",
+        "room": "F2_Corridor",
+        "source_refs": [
+          "West_view.png upper window"
+        ],
+        "span": [
+          3.4,
+          4.6
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "No staircase/vertical circulation is drawn on either floor plan; connectivity between F1 and F2 is therefore not represented as a modeled opening (would require fabricating an unevidenced stair location).",
+    "Exact wall thicknesses vary in the drawings (240mm exterior, 340mm at corridor partitions, 360mm at some office partitions); the tool's rectangular-cell schema does not carry per-wall thickness, so a single representative centerline grid was used instead of literal face-to-face offsets.",
+    "Door swing/open-closed state is not indicated on the drawings for any opening; all doors marked state=unknown.",
+    "Minor (<0.3 m) discrepancies exist between the plan's own two independent dimension chains for the corridor width (1500mm vs 1200mm implied by different chains); 2.0 m corridor clear span was adopted as the reconciling value."
+  ]
+}

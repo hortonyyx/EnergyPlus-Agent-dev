@@ -4,6 +4,8 @@
 
 ## 实际调用链
 
+09-10 新增独立实验入口 `run_bim_agent.py` 和 `execution/source_proposal.py`：订阅 Sonnet 原图工具循环直接送共同源内核，保存候选并消费实际检查反馈；按需 Haiku 局部复核，工具没有仓库或任意文件访问。sm21 已实跑两版候选，但方向、分区及门洞保真失败，主运行超时；未替换 `flow` 或完成生产级总 Agent。职责与范围见 [系统设计](architecture.md#现有能力与首个增量)，真实结果见 [当前任务](../project/roadmap.md)。
+
 原图入口增量：`flow --reading-model haiku|sonnet --llm-config FILE` 复用隔离读图启动、同门合并和原有检查，再进入共同源主干；仅启动一次，失败/超时留证据，已有接受观测可复用。`pipeline._call_json_llm` 新增显式 `claude_subscription` 文本 JSON 适配，不继承 API 配置、不回退其他模型。`--llm-config` 已从 flow 启动阶段生效。真实实验状态只在路线页维护，不能以入口接线或离线测试代替冷启动保真结果。
 
 当前源底座增量：`bim` / `flow --target source-bim` 接受绑定源摘要的 `--enclosure-input`，生成含整面/局部开敞及未知围护的 v3；完整逻辑空间不变，显示独立扣除开放区域并标示未知。查看器支持 v2/v3、逻辑边界开关和开敞轮廓拾取。未声明仍为 v2；旧 EP 明确拒绝 v3。三种受控历史几何场景已走正常 flow，不包含原图自动识读、水平洞口或空气交换。见 [共同模型](model.md#显式实际围护09-09-v3-增量) 和 [本轮记录](../logs/worklog/2026-09-09_source_enclosure.md)。
