@@ -28,6 +28,12 @@
 
 CLI `flow` 保存 attempts、checks、停止原因和可选 judge/确认。`run_pipeline` / `run_pipeline_artifacts` 函数仍有 legacy 加载路径，不能假定和 CLI 支持范围相同。命令与配置优先级见 [运行 case](../workflow/run_case.md)。
 
+## 总 Agent 的现状（09-10 核对）
+
+[react.py](../../src/agent/react.py) 已有模型与工具交替执行的局部循环，包含工具错误返回与有限调用重试；[graph.py](../../src/agent/graph.py) 将其用于旧 EP 下游专门节点，外层仍是固定依赖图。[step_orchestrator.py](../../src/agent/execution/step_orchestrator.py) 和 flow 则以既定阶段、状态及重抽/停止规则推进；[orchestrate.py](../../src/agent/execution/orchestrate.py) 明确将会话开发助手作为编排者。源主干已经能调用 reading 并独立导出 BIM，但尚无统一负责观察、工具选择、带反馈修订和 BIM 交付的产品总 Agent。
+
+现有循环、工具箱、源内核、检查、查看与产物存档可复用，具体模型通道和共享状态仍需适配。用户已明确 Agent 产品方向，当前只完成设计和代码边界核对；首个增量见 [系统设计](architecture.md#现有能力与首个增量)，不把局部 ReAct 或开发助手跑通当作总 Agent 已交付。
+
 ## 图纸观测与证据
 
 reading 工具箱、CV、隔离和模型工具可复用，但需要调用者准备配置、观测和执行顺序。`flow` 可显式调用隔离 reading 执行器；真实生成质量按实验判断。
