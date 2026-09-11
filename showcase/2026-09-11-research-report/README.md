@@ -2,6 +2,8 @@
 
 入口：[七页 HTML slides](index.html)，另有 [静态 PDF](research-report.pdf)。16:9、浅底细线；关键标题与节点中英双语。
 
+跨设备使用：[独立离线文件夹](../BIM-Agent-Presentation/index.html) / [ZIP](../BIM-Agent-Presentation.zip)。复制整个 `BIM-Agent-Presentation` 文件夹，或完整解压 ZIP 后，用浏览器打开 `index.html`；内含图片、三份嵌入模型、PDF 和打开说明。该目录为独立交付副本，后续改稿需同步复制。
+
 09-11 按用户逐页反馈修订：直接嵌入模型，具体图像代替抽象图示，强调传统流程的迭代 gap 和轻量公共仿真底座。页面用简短内容配合主讲，不放验证状态与进展说明。
 
 | 页 | 内容 |
