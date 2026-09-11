@@ -1435,7 +1435,7 @@
     const line=new THREE.LineSegments(edgeGeom(ring),new THREE.LineDashedMaterial({color,transparent:true,opacity:0.95,dashSize:dash,gapSize:gap,depthTest:false}));
     line.computeLineDistances(); line.renderOrder=800; line.userData=userData; root.add(line); return line; }
   const isDup = (s) => s.obc==='Surface' && s.obc_obj && s.name > s.obc_obj;  // one of each reciprocal pair
-  SURF.filter(s=>s.type !== 'Ceiling').forEach(s=>{
+  SURF.forEach(s=>{
     const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES);
     // FLAT (unlit) fill so every face of a zone renders the EXACT same colour — no
     // lighting wash that made horizontal (roof/floor) faces read near-white. Edges keep form.

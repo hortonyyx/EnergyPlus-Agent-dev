@@ -115,14 +115,8 @@ def texture_controls() -> str:
 
 def build_bim(source: Path, title: str, default: str) -> str:
     text = source.read_text(encoding="utf-8")
-    # Purely display-level: retain GEO unchanged, but omit ceiling polygons from
-    # the mesh loop so the default layer view exposes actual interior spaces.
-    text = replace_once(
-        text,
-        "  SURF.forEach(s=>{\n    const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES);",
-        "  SURF.filter(s=>s.type !== 'Ceiling').forEach(s=>{\n    const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES);",
-        "ceiling display filter",
-    )
+    # Keep every physical surface, including floor slabs and roof/ceiling faces,
+    # in both the whole-building and exploded-storey presentation views.
     # Scene decorations are presentation-only and are filtered before they are
     # inserted; geometry, material and renderer paths remain the source ones.
     hook = "<script>window.GEO ="
