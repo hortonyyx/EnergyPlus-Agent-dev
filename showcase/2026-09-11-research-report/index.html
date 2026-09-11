@@ -4,174 +4,135 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>轻量 BIM Agent · 课题进展 / Research Update</title>
+  <title>面向设计前期的仿真轻量 BIM Agent</title>
   <link rel="stylesheet" href="slides.css">
   <script src="slides.js" defer></script>
 </head>
 <body>
-  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="currentColor" stroke-width="1.3"/></marker>
-      <symbol id="plan" viewBox="0 0 200 140">
-        <path d="M20 18H180V122H20Z M20 67H78 M93 67H180 M86 18V50 M86 85V122 M134 67V90 M134 108V122" fill="none" stroke="currentColor" stroke-width="3"/>
-        <path d="M38 18H67 M111 18H155 M180 37V56 M20 83V107 M151 122H170" fill="none" stroke="var(--blue)" stroke-width="6"/>
-        <path d="M78 67V52A15 15 0 0 1 93 67 M134 90H152A18 18 0 0 1 134 108" fill="none" stroke="currentColor" stroke-width="1"/>
-      </symbol>
-      <symbol id="cube" viewBox="0 0 150 140">
-        <path d="M20 49 75 17 130 49 75 81Z" fill="var(--tint)"/>
-        <path d="M20 49V108L75 138V81 M75 138 130 106V49 M20 49 75 17 130 49 75 81Z" fill="none" stroke="currentColor" stroke-width="2"/>
-        <path d="M40 63V94L60 105V74 M91 74V113L112 101V62" fill="none" stroke="var(--blue)" stroke-width="2"/>
-      </symbol>
-    </defs>
-  </svg>
-
-  <main id="stage" aria-label="课题汇报 / Research presentation">
+  <main id="stage" aria-label="项目汇报 / Project presentation">
     <div id="slides">
-      <section class="slide cover active" id="slide-1" data-title="研究目标 / Research aim" aria-label="第 1 页，共 7 页">
-        <div class="eyebrow">RESEARCH UPDATE <span class="dot">·</span> 2026.09.11</div>
+      <section class="slide cover active" id="slide-1" data-title="仿真轻量 BIM Agent / Simulation BIM agent" aria-label="第 1 页，共 7 页">
+        <div class="eyebrow">PROJECT PRESENTATION <span>·</span> 2026.09.11</div>
         <div class="cover-copy">
-          <p class="overline">面向设计前期 <span>FOR EARLY-STAGE DESIGN</span></p>
-          <h1>轻量 BIM<br><span>Agent</span></h1>
-          <p class="cover-english">A lightweight BIM agent<br>for building performance simulation</p>
-          <p class="cover-purpose">让建筑仿真更早参与方案设计</p>
-          <p class="en">Bringing simulation into early design decisions</p>
+          <h1><span class="title-context">面向设计前期的</span><span>仿真轻量</span><span>BIM Agent</span></h1>
+          <p class="cover-english">A lightweight BIM agent<br>for early-stage design simulation</p>
         </div>
-        <div class="cover-visual">
-          <img src="assets/voimatalo-model.png" alt="Voimatalo 轻量 BIM：八层主体及附属体的空间与门窗表达">
-          <div class="visual-caption"><span class="small-square"></span> VOIMATALO <span>轻量 BIM 探索 / BIM exploration</span></div>
+        <div class="cover-visual live-model">
+          <img class="model-poster" src="assets/voimatalo-model.png" alt="Voimatalo 轻量 BIM">
+          <iframe data-src="embeds/voimatalo.html?bare=1" title="封面轻量 BIM，可拖动旋转 / Rotate BIM" tabindex="0"></iframe>
         </div>
-        <div class="cover-bottom">多模态输入 <i>→</i> 轻量 BIM <i>→</i> 多物理场仿真 <small>Multimodal inputs · Lightweight BIM · Multiphysics simulation</small></div>
+        <div class="cover-caption">VOIMATALO <span>拖动旋转 / Drag to rotate</span></div>
+        <div class="cover-bottom">多模态输入 <i>→</i> 轻量 BIM <i>→</i> 多物理场仿真<small>Multimodal inputs · Lightweight BIM · Multiphysics simulation</small></div>
       </section>
 
-      <section class="slide question" id="slide-2" data-title="研究问题 / Research question" aria-label="第 2 页，共 7 页" hidden>
-        <div class="eyebrow">01 <span class="slash">/</span> RESEARCH QUESTION</div>
-        <header>
-          <h2>在设计前期，如何支撑相对高精度的建筑仿真？</h2>
-          <p class="subtitle">How can early-stage design support higher-fidelity building simulation?</p>
-        </header>
-        <div class="question-flow">
-          <article class="question-step">
-            <span class="step-index">01</span>
-            <svg class="flow-icon sketch" viewBox="0 0 200 140" aria-hidden="true"><path d="M27 108V46L80 20 121 40V73L173 49V108L118 132 77 110 27 132Z M27 46 77 70 121 40 M77 70V110 M121 73 118 97 173 72 M118 97V132"/></svg>
-            <h3>前期方案</h3><p class="en">Early design</p>
-            <p class="step-note">信息有限 · 方案多变</p>
-            <p class="en small">Limited information, evolving options</p>
-          </article>
-          <span class="flow-arrow" aria-hidden="true">→</span>
-          <article class="question-step focal">
-            <span class="step-index">02</span>
-            <svg class="flow-icon" aria-hidden="true"><use href="#cube"/></svg>
-            <h3>可用于分析的建筑模型</h3><p class="en">An analysis-ready building model</p>
-            <p class="step-note">空间 · 围护 · 门窗 · 连接</p>
-            <p class="en small">Spaces, envelope, openings, connectivity</p>
-          </article>
-          <span class="flow-arrow" aria-hidden="true">→</span>
-          <article class="question-step">
-            <span class="step-index">03</span>
-            <svg class="flow-icon performance" viewBox="0 0 200 140" aria-hidden="true"><path d="M25 20V117H180 M39 94 67 75 94 83 124 48 164 29"/><path d="M39 100 67 88 94 92 124 68 164 61" class="muted-line"/><circle cx="124" cy="48" r="5"/></svg>
-            <h3>仿真辅助决策</h3><p class="en">Simulation-informed decisions</p>
-            <p class="step-note">比较方案 · 反馈设计</p>
-            <p class="en small">Compare alternatives, refine design</p>
-          </article>
+      <section class="slide question" id="slide-2" data-title="迭代的 gap / The iteration gap" aria-label="第 2 页，共 7 页" hidden>
+        <div class="eyebrow">01 <span>/</span> THE ITERATION GAP</div>
+        <header><h2>让建筑仿真跟上方案迭代</h2><p class="subtitle">Bringing building simulation into the design iteration loop</p></header>
+        <div class="traditional-chain">
+          <figure><div class="chain-image plan-image"><img src="assets/sm25-1f.png" alt="实际建筑设计平面图"></div><figcaption>方案与图纸<small>Design & drawings</small></figcaption></figure>
+          <div class="chain-connector"><span>人工识读</span><small>Interpret</small><b>→</b></div>
+          <figure><div class="chain-image"><img src="assets/sm25-model.png" alt="实际轻量建筑几何模型"></div><figcaption>几何模型<small>Geometry model</small></figcaption></figure>
+          <div class="chain-connector"><span>专业配置</span><small>Configure</small><b>→</b></div>
+          <figure><div class="chain-image"><img src="assets/simulation-reference.png" alt="旧 showcase 中的建筑仿真分布图"></div><figcaption>仿真结果示例<small>Simulation result example</small></figcaption></figure>
         </div>
-        <div class="feedback-rule"><span>设计迭代 <small>Design iteration</small></span></div>
-        <p class="takeaway">研究切入点：提高前期建筑模型的信息质量 <span>Focus: improve the information quality of early-stage building models</span></p>
-        <p class="micro-note">相对高精度为研究目标，尚待系统对照验证。 <span>Higher fidelity is a research objective; systematic evaluation is pending.</span></p>
+        <div class="manual-chain"><span>几何整理<small>Geometry cleanup</small></span><i>→</i><span>分区与物性<small>Zoning & properties</small></span><i>→</i><span>后端模型配置<small>Backend setup</small></span><i>→</i><span>计算与结果回传<small>Run & return results</small></span></div>
+        <div class="iteration-gap"><div class="gap-rule left"></div><p><strong>长链路 · 依赖人工 · 反馈滞后</strong><span>Long workflow · Manual effort · Delayed feedback</span></p><div class="gap-rule right"></div></div>
+        <div class="shared-base"><div class="base-aim">研究目标<small>Our aim</small></div><p>建立轻量的公共仿真底座<span>A shared lightweight foundation for building simulation</span></p><div class="short-loop">设计 <i>⇄</i> 轻量 BIM <i>⇄</i> 仿真<small>Design · Lightweight BIM · Simulation</small></div></div>
       </section>
 
-      <section class="slide approach" id="slide-3" data-title="研究思路 / Modelling approach" aria-label="第 3 页，共 7 页" hidden>
-        <div class="eyebrow">02 <span class="slash">/</span> MODELLING APPROACH</div>
-        <header><h2>多模态输入，共同的轻量 BIM 表达</h2><p class="subtitle">Multimodal inputs, one shared lightweight BIM representation</p></header>
-        <div class="inputs-line"><span class="line-label">前期输入 <small>Early inputs</small></span><span>图纸 / Drawings</span><span>图像 / Images</span><span>贴图体量 / Textured meshes</span><span>意图 / Design intent</span></div>
-        <div class="information-axis"><span>已知信息较多 <small>More known information</small></span><span>推理需求增加 <small>Greater need for inference</small> →</span></div>
-        <div class="inference-grid">
-          <article>
-            <svg class="plan-symbol" aria-hidden="true"><use href="#plan"/></svg>
-            <div class="category-number">I</div><h3>还原建模</h3><p class="en category-en">Reconstruction</p>
-            <p class="category-note">依据较充分的信息还原空间</p><p class="en small">Recover spaces from sufficient evidence</p>
-          </article>
-          <article>
-            <svg class="plan-symbol" viewBox="0 0 200 140" aria-hidden="true"><path d="M20 18H180V122H20Z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M38 18H67 M111 18H155 M180 37V56 M20 83V107 M151 122H170" fill="none" stroke="var(--blue)" stroke-width="6"/><path d="M20 67H78 M93 67H180 M86 18V50 M86 85V122 M134 67V122" class="inferred-line"/></svg>
-            <div class="category-number">II</div><h3>部分推理建模</h3><p class="en category-en">Partial inference</p>
-            <p class="category-note">保留已知约束，推断缺失部分</p><p class="en small">Retain evidence, infer what is missing</p>
-          </article>
-          <article>
-            <svg class="plan-symbol" viewBox="0 0 200 140" aria-hidden="true"><path d="M20 18H180V122H20Z M20 67H78 M93 67H180 M86 18V50 M86 85V122 M134 67V122" class="inferred-line"/><path d="M38 18H67 M111 18H155 M180 37V56 M20 83V107 M151 122H170" fill="none" stroke="var(--blue)" stroke-width="4" stroke-dasharray="5 4"/></svg>
-            <div class="category-number">III</div><h3>完全推理建模</h3><p class="en category-en">Full inference</p>
-            <p class="category-note">从需求与设计意图生成空间</p><p class="en small">Generate spaces from requirements and intent</p>
-          </article>
+      <section class="slide approach" id="slide-3" data-title="多模态建模 / Multimodal modelling" aria-label="第 3 页，共 7 页" hidden>
+        <div class="eyebrow">02 <span>/</span> MULTIMODAL MODELLING</div>
+        <header><h2>多模态输入，轻量 BIM 输出</h2><p class="subtitle">Multimodal inputs to lightweight BIM</p></header>
+        <div class="modalities">
+          <figure><img class="cad-thumb" src="assets/sm25-1f.png" alt="CAD 平面图"><figcaption>图纸 / Drawings</figcaption></figure>
+          <figure><img src="assets/aerial-reference.jpg" alt="建筑真实航拍参考"><figcaption>图像 / Images</figcaption></figure>
+          <figure><img src="assets/voimatalo-input.png" alt="真实贴图三维输入"><figcaption>三维体量 / 3D meshes</figcaption></figure>
+          <figure><img src="assets/language-input.png" alt="文字设计意图素材"><figcaption>文字意图 / Design intent</figcaption></figure>
         </div>
-        <div class="approach-bottom"><p>分类依据是信息充分程度 <span>Categories reflect information sufficiency</span></p><div class="diagram-key"><span><i></i> 已知 / Known</span><span><i class="dashed"></i> 推断 / Inferred</span></div></div>
+        <div class="input-arrow" aria-hidden="true">↓</div>
+        <div class="pipeline-panel">
+          <div class="pipeline-heading"><strong>BIM Agent</strong><span>多模态建模流程 / Multimodal modelling pipeline</span></div>
+          <div class="inference-grid">
+            <article><div class="category-visual drawing-pair"><img src="assets/sm25-1f.png" alt="sm25 实际平面输入"><img src="assets/sm25-South.png" alt="sm25 实际南立面输入"></div><h3>还原建模</h3><p class="en">Reconstruction</p></article>
+            <article><div class="category-visual live-model"><img class="model-poster" src="assets/voimatalo-input.png" alt="Voimatalo 真实贴图单体"><iframe data-src="embeds/voimatalo-input.html?bare=1" title="部分推理输入：可旋转真实贴图体量 / Textured mesh" tabindex="0"></iframe></div><h3>部分推理建模</h3><p class="en">Partial inference</p></article>
+            <article><div class="category-visual aerial"><img src="assets/aerial-reference.jpg" alt="赫尔辛基 A-lehtien 办公楼真实倾斜航拍图"></div><h3>完全推理建模</h3><p class="en">Full inference</p></article>
+          </div>
+        </div>
+        <div class="pipeline-output"><i aria-hidden="true">↓</i><p>轻量 BIM <span>Lightweight BIM</span></p></div>
+        <p class="image-credit">Aerial image: <a href="https://commons.wikimedia.org/wiki/File:A-lehtien_toimitalo_1.jpg" target="_blank" rel="noopener">Harria / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>
       </section>
 
-      <section class="slide architecture" id="slide-4" data-title="总体架构 / Architecture" aria-label="第 4 页，共 7 页" hidden>
-        <div class="eyebrow">03 <span class="slash">/</span> SYSTEM ARCHITECTURE</div>
-        <header><h2>Agent 组织建模，轻量 BIM 连接仿真</h2><p class="subtitle">Agent-led modelling, a shared BIM for simulation backends</p></header>
+      <section class="slide architecture" id="slide-4" data-title="Agent 工作流 / Agent workflow" aria-label="第 4 页，共 7 页" hidden>
+        <div class="eyebrow">03 <span>/</span> AGENT & SIMULATION</div>
+        <header><h2>从信息理解，到公共仿真底座</h2><p class="subtitle">From input understanding to a shared simulation foundation</p></header>
         <div class="architecture-flow">
-          <div class="agent-block">
-            <div class="block-heading"><span>建模 Agent</span><small>Modelling agent</small></div>
-            <div class="agent-core">理解目标与输入 <span>Understand goals & inputs</span></div>
-            <div class="agent-tools"><div>模型能力<small>Model capabilities</small></div><div>几何工具<small>Geometry tools</small></div></div>
-            <div class="agent-feedback"><span>↻</span> 依据检查反馈调整 <small>Adapt through feedback</small></div>
+          <div class="agent-panel">
+            <div class="agent-heading"><h3>BIM Agent</h3><p>目标与输入 <span>Goals & inputs</span></p></div>
+            <div class="agent-nodes">
+              <div><b>01</b><h4>输入识读</h4><span>Perceive<br>inputs</span></div><i>→</i>
+              <div><b>02</b><h4>信息整合</h4><span>Align<br>information</span></div><i>→</i>
+              <div><b>03</b><h4>空间推理</h4><span>Reason about<br>spaces</span></div><i>→</i>
+              <div><b>04</b><h4>几何生成</h4><span>Build<br>geometry</span></div><i>→</i>
+              <div><b>05</b><h4>检查修正</h4><span>Check<br>& refine</span></div>
+            </div>
+            <div class="agent-loop"><span>根据模型与工具反馈迭代 <small>Iterate with model & tool feedback</small></span></div>
+            <div class="tool-layer"><span>模型能力<small>Model capabilities</small></span><span>几何工具<small>Geometry tools</small></span><span>交互补充<small>User input</small></span></div>
           </div>
-          <span class="flow-arrow" aria-hidden="true">→</span>
-          <div class="bim-block">
-            <svg aria-hidden="true"><use href="#cube"/></svg>
-            <h3>轻量 BIM</h3><p class="en">Lightweight BIM</p>
-            <div class="bim-semantics">空间 / Spaces<br>边界与门窗 / Boundaries & openings<br>空间关系 / Spatial relationships</div>
-          </div>
-          <span class="flow-arrow" aria-hidden="true">→</span>
-          <div class="backend-block">
-            <div class="backend-label">仿真插件 <span>Simulation plugins</span></div>
-            <div class="backend connected"><span>热 <small>Thermal</small></span><div><strong>EnergyPlus</strong><small><i></i> 已接通 / Connected</small></div></div>
-            <div class="backend"><span>风 <small>Airflow</small></span><em>待扩展 / Planned</em></div>
-            <div class="backend"><span>光 <small>Daylight</small></span><em>待扩展 / Planned</em></div>
-            <div class="backend"><span>声 <small>Acoustics</small></span><em>待扩展 / Planned</em></div>
+          <div class="bim-output"><div class="output-arrow" aria-hidden="true">→</div><img src="assets/sm25-model.png" alt="轻量 BIM"><h3>轻量 BIM</h3><p class="en">Lightweight BIM</p></div>
+          <div class="backend-list">
+            <div class="backend-title">仿真插件<small>Simulation plugins</small></div>
+            <a class="backend connected" href="https://energyplus.net/" target="_blank" rel="noopener"><strong>EnergyPlus</strong><span>热与能耗 / Thermal & energy</span><small>已接通 / Connected</small></a>
+            <div class="backend-group-label">扩展接口 / Extensible interfaces</div>
+            <a class="backend" href="https://www.radiance-online.org/about" target="_blank" rel="noopener"><strong>Radiance</strong><span>采光 / Daylighting</span></a>
+            <a class="backend" href="https://openfoam.org/" target="_blank" rel="noopener"><strong>OpenFOAM</strong><span>气流 / Airflow</span></a>
+            <a class="backend" href="https://www.orase.org/pachyderm" target="_blank" rel="noopener"><strong>Pachyderm</strong><span>声学 / Acoustics</span></a>
           </div>
         </div>
-        <div class="architecture-bottom"><p>保留建筑空间，按后端需求派生计算模型 <span>Preserve building spaces; derive simulation-specific models</span></p></div>
-        <p class="micro-note">EnergyPlus 为已有下游通路；本次两份展示未新增仿真验证。 <span>EnergyPlus is an existing integration; these two demos have no new simulation validation.</span></p>
       </section>
 
-      <section class="slide result sm25" id="slide-5" data-title="sm25 / Reconstruction" aria-label="第 5 页，共 7 页" hidden>
-        <div class="eyebrow">04 <span class="slash">/</span> RESULT I <span class="section-tag">还原建模 / RECONSTRUCTION</span></div>
-        <header><h2>从建筑图纸到可查看的空间模型</h2><p class="subtitle">From architectural drawings to an inspectable spatial model</p></header>
+      <section class="slide result sm25" id="slide-5" data-title="sm25 · 还原建模 / Reconstruction" aria-label="第 5 页，共 7 页" hidden>
+        <div class="eyebrow">04 <span>/</span> RECONSTRUCTION <span class="case-label">sm25</span></div>
+        <header><h2>完整建筑图纸 → 轻量 BIM</h2><p class="subtitle">A complete architectural drawing set to lightweight BIM</p></header>
         <div class="result-grid">
-          <figure class="drawing-figure"><figcaption><span>输入 / INPUT</span><strong>sm25 · 一层平面 <small>Ground-floor plan</small></strong></figcaption><div class="drawing-wrap"><img src="assets/sm25-plan.png" alt="sm25 原始一层 CAD 平面图，L 形办公室与走廊布置"></div></figure>
+          <figure class="drawing-set"><figcaption>完整图纸输入<small>Complete drawing set</small></figcaption>
+            <div class="all-drawings">
+              <figure><img src="assets/sm25-1f.png" alt="sm25 一层平面"><figcaption>一层 / Floor 1</figcaption></figure>
+              <figure><img src="assets/sm25-2f.png" alt="sm25 二层平面"><figcaption>二层 / Floor 2</figcaption></figure>
+              <figure><img src="assets/sm25-North.png" alt="sm25 北立面"><figcaption>北 / North</figcaption></figure>
+              <figure><img src="assets/sm25-South.png" alt="sm25 南立面"><figcaption>南 / South</figcaption></figure>
+              <figure><img src="assets/sm25-East.png" alt="sm25 东立面"><figcaption>东 / East</figcaption></figure>
+              <figure><img src="assets/sm25-West.png" alt="sm25 西立面"><figcaption>西 / West</figcaption></figure>
+            </div>
+          </figure>
           <span class="result-arrow" aria-hidden="true">→</span>
-          <figure class="model-figure"><figcaption><span>输出 / OUTPUT</span><strong>sm25 · 轻量 BIM <small>Lightweight BIM</small></strong></figcaption><div class="model-wrap"><img src="assets/sm25-model.png" alt="sm25 轻量 BIM，显示两层空间、门窗及内部隔断"><button class="demo-button" data-demo="sm25">交互演示 <span>Live demo</span><b aria-hidden="true">↗</b></button></div></figure>
+          <figure class="result-model"><figcaption>轻量 BIM<small>Lightweight BIM</small></figcaption><div class="live-model result-live"><img class="model-poster" src="assets/sm25-model.png" alt="sm25 轻量 BIM"><iframe data-src="embeds/sm25.html" title="sm25 轻量 BIM，可直接旋转和分层 / Interactive lightweight BIM" tabindex="0"></iframe></div></figure>
         </div>
-        <div class="result-bottom"><div class="metrics"><div><strong>29</strong><span>空间 <small>Spaces</small></span></div><div><strong>31</strong><span>窗 <small>Windows</small></span></div><div><strong>30</strong><span>门 <small>Doors</small></span></div></div><p>旋转 · 分层 · 展开 <span>Rotate · Isolate floors · Explode</span></p></div>
-        <p class="micro-note">展示副本含人工修订，用于效果示意。 <span>Assisted showcase with manual corrections.</span></p>
+        <div class="result-bottom"><p>2 张平面 + 4 张立面<span>2 floor plans + 4 elevations</span></p><div class="metrics"><span><strong>29</strong> 空间 <small>Spaces</small></span><span><strong>31</strong> 窗 <small>Windows</small></span><span><strong>30</strong> 门 <small>Doors</small></span></div></div>
       </section>
 
-      <section class="slide result voima" id="slide-6" data-title="Voimatalo / Partial inference" aria-label="第 6 页，共 7 页" hidden>
-        <div class="eyebrow">05 <span class="slash">/</span> RESULT II <span class="section-tag">部分推理建模 / PARTIAL INFERENCE</span></div>
-        <header><h2>从真实贴图体量到轻量 BIM</h2><p class="subtitle">From a real textured mesh to lightweight BIM</p></header>
+      <section class="slide result voima" id="slide-6" data-title="Voimatalo · 部分推理 / Partial inference" aria-label="第 6 页，共 7 页" hidden>
+        <div class="eyebrow">05 <span>/</span> PARTIAL INFERENCE <span class="case-label">Voimatalo · Helsinki</span></div>
+        <header><h2>真实贴图体量 → 轻量 BIM</h2><p class="subtitle">A real textured mesh to lightweight BIM</p></header>
         <div class="result-grid">
-          <figure class="input-figure"><figcaption><span>输入 / INPUT</span><strong>Voimatalo · Helsinki <small>Photogrammetry · GLB</small></strong></figcaption><div class="model-wrap"><img src="assets/voimatalo-input.png" alt="Voimatalo 的真实摄影测量贴图单体"><button class="demo-button secondary" data-demo="voima-input">查看原始体量 <span>Source mesh</span><b aria-hidden="true">↗</b></button></div></figure>
+          <figure><figcaption>真实贴图体量<small>Textured mesh · GLB</small></figcaption><div class="live-model result-live"><img class="model-poster" src="assets/voimatalo-input.png" alt="Voimatalo 原始贴图体量"><iframe data-src="embeds/voimatalo-input.html?bare=1" title="Voimatalo 原始体量，可直接旋转 / Rotate source mesh" tabindex="0"></iframe></div></figure>
           <span class="result-arrow" aria-hidden="true">→</span>
-          <figure class="model-figure"><figcaption><span>输出 / OUTPUT</span><strong>空间与门窗表达 <small>Spaces & openings</small></strong></figcaption><div class="model-wrap"><img src="assets/voimatalo-model.png" alt="Voimatalo 轻量 BIM，已补全缺失端面与凸出交通盒"><button class="demo-button" data-demo="voima">交互演示 <span>Live demo</span><b aria-hidden="true">↗</b></button></div></figure>
+          <figure><figcaption>轻量 BIM<small>Lightweight BIM</small></figcaption><div class="live-model result-live"><img class="model-poster" src="assets/voimatalo-model.png" alt="Voimatalo 轻量 BIM"><iframe data-src="embeds/voimatalo.html" title="Voimatalo 轻量 BIM，可直接旋转和分层 / Interactive lightweight BIM" tabindex="0"></iframe></div></figure>
         </div>
-        <div class="voima-bottom"><div class="voima-fact"><strong>8</strong><span>主楼层数 <small>Main storeys</small></span></div><div class="voima-fact"><strong>322</strong><span>窗组 <small>Window groups</small></span></div><p>补全缺失体量，推断内部空间<span>Complete missing geometry; infer interior spaces</span></p></div>
-        <p class="micro-note">主助手辅助探索；内部布局为推断，未核实。来源：SUM / Helsinki。 <span>Assistant-led exploration; interiors are inferred and unverified. Source: SUM / Helsinki.</span></p>
+        <div class="result-bottom"><p>Voimatalo · Helsinki<span>摄影测量 / Photogrammetry · SUM / Helsinki</span></p><div class="metrics"><span><strong>8</strong> 主楼层数 <small>Main storeys</small></span><span><strong>322</strong> 窗组 <small>Window groups</small></span></div></div>
       </section>
 
       <section class="slide outlook" id="slide-7" data-title="下一步 / Next steps" aria-label="第 7 页，共 7 页" hidden>
-        <div class="eyebrow">06 <span class="slash">/</span> NEXT STEPS</div>
-        <header><h2>从可查看的模型，走向可靠的设计工具</h2><p class="subtitle">From inspectable models to a reliable design tool</p></header>
-        <div class="outlook-grid">
-          <article><span class="outlook-number">01</span><div><h3>提升空间理解能力</h3><p class="en">Stronger spatial understanding</p><p class="outlook-note">空间、连接与建筑逻辑 <span>Spaces, connectivity & architectural logic</span></p></div></article>
-          <article><span class="outlook-number">02</span><div><h3>提高复杂建筑稳定性</h3><p class="en">Robustness on complex buildings</p><p class="outlook-note">跨案例、跨形态的可靠表达 <span>Reliable modelling across cases & forms</span></p></div></article>
-          <article><span class="outlook-number">03</span><div><h3>降低模型依赖度</h3><p class="en">Less reliance on large models</p><p class="outlook-note">工具支撑与轻量模型协同 <span>Geometry tools & smaller-model collaboration</span></p></div></article>
-          <article><span class="outlook-number">04</span><div><h3>轻量 BIM 交互式编辑</h3><p class="en">Interactive BIM editing</p><p class="outlook-note">查看、修改、反馈设计 <span>Inspect, edit & feed back into design</span></p></div></article>
+        <div class="eyebrow">06 <span>/</span> 下一步 · NEXT STEPS</div>
+        <div class="outlook-columns">
+          <article><span class="outlook-number">01</span><h3>提升空间<br>理解能力</h3><p class="en">Stronger spatial<br>understanding</p><div class="column-rule"></div><p class="plan-detail">空间 · 连接 · 建筑逻辑<small>Spaces · Connectivity<br>Architectural logic</small></p></article>
+          <article><span class="outlook-number">02</span><h3>提高复杂建筑<br>稳定性</h3><p class="en">Robustness on<br>complex buildings</p><div class="column-rule"></div><p class="plan-detail">跨案例 · 跨形态<small>Across building cases<br>and architectural forms</small></p></article>
+          <article><span class="outlook-number">03</span><h3>降低模型<br>依赖度</h3><p class="en">Less reliance<br>on large models</p><div class="column-rule"></div><p class="plan-detail">工具与轻量模型协同<small>Geometry tools<br>& smaller models</small></p></article>
+          <article><span class="outlook-number">04</span><h3>轻量 BIM<br>交互式编辑</h3><p class="en">Interactive<br>lightweight BIM editing</p><div class="column-rule"></div><p class="plan-detail">查看 · 修改 · 反馈<small>Inspect · Edit<br>Feed back into design</small></p></article>
         </div>
-        <div class="outlook-end"><span class="small-square"></span><p>服务于设计前期的多物理场仿真 <span>Enabling multiphysics simulation in early-stage design</span></p></div>
       </section>
     </div>
-
     <footer class="deck-footer">
-      <span class="project-name">LIGHTWEIGHT BIM AGENT <span>/</span> 课题进展</span>
+      <span class="project-name">LIGHTWEIGHT BIM AGENT <span>/</span> 项目汇报</span>
       <nav aria-label="幻灯片导航 / Slide navigation">
         <button id="prev" title="上一页 / Previous (←)" aria-label="上一页 / Previous">←</button>
         <button id="page-toggle" title="目录 / Overview (O)" aria-label="打开目录 / Open overview"><span id="page-current">01</span><span class="page-separator">/</span>07</button>
@@ -186,10 +147,6 @@
       <div id="overview-items"></div><p>← → 翻页 / Navigate <span>F 全屏 / Fullscreen</span><span>O 目录 / Overview</span></p>
     </div>
   </main>
-  <div id="demo-dialog" class="demo-dialog" role="dialog" aria-modal="true" aria-label="模型交互演示 / Interactive model demo" hidden>
-    <div class="demo-toolbar"><div><span class="live-dot"></span><strong id="demo-title"></strong></div><nav id="demo-variants" aria-label="模型版本 / Model variants"></nav><button id="demo-close">返回汇报 <span>Back to slides</span> ×</button></div>
-    <div class="demo-content"><p id="demo-loading" role="status">正在打开模型 <span>Loading model…</span></p><iframe id="demo-frame" title="轻量 BIM 交互查看器 / Interactive BIM viewer" allow="fullscreen"></iframe></div>
-  </div>
   <div id="announcement" class="sr-only" aria-live="polite"></div>
 </body>
 </html>

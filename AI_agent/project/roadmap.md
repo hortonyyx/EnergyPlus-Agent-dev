@@ -1,8 +1,8 @@
 # 路线与当前任务
 
-更新：2026-09-10。产品范围见 [目标](goal.md)，实现与缺口见 [现有实现](../design/implementation.md)。
+更新：2026-09-11。产品范围见 [目标](goal.md)，实现与缺口见 [现有实现](../design/implementation.md)。
 
-**本轮临时任务：七页中英双语 HTML 汇报首版已完成，含两项模型交互展示。** [汇报入口](../../showcase/2026-09-11-research-report/index.html) 为极简科研风格，可离线翻页、全屏、页内打开模型；另有七页静态 PDF。已验证两种投屏尺寸、导航、iframe 操作和最终排版，见 [制作记录](../logs/worklog/2026-09-10_research_slides.md)。七页结构见 [汇报安排](../logs/worklog/2026-09-10_research_presentation_outline.md)，[资产入口](../../showcase/2026-09-11-research-report/assets.html) 保留。sm25 展示副本仍为 29 空间/31 窗/30 门；其人工修订与原 severe 状态保留。Voimatalo 当前两版为 13/165 个空间体、均 322 窗组、10/173 门：结合裁剪前局部实景，分别推断并补全贴邻端面和带窄窗的凸出交通盒，原 316 窗组保留。新增交通盒跨八层且没有中间假楼板，页面统一为 sm25 原生查看器。源几何检查 pass，但实际内部与隐藏开口仍含推断，未验证仿真，不计生产模型自动生成成功。[本次修订与证据](../logs/worklog/2026-09-10_voimatalo_missing_faces.md) 说明新增辅助信息和验证边界；[首版记录](../logs/worklog/2026-09-10_research_showcase_assets.md) 保留。常规还原从下方交接恢复，产品模型上限不变。
+**本轮临时任务：七页项目汇报已按用户逐页反馈修订为直接交互版。** [汇报入口](../../showcase/2026-09-11-research-report/index.html) 保持极简科研风格与关键内容双语：封面、模态与成果页直接旋转模型，sm25 六张图纸齐全，Agent 信息流程与实际后端名称已重画，下一步为四个竖向栏；另有七页静态 PDF。页面按项目汇报口径移除进展/验证脚注，原始生成与验证边界仍在资产说明。见 [逐页修订](../logs/worklog/2026-09-11_research_slides_revision.md)，[首版制作](../logs/worklog/2026-09-10_research_slides.md) 保留。七页结构见 [汇报安排](../logs/worklog/2026-09-10_research_presentation_outline.md)，[资产入口](../../showcase/2026-09-11-research-report/assets.html) 保留。sm25 展示副本仍为 29 空间/31 窗/30 门；其人工修订与原 severe 状态保留。Voimatalo 当前两版为 13/165 个空间体、均 322 窗组、10/173 门：结合裁剪前局部实景，分别推断并补全贴邻端面和带窄窗的凸出交通盒，原 316 窗组保留。新增交通盒跨八层且没有中间假楼板，页面统一为 sm25 原生查看器。源几何检查 pass，但实际内部与隐藏开口仍含推断，未验证仿真，不计生产模型自动生成成功。[本次修订与证据](../logs/worklog/2026-09-10_voimatalo_missing_faces.md) 说明新增辅助信息和验证边界；[首版记录](../logs/worklog/2026-09-10_research_showcase_assets.md) 保留。常规还原从下方交接恢复，产品模型上限不变。
 
 ## 当前交接
 

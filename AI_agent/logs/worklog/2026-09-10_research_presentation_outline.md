@@ -1,6 +1,6 @@
 # 课题汇报：页面安排草案
 
-用户准备 2026-09-11 课题汇报，暂缓常规开发。以下七页内容已获用户认可；随后先完成两份成果资产及 Voimatalo 修订。用户进一步确认制作极简克制科研风格、少文字、关键文字双语的第一版，现已实现 [七页 HTML slides](../../../showcase/2026-09-11-research-report/index.html)。制作与验证见 [slides 记录](2026-09-10_research_slides.md)，前期实施见 [资产记录](2026-09-10_research_showcase_assets.md)。
+用户准备 2026-09-11 课题汇报，暂缓常规开发。以下七页内容已获用户认可；随后先完成两份成果资产及 Voimatalo 修订。用户进一步确认制作极简克制科研风格、少文字、关键文字双语的第一版，现已实现 [七页 HTML slides](../../../showcase/2026-09-11-research-report/index.html)。09-11 已按用户逐页反馈改为直接内嵌模型的项目汇报，见 [修订记录](2026-09-11_research_slides_revision.md)。首版制作与验证见 [slides 记录](2026-09-10_research_slides.md)，前期实施见 [资产记录](2026-09-10_research_showcase_assets.md)。
 
 ## 用户明确的内容与制作范围
 
