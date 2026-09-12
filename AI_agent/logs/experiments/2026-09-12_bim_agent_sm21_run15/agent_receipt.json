@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 420,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 351.27,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 349261,
+    "duration_api_ms": 346030,
+    "ttft_ms": 1575,
+    "ttft_stream_ms": 1045,
+    "time_to_request_ms": 64,
+    "num_turns": 55,
+    "result": "## Summary\n\nCandidate finished: **candidate_01** (parent: seed).\n\n**Scope performed (bounded local wall-evidence task):**\n- Selected two exterior walls on `1f_view.png` (F1 North facade at y=8.0m, and F1 West facade at x=0.0m) that carry explicit `\"240\"` thickness dimension callouts with visible extension ticks straddling the wall band.\n- Measured the actual solid gray wall-fill band at clean, unobstructed locations via `pixel_profile` (north: x=770–830px → band y=[347,367], 20px; west: y=505–555px → band x=[426,446], 20px), confirming a consistent ~20px band for both walls, reasonably matching the printed 240mm label.\n- Established which face the seed's representative plane denotes: the outer (building-perimeter) ticks of the overall 15000mm (x) and 8000mm (y) dimension chains land on the *outer* edge of each measured band, and the representative planes (x=0, y=8) sit on the footprint's outer boundary — so I treated the representative plane as the **outer face**, with the inner face offset by 0.24m into the building (north: offset -0.24m in y; west: offset +0.24m in x).\n- Persisted this via `set_wall_references`/`set_wall_dimensions` (keeping the seed's existing x=4.94/x=9.82 partition entries unchanged), producing `wall-F1-north-facade` and `wall-F1-west-facade` with `evidence_status: \"observed\"`, explicit pixel dimension endpoints, and `face_endpoints` computed by the tool.\n- Registered an overlay calibration on `1f_view.png`/F1 using the same outer-tick anchors and inspected the projected wall faces.\n\n**Verified:** Rooms, doors, windows and connectivity were preserved unchanged from seed (`source_geometry_self_consistency: pass`, same 14 spaces / 29 openings). The 240mm thickness label and its approximate pixel band were checked directly against the image for both facades.\n\n**Unresolved / explicitly not verified:**\n- The overlay's own calibration check flagged a **cross-axis scale disagreement (~47%, x≈94 px/m vs y≈58 px/m)** between my x-anchors (15000mm chain) and y-anchors (8000mm chain) on `1f_view.png` — this is a real inconsistency in my anchor pixel reading that I could not resolve within budget; the wall-face offsets themselves (derived from local band measurements, not this global scale) are still the best local evidence, but the overlay's absolute pixel placement should be treated as unverified/approximate.\n- No opening review was performed this pass (`opening_review: not_reviewed`) — only wall-thickness evidence was in scope.\n- All previously-unresolved seed items (x=4.94/x=9.82 partition per-wall thickness split, corridor east/west chain conflict, F2 window/door residuals, door swing directions, 2F calibration) remain unresolved, unchanged from seed.\n- Only these two F1 exterior facades were examined for thickness/face evidence; all other exterior and interior walls on F1 and all of F2 are unexamined for this kind of face-offset question.",
+    "stop_reason": "end_turn",
+    "session_id": "52b28e16-da14-4b34-a701-a493466863e2",
+    "total_cost_usd": 1.4480207999999997,
+    "usage": {
+      "input_tokens": 92,
+      "cache_creation_input_tokens": 93007,
+      "cache_read_input_tokens": 1468716,
+      "output_tokens": 29882,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 93007,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1077,
+          "cache_read_input_tokens": 86230,
+          "cache_creation_input_tokens": 14861,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 14861
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 773,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000858,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 92,
+        "outputTokens": 29882,
+        "cacheReadInputTokens": 1468716,
+        "cacheCreationInputTokens": 93007,
+        "webSearchRequests": 0,
+        "costUSD": 1.4471627999999996,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "3bc99a66-fb06-421e-a401-71907b3ef980"
+  }
+}

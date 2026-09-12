@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 357.54,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 354602,
+    "duration_api_ms": 352253,
+    "ttft_ms": 2741,
+    "ttft_stream_ms": 2023,
+    "time_to_request_ms": 24,
+    "num_turns": 28,
+    "result": "Finished on **candidate_02**.\n\n## Summary\n\n**Scope executed:** Bounded local investigation of dimension-endpoint/reference-plane relationships for specific F1 walls, building on the seed (which already carried substantial prior corrections to F2 door positions, an F1 south-row partition move, and F1 south-facade opening classification).\n\n**What was found and persisted:**\n1. **F1 north-row partitions (x=4.94m, x=9.82m)** — confirmed via `map_dimension_chain` and pixel crops that the top annotation chain (1240/2400/1300/1240/2400/1240/1300/2400/1240mm) has explicit double-tick \"jog\" breaks *exactly* at these two partition centrelines, and the nine printed labels sum to 14760mm vs. the stated 15000mm header — a 240mm shortfall hidden at those jogs. Persisted as `wall_references` (`evidence_status: \"inferred\"`, `thickness_m: null`) — the aggregate gap is evidenced, but its split between the two walls is not, so no half-thickness was assumed and representative planes were left unchanged.\n2. **F1 corridor partition walls (y=3, y=5)** — found a genuine conflict between the west-margin chain (3000/250/1500/250/3000=8000mm, closes exactly to the footprint) and the east-margin chain (2940/340/1200/340/2940=7760mm, closure error −240mm, different flank reading 340 vs 250mm). This is documented in `set_notes` as an explicit unresolved conflict; a structured `wall_references` entry was attempted but rejected by the tool because that boundary is a partial multi-room shared wall (corridor face touches 3 rooms) — an explicit tool limitation, not a judgment call on my part.\n3. Verified via `overlay_candidate` (registered calibration_001 on 1f_view.png) that room/corridor boundaries, doors and windows still align visually with the source plan after these edits — no geometry was moved, only evidence was attached.\n\n**Checks passed:** `source_geometry_self_consistency: pass`, 14 spaces / 84 boundaries / 29 openings / 14 connections / 0 unsupported, no unbuilt openings.\n\n**Explicitly NOT verified this pass (unresolved, stated honestly, not silently dropped):**\n- Individual thickness/offset split for the two F1 north-row partitions.\n- True thickness/offset of the F1 corridor walls (250 vs 340mm conflict).\n- The same east-chain's room-height reading (2940 vs 3000mm) — noted but not chased further.\n- 2f_view.png calibration's ~2.7% cross-axis disagreement, F1 north-window span residuals, F1 east-window height residual, ConfA/ConfB door split — all carried over unresolved from the prior round, untouched this pass.\n- Door swing/leaf direction and furniture-based room labels.\n- No opening reviews (`check_openings`) were re-run this pass — only wall-face/dimension evidence was in scope; opening inventory itself was not re-verified against the drawing this round beyond the one overlay visual check.\n- F2 walls and all other F1 wall faces were not examined for this same jog/conflicting-chain pattern — only the two named partitions and the corridor were investigated.",
+    "stop_reason": "end_turn",
+    "session_id": "b6ece51a-44fb-4b23-8fef-c458bb04f68f",
+    "total_cost_usd": 1.3628068999999998,
+    "usage": {
+      "input_tokens": 46,
+      "cache_creation_input_tokens": 99880,
+      "cache_read_input_tokens": 1114183,
+      "output_tokens": 28555,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 99880,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1104,
+          "cache_read_input_tokens": 85662,
+          "cache_creation_input_tokens": 14218,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 14218
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 724,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000809,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 46,
+        "outputTokens": 28555,
+        "cacheReadInputTokens": 1114183,
+        "cacheCreationInputTokens": 99880,
+        "webSearchRequests": 0,
+        "costUSD": 1.3619978999999998,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "1adb04c0-5b3c-4dd8-84cd-a2946f040d51"
+  }
+}

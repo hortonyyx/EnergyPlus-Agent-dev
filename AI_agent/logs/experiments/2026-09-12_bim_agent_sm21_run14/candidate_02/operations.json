@@ -1,0 +1,52 @@
+[
+  {
+    "op": "set_wall_references",
+    "wall_references": [
+      {
+        "id": "wall-F1-partition-x4.94",
+        "boundary_id": "space/F1_R1N/wall/1",
+        "offsets_m": null,
+        "thickness_m": null,
+        "reference_basis": "North-row top dimension chain on 1f_view.png (1240/2400/1300/1240/2400/1240/1300/2400/1240mm, header total 15000mm) contains an explicit dimension-line break/jog mark (double diagonal tick) exactly at the cumulative 4940mm point, which coincides with this partition's modeled x=4.94m centerline. The nine printed segment labels sum to only 14760mm, i.e. 240mm less than the stated 15000mm total; this missing 240mm is hidden at the two jog marks (this wall and the x=9.82m partition), consistent with wall-thickness zones the drafter chose not to letter individually. The per-wall share of that 240mm is not determinable from this evidence (could be split unevenly between the two jogs), so thickness is left unknown rather than assumed as half of a nominal value; the representative plane stays at the seed's x=4.94m (unchanged geometry).",
+        "thickness_scope": "unknown layer scope; only an aggregate 240mm gap (shared with the x=9.82m partition) is evidenced by chain closure, not a per-wall figure",
+        "evidence_status": "inferred",
+        "source_refs": [
+          "1f_view.png top dimension chain crop [800,100,1000,260]: jog mark between the 1300mm and 1240mm labels at cumulative 4940mm",
+          "1f_view.png top dimension chain full row: 1240/2400/1300/1240/2400/1240/1300/2400/1240 labels sum to 14760mm vs 15000mm header total"
+        ]
+      },
+      {
+        "id": "wall-F1-partition-x9.82",
+        "boundary_id": "space/F1_R2N/wall/1",
+        "offsets_m": null,
+        "thickness_m": null,
+        "reference_basis": "Same top dimension chain contains a second break/jog mark exactly at the cumulative 9820mm point, coinciding with this partition's modeled x=9.82m centerline. As with the x=4.94m partition, the 240mm shortfall between the labelled-segment sum (14760mm) and the stated 15000mm total is hidden across these two jogs with no evidence of how it is split between them, so thickness is left unknown and the representative plane is kept at the seed's x=9.82m.",
+        "thickness_scope": "unknown layer scope; only an aggregate 240mm gap (shared with the x=4.94m partition) is evidenced by chain closure, not a per-wall figure",
+        "evidence_status": "inferred",
+        "source_refs": [
+          "1f_view.png top dimension chain crop [1280,100,1480,260]: jog mark between the 1240mm and 1300mm labels at cumulative 9820mm",
+          "1f_view.png top dimension chain full row: 1240/2400/1300/1240/2400/1240/1300/2400/1240 labels sum to 14760mm vs 15000mm header total"
+        ]
+      }
+    ],
+    "wall_dimensions": [],
+    "reason": "Bounded local investigation of the F1 north-row office partition walls (x=4.94m and x=9.82m) and their dimension endpoint/reference-plane relationship: the top annotation chain on 1f_view.png breaks (double-tick jog) exactly at each partition's centerline and its nine printed labels undershoot the stated 15000mm total by 240mm. This confirms both partitions sit at genuine dimension-chain break points (i.e. wall-thickness zones excluded from the lettered chain) but does not establish either wall's individual thickness or offset, so both are recorded as explicitly unknown/inferred rather than closed by an assumed 120mm half-split. Room and corridor extents, and the separately-noted west/east vertical dimension-chain conflict for the corridor walls, are unchanged."
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+      "Wall thickness ~0.24m generally per plan hatch/jamb annotations; modeled as zero-thickness representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+      "F1 north-row partitions at x=4.94m and x=9.82m are confirmed this pass to sit exactly at dimension-chain break/jog points where 240mm of the stated 15000mm total is omitted from the printed labels; representative planes are kept unchanged (seed values) since the per-wall split of that 240mm is not evidenced.",
+      "A separate west-margin vs east-margin vertical dimension-chain conflict for the F1 corridor partitions (y=3/y=5) was found in a prior step this pass: west chain (3000/250/1500/250/3000=8000mm) closes exactly to the 8000mm footprint; east chain (2940/340/1200/340/2940=7760mm) does not (-240mm residual) and gives a different flank reading (340 vs 250mm). This was recorded as a textual finding; a structured wall_references entry for that boundary was attempted but rejected by the tool as a partial multi-room shared-wall contact, so it is documented here in notes instead, with representative planes left unchanged."
+    ],
+    "unresolved": [
+      "F1 partitions at x=4.94m and x=9.82m: individual thickness/offset unresolved; only the aggregate 240mm gap across both jogs is evidenced.",
+      "F1 corridor partition walls (y=3/y=5): west-chain vs east-chain readings conflict (250mm vs 340mm flank, 8000mm vs 7760mm closure); true thickness/offset unresolved, geometry left at seed position; could not be persisted as a structured wall_reference because the corridor boundary is a partial multi-room shared wall unsupported by this tool.",
+      "The same east-margin chain also reads room heights as 2940mm vs the west chain's 3000mm; not further investigated this pass.",
+      "2f_view.png overlay calibration (~2.7% cross-axis disagreement), F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over from the prior round.",
+      "Door swing direction/leaf count and room role labels remain unresolved as before.",
+      "Only these two F1 north-row partitions and the F1 corridor partitions were examined for the dimension-endpoint/reference-plane relationship this pass; all other interior and exterior wall faces on F1 and all of F2 remain unexamined for the same kind of chain-break ambiguity."
+    ]
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+    "Wall thickness ~0.24m generally per plan hatch/jamb annotations, modeled as zero-thickness representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+    "F1 corridor partition walls (y=3, y=5) representative planes are kept at the seed's modeled coordinates because they match the WEST-margin dimension chain's exact closure to the 8000mm footprint (3000/250/1500/250/3000mm); this was checked explicitly this pass via map_dimension_chain arithmetic.",
+    "The EAST-margin dimension chain (2940/340/1200/340/2940mm) for the same vertical extent does NOT close to the 8000mm footprint (residual -240mm) and gives a different corridor flank reading (340mm vs 250mm); this is recorded as conflicting evidence on the corridor wall references rather than used to move any partition, per scope guidance against forcing closure with assumed half-thickness."
+  ],
+  "drawing_fidelity": "not_evaluated",
+  "error": "ValueError: partial wall contacts require explicit segment support",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "9c11826a92ff3a1f43939107219ff01beaf31997e11200683979896c694094b6",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "b919c6affcec821a9793f919872d41c3377c980a83657783668383f15870dd9d",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "87ab25fa30484f1a6bbec6083bb0928399c8378b4ffb67bab3e1143541e13e36"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": "not_evaluated",
+  "status": "error",
+  "unresolved": [
+    "F1 corridor partition wall (y=3/y=5) true thickness is unresolved: west-margin chain implies a 250mm flank, east-margin chain implies 340mm, and the two chains disagree by 240mm in overall closure against the same 8000mm footprint. Representative planes are left at the seed position (matching the closing west chain) but the true wall thickness/offset is NOT established either way.",
+    "The same east-margin chain also reads room heights as 2940mm vs the west chain's 3000mm for the same north/south office rooms; this room-height discrepancy was observed but not further investigated this pass (out of the bounded local-wall scope chosen).",
+    "2f_view.png overlay calibration (~2.7% cross-axis disagreement), F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over from the prior round.",
+    "Door swing direction/leaf count and room role labels remain unresolved as before.",
+    "Only the F1 corridor partition walls' dimension-endpoint relationship was locally investigated this pass; other wall faces/thicknesses on F1 and all of F2 remain unexamined for this same west/east dual-chain ambiguity."
+  ]
+}

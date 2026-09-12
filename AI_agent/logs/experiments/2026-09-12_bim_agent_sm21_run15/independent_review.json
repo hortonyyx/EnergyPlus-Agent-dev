@@ -1,0 +1,56 @@
+{
+  "mode": "post_generation_review_not_supplied_to_generator",
+  "physical_geometry_changed": false,
+  "wall_dimension_findings": [
+    {
+      "id": "dim-north-240",
+      "raw_m": 0.24,
+      "converted_m": 0.0,
+      "residual_m": -0.0
+    },
+    {
+      "id": "dim-west-240",
+      "raw_m": 0.24,
+      "converted_m": 0.48,
+      "residual_m": -0.48
+    }
+  ],
+  "independent_findings": [
+    "West dimension endpoints assign positive side to x=426 and negative to x=446 while wall offsets are [0,+0.24] and world direction is +x. The reversed labels create a -0.48m model residual; generator did not fix or report it in final response.",
+    "West evidence pixels y=530 lie on the north-row wall, while the saved boundary belongs to F1_R1S. Extending that thickness to a different segment remains an inference, not a direct observation of the saved segment.",
+    "Global y calibration assigns pixel 810 to y=0 although the actual south perimeter is much lower in the original image. Rendered building is visibly compressed vertically.",
+    "Local 240mm callouts and gray wall bands are visible, but do not independently prove every claimed representative-plane correspondence.",
+    "Final response acknowledges large calibration disagreement, but no new set_notes operation persisted it in source generation.unresolved.",
+    "Scope requested registering calibration before saving; generator registered after saving, so this run has no automatic projection."
+  ],
+  "calibration_warnings": [
+    {
+      "type": "cross_axis_disagreement",
+      "x_px_per_m": 94.0,
+      "y_px_per_m": 58.375,
+      "relative_deviation": 0.46759639048400325,
+      "relative_deviation_limit": 0.003,
+      "guidance": "x=94 px/m and y=58.375 px/m disagree by 46.759639%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+    },
+    {
+      "type": "residual_exceeds_threshold",
+      "axis": "x",
+      "dimension_ref": "caller_x_anchors",
+      "span_px": 1410.0,
+      "value_m": 15.0,
+      "residual_px": 118.33910034602081,
+      "residual_m": 1.3742666559511378
+    },
+    {
+      "type": "residual_exceeds_threshold",
+      "axis": "y",
+      "dimension_ref": "caller_y_anchors",
+      "span_px": 467.0,
+      "value_m": 8.0,
+      "residual_px": -221.88581314878888,
+      "residual_m": -2.576749979908382
+    }
+  ],
+  "reference_evaluation_reused_from": "../2026-09-12_bim_agent_sm21_run14/evaluation/summary.json",
+  "reference_reuse_basis": "All source spaces/boundaries/openings/connections unchanged relative to seed and run14; metadata alone changed. No rerun or new GT score claimed."
+}

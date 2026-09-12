@@ -1,0 +1,63 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East, confirmed again this round by North_view/South_view window-span dimension chains matching modeled window spans on both floors.",
+    "Overlay calibration for 1f_view.png (calibration_001) and 2f_view.png (calibration_002) registered this round from each image's own outer-wall dimension-chain ticks (15000mm horizontal, 8000mm vertical); 1f overlay showed sub-0.5% cross-axis agreement and close visual alignment of all partitions, doors and windows to source wall lines and arcs. 2f overlay showed a larger cross-axis disagreement (~2.7%) and x/y residuals up to ~0.09-0.17m in the calibration transform itself (projection/display precision), but independent dimension-chain arithmetic (2190/1200/720/1200/4380/... on South, 1950/3600/3900/3600/1950 on North) matches the modeled F2 window spans on North/South exactly, and door arc pixel positions in 2f_view.png align closely with the modeled Off1-4/ConfA/ConfB door spans, so the underlying F2 geometry is corroborated independently of the imperfect overlay calibration; the calibration itself was not further refined this round.",
+    "F1 south exterior door D_R1S_ext2 and window W_F1_S1 positions were re-confirmed by direct pixel measurement against the South_view.png bottom dimension chain (0-3440mm segment contains the door near x=540-1440mm; the 3440-4640mm segment is the window), consistent with the existing model - not a mislabeled/mirrored opening as an initial mis-reading of the chain briefly suggested.",
+    "F1 north-row window spans (W_F1_N2, W_F1_N3) show a small residual ~0.12-0.24m versus a strict North_view.png dimension-chain sum (modeled 6.18-8.58/11.12-13.52 vs chain-implied 6.30-8.70/11.36-13.76); treated as a minor, non-substantive offset per scope guidance and left unrevised.",
+    "F1 east window W_F1_E sill/head (z=1.0-2.6) is ~0.2m short of the East_view.png elevation chain reading (implies 1.0-2.8); treated as a minor offset and left unrevised.",
+    "All door and window openings on F1 and F2 (interior and exterior, all four facades) were reviewed this round via check_openings against 1f_view.png/2f_view.png marks and found consistent with the built inventory (four 'complete' reviews, no findings)."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "87ab25fa30484f1a6bbec6083bb0928399c8378b4ffb67bab3e1143541e13e36",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "87ab25fa30484f1a6bbec6083bb0928399c8378b4ffb67bab3e1143541e13e36",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run13/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "148d114b583947f0c7c8e76a1147ceb25a73e472e957169bcd6330d5fb43455a",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "2f_view.png overlay calibration (calibration_002) has a ~2.7% cross-axis pixel/metre disagreement and residuals vs the caller's own anchor dimensions; not re-calibrated this round. Geometry was instead cross-checked via direct dimension-chain arithmetic on North/South/East/West elevations, which matched, but the overlay projection itself should be tightened before being used for finer positional claims.",
+    "F1 north-row window spans (W_F1_N2, W_F1_N3) and the F1 east window sill/head height (W_F1_E) carry small (~0.12-0.24m) residuals against elevation dimension chains; not corrected this round as non-substantive.",
+    "F2 ConfA/ConfB corridor door exact 0.6m/0.6m split about x=7.5 remains visually approximated, not independently re-pixel-verified this round.",
+    "Door swing direction/leaf count, and room role labels (furniture-based, not authoritative naming) remain as prior unresolved items.",
+    "Partition wall thickness/host-plane abstraction (zero-thickness centerline convention) not re-examined this round beyond the already-corrected F1 R2S/R3S shared-wall position."
+  ]
+}

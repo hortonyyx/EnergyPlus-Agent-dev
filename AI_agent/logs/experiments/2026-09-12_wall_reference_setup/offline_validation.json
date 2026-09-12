@@ -1,0 +1,22 @@
+{
+  "initial_check": {
+    "command": "python -m pytest -n 2 tests/test_wall_reference.py tests/test_source_proposal.py tests/test_proposal_edits.py tests/test_source_image_overlay.py -q",
+    "passed": 28,
+    "failed": 1,
+    "failure": "Wall-face line at a floating-point pixel boundary was truncated by PIL; explicitly rounding derived face endpoints fixed the one-pixel discrepancy."
+  },
+  "fixed_check": {
+    "command": "python -m pytest -n 2 tests/test_wall_reference.py tests/test_source_proposal.py tests/test_proposal_edits.py tests/test_source_image_overlay.py tests/test_bim_agent_tools.py -q",
+    "passed": 38
+  },
+  "additional_stdio": {
+    "command": "python -m pytest -n 0 tests/test_bim_agent_tools.py::test_wall_reference_stdio_calculation_persistence_and_feedback -q",
+    "passed": 1
+  },
+  "scope": "offline targeted geometry, evidence persistence, shared-wall edit and actual stdio image feedback; not drawing fidelity or a full suite",
+  "strengthened_chain_test": {
+    "command": "python -m pytest -n 0 tests/test_wall_reference.py::test_missing_wall_band_is_not_a_connected_dimension_chain -q",
+    "passed": 1,
+    "scope": "same-direction consecutive net spans skip opposite faces of an intermediate wall; replacing with an actually joined span is reported connected"
+  }
+}

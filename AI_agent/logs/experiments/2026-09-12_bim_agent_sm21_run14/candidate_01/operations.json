@@ -1,0 +1,51 @@
+[
+  {
+    "op": "set_wall_references",
+    "wall_references": [
+      {
+        "id": "wall-F1-corridor-north",
+        "boundary_id": "space/F1_Corridor/wall/2",
+        "offsets_m": null,
+        "thickness_m": null,
+        "reference_basis": "Representative plane kept at modeled y=5.0 (room-side wall face), matching the WEST-margin vertical dimension chain (3000/250/1500/250/3000=8000mm, closes exactly to the 8000mm footprint with the 250mm flank landing precisely on y=5.0 and y=3.0). The EAST-margin vertical dimension chain on the same drawing (2940/340/1200/340/2940=7760mm) gives an incompatible 340mm flank and a -240mm closure error against the same 8000mm footprint total, i.e. it does not land on y=5.0/y=3.0 at all. This is a genuine drawing ambiguity between two annotation sets for the same physical wall, not a pixel-measurement artifact (both totals were checked by chain arithmetic). Thickness is therefore left unknown (conflicting 250mm vs 340mm readings) rather than guessed; the representative plane is NOT moved, since only the west chain closes exactly to the known footprint.",
+        "thickness_scope": "unknown layer scope; two conflicting local annotations (250mm and 340mm) observed",
+        "evidence_status": "conflicting",
+        "source_refs": [
+          "1f_view.png west margin dimension chain (x~90-320px): 3000/250/1500/250/3000mm, closes exactly to 8000mm footprint",
+          "1f_view.png east margin dimension chain (x~1850-2133px): 2940/340/1200/340/2940mm, closure error -240mm against same 8000mm footprint"
+        ]
+      },
+      {
+        "id": "wall-F1-corridor-south",
+        "boundary_id": "space/F1_Corridor/wall/0",
+        "offsets_m": null,
+        "thickness_m": null,
+        "reference_basis": "Same conflict as wall-F1-corridor-north, mirrored: representative plane kept at modeled y=3.0 (room-side face), matching the west chain's exact closure; east chain's 340mm flank and non-closing total not used to move geometry.",
+        "thickness_scope": "unknown layer scope; two conflicting local annotations (250mm and 340mm) observed",
+        "evidence_status": "conflicting",
+        "source_refs": [
+          "1f_view.png west margin dimension chain: 3000/250/1500/250/3000mm, closes exactly to 8000mm footprint",
+          "1f_view.png east margin dimension chain: 2940/340/1200/340/2940mm, closure error -240mm against same 8000mm footprint"
+        ]
+      }
+    ],
+    "wall_dimensions": [],
+    "reason": "Local wall-face/dimension-endpoint investigation of the F1 corridor partition walls (y=3 and y=5): the drawing carries two vertical dimension chains (west margin and east margin) for the same building height that disagree on both the room-height segments (3000 vs 2940) and the corridor-flank thickness reading (250 vs 340), with the east chain leaving a -240mm closure error against the shared 8000mm footprint total while the west chain closes exactly. Per scope, this is persisted as explicit conflicting/unknown evidence rather than resolved by an assumed half-thickness or by moving the representative planes; geometry (room/corridor extents and openings) is unchanged."
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+      "Wall thickness ~0.24m generally per plan hatch/jamb annotations, modeled as zero-thickness representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+      "F1 corridor partition walls (y=3, y=5) representative planes are kept at the seed's modeled coordinates because they match the WEST-margin dimension chain's exact closure to the 8000mm footprint (3000/250/1500/250/3000mm); this was checked explicitly this pass via map_dimension_chain arithmetic.",
+      "The EAST-margin dimension chain (2940/340/1200/340/2940mm) for the same vertical extent does NOT close to the 8000mm footprint (residual -240mm) and gives a different corridor flank reading (340mm vs 250mm); this is recorded as conflicting evidence on the corridor wall references rather than used to move any partition, per scope guidance against forcing closure with assumed half-thickness."
+    ],
+    "unresolved": [
+      "F1 corridor partition wall (y=3/y=5) true thickness is unresolved: west-margin chain implies a 250mm flank, east-margin chain implies 340mm, and the two chains disagree by 240mm in overall closure against the same 8000mm footprint. Representative planes are left at the seed position (matching the closing west chain) but the true wall thickness/offset is NOT established either way.",
+      "The same east-margin chain also reads room heights as 2940mm vs the west chain's 3000mm for the same north/south office rooms; this room-height discrepancy was observed but not further investigated this pass (out of the bounded local-wall scope chosen).",
+      "2f_view.png overlay calibration (~2.7% cross-axis disagreement), F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over from the prior round.",
+      "Door swing direction/leaf count and room role labels remain unresolved as before.",
+      "Only the F1 corridor partition walls' dimension-endpoint relationship was locally investigated this pass; other wall faces/thicknesses on F1 and all of F2 remain unexamined for this same west/east dual-chain ambiguity."
+    ]
+  }
+]
