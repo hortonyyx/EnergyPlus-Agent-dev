@@ -1,0 +1,652 @@
+{
+  "assumptions": [
+    "North=plan top, South=plan bottom, West=plan left, East=plan right, confirmed by matching dimension chains across all 4 elevations and the plan.",
+    "Exact interior door positions along corridor walls approximated at room-segment midpoints from visible arcs; not pixel-precise.",
+    "Wall thickness taken as nominal 240mm per plan label, not explicitly modeled as offset per wall (representative centerline geometry used).",
+    "Corridor modeled as one L-shaped polygon absorbing a jog area near the East wall that contains a secondary exterior door.",
+    "Window/door head heights inferred from elevation sill/height dimensions (1000mm sill+1800mm or 2400mm height); exact per-window variation not fully verified.",
+    "Single floor building (only 1F plan supplied); elevations show only ground floor height (4.5m) so treated as single storey."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "Reception",
+            "role": "lobby",
+            "source_refs": [
+              "1f_view.png: top room with door+window, North_view.png"
+            ],
+            "x": [
+              0,
+              10
+            ],
+            "y": [
+              17.734,
+              20
+            ]
+          },
+          {
+            "id": "Office1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: chairs+bench room"
+            ],
+            "x": [
+              0,
+              3.767
+            ],
+            "y": [
+              13.74,
+              17.734
+            ]
+          },
+          {
+            "id": "Office2",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk+wardrobe room"
+            ],
+            "x": [
+              0,
+              3.767
+            ],
+            "y": [
+              11.04,
+              13.74
+            ]
+          },
+          {
+            "id": "Office3",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk+wardrobe room"
+            ],
+            "x": [
+              0,
+              3.767
+            ],
+            "y": [
+              6.28,
+              11.04
+            ]
+          },
+          {
+            "id": "MeetingDining",
+            "role": "meeting_room",
+            "source_refs": [
+              "1f_view.png: round table room"
+            ],
+            "x": [
+              0,
+              3.767
+            ],
+            "y": [
+              0,
+              6.28
+            ]
+          },
+          {
+            "id": "TopRightRoom",
+            "role": "storage",
+            "source_refs": [
+              "1f_view.png: shelf/cabinet room"
+            ],
+            "x": [
+              5.843,
+              10
+            ],
+            "y": [
+              14.38,
+              17.734
+            ]
+          },
+          {
+            "id": "MeetingRoomBig",
+            "role": "meeting_room",
+            "source_refs": [
+              "1f_view.png: conference table room"
+            ],
+            "x": [
+              5.843,
+              10
+            ],
+            "y": [
+              6.66,
+              14.38
+            ]
+          },
+          {
+            "id": "BottomRightOffice",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk room bottom right"
+            ],
+            "x": [
+              5.843,
+              10
+            ],
+            "y": [
+              0,
+              3.314
+            ]
+          },
+          {
+            "id": "Corridor",
+            "polygon": [
+              [
+                3.767,
+                0
+              ],
+              [
+                5.843,
+                0
+              ],
+              [
+                5.843,
+                3.314
+              ],
+              [
+                10,
+                3.314
+              ],
+              [
+                10,
+                6.66
+              ],
+              [
+                5.843,
+                6.66
+              ],
+              [
+                5.843,
+                17.734
+              ],
+              [
+                3.767,
+                17.734
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "1f_view.png: central spine with door arcs, L-shaped jog near east side"
+            ],
+            "x": [
+              3.767,
+              10
+            ],
+            "y": [
+              0,
+              17.734
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_N_Main",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.54,
+          20
+        ],
+        "p2": [
+          2.14,
+          20
+        ],
+        "source_refs": [
+          "1f_view.png/North_view.png: double door 1600mm"
+        ],
+        "space_id": "Reception",
+        "state": "unknown",
+        "z": [
+          0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_S_Rear",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.54,
+          0
+        ],
+        "p2": [
+          5.44,
+          0
+        ],
+        "source_refs": [
+          "1f_view.png/South_view.png: 900mm door"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "clamped to Corridor jog cell extent"
+        ],
+        "id": "D_E_Side",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10,
+          5.7
+        ],
+        "p2": [
+          10,
+          6.66
+        ],
+        "source_refs": [
+          "1f_view.png/East_view.png: 1600mm door on east wall near jog"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Rec_Corridor",
+        "kind": "door",
+        "other_space_id": "Corridor",
+        "p1": [
+          3.9,
+          17.734
+        ],
+        "p2": [
+          4.8,
+          17.734
+        ],
+        "source_refs": [
+          "1f_view.png: double door arc at top of corridor"
+        ],
+        "space_id": "Reception",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_Office1",
+        "kind": "door",
+        "other_space_id": "Office1",
+        "p1": [
+          3.767,
+          15.24
+        ],
+        "p2": [
+          3.767,
+          16.24
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_Office2",
+        "kind": "door",
+        "other_space_id": "Office2",
+        "p1": [
+          3.767,
+          11.89
+        ],
+        "p2": [
+          3.767,
+          12.89
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_Office3",
+        "kind": "door",
+        "other_space_id": "Office3",
+        "p1": [
+          3.767,
+          8.16
+        ],
+        "p2": [
+          3.767,
+          9.16
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_MeetingDining",
+        "kind": "door",
+        "other_space_id": "MeetingDining",
+        "p1": [
+          3.767,
+          4.5
+        ],
+        "p2": [
+          3.767,
+          5.5
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_TopRightRoom",
+        "kind": "door",
+        "other_space_id": "TopRightRoom",
+        "p1": [
+          5.843,
+          15.56
+        ],
+        "p2": [
+          5.843,
+          16.56
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_MeetingRoomBig",
+        "kind": "door",
+        "other_space_id": "MeetingRoomBig",
+        "p1": [
+          5.843,
+          10.02
+        ],
+        "p2": [
+          5.843,
+          11.02
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Corridor_BottomRightOffice",
+        "kind": "door",
+        "other_space_id": "BottomRightOffice",
+        "p1": [
+          5.843,
+          1.16
+        ],
+        "p2": [
+          5.843,
+          2.16
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_N_Reception",
+        "room": "Reception",
+        "source_refs": [
+          "North_view.png: 4800mm window"
+        ],
+        "span": [
+          4.66,
+          9.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S_MeetingDining",
+        "room": "MeetingDining",
+        "source_refs": [
+          "South_view.png: 1500mm window"
+        ],
+        "span": [
+          0.54,
+          2.04
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S_BottomRightOffice",
+        "room": "BottomRightOffice",
+        "source_refs": [
+          "South_view.png: 1500mm window"
+        ],
+        "span": [
+          7.96,
+          9.46
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_MeetingRoomBig",
+        "room": "MeetingRoomBig",
+        "source_refs": [
+          "East_view.png: 4800mm window"
+        ],
+        "span": [
+          8.84,
+          13.64
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_TopRightRoom",
+        "room": "TopRightRoom",
+        "source_refs": [
+          "East_view.png: 1200mm window"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_Reception",
+        "room": "Reception",
+        "source_refs": [
+          "East_view.png: 1500mm window"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_Reception",
+        "room": "Reception",
+        "source_refs": [
+          "West_view.png: 1500mm window"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_Office1",
+        "room": "Office1",
+        "source_refs": [
+          "West_view.png: 1200mm window"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_Office2",
+        "room": "Office2",
+        "source_refs": [
+          "West_view.png: 1500mm window"
+        ],
+        "span": [
+          11.14,
+          12.64
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_Office3",
+        "room": "Office3",
+        "source_refs": [
+          "West_view.png: 1500mm window"
+        ],
+        "span": [
+          8.42,
+          9.92
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_MeetingDining",
+        "room": "MeetingDining",
+        "source_refs": [
+          "West_view.png: 4800mm large window"
+        ],
+        "span": [
+          0.54,
+          5.34
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact interior door swing directions and leaf widths not verified pixel-by-pixel.",
+    "Precise partition wall thicknesses/offsets not surveyed via check_wall_dimensions due to time budget.",
+    "The East-facade door count/window count from Haiku review_detail (1 door+4 windows) does not exactly match my 3-window+1-door reading for East; not reconciled due to time constraints.",
+    "Whether the small 'jog' cell near the East wall is a real vestibule/closet or purely corridor widening is unresolved.",
+    "South/East/West window sill and head heights assumed from a single representative elevation reading; not cross-checked per-window."
+  ]
+}

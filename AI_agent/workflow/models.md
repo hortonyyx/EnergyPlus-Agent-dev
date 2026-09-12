@@ -38,3 +38,5 @@
 当前 flow 已修复配置作用域：`--llm-config` 从主干启动时生效，退出恢复原环境；也可显式用 `EP_AGENT_LLM_CONFIG`。`--reading-model` 单独选择隔离读图 Haiku/Sonnet，校正可设 `provider: claude_subscription` 复用本机已登录订阅（无工具/MCP文本JSON调用）。该新路径拒绝 API key/base URL，无 DeepSeek 或其他模型回退。源码和使用方法见 [case 指南](run_case.md)；实际模型与用量以保存的 CLI 记录为准，估算费用不等于账单。
 
 09-10 用户指定的 **Claude** 三项梳理已完成：通过已授权订阅并行分析历史实跑、架构演变和独立方案比较，主助手核对原件/源码并修正误判。请求 Sonnet，实际主模型和 CLI 辅助模型用量见 [本轮会话记录](../logs/experiments/2026-09-10_reading_architecture_review/review_sessions.json)，估算不是账单。未开展产品模型实验。用户随后确认按证据提高精度、模型负责泛化和合理推断；下一项围绕可查看 BIM 补实际缺口，Sonnet 级承担工序/歧义判断、目标档参与可检查子任务，不预设单/双线或要求先补齐证据接口。当前范围见 [任务](../project/roadmap.md)。
+
+09-12 的 sm24 实验已实际完成一次 Haiku 局部立面读图委派，110.66秒，图像/隔离核验通过，但窗数、尺寸段和接地判断有误，父问题还预填了错误高度。Sonnet未直接采用额外窗，却未核清冲突；随后订阅429中断。该例不证明降本或可独立采信，按原图证据核验子任务回答仍是下一次工作重点；详细实际模型/用量/限制见[本轮记录](../logs/worklog/2026-09-12_reconstruction_sm24_delegation.md)。

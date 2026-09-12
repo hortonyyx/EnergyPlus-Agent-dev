@@ -1,0 +1,55 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "Reconstruct the single building from all supplied plan and elevation originals. Preserve the physical room partitions, continuous spaces, windows, doors and connections. Do not split a continuous space merely to make rectangular cells, and do not drop observed apertures to clear a build error. This experiment also tests lightweight-model delegation: early in the run, use review_detail for one bounded substantive original-image task of your choice, such as one facade's aperture inventory or one local dimension chain. Ask a neutral evidence question without supplying your expected answer. Haiku's observation is a hypothesis to verify against the drawing; you retain responsibility for geometry and corrections. Do not delegate whole-building reconstruction. Save a useful first candidate early, then inspect the actual source plan and elevation views and use original image feedback to revise substantive discrepancies. Retain explicit assumptions and unresolved scope and finish with the selected saved candidate within budget.",
+  "input_mode": "original_images_agent_experiment",
+  "deadline_epoch": 1789228092.3055456,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "8ef7c2ed25bac7b757fd45bd32310a22b2ffc09fa8a21cc5da7e989eee35d2d5",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "50f9edd2dbeb933a019b8791bcf5d7d47f68708fca9e6007c857919d18e53423",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"
+}

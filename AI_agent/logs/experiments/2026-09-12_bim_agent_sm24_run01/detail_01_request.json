@@ -1,0 +1,16 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 196,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "19de0c4a0f512e837e9c4da4d6bb0ccc660f674bec233ce2e0cd7e829c153514",
+    "images": {
+      "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    }
+  },
+  "prompt": "Images: ['East_view.png']\nQuestion: This is an East-facing exterior elevation drawing of a single-story building, 10000mm tall region shown, width 20000mm. Reading left to right along the bottom dimension chain (5700,1600,1540,4800,740,1200,2380,1500,540), please describe each distinct rectangular shape (door or window) visible in the elevation, its approximate left-right position/order, and whether it looks like a door (extends to the ground) or a window (elevated, with sill above ground).",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. Do not plan the whole building."
+}

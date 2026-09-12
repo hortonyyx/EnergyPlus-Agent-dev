@@ -1,0 +1,62 @@
+{
+  "agent_assumptions": [
+    "North=plan top, South=plan bottom, West=plan left, East=plan right, confirmed by matching dimension chains across all 4 elevations and the plan.",
+    "Exact interior door positions along corridor walls approximated at room-segment midpoints from visible arcs; not pixel-precise.",
+    "Wall thickness taken as nominal 240mm per plan label, not explicitly modeled as offset per wall (representative centerline geometry used).",
+    "Corridor modeled as one L-shaped polygon absorbing a jog area near the East wall that contains a secondary exterior door.",
+    "Window/door head heights inferred from elevation sill/height dimensions (1000mm sill+1800mm or 2400mm height); exact per-window variation not fully verified.",
+    "Single floor building (only 1F plan supplied); elevations show only ground floor height (4.5m) so treated as single storey."
+  ],
+  "counts": {
+    "boundaries": 58,
+    "connections": 11,
+    "openings": 22,
+    "spaces": 9,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0f3de23e11cfc66fea76b793b6e9289cb5d003ec4afa97ae51f4f3633e87b2ef",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "7e55e665e4e4f007129f445d00efe136854e2deb0428f0ffb7d6ed84fa73327b",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "bbffb562a935d2e5f6666af9963192288de1830aeed4e0ebb05c612255261fb4",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact interior door swing directions and leaf widths not verified pixel-by-pixel.",
+    "Precise partition wall thicknesses/offsets not surveyed via check_wall_dimensions due to time budget.",
+    "The East-facade door count/window count from Haiku review_detail (1 door+4 windows) does not exactly match my 3-window+1-door reading for East; not reconciled due to time constraints.",
+    "Whether the small 'jog' cell near the East wall is a real vestibule/closet or purely corridor widening is unresolved.",
+    "South/East/West window sill and head heights assumed from a single representative elevation reading; not cross-checked per-window."
+  ]
+}
