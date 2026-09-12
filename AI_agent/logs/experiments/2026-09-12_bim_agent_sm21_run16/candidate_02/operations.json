@@ -1,0 +1,71 @@
+[
+  {
+    "op": "set_wall_references",
+    "wall_references": [
+      {
+        "id": "wall-F1-partition-x4.94",
+        "boundary_id": "space/F1_R1N/wall/1",
+        "offsets_m": null,
+        "thickness_m": null,
+        "reference_basis": "North-row top dimension chain on 1f_view.png (1240/2400/1300/1240/2400/1240/1300/2400/1240mm, header total 15000mm) contains an explicit dimension-line break/jog mark (double diagonal tick) exactly at the cumulative 4940mm point, which coincides with this partition's modeled x=4.94m centerline. The nine printed segment labels sum to only 14760mm, 240mm less than the stated 15000mm total; this missing 240mm is hidden at the two jog marks (this wall and the x=9.82m partition). Per-wall share not determinable, thickness left unknown; representative plane kept at seed's x=4.94m (unchanged geometry). Overlay calibration_001 (x anchors 420px=0m/1805px=15m, y anchors 336px=8m/1070px=0m) shows this partition's projected line coincides with the visible partition/door-swing pair in 1f_view.png.",
+        "source_refs": [
+          "1f_view.png top dimension chain crop [800,100,1000,260]: jog mark between the 1300mm and 1240mm labels at cumulative 4940mm",
+          "1f_view.png top dimension chain full row: 1240/2400/1300/1240/2400/1240/1300/2400/1240 labels sum to 14760mm vs 15000mm header total",
+          "overlay_candidate calibration_001: projected x=4.94m line matches visible partition in 1f_view.png"
+        ],
+        "thickness_scope": "unknown layer scope; only an aggregate 240mm gap (shared with the x=9.82m partition) is evidenced by chain closure, not a per-wall figure",
+        "evidence_status": "inferred"
+      },
+      {
+        "id": "wall-F1-partition-x9.82",
+        "boundary_id": "space/F1_R2N/wall/1",
+        "offsets_m": null,
+        "thickness_m": null,
+        "reference_basis": "Same top dimension chain contains a second break/jog mark exactly at the cumulative 9820mm point, coinciding with this partition's modeled x=9.82m centerline. As with the x=4.94m partition, the 240mm shortfall between labelled-segment sum (14760mm) and stated 15000mm total is hidden across these two jogs with no evidence of split; thickness left unknown, representative plane kept at seed's x=9.82m. Overlay calibration_001 confirms projected line matches visible second partition in 1f_view.png.",
+        "source_refs": [
+          "1f_view.png top dimension chain crop [1280,100,1480,260]: jog mark between the 1240mm and 1300mm labels at cumulative 9820mm",
+          "1f_view.png top dimension chain full row: 1240/2400/1300/1240/2400/1240/1300/2400/1240 labels sum to 14760mm vs 15000mm header total",
+          "overlay_candidate calibration_001: projected x=9.82m line matches visible partition in 1f_view.png"
+        ],
+        "thickness_scope": "unknown layer scope; only an aggregate 240mm gap (shared with the x=4.94m partition) is evidenced by chain closure, not a per-wall figure",
+        "evidence_status": "inferred"
+      },
+      {
+        "id": "wall-F1-north-facade",
+        "boundary_id": "space/F1_R1N/wall/2",
+        "offsets_m": [
+          -0.24,
+          0
+        ],
+        "thickness_m": 0.24,
+        "reference_basis": "Explicit 240 thickness callout with extension ticks spans the wall band on 1f_view.png near x~655-700px, matching measured solid gray fill width (~21px, pixel_profile y=346-367) at multiple locations along this facade. Representative plane y=8.0m is the footprint outer boundary (offset 0); inner face at offset -0.24m. Overlay calibration_001 (y anchor 336px=8.0m derived from the same north-side dimension chain tick, consistent to within ~4mm of this band) places the projected north facade directly on the drawn wall band.",
+        "source_refs": [
+          "1f_view.png crop [630,290,740,390]: explicit 240 dimension label with tick marks across the wall band",
+          "1f_view.png pixel_profile gray-fill run y=346-367 at x=750-900 (solid wall, no openings)",
+          "overlay_candidate calibration_001: projected north facade coincides with drawn wall band"
+        ],
+        "thickness_scope": "exterior wall, full modeled thickness observed at hatch/fill band, single layer as drawn",
+        "evidence_status": "observed"
+      },
+      {
+        "id": "wall-F1-west-facade",
+        "boundary_id": "space/F1_R1S/wall/3",
+        "offsets_m": [
+          0,
+          0.24
+        ],
+        "thickness_m": 0.24,
+        "reference_basis": "Explicit 240 thickness callout with extension ticks near x~440-470,y~690-710px spans the wall band on 1f_view.png, matching measured solid gray fill width (~22px, pixel_profile x=425-447) at a clear location clear of door swing/furniture. Representative plane x=0.0m is the footprint outer boundary (offset 0); inner face at offset +0.24m. Overlay calibration_001 (x anchor 420px=0.0m from the same 15000mm header dimension's west tick, within ~5mm of this band) places the projected west facade directly on the drawn wall band.",
+        "source_refs": [
+          "1f_view.png crop [380,500,500,800]: explicit 240 dimension label with tick marks across the wall band",
+          "1f_view.png pixel_profile gray-fill run x=425-447 at y=480-600 (solid wall, clear of door swing/furniture)",
+          "overlay_candidate calibration_001: projected west facade coincides with drawn wall band"
+        ],
+        "thickness_scope": "exterior wall, full modeled thickness observed at hatch/fill band, single layer as drawn",
+        "evidence_status": "observed"
+      }
+    ],
+    "wall_dimensions": [],
+    "reason": "The two prior wall_dimensions entries (dim-north-240, dim-west-240) recorded the same 240mm exterior-wall thickness label with start/end sides on the SAME wall face pair, which check_wall_dimensions flagged as same_wall_endpoint_order (declared direction inconsistent with declared sides; not a genuine chain span to close). These were redundant with the thickness already captured directly in the wall_references (thickness_m=0.24 for both facades, based on the identical 240mm callouts and independently measured gray-fill pixel bands). Removing the contradictory pseudo-chain entries resolves the declared_evidence_inconsistent status without discarding any thickness evidence, and adds explicit overlay_candidate calibration_001 cross-checks to the two partition and two facade wall_references."
+  }
+]

@@ -1,0 +1,72 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+    "Wall thickness ~0.24m generally per plan hatch/jamb annotations; modeled as zero-thickness representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+    "F1 north-row partitions at x=4.94m and x=9.82m are confirmed this pass to sit exactly at dimension-chain break/jog points where 240mm of the stated 15000mm total is omitted from the printed labels; representative planes are kept unchanged (seed values) since the per-wall split of that 240mm is not evidenced.",
+    "A separate west-margin vs east-margin vertical dimension-chain conflict for the F1 corridor partitions (y=3/y=5) was found in a prior step this pass: west chain (3000/250/1500/250/3000=8000mm) closes exactly to the 8000mm footprint; east chain (2940/340/1200/340/2940=7760mm) does not (-240mm residual) and gives a different flank reading (340 vs 250mm). This was recorded as a textual finding; a structured wall_references entry for that boundary was attempted but rejected by the tool as a partial multi-room shared-wall contact, so it is documented here in notes instead, with representative planes left unchanged."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "33f7420830c75063a94fc6749da6b7899927446501f5ddfbf5c17ccfd7ad2bed",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "c6f5f399b30f3bb30891fb5a710403c7fb4fd01235af3c3eb7731bee32dd2e12",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "5e10494de9988c98559bf2800a52ebc3b089d0315ff785b7994f4c7899f1024f"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e82225b0cd32767275ea50ea132c0b3b0c4bb4a58abbbebda1baa1fefbe9575b",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F1 partitions at x=4.94m and x=9.82m: individual thickness/offset unresolved; only the aggregate 240mm gap across both jogs is evidenced.",
+    "F1 corridor partition walls (y=3/y=5): west-chain vs east-chain readings conflict (250mm vs 340mm flank, 8000mm vs 7760mm closure); true thickness/offset unresolved, geometry left at seed position; could not be persisted as a structured wall_reference because the corridor boundary is a partial multi-room shared wall unsupported by this tool.",
+    "The same east-margin chain also reads room heights as 2940mm vs the west chain's 3000mm; not further investigated this pass.",
+    "2f_view.png overlay calibration (~2.7% cross-axis disagreement), F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over from the prior round.",
+    "Door swing direction/leaf count and room role labels remain unresolved as before.",
+    "Only these two F1 north-row partitions and the F1 corridor partitions were examined for the dimension-endpoint/reference-plane relationship this pass; all other interior and exterior wall faces on F1 and all of F2 remain unexamined for the same kind of chain-break ambiguity."
+  ],
+  "wall_dimension_report": {
+    "chain_connected": false,
+    "dimensions": [],
+    "findings": [],
+    "joins": [],
+    "raw_sum_m": 0.0,
+    "review_status": "not_visually_verified",
+    "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"
+  }
+}

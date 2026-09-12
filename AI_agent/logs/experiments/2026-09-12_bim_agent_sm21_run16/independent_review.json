@@ -1,0 +1,41 @@
+{
+  "scope": "post-generation audit; not input to generator",
+  "physical_geometry_changed": false,
+  "dimension_ids_removed": [
+    "dim-north-240",
+    "dim-west-240"
+  ],
+  "removal_is_not_endpoint_correction": true,
+  "actual_same_wall_order_findings_in_seed": [
+    "dim-west-240"
+  ],
+  "model_misstatement": "Final response describes both north and west as contradictory pseudo chain spans; only west had an order finding, and same-wall thickness is a valid dimension observation.",
+  "calibration_axes_px_per_m": {
+    "x": 92.33333333333333,
+    "y": 91.75
+  },
+  "calibration_warnings": [
+    {
+      "type": "cross_axis_disagreement",
+      "x_px_per_m": 92.33333333333333,
+      "y_px_per_m": 91.75,
+      "relative_deviation": 0.006337709370755947,
+      "relative_deviation_limit": 0.003,
+      "guidance": "x=92.3333333 px/m and y=91.75 px/m disagree by 0.633771%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+    },
+    {
+      "type": "residual_exceeds_threshold",
+      "axis": "y",
+      "dimension_ref": "caller_y_anchors",
+      "span_px": 734.0,
+      "value_m": 8.0,
+      "residual_px": -3.6332179930795974,
+      "residual_m": -0.039404060494614916
+    }
+  ],
+  "visual_review": "Global vertical compression is substantially reduced relative to run15. Original projection still visibly offsets several representative partitions and exterior faces; close alignment/independent verification not established. Claims of a few millimetres from several pixels are not supported by ~92 pixels/metre.",
+  "generation_completed_seconds": 448.86,
+  "configured_timeout_seconds": 600,
+  "time_limit_note": "Normal completion before deadline; model prose saying it ran out of budget does not prove a timeout.",
+  "evaluation_reuse": "All physical spaces/boundaries/openings/connections equal run15/run14, so reuse run14 partition severe and 15/15 windows; no new GT evaluation."
+}

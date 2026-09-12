@@ -1,0 +1,176 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+    "Wall thickness ~0.24m generally per plan hatch/jamb annotations; modeled as zero-thickness representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+    "F1 north-row partitions at x=4.94m and x=9.82m are confirmed this pass to sit exactly at dimension-chain break/jog points where 240mm of the stated 15000mm total is omitted from the printed labels; representative planes are kept unchanged (seed values) since the per-wall split of that 240mm is not evidenced.",
+    "A separate west-margin vs east-margin vertical dimension-chain conflict for the F1 corridor partitions (y=3/y=5) was found in a prior step this pass: west chain (3000/250/1500/250/3000=8000mm) closes exactly to the 8000mm footprint; east chain (2940/340/1200/340/2940=7760mm) does not (-240mm residual) and gives a different flank reading (340 vs 250mm). This was recorded as a textual finding; a structured wall_references entry for that boundary was attempted but rejected by the tool as a partial multi-room shared-wall contact, so it is documented here in notes instead, with representative planes left unchanged."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5e10494de9988c98559bf2800a52ebc3b089d0315ff785b7994f4c7899f1024f",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "5e10494de9988c98559bf2800a52ebc3b089d0315ff785b7994f4c7899f1024f",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-12_bim_agent_sm21_run15/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "3690cedb25b8c03a1d67c5a6c2a3e8b592851b059918ce0da89a7a32a7187938",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F1 partitions at x=4.94m and x=9.82m: individual thickness/offset unresolved; only the aggregate 240mm gap across both jogs is evidenced.",
+    "F1 corridor partition walls (y=3/y=5): west-chain vs east-chain readings conflict (250mm vs 340mm flank, 8000mm vs 7760mm closure); true thickness/offset unresolved, geometry left at seed position; could not be persisted as a structured wall_reference because the corridor boundary is a partial multi-room shared wall unsupported by this tool.",
+    "The same east-margin chain also reads room heights as 2940mm vs the west chain's 3000mm; not further investigated this pass.",
+    "2f_view.png overlay calibration (~2.7% cross-axis disagreement), F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over from the prior round.",
+    "Door swing direction/leaf count and room role labels remain unresolved as before.",
+    "Only these two F1 north-row partitions and the F1 corridor partitions were examined for the dimension-endpoint/reference-plane relationship this pass; all other interior and exterior wall faces on F1 and all of F2 remain unexamined for the same kind of chain-break ambiguity."
+  ],
+  "wall_dimension_report": {
+    "chain_connected": false,
+    "dimensions": [
+      {
+        "axis": "y",
+        "conversion_m": -0.24,
+        "direction": -1,
+        "end": {
+          "image": "1f_view.png",
+          "pixel": [
+            665,
+            367
+          ],
+          "side": "negative",
+          "wall_id": "wall-F1-north-facade"
+        },
+        "endpoint_offsets_m": [
+          0,
+          -0.24
+        ],
+        "endpoint_world_m": [
+          8.0,
+          7.76
+        ],
+        "id": "dim-north-240",
+        "model_representative_length_m": -0.0,
+        "raw_length_m": 0.24,
+        "representative_length_m": 0.0,
+        "residual_m": -0.0,
+        "source_refs": [
+          "1f_view.png: 240 label with tick marks, crop [630,290,740,390]"
+        ],
+        "start": {
+          "image": "1f_view.png",
+          "pixel": [
+            665,
+            347
+          ],
+          "side": "positive",
+          "wall_id": "wall-F1-north-facade"
+        },
+        "status": "converted_not_visually_verified",
+        "unit": "mm",
+        "value": 240
+      },
+      {
+        "axis": "x",
+        "conversion_m": 0.24,
+        "direction": 1,
+        "end": {
+          "image": "1f_view.png",
+          "pixel": [
+            446,
+            530
+          ],
+          "side": "negative",
+          "wall_id": "wall-F1-west-facade"
+        },
+        "endpoint_offsets_m": [
+          0.24,
+          0
+        ],
+        "endpoint_world_m": [
+          0.24,
+          0.0
+        ],
+        "id": "dim-west-240",
+        "model_representative_length_m": 0.0,
+        "raw_length_m": 0.24,
+        "representative_length_m": 0.48,
+        "residual_m": -0.48,
+        "source_refs": [
+          "1f_view.png: 240 label with tick marks, crop [380,500,500,800]"
+        ],
+        "start": {
+          "image": "1f_view.png",
+          "pixel": [
+            426,
+            530
+          ],
+          "side": "positive",
+          "wall_id": "wall-F1-west-facade"
+        },
+        "status": "converted_not_visually_verified",
+        "unit": "mm",
+        "value": 240
+      }
+    ],
+    "findings": [
+      {
+        "code": "same_wall_endpoint_order",
+        "declared_direction": 1,
+        "dimension_id": "dim-west-240",
+        "end_side": "negative",
+        "endpoint_world_m": [
+          0.24,
+          0.0
+        ],
+        "message": "The declared sides run opposite to the dimension direction or refer to the same face. Check endpoint side labels and direction against the image; moving the wall cannot fix a same-wall span.",
+        "start_side": "positive"
+      }
+    ],
+    "joins": [
+      {
+        "connected": false,
+        "from": "dim-north-240",
+        "reason": "gap, mixed basis or unconfirmed join; no automatic closure",
+        "to": "dim-west-240"
+      }
+    ],
+    "raw_sum_m": 0.48,
+    "review_status": "declared_evidence_inconsistent",
+    "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"
+  }
+}

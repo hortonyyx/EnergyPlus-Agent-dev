@@ -1,0 +1,18 @@
+[
+  {
+    "op": "update_wall_dimension",
+    "id": "dim-west-240",
+    "changes": {
+      "start": {
+        "side": "negative"
+      },
+      "end": {
+        "side": "positive"
+      }
+    },
+    "reason": "The declared start/end sides were reversed relative to the dimension direction (+x) and the wall's own offset convention (offsets_m=[0,0.24], so the outer face at offset 0 is the negative side and the inner face at offset 0.24 is the positive side). The start pixel (x=426, outer/exterior face nearer x=0) is the negative side and the end pixel (x=446, inner face) is the positive side; original pixels, wall_id, image and the 240mm value are unchanged.",
+    "source_refs": [
+      "1f_view.png crop [380,500,500,800]: 240 label with tick marks; start tick at x=426 sits on the outer (exterior, offset 0) face and end tick at x=446 sits on the inner (offset 0.24) face of wall-F1-west-facade"
+    ]
+  }
+]

@@ -1,0 +1,114 @@
+{
+  "review_status": "declared_evidence_inconsistent",
+  "findings": [
+    {
+      "code": "same_wall_endpoint_order",
+      "dimension_id": "dim-west-240",
+      "declared_direction": 1,
+      "start_side": "positive",
+      "end_side": "negative",
+      "endpoint_world_m": [
+        0.24,
+        0.0
+      ],
+      "message": "The declared sides run opposite to the dimension direction or refer to the same face. Check endpoint side labels and direction against the image; moving the wall cannot fix a same-wall span."
+    }
+  ],
+  "dimensions": [
+    {
+      "axis": "y",
+      "direction": -1,
+      "end": {
+        "image": "1f_view.png",
+        "pixel": [
+          665,
+          367
+        ],
+        "side": "negative",
+        "wall_id": "wall-F1-north-facade"
+      },
+      "id": "dim-north-240",
+      "source_refs": [
+        "1f_view.png: 240 label with tick marks, crop [630,290,740,390]"
+      ],
+      "start": {
+        "image": "1f_view.png",
+        "pixel": [
+          665,
+          347
+        ],
+        "side": "positive",
+        "wall_id": "wall-F1-north-facade"
+      },
+      "unit": "mm",
+      "value": 240,
+      "raw_length_m": 0.24,
+      "endpoint_offsets_m": [
+        0,
+        -0.24
+      ],
+      "conversion_m": -0.24,
+      "representative_length_m": 0.0,
+      "model_representative_length_m": -0.0,
+      "residual_m": -0.0,
+      "endpoint_world_m": [
+        8.0,
+        7.76
+      ],
+      "status": "converted_not_visually_verified"
+    },
+    {
+      "axis": "x",
+      "direction": 1,
+      "end": {
+        "image": "1f_view.png",
+        "pixel": [
+          446,
+          530
+        ],
+        "side": "negative",
+        "wall_id": "wall-F1-west-facade"
+      },
+      "id": "dim-west-240",
+      "source_refs": [
+        "1f_view.png: 240 label with tick marks, crop [380,500,500,800]"
+      ],
+      "start": {
+        "image": "1f_view.png",
+        "pixel": [
+          426,
+          530
+        ],
+        "side": "positive",
+        "wall_id": "wall-F1-west-facade"
+      },
+      "unit": "mm",
+      "value": 240,
+      "raw_length_m": 0.24,
+      "endpoint_offsets_m": [
+        0.24,
+        0
+      ],
+      "conversion_m": 0.24,
+      "representative_length_m": 0.48,
+      "model_representative_length_m": 0.0,
+      "residual_m": -0.48,
+      "endpoint_world_m": [
+        0.24,
+        0.0
+      ],
+      "status": "converted_not_visually_verified"
+    }
+  ],
+  "joins": [
+    {
+      "from": "dim-north-240",
+      "to": "dim-west-240",
+      "connected": false,
+      "reason": "gap, mixed basis or unconfirmed join; no automatic closure"
+    }
+  ],
+  "raw_sum_m": 0.48,
+  "chain_connected": false,
+  "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"
+}

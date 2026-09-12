@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 300,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 76.35,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 74497,
+    "duration_api_ms": 72425,
+    "ttft_ms": 3304,
+    "ttft_stream_ms": 2262,
+    "time_to_request_ms": 135,
+    "num_turns": 7,
+    "result": "## Summary\n\n**Selected candidate: `candidate_02`** (finished via `finish_bim`).\n\n### Scope of this pass\nThis was a bounded local-evidence-correction task focused solely on the reported `same_wall_endpoint_order` contradiction on `dim-west-240`.\n\n### What was found and fixed\n- `check_wall_dimensions` on the seed reported one active finding: `dim-west-240` had `start_side=\"positive\"`, `end_side=\"negative\"` while `direction=1`, producing a nonsensical `representative_length_m=0.48` (double the true 0.24m) against a `model_representative_length_m=0.0`.\n- Cross-checking against `wall-F1-west-facade`'s own offset convention (`offsets_m=[0, 0.24]`, outer face at offset 0 = \"negative\" side, inner face at offset 0.24 = \"positive\" side) showed the start pixel (x=426, outer/exterior face) and end pixel (x=446, inner face) had their side labels swapped relative to that convention and the dimension's own +x direction.\n- I corrected only the `start.side` (→ `negative`) and `end.side` (→ `positive`) fields of `dim-west-240` via `update_wall_dimension`, preserving the dimension's ID, pixels, wall_id, image, and the transcribed 240mm value, and citing the outer/inner face evidence as the reason.\n- Also confirmed `wall-F1-west-facade`'s boundary reference (`space/F1_R1S/wall/3`, y=0–3m) is consistent with the dimension's pixel location (crop y=500–800, the south portion of the west facade) — i.e., the wall evidence claim does refer to the actual saved wall segment, not a mismatched one.\n- Result: `dim-west-240` now shows `residual_m: 0.0` and the `dimension_report.findings` list is empty (`review_status: not_visually_verified`, no more `declared_evidence_inconsistent`).\n\n### Preserved unchanged\n- `dim-north-240` (already consistent, residual ~0) — untouched.\n- Both inferred partition-wall records (`wall-F1-partition-x4.94`, `wall-F1-partition-x9.82`) — left as `evidence_status: inferred` with thickness/offset `null`, since their aggregate-240mm-jog evidence and scope caveats were already correctly stated and not part of the reported contradiction.\n- All rooms, openings, connectivity (14 spaces, 29 openings, 84 boundaries) — unchanged from seed geometry.\n\n### Explicitly NOT done this pass (per bounded scope)\n- No re-review of openings (doors/windows) — `opening_review_scopes` all show `not_reviewed`.\n- No re-check of global calibration/overlays (`floors_without_registered_views: [\"F1\",\"F2\"]`).\n- The previously-noted F1 corridor partition (y=3/y=5) west-chain vs east-chain conflict (8000mm vs 7760mm) was **not** re-examined or fixed this pass — it remains flagged in `unresolved`.\n- Drawing fidelity, human confirmation, and thermal/EP fields remain `not_evaluated`.\n\n### Delivery facts (from the tool's own report, not my prose)\n- `source_validation.status: pass`, no findings.\n- `wall_dimension_report.findings: []`, both dimension residuals 0.0.\n- `opening_review_scopes` and `facade_review_scopes`: all `review_status: not_reviewed` — this correction did not touch or validate openings.\n- `source_image_feedback.calibration_independently_verified: false`; no registered image projections exist for either floor in this candidate.",
+    "stop_reason": "end_turn",
+    "session_id": "7ad0dcb2-92b0-43e8-9bf7-ba8f66a47abc",
+    "total_cost_usd": 0.47982990000000003,
+    "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 58862,
+      "cache_read_input_tokens": 169653,
+      "output_tokens": 4992,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 58862,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1230,
+          "cache_read_input_tokens": 48217,
+          "cache_creation_input_tokens": 14521,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 14521
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 760,
+        "outputTokens": 16,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00084,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 14,
+        "outputTokens": 4992,
+        "cacheReadInputTokens": 169653,
+        "cacheCreationInputTokens": 58862,
+        "webSearchRequests": 0,
+        "costUSD": 0.47898989999999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "28d29347-4da0-4892-bc1f-e08fe2495695"
+  }
+}

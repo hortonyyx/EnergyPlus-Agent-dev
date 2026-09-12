@@ -1,0 +1,71 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East, consistent with seed.",
+    "Overlay calibration_001 for 1f_view.png/F1 (x: 420px=0m,1805px=15m; y: 336px=8m,1070px=0m; ~10.85-10.9mm/px both axes) is used as the checked registered frame; it shows a small 0.63% cross-axis scale disagreement (over the tool's 0.3% strict threshold) and an 8000mm chain residual of -39mm, both left as recorded calibration warnings rather than forced to zero.",
+    "F1 partitions at x=4.94m/x=9.82m and both facades (north y=8, west x=0) were re-documented as wall_references citing both original dimension-chain/pixel-band evidence and the new overlay cross-check; the two previously contradictory wall_dimensions entries (dim-north-240, dim-west-240), which duplicated a single 240mm thickness label as a same-wall chain with inconsistent side/direction labels (same_wall_endpoint_order finding), were removed rather than force-closed; thickness for those two facades stays at the directly observed 240mm.",
+    "F1 door and window openings (8 doors, 7 windows) were reviewed against 1f_view.png door swings and window hatch marks with coverage=complete for both kinds on F1; all matched with no findings."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "a8f78531b5093caa6bd285879ce74d6725570b003b76442379965c7183f7dd94",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "c6f5f399b30f3bb30891fb5a710403c7fb4fd01235af3c3eb7731bee32dd2e12",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "33f7420830c75063a94fc6749da6b7899927446501f5ddfbf5c17ccfd7ad2bed"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "66c5a968fd9082dbbdb460c20317276b3def4ce3398cd34d6aa512f3116a19aa",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Individual thickness/offset split of the aggregate 240mm gap between the two F1 north-row partitions (x=4.94m, x=9.82m) remains unknown; only the combined jog-gap evidence exists.",
+    "The F1 corridor partition walls (y=3m/y=5m) still show a west-chain (3000/250/1500/250/3000=8000mm, closes exactly) vs east-chain (2940/340/1200/340/2940=7760mm, -240mm residual, differing 250mm vs 340mm flank reading) discrepancy inherited from the prior pass; this is a two-room shared boundary not representable by the current wall_references/move_shared_wall tooling without further evidence, so representative planes are left at the seed position and this is reported here rather than silently dropped.",
+    "F2 (2f_view.png) walls, partitions and openings were NOT re-examined or recalibrated this pass; only F1/1f_view.png received a checked overlay calibration and opening review this session. F2 fidelity, the previously-noted ~2.7% 2f_view cross-axis calibration disagreement, and the F2 ConfA/ConfB door split remain exactly as inherited from the seed, unresolved.",
+    "Only F1 north-row partitions, the two named F1 facades, and F1 door/window openings were checked against image evidence this pass; all other F1 interior partition faces (e.g. F1 south-row partitions at x=4.82/x=9.82 on the south side) were not independently re-verified for the same jog-mark ambiguity.",
+    "Door swing direction/leaf handedness and room role labels (S1/N2 etc.) were not verified against the drawing this pass."
+  ],
+  "wall_dimension_report": {
+    "chain_connected": false,
+    "dimensions": [],
+    "findings": [],
+    "joins": [],
+    "raw_sum_m": 0.0,
+    "review_status": "not_visually_verified",
+    "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"
+  }
+}

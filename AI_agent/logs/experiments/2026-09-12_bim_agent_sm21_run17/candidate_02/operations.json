@@ -1,0 +1,18 @@
+[
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+      "Wall thickness ~0.24m generally per plan hatch/jamb annotations; representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+      "F1 north-row partitions at x=4.94m and x=9.82m sit at dimension-chain jog points where 240mm of the 15000mm header total is omitted from printed labels; per-wall split unknown, representative planes kept at seed values.",
+      "dim-west-240 start/end SIDE LABELS were corrected this pass (swapped negative/positive) to match the wall's own offset convention and dimension direction; pixels, wall_id, image and the 240mm value are unchanged. This was a label fix only, not a wall move."
+    ],
+    "unresolved": [
+      "F1 partitions at x=4.94m and x=9.82m: individual thickness/offset unresolved; only the aggregate 240mm gap across both jogs is evidenced.",
+      "F1 corridor partition walls (y=3/y=5): a previously noted west-chain (8000mm, closes) vs east-chain (7760mm, -240mm residual) conflict was documented in a prior pass but not persisted as a structured wall_reference (unsupported partial multi-room shared-wall edit); representative planes left unchanged; not re-examined this pass.",
+      "2f_view.png overlay calibration, F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over.",
+      "Door swing direction/leaf count and room role labels remain unresolved.",
+      "This pass only examined the dim-west-240/dim-north-240 same-wall contradiction and confirmed dim-west-240's wall_id/boundary correctly refers to the F1_R1S west-facade segment (y=0-3m, matching the pixel crop y=500-800 in image space); no other walls or openings were re-reviewed this pass, per bounded local-evidence-correction scope."
+    ]
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "scope": "post-generation audit; not supplied to generator",
+  "code_commit": "c50c6130",
+  "evidence_preservation_checks": {
+    "both_dimension_ids_retained": true,
+    "wall_references_unchanged": true,
+    "north_dimension_unchanged": true,
+    "west_value_unchanged": true,
+    "west_unit_unchanged": true,
+    "west_axis_unchanged": true,
+    "west_direction_unchanged": true,
+    "west_start_image_unchanged": true,
+    "west_start_pixel_unchanged": true,
+    "west_start_wall_id_unchanged": true,
+    "west_end_image_unchanged": true,
+    "west_end_pixel_unchanged": true,
+    "west_end_wall_id_unchanged": true
+  },
+  "actual_tool_actions": {
+    "inspect_candidate": 1,
+    "check_wall_dimensions": 2,
+    "revise_bim": 2,
+    "finish_bim": 1
+  },
+  "view_image_calls": 0,
+  "pixel_profile_calls": 0,
+  "side_labels_before": [
+    "positive",
+    "negative"
+  ],
+  "side_labels_after": [
+    "negative",
+    "positive"
+  ],
+  "west_residual_m_before": -0.48,
+  "west_residual_m_after": 0.0,
+  "physical_geometry_changed": false,
+  "independent_visual_verification": false,
+  "image_transport_verification": "No view_image calls; presentation_verification.json is empty and all_passed=false. No image transport was exercised.",
+  "model_misstatement": "The final notes claim F1_R1S west boundary (world y=0..3m) matches crop pixel y=500..800. The recorded endpoints at image y=530 are in the north row, not the selected south-row wall. No image was opened this run. Algebraic consistency does not establish boundary/evidence attribution.",
+  "calibration": "No new calibration or overlays. Run16 calibration changes are not part of this run, which starts from run15.",
+  "evaluation_reuse": "Physical objects unchanged from run15/run14; reuse run14 severe partition and windows 15/15. No new GT evaluation.",
+  "generation": "Claude subscription claude-sonnet-5 medium, one invocation, normal completion in 76.35 seconds; estimate USD 0.4798299 is not a subscription bill; no Haiku/DeepSeek/paid API/EnergyPlus."
+}

@@ -1,0 +1,15 @@
+{
+  "command": "python -m pytest -n 2 tests/test_wall_reference.py tests/test_bim_agent_tools.py tests/test_bim_delivery.py tests/test_source_proposal.py -q",
+  "passed": 39,
+  "additional_recheck": {
+    "command": "python -m pytest -n 0 tests/test_bim_agent_tools.py::test_delivery_keeps_numeric_contradiction_and_calibration_warning_with_empty_notes -q",
+    "passed": 1,
+    "note": "Same test after tightening assertion parentheses and using in-image fixture pixels; not an additional test count."
+  },
+  "scope": "Offline targeted checks. Same-wall side-order inconsistency, cross-wall residual neutrality, coordinate-grid mapping, saved current vs old-source delivery evidence, stdio and legacy source proposal compatibility. No model calls in tests.",
+  "local_edit_increment": {
+    "command": "python -m pytest -n 2 tests/test_wall_reference.py tests/test_proposal_edits.py tests/test_bim_agent_tools.py -q",
+    "passed": 38,
+    "scope": "Overlaps the earlier 39 tests; do not add. Includes local endpoint patch preserving both records/raw values/pixels and audit, actual source export, malformed/derived-field patches rejected."
+  }
+}

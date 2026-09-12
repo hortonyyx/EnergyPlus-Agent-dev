@@ -1,0 +1,66 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Continue reconstruction from the saved candidate. Resolve contradictions in its existing wall-dimension evidence and establish a usable original-image calibration. Inspect actual tool findings and original image coordinates, revise supported endpoint/host/reference claims, and keep reliable physical rooms and openings. Register a checked image frame before saving a revised candidate, then inspect its automatically returned projection to decide whether any actual partition discrepancy warrants a local geometry edit. Persist unresolved issues honestly. Choose the details yourself; do not reread the whole building or force numerical closure by assumptions. Finish on a saved candidate within budget.",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789222057.7137065,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "1aee08b6018c140d9954c582be0e683df76353ce315804c19c11a8ab38823315",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "66675ee051a71eb286e17540d7059e79cea7a9a1a453276edf93b2db72bc53d6",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "bcaa9c2e2c552d4fa37dc81daa02cfae913d02f4146a0f5114b5506fe755d61c",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "5e10494de9988c98559bf2800a52ebc3b089d0315ff785b7994f4c7899f1024f",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-12_bim_agent_sm21_run15/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

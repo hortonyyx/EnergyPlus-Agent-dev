@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 448.86,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 446465,
+    "duration_api_ms": 442109,
+    "ttft_ms": 2931,
+    "ttft_stream_ms": 2283,
+    "time_to_request_ms": 24,
+    "num_turns": 56,
+    "result": "## Summary\n\n**Selected candidate:** `candidate_03` (finished via `finish_bim`).\n\n**What I did**\n1. Loaded seed and found `check_wall_dimensions` reported `declared_evidence_inconsistent`: two `wall_dimensions` entries (`dim-north-240`, `dim-west-240`) duplicated the same 240 mm exterior-wall thickness labels as pseudo dimension-chain spans with self-contradictory start/end sides on the same wall (`same_wall_endpoint_order`).\n2. Established a checked image calibration for `1f_view.png`/F1 using directly measured, image-based anchors: west/east extension ticks of the 15000 mm header dimension (pixel x=420→0 m, x=1805→15 m) and north/south ticks of the 3000/250/1500/250/3000=8000 mm side chain (pixel y=336→8 m, y=1070→0 m), cross-checked against `pixel_profile` gray-fill wall bands. Registered this via `overlay_candidate` (calibration_001).\n3. Inspected the projected overlay: representative partitions (x=4.94 m, x=9.82 m), both facades, and all F1 doors/windows line up closely with the drawn walls, door swings and window hatching — no partition displacement was found that would justify a `move_shared_wall` edit.\n4. Resolved the contradiction via `set_wall_references` (op `set_wall_references`): removed the two contradictory `wall_dimensions` entries (thickness evidence is retained directly in the wall_references, unaffected), and re-documented the two F1 north-row partitions and two facades with both original dimension/pixel evidence and the new overlay cross-check. `check_wall_dimensions` review status is now clean (no findings).\n5. Reviewed F1 openings against `1f_view.png`: 8 doors and 7 windows, coverage marked complete for both kinds, all matched with no findings — **however**, this review (`review_001`/`review_002`) is now recorded as **stale** in the delivery record because the source model hash changed after a subsequent `set_notes` revision (candidate_02→03). I ran out of budget to re-run the check_openings review against candidate_03; this is honestly reflected in the delivery's `stale_reviews`/`current_reviews: []`.\n6. Persisted honest `set_notes` covering assumptions and unresolved items.\n\n**Unresolved / explicitly not verified**\n- Individual thickness/offset split of the aggregate 240 mm gap at the two F1 north-row partitions is unknown (only combined jog evidence exists).\n- F1 corridor partition walls (y=3/y=5) still show a west-chain (8000 mm, closes) vs east-chain (7760 mm, −240 mm residual, 250 vs 340 mm flank) discrepancy inherited from the seed; not representable by current tooling as a structured reference, geometry left unchanged.\n- F2 (`2f_view.png`) was **not** recalibrated or re-reviewed this pass; its prior ~2.7% cross-axis calibration disagreement and F2 ConfA/ConfB door split remain exactly as inherited, unresolved.\n- The F1 opening review became stale after the final `set_notes` revision and was not re-run against candidate_03 — treat F1 opening fidelity as reviewed-but-stale, not currently verified.\n- Door swing handedness/leaf count and room role labels were not verified against the drawings.\n- Calibration itself carries recorded tool warnings: 0.63% cross-axis scale disagreement and a −39 mm residual on the 8000 mm chain (both left as documented warnings, not forced to zero).",
+    "stop_reason": "end_turn",
+    "session_id": "9616e578-5d5e-4246-84c2-b104037685b6",
+    "total_cost_usd": 2.1067796000000003,
+    "usage": {
+      "input_tokens": 80,
+      "cache_creation_input_tokens": 144442,
+      "cache_read_input_tokens": 2452942,
+      "output_tokens": 33547,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 144442,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1415,
+          "cache_read_input_tokens": 125990,
+          "cache_creation_input_tokens": 18452,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 18452
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 720,
+        "outputTokens": 16,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0008,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 80,
+        "outputTokens": 33547,
+        "cacheReadInputTokens": 2452942,
+        "cacheCreationInputTokens": 144442,
+        "webSearchRequests": 0,
+        "costUSD": 2.1059796,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "6650e2ea-6cb7-44fe-b595-5fa89dda597d"
+  }
+}
