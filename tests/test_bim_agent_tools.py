@@ -162,6 +162,14 @@ def test_wall_reference_stdio_calculation_persistence_and_feedback(tmp_path):
             source = json.loads((run / revised["candidate"] / "source_model.json").read_text())
             assert len(source["wall_references"]) == 2
             assert source["wall_dimension_report"]["dimensions"][0]["raw_length_m"] == 2.76
+            projection = revised["source_image_projections"][0]
+            evidence = projection["wall_evidence_projection"]
+            assert evidence["scope"]["image_name"] == "plan.png"
+            assert [p["pixel"] for p in evidence["endpoints"]] == [[1, 2], [6, 2]]
+            assert {p["wall_id"] for p in evidence["endpoints"]} == {"west", "shared"}
+            delivered = _json_result(await session.call_tool("finish_bim", {"candidate": revised["candidate"]}))
+            assert delivered["source_image_feedback"]["current_source_projections"][0]["wall_evidence_projection"] == evidence
+            assert "尺寸证据与所引用墙段的位置对照" in (run / "delivery.html").read_text()
             d["end"]["pixel"] = [12, 2]
             assert "outside original image" in _error_text(await session.call_tool("check_wall_dimensions", {
                 "candidate": candidate, "references_json": json.dumps(refs), "dimensions_json": json.dumps([d])}))

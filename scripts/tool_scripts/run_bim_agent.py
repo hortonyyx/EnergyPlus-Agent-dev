@@ -122,6 +122,12 @@ to move a wall. Other nonzero dimension residuals may be genuine geometric or
 baseline differences and require image judgement; zero is not a fidelity verdict.
 Image views show a labelled grid in ORIGINAL pixel coordinates by default.
 Read its labels for crops/calibration, not the displayed thumbnail width/height.
+Plan overlays also label saved wall segments and original dimension evidence
+points. Compare the actual segment extent with those points, not just a wall's
+normal coordinate or a directional name in its ID. The spatial comparison uses
+your calibration and does not certify host identity: dimension extension ticks
+can lie outside the physical segment. Inspect the original marks and their
+extension lines before changing a host or calling the evidence observed.
 For a clean close look use coordinate_grid=false. Before registering anchors,
 check both endpoints on the original image; large cross-axis scale warnings call
 for rechecking endpoint locations. Once a frame is usable, register it before a
@@ -540,11 +546,24 @@ class Toolkit:
             f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}：'
             f'{html.escape(str(warning.get("guidance", warning.get("type"))))}</li>'
             for row in feedback["current_source_projections"] for warning in row.get("calibration_warnings", []))
+        host_rows = "".join(
+            f'<tr><td>{html.escape(row["image"])} / {html.escape(row["floor_id"])}</td>'
+            f'<td>{html.escape(point["marker"])} · {html.escape(point["dimension_id"])}</td>'
+            f'<td>{html.escape(", ".join(point["boundary_ids"]))}</td>'
+            f'<td>{point["tangential_outside_distance_m"]}</td></tr>'
+            for row in feedback["current_source_projections"]
+            for point in (row.get("wall_evidence_projection") or {}).get("endpoints", []))
+        host_html = (
+            '<details><summary>尺寸证据与所引用墙段的位置对照</summary>'
+            '<p>图中 W 为已引用墙段，D 的 S/E 为原记录起点/终点。下表距离表示证据点沿墙方向'
+            '超出该墙段范围的长度，依赖本图标定；0 不证明归属正确，尺寸引出线也可能合理地落在墙段外。</p>'
+            '<table><tr><th>原图 / 楼层</th><th>证据点</th><th>所引用墙段</th>'
+            f'<th>沿墙超出范围（米）</th></tr>{host_rows}</table></details>' if host_rows else '')
         evidence_html = (
             '<h2>尺寸与标定的实际反馈</h2><p>以下为工具计算，原始数值及未处理问题不会被模型总结覆盖。'
             '尺寸残差不自动等于建模错误；同墙侧面次序冲突应先核对端点。单位：米。</p>'
             '<table><tr><th>尺寸</th><th>原标注</th><th>换算后代表面距</th><th>模型减换算值</th></tr>'
-            f'{wall_rows}</table><ul>{finding_rows}{calibration_rows}</ul>'
+            f'{wall_rows}</table><ul>{finding_rows}{calibration_rows}</ul>{host_html}'
             if wall_rows or calibration_rows else '')
         current_projection_rows = "".join(
             f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}：'
@@ -721,7 +740,7 @@ class Toolkit:
         image_path = self.image_path(image)
         with PILImage.open(image_path) as raw:
             pic, metadata = render_source_overlay(source, raw, floor_id=floor_id,
-                x_anchors=x_anchors, y_anchors=y_anchors, basis=basis)
+                x_anchors=x_anchors, y_anchors=y_anchors, basis=basis, image_name=image)
         metadata.update(
             candidate=candidate,
             image=image,
@@ -829,7 +848,8 @@ class Toolkit:
                   "automatic_projection", "reused_calibration", "anchors", "basis", "image_sha256")
         def compact(row):
             return {**{field: row[field] for field in fields if field in row},
-                    "calibration_warnings": row.get("scale", {}).get("warnings", [])}
+                    "calibration_warnings": row.get("scale", {}).get("warnings", []),
+                    "wall_evidence_projection": row.get("wall_evidence_projection")}
         return {
             "current_source_projections": [compact(row) for row in current],
             "old_source_projections": [compact(row) for row in old],
@@ -1077,6 +1097,9 @@ def serve(run: Path, readonly=False):
             No GT, auto-registration, perspective correction or visual verdict.
             Optional box crops the result in ORIGINAL pixels. Colours: magenta
             source boundaries, orange doors/passages, lime windows.
+            Wall/evidence labels compare saved segment extents with original
+            dimension pixels on this exact image. Distances depend on your
+            calibration; extension-line ticks may lie outside a valid host.
             By default, this explicit caller-supplied calibration is saved and only
             reused for the same image/floor after later build_bim or revise_bim.
             """
