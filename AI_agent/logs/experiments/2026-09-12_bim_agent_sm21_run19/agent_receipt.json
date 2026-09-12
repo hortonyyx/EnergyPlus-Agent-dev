@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 720,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 612.32,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 610266,
+    "duration_api_ms": 609289,
+    "ttft_ms": 2557,
+    "ttft_stream_ms": 1736,
+    "time_to_request_ms": 30,
+    "num_turns": 35,
+    "result": "Delivery complete. Summary:\n\n**Selected candidate: `candidate_03`** (source_validation status: pass, 14 spaces, 20 openings, 0 unbuilt).\n\n**Building reconstructed:** 15.0 m × 8.0 m, 2-storey (F1 z=0–3.0m, F2 z=3.0–6.6m), footprint and both floor heights taken directly from the North/South/East/West elevation drawings' overall 15000×8000×6600(=3600+3000) dimensions.\n\n**F1 (ground floor):** 3 north offices + 3 south rooms (reception/entry, office, meeting) around a central 15m-long corridor. Partition positions (x=5, x=10) were derived from the south-facade dimension chain, which closed exactly to 15000mm (verified with `map_dimension_chain`) and cross-checked against pixel-measured partition pillars. Corridor depth (1.5m clear, 3.0m rooms each side, 250mm walls) closes exactly to 8000mm.\n\n**F2 (upper floor):** 2 conference rooms (north) over a corridor, 4 offices (south). North/south window spans came directly from the North/South elevation dimension chains.\n\n**Openings:** Main entrance door (south), secondary door (west, ground floor only, per the West elevation's door vs. window icon distinction), corridor windows at both building ends, per-room windows sized from elevation chains, and F1 room↔corridor doors placed near the observed arc/partition locations (bottom-row doors assumed mirrored from the top row, not independently measured).\n\n**Known limitations (explicitly unresolved, not hidden):**\n- F2 room-to-corridor doors (conference rooms and all 4 offices) failed to build against the source geometry under time pressure and were removed rather than forced — **F2 rooms currently show no drawn connection to their corridor**, a real fidelity gap vs. the drawings.\n- F2's 4 bottom offices were modeled as equal 3.75m bays; the South elevation chain actually implies asymmetric widths (~5.31/2.19/2.19/5.31m) — not reconciled.\n- `wall_references`/thickness metadata were dropped after a schema error under time pressure; wall thickness (240mm exterior, 250mm corridor) is documented only in assumptions, not machine-checked.\n- No staircase was identified/modeled in the supplied drawings within budget.\n- A small closet nook inside F1's reception room was treated as furniture, not a separate cell.\n- No opening-review (`check_openings`) or calibrated overlay comparison against the original images was performed due to time exhaustion — geometry was built from measured dimension chains and cross-checked pixel positions only, not independently re-verified against the source images.\n\nGiven the hard time budget, I stopped after achieving a structurally valid, connected ground floor and a geometrically valid (but under-connected) upper floor rather than continuing to iterate.",
+    "stop_reason": "end_turn",
+    "session_id": "a3e1de9f-4746-4e4b-9c31-7eaeeb674b3c",
+    "total_cost_usd": 1.7245997,
+    "usage": {
+      "input_tokens": 44,
+      "cache_creation_input_tokens": 104723,
+      "cache_read_input_tokens": 895339,
+      "output_tokens": 55116,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 104723,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 977,
+          "cache_read_input_tokens": 102231,
+          "cache_creation_input_tokens": 11593,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 11593
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 703,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000788,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 44,
+        "outputTokens": 55116,
+        "cacheReadInputTokens": 895339,
+        "cacheCreationInputTokens": 104723,
+        "webSearchRequests": 0,
+        "costUSD": 1.7238117,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "fecc8cc3-e009-4b7b-97ae-e1fc744123c1"
+  }
+}

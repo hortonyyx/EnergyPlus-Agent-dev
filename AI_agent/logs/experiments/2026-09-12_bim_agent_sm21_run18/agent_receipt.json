@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 480,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 237.4,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 235047,
+    "duration_api_ms": 231271,
+    "ttft_ms": 1688,
+    "ttft_stream_ms": 1181,
+    "time_to_request_ms": 75,
+    "num_turns": 23,
+    "result": "The finish_bim call succeeded (it returned the full delivery record, just too large to display). candidate_02 has been selected and persisted as the final BIM.\n\n## Summary\n\n**Selected candidate:** `candidate_02`\n\n**What was done:**\n- Inspected the seed's saved wall-thickness evidence (`dim-north-240`, `dim-west-240`) and their declared wall hosts (`wall-F1-north-facade`, `wall-F1-west-facade`).\n- Established an independent pixel↔metre calibration on `1f_view.png` from the drawing's own 15000mm and 8000mm overall dimension chains (outer-face extension ticks at x=422px/1845px and y=345px/1065px).\n- Used `overlay_candidate` to project both dimension evidence points and their declared wall hosts back onto the original image.\n  - `dim-north-240`'s pixels projected correctly inside its declared host (`wall-F1-north-facade`, room F1_R1N), with normal displacement consistent with the claimed 0/-0.24m offsets — **no correction needed**.\n  - `dim-west-240`'s pixels (426,530)-(446,530) projected to world y≈5.94m — about **2.94m outside** the declared host's span (`space/F1_R1S/wall/3`, y=[0,3]), and instead landed inside `space/F1_R1N/wall/3` (y=[5,8]).\n- Corrected the host attribution for `wall-F1-west-facade` to `space/F1_R1N/wall/3` (the segment actually bearing the label), keeping the same 240mm value/pixels, and explicitly recorded that this reading is directly observed only for the F1_R1N segment and transferred by continuity assumption to the rest of the same uninterrupted west facade (F1_R1S, corridor), which have no separate local label.\n- Verified the fix via a re-projected overlay: `dim-west-240` now lands inside its corrected host with zero tangential-outside-distance.\n- Updated `set_notes` to reflect this actual finding/fix and to keep prior unresolved items (partition x=4.94/9.82 per-wall thickness split, 2F calibration, door/window residuals, room roles) honestly flagged as untouched.\n\n**Not touched / unresolved (explicitly retained):**\n- Partition walls at x=4.94m and x=9.82m remain \"inferred,\" thickness unknown (unchanged — already appropriately caveated in seed).\n- F1 corridor partition walls (y=3/y=5) and any prior west/east-chain closure discrepancy were **not re-examined** this pass.\n- 2F calibration, F1 window span/sill residuals, F2 conference-room door split, door swing/leaf details, and room role labels remain unresolved as carried over.\n- The overlay calibration itself has a flagged ~5.3% cross-axis disagreement and up to ~0.32m residual on the overall chains; the corrected host mismatch (~2.94m) is far larger than this slack so the correction is considered robust, but finer sub-metre placement on this frame should be treated cautiously.\n- Rooms, openings, and connectivity counts (14 spaces, 29 openings, 14 connections) were unchanged by this pass — only the two wall-thickness evidence records were inspected/revised per the bounded scope; no fresh full-building reading or opening review was performed.",
+    "stop_reason": "end_turn",
+    "session_id": "4545c9ce-a93c-4ab4-afb9-104afb2ece28",
+    "total_cost_usd": 1.046569,
+    "usage": {
+      "input_tokens": 38,
+      "cache_creation_input_tokens": 91764,
+      "cache_read_input_tokens": 719490,
+      "output_tokens": 18611,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 91764,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1119,
+          "cache_read_input_tokens": 91066,
+          "cache_creation_input_tokens": 698,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 698
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 779,
+        "outputTokens": 16,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000859,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 38,
+        "outputTokens": 18611,
+        "cacheReadInputTokens": 719490,
+        "cacheCreationInputTokens": 91764,
+        "webSearchRequests": 0,
+        "costUSD": 1.0457100000000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "e84c7918-fb6c-4ef6-baf1-9820b6b926ff"
+  }
+}

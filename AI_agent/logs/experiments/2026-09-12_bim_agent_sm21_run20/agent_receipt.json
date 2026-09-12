@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 300,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 32.32,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 30076,
+    "duration_api_ms": 30586,
+    "ttft_ms": 1824,
+    "ttft_stream_ms": 1230,
+    "time_to_request_ms": 29,
+    "num_turns": 5,
+    "result": "## Summary\n\n**Root cause identified and fixed:** The seed candidate's 6 second-floor (F2) doors — `D2_CR1C`, `D2_CR2C`, `D2_O1C`, `D2_O2C`, `D2_O3C`, `D2_O4C` — were declared with `z:[0, 2.1]` (ground-floor absolute world height), while their host spaces on F2 sit at `z_floor=3.0` with a 3.6m ceiling (expected z range ≈3.0–6.6m). This caused all six `source.opening_unbuilt` failures: the doors' absolute z-bounds fell entirely below the floor level of their declared host walls, so no complete source boundary could be resolved on either side.\n\n**Fix applied:** Local `update_opening` edits raised each F2 door's z-span to `[3.0, 5.1]` — i.e., the same 2.1m door leaf height, but measured from the F2 floor level rather than world zero (mirroring how F1 doors correctly sit at `[0, 2.1]` relative to F1's `z_floor=0`). No door was removed, no plan positions (`p1`/`p2`) or room connections were altered, and no other openings, rooms, or partitions were touched.\n\n**Verification:**\n- `source_validation.status` moved from `severe` (6 findings) to `pass` (0 findings); `unbuilt_openings` count dropped from 6 to 0.\n- `view_candidate` for F2 shows all six doors rendered in red at the corridor/room boundaries, consistent with the originally declared connectivity (F2_O1–O4 ↔ F2_Corridor, F2_CR1/CR2 ↔ F2_Corridor).\n- Opening count remained 26 (14 doors total after fix's connections count rose from 8→14, since previously-unbuilt doors weren't contributing connections); no apertures were deleted.\n\n**Selected candidate:** `candidate_01`, finished via `finish_bim`.\n\n**Explicitly preserved from seed / still honest:**\n- All prior assumptions carried forward unchanged (F1/F2 partition widths, mirrored door positions, approximate F2 office door centers, no staircase modeled, wall thickness/`wall_references` omitted).\n- Unresolved items retained as-is: exact F2 bottom-row partition widths (south elevation suggests asymmetric ~5.31/2.19/2.19/5.31m vs. the equal 3.75m used), F1_R4 closet/nook not separately modeled, interior door widths approximated not measured, staircase/vertical circulation not located, wall-thickness metadata not declared.\n\n**Explicitly out of scope for this pass (not verified):**\n- No global recalibration or overlay-based repositioning was performed — this was a bounded height-host fix only.\n- `opening_review_scopes` still show `review_status: \"not_reviewed\"` for all door/window/floor combinations — reviewing this height fix did **not** constitute an opening-mark review against the original drawings, nor did it verify room/partition placement. Those remain unexamined scope, per the task's own instruction not to conflate opening-host repair with drawing-fidelity or wall-position verification.\n- `drawing_fidelity` and `source_image_feedback.calibration_independently_verified` remain `not_evaluated`/`false` — no overlay calibration was registered or re-verified in this session.",
+    "stop_reason": "end_turn",
+    "session_id": "e5154303-db12-48a2-94ed-bd0c0c074b95",
+    "total_cost_usd": 0.2798949,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 36223,
+      "cache_read_input_tokens": 85593,
+      "output_tokens": 2402,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 36223,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1128,
+          "cache_read_input_tokens": 27339,
+          "cache_creation_input_tokens": 12828,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 12828
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 10,
+        "outputTokens": 2402,
+        "cacheReadInputTokens": 85593,
+        "cacheCreationInputTokens": 36223,
+        "webSearchRequests": 0,
+        "costUSD": 0.27907590000000004,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      },
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 729,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0008190000000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "74c7f0b5-c555-4487-a201-3f4e00b201cc"
+  }
+}

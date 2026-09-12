@@ -1,0 +1,60 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Reconstruct the single building shown in all supplied original plan and elevation drawings as a viewable lightweight BIM. Preserve the actual rooms, physical partitions, windows, doors and connections. Establish drawing directions and dimensional bases from the originals, use deterministic tools for calculations, and distinguish direct evidence from assumptions. Produce a first viewable candidate early enough to compare it with the drawings and make useful corrections. Calibrated overlays and local detail review are available when helpful; inspect and respond to actual tool feedback. Prioritize correct spatial structure and openings over tiny coordinate differences. Report the scope actually checked and unresolved facts honestly, then select a candidate for delivery within budget. Do not simulate downstream.",
+  "input_mode": "original_images_agent_experiment",
+  "deadline_epoch": 1789224683.6053734,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "1f0bd32661d67986144aea928f79213aaaec7ef55fd78fb8e6acb85fd7f26a35",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "50f9edd2dbeb933a019b8791bcf5d7d47f68708fca9e6007c857919d18e53423",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"
+}

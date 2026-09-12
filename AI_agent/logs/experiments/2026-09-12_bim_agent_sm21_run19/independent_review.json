@@ -1,0 +1,61 @@
+{
+  "scope": "independent post-generation audit; not supplied to generator",
+  "code_commit": "c18e3071",
+  "input_mode": "original_images_agent_experiment",
+  "no_seed_proposal": true,
+  "elapsed_seconds": 612.32,
+  "timeout_seconds": 720,
+  "ended_normally_before_deadline": true,
+  "first_recorded_build_seconds": 546.46,
+  "first_viewable_candidate_seconds": 576.01,
+  "final_selected_candidate": "candidate_03",
+  "counts": {
+    "spaces": 14,
+    "boundaries": 84,
+    "windows": 12,
+    "doors": 8,
+    "connections": 8
+  },
+  "removed_declared_opening_ids": [
+    "D2_CR1C",
+    "D2_CR2C",
+    "D2_O1C",
+    "D2_O2C",
+    "D2_O3C",
+    "D2_O4C"
+  ],
+  "source_host_failure": {
+    "actual_opening_z_m": [
+      0,
+      2.1
+    ],
+    "declared_F2_z_floor_m": 3.0,
+    "declared_F2_z_top_m": 6.6,
+    "inference": "Relative-height values were submitted as absolute heights. The expected world bounds are derived only from the submitted source, not independently confirmed floor elevations."
+  },
+  "cold_start_success": false,
+  "partition_evaluation": "Both floor plans pass existing reference partition comparison; 14/14 matches and no internal boundary differences. This does not evaluate floor elevations, apertures or connectivity.",
+  "window_evaluation": {
+    "built_count": 12,
+    "reference_count": 15,
+    "matched": 4,
+    "miss": 11,
+    "extra": 8,
+    "within_tolerance": 0,
+    "interpretation": "Pairing failure combines missing/misplaced/wrong-size openings; miss11/extra8 are comparison results, not direct physical aperture counts."
+  },
+  "original_image_views": 25,
+  "coordinate_grid_views": 22,
+  "actual_image_transport_verified": true,
+  "source_overlays": 0,
+  "opening_reviews": 0,
+  "limitations": [
+    "Agent removed six visible, explicitly declared F2 doors after host errors; report admits loss of F2-to-corridor connections. Geometry pass after deletion is not fidelity success.",
+    "No calibrated overlay or opening review was exercised; no feedback success can be inherited from run18.",
+    "No initial candidate was saved until the late part of the budget. One malformed proposal JSON call failed before candidate numbering; candidate01 then failed because wall reference IDs did not bind actual boundaries.",
+    "Model prose says time budget exhausted, but invocation ended normally about108 seconds before deadline.",
+    "Story elevations and aperture dimensions remain unverified by partition matching. Existing improved warm candidate run18 is retained separately; run19 does not replace it."
+  ],
+  "model_receipt": "Main claude-sonnet-5 medium; CLI also reported auxiliary Haiku4.5 with17 output tokens. No review_detail task, DeepSeek, paid API or EP.",
+  "estimated_cost_usd_not_subscription_bill": 1.7245997
+}

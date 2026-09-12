@@ -1,0 +1,52 @@
+{
+  "scope": "independent post-generation source and declared-evidence audit; not supplied to generator",
+  "code_commit": "5fed31a5",
+  "checks": {
+    "all_declared_opening_ids_retained": true,
+    "rooms_unchanged": true,
+    "boundaries_unchanged": true,
+    "windows_unchanged": true,
+    "other_declared_openings_unchanged": true,
+    "failed_door_plan_endpoints_and_connections_retained": true,
+    "all_six_corrected_to_absolute_height": true,
+    "all_six_physically_built": true,
+    "all_six_connections_built": true,
+    "no_unbuilt_openings": true
+  },
+  "corrected_ids": [
+    "D2_CR1C",
+    "D2_CR2C",
+    "D2_O1C",
+    "D2_O2C",
+    "D2_O3C",
+    "D2_O4C"
+  ],
+  "source_validation": "pass",
+  "counts": {
+    "spaces": 14,
+    "windows": 12,
+    "doors": 14,
+    "connections": 14
+  },
+  "actual_tool_actions": [
+    "inspect_candidate",
+    "revise_bim",
+    "view_candidate",
+    "finish_bim"
+  ],
+  "original_image_views": 0,
+  "source_plan_views": 1,
+  "source_overlays": 0,
+  "opening_reviews": 0,
+  "elapsed_seconds": 32.32,
+  "timeout_seconds": 300,
+  "estimated_cost_usd_not_subscription_bill": 0.2798949,
+  "channel": "One Claude subscription invocation; claude-sonnet-5 medium main, CLI auxiliary Haiku4.5 18 output tokens. No review_detail, DeepSeek, paid API or EP.",
+  "evaluation_reuse": "Spaces and windows identical to run19; reuse its XY partition pass and window pairing4/15. No new GT score; door source construction/connectivity newly verified.",
+  "limits": [
+    "This is saved-candidate recovery, not successful independent cold start.",
+    "Height correction uses the submitted F2 floor=3m and assumed 2.1m door height. It does not independently establish actual floor level or door height.",
+    "The model source_refs describe plan evidence for matching door heights but it did not open the originals this run; those height statements are inherited assumptions, not new measurements.",
+    "Original door widths and plan positions remain approximate; all12 windows retain the prior mismatch; no floor/overall image fidelity verdict."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "agent_assumptions": [
+    "Room/corridor boundaries at evidenced face dimensions; 250mm/240mm wall thickness not separately declared due to a build error with wall_references in prior attempt (time budget exhausted before retry).",
+    "F1 partitions at x=5 and x=10 from south-facade dimension chain closure (exact to 15000mm).",
+    "F1 bottom-row door positions assumed to mirror top row.",
+    "F2 four bottom offices assumed equal width (3.75m each); south elevation suggested unequal widths, unresolved.",
+    "F2 office door positions approximated at room centers.",
+    "Window sill/head heights inferred from North_view chain (0.4-2.2m F1, 4.0-5.8m F2).",
+    "No staircase identified/modeled within budget.",
+    "West ground floor modeled with door (per West_view icon), East and both upper-floor corridor ends modeled with windows."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 26,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "ed220159d1685801e8c04250907066376447cc9d03c738e75b57f90f630f27c8",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "c51e2aad3744f438145dca0a95f452354837961441a32205630fca455d5e7953",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "d672e2223d89cdac65dd580862b9b2f2b3adba351d771c15dc623d2e29737aff"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f50fa1a7799ede18bf42e4cc4fd1737f9f4af71d08d7d371f7c5590ec9d63fc1",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact F2 bottom-row partition widths (south elevation implies asymmetric ~5.31/2.19/2.19/5.31m, not the equal 3.75m used).",
+    "Closet/nook inside F1_R4 not modeled as separate cell.",
+    "Interior door exact widths/positions approximated, not individually measured.",
+    "Staircase/vertical circulation not located within budget.",
+    "Wall thickness metadata (wall_references) omitted due to a schema error under time pressure; only footprint/room boundaries are geometrically verified."
+  ]
+}

@@ -1,0 +1,631 @@
+{
+  "agent_assumptions": [
+    "Room/corridor boundaries at evidenced face dimensions; 250mm/240mm wall thickness not separately declared due to a build error with wall_references in prior attempt (time budget exhausted before retry).",
+    "F1 partitions at x=5 and x=10 from south-facade dimension chain closure (exact to 15000mm).",
+    "F1 bottom-row door positions assumed to mirror top row.",
+    "F2 four bottom offices assumed equal width (3.75m each); south elevation suggested unequal widths, unresolved.",
+    "F2 office door positions approximated at room centers.",
+    "Window sill/head heights inferred from North_view chain (0.4-2.2m F1, 4.0-5.8m F2).",
+    "No staircase identified/modeled within budget.",
+    "West ground floor modeled with door (per West_view icon), East and both upper-floor corridor ends modeled with windows."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 8,
+    "openings": 20,
+    "spaces": 14,
+    "unbuilt_openings": 6,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "d672e2223d89cdac65dd580862b9b2f2b3adba351d771c15dc623d2e29737aff",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "d672e2223d89cdac65dd580862b9b2f2b3adba351d771c15dc623d2e29737aff",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-12_bim_agent_sm21_run19/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_CR1",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_CR1C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_CR2",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_CR2C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O1",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O1C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O2",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O2C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O3",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O3C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O4",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O4C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "43cf5419b213a4cc06bf61a22886938e1569e46b15ad6f28b0ac394bc1b52984",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_CR1",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_CR1C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_CR2",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_CR2C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O1",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O1C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O2",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O2C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O3",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O3C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "space",
+              "space_id": "F2_O4",
+              "within_declared_space_z_bounds": false
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 3.0,
+              "expected_z_bounds_m": [
+                3.0,
+                6.6
+              ],
+              "floor_id": "F2",
+              "side": "other_space",
+              "space_id": "F2_Corridor",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D2_O4C",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Exact F2 bottom-row partition widths (south elevation implies asymmetric ~5.31/2.19/2.19/5.31m, not the equal 3.75m used).",
+    "Closet/nook inside F1_R4 not modeled as separate cell.",
+    "Interior door exact widths/positions approximated, not individually measured.",
+    "Staircase/vertical circulation not located within budget.",
+    "Wall thickness metadata (wall_references) omitted due to a schema error under time pressure; only footprint/room boundaries are geometrically verified."
+  ]
+}

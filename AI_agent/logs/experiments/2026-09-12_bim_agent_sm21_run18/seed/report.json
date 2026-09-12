@@ -1,0 +1,162 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+    "Wall thickness ~0.24m generally per plan hatch/jamb annotations; representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+    "F1 north-row partitions at x=4.94m and x=9.82m sit at dimension-chain jog points where 240mm of the 15000mm header total is omitted from printed labels; per-wall split unknown, representative planes kept at seed values.",
+    "dim-west-240 start/end SIDE LABELS were corrected this pass (swapped negative/positive) to match the wall's own offset convention and dimension direction; pixels, wall_id, image and the 240mm value are unchanged. This was a label fix only, not a wall move."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f9d753c3e07ff014610e6e3f75df5506b14825217615e47adf1aaf5434f41f3f",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "f9d753c3e07ff014610e6e3f75df5506b14825217615e47adf1aaf5434f41f3f",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-12_bim_agent_sm21_run17/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e28b243399f49dd044322aa84f9e71456f4517c42cd1ceeede77413c81aea002",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F1 partitions at x=4.94m and x=9.82m: individual thickness/offset unresolved; only the aggregate 240mm gap across both jogs is evidenced.",
+    "F1 corridor partition walls (y=3/y=5): a previously noted west-chain (8000mm, closes) vs east-chain (7760mm, -240mm residual) conflict was documented in a prior pass but not persisted as a structured wall_reference (unsupported partial multi-room shared-wall edit); representative planes left unchanged; not re-examined this pass.",
+    "2f_view.png overlay calibration, F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over.",
+    "Door swing direction/leaf count and room role labels remain unresolved.",
+    "This pass only examined the dim-west-240/dim-north-240 same-wall contradiction and confirmed dim-west-240's wall_id/boundary correctly refers to the F1_R1S west-facade segment (y=0-3m, matching the pixel crop y=500-800 in image space); no other walls or openings were re-reviewed this pass, per bounded local-evidence-correction scope."
+  ],
+  "wall_dimension_report": {
+    "chain_connected": false,
+    "dimensions": [
+      {
+        "axis": "y",
+        "conversion_m": -0.24,
+        "direction": -1,
+        "end": {
+          "image": "1f_view.png",
+          "pixel": [
+            665,
+            367
+          ],
+          "side": "negative",
+          "wall_id": "wall-F1-north-facade"
+        },
+        "endpoint_offsets_m": [
+          0,
+          -0.24
+        ],
+        "endpoint_world_m": [
+          8.0,
+          7.76
+        ],
+        "id": "dim-north-240",
+        "model_representative_length_m": -0.0,
+        "raw_length_m": 0.24,
+        "representative_length_m": 0.0,
+        "residual_m": -0.0,
+        "source_refs": [
+          "1f_view.png: 240 label with tick marks, crop [630,290,740,390]"
+        ],
+        "start": {
+          "image": "1f_view.png",
+          "pixel": [
+            665,
+            347
+          ],
+          "side": "positive",
+          "wall_id": "wall-F1-north-facade"
+        },
+        "status": "converted_not_visually_verified",
+        "unit": "mm",
+        "value": 240
+      },
+      {
+        "axis": "x",
+        "conversion_m": -0.24,
+        "direction": 1,
+        "end": {
+          "image": "1f_view.png",
+          "pixel": [
+            446,
+            530
+          ],
+          "side": "positive",
+          "wall_id": "wall-F1-west-facade"
+        },
+        "endpoint_offsets_m": [
+          0,
+          0.24
+        ],
+        "endpoint_world_m": [
+          0.0,
+          0.24
+        ],
+        "id": "dim-west-240",
+        "model_representative_length_m": 0.0,
+        "raw_length_m": 0.24,
+        "representative_length_m": 0.0,
+        "residual_m": 0.0,
+        "source_refs": [
+          "1f_view.png crop [380,500,500,800]: 240 label with tick marks; start tick at x=426 sits on the outer (exterior, offset 0) face and end tick at x=446 sits on the inner (offset 0.24) face of wall-F1-west-facade"
+        ],
+        "start": {
+          "image": "1f_view.png",
+          "pixel": [
+            426,
+            530
+          ],
+          "side": "negative",
+          "wall_id": "wall-F1-west-facade"
+        },
+        "status": "converted_not_visually_verified",
+        "unit": "mm",
+        "value": 240
+      }
+    ],
+    "findings": [],
+    "joins": [
+      {
+        "connected": false,
+        "from": "dim-north-240",
+        "reason": "gap, mixed basis or unconfirmed join; no automatic closure",
+        "to": "dim-west-240"
+      }
+    ],
+    "raw_sum_m": 0.48,
+    "review_status": "not_visually_verified",
+    "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"
+  }
+}

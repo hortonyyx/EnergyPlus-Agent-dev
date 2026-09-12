@@ -1,0 +1,165 @@
+{
+  "agent_assumptions": [
+    "Plan top edge = North, bottom edge = South, left = West, right = East (unchanged from seed).",
+    "Wall thickness ~0.24m generally per plan hatch/jamb annotations; representative planes at wall centerlines/faces as previously established; not globally revised this pass.",
+    "F1 north-row partitions at x=4.94m and x=9.82m sit at dimension-chain jog points where 240mm of the 15000mm header total is omitted from printed labels; per-wall split unknown, representative planes kept at seed values.",
+    "dim-west-240's declared host was corrected this pass from space/F1_R1S/wall/3 to space/F1_R1N/wall/3: an overlay calibration (1f_view.png, anchors from the 15000mm/8000mm overall chains) showed the saved evidence pixels (426,530)-(446,530) project to world y=5.94m, inside the F1_R1N wall span [5,8] and ~2.94m outside the previously declared F1_R1S span [0,3]. The 240mm value/pixels are unchanged; only host attribution was fixed. The reading is treated as directly observed only for the F1_R1N segment and transferred by continuity assumption (same straight, uninterrupted west facade) to F1_R1S and the corridor, which have no separate local label of their own.",
+    "dim-north-240's host (wall-F1-north-facade, space/F1_R1N/wall/2) was checked via the same overlay: its evidence pixels project inside the declared wall's tangential range with small normal displacement consistent with the declared 0/-0.24 offsets, so no correction was needed there."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "caf0af23e65309ba5c7a3cc634e9e6765468ef6f2fb09a8fab1f51258064f50c",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "bd58543b6ba7456785bb84717b6b74c8b04b5f1827496f9405471db8547be99f",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "1217ff647866f2cb5fdabd517eb959dfb2b9acc5af9a08fa8a1d156052ed39a7"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "1db5fcbfde17e9bfdcb9fdcd42ded21e7c08247230cdad0a92f4def74d3df5cd",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F1 partitions at x=4.94m and x=9.82m: individual thickness/offset unresolved; only the aggregate 240mm gap across both jogs is evidenced.",
+    "F1 corridor partition walls (y=3/y=5) and any west-chain vs east-chain closure conflict noted in prior passes were not re-examined this pass (out of the bounded local-evidence-correction scope).",
+    "2f_view.png overlay calibration, F1 north-row window span residuals, F1 east window sill/head height residual, and F2 ConfA/ConfB door split remain unresolved as carried over from prior passes.",
+    "Door swing direction/leaf count and room role labels remain unresolved.",
+    "Overlay calibration itself carries a flagged cross-axis scale disagreement (~5.3%) and residuals up to ~0.32m on the overall 8000/15000mm anchors; the west-facade host correction (~2.94m mismatch) is far larger than this calibration slack, so it is considered robust, but the calibration is not independently verified and finer sub-metre placements on this frame should be treated with caution.",
+    "Only the two existing local wall-thickness dimension records (dim-north-240, dim-west-240) and their declared wall hosts were checked this pass, per scope; other openings, partitions and rooms were not re-examined and remain from the seed/prior passes."
+  ],
+  "wall_dimension_report": {
+    "chain_connected": false,
+    "dimensions": [
+      {
+        "axis": "y",
+        "conversion_m": -0.24,
+        "direction": -1,
+        "end": {
+          "image": "1f_view.png",
+          "pixel": [
+            665,
+            367
+          ],
+          "side": "negative",
+          "wall_id": "wall-F1-north-facade"
+        },
+        "endpoint_offsets_m": [
+          0,
+          -0.24
+        ],
+        "endpoint_world_m": [
+          8.0,
+          7.76
+        ],
+        "id": "dim-north-240",
+        "model_representative_length_m": -0.0,
+        "raw_length_m": 0.24,
+        "representative_length_m": 0.0,
+        "residual_m": -0.0,
+        "source_refs": [
+          "1f_view.png: 240 label with tick marks, crop [630,290,740,390]"
+        ],
+        "start": {
+          "image": "1f_view.png",
+          "pixel": [
+            665,
+            347
+          ],
+          "side": "positive",
+          "wall_id": "wall-F1-north-facade"
+        },
+        "status": "converted_not_visually_verified",
+        "unit": "mm",
+        "value": 240
+      },
+      {
+        "axis": "x",
+        "conversion_m": -0.24,
+        "direction": 1,
+        "end": {
+          "image": "1f_view.png",
+          "pixel": [
+            446,
+            530
+          ],
+          "side": "positive",
+          "wall_id": "wall-F1-west-facade"
+        },
+        "endpoint_offsets_m": [
+          0,
+          0.24
+        ],
+        "endpoint_world_m": [
+          0.0,
+          0.24
+        ],
+        "id": "dim-west-240",
+        "model_representative_length_m": 0.0,
+        "raw_length_m": 0.24,
+        "representative_length_m": 0.0,
+        "residual_m": 0.0,
+        "source_refs": [
+          "1f_view.png crop [380,500,500,800]: 240 label with tick marks; start tick at x=426 sits on the outer (exterior, offset 0) face and end tick at x=446 sits on the inner (offset 0.24) face of wall-F1-west-facade"
+        ],
+        "start": {
+          "image": "1f_view.png",
+          "pixel": [
+            426,
+            530
+          ],
+          "side": "negative",
+          "wall_id": "wall-F1-west-facade"
+        },
+        "status": "converted_not_visually_verified",
+        "unit": "mm",
+        "value": 240
+      }
+    ],
+    "findings": [],
+    "joins": [
+      {
+        "connected": false,
+        "from": "dim-north-240",
+        "reason": "gap, mixed basis or unconfirmed join; no automatic closure",
+        "to": "dim-west-240"
+      }
+    ],
+    "raw_sum_m": 0.48,
+    "review_status": "not_visually_verified",
+    "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"
+  }
+}

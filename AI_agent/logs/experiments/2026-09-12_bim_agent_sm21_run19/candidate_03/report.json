@@ -1,0 +1,66 @@
+{
+  "agent_assumptions": [
+    "Room/corridor boundaries at evidenced face dimensions; wall thickness metadata omitted due to schema error under time pressure.",
+    "F1 partitions at x=5 and x=10 from south-facade dimension chain closure (exact to 15000mm).",
+    "F1 bottom-row door positions assumed to mirror top row.",
+    "F2 four bottom offices assumed equal width (3.75m each); south elevation suggested unequal widths, unresolved.",
+    "Window sill/head heights inferred from North_view chain (0.4-2.2m F1, 4.0-5.8m F2).",
+    "No staircase identified/modeled within budget.",
+    "West ground floor modeled with door (per West_view icon), East and both upper-floor corridor ends modeled with windows."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 8,
+    "openings": 20,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0e1c33f4a0cd62f3852688f370371b217e3062e63b517dbe775012dbac4b8d54",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "8bcf996625882bc747b239611c07ed37b5ba79958239a2a1ab8ab724199cb470",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "d672e2223d89cdac65dd580862b9b2f2b3adba351d771c15dc623d2e29737aff"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "54b22a79703a66052e446e82ae4c47b22854079ebb4c27bc91ad1abfed0a00f2",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F2 interior doors (conference-corridor and 4 office-corridor connections) could not be built against the source geometry within the time budget and were removed; F2 rooms are therefore NOT shown as connected to the corridor in this candidate, which is a known fidelity gap versus the drawings (doors are visible there).",
+    "Exact F2 bottom-row partition widths (south elevation implies asymmetric ~5.31/2.19/2.19/5.31m, not the equal 3.75m used).",
+    "Closet/nook inside F1_R4 not modeled as separate cell.",
+    "Interior door exact widths/positions approximated, not individually measured.",
+    "Staircase/vertical circulation not located within budget.",
+    "Wall thickness metadata (wall_references) omitted due to a schema error under time pressure."
+  ]
+}

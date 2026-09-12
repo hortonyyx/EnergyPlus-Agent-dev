@@ -1,0 +1,39 @@
+{
+  "agent_assumptions": [
+    "Room/corridor representative boundaries placed at evidenced face dimensions (3000mm room depth, 1500mm corridor clear width); 250mm wall thickness declared as metadata only, not as an added gap.",
+    "F1 interior partitions at x=5 and x=10 derived from south-facade dimension chain closure (exact to 15000mm) and cross-checked against pixel measurement of partition pillars.",
+    "F1 room-to-corridor door positions read from top-row arcs; bottom-row door positions assumed to mirror top row (not independently measured per-door).",
+    "F2 four bottom offices assumed equal width (3.75m each); South elevation dimension chain actually suggested unequal widths (outer rooms wider, ~5.31m, with narrower ~2.19m middle rooms) which was not resolved within budget - flagged as unresolved.",
+    "F2 office door positions approximated at room centers; not individually measured.",
+    "Window sill/head heights inferred from North_view elevation dimension chain (800 head clearance, 1800 window height) applied consistently to F1 and F2; exact match only confirmed for F2.",
+    "No staircase / vertical circulation element was identified or modeled within the time budget; connectivity between F1 and F2 is otherwise unresolved.",
+    "East facade: ground+upper floor windows at corridor. West facade: upper floor window, ground floor door (secondary entrance) at corridor, per West_view.png icon shape (door vs window)."
+  ],
+  "drawing_fidelity": "not_evaluated",
+  "error": "ValueError: wall reference requires a physical source wall boundary",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "78b749a60ba607992f210a476005a6b64f094680c24ef1b79d2935fee48128df",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "8bcf996625882bc747b239611c07ed37b5ba79958239a2a1ab8ab724199cb470",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": "not_evaluated",
+  "status": "error",
+  "unresolved": [
+    "Exact F2 bottom-row (4 offices) partition widths - south elevation chain suggests asymmetric widths not matching equal quarters used here.",
+    "Small closet/nook drawn inside F1_R4 (bottom-left room) not modeled as a separate cell; treated as furniture.",
+    "Precise per-door widths/positions for many interior doors are approximated, not individually measured from arcs.",
+    "Staircase/vertical circulation not located in supplied drawings within budget."
+  ]
+}

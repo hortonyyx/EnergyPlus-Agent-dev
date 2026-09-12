@@ -1,0 +1,30 @@
+{
+  "scope": "independent audit after generation; not supplied to generator",
+  "code_commit": "c18e3071",
+  "checks": {
+    "dimension_records_identical": true,
+    "wall_reference_ids_retained": true,
+    "other_wall_references_identical": true,
+    "west_offsets_and_thickness_identical": true
+  },
+  "host_before": "space/F1_R1S/wall/3",
+  "host_after": "space/F1_R1N/wall/3",
+  "host_attribution_corrected": true,
+  "physical_geometry_changed": false,
+  "view_image_calls": 15,
+  "grid_views": 6,
+  "overlay_count": 3,
+  "automatic_overlay_count": 2,
+  "cross_axis_relative_deviation": 0.05265055896141356,
+  "notes_preserve_calibration_warning": true,
+  "remaining_limitations": [
+    "Original endpoints are retained approximate wall-band sample positions, not independently verified exact annotation ticks. In particular west y=530 lies below the visible nearby 240mm callout ticks; the model describes it too precisely.",
+    "The source notes claim the south and corridor west segments have no separate local thickness label. The original plan visibly has 240 labels at those locations; this claim is not accepted. No new structured wall offsets were actually assigned to those other segments.",
+    "Global frame retains ~5.3% cross-axis disagreement and visible east/south offsets. Host correction is supported by the north-row image location, not by a blanket calibration pass.",
+    "No new physical room/window/door/connection correction or complete visual acceptance."
+  ],
+  "evaluation_reuse": "Source physical objects identical to run17/run14, so reuse historical partition severe and windows15/15; see prior_partition_interpretation.json for geometric displacement meaning.",
+  "call_channel": "One Claude subscription invocation, Sonnet5 medium main model. CLI receipt also reports16 output tokens for auxiliary Haiku4.5; no review_detail subtask was called. No DeepSeek/paid API/EnergyPlus.",
+  "elapsed_seconds": 237.4,
+  "estimated_cost_usd_not_subscription_bill": 1.046569
+}

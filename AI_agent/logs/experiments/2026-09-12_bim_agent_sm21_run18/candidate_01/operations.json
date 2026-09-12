@@ -1,0 +1,17 @@
+[
+  {
+    "op": "update_wall_reference",
+    "id": "wall-F1-west-facade",
+    "changes": {
+      "boundary_id": "space/F1_R1N/wall/3",
+      "reference_basis": "Calibrated overlay (1f_view.png, anchors from the 15000mm/8000mm overall dimension chains) shows the '240' thickness label and its tick pixels (426,530)-(446,530) project to world y≈5.94m, which lies on the F1_R1N segment of the west facade (y=[5,8]), not the previously declared F1_R1S segment (y=[0,3]); tangential position is ~2.94m outside the F1_R1S wall extent. The gray-fill band and tick marks sit directly on the wall at this location (crop [380,460,560,650]), confirming direct observation here. The west facade is one continuous exterior wall along x=0 from y=0 to y=8 with only door openings interrupting it, so this 240mm reading is transferred by uniform-thickness assumption (not separately observed) to the F1_R1S, corridor and other west-wall segments.",
+      "thickness_scope": "exterior wall, directly observed at the F1_R1N segment (y=5-8m) fill band; value transferred by continuity assumption to the rest of the same straight west facade (F1_R1S, corridor) which are not separately confirmed by a local label",
+      "evidence_status": "observed"
+    },
+    "reason": "Overlay calibration shows the saved dimension evidence pixels for wall-F1-west-facade project to world y≈5.94m (inside F1_R1N's wall span y=[5,8]), about 2.94m outside the previously declared F1_R1S span y=[0,3]. Correcting host attribution to the segment actually bearing the annotation, and distinguishing direct observation there from transfer/inference to the rest of the same facade.",
+    "source_refs": [
+      "1f_view.png crop [380,460,560,650]: 240 label and tick marks on west wall band, pixel y≈505-555",
+      "overlay calibration (x anchors [422,0],[1845,15]; y anchors [345,8],[1065,0]): dim-west-240 endpoints map to world y=5.944, tangential_outside_distance_m=2.944 relative to declared F1_R1S host span [0,3]"
+    ]
+  }
+]
