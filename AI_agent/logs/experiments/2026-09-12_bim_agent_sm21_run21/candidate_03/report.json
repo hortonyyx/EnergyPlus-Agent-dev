@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Room/corridor boundaries at evidenced face dimensions; 250mm/240mm wall thickness not separately declared.",
+    "F1 partitions at x=5 and x=10 from south-facade dimension chain closure (exact to 15000mm).",
+    "F1 bottom-row door positions assumed to mirror top row.",
+    "F2 four bottom offices assumed equal width (3.75m each); South elevation window pairs imply asymmetric real partitions (~5.31/2.19/2.19/5.31m), unresolved; windows attributed to whichever current-partition room contains their span.",
+    "F2 office door positions approximated at room centers.",
+    "Standard office/conference windows (North all, South R5/R6/O1/O4 pair) confirmed z=0.4-2.2m (F1) / 4.0-5.8m (F2) via North_view 800/1800/1000 dimension chain plus exact span matches.",
+    "F1 corridor windows are a distinct taller type: East_view chain (200/1800/1000) gives z=1.0-2.8m for W1_Ecorr, differing from 0.4-2.2m office type. West corridor F1 opening remains a door.",
+    "D1_main (already in seed) is the door visible on South_view.png at F1_R4's south wall (icon with vertical panel + knob); no separate door needed there. New F1 South item: small transom window at x=3.44-4.64, z=1.5-2.1 (900/600/1500 chain), attributed to F1_R4 as nearest room; may actually serve an unmodeled nook.",
+    "No staircase modeled within budget.",
+    "West F1 modeled with door, F2 corridor ends (E/W) modeled with windows."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "a16c3b93742296396ef5cdc29b5827158c8abc04055e299e5dd6c01cd462958d",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "05754a0219ccd064e153aced53dc1447c70a178c4fea25c1542c282edc2ea904",
+    "mode": "saved_candidate_recovery"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "3787669176a143c7e52250f197cd818dcad5d8180de88fe47827cc2b83e55376",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact F2 bottom-row partition widths (south elevation implies asymmetric ~5.31/2.19/2.19/5.31m, not equal 3.75m used); each end office's window pair is split across two current cells (O1/O2 and O3/O4) as a result.",
+    "Closet/nook inside F1_R4 not modeled as separate cell; new small South window may serve this unmodeled nook rather than the open office.",
+    "Interior door exact widths/positions approximated, not individually measured.",
+    "Staircase/vertical circulation not located within budget.",
+    "Wall thickness metadata (wall_references) omitted.",
+    "South large 'office' window sill/head relies on the North_view textual dimension chain; a rough pixel remeasurement suggested possibly taller, not applied without clearer evidence."
+  ]
+}

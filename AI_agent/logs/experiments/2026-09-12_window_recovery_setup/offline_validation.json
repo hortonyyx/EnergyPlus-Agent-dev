@@ -1,0 +1,27 @@
+{
+  "implementation_commit": "7d19f876",
+  "tests": {
+    "command": "python -m pytest -n 2 -q tests/test_source_elevation_view.py tests/test_bim_agent_tools.py",
+    "passed": 22,
+    "elapsed_seconds": 19.81,
+    "scope": "Source facade projection plus existing BIM-agent stdio/integration tests. No paid provider calls."
+  },
+  "additional_evidence": {
+    "source_elevation_and_plan_overlay_agent_tests": {
+      "passed": 12,
+      "overlaps_main_tests": true
+    },
+    "final_rendered_labels": "Actual run22 images and source re-rendered pixels/metadata verified; avoids depending only on test counts.",
+    "run21_source_view_requirement": "failed: no source view was called; preservation checks passed",
+    "run22_source_view_requirement": "passed: six actual elevation responses, including selected candidate",
+    "browser": "run21 both floors and delivery; run22 affected F1 and delivery passed offline. Unchanged F2 reuses run21.",
+    "documentation_links": "Six changed entry documents checked; initial index.html links corrected to actual delivery.html; final local links pass."
+  },
+  "not_run": [
+    "full test suite",
+    "EnergyPlus",
+    "DeepSeek",
+    "paid API",
+    "independent new cold start"
+  ]
+}

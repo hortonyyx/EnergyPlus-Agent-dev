@@ -1,0 +1,54 @@
+[
+  {
+    "op": "update_window",
+    "id": "W2_S1",
+    "changes": {
+      "span": [
+        2.19,
+        3.39
+      ]
+    },
+    "reason": "South elevation shows two separate window rectangles with a mullion gap (2190/1200/720 dimension chain from west end), not one wide window; this keeps one of the pair, fits within current F2_O1 bound [0,3.75].",
+    "source_refs": [
+      "South_view.png: top dimension chain 2190,1200,720,1200,4380... and two distinct window rectangles near west end"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_S4",
+    "changes": {
+      "span": [
+        11.61,
+        12.81
+      ]
+    },
+    "reason": "South elevation shows two separate window rectangles near east end (4380/1200/720/1200/2190 chain); this keeps one of the pair, fits within current F2_O4 bound [11.25,15].",
+    "source_refs": [
+      "South_view.png: dimension chain and two distinct window rectangles near east end"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Room/corridor boundaries at evidenced face dimensions; 250mm/240mm wall thickness not separately declared due to a build error with wall_references in prior attempt (time budget exhausted before retry).",
+      "F1 partitions at x=5 and x=10 from south-facade dimension chain closure (exact to 15000mm).",
+      "F1 bottom-row door positions assumed to mirror top row.",
+      "F2 four bottom offices assumed equal width (3.75m each); South elevation window pair positions (2.19-3.39 and 4.11-5.31 near west end; 9.69-10.89 and 11.61-12.81 near east end) strongly imply asymmetric real partitions (~5.31/2.19/2.19/5.31m) so that each end office actually has BOTH windows of its pair; under the preserved equal-width partitions the second window of each pair falls into the adjacent middle office (F2_O2 / F2_O3) rather than the end office - reattributed there for this revision, but true room attribution remains tied to the unresolved partition width discrepancy.",
+      "F2 office door positions approximated at room centers.",
+      "Window sill/head heights: F2 all facades and F1 North/South standard office windows confirmed 0.4-2.2m (F1) / 4.0-5.8m (F2) from North_view dimension chain (800/1800/1000 pattern), cross-checked against exact window-span matches to the 1950/3600/3900... and 1240/2400/2660... chains.",
+      "F1 corridor windows are a DISTINCT taller type: East_view dimension chain (200/1800/1000 for F1) gives sill/head 1.0-2.8m, differing from the 0.4-2.2m office-window type; corrected only for the East corridor window (W1_Ecorr) this revision; West corridor ground floor opening remains a door (unchanged).",
+      "New South-facade F1 items added from South_view.png evidence: (1) a small high transom-type window at x=3.44-4.64m, z=1.5-2.1m (900/600/1500 dimension chain), attributed to F1_R4 as the nearest room to its west-end position; (2) a single door at x=0.16-1.55m on the F1_R4 south wall, height assumed standard 2.1m (exact head height not clearly resolved from the drawing, only its plan position via the 3440mm reference is evidenced).",
+      "No staircase identified/modeled within budget.",
+      "West ground floor modeled with door (per West_view icon), East and both upper-floor corridor ends modeled with windows."
+    ],
+    "unresolved": [
+      "Exact F2 bottom-row partition widths (south elevation implies asymmetric ~5.31/2.19/2.19/5.31m, not the equal 3.75m used); this also means the S2 west-end window pair (2.19-3.39 & 4.11-5.31) and east-end pair (9.69-10.89 & 11.61-12.81) are geometrically split across F2_O1/F2_O2 and F2_O3/F2_O4 respectively under the preserved equal-width partitions, though they likely both belong to the single corner office in the real, asymmetric layout.",
+      "Closet/nook inside F1_R4 not modeled as separate cell; the newly added small South window and door may both serve this unmodeled nook/entry rather than the open office volume.",
+      "Interior door exact widths/positions approximated, not individually measured.",
+      "Staircase/vertical circulation not located within budget.",
+      "Wall thickness metadata (wall_references) omitted due to a schema error under time pressure; only footprint/room boundaries are geometrically verified.",
+      "Exact head height of the new F1_R4 South door not independently confirmed beyond a standard 2.1m assumption.",
+      "Large F1 North/South 'office' window sill/head verified via the North_view 800/1800/1000 chain and matching spans; a rough pixel remeasurement of the South large window suggested a possibly taller opening, but this was not resolved against the clearer textual dimension chain and is not applied."
+    ]
+  }
+]

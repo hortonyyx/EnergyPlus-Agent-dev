@@ -1,0 +1,64 @@
+{
+  "agent_assumptions": [
+    "F1 north windows (W1_N1-3) and F1 south large windows (W1_S2,W1_S3) share one window type; height/sill corrected to z=1.0-2.6m per North_view's own 400/1600/1000 dimension chain (distinct from the F2 800/1800/1000 chain that was previously mis-applied to F1).",
+    "F2 windows (North/South, z=4.0-5.8m) confirmed correct via matching 800/1800/1000 chains on North, South, East and West elevations.",
+    "F1 corridor window (W1_Ecorr, East) confirmed correct at z=1.0-2.8m via East_view's own 200/1800/1000 chain, distinct from the office-window chain.",
+    "F1 corridor window (W2 upper/ W1 lower) on West is a door (D1_Wcorr) not a window; West_view F1 block shows no vertical window dimension, consistent with a plain door opening, height assumed standard 2.1m (no explicit label).",
+    "South small transom window (W1_S_small, z=1.5-2.1m) and South F1 door (D1_main, z=0-2.1m) confirmed correct via South_view's 900/600/1500 (transom) and 900 head-gap (door, giving z-top=2.1m) readings.",
+    "F2 door heights (z=3.0-5.1m, i.e. 2.1m tall from F2 floor) remain an assumption mirroring F1 doors; no elevation shows F2 interior doors (interior, not on any facade)."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "e6be3a7df0ed1ae41ed223057537728f1bedbe42b2b5f60ffb767ec948cb1966",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "cc555ff314adafe24e3316108f30e32c31522bef82b302d1b4069d1deea0708f",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "a16c3b93742296396ef5cdc29b5827158c8abc04055e299e5dd6c01cd462958d"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e0201fafb6d1ce752155e36e50d85895097803f0d3dfab7ca3e344b81ee7ef52",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F2 bottom-row partition widths remain per original seed note (south elevation implies asymmetric ~5.31/2.19/2.19/5.31m vs modeled equal 3.75m) - not in this vertical-placement scope, left unresolved.",
+    "Closet/nook inside F1_R4 and exact interior door widths remain unresolved per seed.",
+    "Staircase/vertical circulation not modeled.",
+    "Wall thickness metadata (wall_references) omitted.",
+    "F2 interior door heights (2.1m assumed) are not visible on any exterior elevation and remain an unverified assumption."
+  ]
+}

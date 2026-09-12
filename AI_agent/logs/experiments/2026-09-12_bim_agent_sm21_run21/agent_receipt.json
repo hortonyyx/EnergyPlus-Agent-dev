@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 508.18,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 505841,
+    "duration_api_ms": 504812,
+    "ttft_ms": 1803,
+    "ttft_stream_ms": 1363,
+    "time_to_request_ms": 27,
+    "num_turns": 35,
+    "result": "I'm finishing within budget on **candidate_03**, selected via `finish_bim`.\n\n**Summary of this elevation/window recovery pass (from seed → candidate_03):**\n\nVerified against original elevations:\n- North_view.png: all F1 (3 office windows) and F2 (2 conference windows) spans matched the seed exactly against the 1950/3600/3900/3600/1950 and 1240/2400/2660/2400/2660/2400/1240 dimension chains — no change needed.\n- East_view.png/West_view.png corridor openings: spans confirmed matching seed.\n\nCorrections applied and evidenced:\n1. **F2 South windows split**: seed modeled one wide window per end office (O1, O4); the drawing's 2190/1200/720/1200/4380/1200/720/1200/2190 chain and two visibly separate window rectangles per side show *paired* windows. Re-derived exact spans (`W2_S1` 2.19–3.39, new `W2_S1b` 4.11–5.31, new `W2_S4a` 9.69–10.89, `W2_S4` 11.61–12.81). Because current partitions are still the equal 3.75 m split (preserved per scope), the second window of each pair now attaches to the adjacent middle office (O2/O3) — flagged as an explicit unresolved tension with the asymmetric partition evidence already noted in the seed.\n2. **F1 East corridor window height corrected**: East_view's 200/1800/1000 chain (distinct from the 800/1800/1000 office pattern) gives z=[1.0, 2.8] for `W1_Ecorr`, not the seed's [0.4, 2.2].\n3. **Added a previously unmodeled small transom window** `W1_S_small` on F1 South (x 3.44–4.64, z 1.5–2.1, from the 900/600/1500 chain), attributed to `F1_R4` as the nearest room — likely lighting the already-flagged unmodeled nook/closet.\n4. Confirmed the door-like icon at F1_R4's south wall in South_view.png is the same door already modeled as `D1_main` (no duplicate added, after correcting an initial duplicate error).\n\nNot changed (evidence inconclusive or out of scope): F2 partition widths (plan-dimension issue, explicitly out of this elevation-bounded scope), exact head height of standard office windows despite a noisy pixel remeasurement suggesting a taller opening — kept the clearer textual dimension chain instead.\n\n**Verification performed:** North/South/East/West elevation dimension chains read directly with pixel crops; `build_bim` geometry check passed with no findings (no overlap/host errors). **Not verified:** opening review via `check_openings`/`review_detail` was not run in this pass due to time budget — openings remain `review_status: not_reviewed` in the delivery record; wall thicknesses/references remain unmodeled; F1 door widths/positions remain approximate; staircase not modeled.\n\n**Unresolved (carried/added):** F2 partition asymmetry and its window-attribution consequence, F1_R4 nook, interior door widths, staircase, wall thickness metadata, and the South office-window height cross-check.",
+    "stop_reason": "end_turn",
+    "session_id": "c8ca7648-a683-4552-b1e7-dc69d9b67e0b",
+    "total_cost_usd": 1.7719607999999996,
+    "usage": {
+      "input_tokens": 50,
+      "cache_creation_input_tokens": 118457,
+      "cache_read_input_tokens": 1249646,
+      "output_tokens": 45688,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 118457,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1064,
+          "cache_read_input_tokens": 114249,
+          "cache_creation_input_tokens": 13412,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 13412
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 770,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000855,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 50,
+        "outputTokens": 45688,
+        "cacheReadInputTokens": 1249646,
+        "cacheCreationInputTokens": 118457,
+        "webSearchRequests": 0,
+        "costUSD": 1.7711058,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "8d07318c-dfc2-4ac8-a3ee-3ce949c83a64"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Review the original elevations against this saved source, focusing on floor levels and windows: completeness, physical facade, horizontal span, sill/head heights and room attribution. Use the original drawings and their dimension chains, including distinct window types. Correct supported discrepancies and retain explicit assumptions where evidence is insufficient. Preserve existing room partitions and all doors and connections; if a floor datum needs correction, preserve the floor-relative positions of its hosted openings. Do not delete visible apertures to clear errors. Unsupported local edits can use a complete build_bim proposal preserving all reliable objects and IDs. Save a useful revised candidate early enough to inspect it, and review its windows against the actual drawings before finish. This is a bounded elevation/window recovery, not a new cold start or a rereading of unrelated plan dimensions.",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789226283.7917275,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "c478fdf77aad53271cab56dcd58169de78f7d8f5884ecaaa0910a47f18e8139a",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "50f9edd2dbeb933a019b8791bcf5d7d47f68708fca9e6007c857919d18e53423",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "ed220159d1685801e8c04250907066376447cc9d03c738e75b57f90f630f27c8",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-12_bim_agent_sm21_run20/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

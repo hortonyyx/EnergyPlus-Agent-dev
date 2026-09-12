@@ -1,0 +1,68 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Review aperture vertical placement in this saved candidate against the original elevations. Use view_elevation_candidate to see the actual source geometry before and after your changes, alongside the corresponding original images. Establish which floor and opening type each dimension chain refers to; distinguish floor datum, sill, opening height and head clearance. Prior proposal notes are hypotheses to check, not independent evidence. Preserve current room partitions, horizontal opening positions, identities, windows, doors and connections; correct only supported vertical discrepancies and inaccurate notes. Do not infer new partitions from paired windows. Make a useful local revision early, inspect its actual elevation and retain honest unresolved scope before finish. This bounded recovery does not reread the whole plan or introduce new apertures.",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789227111.5112019,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "8ef7c2ed25bac7b757fd45bd32310a22b2ffc09fa8a21cc5da7e989eee35d2d5",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "50f9edd2dbeb933a019b8791bcf5d7d47f68708fca9e6007c857919d18e53423",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "a16c3b93742296396ef5cdc29b5827158c8abc04055e299e5dd6c01cd462958d",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-12_bim_agent_sm21_run21/candidate_03",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

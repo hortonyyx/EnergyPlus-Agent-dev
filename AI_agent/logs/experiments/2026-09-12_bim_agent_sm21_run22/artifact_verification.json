@@ -1,0 +1,66 @@
+{
+  "baseline": "seed/source_model.json",
+  "input_checks": {
+    "implementation:scripts/tool_scripts/run_bim_agent.py": true,
+    "implementation:src/agent/execution/source_proposal.py": true,
+    "implementation:src/agent/geometry/proposal_edits.py": true,
+    "implementation:src/agent/geometry/opening_review.py": true,
+    "implementation:src/agent/geometry/bim_delivery.py": true,
+    "implementation:src/agent/geometry/source_image_overlay.py": true,
+    "implementation:src/agent/geometry/source_elevation_view.py": true,
+    "implementation:src/agent/geometry/source_bim.py": true,
+    "implementation:src/agent/geometry/wall_reference.py": true,
+    "implementation:src/agent/geometry/dimension_chain.py": true,
+    "image:1f_view.png": true,
+    "image:2f_view.png": true,
+    "image:East_view.png": true,
+    "image:North_view.png": true,
+    "image:South_view.png": true,
+    "image:West_view.png": true
+  },
+  "candidates": [
+    {
+      "candidate": "candidate_01",
+      "checks": {
+        "source_digest": true
+      },
+      "changes_from_baseline": {
+        "spaces": {
+          "added": [],
+          "removed": [],
+          "changed": []
+        },
+        "boundaries": {
+          "added": [],
+          "removed": [],
+          "changed": []
+        },
+        "openings": {
+          "added": [],
+          "removed": [],
+          "changed": [
+            "W1_N1",
+            "W1_N2",
+            "W1_N3",
+            "W1_S2",
+            "W1_S3"
+          ]
+        },
+        "connections": {
+          "added": [],
+          "removed": [],
+          "changed": []
+        }
+      },
+      "spaces": 14,
+      "openings": {
+        "door": 14,
+        "window": 15
+      },
+      "wall_reference_count": 0,
+      "dimension_count": 0,
+      "dimension_statuses": []
+    }
+  ],
+  "scope": "execution and persistence; no drawing fidelity verdict"
+}
