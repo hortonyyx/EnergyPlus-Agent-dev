@@ -99,6 +99,12 @@ Do not ask the user for routine geometry choices. No EP/materials are needed.
 build_bim saves immutable candidates and returns actual checks. Revise if a
 check fails, keep stable object IDs and do not drop known openings to pass.
 Inspect the resulting plan with view_candidate and compare to original images.
+view_elevation_candidate renders the actual source exterior walls and apertures
+for one physical facade across all floors, with world-height labels. Use it to
+compare window sill/head heights and separate window types to original elevations;
+a plan alone cannot reveal height errors. Its horizontal axis follows an outside
+observer (South +X, North -X, East +Y, West -Y), explicitly labeled in the image.
+It is a source inspection view, not drawing evidence or an automatic fidelity verdict.
 overlay_candidate can project a saved floor back onto an original plan using
 your observed pixel/metre anchors. It is useful for spotting misplaced walls
 and openings that a separately scaled model view hides. Its calibration is
@@ -1164,6 +1170,29 @@ def serve(run: Path, readonly=False):
             return candidate_result(toolkit.build(json.loads(proposal_json)))
 
         @server.tool()
+        def view_elevation_candidate(candidate: str, facade: str) -> CallToolResult:
+            """Inspect actual source wall/window/door heights across all floors.
+            facade: North, South, East or West. Returns a rendered image plus
+            source-bound geometry metadata, not original-image evidence or a pass.
+            """
+            from src.agent.geometry.source_elevation_view import render_source_elevation
+            path = toolkit.candidate_path(candidate)
+            source = json.loads((path / "source_model.json").read_text())
+            pic, metadata = render_source_elevation(source, facade)
+            image_path = path / f"elevation_{facade}.png"
+            pic.save(image_path)
+            metadata.update(candidate=candidate,
+                            elevation_image=str(image_path.relative_to(run)))
+            dump(path / f"elevation_{facade}.json", metadata)
+            toolkit.log("view_elevation_candidate", metadata)
+            data = io.BytesIO()
+            pic.save(data, "PNG")
+            return CallToolResult(content=[
+                Image(data=data.getvalue(), format="png").to_image_content(),
+                TextContent(type="text", text=json.dumps(metadata, ensure_ascii=False)),
+            ], structuredContent=metadata)
+
+        @server.tool()
         def view_candidate(candidate: str, floor_id: str) -> Image:
             """Render a saved candidate's source-space plan, with windows blue/doors red.
             Use exact candidate from build_bim; floor_id is the proposed floor name.
@@ -1222,6 +1251,7 @@ def run_experiment(args):
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
                                  "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
                                  "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
+                                 "src/agent/geometry/source_elevation_view.py":digest(ROOT/"src/agent/geometry/source_elevation_view.py"),
                                  "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py")},

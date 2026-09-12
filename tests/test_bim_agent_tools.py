@@ -109,6 +109,7 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
             assert "revise_bim" not in tools and "inspect_candidate" not in tools
             assert "check_openings" not in tools
             assert "finish_bim" not in tools and "overlay_candidate" not in tools
+            assert "view_elevation_candidate" not in tools
 
             inventory = _json_result(await session.call_tool("inputs", {}))
             chain = _json_result(await session.call_tool("map_dimension_chain", {
@@ -131,6 +132,43 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
 
             Image.new("RGB", (12, 8), "black").save(run / "images/plan.png")
             assert "input image changed" in _error_text(await session.call_tool("view_image", {"name": "plan.png"}))
+
+    asyncio.run(scenario())
+
+
+def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_path):
+    import base64
+    import io
+    from PIL import ImageChops
+
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        proposal = json.loads(_two_floor_proposal())
+        proposal["geometry"]["windows"] = [{
+            "id":"south_window", "floor":"F1", "facade":"South", "room":"left",
+            "span":[1,2], "z":[0.4,2.2], "source_refs":["synthetic"],
+        }]
+        async with _server_session(run, readonly=False) as session:
+            built = _json_result(await session.call_tool("build_bim", {"proposal_json":json.dumps(proposal)}))
+            first = await session.call_tool("view_elevation_candidate", {"candidate":built["candidate"], "facade":"South"})
+            metadata = _json_result(first)
+            actual = Image.open(io.BytesIO(base64.b64decode(first.content[0].data))).convert("RGB")
+            saved = Image.open(run / metadata["elevation_image"]).convert("RGB")
+            assert actual.size == saved.size and ImageChops.difference(actual, saved).getbbox() is None
+            source = json.loads((run / built["candidate"] / "source_model.json").read_text())
+            assert metadata["source_model_sha256"] == source["source_model_sha256"]
+            assert "South" == metadata["facade"]
+            revised = _json_result(await session.call_tool("revise_bim", {
+                "candidate":built["candidate"], "operations_json":json.dumps([{
+                    "op":"update_window", "id":"south_window", "changes":{"z":[1,2.6]},
+                    "reason":"synthetic height correction", "source_refs":["synthetic"],
+                }])}))
+            second = await session.call_tool("view_elevation_candidate", {"candidate":revised["candidate"], "facade":"South"})
+            updated = _json_result(second)
+            assert updated["source_model_sha256"] != metadata["source_model_sha256"]
+            assert first.content[0].data != second.content[0].data
+            assert "facade" in _error_text(await session.call_tool("view_elevation_candidate", {
+                "candidate":revised["candidate"], "facade":"../South"}))
 
     asyncio.run(scenario())
 
