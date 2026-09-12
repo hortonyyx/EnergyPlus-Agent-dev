@@ -189,6 +189,38 @@ def test_original_coordinate_grid_keeps_crop_and_thumbnail_frame():
     assert {"original_pixel": 1200, "display_pixel": 300} in meta["ticks"]["y"]
 
 
+def test_upper_floor_opening_diagnostic_reaches_agent_and_preserves_declared_door(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        proposal = json.loads(_two_floor_proposal())
+        proposal["geometry"]["openings"].append({
+            "id": "upper_door", "kind": "door", "space_id": "upper_left",
+            "other_space_id": "upper_right", "p1": [3, 1], "p2": [3, 2],
+            "z": [0, 2.1], "source_refs": ["synthetic upper floor aperture"],
+        })
+        async with _server_session(run, readonly=False) as session:
+            built = _json_result(await session.call_tool("build_bim", {"proposal_json": json.dumps(proposal)}))
+            assert built["counts"]["unbuilt_openings"] == 1
+            inspected = _json_result(await session.call_tool("inspect_candidate", {"candidate": built["candidate"]}))
+            diagnostic = inspected["source_validation"]["findings"][0]["height_host_diagnostic"]
+            assert diagnostic["actual_opening_z_bounds_m"] == [0, 2.1]
+            assert {tuple(row["expected_z_bounds_m"]) for row in diagnostic["declared_space_bounds"]} == {(3, 6)}
+            revised = _json_result(await session.call_tool("revise_bim", {
+                "candidate": built["candidate"], "operations_json": json.dumps([{
+                    "op": "update_opening", "id": "upper_door", "changes": {"z": [3, 5.1]},
+                    "reason": "synthetic correction to absolute floor coordinates",
+                    "source_refs": ["synthetic upper floor aperture"],
+                }]),
+            }))
+            assert revised["source_geometry_ready"]
+            assert revised["counts"]["unbuilt_openings"] == 0
+            assert revised["counts"]["connections"] == 2
+            source = json.loads((run / revised["candidate"] / "source_model.json").read_text())
+            assert {o["id"] for o in source["openings"]} == {"door", "upper_door"}
+
+    asyncio.run(scenario())
+
+
 def test_delivery_keeps_numeric_contradiction_and_calibration_warning_with_empty_notes(tmp_path):
     from tests.test_wall_reference import reference, dimension
     from src.agent.geometry.proposal_edits import apply_proposal_edits

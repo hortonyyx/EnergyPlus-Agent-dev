@@ -64,9 +64,48 @@ def test_wrong_or_partial_door_connection_stays_unbuilt(other,p1,p2):
     source=build_source_bim(geom,capability_profile="orthogonal_polygon")
     assert source["validation"]["status"] == "severe"
     assert [o["id"] for o in source["unbuilt_openings"]] == ["door"]
+    unbuilt = source["unbuilt_openings"][0]
+    if other is None:
+        assert unbuilt["reason"] == "opening does not connect the declared spaces/outdoors over its full area"
+        assert "height_host_diagnostic" not in unbuilt
+    else:
+        assert unbuilt["reason"] == "opening requires one complete source boundary on each declared side"
+        assert all(side["within_declared_space_z_bounds"]
+                   for side in unbuilt["height_host_diagnostic"]["declared_space_bounds"])
     assert not source["connections"]
     assert len(source["openings"]) == 1
     assert len(source_view_geometry(source)["surfaces"]) == 18
+
+
+def test_upper_floor_relative_opening_height_has_diagnostic_but_absolute_height_builds():
+    geom = three_rooms()
+    upper = geom.floors[0].model_copy(deep=True)
+    upper.name, upper.z_floor = "F2", 3
+    for cell in upper.cells:
+        cell.id += "_up"
+    geom.floors.append(upper)
+    base = {"id": "upper-door", "kind": "door", "space_id": "hall_up", "other_space_id": "a_up",
+            "p1": [3, 1], "p2": [3, 2], "z": [0, 2.1], "source_refs": ["test:explicit"]}
+    geom.openings = [WallOpening.model_validate(base)]
+
+    relative = build_source_bim(geom, capability_profile="orthogonal_polygon")
+    unbuilt = relative["unbuilt_openings"][0]
+    assert unbuilt["reason"] == "opening requires one complete source boundary on each declared side"
+    diagnostic = unbuilt["height_host_diagnostic"]
+    assert diagnostic["actual_opening_z_bounds_m"] == [0.0, 2.1]
+    assert [(side["space_id"], side["expected_z_bounds_m"], side["below_floor_m"])
+            for side in diagnostic["declared_space_bounds"]] == [
+                ("hall_up", [3.0, 6.0], 3.0), ("a_up", [3.0, 6.0], 3.0)]
+    assert not any(side["within_declared_space_z_bounds"] for side in diagnostic["declared_space_bounds"])
+    finding = relative["validation"]["findings"][0]
+    assert finding["reason"] == unbuilt["reason"]
+    assert finding["height_host_diagnostic"] == diagnostic
+
+    geom.openings[0] = WallOpening.model_validate({**base, "z": [3, 5.1]})
+    absolute = build_source_bim(geom, capability_profile="orthogonal_polygon")
+    assert absolute["validation"]["status"] == "pass"
+    assert not absolute["unbuilt_openings"]
+    assert absolute["opening_hosts"]["upper-door"]
 
 
 @pytest.mark.parametrize("change", ["floor", "internal", "too_wide", "duplicate", "overlap"])

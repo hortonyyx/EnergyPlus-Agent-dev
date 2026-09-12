@@ -46,6 +46,43 @@ def _contained(vertices, boundary):
             and parent.buffer(EPS).covers(aperture))
 
 
+def _opening_height_host_diagnostic(aperture, spaces_by_id):
+    """Describe declared opening heights without altering host resolution.
+
+    Wall-host containment is intentionally three-dimensional.  A plan-correct
+    upper-storey aperture expressed with storey-relative Z therefore has no
+    host.  Keeping this explanation beside the existing unbuilt record makes
+    that distinction visible without accepting, translating, or correcting it.
+    """
+    opening_z = [float(aperture.z[0]), float(aperture.z[1])]
+    declared_sides = []
+    for label, space_id in (("space", aperture.space_id), ("other_space", aperture.other_space_id)):
+        if space_id is None:
+            continue
+        space = spaces_by_id.get(space_id)
+        if space is None:
+            declared_sides.append({"side": label, "space_id": space_id, "status": "unknown_source_space"})
+            continue
+        expected = [float(space.z_floor), float(space.z_floor + space.height)]
+        below = max(expected[0] - opening_z[0], 0.0)
+        above = max(opening_z[1] - expected[1], 0.0)
+        declared_sides.append({
+            "side": label,
+            "space_id": space_id,
+            "floor_id": space.floor_id,
+            "expected_z_bounds_m": expected,
+            "actual_opening_z_bounds_m": opening_z,
+            "below_floor_m": below,
+            "above_ceiling_m": above,
+            "within_declared_space_z_bounds": below == 0.0 and above == 0.0,
+        })
+    return {
+        "actual_opening_z_bounds_m": opening_z,
+        "declared_space_bounds": declared_sides,
+        "scope": "diagnostic only; host containment and source geometry are unchanged",
+    }
+
+
 def _contacts(boundaries):
     """Record many-to-many contact patches without changing boundary geometry."""
     relations = []
@@ -156,6 +193,7 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
     openings, unbuilt, connections = [], [], []
     bindings = {}
     seen_ids = set()
+    spaces_by_id = {space.id: space for space in spaces}
 
     def hosts(vertices, sid):
         return [boundaries[bid] for bid in by_space.get(sid, [])
@@ -170,9 +208,13 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
         aperture = _on_wall(vertices, boundary)
         return not any(aperture.intersection(p).area > EPS ** 2 for p in contact_shapes(boundary))
 
-    def reject(source, message):
-        unbuilt.append({"id": source.id, "record": source.model_dump(mode="json"), "reason": message})
-        fail("source.opening_unbuilt", opening_id=source.id, reason=message)
+    def reject(source, message, *, diagnostic=None):
+        row = {"id": source.id, "record": source.model_dump(mode="json"), "reason": message}
+        if diagnostic is not None:
+            row["height_host_diagnostic"] = diagnostic
+        unbuilt.append(row)
+        fail("source.opening_unbuilt", opening_id=source.id, reason=message,
+             **({"height_host_diagnostic": diagnostic} if diagnostic is not None else {}))
 
     resolutions = {r.window_id: r for r in proof_artifact.claims.resolutions} if proof_artifact else {}
     for window in geom.windows:
@@ -226,7 +268,8 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
         owners = hosts(vertices, aperture.space_id)
         others = hosts(vertices, aperture.other_space_id) if aperture.other_space_id is not None else []
         if len(owners) != 1 or (aperture.other_space_id is not None and len(others) != 1):
-            reject(aperture, "opening requires one complete source boundary on each declared side")
+            reject(aperture, "opening requires one complete source boundary on each declared side",
+                   diagnostic=_opening_height_host_diagnostic(aperture, spaces_by_id))
             continue
         owner = owners[0]
         if others:

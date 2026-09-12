@@ -149,6 +149,11 @@ that reviewing openings also verified the walls or room layout.
 Use revise_bim for local changes and code-computed reflections. Never change
 facade labels merely to satisfy a host check: geometry and drawing directions
 must agree. Door swings, dimension ticks and window marks are different things.
+If an opening cannot attach to its declared walls, inspect the reported source
+host bounds, including absolute world heights. A height diagnostic describes
+the submitted geometry, not an image-derived correction. Preserve a visible
+opening while resolving the cause; deleting it just to clear a build failure
+does not restore the building.
 When correcting an unsupported opening, preserve the reason and source reference.
 When reviewing openings, reconcile the actual inventory with distinct marks
 on the original plans, including asymmetric details. A note saying "one door"
@@ -1217,6 +1222,7 @@ def run_experiment(args):
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
                                  "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
                                  "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
+                                 "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
