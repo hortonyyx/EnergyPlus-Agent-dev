@@ -10,7 +10,9 @@
 
 ## 当前交接
 
-**最新主线交接：[09-12 sm24 原图冷启动与局部委派](../logs/worklog/2026-09-12_reconstruction_sm24_delegation.md)。** [run01可看结果](../logs/experiments/2026-09-12_bim_agent_sm24_run01/README.md)已独立核对源/图像运输、子任务隔离和离线浏览器；分区与东外门仍错，非成功冷启动。Claude回执提示UTC18:30额度重置，未重试或切付费API。600秒的新恢复入口已准备并干跑，未调用模型。
+**最新收工：[09-12 还原建模收工与历史好 reading 方法讨论](../logs/worklog/2026-09-12_reconstruction_session_close.md)。** 用户要求收工、额度恢复后继续，本次未再运行模型。sm21窗/平面恢复成果与sm24新冷启动失败均保留。用户提出借鉴Haiku/GPT-5.4-mini历史好reading、避免按几个case画法定制harness；已核对“参考过工具与经验，但尚未完整复现成功工作方式并做可比验证”。这仍是讨论，尚未改实施方案，下轮连同已准备的分区恢复入口一起对齐。
+
+**上一程主线交接：[09-12 sm24 原图冷启动与局部委派](../logs/worklog/2026-09-12_reconstruction_sm24_delegation.md)。** [run01可看结果](../logs/experiments/2026-09-12_bim_agent_sm24_run01/README.md)已独立核对源/图像运输、子任务隔离和离线浏览器；分区与东外门仍错，非成功冷启动。Claude回执提示UTC18:30额度重置，未重试或切付费API。600秒的新恢复入口已准备并干跑，未调用模型。
 
 **上一程：[09-12 补窗与实际源立面高度恢复](../logs/worklog/2026-09-12_reconstruction_windows.md)。** [run21](../logs/experiments/2026-09-12_bim_agent_sm21_run21/README.md)实际补3窗、改3窗，五扇一层窗高仍错；[run22](../logs/experiments/2026-09-12_bim_agent_sm21_run22/README.md)139.34秒正常结束，11次原图查看、6次实际源立面查看，一次局部操作修正五窗。实际源房间/边界/门/连接保留，窗15/15匹配、分区pass。当前入口run22/candidate_01；源码测试、真实图像与源重放、离线交付/受影响楼层查看均有独立证据。
 
