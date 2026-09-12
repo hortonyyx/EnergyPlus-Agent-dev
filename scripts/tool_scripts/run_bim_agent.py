@@ -46,6 +46,19 @@ the representative room boundaries: offsets describe wall faces and do not move
 rooms or openings. Do not assume an axis is centred or add half a wall thickness
 to close a chain. Unknown offsets remain unknown even if total thickness is known.
 Optional proposal fields wall_references and wall_dimensions persist these facts.
+Prefer local edits of an existing record, retaining its original label/pixels and
+the other records. A same-wall thickness label is a valid dimension observation,
+not an invalid or redundant chain to delete merely because its sides conflict.
+revise_bim operations:
+{"op":"update_wall_dimension","id":"dim-A","changes":{"start":{"image":"plan.png"}},
+"reason":"explain image evidence","source_refs":["plan.png: observed endpoint"]};
+{"op":"update_wall_reference","id":"wall-A","changes":{"evidence_status":"inferred"},
+"reason":"explain inferred scope","source_refs":["plan.png: observed versus inferred scope"]}.
+Endpoint patches merge into the existing start/end, preserving untouched pixels,
+wall_id and image. Other editable dimension fields are axis, direction, value and
+unit; only change transcribed numbers when the original actually supports that.
+Reference patches may change boundary_id, offsets_m, thickness_m, reference_basis,
+thickness_scope or evidence_status. Keep derived output fields out of edits.
 revise_bim also accepts {"op":"set_wall_references","wall_references":[...],
 "wall_dimensions":[...],"reason":"image basis"}, replacing both whole lists.
 Example wall reference (unrelated to supplied drawings):

@@ -314,6 +314,36 @@ def _set_notes(proposal: dict, operation: dict) -> dict:
             "after": {"assumptions": copy.deepcopy(assumptions), "unresolved": copy.deepcopy(unresolved)}}
 
 
+def _update_wall_evidence(proposal: dict, operation: dict) -> dict:
+    """Patch one raw evidence record; keep other records and endpoint fields intact."""
+    name = operation["op"]
+    _require_fields(operation, {"op", "id", "changes", "reason", "source_refs"}, operation=name)
+    identity = _nonblank_string(operation.get("id"), field="id", operation=name)
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    refs = _source_refs(operation.get("source_refs"), operation=name)
+    dimension = name == "update_wall_dimension"
+    field = "wall_dimensions" if dimension else "wall_references"
+    allowed = ({"axis", "direction", "value", "unit", "start", "end"} if dimension else
+               {"boundary_id", "offsets_m", "thickness_m", "reference_basis", "thickness_scope", "evidence_status"})
+    changes = operation.get("changes")
+    if not isinstance(changes, dict) or not changes:
+        raise ValueError(f"{name}: changes must be a nonempty object")
+    _require_fields(changes, allowed, operation=name)
+    row = _find(proposal.get(field, []), identity, operation=name)
+    before = copy.deepcopy(row)
+    for key, value in changes.items():
+        if dimension and key in {"start", "end"}:
+            if not isinstance(value, dict) or not value:
+                raise ValueError(f"{name}: {key} must be a nonempty endpoint patch")
+            _require_fields(value, {"wall_id", "side", "image", "pixel"}, operation=name)
+            row[key].update(copy.deepcopy(value))
+        else:
+            row[key] = copy.deepcopy(value)
+    row["source_refs"] = refs
+    return {"operation": name, "id": identity, "reason": reason, "source_refs": refs,
+            "before": before, "after": copy.deepcopy(row)}
+
+
 def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
     """Return an independently editable legacy proposal after explicit local edits.
 
@@ -356,6 +386,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _move_shared_wall(result, geometry, operation)
         elif name == "set_notes":
             audit = _set_notes(result, operation)
+        elif name in {"update_wall_dimension", "update_wall_reference"}:
+            audit = _update_wall_evidence(result, operation)
         elif name == "set_wall_references":
             _require_fields(operation, {"op", "wall_references", "wall_dimensions", "reason"}, operation=name)
             reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)

@@ -87,6 +87,35 @@ def test_different_wall_residual_does_not_claim_side_reversal(example):
     assert result["findings"] == []  # Baseline or actual geometry needs image judgement.
 
 
+def test_local_evidence_patch_preserves_raw_labels_pixels_and_other_records(example, tmp_path):
+    proposal, source, refs = example
+    refs[0]["offsets_m"] = [0, 0.24]
+    d = dimension(value=240)
+    d["end"]["wall_id"] = "west"
+    proposal.update(wall_references=refs, wall_dimensions=[d])
+    before = copy.deepcopy(proposal)
+    fixed = apply_proposal_edits(proposal, [
+        {"op":"update_wall_dimension", "id":"span", "changes":{"start":{"side":"negative"},"end":{"side":"positive"}},
+         "reason":"synthetic direction correction", "source_refs":["synthetic endpoint evidence"]},
+        {"op":"update_wall_reference", "id":"west", "changes":{"evidence_status":"inferred"},
+         "reason":"synthetic scope review", "source_refs":["synthetic inferred scope"]}])
+    assert proposal == before
+    assert fixed["wall_references"][1] == before["wall_references"][1]
+    assert fixed["wall_dimensions"][0]["value"] == 240
+    for endpoint in ("start", "end"):
+        assert fixed["wall_dimensions"][0][endpoint]["pixel"] == before["wall_dimensions"][0][endpoint]["pixel"]
+        assert fixed["wall_dimensions"][0][endpoint]["image"] == "plan.png"
+    assert fixed["geometry"]["corrections"][-2]["before"] == before["wall_dimensions"][0]
+    report = export_source_proposal(fixed, tmp_path / "patched")
+    assert report["source_geometry_ready"]
+    assert report["wall_dimension_report"]["findings"] == []
+    assert report["wall_dimension_report"]["dimensions"][0]["residual_m"] == 0
+    for changes in ({"id":"new"}, {"start":{"computed_world_m":0}}, {"start":None}):
+        with pytest.raises(ValueError):
+            apply_proposal_edits(proposal, [{"op":"update_wall_dimension", "id":"span", "changes":changes,
+                                            "reason":"synthetic", "source_refs":["synthetic"]}])
+
+
 def test_thickness_does_not_imply_half_offsets(example):
     _, source, refs = example
     refs[0]["offsets_m"] = None
