@@ -108,7 +108,7 @@ def convert_wall_dimensions(walls: list[dict], dimensions: list[dict]) -> dict:
     if not isinstance(dimensions, list):
         raise ValueError("wall_dimensions must be a list")
     by_id = {w["id"]: w for w in walls}
-    rows, seen = [], set()
+    rows, seen, findings = [], set(), []
     allowed = {"id", "axis", "direction", "value", "unit", "start", "end", "source_refs"}
     for dimension in dimensions:
         if not isinstance(dimension, dict) or set(dimension) - allowed:
@@ -155,11 +155,25 @@ def convert_wall_dimensions(walls: list[dict], dimensions: list[dict]) -> dict:
         correction = None if None in offsets else d["direction"] * (offsets[0] - offsets[1])
         converted = None if correction is None else raw + correction
         model_span = d["direction"] * (coordinates[1] - coordinates[0])
+        endpoint_world = [None if offset is None else coordinate + offset
+                          for coordinate, offset in zip(coordinates, offsets)]
+        if d["start"]["wall_id"] == d["end"]["wall_id"] and correction is not None:
+            declared_span = d["direction"] * (offsets[1] - offsets[0])
+            if declared_span <= 0:
+                findings.append({"code": "same_wall_endpoint_order", "dimension_id": identity,
+                    "declared_direction": d["direction"], "start_side": d["start"]["side"],
+                    "end_side": d["end"]["side"], "endpoint_world_m": endpoint_world,
+                    "message": "The declared sides run opposite to the dimension direction or refer to the same face. Check endpoint side labels and direction against the image; moving the wall cannot fix a same-wall span."})
+            elif not math.isclose(raw, declared_span, abs_tol=1e-8):
+                findings.append({"code": "same_wall_thickness_mismatch", "dimension_id": identity,
+                    "raw_length_m": raw, "declared_face_span_m": declared_span,
+                    "message": "The dimension and declared face offsets disagree on this one wall. Recheck their identity/units; do not move room geometry to close this span."})
         d.update(raw_length_m=round(raw, 9), endpoint_offsets_m=offsets,
                  conversion_m=None if correction is None else round(correction, 9),
                  representative_length_m=None if converted is None else round(converted, 9),
                  model_representative_length_m=round(model_span, 9),
                  residual_m=None if converted is None else round(model_span-converted, 9),
+                 endpoint_world_m=endpoint_world,
                  status="unknown_basis" if correction is None else "converted_not_visually_verified")
         rows.append(d)
     joins = []
@@ -170,7 +184,8 @@ def convert_wall_dimensions(walls: list[dict], dimensions: list[dict]) -> dict:
                 and end["side"] != "unknown" and end["image"] == start["image"])
         joins.append({"from": a["id"], "to": b["id"], "connected": same,
                       "reason": "same declared wall and side" if same else "gap, mixed basis or unconfirmed join; no automatic closure"})
-    return {"dimensions": rows, "joins": joins,
+    return {"review_status": "declared_evidence_inconsistent" if findings else "not_visually_verified",
+            "findings": findings, "dimensions": rows, "joins": joins,
             "raw_sum_m": round(math.fsum(r["raw_length_m"] for r in rows), 9),
             "chain_connected": bool(rows) and all(j["connected"] for j in joins),
             "scope": "caller-supplied endpoint semantics; no image verdict, calibration fitting or geometry mutation"}

@@ -102,7 +102,19 @@ items in set_notes until the new projection has actually been considered.
 Geometric consistency is not drawing fidelity. Conclude with exact candidate,
 assumptions, unresolved issues and what was/was not verified. Select the saved
 candidate with finish_bim before concluding. This records the ACTUAL checks
-and current/old opening reviews; follow-up or unreviewed scopes are allowed,
+and wall-dimension contradictions/calibration warnings, even when omitted from
+your prose. A same-wall endpoint-order finding concerns the declared sides and
+direction, not room placement: inspect and correct those labels before trying
+to move a wall. Other nonzero dimension residuals may be genuine geometric or
+baseline differences and require image judgement; zero is not a fidelity verdict.
+Image views show a labelled grid in ORIGINAL pixel coordinates by default.
+Read its labels for crops/calibration, not the displayed thumbnail width/height.
+For a clean close look use coordinate_grid=false. Before registering anchors,
+check both endpoints on the original image; large cross-axis scale warnings call
+for rechecking endpoint locations. Once a frame is usable, register it before a
+revision so the new source is shown in the same frame. Save remaining issues in
+set_notes; the delivery also retains tool facts separately from those notes.
+Delivery also records current/old opening reviews; follow-up or unreviewed scopes are allowed,
 but must not be described as verified. Your prose cannot override this record.
 Produce an initial or revised candidate early, then improve it. Do not spend
 the whole budget chasing small dimension offsets. When a seed is available,
@@ -206,6 +218,36 @@ def dump(path: Path, value):
 
 def digest(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def coordinate_grid_view(pic, region):
+    """Label original pixels on a disposable model view, keeping its affine frame."""
+    if min(pic.size) < 100:
+        return pic, {"shown": False, "reason": "small unscaled detail"}
+    pic = pic.copy()
+    draw = ImageDraw.Draw(pic)
+    x0, y0, x1, y1 = region
+    sx, sy = pic.width / (x1-x0), pic.height / (y1-y0)
+    step = 100 if max(x1-x0, y1-y0) < 800 else 200
+    ticks = {"x": [], "y": []}
+    def label(point, value):
+        bounds = draw.textbbox(point, value)
+        draw.rectangle((bounds[0]-2, bounds[1]-1, bounds[2]+2, bounds[3]+1), fill="black")
+        draw.text(point, value, fill="white")
+    for value in range(((x0+step-1)//step)*step, x1, step):
+        x = round((value-x0)*sx)
+        for y in range(0, pic.height, 16):
+            draw.line([(x,y),(x,min(y+4,pic.height-1))], fill=(80,160,190))
+        label((min(max(x+3, 3), pic.width-48), 3), f"x={value}")
+        ticks["x"].append({"original_pixel":value,"display_pixel":x})
+    for value in range(((y0+step-1)//step)*step, y1, step):
+        y = round((value-y0)*sy)
+        for x in range(0, pic.width, 16):
+            draw.line([(x,y),(min(x+4,pic.width-1),y)], fill=(80,160,190))
+        label((3,min(max(y+3,17),pic.height-16)), f"y={value}")
+        ticks["y"].append({"original_pixel":value,"display_pixel":y})
+    return pic, {"shown":True,"units":"original image pixels","ticks":ticks,
+                 "note":"Blue dotted grid/white labels are viewing aids, not drawing evidence."}
 
 
 def terminate_subscription(process):
@@ -473,6 +515,24 @@ class Toolkit:
         if run_status.get("error"):
             run_note += " " + html.escape(run_status["error"])
         feedback = result["source_image_feedback"]
+        wall_report = result.get("wall_dimension_report") or {}
+        wall_findings = wall_report.get("findings", [])
+        wall_rows = "".join(
+            f'<tr><td>{html.escape(d["id"])}</td><td>{d["raw_length_m"]}</td>'
+            f'<td>{d["representative_length_m"]}</td><td>{d["residual_m"]}</td></tr>'
+            for d in wall_report.get("dimensions", []))
+        finding_rows = "".join(f'<li>{html.escape(f["dimension_id"])}：{html.escape(f["message"])}</li>'
+                               for f in wall_findings)
+        calibration_rows = "".join(
+            f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}：'
+            f'{html.escape(str(warning.get("guidance", warning.get("type"))))}</li>'
+            for row in feedback["current_source_projections"] for warning in row.get("calibration_warnings", []))
+        evidence_html = (
+            '<h2>尺寸与标定的实际反馈</h2><p>以下为工具计算，原始数值及未处理问题不会被模型总结覆盖。'
+            '尺寸残差不自动等于建模错误；同墙侧面次序冲突应先核对端点。单位：米。</p>'
+            '<table><tr><th>尺寸</th><th>原标注</th><th>换算后代表面距</th><th>模型减换算值</th></tr>'
+            f'{wall_rows}</table><ul>{finding_rows}{calibration_rows}</ul>'
+            if wall_rows or calibration_rows else '')
         current_projection_rows = "".join(
             f'<li>{html.escape(row["image"])} / {html.escape(row["floor_id"])}：'
             f'<a href="{html.escape(row["overlay_image"])}">当前源回叠图</a></li>'
@@ -522,6 +582,7 @@ class Toolkit:
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
             f'{feedback_html}'
+            f'{evidence_html}'
             f'<iframe title="保存的 BIM 候选" src="{result["viewer"]}"></iframe>'
             '</html>', encoding="utf-8")
         return result
@@ -753,7 +814,9 @@ class Toolkit:
         errors = [*errors, *calibration_load_errors]
         fields = ("image", "floor_id", "overlay_image", "source_model_sha256", "trigger_action",
                   "automatic_projection", "reused_calibration", "anchors", "basis", "image_sha256")
-        compact = lambda row: {field: row[field] for field in fields if field in row}
+        def compact(row):
+            return {**{field: row[field] for field in fields if field in row},
+                    "calibration_warnings": row.get("scale", {}).get("warnings", [])}
         return {
             "current_source_projections": [compact(row) for row in current],
             "old_source_projections": [compact(row) for row in old],
@@ -765,7 +828,7 @@ class Toolkit:
             "drawing_fidelity": "not_evaluated",
         }
 
-    def view(self, name, box=None):
+    def view(self, name, box=None, coordinate_grid=True):
         from mcp.server.fastmcp import Image
         with PILImage.open(self.image_path(name)) as raw:
             pic = raw.convert("RGB")
@@ -777,8 +840,11 @@ class Toolkit:
                     raise ValueError("crop outside original image bounds")
                 pic = pic.crop(box)
             pic.thumbnail((1600,1600))
+            grid = {"shown": False}
+            if coordinate_grid:
+                pic, grid = coordinate_grid_view(pic, region)
             data = io.BytesIO(); pic.save(data, "PNG")
-        metadata = {"name": name, "original_size": original_size,
+        metadata = {"name": name, "original_size": original_size, "coordinate_grid": grid,
                     "box_original_pixels": region, "returned_size": list(pic.size),
                     "original_pixels_per_returned_pixel": [
                         (region[2] - region[0]) / pic.width,
@@ -829,11 +895,12 @@ def serve(run: Path, readonly=False):
         return {**toolkit.manifest, "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
-    def view_image(name: str, box: list[int] | None = None):
+    def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True):
         """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
-        Full views fit 1600 px; use inventory dimensions when choosing crops.
+        Full views fit 1600 px; grid labels keep original coordinates after scaling.
+        Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.
         """
-        return toolkit.view(name, box)
+        return toolkit.view(name, box, coordinate_grid)
 
     @server.tool()
     def pixel_profile(name: str, box: list[int], axis: str,
@@ -902,10 +969,12 @@ def serve(run: Path, readonly=False):
 
     if not readonly:
         @server.tool()
-        def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "") -> dict:
+        def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "",
+                                  include_inventory: bool = False) -> dict:
             """List real wall hosts or convert explicit wall-face dimensions without changing geometry.
             Inputs use GUIDE wall_references/wall_dimensions format. Empty strings
             reuse saved evidence. Persist new evidence separately via revise_bim.
+            Inventory is included only when no references exist or explicitly requested.
             """
             from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
             path = toolkit.candidate_path(candidate)
@@ -916,15 +985,16 @@ def serve(run: Path, readonly=False):
             for d in dimensions:
                 for end in ("start", "end"):
                     endpoint = d[end]
-                    pic = PILImage.open(toolkit.image_path(endpoint["image"]))
                     x, y = endpoint["pixel"]
-                    if not (0 <= x < pic.width and 0 <= y < pic.height):
-                        raise ValueError("dimension endpoint outside original image")
+                    with PILImage.open(toolkit.image_path(endpoint["image"])) as pic:
+                        if not (0 <= x < pic.width and 0 <= y < pic.height):
+                            raise ValueError("dimension endpoint outside original image")
             walls = resolve_wall_references(source, references)
             result = {"candidate": candidate, "source_model_sha256": source["source_model_sha256"],
-                      "walls": walls, "dimension_report": convert_wall_dimensions(walls, dimensions),
-                      "boundary_inventory": [{k: b[k] for k in ("id", "space_id", "vertices", "counterpart_ids")}
-                                             for b in source["boundaries"] if b["geometry_type"] == "wall"]}
+                      "dimension_report": convert_wall_dimensions(walls, dimensions), "walls": walls}
+            if include_inventory or not references:
+                result["boundary_inventory"] = [{k: b[k] for k in ("id", "space_id", "vertices", "counterpart_ids")}
+                                                 for b in source["boundaries"] if b["geometry_type"] == "wall"]
             toolkit.log("check_wall_dimensions", result)
             return result
 
@@ -937,6 +1007,7 @@ def serve(run: Path, readonly=False):
             proposal = json.loads((path/"proposal.json").read_text())
             report = json.loads((path/"report.json").read_text())
             result = {"candidate": candidate, "proposal": proposal,
+                      "wall_dimension_report": report.get("wall_dimension_report"),
                       "source_validation": report.get("source_validation"),
                       "counts": report.get("counts"),
                       "remaining_seconds": toolkit.remaining_seconds()}

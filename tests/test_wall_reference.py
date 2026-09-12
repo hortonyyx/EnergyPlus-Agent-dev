@@ -62,6 +62,31 @@ def test_eccentric_offsets_and_reverse_direction(example):
     assert convert_wall_dimensions(walls, [d])["dimensions"][0]["residual_m"] == 0
 
 
+def test_same_wall_reversed_side_feedback_is_fixed_by_evidence_not_geometry(example):
+    _, source, refs = example
+    refs[0]["offsets_m"] = [0, 0.24]
+    walls = resolve_wall_references(source, refs)
+    d = dimension(value=240)
+    d["end"]["wall_id"] = "west"
+    result = convert_wall_dimensions(walls, [d])
+    assert result["review_status"] == "declared_evidence_inconsistent"
+    assert result["findings"][0]["code"] == "same_wall_endpoint_order"
+    assert result["findings"][0]["endpoint_world_m"] == [0.24, 0]
+    assert result["dimensions"][0]["residual_m"] == -0.48
+    d["start"]["side"], d["end"]["side"] = "negative", "positive"
+    fixed = convert_wall_dimensions(walls, [d])
+    assert fixed["findings"] == []
+    assert fixed["dimensions"][0]["residual_m"] == 0
+    assert fixed["review_status"] == "not_visually_verified"
+
+
+def test_different_wall_residual_does_not_claim_side_reversal(example):
+    _, source, refs = example
+    result = convert_wall_dimensions(resolve_wall_references(source, refs), [dimension(value=2500)])
+    assert result["dimensions"][0]["residual_m"] == 0.26
+    assert result["findings"] == []  # Baseline or actual geometry needs image judgement.
+
+
 def test_thickness_does_not_imply_half_offsets(example):
     _, source, refs = example
     refs[0]["offsets_m"] = None

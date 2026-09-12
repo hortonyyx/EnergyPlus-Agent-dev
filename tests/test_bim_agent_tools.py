@@ -148,7 +148,8 @@ def test_wall_reference_stdio_calculation_persistence_and_feedback(tmp_path):
             d = dimension()
             d["start"]["pixel"], d["end"]["pixel"] = [1, 2], [6, 2]
             checked = _json_result(await session.call_tool("check_wall_dimensions", {
-                "candidate": candidate, "references_json": json.dumps(refs), "dimensions_json": json.dumps([d])}))
+                "candidate": candidate, "references_json": json.dumps(refs), "dimensions_json": json.dumps([d]),
+                "include_inventory": True}))
             assert checked["dimension_report"]["dimensions"][0]["residual_m"] == 0
             assert checked["boundary_inventory"]
             await session.call_tool("overlay_candidate", {"candidate": candidate, "image": "plan.png",
@@ -166,6 +167,51 @@ def test_wall_reference_stdio_calculation_persistence_and_feedback(tmp_path):
                 "candidate": candidate, "references_json": json.dumps(refs), "dimensions_json": json.dumps([d])}))
 
     asyncio.run(scenario())
+
+
+def test_original_coordinate_grid_keeps_crop_and_thumbnail_frame():
+    from scripts.tool_scripts.run_bim_agent import coordinate_grid_view
+    pic = Image.new("RGB", (800, 400), "white")
+    raw = pic.tobytes()
+    annotated, meta = coordinate_grid_view(pic, [400, 600, 2000, 1400])
+    assert annotated.size == pic.size
+    assert pic.tobytes() == raw
+    assert annotated.tobytes() != raw
+    assert {"original_pixel": 1000, "display_pixel": 300} in meta["ticks"]["x"]
+    assert {"original_pixel": 1200, "display_pixel": 300} in meta["ticks"]["y"]
+
+
+def test_delivery_keeps_numeric_contradiction_and_calibration_warning_with_empty_notes(tmp_path):
+    from tests.test_wall_reference import reference, dimension
+    from src.agent.geometry.proposal_edits import apply_proposal_edits
+    run = _run_with_one_image(tmp_path)
+    toolkit = Toolkit(run)
+    proposal = json.loads(_two_room_proposal())
+    proposal["assumptions"], proposal["unresolved"] = [], []
+    proposal["wall_references"] = [reference("west", "space/left/wall/3", [0, 0.24])]
+    d = dimension(value=240)
+    d["end"]["wall_id"] = "west"
+    d["start"]["pixel"], d["end"]["pixel"] = [1, 2], [2, 2]
+    proposal["wall_dimensions"] = [d]
+    built = toolkit.build(proposal)
+    assert built["source_geometry_ready"]
+    toolkit.project_overlay(built["candidate"], "plan.png", "F1", [[0,0],[10,6]], [[0,4],[7,0]],
+                            "synthetic inconsistent scales", trigger_action="overlay_candidate")
+    result = toolkit.delivery(built["candidate"], selection_origin="agent_selected")
+    assert result["generation"]["unresolved"] == []
+    assert result["wall_dimension_report"]["findings"][0]["code"] == "same_wall_endpoint_order"
+    assert result["source_image_feedback"]["current_source_projections"][0]["calibration_warnings"]
+    page = (run / "delivery.html").read_text()
+    assert "-0.48" in page and ("cross-axis" in page.lower() or "disagree" in page)
+    # A new candidate replaces only the evidence, not the source objects.
+    d["start"]["side"], d["end"]["side"] = "negative", "positive"
+    updated = apply_proposal_edits(proposal, [{"op":"set_wall_references", "wall_references":proposal["wall_references"],
+                                             "wall_dimensions":[d], "reason":"synthetic side correction"}])
+    new = toolkit.build(updated)
+    current = toolkit.delivery(new["candidate"], selection_origin="agent_selected")
+    assert current["wall_dimension_report"]["findings"] == []
+    assert current["source_image_feedback"]["current_source_projections"] == []
+    assert len(current["source_image_feedback"]["old_source_projections"]) == 1
 
 
 def test_detail_review_uses_isolated_image_only_workspace_and_parent_receipt(tmp_path):

@@ -255,6 +255,7 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
         "schema_version": "bim_delivery_v1",
         "source_model_sha256": source_hash,
         "source_validation": copy.deepcopy(source.get("validation")),
+        "wall_dimension_report": copy.deepcopy(source.get("wall_dimension_report")),
         "counts": counts,
         "unbuilt_openings": _as_list(source.get("unbuilt_openings"), "unbuilt_openings"),
         "assumptions": _as_list(source.get("assumptions"), "assumptions"),
