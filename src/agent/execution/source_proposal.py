@@ -16,7 +16,8 @@ from src.agent.geometry.source_bim import build_source_bim, source_view_geometry
 from src.agent.geometry.source_model import _digest
 
 
-_PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration"}
+_PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
+                    "wall_references", "wall_dimensions"}
 
 
 def _json_bytes(value: object, *, indent: int | None = None) -> bytes:
@@ -103,6 +104,12 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             capability_profile="orthogonal_polygon",
             enclosure_declaration=enclosure,
         )
+        if "wall_references" in proposal or "wall_dimensions" in proposal:
+            from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
+            walls = resolve_wall_references(source, proposal.get("wall_references", []))
+            source["wall_references"] = walls
+            source["wall_dimension_report"] = convert_wall_dimensions(walls, proposal.get("wall_dimensions", []))
+            report["wall_dimension_report"] = source["wall_dimension_report"]
         # The standalone BIM must retain the same caveats as its HTML/report.
         # Keep this adapter metadata out of the legacy kernel and its outputs.
         source["assumptions"].extend(assumptions)

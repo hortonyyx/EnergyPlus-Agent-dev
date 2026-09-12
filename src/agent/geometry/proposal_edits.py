@@ -8,7 +8,8 @@ from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.correction.schema import Window
 
 
-_PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration"}
+_PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
+                    "wall_references", "wall_dimensions"}
 _WINDOW_FIELDS = {"facade", "span", "z", "room", "floor", "assumptions"}
 _OPENING_FIELDS = {"space_id", "other_space_id", "p1", "p2", "z", "state", "assumptions"}
 _FACADE_REFLECTIONS = {
@@ -335,6 +336,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
         name = operation["op"]
         if name == "reflect":
             _require_fields(operation, {"op", "axis", "reason"}, operation=name)
+            if result.get("wall_references") or result.get("wall_dimensions"):
+                raise ValueError("reflect: wall reference sides and dimension frame require an explicit revised proposal")
             if result.get("enclosure_declaration"):
                 raise ValueError("reflect: nonempty enclosure_declaration requires an explicit enclosure edit")
             if geometry.get("north_axis") is not None or geometry.get("facade_segments"):
@@ -353,6 +356,17 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _move_shared_wall(result, geometry, operation)
         elif name == "set_notes":
             audit = _set_notes(result, operation)
+        elif name == "set_wall_references":
+            _require_fields(operation, {"op", "wall_references", "wall_dimensions", "reason"}, operation=name)
+            reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+            before = {field: copy.deepcopy(result.get(field, [])) for field in ("wall_references", "wall_dimensions")}
+            for field in before:
+                value = operation.get(field)
+                if not isinstance(value, list):
+                    raise ValueError(f"{name}: {field} must be a list")
+                result[field] = copy.deepcopy(value)
+            audit = {"op": name, "reason": reason, "before": before,
+                     "after": {field: copy.deepcopy(result[field]) for field in before}}
         else:
             raise ValueError(f"unknown proposal edit operation {name!r}")
         corrections.append(audit)

@@ -135,6 +135,39 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
     asyncio.run(scenario())
 
 
+def test_wall_reference_stdio_calculation_persistence_and_feedback(tmp_path):
+    from tests.test_wall_reference import reference, dimension
+
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        async with _server_session(run, readonly=False) as session:
+            built = _json_result(await session.call_tool("build_bim", {"proposal_json": _two_room_proposal()}))
+            candidate = built["candidate"]
+            refs = [reference("west", "space/left/wall/3", [-0.12, 0.12]),
+                    reference("shared", "space/left/wall/1", [-0.12, 0.12])]
+            d = dimension()
+            d["start"]["pixel"], d["end"]["pixel"] = [1, 2], [6, 2]
+            checked = _json_result(await session.call_tool("check_wall_dimensions", {
+                "candidate": candidate, "references_json": json.dumps(refs), "dimensions_json": json.dumps([d])}))
+            assert checked["dimension_report"]["dimensions"][0]["residual_m"] == 0
+            assert checked["boundary_inventory"]
+            await session.call_tool("overlay_candidate", {"candidate": candidate, "image": "plan.png",
+                "floor_id": "F1", "x_anchors": [[1, 0], [10, 6]], "y_anchors": [[6, 0], [1, 4]], "basis": "synthetic"})
+            result = await session.call_tool("revise_bim", {"candidate": candidate, "operations_json": json.dumps([
+                {"op": "set_wall_references", "wall_references": refs, "wall_dimensions": [d], "reason": "synthetic"}])})
+            assert not result.isError
+            assert any(c.type == "image" for c in result.content)
+            revised = _json_result(result)
+            source = json.loads((run / revised["candidate"] / "source_model.json").read_text())
+            assert len(source["wall_references"]) == 2
+            assert source["wall_dimension_report"]["dimensions"][0]["raw_length_m"] == 2.76
+            d["end"]["pixel"] = [12, 2]
+            assert "outside original image" in _error_text(await session.call_tool("check_wall_dimensions", {
+                "candidate": candidate, "references_json": json.dumps(refs), "dimensions_json": json.dumps([d])}))
+
+    asyncio.run(scenario())
+
+
 def test_detail_review_uses_isolated_image_only_workspace_and_parent_receipt(tmp_path):
     run = _run_with_one_image(tmp_path)
     _add_image(run, "unselected.png", "black")

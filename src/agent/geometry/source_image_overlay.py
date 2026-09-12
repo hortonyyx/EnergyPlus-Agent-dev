@@ -160,6 +160,21 @@ def render_source_overlay(
         })
 
     projected_openings = []
+    projected_wall_faces = []
+    for wall in source.get("wall_references", []):
+        if wall["floor_id"] != floor_id:
+            continue
+        faces = wall.get("face_endpoints")
+        pixels = [] if faces is None else [[project(tuple(p)) for p in face] for face in faces]
+        for face in pixels:
+            draw.line([(round(x), round(y)) for x, y in face], fill=(0, 160, 255), width=2)
+        projected_wall_faces.append({
+            "id": wall["id"], "boundary_ids": wall["boundary_ids"],
+            "evidence_status": wall["evidence_status"], "offsets_m": wall.get("offsets_m"),
+            "face_status": "unknown_offsets" if faces is None else "derived_from_declared_offsets",
+            "pixel_faces": [[[round(x, 6), round(y, 6)] for x, y in face] for face in pixels],
+            "out_of_image": any(outside(p) for face in pixels for p in face),
+        })
     for opening in openings:
         if not isinstance(opening, dict) or not isinstance(opening.get("id"), str) or not opening["id"]:
             raise ValueError("source opening requires a nonempty id")
@@ -201,9 +216,13 @@ def render_source_overlay(
         },
         "projected_spaces": projected_spaces,
         "projected_openings": projected_openings,
+        "projected_wall_faces": projected_wall_faces,
+        "legend": {"magenta": "source representative boundary", "blue": "declared wall faces; evidence status in metadata",
+                   "green": "window", "orange": "door/open aperture"},
         "out_of_image": {
             "space_ids": [row["id"] for row in projected_spaces if row["out_of_image"]],
             "opening_ids": [row["id"] for row in projected_openings if row["out_of_image"]],
+            "wall_reference_ids": [row["id"] for row in projected_wall_faces if row["out_of_image"]],
         },
         "unsupported": ["rotation", "perspective", "nonlinear_distortion"],
         "limits": [

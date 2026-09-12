@@ -40,6 +40,40 @@ map_dimension_chain accumulates dimension labels into metre intervals, including
 reversed facade directions, and reports residual against an overall dimension.
 Use it for arithmetic instead of mentally adding long chains. The labels and
 coordinate convention still need image evidence; a closed sum is not proof.
+For wall thickness and annotation baselines, use check_wall_dimensions to list
+actual source wall IDs, then calculate explicit endpoint conversions. Preserve
+the representative room boundaries: offsets describe wall faces and do not move
+rooms or openings. Do not assume an axis is centred or add half a wall thickness
+to close a chain. Unknown offsets remain unknown even if total thickness is known.
+Optional proposal fields wall_references and wall_dimensions persist these facts.
+revise_bim also accepts {"op":"set_wall_references","wall_references":[...],
+"wall_dimensions":[...],"reason":"image basis"}, replacing both whole lists.
+Example wall reference (unrelated to supplied drawings):
+{"id":"wall-A","boundary_id":"space/room/wall/1","offsets_m":[-0.08,0.16],
+"thickness_m":0.24,"reference_basis":"declared representative axis; eccentric",
+"thickness_scope":"unknown layer scope","evidence_status":"inferred",
+"source_refs":["plan.png: local wall band observation or explicit assumption"]}.
+offsets_m are signed along POSITIVE world x for a constant-x wall, or positive
+world y for a constant-y wall, independent of which room owns the boundary.
+Use offsets_m:null when unknown; thickness_m may also be null. Each reference
+covers one complete straight source wall and its congruent counterpart. Partial
+shared walls and explicit enclosure declarations are unsupported here. List only
+local evidence you have; do not fill all walls with one guessed thickness.
+Dimension example: {"id":"dim-A","axis":"x","direction":1,"value":5000,
+"unit":"mm","start":{"wall_id":"wall-A","side":"positive","image":"plan.png",
+"pixel":[100,200]},"end":{"wall_id":"wall-B","side":"negative",
+"image":"plan.png","pixel":[500,200]},"source_refs":["plan.png: visible 5000 label"]}.
+side is negative, positive, representative or unknown; axis labels count as
+representative only if that correspondence is evidenced. Pixels are original
+dimension extension endpoints. Pass dimensions in chain order only when related;
+different wall sides are different chain endpoints. Tools preserve raw labels,
+conversion terms and model residuals separately; they do not verify your reading.
+Check endpoint pixels and world anchors describe the SAME face before calibrating.
+Saved overlays show representative boundaries in magenta and declared wall faces
+in blue, with observed/inferred/unknown status in metadata. A blue face is derived
+from your claim, not independently detected. Geometry edits keep the representative
+plane fixed for thickness updates; move_shared_wall carries attached face offsets
+with the moved wall. Reflection with such evidence requires a full revised proposal.
 Use review_detail (Haiku subscription) when a local second look is useful;
 you choose whether to use it and what substantive local question to ask. It
 runs with only the selected original images and your submitted question, so it
@@ -868,6 +902,33 @@ def serve(run: Path, readonly=False):
 
     if not readonly:
         @server.tool()
+        def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "") -> dict:
+            """List real wall hosts or convert explicit wall-face dimensions without changing geometry.
+            Inputs use GUIDE wall_references/wall_dimensions format. Empty strings
+            reuse saved evidence. Persist new evidence separately via revise_bim.
+            """
+            from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
+            path = toolkit.candidate_path(candidate)
+            source = json.loads((path / "source_model.json").read_text())
+            proposal = json.loads((path / "proposal.json").read_text())
+            references = json.loads(references_json) if references_json else proposal.get("wall_references", [])
+            dimensions = json.loads(dimensions_json) if dimensions_json else proposal.get("wall_dimensions", [])
+            for d in dimensions:
+                for end in ("start", "end"):
+                    endpoint = d[end]
+                    pic = PILImage.open(toolkit.image_path(endpoint["image"]))
+                    x, y = endpoint["pixel"]
+                    if not (0 <= x < pic.width and 0 <= y < pic.height):
+                        raise ValueError("dimension endpoint outside original image")
+            walls = resolve_wall_references(source, references)
+            result = {"candidate": candidate, "source_model_sha256": source["source_model_sha256"],
+                      "walls": walls, "dimension_report": convert_wall_dimensions(walls, dimensions),
+                      "boundary_inventory": [{k: b[k] for k in ("id", "space_id", "vertices", "counterpart_ids")}
+                                             for b in source["boundaries"] if b["geometry_type"] == "wall"]}
+            toolkit.log("check_wall_dimensions", result)
+            return result
+
+        @server.tool()
         def inspect_candidate(candidate: str = "seed") -> dict:
             """Read a saved candidate's proposal and production geometry checks.
             No independent evaluation or reference answer is exposed.
@@ -1049,6 +1110,7 @@ def run_experiment(args):
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
                                  "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
                                  "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
+                                 "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
     if seed_path:
