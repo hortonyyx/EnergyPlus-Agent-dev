@@ -1,0 +1,16 @@
+Transcribe only the OUTERMOST CHAINED dimensions along the LEFT and
+BOTTOM sides of the supplied floor plan: distinguish a chain of subdivisions
+from the single overall dimension and from the inner window/door spacing chains.
+Do not read the whole building or count rooms. Inspect the actual extension lines
+to describe what endpoints the labels measure; leave their reference-face meaning
+uncertain if unclear. Use display_scale=4 on suitable small detail crops and
+coordinate_grid=false when labels obscure drawing text. All returned locations
+must remain in original-image pixels.
+For each of these two chains, return the labels exactly in page order (top-to-bottom
+on the left, left-to-right at the bottom), units, approximate original-pixel boxes
+or extension endpoints, and a brief note separating visible fact from assumption.
+Use map_dimension_chain for arithmetic; do not fill an unlabelled remainder to
+force closure. Compare its sum to the visible overall label, if readable.
+Finish within the remaining time with a compact JSON response, no more than
+400 words. No BIM, old coordinates, room counts, previous observation or GT is
+provided. This is annotation evidence only, not a reconstructed room layout.

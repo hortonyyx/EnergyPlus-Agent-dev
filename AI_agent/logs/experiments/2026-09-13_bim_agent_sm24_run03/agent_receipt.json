@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 480,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 469.54,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 467569,
+    "duration_api_ms": 466539,
+    "ttft_ms": 2318,
+    "ttft_stream_ms": 1852,
+    "time_to_request_ms": 24,
+    "num_turns": 19,
+    "result": "## Summary\n\n**Selected candidate: `candidate_01`** (finished/delivered).\n\n**What was verified and changed from seed:**\nUsing the two supplied mid-level dimension chains plus a pixel-profile scan of `1f_view.png` for full-width wall lines (calibrated against the confirmed-accurate fine window-layout chain), I found the true west-side partition walls at pixel y≈296/403/583 → world y≈15.94/13.0/8.06 (from north=20), matching the 4060/2940/4940/8060mm chain exactly. This contradicted the seed's furniture-guessed boundaries (17.734/13.74/11.04/6.28) and revealed:\n- **Office2+Office3 were falsely split**: no wall exists between the two mirrored wardrobe/desk furniture groups — merged into one `Office2` cell (8.06–13.0m), preserving both of its original doors as two distinct openings (not dropped).\n- **Reception** deepened from [17.734,20] to [15.94,20] (the y=15.94 wall is full-width, also correcting **TopRightRoom**'s upper bound to match, avoiding overlap).\n- **Office1** resized to [13.0,15.94]; **MeetingDining** enlarged to [0,8.06]; **Corridor** polygon's north end lowered to 15.94 accordingly.\n- Doors on the relocated walls (D_Rec_Corridor, D_Corridor_TopRightRoom, D_Corridor_Office1) were shifted to stay on their new host walls (not independently pixel-re-measured — flagged as such).\n\nBuild/finish checks passed (source_validation \"pass\", 0 unbuilt/unsupported openings, 8 spaces/22 openings/11 connections).\n\n**Explicitly unresolved / not verified:**\n- East-column partitions (TopRightRoom lower bound, MeetingRoomBig/BottomRightOffice split at y=7.3) were **not** re-derived from a matching chain/pixel-scan — carried over from a prior seed revision.\n- The south mid-chain (4180/1640/4180mm) suggests the corridor's real x-faces may be [4.18,5.82] vs. the seed's [3.767,5.843] — a possible ~0.4m discrepancy left unexamined due to time budget.\n- Door swing states/directions remain \"unknown,\" not verified pixel-by-pixel.\n- Wall thickness/offsets not surveyed via `check_wall_dimensions` (centerline geometry only).\n- **Opening review was not run this pass** (`review_status: not_reviewed` for all door/window scopes) — the delivery record correctly shows no completed opening review, only the geometric/self-consistency checks.\n- No overlay/elevation cross-check was performed in this pass due to time constraints; only in-plan pixel evidence was used for the west-column correction.",
+    "stop_reason": "end_turn",
+    "session_id": "4ba2759f-d87f-40fd-9dd3-2e1c6cf1df26",
+    "total_cost_usd": 1.2820289999999999,
+    "usage": {
+      "input_tokens": 30,
+      "cache_creation_input_tokens": 87592,
+      "cache_read_input_tokens": 579560,
+      "output_tokens": 38714,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 87592,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 955,
+          "cache_read_input_tokens": 77810,
+          "cache_creation_input_tokens": 9782,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 9782
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 1719,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001809,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 30,
+        "outputTokens": 38714,
+        "cacheReadInputTokens": 579560,
+        "cacheCreationInputTokens": 87592,
+        "webSearchRequests": 0,
+        "costUSD": 1.28022,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "377cc345-ea78-4bad-896a-d6991289a9cd"
+  }
+}

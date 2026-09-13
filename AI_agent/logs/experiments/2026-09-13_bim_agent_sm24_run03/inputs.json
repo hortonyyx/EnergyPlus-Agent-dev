@@ -1,0 +1,61 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "Resume this saved BIM from the original drawings, focusing on physical\nroom partitions and continuous spaces. A separate local model observation of\ntwo annotation chains follows unchanged. It is a hypothesis from the original,\nnot a GT answer: verify its labels and endpoint meaning against the supplied\nplan before relying on it. Distinguish room/footprint subdivisions from chains\nof window and door widths/gaps; a sum alone does not establish a partition.\nUse available deterministic chain/pixel calculations for arithmetic. Small\ndetail crops may use display_scale=4 while all locations remain original pixels.\nInspect the seed source plan, compare actual wall extents to the annotated\ndivisions and visible physical boundaries, and revise substantive discrepancies.\nPreserve genuine continuous/nonrectangular spaces; do not invent a wall to make\nrectangles or assume separate furniture groups are separate rooms. The seed and\nits statements of verification may be wrong. Preserve reliable exterior aperture\ngeometry, and reassign hosts consistently if the physical spaces change. A\nrejected inferred partition may require removing a falsely inferred door with\nexplicit drawing evidence; distinct visible doors must not be silently dropped.\nUse a full revised proposal if local edits cannot represent the required change.\nSave useful changes early, inspect the resulting source against the original,\nrecord unresolved items honestly, and select the saved candidate with finish_bim.\nThis is a local-observation-assisted recovery, not a new cold start. Do not do\nanother whole-building reading or spend this budget refining wall thickness.\n\nUNMODIFIED LOCAL OBSERVATION:\n```json\n{\n  \"left_side_outermost_chain\": {\n    \"labels_mm\": [4060, 2940, 4940, 8060],\n    \"order\": \"top-to-bottom\",\n    \"sum_mm\": 20000,\n    \"overall_label_seen\": \"20000 (single dimension in a separate, more-outer line at x≈50-70px)\",\n    \"closure\": \"sum matches overall exactly (verified via map_dimension_chain)\",\n    \"approx_pixel_boxes\": [\n      {\"label\": \"4060\", \"box\": [110, 195, 150, 255], \"endpoints_note\": \"extension ticks at y≈160 and y≈290 orig px, aligned to wall/opening jambs near top-left corner\"},\n      {\"label\": \"2940\", \"box\": [110, 300, 150, 370]},\n      {\"label\": \"4940\", \"box\": [110, 400, 150, 530]},\n      {\"label\": \"8060\", \"box\": [110, 590, 150, 850]}\n    ],\n    \"fact_vs_assumption\": \"Fact: this is a 4-segment chain distinct from both the single '20000' outer label (further left, x≈60) and the finer inner chain (540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540) closer to the wall (x≈180-235). Assumption: exact tick pixel coordinates are approximate; reference face (wall centerline vs. face) not determinable from this view.\"\n  },\n  \"bottom_side_outermost_chain\": {\n    \"labels_mm\": [4180, 1640, 4180],\n    \"order\": \"left-to-right\",\n    \"sum_mm\": 10000,\n    \"overall_label_seen\": \"10000 (single dimension in separate line at y≈1030, further from building than this chain)\",\n    \"closure\": \"sum matches overall exactly (verified via map_dimension_chain)\",\n    \"approx_pixel_boxes\": [\n      {\"label\": \"4180\", \"box\": [245, 965, 405, 1000], \"endpoints_note\": \"ticks at x≈245 and x≈405 orig px on line y≈980\"},\n      {\"label\": \"1640\", \"box\": [405, 965, 450, 1000]},\n      {\"label\": \"4180\", \"box\": [450, 965, 615, 1000]}\n    ],\n    \"fact_vs_assumption\": \"Fact: 3-segment chain sits between the finer 7-segment chain (540/1500/2500/900/2520/1500/540, y≈900-915, closest to wall) and the single '10000' overall (y≈1030, furthest out). Assumption: pixel box y-bounds are approximate; whether ticks land on wall face, centerline, or door jamb is not confirmed from this crop.\"\n  },\n  \"note\": \"Both chains identified are the middle-level subdivisions, not the innermost fine (door/window) spacing chain nor the outermost single overall dimension. No room counting or building-wide inference performed.\"\n}\n```",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789269142.6218708,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "23f9ca7804854e649cf9ebc4fdc9a418c8e94e7f199231498f72d54b49e7cfd2",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "50f9edd2dbeb933a019b8791bcf5d7d47f68708fca9e6007c857919d18e53423",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "264b7f902d8663cfb2b2cb32947dc43fe7034b2e67953e2a965a497fd0626400",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-13_bim_agent_sm24_run02/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "agent_assumptions": [
+    "North=plan top, South=plan bottom, West=plan left, East=plan right (unchanged from seed).",
+    "REVISION: mid-level west dimension chain (4060/2940/4940/8060mm, sum=20000) and pixel-profile wall detection (full-width gray wall lines at original pixel y=296,403,583, matching predicted offsets from a calibrated 150->876px=0..20000mm axis) show the true west-side partition walls are at world y=15.94, 13.0, 8.06 (measuring from north=20). This does NOT match the seed's furniture-based guesses (17.734/13.74/11.04/6.28).",
+    "REVISION: Between the west partitions at y=13.0 and y=8.06 (a 4.94m-tall room), the drawing shows two mirrored wardrobe+desk furniture groups but NO dividing wall (pixel scan found a single full-width wall only at y=403 and y=583 px, none at the visually-expected midpoint ~499px). Per scope guidance, this is ONE room with two symmetric furniture groups, not two separate offices. Seed's Office2 and Office3 are merged into one cell 'Office2'.",
+    "REVISION: the same y=296px (world y=15.94) wall is a full-width wall (visible spanning both the west column and the east/sofa-room column in the plan), so it is also the correct Reception/TopRightRoom boundary, replacing the seed's mistaken 17.734 value on both sides.",
+    "MeetingDining south partition unaffected (still the building's south exterior wall at y=0); its north boundary moves from the seed's furniture-based 6.28 to the measured 8.06.",
+    "Doors D_Rec_Corridor and D_Corridor_TopRightRoom, whose hosting wall moved from y=17.734 to y=15.94, are shifted by the same delta so they still sit on their host wall; exact pixel arc position not independently re-measured (approximate, evidenced by wall relocation only).",
+    "Door D_Corridor_Office1 (on the vertical corridor wall) is shifted down proportionally to remain inside the resized Office1 cell; not pixel-verified beyond staying inside the new bounds.",
+    "Doors D_Corridor_Office2 and D_Corridor_Office3 (renamed target 'Office2') keep their original pixel-based coordinates unchanged; both already fall inside the merged room's new bounds, so both apertures (two distinct visible arcs) are preserved rather than dropped.",
+    "West-facade window spans (already pixel-matched to the fine inner dimension chain in a prior pass) are unchanged; only their 'room' host field is corrected to the merged/resized cells.",
+    "Exact interior door swing directions and leaf widths not verified pixel-by-pixel.",
+    "Wall thickness taken as nominal 240mm per plan label; representative centerline geometry used (offsets_m unknown).",
+    "Corridor spine x-extent (3.767 to 5.843) unchanged from seed; not independently re-derived from the south mid-chain (4180/1640/4180) in this pass -- left as an unresolved possible discrepancy.",
+    "East-side room partitions (MeetingRoomBig/BottomRightOffice boundary at y=7.3, from the prior East-elevation-based revision) retained unchanged; not re-examined in this pass.",
+    "Single floor building (only 1F plan supplied); elevations show only ground floor height (4.5m)."
+  ],
+  "counts": {
+    "boundaries": 52,
+    "connections": 11,
+    "openings": 22,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "2e4f80f37eea46eb90bea0da770ee46ceadf46d25083487e60d764f7caf9b6b0",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "c30e162ca23437f855f3e2780f79dfe0174e028d15c1cbf11e904f7e26711d4a",
+    "mode": "saved_candidate_recovery"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "cbad35fc8b766448892640c59d53ef060c6b3f01542ab6b1cb371cc931ea6a2b",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "East-side (right column) partitions not independently re-derived from a matching dimension chain in this pass; TopRightRoom's lower bound (14.38) and MeetingRoomBig/BottomRightOffice split (7.3) carried over from the prior seed revision, not re-verified against a pixel-profile scan like the west column.",
+    "Corridor x-extent (3.767 to 5.843) not re-derived from the south mid-chain (4180/1640/4180mm); left unchanged from seed. If that chain in fact marks the corridor's real wall faces at x=4.18/5.82, the corridor and adjoining MeetingDining/BottomRightOffice x-boundaries may need a further ~0.4m correction.",
+    "Doors whose host wall moved (D_Rec_Corridor, D_Corridor_TopRightRoom, D_Corridor_Office1) were shifted by calculation/proportion to remain valid, not re-measured from door-arc pixels directly.",
+    "Wall thicknesses/offsets not surveyed via check_wall_dimensions (representative centerline geometry only).",
+    "Door swing directions/states remain unknown/unverified."
+  ]
+}

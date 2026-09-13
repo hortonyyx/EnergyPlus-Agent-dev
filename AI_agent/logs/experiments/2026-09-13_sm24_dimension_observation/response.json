@@ -1,0 +1,13 @@
+{
+  "actual_model": "claude-haiku-4-5-20251001",
+  "timed_out": false,
+  "completed": true,
+  "result": "## OUTERMOST DIMENSION CHAINS\n\nBased on visual inspection and verification with map_dimension_chain, here is the transcription:\n\n```json\n{\n  \"bottom_side\": {\n    \"overall_dimension\": {\n      \"label\": \"10000\",\n      \"unit\": \"mm\",\n      \"pixel_box\": [380, 1020, 520, 1050],\n      \"note\": \"Single overall dimension spanning full width, extension lines at y≈1030\"\n    },\n    \"subdivision_chain\": {\n      \"labels_left_to_right\": [\"540\", \"1500\", \"2500\", \"900\", \"2520\", \"1500\", \"540\"],\n      \"unit\": \"mm\",\n      \"pixel_positions\": [\n        [215, 900, 285, 925],\n        [280, 900, 345, 925],\n        [365, 900, 435, 925],\n        [425, 900, 480, 925],\n        [480, 900, 555, 925],\n        [550, 900, 615, 925],\n        [605, 900, 675, 925]\n      ],\n      \"sum_verification\": \"540+1500+2500+900+2520+1500+540 = 10000 ✓\",\n      \"note\": \"Outermost chain on bottom perimeter; extension ticks mark segment boundaries\"\n    }\n  },\n  \"left_side\": {\n    \"overall_dimension\": {\n      \"label\": \"20000\",\n      \"unit\": \"mm\",\n      \"pixel_location\": [45, 400, 75, 600],\n      \"note\": \"Single overall dimension on far-left edge spanning full height\"\n    },\n    \"subdivision_chain_incomplete\": {\n      \"labels_top_to_bottom\": [\"4050\", \"2940\", \"4940\", \"2000\"],\n      \"unit\": \"mm\",\n      \"pixel_positions\": [\n        [65, 140, 100, 160],\n        [65, 210, 100, 230],\n        [65, 290, 100, 310],\n        [65, 480, 100, 500]\n      ],\n      \"sum\": \"13930\",\n      \"gap\": \"6070 mm unaccounted (expected 20000)\",\n      \"note\": \"Visible subdivisions do not close to 20000; additional labels below y≈500 likely present but obscured or not in scope of outermost chain observation\"\n    }\n  }\n}\n```\n\n**Key Distinction:** BOTTOM subdivision chain fully closes to overall 10000. LEFT chain shows incomplete capture—6.07 m gap indicates additional subdivisions exist below visible area or represent non-perimeter edge subdivisions. Extension lines clearly mark top-to-bottom and left-to-right measurement spans. No inner window/door spacing chains reported as requested.",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "ee4958686c1138efa85fb40f4854599453b2a7e3b0680516d34a46406fa86a8b",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  }
+}

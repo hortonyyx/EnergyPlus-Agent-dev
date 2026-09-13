@@ -21,7 +21,9 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 `review_detail(question, images)` 由总 Agent 自选局部问题和原图，可不调用。每次只把选中的原图副本与原样问题放入独立只读目录 `detail_XX/`；局部 Haiku 不获得主任务 scope、seed、候选、其他原图或旧评价，也不能再次派工或改 BIM。图像与输入清单保存摘要，父目录保留对应请求、流记录和回执；局部成本随主调用汇总一次。文件隔离不清洗问题文本，主模型若在问题里带答案，仍可能影响观察。
 
-09-13 已把实际局部截止时间写入子清单后再计算摘要：取240秒上限与父任务剩余时间（预留45秒收尾）中较短者，拷图耗时也计入。子任务的 `inputs` / `view_image` 现在可显示递减剩余时间；只读提示提醒及时交付并标明未核范围。此前局部观察即使有外层超时，工具仍显示 null，见[真实反例与修复](../logs/worklog/2026-09-13_reconstruction_partition_and_reading.md)。离线时间传达检查通过不代表模型已能按时给出正确观察，修复后尚未重新调用模型验证。
+09-13 已把实际局部截止时间写入子清单后再计算摘要：取240秒上限与父任务剩余时间（预留45秒收尾）中较短者，拷图耗时也计入。子任务的 `inputs` / `view_image` 现在可显示递减剩余时间；只读提示提醒及时交付并标明未核范围。此前局部观察即使有外层超时，工具仍显示 null，见[真实反例与修复](../logs/worklog/2026-09-13_reconstruction_partition_and_reading.md)。随后两墙局部返工已实际收到剩时并在215.94秒结束，但修正观察仍不可用；这不证明时间反馈使识读可靠，见[后续实跑](../logs/worklog/2026-09-13_reconstruction_annotation_recovery.md)。
+
+09-13 细节查看已支持 `view_image(..., display_scale=4)`：默认1保持原呈现，显式1–8倍按最近邻显示，长边最多1600。`box_original_pixels` 仍是原图框，实际倍率及 `original_pixels_per_returned_pixel` 按最终尺寸返回；`coordinate_grid=false` 可去掉辅助网格。显示缩放不修改原图、不改变 `pixel_profile` 量测输入，也不作为识读正确证明。Sonnet（含只读局部观察）显式使用medium推理档，Haiku保持不传effort；原始实验回执中的旧设置不回写。
 
 单次局部观察上限 240 秒，还会按主任务剩余时间缩短，预留 45 秒供主模型收尾；不足 15 秒观察预算时不启动。超时、进程失败和未完成回答须按返回的完成状态处理，局部文字仍只是待核线索，没有自动重试或模型回退。主任务的原图保真验收与这些工具执行状态分别记录。
 

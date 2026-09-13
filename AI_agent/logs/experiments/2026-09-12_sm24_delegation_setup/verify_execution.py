@@ -56,7 +56,13 @@ def audit_stream(run, prefix, image_root):
                     original = Image.open(image_root / args["name"]).convert("RGB")
                     box = args.get("box") or [0,0,original.width,original.height]
                     expected = original.crop(box)
-                    expected.thumbnail((1600,1600))
+                    requested_scale = args.get("display_scale", 1)
+                    if requested_scale == 1:
+                        expected.thumbnail((1600,1600))
+                    else:
+                        scale = min(requested_scale, 1600 / max(expected.size))
+                        expected = expected.resize(tuple(max(1, round(n * scale)) for n in expected.size),
+                                                   Image.Resampling.NEAREST)
                     grid = {"shown":False}
                     if args.get("coordinate_grid", True):
                         expected, grid = coordinate_grid_view(expected, box)

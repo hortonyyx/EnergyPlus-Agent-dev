@@ -1,0 +1,76 @@
+{
+  "mode": "post_generation_read_only_source_audit",
+  "run": "2026-09-13_bim_agent_sm24_run03",
+  "candidate": "candidate_01",
+  "scope": "Compare the staged seed and emitted source objects. GT is excluded from these input and object checks.",
+  "manifest_checks": {
+    "all_images_match_inputs_json": true,
+    "images": {
+      "1f_view.png": {"sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350", "matches_inputs_json": true},
+      "East_view.png": {"sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8", "matches_inputs_json": true},
+      "North_view.png": {"sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a", "matches_inputs_json": true},
+      "South_view.png": {"sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766", "matches_inputs_json": true},
+      "West_view.png": {"sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d", "matches_inputs_json": true}
+    },
+    "all_implementation_files_match_inputs_json": true,
+    "implementation": {
+      "scripts/tool_scripts/run_bim_agent.py": {"sha256": "23f9ca7804854e649cf9ebc4fdc9a418c8e94e7f199231498f72d54b49e7cfd2", "matches_inputs_json": true},
+      "src/agent/execution/source_proposal.py": {"sha256": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e", "matches_inputs_json": true},
+      "src/agent/geometry/proposal_edits.py": {"sha256": "50f9edd2dbeb933a019b8791bcf5d7d47f68708fca9e6007c857919d18e53423", "matches_inputs_json": true},
+      "src/agent/geometry/opening_review.py": {"sha256": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953", "matches_inputs_json": true},
+      "src/agent/geometry/bim_delivery.py": {"sha256": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65", "matches_inputs_json": true},
+      "src/agent/geometry/source_image_overlay.py": {"sha256": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946", "matches_inputs_json": true},
+      "src/agent/geometry/source_elevation_view.py": {"sha256": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc", "matches_inputs_json": true},
+      "src/agent/geometry/source_bim.py": {"sha256": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab", "matches_inputs_json": true},
+      "src/agent/geometry/wall_reference.py": {"sha256": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768", "matches_inputs_json": true},
+      "src/agent/geometry/dimension_chain.py": {"sha256": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073", "matches_inputs_json": true}
+    },
+    "seed_proposal": {
+      "sha256": "264b7f902d8663cfb2b2cb32947dc43fe7034b2e67953e2a965a497fd0626400",
+      "matches_inputs_json": true
+    }
+  },
+  "source_hashes": {
+    "run_summary_file_sha256": "2b59544ffbed3d523593ebe731c6d0ce6620d68ae60f72a9ba6d99b080574e92",
+    "seed_source_file_sha256": "e141480e79309af31cf21186f030907fdb2df216f874e1573168628f8520e2eb",
+    "seed_declared_source_model_sha256": "7077c3ed413dc52dd9b4eea8b1c63f202e8fbe3addf528476c4d931c6d664c33",
+    "final_source_file_sha256": "a7206e56cf7562887fc3d73a38d1587d9e685499f48edcf66a893b64f5f766e2",
+    "final_declared_source_model_sha256": "cbad35fc8b766448892640c59d53ef060c6b3f01542ab6b1cb371cc931ea6a2b",
+    "note": "File SHA-256 and the model's declared content SHA-256 are different namespaces; neither is compared as equality to the other."
+  },
+  "object_inventory": {
+    "seed": {"spaces": 9, "boundaries": 58, "doors": 11, "windows": 11, "connections": 11},
+    "final": {"spaces": 8, "boundaries": 52, "doors": 11, "windows": 11, "connections": 11},
+    "door_id_set_preserved": true,
+    "window_id_set_preserved": true,
+    "connection_opening_id_set_preserved": true
+  },
+  "physical_source_changes": {
+    "spaces_removed": ["Office3"],
+    "spaces_unchanged": ["BottomRightOffice", "MeetingRoomBig"],
+    "space_y_intervals_changed": {
+      "Corridor": {"seed": [0.0, 17.734], "final": [0.0, 15.94]},
+      "MeetingDining": {"seed": [0.0, 6.28], "final": [0.0, 8.06]},
+      "Office1": {"seed": [13.74, 17.734], "final": [13.0, 15.94]},
+      "Office2": {"seed": [11.04, 13.74], "final": [8.06, 13.0]},
+      "Reception": {"seed": [17.734, 20.0], "final": [15.94, 20.0]},
+      "TopRightRoom": {"seed": [14.38, 17.734], "final": [14.38, 15.94]}
+    },
+    "doors_with_changed_physical_fields": {
+      "D_Rec_Corridor": {"seed_y": [17.734, 17.734], "final_y": [15.94, 15.94], "host_and_spaces_unchanged": true},
+      "D_Corridor_Office1": {"seed_y": [15.24, 16.24], "final_y": [14.1, 14.84], "host_and_spaces_unchanged": true},
+      "D_Corridor_TopRightRoom": {"seed_y": [15.56, 16.56], "final_y": [14.94, 15.94], "host_and_spaces_unchanged": true},
+      "D_Corridor_Office3": {"vertices_unchanged": true, "seed_host_and_spaces": ["space/Corridor/wall/7", ["Corridor", "Office3"]], "final_host_and_spaces": ["space/Corridor/wall/7", ["Corridor", "Office2"]]}
+    },
+    "doors_with_unchanged_physical_fields": ["D_Corridor_BottomRightOffice", "D_Corridor_MeetingDining", "D_Corridor_MeetingRoomBig", "D_Corridor_Office2", "D_E_Side", "D_N_Main", "D_S_Rear"],
+    "windows_with_changed_physical_fields": {
+      "W_W_Office3": {"vertices_unchanged": true, "seed_host_and_spaces": ["space/Office3/wall/3", ["Office3"]], "final_host_and_spaces": ["space/Office2/wall/3", ["Office2"]]}
+    },
+    "windows_with_unchanged_physical_fields_count": 10,
+    "connections_with_changed_physical_fields": {
+      "D_Corridor_Office3": {"seed_space_ids": ["Corridor", "Office3"], "final_space_ids": ["Corridor", "Office2"]}
+    },
+    "connections_with_unchanged_physical_fields_count": 10
+  },
+  "audit_limit": "This detects actual serialized source-object changes and input hash matches. It does not establish that an unchanged or moved wall/opening agrees with the drawing."
+}

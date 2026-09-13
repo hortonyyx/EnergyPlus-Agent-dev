@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from contextlib import asynccontextmanager
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -133,6 +135,59 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
 
             Image.new("RGB", (12, 8), "black").save(run / "images/plan.png")
             assert "input image changed" in _error_text(await session.call_tool("view_image", {"name": "plan.png"}))
+
+    asyncio.run(scenario())
+
+
+def test_view_image_opt_in_display_scale_preserves_original_pixels_and_caps_output(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        pattern = Image.new("RGB", (5, 4))
+        pattern.putdata([
+            (x * 40, y * 60, (x + y) * 20)
+            for y in range(pattern.height) for x in range(pattern.width)
+        ])
+        pattern_path = run / "images" / "pattern.png"
+        pattern.save(pattern_path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["pattern.png"] = {
+            "size": list(pattern.size), "sha256": digest(pattern_path)}
+        (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+        before = digest(pattern_path)
+        async with _server_session(run, readonly=True) as session:
+            default = await session.call_tool("view_image", {
+                "name": "pattern.png", "box": [1, 1, 3, 3], "coordinate_grid": False})
+            default_meta = json.loads(default.content[1].text)
+            assert default_meta["returned_size"] == [2, 2]
+            assert default_meta["display_scale_requested"] == 1.0
+            assert default_meta["display_scale_actual"] == [1.0, 1.0]
+
+            scaled = await session.call_tool("view_image", {
+                "name": "pattern.png", "box": [1, 1, 3, 3], "coordinate_grid": False,
+                "display_scale": 4})
+            scaled_meta = json.loads(scaled.content[1].text)
+            returned = Image.open(io.BytesIO(base64.b64decode(scaled.content[0].data))).convert("RGB")
+            expected = pattern.crop((1, 1, 3, 3)).resize((8, 8), Image.Resampling.NEAREST)
+            assert returned.tobytes() == expected.tobytes()
+            assert scaled_meta["returned_size"] == [8, 8]
+            assert scaled_meta["display_scale_requested"] == 4.0
+            assert scaled_meta["display_scale_actual"] == [4.0, 4.0]
+            assert scaled_meta["box_original_pixels"] == [1, 1, 3, 3]
+            assert scaled_meta["original_pixels_per_returned_pixel"] == [0.25, 0.25]
+
+        large = Image.new("RGB", (400, 100), "white")
+        large_path = run / "images" / "large.png"
+        large.save(large_path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["large.png"] = {"size": list(large.size), "sha256": digest(large_path)}
+        (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+        async with _server_session(run, readonly=True) as session:
+            capped = await session.call_tool("view_image", {
+                "name": "large.png", "coordinate_grid": False, "display_scale": 8})
+            capped_meta = json.loads(capped.content[1].text)
+            assert capped_meta["returned_size"] == [1600, 400]
+            assert capped_meta["display_scale_actual"] == [4.0, 4.0]
+        assert digest(pattern_path) == before
 
     asyncio.run(scenario())
 

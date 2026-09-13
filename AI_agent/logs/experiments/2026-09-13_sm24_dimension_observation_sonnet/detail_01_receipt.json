@@ -1,0 +1,89 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 179.8698616027832,
+  "effort": "medium",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "33362381bc3749cd72ae9e9bb1f0379117fe5d0f1371f513e9bee7652c96f6d7",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 41.59,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 39751,
+    "duration_api_ms": 39573,
+    "ttft_ms": 2078,
+    "ttft_stream_ms": 1694,
+    "time_to_request_ms": 23,
+    "num_turns": 7,
+    "result": "```json\n{\n  \"left_side_outermost_chain\": {\n    \"labels_mm\": [4060, 2940, 4940, 8060],\n    \"order\": \"top-to-bottom\",\n    \"sum_mm\": 20000,\n    \"overall_label_seen\": \"20000 (single dimension in a separate, more-outer line at x≈50-70px)\",\n    \"closure\": \"sum matches overall exactly (verified via map_dimension_chain)\",\n    \"approx_pixel_boxes\": [\n      {\"label\": \"4060\", \"box\": [110, 195, 150, 255], \"endpoints_note\": \"extension ticks at y≈160 and y≈290 orig px, aligned to wall/opening jambs near top-left corner\"},\n      {\"label\": \"2940\", \"box\": [110, 300, 150, 370]},\n      {\"label\": \"4940\", \"box\": [110, 400, 150, 530]},\n      {\"label\": \"8060\", \"box\": [110, 590, 150, 850]}\n    ],\n    \"fact_vs_assumption\": \"Fact: this is a 4-segment chain distinct from both the single '20000' outer label (further left, x≈60) and the finer inner chain (540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540) closer to the wall (x≈180-235). Assumption: exact tick pixel coordinates are approximate; reference face (wall centerline vs. face) not determinable from this view.\"\n  },\n  \"bottom_side_outermost_chain\": {\n    \"labels_mm\": [4180, 1640, 4180],\n    \"order\": \"left-to-right\",\n    \"sum_mm\": 10000,\n    \"overall_label_seen\": \"10000 (single dimension in separate line at y≈1030, further from building than this chain)\",\n    \"closure\": \"sum matches overall exactly (verified via map_dimension_chain)\",\n    \"approx_pixel_boxes\": [\n      {\"label\": \"4180\", \"box\": [245, 965, 405, 1000], \"endpoints_note\": \"ticks at x≈245 and x≈405 orig px on line y≈980\"},\n      {\"label\": \"1640\", \"box\": [405, 965, 450, 1000]},\n      {\"label\": \"4180\", \"box\": [450, 965, 615, 1000]}\n    ],\n    \"fact_vs_assumption\": \"Fact: 3-segment chain sits between the finer 7-segment chain (540/1500/2500/900/2520/1500/540, y≈900-915, closest to wall) and the single '10000' overall (y≈1030, furthest out). Assumption: pixel box y-bounds are approximate; whether ticks land on wall face, centerline, or door jamb is not confirmed from this crop.\"\n  },\n  \"note\": \"Both chains identified are the middle-level subdivisions, not the innermost fine (door/window) spacing chain nor the outermost single overall dimension. No room counting or building-wide inference performed.\"\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "66733772-9e76-455c-869d-d188f27f8b57",
+    "total_cost_usd": 0.1034278,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 9387,
+      "cache_read_input_tokens": 17226,
+      "output_tokens": 2734,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 9387,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 949,
+          "cache_read_input_tokens": 7493,
+          "cache_creation_input_tokens": 1894,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1894
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 798,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000898,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 10,
+        "outputTokens": 2734,
+        "cacheReadInputTokens": 17226,
+        "cacheCreationInputTokens": 9387,
+        "webSearchRequests": 0,
+        "costUSD": 0.10252979999999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "d3bb03eb-a05e-40d3-9332-2ffc01d40340"
+  }
+}

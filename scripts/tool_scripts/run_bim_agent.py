@@ -339,7 +339,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                                     "Check inputs or view_image metadata for remaining_seconds, answer early, "
                                     "and near the limit state explicit unexamined items. Do not plan the whole building."
                                     if readonly else GUIDE)]
-    if not readonly:
+    if not readonly or model == "sonnet":
         command.extend(["--effort", "medium"])
     server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run)]
     if readonly:
@@ -349,7 +349,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     started = time.monotonic()
     record = {"requested_model": model, "channel": "Claude subscription; no API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
-              "effort": None if readonly else "medium"}
+              "effort": "medium" if not readonly or model == "sonnet" else None}
     if receipt_context:
         record.update(receipt_context)
     dump(log_run / f"{name}_request.json", {**record, "prompt": prompt,
@@ -899,8 +899,11 @@ class Toolkit:
             "drawing_fidelity": "not_evaluated",
         }
 
-    def view(self, name, box=None, coordinate_grid=True):
+    def view(self, name, box=None, coordinate_grid=True, display_scale=1.0):
         from mcp.server.fastmcp import Image
+        if (not isinstance(display_scale, (int, float)) or isinstance(display_scale, bool)
+                or not 1 <= display_scale <= 8):
+            raise ValueError("display_scale must be a number from 1 through 8")
         with PILImage.open(self.image_path(name)) as raw:
             pic = raw.convert("RGB")
             original_size = list(pic.size)
@@ -910,13 +913,26 @@ class Toolkit:
                 if not (0 <= x0 < x1 <= pic.width and 0 <= y0 < y1 <= pic.height):
                     raise ValueError("crop outside original image bounds")
                 pic = pic.crop(box)
-            pic.thumbnail((1600,1600))
+            crop_size = pic.size
+            if display_scale == 1:
+                # Preserve the existing default presentation, including its
+                # downsampling behaviour for large full-image views.
+                pic.thumbnail((1600,1600))
+            else:
+                # Calculate the capped target before resizing so a high requested
+                # scale never creates a large temporary bitmap.
+                actual_scale = min(float(display_scale), 1600 / max(crop_size))
+                target_size = tuple(max(1, round(length * actual_scale)) for length in crop_size)
+                pic = pic.resize(target_size, PILImage.Resampling.NEAREST)
             grid = {"shown": False}
             if coordinate_grid:
                 pic, grid = coordinate_grid_view(pic, region)
             data = io.BytesIO(); pic.save(data, "PNG")
+        actual_scale = [pic.width / crop_size[0], pic.height / crop_size[1]]
         metadata = {"name": name, "original_size": original_size, "coordinate_grid": grid,
                     "box_original_pixels": region, "returned_size": list(pic.size),
+                    "display_scale_requested": display_scale,
+                    "display_scale_actual": actual_scale,
                     "original_pixels_per_returned_pixel": [
                         (region[2] - region[0]) / pic.width,
                         (region[3] - region[1]) / pic.height],
@@ -966,12 +982,14 @@ def serve(run: Path, readonly=False):
         return {**toolkit.manifest, "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
-    def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True):
+    def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True,
+                   display_scale: float = 1.0):
         """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
         Full views fit 1600 px; grid labels keep original coordinates after scaling.
+        Use display_scale=4 for small text or thin lines; coordinates stay original pixels.
         Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.
         """
-        return toolkit.view(name, box, coordinate_grid)
+        return toolkit.view(name, box, coordinate_grid, display_scale)
 
     @server.tool()
     def pixel_profile(name: str, box: list[int], axis: str,
