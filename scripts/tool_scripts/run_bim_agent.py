@@ -138,6 +138,10 @@ to move a wall. Other nonzero dimension residuals may be genuine geometric or
 baseline differences and require image judgement; zero is not a fidelity verdict.
 Image views show a labelled grid in ORIGINAL pixel coordinates by default.
 Read its labels for crops/calibration, not the displayed thumbnail width/height.
+When the requested space is not securely located, view_pixel_region_overview
+shows numbered color-connected candidates on the entire original. Compare their
+full context before choosing a candidate seed for view_pixel_region. Candidate
+IDs are image regions, not automatically rooms; furniture can form regions too.
 view_pixel_region can locate a background region from your chosen seed/color;
 its contour may follow door symbols or leak and is not a physical wall verdict.
 For a complete local room contour, preview_space_trace can overlay ordered original-pixel
@@ -1147,6 +1151,23 @@ class Toolkit:
         return [Image(data=data.getvalue(), format="png"), json.dumps(result)]
 
 
+    def pixel_region_overview(self, name, background_rgb, tolerance, min_pixels, max_regions, include_border):
+        from src.agent.geometry.pixel_region_overview import render_pixel_region_overview
+        with PILImage.open(self.image_path(name)) as original:
+            picture, record = render_pixel_region_overview(original, background_rgb=background_rgb,
+                tolerance=tolerance, min_pixels=min_pixels, max_regions=max_regions, include_border=include_border)
+        folder = self.run / "pixel_region_overviews"
+        folder.mkdir(exist_ok=True)
+        overview_id = f"overview_{len(list(folder.glob('overview_*.json'))) + 1:03d}"
+        picture.save(folder / f"{overview_id}.png")
+        record.update(overview_id=overview_id, name=name, image_sha256=digest(self.image_path(name)),
+                      overview_image=f"pixel_region_overviews/{overview_id}.png",
+                      remaining_seconds=self.remaining_seconds())
+        dump(folder / f"{overview_id}.json", record)
+        self.log("view_pixel_region_overview", record)
+        buffer = io.BytesIO(); picture.save(buffer, "PNG")
+        return [Image(data=buffer.getvalue(), format="png"), json.dumps(record)]
+
     def pixel_region(self, name, seed_pixel, background_rgb, tolerance, simplify_pixels):
         from src.agent.geometry.pixel_region import render_pixel_region
         with PILImage.open(self.image_path(name)) as original:
@@ -1244,6 +1265,19 @@ def serve(run: Path, readonly=False):
         share along the other axis. Results are pixel evidence, not object labels.
         """
         return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
+
+    @server.tool()
+    def view_pixel_region_overview(name: str, background_rgb: list[int], tolerance: float = 60,
+                                   min_pixels: int = 500, max_regions: int = 40,
+                                   include_border: bool = False):
+        """Locate numbered colour-connected candidates in the full original image.
+        Choose a background colour, then compare the actual labelled overview
+        to the requested space before using a returned ORIGINAL-pixel seed in
+        view_pixel_region. Area/border filters and truncation are reported.
+        A candidate may be furniture, exterior pixels or several connected
+        spaces; numbering does not identify a room, wall or aperture.
+        """
+        return toolkit.pixel_region_overview(name, background_rgb, tolerance, min_pixels, max_regions, include_border)
 
     @server.tool()
     def view_pixel_region(name: str, seed_pixel: list[int], background_rgb: list[int],
@@ -1585,7 +1619,8 @@ def run_experiment(args):
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
-                                 "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py")},
+                                 "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
+                                 "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
@@ -1606,7 +1641,8 @@ def run_experiment(args):
     record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
                           f"Start by listing supplied inputs. {continuation} "
                           "Report limitations honestly, and finish within the budget.",
-                          model="sonnet", name="agent", timeout=args.timeout)
+                          model="sonnet", name="agent", timeout=args.timeout,
+                          effort=getattr(args, "effort", None))
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
         report = json.loads(path.read_text())
@@ -1658,6 +1694,8 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--effort", choices=("low", "medium"), default="medium",
+                     help="Sonnet reasoning effort for this run; local Haiku configuration is unchanged")
     run.add_argument("--resume-candidate",type=Path,help="Recover from a saved proposal directory, not an independent cold start")
     server=commands.add_parser("serve")
     server.add_argument("run",type=Path)

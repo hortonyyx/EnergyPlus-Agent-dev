@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 from types import SimpleNamespace
+import pytest
 
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -108,7 +109,7 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
         async with _server_session(run, readonly=True) as session:
             tools = {tool.name for tool in (await session.list_tools()).tools}
             assert {"inputs", "view_image", "pixel_profile", "view_pixel_profile",
-                    "map_pixels", "map_dimension_chain"} <= tools
+                    "view_pixel_region_overview", "map_pixels", "map_dimension_chain"} <= tools
             assert "build_bim" not in tools and "review_detail" not in tools
             assert "revise_bim" not in tools and "inspect_candidate" not in tools
             assert "check_openings" not in tools
@@ -803,7 +804,8 @@ def test_registered_source_overlay_feedback_reuses_only_explicit_image_floor_cal
     asyncio.run(scenario())
 
 
-def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path, monkeypatch):
+@pytest.mark.parametrize("effort", [None, "low", "medium"])
+def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path, monkeypatch, effort):
     from scripts.tool_scripts import run_bim_agent as runner
     from src.agent.execution.source_proposal import export_source_proposal
     source = tmp_path / "old_candidate"
@@ -818,6 +820,7 @@ def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path,
     Image.new("RGB", (12, 8), "white").save(images / "plan.png")
 
     def offline_subscription(run, prompt, **kwargs):
+        assert kwargs["effort"] == effort
         manifest = json.loads((run / "inputs.json").read_text())
         assert manifest["input_mode"] == "saved_candidate_recovery"
         assert json.loads((run / "seed/proposal.json").read_text()) == proposal
@@ -830,6 +833,8 @@ def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path,
     monkeypatch.setattr(runner, "subscription", offline_subscription)
     args = SimpleNamespace(images=images, out=tmp_path / "recovery", scope="synthetic recovery",
                            timeout=30, resume_candidate=source)
+    if effort is not None:
+        args.effort = effort
     runner.run_experiment(args)
     assert json.loads(old_report.read_text())["independent_evaluation"] == "DO_NOT_EXPOSE"
     delivery = json.loads((args.out / "delivery.json").read_text())
