@@ -1,0 +1,330 @@
+[
+  {
+    "op": "reshape_spaces",
+    "spaces": [
+      {
+        "id": "Office1",
+        "polygon": [
+          [
+            0,
+            13.0
+          ],
+          [
+            4.18,
+            13.0
+          ],
+          [
+            4.18,
+            15.94
+          ],
+          [
+            0,
+            15.94
+          ]
+        ]
+      },
+      {
+        "id": "Office2",
+        "polygon": [
+          [
+            0,
+            8.06
+          ],
+          [
+            4.18,
+            8.06
+          ],
+          [
+            4.18,
+            13.0
+          ],
+          [
+            0,
+            13.0
+          ]
+        ]
+      },
+      {
+        "id": "MeetingDining",
+        "polygon": [
+          [
+            0,
+            0
+          ],
+          [
+            4.18,
+            0
+          ],
+          [
+            4.18,
+            8.06
+          ],
+          [
+            0,
+            8.06
+          ]
+        ]
+      },
+      {
+        "id": "TopRightRoom",
+        "polygon": [
+          [
+            5.82,
+            14.38
+          ],
+          [
+            10,
+            14.38
+          ],
+          [
+            10,
+            15.94
+          ],
+          [
+            5.82,
+            15.94
+          ]
+        ]
+      },
+      {
+        "id": "MeetingRoomBig",
+        "polygon": [
+          [
+            5.82,
+            7.3
+          ],
+          [
+            10,
+            7.3
+          ],
+          [
+            10,
+            14.38
+          ],
+          [
+            5.82,
+            14.38
+          ]
+        ]
+      },
+      {
+        "id": "BottomRightOffice",
+        "polygon": [
+          [
+            5.82,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            10,
+            3.314
+          ],
+          [
+            5.82,
+            3.314
+          ]
+        ]
+      },
+      {
+        "id": "Corridor",
+        "polygon": [
+          [
+            4.18,
+            0
+          ],
+          [
+            5.82,
+            0
+          ],
+          [
+            5.82,
+            3.314
+          ],
+          [
+            10,
+            3.314
+          ],
+          [
+            10,
+            7.3
+          ],
+          [
+            5.82,
+            7.3
+          ],
+          [
+            5.82,
+            15.94
+          ],
+          [
+            4.18,
+            15.94
+          ]
+        ]
+      }
+    ],
+    "reason": "South dimension chain '4180,1640,4180' (mm) on 1f_view.png: measured tick pixel positions (~px 399 and ~460, calibrated 0m->px248.3, 10m->px612.7) align with visible vertical wall lines (confirmed independently via Haiku review_detail crop reading, not the 900mm door gap), placing the corridor's true wall faces at x=4.18m and x=5.82m instead of the seed's furniture-inferred 3.767/5.843.",
+    "source_refs": [
+      "1f_view.png: '4180/1640/4180' dimension labels and tick marks at bottom of plan, cross-checked against vertical wall lines above them"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_Office1",
+    "changes": {
+      "p1": [
+        4.18,
+        14.1
+      ],
+      "p2": [
+        4.18,
+        14.84
+      ]
+    },
+    "reason": "host wall moved from x=3.767 to x=4.18 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_Office2",
+    "changes": {
+      "p1": [
+        4.18,
+        11.89
+      ],
+      "p2": [
+        4.18,
+        12.89
+      ]
+    },
+    "reason": "host wall moved from x=3.767 to x=4.18 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_Office3",
+    "changes": {
+      "p1": [
+        4.18,
+        8.16
+      ],
+      "p2": [
+        4.18,
+        9.16
+      ]
+    },
+    "reason": "host wall moved from x=3.767 to x=4.18 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_MeetingDining",
+    "changes": {
+      "p1": [
+        4.18,
+        4.5
+      ],
+      "p2": [
+        4.18,
+        5.5
+      ]
+    },
+    "reason": "host wall moved from x=3.767 to x=4.18 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_TopRightRoom",
+    "changes": {
+      "p1": [
+        5.82,
+        14.94
+      ],
+      "p2": [
+        5.82,
+        15.94
+      ]
+    },
+    "reason": "host wall moved from x=5.843 to x=5.82 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_MeetingRoomBig",
+    "changes": {
+      "p1": [
+        5.82,
+        10.02
+      ],
+      "p2": [
+        5.82,
+        11.02
+      ]
+    },
+    "reason": "host wall moved from x=5.843 to x=5.82 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_BottomRightOffice",
+    "changes": {
+      "p1": [
+        5.82,
+        1.16
+      ],
+      "p2": [
+        5.82,
+        2.16
+      ]
+    },
+    "reason": "host wall moved from x=5.843 to x=5.82 per corrected corridor width; door width/height preserved",
+    "source_refs": [
+      "1f_view.png: corrected corridor wall face"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Rec_Corridor",
+    "changes": {
+      "p1": [
+        4.37,
+        15.94
+      ],
+      "p2": [
+        5.64,
+        15.94
+      ]
+    },
+    "reason": "direct pixel re-measurement of the door arc at the Reception/Corridor wall (orig px x=407.5-453.75, calibrated 0m->px248.3,10m->px612.7) gives world x=4.37-5.64m, which now falls correctly within the corrected corridor width [4.18,5.82]; replaces seed's unmeasured proportional-shift estimate of [3.9,4.8]",
+    "source_refs": [
+      "1f_view.png: door arc pixel span at y~296px"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Corridor and adjoining room x-boundaries corrected to x=4.18/5.82m per the plan's own '4180/1640/4180' dimension chain and matching vertical wall lines, replacing the seed's furniture/inference-based 3.767/5.843.",
+      "D_Rec_Corridor door span re-measured directly from its arc pixels and now fits within the corrected corridor width."
+    ],
+    "unresolved": [
+      "East-side partitions (TopRightRoom/MeetingRoomBig/BottomRightOffice y-splits) still not independently re-derived from a matching dimension chain.",
+      "Door swing directions/states remain unknown/unverified.",
+      "Wall thickness/offsets not surveyed via check_wall_dimensions."
+    ]
+  }
+]

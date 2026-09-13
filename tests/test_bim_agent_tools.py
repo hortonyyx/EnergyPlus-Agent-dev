@@ -506,6 +506,38 @@ def test_detail_review_keeps_partial_text_but_marks_timeout_or_error_unfinished(
     assert response["is_error"] and response["completed"] is False
 
 
+def test_detail_review_requested_time_limits_worker_without_spending_parent_reserve(tmp_path):
+    import pytest
+
+    run = _run_with_one_image(tmp_path)
+    manifest = json.loads((run / "inputs.json").read_text())
+    manifest["deadline_epoch"] = time.time() + 600
+    (run / "inputs.json").write_text(json.dumps(manifest))
+    calls = []
+
+    def local_worker(child, prompt, **kwargs):
+        calls.append(kwargs)
+        deadline = json.loads((child / "inputs.json").read_text())["deadline_epoch"]
+        assert 0 < deadline - time.time() <= 60
+        assert 0 < kwargs["timeout"] <= 60
+        return {"returncode": 0, "result": {"is_error": False, "result": "local observation"}}
+
+    response = review_detail_observation(Toolkit(run), "Inspect one local mark.", ["plan.png"],
+                                        timeout_seconds=60, invoke=local_worker)
+    assert response["completed"] and len(calls) == 1
+    for invalid in [True, 0, 14, 241, float("nan"), float("inf")]:
+        with pytest.raises(ValueError, match="timeout_seconds"):
+            review_detail_observation(Toolkit(run), "No invocation.", ["plan.png"],
+                                      timeout_seconds=invalid, invoke=local_worker)
+    assert len(calls) == 1
+
+    async def tool_schema_exposes_budget():
+        async with _server_session(run, readonly=False) as session:
+            tool = next(t for t in (await session.list_tools()).tools if t.name == "review_detail")
+            assert tool.inputSchema["properties"]["timeout_seconds"]["default"] == 120
+    asyncio.run(tool_schema_exposes_budget())
+
+
 def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)

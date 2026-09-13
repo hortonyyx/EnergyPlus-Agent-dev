@@ -185,6 +185,97 @@ def _finite_coordinate(value: object, *, operation: str) -> float:
     return float(value)
 
 
+def _polygon_ring_and_bbox(value: object, *, operation: str, space_id: str) -> tuple[list[list[float]], list[float], list[float]]:
+    """Validate an edit ring enough to derive its legacy bbox without repairing it.
+
+    Full source-space validity (orthogonality, winding, coverage and opening
+    hosts) deliberately remains the source-BIM builder's responsibility.  In
+    particular, this helper never closes, reorders, snaps, or otherwise
+    changes a supplied ring.
+    """
+    if not isinstance(value, list) or len(value) < 4:
+        raise ValueError(f"{operation}: space {space_id!r} polygon must contain at least four [x, y] vertices")
+    ring: list[list[float]] = []
+    for index, point in enumerate(value):
+        if not isinstance(point, (list, tuple)) or len(point) != 2:
+            raise ValueError(f"{operation}: space {space_id!r} polygon vertex {index} must be [x, y]")
+        if any(isinstance(coordinate, bool) or not isinstance(coordinate, (int, float))
+               or not math.isfinite(coordinate) for coordinate in point):
+            raise ValueError(f"{operation}: space {space_id!r} polygon vertex {index} must be finite")
+        ring.append([float(point[0]), float(point[1])])
+    return (ring,
+            [min(point[0] for point in ring), max(point[0] for point in ring)],
+            [min(point[1] for point in ring), max(point[1] for point in ring)])
+
+
+def _reshape_spaces(proposal: dict, geometry: dict, operation: dict) -> dict:
+    """Replace complete source-space rings without inferring any related edits.
+
+    ``spaces`` is a nonempty list of ``{"id", "polygon"}`` rows.  Each
+    supplied polygon replaces exactly one existing source space, including a
+    rectangle (which is represented as a four-point ring).  The code derives
+    that cell's legacy ``x``/``y`` bbox from the ring.  It does not move, scale,
+    rehost, or otherwise alter openings and windows; callers may place an
+    explicit ``update_opening`` alongside this operation when evidence calls
+    for it.
+    """
+    name = "reshape_spaces"
+    _require_fields(operation, {"op", "spaces", "reason", "source_refs"}, operation=name)
+    # These declarations carry a wall/enclosure interpretation which a ring
+    # replacement cannot faithfully migrate.  Do not leave stale declarations
+    # behind or pretend that arbitrary polygons have updated them.
+    if proposal.get("enclosure_declaration") is not None:
+        raise ValueError("reshape_spaces: explicit enclosure_declaration requires an explicit revised proposal")
+    if proposal.get("wall_references") or proposal.get("wall_dimensions"):
+        raise ValueError("reshape_spaces: wall references/dimensions require an explicit revised proposal")
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    refs = _source_refs(operation.get("source_refs"), operation=name)
+    rows = operation.get("spaces")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("reshape_spaces: spaces must be a nonempty list")
+
+    replacements: list[tuple[str, list[list[float]], list[float], list[float]]] = []
+    seen_ids = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("reshape_spaces: each spaces entry must be an object")
+        _require_fields(row, {"id", "polygon"}, operation=name)
+        identity = _nonblank_string(row.get("id"), field="spaces[].id", operation=name)
+        if identity in seen_ids:
+            raise ValueError(f"reshape_spaces: duplicate space id {identity!r}")
+        seen_ids.add(identity)
+        ring, x, y = _polygon_ring_and_bbox(row.get("polygon"), operation=name, space_id=identity)
+        replacements.append((identity, ring, x, y))
+
+    cells_by_id = {
+        cell.get("id"): cell
+        for floor in geometry.get("floors", [])
+        for cell in floor.get("cells", [])
+    }
+    missing = [identity for identity, *_ in replacements if identity not in cells_by_id]
+    if missing:
+        raise ValueError(f"reshape_spaces: unknown existing space ids {missing!r}")
+
+    before = {}
+    after = {}
+    for identity, ring, x, y in replacements:
+        cell = cells_by_id[identity]
+        before[identity] = copy.deepcopy(cell)
+        cell["polygon"] = ring
+        cell["x"] = x
+        cell["y"] = y
+        after[identity] = copy.deepcopy(cell)
+    return {
+        "operation": name,
+        "space_ids": [identity for identity, *_ in replacements],
+        "reason": reason,
+        "source_refs": refs,
+        "before": {"cells": before},
+        "after": {"cells": after},
+        "opening_policy": "openings and windows are unchanged; use explicit update_opening for an opening edit",
+    }
+
+
 def _shared_rectangular_wall(left: dict, right: dict, *, operation: str) -> tuple[str, float, list[float], dict, dict]:
     """Return a complete common side, oriented from lower to higher coordinate."""
     if left.get("polygon") is not None or right.get("polygon") is not None:
@@ -384,6 +475,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _remove_opening(geometry, operation)
         elif name == "move_shared_wall":
             audit = _move_shared_wall(result, geometry, operation)
+        elif name == "reshape_spaces":
+            audit = _reshape_spaces(result, geometry, operation)
         elif name == "set_notes":
             audit = _set_notes(result, operation)
         elif name in {"update_wall_dimension", "update_wall_reference"}:

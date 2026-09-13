@@ -1,0 +1,87 @@
+{
+  "mode": "post_generation_receipt_accounting",
+  "invocations": [
+    {
+      "receipt": "agent_receipt.json",
+      "requested_model": "sonnet",
+      "actual_model": "claude-sonnet-5",
+      "readonly": false,
+      "elapsed_seconds": 204.12,
+      "effort": "medium",
+      "timed_out": false,
+      "is_error": false,
+      "estimated_cost_usd": 0.6260474,
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 990,
+          "outputTokens": 19,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001085,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        },
+        "claude-sonnet-5": {
+          "inputTokens": 24,
+          "outputTokens": 13670,
+          "cacheReadInputTokens": 321748,
+          "cacheCreationInputTokens": 53886,
+          "webSearchRequests": 0,
+          "costUSD": 0.6249624,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      }
+    },
+    {
+      "receipt": "detail_01_receipt.json",
+      "requested_model": "haiku",
+      "actual_model": "claude-haiku-4-5-20251001",
+      "readonly": true,
+      "elapsed_seconds": 34.35,
+      "effort": null,
+      "timed_out": false,
+      "is_error": false,
+      "estimated_cost_usd": 0.0338,
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 5809,
+          "outputTokens": 3605,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 4983,
+          "webSearchRequests": 0,
+          "costUSD": 0.0338,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        }
+      }
+    }
+  ],
+  "model_usage_summed_once_per_receipt": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 6799,
+      "outputTokens": 3624,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 4983,
+      "costUSD": 0.034885
+    },
+    "claude-sonnet-5": {
+      "inputTokens": 24,
+      "outputTokens": 13670,
+      "cacheReadInputTokens": 321748,
+      "cacheCreationInputTokens": 53886,
+      "costUSD": 0.6249624
+    }
+  },
+  "parent_elapsed_including_worker_seconds": 204.12,
+  "serial_worker_elapsed_seconds": 34.35,
+  "parent_elapsed_excluding_worker_seconds": 169.77,
+  "limits": [
+    "CLI estimates are not subscription bills.",
+    "Parent elapsed includes serial workers; do not add it to worker elapsed as total wall time.",
+    "Parent elapsed minus worker duration also includes tool/startup/IO overhead; it is not pure model inference time.",
+    "Each CLI modelUsage may contain auxiliary model calls, counted once here; worker receipts are separate invocations.",
+    "Missing result/modelUsage on an interrupted invocation means usage is incomplete."
+  ]
+}

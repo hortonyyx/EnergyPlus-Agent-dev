@@ -1,0 +1,115 @@
+{
+  "mode": "post_generation_read_only_source_audit",
+  "run": "2026-09-13_bim_agent_sm24_run04",
+  "candidate": "candidate_01",
+  "scope": "Compare the staged seed, emitted source objects and actual tool trace. GT is excluded from manifest and object-diff checks.",
+  "manifest_checks": {
+    "all_images_match_inputs_json": true,
+    "all_implementation_files_match_inputs_json": true,
+    "seed_proposal_matches_inputs_json": true,
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "North_view.png": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "South_view.png": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "source_hashes": {
+    "run_summary_file_sha256": "2d00fa2755001cf8e7bc7f7165056a7818ce24879de1044dbe713966d45fdcec",
+    "seed_proposal_file_sha256": "2e4f80f37eea46eb90bea0da770ee46ceadf46d25083487e60d764f7caf9b6b0",
+    "final_proposal_file_sha256": "35d7aba088b0902d313506bc29d07dfb4bb53ec87728f9ea7b79bac849a0d376",
+    "seed_source_file_sha256": "d1c4dc1e6ff019a80a161af309dce58dca2bb8cc06bfaa07d407fab613d13c18",
+    "seed_declared_source_model_sha256": "dcbde3beba8379efb2aefd7919b5f3b90f862bb9e8e6e0b47d5c29dade2badc4",
+    "final_source_file_sha256": "39c84e6a06b669779abb56ccb99daf947713ccf1ecfa9b50b8a7f36a23ed0c48",
+    "final_declared_source_model_sha256": "c8ee8ce8744ff7f0560d17d57cc9f990d42034218b23308ab6237d7f27a22f54",
+    "note": "File SHA-256 and declared content SHA-256 are separate namespaces."
+  },
+  "object_inventory": {
+    "seed": {
+      "spaces": 8,
+      "boundaries": 52,
+      "doors": 11,
+      "windows": 11,
+      "connections": 11
+    },
+    "final": {
+      "spaces": 8,
+      "boundaries": 52,
+      "doors": 11,
+      "windows": 11,
+      "connections": 11
+    },
+    "space_id_set_preserved": true,
+    "door_id_set_preserved": true,
+    "window_id_set_preserved": true,
+    "connection_opening_id_set_preserved": true
+  },
+  "physical_source_changes": {
+    "spaces_with_changed_polygons": {
+      "MeetingDining": {"x_max_m": {"seed": 3.767, "final": 4.18}},
+      "Office2": {"x_max_m": {"seed": 3.767, "final": 4.18}},
+      "Office1": {"x_max_m": {"seed": 3.767, "final": 4.18}},
+      "Corridor": {"x_sides_m": {"seed": [3.767, 5.843], "final": [4.18, 5.82]}},
+      "BottomRightOffice": {"x_min_m": {"seed": 5.843, "final": 5.82}},
+      "MeetingRoomBig": {"x_min_m": {"seed": 5.843, "final": 5.82}},
+      "TopRightRoom": {"x_min_m": {"seed": 5.843, "final": 5.82}}
+    },
+    "spaces_unchanged": ["Reception"],
+    "doors_shifted_with_plan_width_and_height_preserved": {
+      "D_Corridor_MeetingDining": {"x_m": [3.767, 4.18], "width_m": 1.0, "height_m": 2.1},
+      "D_Corridor_Office3": {"x_m": [3.767, 4.18], "width_m": 1.0, "height_m": 2.1},
+      "D_Corridor_Office2": {"x_m": [3.767, 4.18], "width_m": 1.0, "height_m": 2.1},
+      "D_Corridor_Office1": {"x_m": [3.767, 4.18], "width_m": 0.74, "height_m": 2.1},
+      "D_Corridor_BottomRightOffice": {"x_m": [5.843, 5.82], "width_m": 1.0, "height_m": 2.1},
+      "D_Corridor_MeetingRoomBig": {"x_m": [5.843, 5.82], "width_m": 1.0, "height_m": 2.1},
+      "D_Corridor_TopRightRoom": {"x_m": [5.843, 5.82], "width_m": 1.0, "height_m": 2.1}
+    },
+    "door_with_changed_width": {
+      "D_Rec_Corridor": {
+        "seed_endpoints_m": [[3.9, 15.94], [4.8, 15.94]],
+        "final_endpoints_m": [[4.37, 15.94], [5.64, 15.94]],
+        "seed_width_m": 0.9,
+        "final_width_m": 1.27,
+        "height_m_unchanged": 2.1,
+        "host_and_spaces_unchanged": true
+      }
+    },
+    "doors_with_unchanged_physical_fields": ["D_E_Side", "D_N_Main", "D_S_Rear"],
+    "all_door_heights_unchanged": true,
+    "windows_all_serialized_fields_unchanged": true,
+    "connections_all_serialized_fields_unchanged": true,
+    "opening_source_ref_changes": {
+      "seven_shifted_corridor_side_doors": "Original door-arc refs were replaced by a generic corrected-corridor-wall-face ref.",
+      "D_Rec_Corridor": "Source ref changed to the newly inspected local door-arc pixel span."
+    }
+  },
+  "worker_and_parent_trace": {
+    "haiku_question_prefilled_dimension_labels": true,
+    "haiku_question_is_independent_number_transcription": false,
+    "haiku_tools": {"view_image_calls": 2, "display_scale_values": [1.0, 1.0], "pixel_profile_calls": 0, "map_dimension_chain_calls": 0},
+    "haiku_tick_answer_original_px": [[385, 390], [505, 510]],
+    "parent_tick_values_used_original_px": [399, 460],
+    "worker_coordinates_adopted": false,
+    "parent_claimed_independent_worker_confirmation": true,
+    "claim_supported_by_worker_coordinates": false,
+    "post_revision_source_view": {
+      "revise_bim_elapsed_from_first_tool_s": 180.35,
+      "view_candidate_elapsed_from_first_tool_s": 183.21,
+      "finish_bim_elapsed_from_first_tool_s": 186.26,
+      "actual_candidate_viewed": "candidate_01",
+      "floor_id": "F1"
+    },
+    "opening_review_run": false,
+    "source_overlay_registered_or_viewed": false
+  },
+  "independent_partition_change": {
+    "seed_status": "severe",
+    "final_status": "severe",
+    "seed_missing_extra_internal_boundary_m": [40.08599998800002, 40.064999985],
+    "final_missing_extra_internal_boundary_m": [15.559999994000002, 16.493999994000003],
+    "spaces_improved_to_within_tolerance": ["MeetingDining", "Office2", "Office1"],
+    "remaining_spaces_beyond_tolerance": ["BottomRightOffice", "Corridor", "MeetingRoomBig", "TopRightRoom"]
+  },
+  "audit_limit": "Serialized diffs establish what changed and the post-run GT report establishes partition comparison. Original-image review supports the direction of the corridor and D_Rec_Corridor changes, but typed GT does not score internal-door coordinates or prove all opening identities."
+}

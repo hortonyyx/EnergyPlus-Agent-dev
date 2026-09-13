@@ -1,0 +1,61 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "Continue reconstruction from the saved proposal and original drawings.\nFocus on ONE substantive unresolved plan-layout issue recorded in the seed.\nAct primarily as coordinator: inspect the saved state, choose one bounded\noriginal-image question for Haiku via review_detail (aim 90 seconds), inspect\nthe returned local evidence for contradictions, and decide a useful correction.\nThe worker must identify observable marks/labels and their original-pixel\nlocations, not confirm the seed's coordinates or a suggested correct answer.\nFor chained dimensions, request the identity of the dimension line, actual\nlabel boxes and adjacent extension endpoints before trusting the arithmetic.\nDo not reconstruct the entire drawing yourself or write a new whole-building\nproposal when a local code edit can express the change. Keep Sonnet effort\nfocused on task selection, evidence conflicts, edit decisions and final checks.\nUse reshape_spaces for existing room polygons if needed; it preserves other\nobjects, so any necessary opening movement must be an explicit separate edit\nin the same revision. Preserve reliable opening widths/heights; moving a wall\ndoes not justify proportionally resizing doors or windows. Uncertain geometry\nmust remain labelled uncertain, not forced to match a closed sum or room count.\nAim to save a useful correction with at least 75 seconds left, inspect the\nactual resulting source plan and affected openings, then finish the selected\ncandidate. If the evidence cannot support a correction, retain the seed and\nsay exactly what remains unresolved. At most one focused follow-up question\nis useful; do not repeat a full reading. Total wall-clock limit is 300 seconds,\nincluding worker time. We will inspect actual parent/worker time and usage.\nNo independent evaluation, GT, corrected coordinates or external observation\nis provided. This is saved-candidate recovery, not a cold start.\n",
+  "input_mode": "saved_candidate_recovery",
+  "deadline_epoch": 1789276699.4894557,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "dc096c295a27d7557e17c10d71f4fb5c48886df360b33eb859a0052722371dcf",
+    "src/agent/execution/source_proposal.py": "4619535c1f7ded90b37cebe30217a00822cd1a04df40013efeb8bb5eb163fc6e",
+    "src/agent/geometry/proposal_edits.py": "7c1802028f080c0a2f28db6589a5e2979142591fb6e2f94643816399b61fb21a",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+  },
+  "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "2e4f80f37eea46eb90bea0da770ee46ceadf46d25083487e60d764f7caf9b6b0",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-13_bim_agent_sm24_run03/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

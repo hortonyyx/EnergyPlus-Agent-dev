@@ -147,6 +147,88 @@ def test_move_shared_wall_preserves_unrelated_geometry_and_hosts_its_door():
                             capability_profile="orthogonal_polygon")["validation"]["status"] == "pass"
 
 
+def test_reshape_spaces_replaces_nonrectangular_rings_without_touching_openings_or_other_floors():
+    proposal = _rectangular_wall_proposal()
+    proposal["geometry"]["floors"][0]["cells"][0]["label"] = "keep this source attribute"
+    # This doorway remains on the unchanged lower section of the shared wall.
+    proposal["geometry"]["openings"][0]["p1"] = [4, .2]
+    proposal["geometry"]["openings"][0]["p2"] = [4, .8]
+    original = copy.deepcopy(proposal)
+    revised = apply_proposal_edits(proposal, [{
+        "op": "reshape_spaces",
+        "spaces": [
+            {"id": "left", "polygon": [[0, 0], [4, 0], [4, 1], [5, 1], [5, 3], [4, 3], [4, 4], [0, 4]]},
+            {"id": "right", "polygon": [[4, 0], [10, 0], [10, 4], [4, 4], [4, 3], [5, 3], [5, 1], [4, 1]]},
+        ],
+        "reason": "plan shows a stepped partition", "source_refs": ["plan: stepped partition"],
+    }])
+    cells = {cell["id"]: cell for cell in revised["geometry"]["floors"][0]["cells"]}
+    assert cells["left"]["x"] == [0, 5] and cells["left"]["y"] == [0, 4]
+    assert cells["right"]["x"] == [4, 10] and cells["right"]["y"] == [0, 4]
+    assert cells["left"]["label"] == "keep this source attribute"
+    assert revised["geometry"]["openings"] == original["geometry"]["openings"]
+    assert revised["geometry"]["windows"] == original["geometry"]["windows"]
+    assert revised["geometry"]["floors"][1] == original["geometry"]["floors"][1]
+    audit = revised["geometry"]["corrections"][-1]
+    assert audit["reason"] == "plan shows a stepped partition"
+    assert audit["source_refs"] == ["plan: stepped partition"]
+    assert audit["before"]["cells"]["left"] == original["geometry"]["floors"][0]["cells"][0]
+    assert audit["after"]["cells"]["left"] == cells["left"]
+    assert proposal == original
+    assert build_source_bim(ensure_corrected_geometry(revised["geometry"]),
+                            capability_profile="orthogonal_polygon")["validation"]["status"] == "pass"
+
+
+def test_reshape_spaces_requires_explicit_opening_changes_and_source_builder_keeps_its_gates():
+    proposal = _rectangular_wall_proposal()
+    reshaped = apply_proposal_edits(proposal, [{
+        "op": "reshape_spaces",
+        "spaces": [
+            {"id": "left", "polygon": [[0, 0], [4, 0], [4, 1], [5, 1], [5, 3], [4, 3], [4, 4], [0, 4]]},
+            {"id": "right", "polygon": [[4, 0], [10, 0], [10, 4], [4, 4], [4, 3], [5, 3], [5, 1], [4, 1]]},
+        ],
+        "reason": "synthetic stepped partition", "source_refs": ["plan: synthetic"],
+    }])
+    # The old door is deliberately untouched and is now unhosted.  The normal
+    # source builder reports that fact instead of silently moving or resizing it.
+    assert reshaped["geometry"]["openings"][0] == proposal["geometry"]["openings"][0]
+    source = build_source_bim(ensure_corrected_geometry(reshaped["geometry"]),
+                              capability_profile="orthogonal_polygon")
+    assert source["validation"]["status"] == "severe"
+    assert any(row["code"] == "source.opening_unbuilt" for row in source["validation"]["findings"])
+
+    overlapping = apply_proposal_edits(proposal, [{
+        "op": "reshape_spaces",
+        "spaces": [
+            {"id": "left", "polygon": [[0, 0], [6, 0], [6, 4], [0, 4]]},
+            {"id": "right", "polygon": [[4, 0], [10, 0], [10, 4], [4, 4]]},
+        ],
+        "reason": "synthetic invalid overlap", "source_refs": ["plan: synthetic"],
+    }])
+    source = build_source_bim(ensure_corrected_geometry(overlapping["geometry"]),
+                              capability_profile="orthogonal_polygon")
+    assert source["validation"]["status"] == "severe"
+    assert any(row["code"] == "source.space_overlap" for row in source["validation"]["findings"])
+
+
+def test_reshape_spaces_rejects_stale_wall_declarations_and_invalid_rows_without_mutating_input():
+    proposal = _rectangular_wall_proposal()
+    original = copy.deepcopy(proposal)
+    operation = {"op": "reshape_spaces", "spaces": [{"id": "missing", "polygon": [[0, 0], [1, 0], [1, 1], [0, 1]]}],
+                 "reason": "synthetic", "source_refs": ["plan: synthetic"]}
+    with pytest.raises(ValueError, match="unknown existing space ids"):
+        apply_proposal_edits(proposal, [operation])
+    assert proposal == original
+    with pytest.raises(ValueError, match="wall references/dimensions"):
+        apply_proposal_edits({**proposal, "wall_references": [{"id": "W1"}]}, [{
+            **operation, "spaces": [{"id": "left", "polygon": [[0, 0], [4, 0], [4, 4], [0, 4]]}],
+        }])
+    with pytest.raises(ValueError, match="enclosure_declaration"):
+        apply_proposal_edits({**proposal, "enclosure_declaration": {}}, [{
+            **operation, "spaces": [{"id": "left", "polygon": [[0, 0], [4, 0], [4, 4], [0, 4]]}],
+        }])
+
+
 def test_invalid_operations_do_not_mutate_input_or_silently_ignore_unknowns():
     proposal = _proposal()
     original = copy.deepcopy(proposal)

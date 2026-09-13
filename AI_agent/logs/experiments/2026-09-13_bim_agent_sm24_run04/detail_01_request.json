@@ -1,0 +1,16 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 89.9648277759552,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "2b381760e785eccfbc30cd0d083d2dc4ccf04f61f70041cb3b87801e8f43bc70",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "prompt": "Images: ['1f_view.png']\nQuestion: In this architectural floor plan crop region (original pixel box roughly x=220-650, y=850-1000, near the bottom of the plan), there are two stacked dimension chains below the building's south wall. The upper chain reads \"540, 1500, 2500, 900, 2520, 1500, 540\" and the lower chain reads \"4180, 1640, 4180\". For the lower chain specifically: what are the approximate original-image pixel x-coordinates of its two internal tick/extension marks (the ones separating 4180|1640 and 1640|4180)? Also, looking straight up from those two tick marks into the plan interior (toward y=100-900), do they align with any visible vertical wall lines or a door/opening gap in the plan? Describe only what you observe (tick pixel positions and what vertical lines/gaps are directly above them), do not assume a specific correct room boundary.",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}

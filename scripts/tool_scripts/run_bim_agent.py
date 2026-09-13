@@ -33,6 +33,15 @@ from mcp.types import CallToolResult, TextContent
 GUIDE = """Build a viewable lightweight BIM from the supplied drawings. You choose
 what to inspect, measure, infer, build and revise. Preserve physical rooms,
 partitions, windows, doors and connectivity; never split a room to make a box.
+Your primary role is coordinator and decision maker within a bounded runtime.
+Delegate a focused visual extraction to review_detail when it can resolve an
+important uncertainty; choose a small scope and an explicit time budget. Let
+code do measurement, arithmetic and geometry edits. Inspect originals yourself
+for material conflicts, but avoid duplicating an entire worker reading or
+rewriting unchanged building objects. A worker answer is only a hypothesis:
+check its actual measurements, endpoints and contradictions before applying it.
+Prefer a useful saved local correction with honest gaps over long speculative
+analysis. Leave time to view the saved result and report remaining uncertainty.
 Annotation + pixels is stronger than pixels alone, which is stronger than
 inference. Missing evidence permits explicit assumptions, not silent omission.
 Use measurements where useful; tools are optional methods, not a fixed workflow.
@@ -200,6 +209,8 @@ revise_bim takes candidate plus an operations_json list. Operations include:
  "reason":"explain","source_refs":["image: observation or explicit assumption"]};
 {"op":"move_shared_wall","space_ids":["F1_left","F1_right"],"coordinate_m":3.5,
  "reason":"explain observed partition displacement","source_refs":["plan: observed wall"]};
+{"op":"reshape_spaces","spaces":[{"id":"room-A","polygon":[[0,0],[3,0],[3,2],[0,2]]}],
+ "reason":"explain observed wall extents","source_refs":["plan: local evidence"]};
 {"op":"remove_opening","id":"D1","reason":"explain reclassification",
  "source_refs":["image: observation"]};
 {"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
@@ -214,6 +225,14 @@ two cells move with the wall. Other objects retain their world coordinates and
 are checked by the normal builder. Polygon cells, partial shared sides and
 explicit enclosure declarations are unsupported by this edit; no new rooms or
 walls are invented. Preserve image basis and check the resulting geometry.
+reshape_spaces replaces only the listed existing space polygons, deriving their
+x/y bounds by code. It preserves other objects and NEVER moves or resizes an
+opening. Update all affected adjoining spaces in one operation; include explicit
+update_opening edits in the same revision where a moved host requires them.
+Preserve the aperture's width/height unless new image evidence supports a change.
+Normal source checks still reject overlaps and unhosted openings. This operation
+rejects explicit enclosure declarations or nonempty wall reference/dimension
+records; it does not add/remove spaces or remap wall evidence.
 For edits not supported by revise_bim, submit a complete revised proposal with
 build_bim, retaining the reliable geometry, IDs, source references and caveats.
 
@@ -336,6 +355,12 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                                     "Inspect a suitable crop; cite original pixel locations of marks. "
                                     "Separate door arcs, gaps and dimension ticks. State uncertainty; "
                                     "do not infer a connection just because rooms are adjacent. "
+                                    "For dimension labels, use a magnified clean crop and bind each "
+                                    "transcription to its actual label box, dimension line and adjacent "
+                                    "extension endpoints in original pixels. Keep different chains separate. "
+                                    "Use map_dimension_chain only after transcription. If arithmetic or "
+                                    "the claimed endpoints conflict, recheck that local evidence once, then "
+                                    "report unknown instead of inventing a missing segment. "
                                     "Check inputs or view_image metadata for remaining_seconds, answer early, "
                                     "and near the limit state explicit unexamined items. Do not plan the whole building."
                                     if readonly else GUIDE)]
@@ -442,8 +467,12 @@ def prepare_detail_observation(
 
 
 def review_detail_observation(
-        toolkit: "Toolkit", question: str, images: list[str], *, invoke=subscription) -> dict:
+        toolkit: "Toolkit", question: str, images: list[str], *,
+        timeout_seconds: float = DETAIL_MAX_TIMEOUT_SECONDS, invoke=subscription) -> dict:
     """Run one bounded, readonly local observation and retain parent receipts."""
+    if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))
+            or not DETAIL_MIN_TIMEOUT_SECONDS <= timeout_seconds <= DETAIL_MAX_TIMEOUT_SECONDS):
+        raise ValueError(f"timeout_seconds must be between {DETAIL_MIN_TIMEOUT_SECONDS} and {DETAIL_MAX_TIMEOUT_SECONDS}")
     # FastMCP may serve sync tools concurrently. Keep allocation, receipt creation
     # and the bounded invocation together so two calls cannot both claim detail_01.
     with DETAIL_OBSERVATION_LOCK:
@@ -453,7 +482,7 @@ def review_detail_observation(
         parent_deadline = toolkit.manifest.get("deadline_epoch")
         remaining = toolkit.remaining_seconds()
         if remaining is not None:
-            child_deadline = min(time.time() + DETAIL_MAX_TIMEOUT_SECONDS,
+            child_deadline = min(time.time() + timeout_seconds,
                                  float(parent_deadline) - DETAIL_COMPLETION_RESERVE_SECONDS)
             timeout = child_deadline - time.time()
             if timeout < DETAIL_MIN_TIMEOUT_SECONDS:
@@ -464,7 +493,7 @@ def review_detail_observation(
             # it is being prepared or while the parent waits for it to return.
             # ``timeout`` is also capped by that deadline, not a rounded display value.
         else:
-            timeout = DETAIL_MAX_TIMEOUT_SECONDS
+            timeout = timeout_seconds
             child_deadline = time.time() + timeout
         name = f"detail_{used + 1:02d}"
         child, input_sha256 = prepare_detail_observation(
@@ -473,7 +502,7 @@ def review_detail_observation(
                   "images": {image: toolkit.manifest["images"][image]["sha256"] for image in images}}
         # Image copying/manifest writing consume time too. Do not let the process
         # outlive the deadline the readonly tools were shown.
-        timeout = min(DETAIL_MAX_TIMEOUT_SECONDS, child_deadline - time.time())
+        timeout = min(timeout_seconds, child_deadline - time.time())
         result = invoke(child, f"Images: {images}\nQuestion: {question}", model="haiku", name=name,
                         readonly=True, timeout=timeout, log_run=toolkit.run,
                         receipt_context={"observation_source": source})
@@ -1195,15 +1224,18 @@ def serve(run: Path, readonly=False):
                 updated, action="revise_bim", parent=candidate, operations=operations))
 
         @server.tool()
-        def review_detail(question: str, images: list[str]) -> dict:
+        def review_detail(question: str, images: list[str], timeout_seconds: float = 120) -> dict:
             """Ask Haiku one small visual question, e.g. count/locate doors in a region.
             Give image names and original crop coordinates, and describe observable
             original-image evidence rather than a candidate conclusion. The submitted
             question is not text-cleaned, so this only isolates file context. At most
-            two local reviews are available in this experiment.
+            two local reviews are available in this experiment. Choose 15–240
+            seconds (default 120), capped by the parent's remaining time with a
+            completion reserve. Keep the task small enough to return within it.
             """
-            response = review_detail_observation(toolkit, question, images)
+            response = review_detail_observation(toolkit, question, images, timeout_seconds=timeout_seconds)
             toolkit.log("review_detail", {"question": question, "images": images,
+                                          "timeout_seconds_requested": timeout_seconds,
                                           "response": response})
             return response
 
