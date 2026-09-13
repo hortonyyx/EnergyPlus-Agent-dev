@@ -1,0 +1,16 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 240,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "fa51360a10e57391cee9138ae341bb30ef5232d29e8a043caf573074c1795be3",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "prompt": "Images: ['1f_view.png']\nQuestion: Read only the physical partition layout on the supplied floor plan.\nDo not design a building or reconstruct window heights. Establish which visible\nstrokes are physical partition walls, which are furniture or dimension marks,\nand where partitions have doors or genuinely open ends. Do not assume rectangular\nrooms or that adjacent furniture groups require separate rooms.\nUse a small evidence ledger: for each major interior partition give an ID,\noriginal-pixel endpoints/continuous intervals, visible gaps or open ends, the\nconnected spatial regions, and observed/inferred/uncertain status. List distinct\ndoor marks separately with original-pixel boxes and the two regions they connect.\nDescribe the continuous circulation region and any nonrectangular boundaries.\nInspect crops and use the available pixel_profile measurement for uncertain\nstrokes where appropriate, selecting ink RGB and tolerance from this drawing;\nthe measurement has no semantic labels. If using world coordinates, first verify\nthe actual dimension extension endpoints, use map_pixels/map_dimension_chain for\narithmetic, and distinguish wall faces from representative axes. Pixel evidence\nwith explicit uncertainty is preferable to unsupported precise metres.\nReturn a compact structured JSON evidence ledger and a short list of unresolved\nitems within 240 seconds. This is an independent local observation: no expected\nroom counts or correct wall coordinates are supplied. Your observations will\nneed checking against the original before any BIM changes are made.",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. Do not plan the whole building."
+}

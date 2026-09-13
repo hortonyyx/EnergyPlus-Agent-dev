@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 375.54,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 372785,
+    "duration_api_ms": 369258,
+    "ttft_ms": 2144,
+    "ttft_stream_ms": 1463,
+    "time_to_request_ms": 41,
+    "num_turns": 39,
+    "result": "## Summary\n\n**Selected candidate: `candidate_01`** (finished via `finish_bim`), derived from the saved `seed` recovery with one substantive geometric correction.\n\n### What was inspected\n- Compared the seed's 9-space, 22-opening 1F layout against `1f_view.png` using a calibrated pixel overlay (interior-face anchors, x-scale 36.2 px/m, y-scale 36.4 px/m, 0.55% cross-axis residual β€” noted as a calibration warning, not eliminated).\n- Verified all four elevations (`North_view.png`, `South_view.png`, `East_view.png`, `West_view.png`) against the seed's window/door spans by converting each elevation's printed dimension chain into world coordinates.\n- Visually confirmed room partitions (Office1/2/3, MeetingDining, TopRightRoom, MeetingRoomBig, BottomRightOffice, Reception, Corridor) align with the plan's wall bands and furniture groupings β€” no continuous space was found split for rectangular convenience, and the L-shaped Corridor was preserved intact.\n\n### Discrepancy found and corrected\n- East elevation's bottom dimension chain (5700+1600+1540+4800+740+1200+2380+1500+540=20000mm) placed the East double-door at y=[5.7, 7.3]m, but the seed had clamped it to y=[5.7, 6.66]m to fit inside the previously-drawn corridor jog, cutting off ~0.64m of a real door.\n- Fixed by moving the Corridor/MeetingRoomBig shared boundary from y=6.66 to y=7.3 (adjusting the Corridor polygon and MeetingRoomBig's y-min) and restoring the door (`D_E_Side`) to its full evidenced 1.6 m width. All other openings/doors on that wall (`D_Corridor_MeetingRoomBig` etc.) were re-checked and remain validly hosted.\n- All other window/door spans on North, South, East, West matched the seed exactly against the elevation dimension chains β€” no other changes were made.\n\n### Verified vs. not verified\n- Verified: overall footprint, all 9 room partitions' extents against plan wall lines, all 11 window spans against elevation chains, South/West door, and the corrected East door.\n- Not verified (carried as unresolved/assumptions): exact interior door swing directions/leaf widths, wall thickness offsets (`offsets_m` unknown, representative centerline only), the East jog's functional label, per-window sill/head heights beyond span matching, and North door/window head heights (2.6 m / 3.4 m) were not independently re-derived in this pass. Opening `check_openings` was not run with an image-mark review in this session (only inventory listing), so the delivery's opening-review scopes remain `not_reviewed`; this is a genuine open item, not implied as complete.\n- Calibration disagreement (0.55%) between x/y pixel scales remains above the tool's strict 0.3% auto-flag threshold; it's small and geometry-consistent but is not independently certified as pixel-perfect.",
+    "stop_reason": "end_turn",
+    "session_id": "c3e22e36-2889-461a-a9bf-0d2d229175d8",
+    "total_cost_usd": 1.5597264,
+    "usage": {
+      "input_tokens": 52,
+      "cache_creation_input_tokens": 123646,
+      "cache_read_input_tokens": 1249248,
+      "output_tokens": 29471,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 123646,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1041,
+          "cache_read_input_tokens": 109200,
+          "cache_creation_input_tokens": 14446,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 14446
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 775,
+        "outputTokens": 16,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000855,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 52,
+        "outputTokens": 29471,
+        "cacheReadInputTokens": 1249248,
+        "cacheCreationInputTokens": 123646,
+        "webSearchRequests": 0,
+        "costUSD": 1.5588714,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "a47f2db9-d9dd-4f83-83aa-1bbf81f704cf"
+  }
+}

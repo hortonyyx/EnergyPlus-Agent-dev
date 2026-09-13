@@ -336,7 +336,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                                     "Inspect a suitable crop; cite original pixel locations of marks. "
                                     "Separate door arcs, gaps and dimension ticks. State uncertainty; "
                                     "do not infer a connection just because rooms are adjacent. "
-                                    "Do not plan the whole building."
+                                    "Check inputs or view_image metadata for remaining_seconds, answer early, "
+                                    "and near the limit state explicit unexamined items. Do not plan the whole building."
                                     if readonly else GUIDE)]
     if not readonly:
         command.extend(["--effort", "medium"])
@@ -388,7 +389,9 @@ DETAIL_MIN_TIMEOUT_SECONDS = 15
 DETAIL_OBSERVATION_LOCK = threading.Lock()
 
 
-def prepare_detail_observation(toolkit: "Toolkit", question: str, images: list[str], name: str):
+def prepare_detail_observation(
+        toolkit: "Toolkit", question: str, images: list[str], name: str, *,
+        timeout_seconds: float | None = None, deadline_epoch: float | None = None):
     """Make one immutable, image-only MCP workspace for a local observation."""
     if not isinstance(question, str) or not question.strip():
         raise ValueError("local review question must be non-empty")
@@ -396,6 +399,14 @@ def prepare_detail_observation(toolkit: "Toolkit", question: str, images: list[s
         raise ValueError("choose at least one original image for local review")
     if len(set(images)) != len(images):
         raise ValueError("choose each local review image only once")
+    if timeout_seconds is not None and deadline_epoch is not None:
+        raise ValueError("choose either timeout_seconds or deadline_epoch for local review")
+    if timeout_seconds is not None:
+        if timeout_seconds <= 0:
+            raise ValueError("local review timeout_seconds must be positive")
+        deadline_epoch = time.time() + timeout_seconds
+    if deadline_epoch is not None and deadline_epoch <= time.time():
+        raise ValueError("local review deadline_epoch must be in the future")
     sources = {image: toolkit.image_path(image) for image in images}
     child = toolkit.run / name
     child.mkdir(exist_ok=False)
@@ -422,6 +433,10 @@ def prepare_detail_observation(toolkit: "Toolkit", question: str, images: list[s
         ),
         "question_sha256": hashlib.sha256(question.encode("utf-8")).hexdigest(),
     }
+    if deadline_epoch is not None:
+        # This is part of the immutable child input before its digest is recorded.
+        # The readonly server reads it to expose remaining_seconds to its tools.
+        manifest["deadline_epoch"] = deadline_epoch
     dump(child / "inputs.json", manifest)
     return child, digest(child / "inputs.json")
 
@@ -435,18 +450,30 @@ def review_detail_observation(
         used = len(list(toolkit.run.glob("detail_*_request.json")))
         if used >= 2:
             return {"error": "local review budget exhausted", "completed": False}
+        parent_deadline = toolkit.manifest.get("deadline_epoch")
         remaining = toolkit.remaining_seconds()
         if remaining is not None:
-            timeout = min(DETAIL_MAX_TIMEOUT_SECONDS, remaining - DETAIL_COMPLETION_RESERVE_SECONDS)
+            child_deadline = min(time.time() + DETAIL_MAX_TIMEOUT_SECONDS,
+                                 float(parent_deadline) - DETAIL_COMPLETION_RESERVE_SECONDS)
+            timeout = child_deadline - time.time()
             if timeout < DETAIL_MIN_TIMEOUT_SECONDS:
                 return {"error": "insufficient remaining budget for local review",
                         "completed": False, "remaining_seconds": remaining}
+            # Keep the parent completion reserve outside the child workspace too.
+            # This exact absolute deadline avoids extending the child's budget while
+            # it is being prepared or while the parent waits for it to return.
+            # ``timeout`` is also capped by that deadline, not a rounded display value.
         else:
             timeout = DETAIL_MAX_TIMEOUT_SECONDS
+            child_deadline = time.time() + timeout
         name = f"detail_{used + 1:02d}"
-        child, input_sha256 = prepare_detail_observation(toolkit, question, images, name)
+        child, input_sha256 = prepare_detail_observation(
+            toolkit, question, images, name, deadline_epoch=child_deadline)
         source = {"run": name, "input_sha256": input_sha256,
                   "images": {image: toolkit.manifest["images"][image]["sha256"] for image in images}}
+        # Image copying/manifest writing consume time too. Do not let the process
+        # outlive the deadline the readonly tools were shown.
+        timeout = min(DETAIL_MAX_TIMEOUT_SECONDS, child_deadline - time.time())
         result = invoke(child, f"Images: {images}\nQuestion: {question}", model="haiku", name=name,
                         readonly=True, timeout=timeout, log_run=toolkit.run,
                         receipt_context={"observation_source": source})

@@ -17,6 +17,7 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 from PIL import Image
 
 from scripts.tool_scripts.run_bim_agent import (Toolkit, cost_receipt_summary, digest,
+                                                prepare_detail_observation,
                                                 review_detail_observation,
                                                 terminate_subscription)
 
@@ -371,6 +372,63 @@ def test_detail_review_refuses_budget_exhaustion_or_too_little_time_without_call
                                          invoke=fake_subscription)
     assert response == {"error":"local review budget exhausted", "completed":False}
     assert not invoked
+
+
+def test_detail_review_passes_bounded_budget_into_hashed_readonly_manifest(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    parent_deadline = time.time() + 180
+    manifest = json.loads((run / "inputs.json").read_text())
+    manifest["deadline_epoch"] = parent_deadline
+    (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+    calls = []
+
+    def fake_subscription(child, prompt, **kwargs):
+        calls.append((child, prompt, kwargs))
+        child_manifest = json.loads((child / "inputs.json").read_text())
+        assert abs(child_manifest["deadline_epoch"] - (
+            parent_deadline - 45)) < 0.001
+        assert kwargs["timeout"] <= 135
+        return {"actual_model": "offline-haiku", "returncode": 0,
+                "result": {"is_error": False, "result": "one observed mark"}}
+
+    response = review_detail_observation(Toolkit(run), "Check this one mark.", ["plan.png"],
+                                         invoke=fake_subscription)
+    child, _, kwargs = calls[0]
+    assert response["observation_source"]["input_sha256"] == digest(child / "inputs.json")
+    assert kwargs["receipt_context"]["observation_source"] == response["observation_source"]
+
+    async def readonly_time_is_visible():
+        async with _server_session(child, readonly=True) as session:
+            inventory = _json_result(await session.call_tool("inputs", {}))
+            assert inventory["deadline_epoch"] == json.loads(
+                (child / "inputs.json").read_text())["deadline_epoch"]
+            assert isinstance(inventory["remaining_seconds"], int)
+            viewed = await session.call_tool("view_image", {"name": "plan.png"})
+            assert isinstance(json.loads(viewed.content[1].text)["remaining_seconds"], int)
+
+    asyncio.run(readonly_time_is_visible())
+
+    legacy_child, legacy_hash = prepare_detail_observation(
+        Toolkit(run), "Legacy direct setup remains untimed.", ["plan.png"], "detail_02")
+    assert "deadline_epoch" not in json.loads((legacy_child / "inputs.json").read_text())
+    assert legacy_hash == digest(legacy_child / "inputs.json")
+
+    long_run = _run_with_one_image(tmp_path / "long")
+    long_manifest = json.loads((long_run / "inputs.json").read_text())
+    long_manifest["deadline_epoch"] = time.time() + 900
+    (long_run / "inputs.json").write_text(json.dumps(long_manifest), encoding="utf-8")
+    long_calls = []
+
+    def long_subscription(child, prompt, **kwargs):
+        long_calls.append((child, kwargs))
+        return {"returncode": 0, "result": {"is_error": False, "result": "mark"}}
+
+    review_detail_observation(Toolkit(long_run), "Check this one mark.", ["plan.png"],
+                              invoke=long_subscription)
+    long_child, long_kwargs = long_calls[0]
+    visible_deadline = json.loads((long_child / "inputs.json").read_text())["deadline_epoch"]
+    assert 0 < visible_deadline - time.time() <= 240
+    assert 0 < long_kwargs["timeout"] <= 240
 
 
 def test_detail_review_keeps_partial_text_but_marks_timeout_or_error_unfinished(tmp_path):

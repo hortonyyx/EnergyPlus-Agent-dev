@@ -1,0 +1,20 @@
+Read only the physical partition layout on the supplied floor plan.
+Do not design a building or reconstruct window heights. Establish which visible
+strokes are physical partition walls, which are furniture or dimension marks,
+and where partitions have doors or genuinely open ends. Do not assume rectangular
+rooms or that adjacent furniture groups require separate rooms.
+Use a small evidence ledger: for each major interior partition give an ID,
+original-pixel endpoints/continuous intervals, visible gaps or open ends, the
+connected spatial regions, and observed/inferred/uncertain status. List distinct
+door marks separately with original-pixel boxes and the two regions they connect.
+Describe the continuous circulation region and any nonrectangular boundaries.
+Inspect crops and use the available pixel_profile measurement for uncertain
+strokes where appropriate, selecting ink RGB and tolerance from this drawing;
+the measurement has no semantic labels. If using world coordinates, first verify
+the actual dimension extension endpoints, use map_pixels/map_dimension_chain for
+arithmetic, and distinguish wall faces from representative axes. Pixel evidence
+with explicit uncertainty is preferable to unsupported precise metres.
+Return a compact structured JSON evidence ledger and a short list of unresolved
+items within 240 seconds. This is an independent local observation: no expected
+room counts or correct wall coordinates are supplied. Your observations will
+need checking against the original before any BIM changes are made.

@@ -1,0 +1,62 @@
+{
+  "mode": "post_generation_read_only_audit",
+  "scope": "Hash comparisons and physical source-object differences from run/seed to run/candidate_01. It does not score drawing fidelity or modify generation inputs.",
+  "input_manifest_checks": {
+    "all_original_image_sha256_match_manifest": true,
+    "images": {
+      "1f_view.png": true,
+      "East_view.png": true,
+      "North_view.png": true,
+      "South_view.png": true,
+      "West_view.png": true
+    },
+    "all_10_implementation_sha256_match_manifest": true,
+    "seed_proposal_sha256_matches_manifest": true,
+    "seed_proposal_sha256": "0f3de23e11cfc66fea76b793b6e9289cb5d003ec4afa97ae51f4f3633e87b2ef",
+    "note": "The manifest records the seed proposal hash, not a seed source-model file hash. No unsupported source-file identity claim is inferred from it."
+  },
+  "source_file_hashes": {
+    "seed_file_sha256": "81070bfd21dd3b10a7a430d72af679cb31fca9734fc58d8d538d050dc37f2a8b",
+    "seed_declared_source_model_sha256": "c5a1d69a4eaabf94ee9aa102bf85f0942324449fb6a8a2ebf2fd2452bdc50ff4",
+    "final_file_sha256": "bf5e4416a5204bb7c08cd554ba5c7af0d25b42acacb5b0ab88a96c3789c5637f",
+    "final_declared_source_model_sha256": "717d2b41205cc552a8992b19838234b0d3970a60cfbd093146407ccdbcec9ad4"
+  },
+  "object_counts": {
+    "seed": {"spaces": 9, "boundaries": 58, "windows": 11, "doors": 11, "connections": 11},
+    "final": {"spaces": 9, "boundaries": 58, "windows": 11, "doors": 11, "connections": 11}
+  },
+  "space_physical_geometry": {
+    "unchanged_space_ids": ["Reception", "Office1", "Office2", "Office3", "MeetingDining", "TopRightRoom", "BottomRightOffice"],
+    "changed": {
+      "Corridor": {
+        "seed_polygon": [[3.767, 0.0], [5.843, 0.0], [5.843, 3.314], [10.0, 3.314], [10.0, 6.66], [5.843, 6.66], [5.843, 17.734], [3.767, 17.734]],
+        "final_polygon": [[3.767, 0.0], [5.843, 0.0], [5.843, 3.314], [10.0, 3.314], [10.0, 7.3], [5.843, 7.3], [5.843, 17.734], [3.767, 17.734]]
+      },
+      "MeetingRoomBig": {
+        "seed_polygon": [[5.843, 6.66], [10.0, 6.66], [10.0, 14.38], [5.843, 14.38]],
+        "final_polygon": [[5.843, 7.3], [10.0, 7.3], [10.0, 14.38], [5.843, 14.38]]
+      }
+    }
+  },
+  "window_physical_fields": {
+    "comparison_fields": ["id", "exterior", "host_boundary_id", "space_ids", "vertices"],
+    "all_11_equal_seed_to_final": true,
+    "unchanged_ids": ["W_N_Reception", "W_S_MeetingDining", "W_S_BottomRightOffice", "W_E_MeetingRoomBig", "W_E_TopRightRoom", "W_E_Reception", "W_W_MeetingDining", "W_W_Office1", "W_W_Office2", "W_W_Office3", "W_W_Reception"]
+  },
+  "door_physical_fields": {
+    "comparison_fields": ["id", "exterior", "host_boundary_id", "space_ids", "vertices"],
+    "same_id_set": true,
+    "unchanged_ids": ["D_N_Main", "D_S_Rear", "D_Rec_Corridor", "D_Corridor_Office1", "D_Corridor_Office2", "D_Corridor_Office3", "D_Corridor_MeetingDining", "D_Corridor_TopRightRoom", "D_Corridor_MeetingRoomBig", "D_Corridor_BottomRightOffice"],
+    "changed": {
+      "id": "D_E_Side",
+      "unchanged_fields": {"exterior": true, "host_boundary_id": "space/Corridor/wall/3", "space_ids": ["Corridor"]},
+      "seed_vertices": [[10.0, 5.7, 0.0], [10.0, 6.66, 0.0], [10.0, 6.66, 2.4], [10.0, 5.7, 2.4]],
+      "final_vertices": [[10.0, 5.7, 0.0], [10.0, 7.3, 0.0], [10.0, 7.3, 2.4], [10.0, 5.7, 2.4]]
+    }
+  },
+  "connection_physical_fields": {
+    "comparison_fields": ["opening_id", "kind", "exterior", "space_ids", "state"],
+    "all_11_connection_objects_equal_seed_to_final": true,
+    "connection_opening_ids": ["D_N_Main", "D_S_Rear", "D_E_Side", "D_Rec_Corridor", "D_Corridor_Office1", "D_Corridor_Office2", "D_Corridor_Office3", "D_Corridor_MeetingDining", "D_Corridor_TopRightRoom", "D_Corridor_MeetingRoomBig", "D_Corridor_BottomRightOffice"]
+  }
+}

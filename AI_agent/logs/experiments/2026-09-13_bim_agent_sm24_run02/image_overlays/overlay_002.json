@@ -1,0 +1,747 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "c5a1d69a4eaabf94ee9aa102bf85f0942324449fb6a8a2ebf2fd2452bdc50ff4",
+  "floor_id": "F1",
+  "basis": "Refined to interior wall faces (excluding ~240mm wall band) measured directly at zoomed crops: left wall inner face x=258px=world x0, right wall inner face x=620px=world x10m; top wall inner face y=127px=world y20m(North), bottom wall inner face y=855px=world y0(South). This matches representative room-boundary convention (interior face) and gives consistent x/y px-per-m (~36.2 vs 36.4).",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        258.0,
+        0.0
+      ],
+      [
+        620.0,
+        10.0
+      ]
+    ],
+    "y": [
+      [
+        127.0,
+        20.0
+      ],
+      [
+        855.0,
+        0.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.027624309392265192,
+      "y": -0.027472527472527472
+    },
+    "pixels_per_world_metre": {
+      "x": 36.2,
+      "y": -36.4
+    },
+    "axis_px_per_m": {
+      "x": 36.2,
+      "y": 36.4
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 36.2,
+        "y_px_per_m": 36.4,
+        "relative_deviation": 0.00550964187327812,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=36.2 px/m and y=36.4 px/m disagree by 0.550964%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "BottomRightOffice",
+      "pixel_polygon": [
+        [
+          469.5166,
+          855.0
+        ],
+        [
+          620.0,
+          855.0
+        ],
+        [
+          620.0,
+          734.3704
+        ],
+        [
+          469.5166,
+          734.3704
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "Corridor",
+      "pixel_polygon": [
+        [
+          394.3654,
+          855.0
+        ],
+        [
+          469.5166,
+          855.0
+        ],
+        [
+          469.5166,
+          734.3704
+        ],
+        [
+          620.0,
+          734.3704
+        ],
+        [
+          620.0,
+          612.576
+        ],
+        [
+          469.5166,
+          612.576
+        ],
+        [
+          469.5166,
+          209.4824
+        ],
+        [
+          394.3654,
+          209.4824
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "MeetingDining",
+      "pixel_polygon": [
+        [
+          258.0,
+          855.0
+        ],
+        [
+          394.3654,
+          855.0
+        ],
+        [
+          394.3654,
+          626.408
+        ],
+        [
+          258.0,
+          626.408
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "MeetingRoomBig",
+      "pixel_polygon": [
+        [
+          469.5166,
+          612.576
+        ],
+        [
+          620.0,
+          612.576
+        ],
+        [
+          620.0,
+          331.568
+        ],
+        [
+          469.5166,
+          331.568
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "Office1",
+      "pixel_polygon": [
+        [
+          258.0,
+          354.864
+        ],
+        [
+          394.3654,
+          354.864
+        ],
+        [
+          394.3654,
+          209.4824
+        ],
+        [
+          258.0,
+          209.4824
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "Office2",
+      "pixel_polygon": [
+        [
+          258.0,
+          453.144
+        ],
+        [
+          394.3654,
+          453.144
+        ],
+        [
+          394.3654,
+          354.864
+        ],
+        [
+          258.0,
+          354.864
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "Office3",
+      "pixel_polygon": [
+        [
+          258.0,
+          626.408
+        ],
+        [
+          394.3654,
+          626.408
+        ],
+        [
+          394.3654,
+          453.144
+        ],
+        [
+          258.0,
+          453.144
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "Reception",
+      "pixel_polygon": [
+        [
+          258.0,
+          209.4824
+        ],
+        [
+          620.0,
+          209.4824
+        ],
+        [
+          620.0,
+          127.0
+        ],
+        [
+          258.0,
+          127.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "TopRightRoom",
+      "pixel_polygon": [
+        [
+          469.5166,
+          331.568
+        ],
+        [
+          620.0,
+          331.568
+        ],
+        [
+          620.0,
+          209.4824
+        ],
+        [
+          469.5166,
+          209.4824
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_Corridor_BottomRightOffice",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "BottomRightOffice"
+      ],
+      "pixel_endpoints": [
+        [
+          469.5166,
+          812.776
+        ],
+        [
+          469.5166,
+          776.376
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Corridor_MeetingDining",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "MeetingDining"
+      ],
+      "pixel_endpoints": [
+        [
+          394.3654,
+          691.2
+        ],
+        [
+          394.3654,
+          654.8
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Corridor_MeetingRoomBig",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "MeetingRoomBig"
+      ],
+      "pixel_endpoints": [
+        [
+          469.5166,
+          490.272
+        ],
+        [
+          469.5166,
+          453.872
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Corridor_Office1",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "Office1"
+      ],
+      "pixel_endpoints": [
+        [
+          394.3654,
+          300.264
+        ],
+        [
+          394.3654,
+          263.864
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Corridor_Office2",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "Office2"
+      ],
+      "pixel_endpoints": [
+        [
+          394.3654,
+          422.204
+        ],
+        [
+          394.3654,
+          385.804
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Corridor_Office3",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "Office3"
+      ],
+      "pixel_endpoints": [
+        [
+          394.3654,
+          557.976
+        ],
+        [
+          394.3654,
+          521.576
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Corridor_TopRightRoom",
+      "kind": "door",
+      "space_ids": [
+        "Corridor",
+        "TopRightRoom"
+      ],
+      "pixel_endpoints": [
+        [
+          469.5166,
+          288.616
+        ],
+        [
+          469.5166,
+          252.216
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_E_Side",
+      "kind": "door",
+      "space_ids": [
+        "Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          620.0,
+          647.52
+        ],
+        [
+          620.0,
+          612.576
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_N_Main",
+      "kind": "door",
+      "space_ids": [
+        "Reception"
+      ],
+      "pixel_endpoints": [
+        [
+          277.548,
+          127.0
+        ],
+        [
+          335.468,
+          127.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_Rec_Corridor",
+      "kind": "door",
+      "space_ids": [
+        "Reception",
+        "Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          399.18,
+          209.4824
+        ],
+        [
+          431.76,
+          209.4824
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_S_Rear",
+      "kind": "door",
+      "space_ids": [
+        "Corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          422.348,
+          855.0
+        ],
+        [
+          454.928,
+          855.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_E_MeetingRoomBig",
+      "kind": "window",
+      "space_ids": [
+        "MeetingRoomBig"
+      ],
+      "pixel_endpoints": [
+        [
+          620.0,
+          533.224
+        ],
+        [
+          620.0,
+          358.504
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_E_Reception",
+      "kind": "window",
+      "space_ids": [
+        "Reception"
+      ],
+      "pixel_endpoints": [
+        [
+          620.0,
+          201.256
+        ],
+        [
+          620.0,
+          146.656
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_E_TopRightRoom",
+      "kind": "window",
+      "space_ids": [
+        "TopRightRoom"
+      ],
+      "pixel_endpoints": [
+        [
+          620.0,
+          331.568
+        ],
+        [
+          620.0,
+          287.888
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_N_Reception",
+      "kind": "window",
+      "space_ids": [
+        "Reception"
+      ],
+      "pixel_endpoints": [
+        [
+          426.692,
+          127.0
+        ],
+        [
+          600.452,
+          127.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S_BottomRightOffice",
+      "kind": "window",
+      "space_ids": [
+        "BottomRightOffice"
+      ],
+      "pixel_endpoints": [
+        [
+          546.152,
+          855.0
+        ],
+        [
+          600.452,
+          855.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S_MeetingDining",
+      "kind": "window",
+      "space_ids": [
+        "MeetingDining"
+      ],
+      "pixel_endpoints": [
+        [
+          277.548,
+          855.0
+        ],
+        [
+          331.848,
+          855.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_W_MeetingDining",
+      "kind": "window",
+      "space_ids": [
+        "MeetingDining"
+      ],
+      "pixel_endpoints": [
+        [
+          258.0,
+          835.344
+        ],
+        [
+          258.0,
+          660.624
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_W_Office1",
+      "kind": "window",
+      "space_ids": [
+        "Office1"
+      ],
+      "pixel_endpoints": [
+        [
+          258.0,
+          331.568
+        ],
+        [
+          258.0,
+          287.888
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_W_Office2",
+      "kind": "window",
+      "space_ids": [
+        "Office2"
+      ],
+      "pixel_endpoints": [
+        [
+          258.0,
+          449.504
+        ],
+        [
+          258.0,
+          394.904
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_W_Office3",
+      "kind": "window",
+      "space_ids": [
+        "Office3"
+      ],
+      "pixel_endpoints": [
+        [
+          258.0,
+          548.512
+        ],
+        [
+          258.0,
+          493.912
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_W_Reception",
+      "kind": "window",
+      "space_ids": [
+        "Reception"
+      ],
+      "pixel_endpoints": [
+        [
+          258.0,
+          201.256
+        ],
+        [
+          258.0,
+          146.656
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "1f_view.png",
+      "floor_id": "F1",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "seed",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "trigger_action": "overlay_candidate",
+  "automatic_projection": false,
+  "overlay_image": "image_overlays/overlay_002.png",
+  "original_size": [
+    790,
+    1111
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    790,
+    1111
+  ],
+  "returned_size": [
+    790,
+    1111
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "remaining_seconds": 401,
+  "registered_calibration": {
+    "calibration_id": "calibration_002",
+    "calibration_file": "overlay_calibrations/calibration_002.json",
+    "reuse_on_revision": true
+  }
+}
