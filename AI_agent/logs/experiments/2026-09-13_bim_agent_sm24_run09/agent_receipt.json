@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 240,
+  "effort": "low",
+  "returncode": 0,
+  "elapsed_seconds": 222.43,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 220321,
+    "duration_api_ms": 219708,
+    "ttft_ms": 7040,
+    "ttft_stream_ms": 5336,
+    "time_to_request_ms": 28,
+    "num_turns": 16,
+    "result": "**Final result: `seed` candidate selected via finish_bim.**\n\nSummary of this run's scoped work (TopRightRoom, MeetingRoomBig, their shared partition, and the two corridor doors serving them):\n\n**What I verified:**\n- Registered an original-image/world coordinate frame on `1f_view.png` using the plan's own 10000mm (x) and 20000mm (y) exterior dimension lines (x: pixel 245→0m, pixel 613→10m; y: pixel ~67.5→20m/north, pixel ~867.5→0m/south).\n- Measured the vertical shared wall (Corridor | TopRightRoom/MeetingRoomBig) at pixel x≈459 → world x≈5.82m — matches seed's `space/Corridor/wall/5` exactly.\n- Measured the horizontal partition wall (TopRightRoom | MeetingRoomBig) at pixel y≈295 → world y≈14.31m — matches seed's declared y=14.38m within ~0.07m, inside plotting/measurement tolerance.\n- Located the two door-swing symbols on this same shared wall, consistent with seed's `D_Corridor_TopRightRoom` (y 14.94–15.94) and `D_Corridor_MeetingRoomBig` (y 10.02–11.02): two separate apertures on one long partition, which is architecturally sound.\n\n**Decision:** No revision was applied — pixel evidence in the registered frame corroborated the seed's geometry and door hosts for the scoped rooms/doors, so a code edit was not justified by discrepancy. I preserved the seed's SoutheastOffice/lower-east-wing geometry untouched, per scope.\n\n**Honest limitations / not verified this run:**\n- Door swing direction/open-state, and exact opening widths, were not individually re-measured against jamb pixels.\n- Wall thickness/offsets were not surveyed via `check_wall_dimensions` (no wall_references were added).\n- The lower east wing (BottomRightOffice, south doors) was intentionally not reviewed, per scope.\n- Windows (`W_E_TopRightRoom`, `W_E_MeetingRoomBig`) were not independently re-verified against elevation/jamb pixels this run.\n- No opening review (`check_openings` with `review_json`) was submitted for this floor/kind — the delivery record correctly shows `review_status: not_reviewed` for all door/window scopes; this is not being claimed as verified.\n- Calibration used is my own pixel-anchor reading (not independently certified) — `calibration_independently_verified: false` in the delivery record.",
+    "stop_reason": "end_turn",
+    "session_id": "212992cf-0199-407c-95cf-8a1786bac8ee",
+    "total_cost_usd": 0.7494561,
+    "usage": {
+      "input_tokens": 22,
+      "cache_creation_input_tokens": 67571,
+      "cache_read_input_tokens": 298247,
+      "output_tokens": 16897,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 67571,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 873,
+          "cache_read_input_tokens": 57824,
+          "cache_creation_input_tokens": 9747,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 9747
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 945,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001035,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 22,
+        "outputTokens": 16897,
+        "cacheReadInputTokens": 298247,
+        "cacheCreationInputTokens": 67571,
+        "webSearchRequests": 0,
+        "costUSD": 0.7484211000000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "340f1cd1-055d-4eca-9e02-c158f4b598c1"
+  }
+}

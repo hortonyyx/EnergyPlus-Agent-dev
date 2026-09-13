@@ -1,0 +1,147 @@
+{
+  "schema_version": "pixel_region_overview_execution_audit_v1",
+  "audit_method": {
+    "original_view_replay": "AI_agent/logs/experiments/2026-09-12_sm24_delegation_setup/verify_execution.py:audit_stream",
+    "overview_replay": "src.agent.geometry.pixel_region_overview.render_pixel_region_overview",
+    "region_replay": "src.agent.geometry.pixel_region.render_pixel_region",
+    "visual_review": "Independent inspection of the original plan, numbered overview and both selected-region panels; no GT coordinates or BIM were used."
+  },
+  "input_isolation": {
+    "question_sha256_matches_manifest": true,
+    "child_manifest_sha256_matches_receipt": true,
+    "child_original_matches_parent_and_manifest": true,
+    "original_image": "1f_view.png",
+    "original_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "only_one_selected_original": true,
+    "no_seed_candidate_old_observation_history_or_evaluation_in_child": true,
+    "correct_candidate_id_or_seed_supplied_in_question": false,
+    "readonly_request": true
+  },
+  "subscription": {
+    "requested_model": "haiku",
+    "actual_model": "claude-haiku-4-5-20251001",
+    "channel": "Claude subscription; no API/fallback",
+    "timeout_seconds": 89.9405369758606,
+    "elapsed_seconds": 34.94,
+    "returncode": 0,
+    "completed": true,
+    "estimated_cost_usd": 0.0466728,
+    "permission_denials": []
+  },
+  "tool_stream": {
+    "tool_names": [
+      "inputs",
+      "view_image",
+      "view_pixel_region_overview",
+      "view_pixel_region",
+      "view_pixel_region",
+      "view_pixel_region"
+    ],
+    "readonly_tools_only": true,
+    "original_view": {
+      "image": "1f_view.png",
+      "box": [0, 0, 790, 1111],
+      "grid_shown": true,
+      "pixels_match_deterministic_replay": true
+    },
+    "tool_errors": [
+      {
+        "tool": "view_pixel_region",
+        "submitted_name": "1f_view.png - R21 inspection",
+        "seed_pixel": [511, 347],
+        "error": "choose an exact image name from input inventory",
+        "diagnosis": "The model appended a descriptive suffix to the required exact image name. It immediately retried with 1f_view.png and the same overview-provided R21 seed; inventory enforcement worked as designed."
+      }
+    ]
+  },
+  "overview": {
+    "overview_id": "overview_001",
+    "actual_call_parameters": {
+      "name": "1f_view.png",
+      "background_rgb": [0, 0, 0],
+      "tolerance": 60,
+      "min_pixels": 500,
+      "max_regions": "omitted by caller; tool default 40",
+      "include_border": "omitted by caller; tool default false"
+    },
+    "effective_parameters": {
+      "background_rgb": [0, 0, 0],
+      "tolerance": 60.0,
+      "min_pixels": 500,
+      "max_regions": 40,
+      "include_border": false
+    },
+    "candidate_count": 39,
+    "truncated_by_max_regions": 0,
+    "source_image_hash_matches": true,
+    "metadata_matches_deterministic_replay": true,
+    "saved_image_matches_deterministic_replay": true,
+    "returned_payload_matches_saved_image": true,
+    "model_selected_candidate": {
+      "id": "R21",
+      "seed_pixel": [511, 347],
+      "pixel_count": 5951,
+      "bbox_px": [463, 302, 602, 366],
+      "touches_image_border": false
+    },
+    "context_candidate_used_for_confirmation": {
+      "id": "R06",
+      "seed_pixel": [495, 482],
+      "pixel_count": 23121,
+      "bbox_px": [463, 372, 602, 582],
+      "touches_image_border": false
+    }
+  },
+  "selected_region_checks": [
+    {
+      "region_id": "region_001",
+      "purpose": "Inspect selected target candidate R21",
+      "seed_pixel": [511, 347],
+      "seed_exactly_matches_overview_candidate": true,
+      "overview_candidate_id": "R21",
+      "bbox_px": [463, 302, 602, 366],
+      "bbox_matches_overview_candidate": true,
+      "source_image_hash_matches": true,
+      "metadata_matches_deterministic_replay": true,
+      "saved_image_matches_deterministic_replay": true,
+      "returned_payload_matches_saved_image": true,
+      "independent_visual_target_match": true,
+      "visual_basis": "The region is directly below the large full-width northern room, east of the central corridor, contains the narrow cabinet-like fixture, and is immediately above R06."
+    },
+    {
+      "region_id": "region_002",
+      "purpose": "Confirm the larger two-table room immediately below R21",
+      "seed_pixel": [495, 482],
+      "seed_exactly_matches_overview_candidate": true,
+      "overview_candidate_id": "R06",
+      "bbox_px": [463, 372, 602, 582],
+      "bbox_matches_overview_candidate": true,
+      "source_image_hash_matches": true,
+      "metadata_matches_deterministic_replay": true,
+      "saved_image_matches_deterministic_replay": true,
+      "returned_payload_matches_saved_image": true,
+      "independent_visual_context_match": true,
+      "visual_basis": "The returned region is immediately below R21 and visibly contains two separate table-and-chair groups."
+    }
+  ],
+  "development_setup_limit": {
+    "pre_probe_tuning": "During development, max_regions=20 was found to omit the target because larger annotation regions occupied the bounded list. The frozen tool default was then raised to 40 before this probe; all 39 qualifying candidates were displayed.",
+    "impact": "This run validates localization with the 40-candidate overview, not the earlier 20-candidate configuration and not an untuned first-ever tool design. The model still received no correct candidate ID or seed and selected R21 from the complete returned list itself."
+  },
+  "application_boundary": {
+    "localization_only": true,
+    "bim_input_present": false,
+    "trace_requested_or_created": false,
+    "candidate_created_or_modified": false
+  },
+  "conclusion": {
+    "input_isolation_passed": true,
+    "overview_transport_and_deterministic_replay_passed": true,
+    "selected_region_transport_and_deterministic_replay_passed": true,
+    "selected_seed_came_from_returned_overview_candidate": true,
+    "context_seed_came_from_returned_overview_candidate": true,
+    "requested_northeastern_room_localized_correctly": true,
+    "model_completed_within_budget": true,
+    "limits": "The probe establishes target localization in this drawing with the tuned 40-candidate overview. It does not establish room contour, wall or doorway geometry, scale, BIM editing, cold-start reconstruction, or generalization to other drawings."
+  }
+}

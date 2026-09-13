@@ -1,0 +1,137 @@
+{
+  "schema_version": "isolated_trace_execution_audit_v1",
+  "audit_method": {
+    "original_view_replay": "AI_agent/logs/experiments/2026-09-12_sm24_delegation_setup/verify_execution.py:audit_stream",
+    "region_replay": "src.agent.geometry.pixel_region.render_pixel_region",
+    "trace_replay": "src.agent.geometry.space_trace.render_space_trace",
+    "scope": "Input isolation, stored metadata, deterministic rendering and actual stream image payloads. Geometry executability and transport do not certify room identity or drawing fidelity."
+  },
+  "input_isolation": {
+    "question_sha256_matches_manifest": true,
+    "child_manifest_sha256_matches_receipt": true,
+    "child_original_matches_parent_and_manifest": true,
+    "original_image": "1f_view.png",
+    "original_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "only_one_selected_original": true,
+    "no_seed_candidates_history_or_evaluation_in_child": true,
+    "readonly_request": true
+  },
+  "subscription": {
+    "requested_model": "haiku",
+    "actual_model": "claude-haiku-4-5-20251001",
+    "channel": "Claude subscription; no API/fallback",
+    "timeout_seconds": 119.96419978141785,
+    "elapsed_seconds": 120.59,
+    "timed_out": true,
+    "completed": false,
+    "completed_result_event_present": false,
+    "estimated_cost_usd": null
+  },
+  "tool_stream": {
+    "tool_names": [
+      "view_image",
+      "inputs",
+      "view_image",
+      "view_pixel_region",
+      "view_image",
+      "view_image",
+      "view_pixel_region",
+      "view_pixel_region",
+      "view_image",
+      "preview_space_trace",
+      "preview_space_trace"
+    ],
+    "readonly_tools_only": true,
+    "original_views": [
+      {"box": [0, 0, 790, 1111], "grid_shown": true, "pixels_match": true},
+      {"box": [420, 100, 650, 350], "grid_shown": true, "pixels_match": true},
+      {"box": [400, 120, 650, 350], "grid_shown": true, "pixels_match": true},
+      {"box": [430, 130, 620, 280], "grid_shown": true, "pixels_match": true},
+      {"box": [0, 0, 790, 1111], "grid_shown": true, "pixels_match": true}
+    ],
+    "all_five_original_view_payloads_match_deterministic_replay": true,
+    "tool_errors": [
+      {
+        "tool": "preview_space_trace",
+        "submitted_name": "Small Cabinet Room NE",
+        "error": "choose an exact image name from input inventory",
+        "diagnosis": "The model put a descriptive room label in the required image-name field. It retried with 1f_view.png and the preview succeeded; inventory enforcement worked as designed."
+      }
+    ]
+  },
+  "pixel_regions": {
+    "actual_call_and_artifact_count": 3,
+    "note": "The execution contains three successful region calls/artifacts, although the audit request referred to two. All three are retained and audited.",
+    "artifacts": [
+      {
+        "region_id": "region_001",
+        "seed_pixel": [520, 210],
+        "bbox_px": [258, 128, 602, 296],
+        "region_pixel_count": 41201,
+        "source_image_hash_matches": true,
+        "metadata_matches_replay": true,
+        "saved_pixels_match_replay": true,
+        "returned_payload_matches_saved_image": true,
+        "semantic_observation": "The connected component covers the large full-width northern room and follows its furniture/door marks; it is not the requested small room below."
+      },
+      {
+        "region_id": "region_002",
+        "seed_pixel": [470, 170],
+        "bbox_px": [258, 128, 602, 296],
+        "region_pixel_count": 41201,
+        "source_image_hash_matches": true,
+        "metadata_matches_replay": true,
+        "saved_pixels_match_replay": true,
+        "returned_payload_matches_saved_image": true,
+        "semantic_observation": "A different seed reaches exactly the same northern-room component as region_001; it supplies no new localization of the target room."
+      },
+      {
+        "region_id": "region_003",
+        "seed_pixel": [540, 220],
+        "bbox_px": [537, 211, 579, 247],
+        "region_pixel_count": 1512,
+        "source_image_hash_matches": true,
+        "metadata_matches_replay": true,
+        "saved_pixels_match_replay": true,
+        "returned_payload_matches_saved_image": true,
+        "semantic_observation": "This component is an enclosed furniture rectangle within the northern room, not a room boundary."
+      }
+    ],
+    "all_region_transport_and_replay_checks_passed": true,
+    "target_room_localized_by_region_tools": false
+  },
+  "space_trace": {
+    "trace_id": "trace_001",
+    "polygon_pixels": [[450.0, 150.0], [610.0, 150.0], [610.0, 270.0], [450.0, 270.0]],
+    "opening_pixels": [{"id": "door_corridor", "p1": [450, 205], "p2": [450, 250]}],
+    "world_polygon": [[5.540541, 8.823529], [9.864865, 8.823529], [9.864865, 7.411765], [5.540541, 7.411765]],
+    "geometrically_executable": true,
+    "geometry_errors": [],
+    "calibration_unverified": true,
+    "source_image_hash_matches": true,
+    "metadata_matches_replay": true,
+    "saved_pixels_match_replay": true,
+    "returned_payload_matches_saved_image": true,
+    "semantic_target_matches_question": false,
+    "semantic_observation": "The preview encloses the right half of the large northern room and crosses the furniture shown there. The requested northeastern small room is directly below that full-width room, so this contour and its claimed corridor doorway are on the wrong room.",
+    "view_space_trace_called": false,
+    "selected": false,
+    "trace_selection_file_present": false
+  },
+  "application_boundary": {
+    "seed_or_candidate_available_to_observer": false,
+    "bim_mutation_tool_available": false,
+    "candidate_created_or_modified": false,
+    "trace_applied_to_source_bim": false
+  },
+  "conclusion": {
+    "input_isolation_passed": true,
+    "original_image_transport_passed": true,
+    "region_and_trace_deterministic_replay_passed": true,
+    "observation_completed": false,
+    "correct_room_localized": false,
+    "trace_selected": false,
+    "semantic_result_accepted": false,
+    "failure_summary": "The image and derived artifacts were transported and rendered correctly, but the observer first flooded the northern room/furniture, then traced the wrong northern-room area. It timed out with three seconds remaining after preview and never viewed or selected trace_001. No source BIM change followed."
+  }
+}

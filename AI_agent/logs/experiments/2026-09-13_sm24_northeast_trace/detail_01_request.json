@@ -1,0 +1,16 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 119.96419978141785,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "86ed43746c95ffcf06b0f8e2ca6836844a60c7cc1b3e07c0981e4f8b33243a23",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "prompt": "Images: [1f_view.png]\nQuestion: From 1f_view.png, trace ONE complete room: the small northeastern\nroom directly below the large full-width room at the top of the building. It\ncontains a narrow cabinet, is east of the corridor, and has a larger room with\ntwo tables directly below it. Do not trace the full-width room or furniture.\nYou have only the original image, no saved BIM or target coordinates.\nUse view_pixel_region from your own chosen background seed to locate this room\nif useful. It is a pixel candidate, not automatically a physical boundary;\ndoor symbols and furniture must be interpreted. Identify the complete room's\nfour boundary segments and its actual doorway jambs on the corridor wall.\nCall preview_space_trace EARLY with the ordered ORIGINAL-pixel room polygon,\nand the aperture's two jamb endpoints (not swung-leaf tips). State a consistent\nrepresentative wall-line basis, distinguishing internal lines and outer faces.\nFor world coordinates use the building southwest footprint origin, x east/y\nnorth; choose your own two [original_pixel,metres] anchors for each axis from\nthe actual outside walls and overall marked dimensions. Dimension lines are\noffset from the wall; their location is not itself a footprint endpoint.\nInspect the clean/marked preview, correct only what the image supports, then\nselect_space_trace. Focus on the correct room/host and complete contour; do not\nread the whole drawing, inventory other rooms or write long prose. Submit a\npreview within 60 seconds and finish within 120 seconds. Unknowns stay explicit.\n",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}

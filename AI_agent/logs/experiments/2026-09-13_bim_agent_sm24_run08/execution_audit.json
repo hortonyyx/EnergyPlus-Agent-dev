@@ -1,0 +1,149 @@
+{
+  "schema_version": "bim_agent_execution_audit_v1",
+  "audit_method": {
+    "stream_function": "AI_agent/logs/experiments/2026-09-12_sm24_delegation_setup/verify_execution.py:audit_stream",
+    "scope": "Input identity, actual Claude receipt, MCP calls, returned original/source image transport and post-edit inspection evidence. No GT or visual-correctness judgment is used for transport checks."
+  },
+  "input_isolation": {
+    "seed_proposal_matches_run07_candidate_01": true,
+    "seed_proposal_sha256": "eb6d7ce65f138baf76f926a52dd99c165b1c4f5e358590b176a9cbeb7d1739eb",
+    "seed_source": "AI_agent/logs/experiments/2026-09-13_bim_agent_sm24_run07/candidate_01",
+    "all_five_images_match_run04_and_case_data": true,
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "North_view.png": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "South_view.png": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    },
+    "gt_or_evaluation_supplied_to_agent": false
+  },
+  "subscription": {
+    "requested_model": "sonnet",
+    "actual_model": "claude-sonnet-5",
+    "effort": "medium",
+    "channel": "Claude subscription; no API/fallback",
+    "returncode": 0,
+    "completed": true,
+    "elapsed_seconds": 325.94,
+    "permission_denials": [],
+    "explicit_detail_child_invocations": 0,
+    "receipt_model_usage": {
+      "claude-sonnet-5": {
+        "input_tokens": 34,
+        "output_tokens": 24490,
+        "cache_read_input_tokens": 698189,
+        "cache_creation_input_tokens": 85307,
+        "estimated_cost_usd": 1.0887506999999998
+      },
+      "claude-haiku-4-5-20251001": {
+        "input_tokens": 990,
+        "output_tokens": 21,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "estimated_cost_usd": 0.001095
+      }
+    },
+    "model_route_fallback_observed": false,
+    "model_usage_note": "The completed result and init event identify claude-sonnet-5. The same CLI receipt also reports a small Haiku usage entry, but there is no review_detail call, child request, child stream or child receipt. Treat it as unclassified Claude CLI auxiliary usage, not as an observed product-agent fallback or delegated visual review."
+  },
+  "parent_stream": {
+    "tool_names": [
+      "inputs",
+      "inspect_candidate",
+      "view_candidate",
+      "view_image",
+      "view_image",
+      "view_image",
+      "view_image",
+      "check_wall_dimensions",
+      "view_image",
+      "view_pixel_profile",
+      "view_pixel_profile",
+      "check_openings",
+      "view_image",
+      "view_image",
+      "pixel_profile",
+      "pixel_profile",
+      "revise_bim",
+      "finish_bim"
+    ],
+    "successful_tool_log_counts": {
+      "inputs": 1,
+      "inspect_candidate": 1,
+      "view_candidate": 1,
+      "view_image": 7,
+      "check_wall_dimensions": 1,
+      "view_pixel_profile": 1,
+      "check_openings": 1,
+      "pixel_profile": 1,
+      "revise_bim": 1,
+      "finish_bim": 1
+    },
+    "tool_errors": [
+      {
+        "tool": "view_pixel_profile",
+        "tool_use_id": "toolu_01UBSzkKmuW1QaM1bG8FewXL",
+        "submitted_name": "east_dim_ticks",
+        "error": "choose an exact image name from input inventory",
+        "diagnosis": "The model put a descriptive label in the required image-name field. It immediately retried with 1f_view.png and the tool succeeded; this is caller misuse, not a transport or tool registration failure."
+      },
+      {
+        "tool": "pixel_profile",
+        "tool_use_id": "toolu_01SJFA81e3zWyXnc3QVfov4Q",
+        "submitted_name": "jog_door_x",
+        "error": "choose an exact image name from input inventory",
+        "diagnosis": "The same caller mistake recurred with another descriptive label. Retrying with 1f_view.png succeeded, so image inventory enforcement worked as designed."
+      }
+    ],
+    "original_views": [
+      {"image": "1f_view.png", "box": [0, 0, 790, 1111], "grid_shown": true, "pixels_match": true},
+      {"image": "1f_view.png", "box": [400, 0, 790, 900], "grid_shown": true, "pixels_match": true},
+      {"image": "1f_view.png", "box": [600, 130, 790, 420], "grid_shown": true, "pixels_match": true},
+      {"image": "1f_view.png", "box": [600, 130, 660, 420], "grid_shown": true, "pixels_match": true},
+      {"image": "1f_view.png", "box": [180, 560, 620, 900], "grid_shown": true, "pixels_match": true},
+      {"image": "1f_view.png", "box": [440, 630, 640, 780], "grid_shown": true, "pixels_match": true},
+      {"image": "1f_view.png", "box": [600, 630, 790, 780], "grid_shown": true, "pixels_match": true}
+    ],
+    "source_views": [
+      {"tool": "view_candidate", "candidate": "seed", "floor_id": "F1", "pixels_match": true}
+    ],
+    "all_returned_original_and_source_views_match_replay": true
+  },
+  "delivery": {
+    "candidate": "candidate_01",
+    "selection_origin": "agent_selected",
+    "source_geometry_ready": true,
+    "viewer_exists": true,
+    "counts": {
+      "spaces": 8,
+      "boundaries": 54,
+      "openings": 22,
+      "connections": 11,
+      "unbuilt_openings": 0,
+      "unsupported": 0
+    },
+    "selected_source_viewed_after_revision": false,
+    "overlay_candidate_called": false,
+    "registered_overlay_exists": false,
+    "opening_review_submitted_for_corrected_candidate": false,
+    "post_edit_inspection_requirement_met": false
+  },
+  "tool_wiring": {
+    "main_agent_has_view_pixel_region": true,
+    "main_agent_has_preview_space_trace": true,
+    "readonly_server_has_view_pixel_region": true,
+    "readonly_server_has_preview_space_trace": true,
+    "readonly_mutation_tools_absent": true,
+    "offline_tests": "4 passed: tests/test_space_trace.py plus tests/test_bim_agent_tools.py::test_readonly_stdio_inventory_hash_and_tool_boundary",
+    "known_audit_gap": "The reused audit_stream only pixel-replays view_image, view_candidate and view_elevation_candidate. It does not yet validate image payloads returned by view_pixel_profile, view_pixel_region or preview/view_space_trace. The older readonly inventory assertion also omits region/trace names; tests/test_space_trace.py covers region/trace behavior separately."
+  },
+  "conclusion": {
+    "transport_and_input_isolation_passed": true,
+    "execution_completed_and_candidate_selected": true,
+    "new_source_was_not_viewed": true,
+    "overlay_was_not_created_or_viewed": true,
+    "drawing_interpretation_passed": false,
+    "drawing_interpretation_note": "Correct image transport and source self-consistency do not validate the interpretation. Independent human/GT-side review found the claimed east partition support and moved southeast interior door unsupported; candidate_01 should not replace run07 as the recovery seed."
+  }
+}

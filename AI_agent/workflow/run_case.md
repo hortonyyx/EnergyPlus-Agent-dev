@@ -17,13 +17,15 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 输出目录须不存在。每个 `candidate_XX` 保存原方案、源 BIM、查看器和检查报告；`tools.jsonl`、订阅回执及流式记录说明真实执行过程。模型回复结束不代表已有候选；以实际保存的 `viewer.html`、`source_model.json` 及报告为准。源 BIM 的几何检查通过也不等于原图保真验收，独立对照须在生成结束后另做，不反馈 GT。
 
-运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。主模型当前使用 medium effort；以回执中的实际版本为准。此入口未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
+运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。主模型默认使用medium effort，可显式加`--effort low`，仅支持low/medium，不改变Haiku设置；实际档位与模型版本以回执为准。此入口未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
 
 `review_detail(question, images, timeout_seconds=120)` 由总 Agent 自选局部问题、原图和15–240秒时限，可不调用。每次只把选中的原图副本与原样问题放入独立只读目录 `detail_XX/`；局部 Haiku 不获得主任务 scope、seed、候选、其他原图或旧评价，也不能再次派工或改 BIM。图像与输入清单保存摘要，父目录保留对应请求、流记录和回执；局部成本随主调用汇总一次。文件隔离不清洗问题文本，主模型若在问题里带答案，仍可能影响观察。
 
 09-13 已把实际局部截止时间写入子清单后再计算摘要：取240秒上限与父任务剩余时间（预留45秒收尾）中较短者，拷图耗时也计入。子任务的 `inputs` / `view_image` 现在可显示递减剩余时间；只读提示提醒及时交付并标明未核范围。此前局部观察即使有外层超时，工具仍显示 null，见[真实反例与修复](../logs/worklog/2026-09-13_reconstruction_partition_and_reading.md)。随后两墙局部返工已实际收到剩时并在215.94秒结束，但修正观察仍不可用；这不证明时间反馈使识读可靠，见[后续实跑](../logs/worklog/2026-09-13_reconstruction_annotation_recovery.md)。
 
-09-13 细节查看已支持 `view_image(..., display_scale=4)`：默认1保持原呈现，显式1–8倍按最近邻显示，长边最多1600。`box_original_pixels` 仍是原图框，实际倍率及 `original_pixels_per_returned_pixel` 按最终尺寸返回；`coordinate_grid=false` 可去掉辅助网格。显示缩放不修改原图、不改变 `pixel_profile` 量测输入，也不作为识读正确证明。Sonnet（含只读局部观察）显式使用medium推理档，Haiku保持不传effort；原始实验回执中的旧设置不回写。
+09-13 细节查看已支持 `view_image(..., display_scale=4)`：默认1保持原呈现，显式1–8倍按最近邻显示，长边最多1600。`box_original_pixels` 仍是原图框，实际倍率及 `original_pixels_per_returned_pixel` 按最终尺寸返回；`coordinate_grid=false` 可去掉辅助网格。显示缩放不修改原图、不改变 `pixel_profile` 量测输入，也不作为识读正确证明。Sonnet（含只读局部观察）默认medium，可按订阅helper的`effort`参数选low；Haiku保持不传effort，原始实验回执中的旧设置不回写。
+
+`view_pixel_region_overview(name, background_rgb, tolerance=60, min_pixels=500, max_regions=40, include_border=false)`可先在整图查看编号像素区域，再将所选候选的`seed_pixel`原样交给`view_pixel_region`。总览及过滤/截断说明保存于`pixel_region_overviews/`，JSON坐标始终是原图像素。模型应结合整图位置判断候选是房间背景、家具还是尺寸区；过滤掉的候选不代表建筑对象不存在。父/只读工具均可用，不能修改BIM。实现与实际限制见[区域定位](../design/reading_correction.md#09-13-后续先定位区域再判读边界)。
 
 单次局部观察实际取请求时限与主任务剩余时间减45秒中较短者；不足15秒观察预算时不启动。09-13起MCP工具默认120秒，可明确选择更短或最长240秒；直接helper调用仍默认240秒以保留独立观察脚本的既有范围。超时、进程失败和未完成回答须按返回的完成状态处理，局部文字仍只是待核线索，没有自动重试或模型回退。主任务的原图保真验收与这些工具执行状态分别记录。
 

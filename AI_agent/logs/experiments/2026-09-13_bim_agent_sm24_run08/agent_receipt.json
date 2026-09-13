@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 360,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 325.94,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 323575,
+    "duration_api_ms": 317841,
+    "ttft_ms": 12986,
+    "ttft_stream_ms": 12614,
+    "time_to_request_ms": 4207,
+    "num_turns": 19,
+    "result": "Final delivery: **candidate_01**, selected via `finish_bim`.\n\n## Summary of this increment\nStarting from `seed`, I focused on the east-side partitions/doors per scope, working from `1f_view.png` (10.0m × 20.0m footprint) using pixel-profile calibration of the east-side mm dimension chain (540/1500/2380/1200/740/4800/1540/1600/5700).\n\n**Confirmed correct (no change made):**\n- TopRightRoom/MeetingRoomBig partition at model y=14.38 — matches dimension chain exactly.\n- MeetingRoomBig/Corridor south boundary at y=7.30 — matches exactly.\n- The exterior east door `D_E_Side` (y 5.7–7.3, width 1.6m) — matches the \"1600\" label exactly.\n- The BottomRightOffice/Corridor jog contour (x=6.013, y=3.453/4.893) — pixel-consistent with the drawn step, so the seed's \"recovered southeast contour\" was retained unchanged.\n\n**Correction applied:**\n- `D_Corridor_BottomRightOffice` was hosted at x=[8.608, 9.527] on wall/2 (far east end), but direct crop/pixel-profile inspection (`box=[600,630,790,780]`) showed that stretch of wall/2 is solid with no arc, while a door arc/frame is actually drawn at the jog corner (~x=5.6–6.0m, y≈4.89m). I moved the door to x=[6.013, 6.932] (same 0.92m width, now anchored at the jog corner/wall-2 west end), preserving width/height/IDs and space adjacency.\n\n## Unresolved / not verified this pass\n- Door swing directions/states remain unmodeled (unknown).\n- Wall thickness/offsets were not surveyed via `check_wall_dimensions` (no wall_references saved).\n- I did not have time (budget ran out before the 75s check reserve) to register an `overlay_candidate` calibration or re-run `check_openings` with a review_json against this specific corrected door — this correction is evidenced by direct pixel/crop inspection but not cross-checked via the overlay tool.\n- The interior door between TopRightRoom and MeetingRoomBig (if any exists beyond the corridor doors) was not specifically re-examined.\n- General drawing fidelity remains `not_evaluated` per the delivery record; calibration is not independently verified.\n\nGiven the time constraint, I prioritized saving one well-evidenced, high-confidence correction (the mislocated door) over further speculative east-side changes, since the two east partitions I checked against the dimension chain already matched the seed closely.",
+    "stop_reason": "end_turn",
+    "session_id": "89c7afb2-78a9-42a2-a7b5-54879f404c37",
+    "total_cost_usd": 1.0898457,
+    "usage": {
+      "input_tokens": 34,
+      "cache_creation_input_tokens": 85307,
+      "cache_read_input_tokens": 698189,
+      "output_tokens": 24490,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 85307,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 893,
+          "cache_read_input_tokens": 76708,
+          "cache_creation_input_tokens": 8599,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 8599
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 990,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001095,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 34,
+        "outputTokens": 24490,
+        "cacheReadInputTokens": 698189,
+        "cacheCreationInputTokens": 85307,
+        "webSearchRequests": 0,
+        "costUSD": 1.0887506999999998,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "e93f07d9-9912-4947-98b3-c433ae89cc6d"
+  }
+}
