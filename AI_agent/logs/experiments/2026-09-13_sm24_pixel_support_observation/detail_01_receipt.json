@@ -1,0 +1,79 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 149.9526867866516,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "b94caeb1c3d5536403360a18d595d54e031e82f7a78e64e08d331becf2d0f2a9",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 61.03,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 58744,
+    "duration_api_ms": 59659,
+    "ttft_ms": 2495,
+    "ttft_stream_ms": 1660,
+    "time_to_request_ms": 175,
+    "num_turns": 14,
+    "result": "Perfect! Now I can trace the interior boundary clearly. Let me identify the exact polyline and opening endpoints by examining the wall intersections and arc endpoints in original pixels.\n\n**Interior Boundary Tracing (Original Pixels):**\n\n**Wall segments (gray):**\n1. **Top-right segment**: Horizontal gray line at y≈700-715, from x≈570 to x≈605\n2. **Right wall**: Vertical gray at x≈605-610, from y≈700-715 to y≈875\n3. **Bottom-left segment**: Horizontal gray at y≈860-875, from x≈545 to approximately x≈485\n4. **Left wall**: Vertical gray at x≈545-550, from y≈770 to y≈860-875\n\n**Door opening #1 (top-left, cyan arc):**\n- Opens toward circulation area (northeast)\n- **Left endpoint**: x≈500, y≈700\n- **Right endpoint**: x≈570, y≈710-715\n- Arc curves upward into circulation\n\n**Door opening #2 (bottom, cyan arc):**\n- Opens toward circulation area (south)\n- **Left endpoint**: x≈485-490, y≈870-875\n- **Right endpoint**: x≈590-595, y≈870-875\n- Arc curves downward into circulation\n\n**Interior Boundary Polyline (approximate vertices in original pixels):**\n(485, 875) → (545, 875) → (545, 770) → [cyan arc endpoint] → (570, 710) → (605, 700) → (610, 875) → (590, 875) → [back to start via cyan arc]\n\n**Measurements used:**\n- Gray wall x-profile (x=546, x=606)\n- Gray wall y-profile (y=870)\n- Cyan arc profiles (y=869-878, x=538-591)\n\n**Uncertain points:** Exact endpoints where top-left cyan arc meets the gray walls (~570, ~710-715) require visual confirmation of arc termination.",
+    "stop_reason": "end_turn",
+    "session_id": "2eefe568-7ea5-4a4a-afa3-a58fda065582",
+    "total_cost_usd": 0.0776693,
+    "usage": {
+      "input_tokens": 2579,
+      "cache_creation_input_tokens": 18472,
+      "cache_read_input_tokens": 83903,
+      "output_tokens": 5780,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 18472,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 8,
+          "output_tokens": 1449,
+          "cache_read_input_tokens": 16792,
+          "cache_creation_input_tokens": 1680,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1680
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 3350,
+        "outputTokens": 5797,
+        "cacheReadInputTokens": 83903,
+        "cacheCreationInputTokens": 18472,
+        "webSearchRequests": 0,
+        "costUSD": 0.0776693,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "2bc616b4-d348-4b5f-85a7-25425960fc58"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 300,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 283.24,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 281238,
+    "duration_api_ms": 279430,
+    "ttft_ms": 1651,
+    "ttft_stream_ms": 1144,
+    "time_to_request_ms": 54,
+    "num_turns": 11,
+    "result": "Saved and selected **candidate_01** as the final BIM.\n\n## Summary\n\n**What I did:** Continued from `seed` with one bounded local correction to the southeast space (`BottomRightOffice`) and its interior door to the `Corridor`.\n\n**Evidence check on the worker observation:** The observation's raw pixel readings were roughly consistent with what I found, but its interpretation (a door hosted between a \"west-side notch\" and the exterior wall) didn't hold up. Using the overlay tool with anchors from the plan's own `4180/1640/4180` south dimension chain and the confirmed `y=15.94`/`y=0` wall faces, I projected the seed model onto `1f_view.png` and found the modeled door `D_Corridor_BottomRightOffice` (at world y=1.16–2.16, south end of the shared wall) landed far from the actual visible cyan door arc, which sits near the **north end** of that same wall, at the corner where `BottomRightOffice` meets the wide corridor bulge (world y≈3.3–4.8 region, pixel hinge ≈(559,700), leaf ≈(591,731)).\n\n**Correction applied:** Moved `D_Corridor_BottomRightOffice` to `(5.82, 2.314)–(5.82, 3.314)`, hinging at the shared NW corner, while **preserving its 1.0 m width** since the diagonal arc pixels were too fragmented to confidently resolve an exact new width (worker itself flagged this as uncertain). Room polygon/extents for `BottomRightOffice` and `Corridor` were left unchanged — only the opening moved.\n\n**Verified after saving:** The revised candidate builds cleanly (source validation pass, 8 spaces, 22 openings, 0 unsupported), and the automatic post-revision overlay projection confirms the door now sits at the shared wall's north end.\n\n**Explicit limitations (not verified):**\n- Exact door width/jamb of `D_Corridor_BottomRightOffice` remains unmeasured with confidence — only its host-wall location was corrected.\n- No `check_openings` review was run this pass (ran out of time budget after the geometric correction) — door/window inventory is unreviewed against original marks beyond this one investigated case.\n- East-side partition fidelity elsewhere, wall thicknesses/offsets, and door swing states remain unresolved, unchanged from seed's own noted limitations.\n- A cross-axis calibration warning (~0.37%, just over the 0.3% tolerance) was reported on the overlay; not re-resolved given time constraints, though it's small enough to not materially affect this correction.",
+    "stop_reason": "end_turn",
+    "session_id": "dd9ac859-1336-498a-bade-28ba3f8b6bee",
+    "total_cost_usd": 0.9631364,
+    "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 81420,
+      "cache_read_input_tokens": 399888,
+      "output_tokens": 23523,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 81420,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 873,
+          "cache_read_input_tokens": 81190,
+          "cache_creation_input_tokens": 10934,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 10934
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 1666,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001751,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 18,
+        "outputTokens": 23523,
+        "cacheReadInputTokens": 399888,
+        "cacheCreationInputTokens": 81420,
+        "webSearchRequests": 0,
+        "costUSD": 0.9613854,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "b3331fbd-c1a7-4be2-b2d4-4a0c502a850a"
+  }
+}

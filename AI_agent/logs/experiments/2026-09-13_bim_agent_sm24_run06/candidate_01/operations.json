@@ -1,0 +1,32 @@
+[
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_BottomRightOffice",
+    "changes": {
+      "p1": [
+        5.82,
+        2.314
+      ],
+      "p2": [
+        5.82,
+        3.314
+      ]
+    },
+    "reason": "Overlay of seed onto 1f_view.png showed the modeled door (y=1.16-2.16, south end of west wall) does not align with the actual cyan door arc in the drawing, which is near the NORTH end of BottomRightOffice's west wall / NE corner (world y~3.3-4.8, pixel hinge ~(559,700) leaf ~(591,731) using calibration 458.5px=5.82m,877px=0m,296px=15.94m). Relocated door to hinge at the shared corner (5.82,3.314) preserving the existing 1.0m width since exact arc width was not conclusively resolved from the diagonal swing mark (observation noted uncertainty in the precise jamb).",
+    "source_refs": [
+      "1f_view.png: cyan door arc near BottomRightOffice/Corridor NE shared wall corner, crop [420,660,630,800]"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Door D_Corridor_BottomRightOffice repositioned to the north end of the shared wall (5.82,2.314)-(5.82,3.314) based on overlay comparison; width kept at 1.0m (unverified exact width; original arc geometry suggested a diagonal swing mark consistent with roughly 1.2-1.6m but jamb pixels were fragmented/uncertain, so width was not changed without firmer evidence)."
+    ],
+    "unresolved": [
+      "Exact door width/jamb for D_Corridor_BottomRightOffice not conclusively pixel-measured (arc endpoints fragmented); host wall confirmed as the shared BottomRightOffice/Corridor wall at x=5.82 near its north end.",
+      "East-side partitions general fidelity beyond this local check not re-verified.",
+      "Door swing directions/states remain unknown/unverified.",
+      "Wall thickness/offsets not surveyed via check_wall_dimensions."
+    ]
+  }
+]

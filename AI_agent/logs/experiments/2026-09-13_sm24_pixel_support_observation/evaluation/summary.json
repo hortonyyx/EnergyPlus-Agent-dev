@@ -1,0 +1,40 @@
+{
+  "scope": "Independent review of the supplied original image, saved tool records, profile artifacts, and Haiku response; no GT, historical correct coordinates, network, or model calls.",
+  "transport": {
+    "view_image_calls": 6,
+    "view_pixel_profile_calls": 6,
+    "profile_tool_errors": 0,
+    "saved_profiles_verified_by_existing_run_check": 6
+  },
+  "profiles": {
+    "candidate_counts_in_call_order": [2, 1, 0, 4, 0, 2],
+    "total_candidates": 11,
+    "empty_candidate_profiles": 2,
+    "distinct_measured_features_used_in_response": 4,
+    "measured_features_with_correct_target_semantics": 0
+  },
+  "response_claims": {
+    "claimed_wall_segments": 4,
+    "claimed_wall_segments_supported_as_target_interior_boundary": 0,
+    "claimed_door_openings": 2,
+    "claimed_door_openings_supported_as_doors": 0,
+    "reported_polyline_vertices_or_arc_placeholders": 8,
+    "reported_polyline_vertices_derived_from_target_profile_support": 0
+  },
+  "misclassifications": {
+    "furniture_edge_as_wall": true,
+    "exterior_wall_as_target_interior_wall": true,
+    "exterior_window_as_door_opening": true,
+    "unmeasured_visual_estimates_presented_as_endpoints": true
+  },
+  "crop_scope": {
+    "full_image_viewed": true,
+    "main_measurement_crop": [480, 700, 750, 950],
+    "final_gray_profile_crop": [540, 680, 750, 950],
+    "target_west_boundary_in_main_measurement_crop": false,
+    "target_west_boundary_in_final_gray_profile_crop": false,
+    "target_boundary_measured_with_narrow_strip": false
+  },
+  "verdict": "tool_output_checkable_but_haiku_target_localization_and_semantic_interpretation_failed",
+  "generation_feedback": "withheld_from_generation"
+}

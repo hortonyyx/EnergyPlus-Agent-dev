@@ -1,0 +1,97 @@
+{
+  "name": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "axis": "x",
+  "box_original_pixels": [
+    540,
+    680,
+    750,
+    950
+  ],
+  "rgb": [
+    128,
+    128,
+    128
+  ],
+  "tolerance": 40.0,
+  "min_fraction": 0.2,
+  "minimum_count": 54,
+  "support_length": 270,
+  "matching_pixels": 1825,
+  "candidates": [
+    {
+      "id": "C01",
+      "pixels": [
+        546,
+        547
+      ],
+      "peak": 546,
+      "max_count": 84,
+      "max_fraction": 0.311111,
+      "support_intervals_at_peak": [
+        [
+          769,
+          851
+        ],
+        [
+          853,
+          853
+        ]
+      ]
+    },
+    {
+      "id": "C02",
+      "pixels": [
+        604,
+        610
+      ],
+      "peak": 606,
+      "max_count": 201,
+      "max_fraction": 0.744444,
+      "support_intervals_at_peak": [
+        [
+          680,
+          877
+        ],
+        [
+          908,
+          909
+        ],
+        [
+          914,
+          914
+        ]
+      ]
+    }
+  ],
+  "profile_image": "pixel_profiles/profile_006.png",
+  "profile_record": "pixel_profiles/profile_006.json",
+  "profile_image_sha256": "11e71075faf387ebab21dcd8b7e4b243d3e1137e7efb6a4958d4c34715719a69",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      210,
+      270
+    ],
+    "mask_panel_combined_pixels": [
+      213,
+      0,
+      423,
+      270
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 107,
+  "returned_size": [
+    423,
+    270
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}

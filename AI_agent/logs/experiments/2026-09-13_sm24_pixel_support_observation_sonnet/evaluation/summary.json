@@ -1,0 +1,31 @@
+{
+  "scope": "Independent original-image and tool-record review; no GT, historical correct coordinates, network, or model calls.",
+  "transport": {
+    "view_image_calls": 3,
+    "view_pixel_profile_calls": 4,
+    "tool_errors": 0,
+    "candidate_counts": [3, 0, 3, 1]
+  },
+  "localization": {
+    "target_crop_selected": true,
+    "west_jog_included": true,
+    "door_symbol_included": true
+  },
+  "correctly_measured_and_classified": [
+    "west vertical return wall",
+    "west horizontal jog segment within crop",
+    "east exterior wall as exterior",
+    "cyan straight door-leaf line",
+    "furniture edge excluded from final boundary"
+  ],
+  "unsupported_or_overstated": [
+    "continuous north-wall profile support from x=430 to x=559",
+    "hinge and leaf tip treated as aperture endpoints",
+    "wall segment invented from door-leaf tip to exterior wall",
+    "exterior wall included in circulation-interface interior boundary",
+    "complete ordered boundary polyline"
+  ],
+  "verdict": "target_localization_and_major_semantics_improved_but_opening_endpoints_and_complete_boundary_not_measured",
+  "safe_use": "review hypothesis only; not executable polygon or opening coordinates",
+  "generation_feedback": "withheld_from_generation"
+}
