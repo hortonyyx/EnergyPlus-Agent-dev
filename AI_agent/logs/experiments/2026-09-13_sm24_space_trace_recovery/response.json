@@ -1,0 +1,13 @@
+{
+  "actual_model": "claude-sonnet-5",
+  "timed_out": false,
+  "completed": true,
+  "result": "Trace_001 selected as final. Verification summary:\n\n- Room = L-shaped office, southeasternmost in plan (right of dining room, below the \"north_room\" with desk/chairs).\n- Exterior boundary: outer face east wall x≈611px, outer face south wall y≈876px (confirmed via zoomed corner crop at [580,850,630,900] — outer gray face aligns at x≈611, y≈876).\n- North/interior jog boundary at y≈600px (x=403–557) stepping to y≈700px (x=557–611), representative centerline of thin partition, matching the stepped wall visible in [380,560,620,890] crop.\n- West boundary: partition centerline x≈403px shared with dining room.\n- Door apertures (jamb-to-jamb, arcs/leaves excluded):\n - door_to_north_room: horizontal jog wall at y=700, jambs x=592 and x=557 (visible arc+leaf in [380,560,620,890] crop, right side).\n - door_to_dining_room: vertical partition wall x=403, jambs y=841 and y=874 (confirmed in magnified [380,840,470,895] crop: straight leaf from (403,843) down to hinge (403,878), arc sweeping east into this room — genuine partition door, not the exterior wall).\n- No additional door apertures found on the exterior south/east walls of this room (the cyan hatched segments near south wall are windows, no swing arcs observed).\n\nCalibration anchors used: x:[250px→0m, 610px→10m]; y:[150px→20m, 880px→0m], consistent with the 10000mm and 20000mm overall dimension chains shown in the drawing.",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "c8a8a12a8245097d6ddc62635b904f2446a15c175094932e37b932badcdb9642",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  }
+}

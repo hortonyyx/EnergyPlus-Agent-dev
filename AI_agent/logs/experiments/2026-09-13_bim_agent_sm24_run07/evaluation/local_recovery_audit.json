@@ -1,0 +1,185 @@
+{
+  "mode": "independent_post_generation_local_recovery_audit",
+  "scope": "Structured comparison only. GT is used only after generation for evaluation; no original-image fidelity decision is made here.",
+  "inputs": {
+    "seed_partition": "seed_partition.json",
+    "candidate_partition": "candidate_01_partition.json",
+    "source_change_audit": "source_change_audit.json",
+    "seed_source_sha256": "555c3ed0762b2c5a33d0635539d13ff0ac615877ea92c3a84c2f34e9330177f0",
+    "candidate_source_sha256": "bd877c17557bd529c7a820094694f1b8900c210c87bfce96a9dece4959898113",
+    "partition_tolerance_m": 0.02
+  },
+  "overall": {
+    "seed_partition_status": "severe",
+    "candidate_partition_status": "severe",
+    "reference_space_count": 8,
+    "seed_space_count": 8,
+    "candidate_space_count": 8,
+    "matched_space_count": 8,
+    "conclusion": "The southeastern room and its local corridor remainder improve substantially against GT, but remaining local offsets and unchanged eastern/northern partition errors prevent an overall success claim."
+  },
+  "partition_changes": {
+    "BottomRightOffice": {
+      "reference_id": "z4",
+      "seed": {
+        "iou": 0.5268961005370696,
+        "reference_coverage_fraction": 0.5268961005370697,
+        "candidate_coverage_fraction": 1.0,
+        "symmetric_difference_area_m2": 12.438280000000017,
+        "boundary_hausdorff_m": 1.6448331222345938,
+        "status": "severe"
+      },
+      "candidate": {
+        "iou": 0.981165179623386,
+        "reference_coverage_fraction": 0.9819812170036663,
+        "candidate_coverage_fraction": 0.9991537531424617,
+        "symmetric_difference_area_m2": 0.49559434000000746,
+        "boundary_hausdorff_m": 0.19906149071330018,
+        "status": "severe"
+      },
+      "delta_candidate_minus_seed": {
+        "iou": 0.4542690790863164,
+        "reference_coverage_fraction": 0.4550851164665966,
+        "candidate_coverage_fraction": -0.0008462468575383,
+        "symmetric_difference_area_m2": -11.94268566000001,
+        "boundary_hausdorff_m": -1.4457716315212937
+      },
+      "remaining_numeric_errors": [
+        "The reconstructed jog vertical is x=6.013514 m while the GT comparison line is x=5.82 m, an approximately 0.193514 m offset.",
+        "The upper local boundary is y=4.893333 m while the GT comparison line is y=4.94 m, an approximately -0.046667 m offset.",
+        "The lower jog boundary is y=3.453333 m while the GT comparison line is y=3.44 m, within 0.02 m for that segment but not enough to clear the other offsets."
+      ]
+    },
+    "Corridor": {
+      "reference_id": "z5",
+      "seed": {
+        "iou": 0.6603931980683715,
+        "reference_coverage_fraction": 0.9052877620626327,
+        "candidate_coverage_fraction": 0.7094068931488097,
+        "symmetric_difference_area_m2": 15.615080000000045,
+        "boundary_hausdorff_m": 3.4400000000000013,
+        "status": "severe"
+      },
+      "candidate": {
+        "iou": 0.8920370746903221,
+        "reference_coverage_fraction": 0.9046358515992082,
+        "candidate_coverage_fraction": 0.9846275297933695,
+        "symmetric_difference_area_m2": 3.6723943400000394,
+        "boundary_hausdorff_m": 0.7599999999999989,
+        "status": "severe"
+      },
+      "delta_candidate_minus_seed": {
+        "iou": 0.2316438766219506,
+        "reference_coverage_fraction": -0.0006519104634245,
+        "candidate_coverage_fraction": 0.2752206366445598,
+        "symmetric_difference_area_m2": -11.942685660000006,
+        "boundary_hausdorff_m": -2.6800000000000024
+      },
+      "remaining_numeric_errors": [
+        "The local remainder inherits the BottomRightOffice x=6.013514 m and y=4.893333 m offsets.",
+        "Farther north, the candidate still uses y=7.3 m where GT has y=8.06 m, leaving the 0.76 m Hausdorff error.",
+        "The candidate still uses y=14.38 m where GT has y=14.0 m, leaving another unchanged 0.38 m eastern boundary error."
+      ]
+    },
+    "internal_boundary_totals_m": {
+      "seed": {
+        "missing": 15.559999994000002,
+        "extra": 16.493999994000003
+      },
+      "candidate": {
+        "missing": 13.906666994000005,
+        "extra": 14.619999994000008
+      },
+      "reduction": {
+        "missing": 1.6533329999999975,
+        "extra": 1.8739999999999952
+      }
+    },
+    "unchanged_space_matches": [
+      "MeetingDining",
+      "Office2",
+      "Office1",
+      "Reception",
+      "MeetingRoomBig",
+      "TopRightRoom"
+    ],
+    "unchanged_remaining_severe_spaces": [
+      "MeetingRoomBig",
+      "TopRightRoom"
+    ]
+  },
+  "source_identity_and_topology": {
+    "spaces": {
+      "before_count": 8,
+      "after_count": 8,
+      "removed_ids": [],
+      "added_ids": [],
+      "changed_ids": [
+        "BottomRightOffice",
+        "Corridor"
+      ]
+    },
+    "boundaries": {
+      "before_count": 52,
+      "after_count": 54,
+      "removed_ids": [],
+      "added_ids": [
+        "space/BottomRightOffice/wall/4",
+        "space/BottomRightOffice/wall/5"
+      ],
+      "note": "The two added faces realize the L-shaped room. Boundary counterpart/adjacency records change locally, including new BottomRightOffice adjacency to Corridor and MeetingDining; this is boundary topology, not a new explicit opening connection."
+    }
+  },
+  "openings_and_connections": {
+    "opening_counts": {
+      "before": 22,
+      "after": 22,
+      "doors": 11,
+      "windows": 11,
+      "removed_ids": [],
+      "added_ids": []
+    },
+    "identity_result": "All 22 opening IDs are retained. The source change audit reports field changes for two existing doors only; the other 20 openings, including all 11 windows, retain their recorded fields.",
+    "changed_doors": {
+      "D_Corridor_BottomRightOffice": {
+        "identity_retained": true,
+        "before_host_boundary_id": "space/Corridor/wall/1",
+        "after_host_boundary_id": "space/Corridor/wall/2",
+        "before_segment_m": [[5.82, 1.16], [5.82, 2.16]],
+        "after_segment_m": [[8.608108, 4.893333], [9.527027, 4.893333]],
+        "height_m_retained": 2.1,
+        "connection_space_ids_changed": false
+      },
+      "D_S_Rear": {
+        "identity_retained": true,
+        "geometry_fields_changed": false,
+        "before_space_ids": ["Corridor"],
+        "after_space_ids": ["BottomRightOffice"],
+        "before_host_boundary_id": "space/Corridor/wall/0",
+        "after_host_boundary_id": "space/BottomRightOffice/wall/0",
+        "connection_space_ids_changed": true
+      }
+    },
+    "connections": {
+      "before_count": 11,
+      "after_count": 11,
+      "removed_ids": [],
+      "added_ids": [],
+      "changed_ids": ["D_S_Rear"],
+      "note": "Only the existing exterior door connection D_S_Rear changes ownership from Corridor to BottomRightOffice. The internal D_Corridor_BottomRightOffice connection identity and space pair remain unchanged while its physical host segment moves."
+    },
+    "window_evaluation_limit": {
+      "status": "not_evaluated",
+      "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+      "reference_window_count": 11,
+      "built_window_count": 11,
+      "count_is_not_a_match_score": true
+    }
+  },
+  "limits": [
+    "Partition comparison does not certify door or window placement against the drawing.",
+    "Field preservation proves source identity preservation only; it is not an opening match score.",
+    "The candidate remains severe and cannot be described as a successful whole-building reconstruction.",
+    "The trace calibration/reference-plane bias and the remaining eastern boundaries require separate correction."
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "mode": "post_generation_receipt_accounting",
+  "invocations": [
+    {
+      "receipt": "detail_01_receipt.json",
+      "requested_model": "sonnet",
+      "actual_model": "claude-sonnet-5",
+      "readonly": true,
+      "elapsed_seconds": 99.36,
+      "effort": "low",
+      "timed_out": false,
+      "is_error": false,
+      "estimated_cost_usd": 0.266897,
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 1166,
+          "outputTokens": 18,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001256,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        },
+        "claude-sonnet-5": {
+          "inputTokens": 17,
+          "outputTokens": 7490,
+          "cacheReadInputTokens": 117580,
+          "cacheCreationInputTokens": 19661,
+          "webSearchRequests": 0,
+          "costUSD": 0.26564099999999996,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      }
+    }
+  ],
+  "model_usage_summed_once_per_receipt": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1166,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "costUSD": 0.001256
+    },
+    "claude-sonnet-5": {
+      "inputTokens": 17,
+      "outputTokens": 7490,
+      "cacheReadInputTokens": 117580,
+      "cacheCreationInputTokens": 19661,
+      "costUSD": 0.26564099999999996
+    }
+  },
+  "parent_elapsed_including_worker_seconds": null,
+  "serial_worker_elapsed_seconds": 99.36,
+  "parent_elapsed_excluding_worker_seconds": null,
+  "limits": [
+    "CLI estimates are not subscription bills.",
+    "Parent elapsed includes serial workers; do not add it to worker elapsed as total wall time.",
+    "Parent elapsed minus worker duration also includes tool/startup/IO overhead; it is not pure model inference time.",
+    "Each CLI modelUsage may contain auxiliary model calls, counted once here; worker receipts are separate invocations.",
+    "Missing result/modelUsage on an interrupted invocation means usage is incomplete."
+  ]
+}

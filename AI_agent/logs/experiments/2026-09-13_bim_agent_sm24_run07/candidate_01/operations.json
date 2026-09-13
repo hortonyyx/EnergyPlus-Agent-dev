@@ -1,0 +1,67 @@
+[
+  {
+    "op": "replace_space_region",
+    "space_id": "BottomRightOffice",
+    "neighbor_space_id": "Corridor",
+    "polygon": [
+      [
+        4.18,
+        3.453333
+      ],
+      [
+        4.18,
+        0.0
+      ],
+      [
+        10.0,
+        0.0
+      ],
+      [
+        10.0,
+        4.893333
+      ],
+      [
+        6.013514,
+        4.893333
+      ],
+      [
+        6.013514,
+        3.453333
+      ]
+    ],
+    "reason": "Apply independently model-traced complete room contour; compute neighbor as old-union remainder.",
+    "source_refs": [
+      "1f_view.png:trace_002 model-selected complete room contour; trace sha256 b6e888598891603f2a61c601008dde1ae14670fa371c043657f47440e697d43b"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_BottomRightOffice",
+    "changes": {
+      "p1": [
+        8.608108,
+        4.893333
+      ],
+      "p2": [
+        9.527027,
+        4.893333
+      ]
+    },
+    "reason": "Place the existing shared door on the traced aperture jamb segment, preserving height/state and identity.",
+    "source_refs": [
+      "1f_view.png:trace_002 model-selected complete room contour; trace sha256 b6e888598891603f2a61c601008dde1ae14670fa371c043657f47440e697d43b"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_S_Rear",
+    "changes": {
+      "space_id": "BottomRightOffice"
+    },
+    "reason": "The unchanged aperture segment belongs to the newly traced room after local spatial redistribution; physical geometry preserved.",
+    "source_refs": [
+      "1f_view.png/South_view.png: 900mm door",
+      "1f_view.png:trace_002 model-selected complete room contour; trace sha256 b6e888598891603f2a61c601008dde1ae14670fa371c043657f47440e697d43b"
+    ]
+  }
+]

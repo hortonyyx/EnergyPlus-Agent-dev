@@ -1,0 +1,13 @@
+{
+  "actual_model": "claude-sonnet-5",
+  "timed_out": false,
+  "completed": true,
+  "result": "Selected trace_001 as the faithful observation of the southeasternmost room.\n\n**Room shape:** An L-shaped room (bounded roughly by pixels x:402–602, y:701–869), with:\n- West wall stepped: from (402.5,755.5) north to (462.5,755.5), then east to (462.5,701.5) — this jog matches the real wall step visible in the drawing (not a door).\n- North wall from (462.5,701.5) to (601.5,701.5), interrupted by an **interior door** aperture, jambs at (558.5,701.5)–(592.5,701.5), with its swing arc into the room (excluded from wall path, only jambs used).\n- East exterior wall from (601.5,701.5) down to (601.5,868.5) — solid, no aperture found in this span.\n- South exterior wall from (601.5,868.5) to (402.5,868.5), interrupted by an **exterior door** aperture, jambs at (446.5,868.5)–(411.5,868.5) (matches the \"240\" swing arc and the 900mm gap in the south dimension chain: 540/1500/2500/900/2520/1500/540).\n- West wall closing from (402.5,868.5) up to (402.5,755.5).\n\nBoth door arcs/leaves were visually identified and excluded; only jamb-to-jamb straight segments were used for the wall path. Calibration anchors: x:(240px→0m),(612px→10m); y:(885px→0m),(135px→20m), taken from the building's outer \"10000\" and \"20000\" overall dimension lines.",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "45d5a26bf2a033942041559c2c542d65cfc00e83ff3fa2d4ad7453544bee87e9",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  }
+}

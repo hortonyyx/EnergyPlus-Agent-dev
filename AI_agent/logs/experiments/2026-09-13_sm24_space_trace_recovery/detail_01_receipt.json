@@ -1,0 +1,89 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 149.87626671791077,
+  "effort": "low",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "c8a8a12a8245097d6ddc62635b904f2446a15c175094932e37b932badcdb9642",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 56.33,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 54501,
+    "duration_api_ms": 55939,
+    "ttft_ms": 2146,
+    "ttft_stream_ms": 1619,
+    "time_to_request_ms": 25,
+    "num_turns": 7,
+    "result": "Trace_001 selected as final. Verification summary:\n\n- Room = L-shaped office, southeasternmost in plan (right of dining room, below the \"north_room\" with desk/chairs).\n- Exterior boundary: outer face east wall x≈611px, outer face south wall y≈876px (confirmed via zoomed corner crop at [580,850,630,900] — outer gray face aligns at x≈611, y≈876).\n- North/interior jog boundary at y≈600px (x=403–557) stepping to y≈700px (x=557–611), representative centerline of thin partition, matching the stepped wall visible in [380,560,620,890] crop.\n- West boundary: partition centerline x≈403px shared with dining room.\n- Door apertures (jamb-to-jamb, arcs/leaves excluded):\n - door_to_north_room: horizontal jog wall at y=700, jambs x=592 and x=557 (visible arc+leaf in [380,560,620,890] crop, right side).\n - door_to_dining_room: vertical partition wall x=403, jambs y=841 and y=874 (confirmed in magnified [380,840,470,895] crop: straight leaf from (403,843) down to hinge (403,878), arc sweeping east into this room — genuine partition door, not the exterior wall).\n- No additional door apertures found on the exterior south/east walls of this room (the cyan hatched segments near south wall are windows, no swing arcs observed).\n\nCalibration anchors used: x:[250px→0m, 610px→10m]; y:[150px→20m, 880px→0m], consistent with the 10000mm and 20000mm overall dimension chains shown in the drawing.",
+    "stop_reason": "end_turn",
+    "session_id": "ef075369-c521-40d8-988f-aaa21317dc51",
+    "total_cost_usd": 0.15079189999999998,
+    "usage": {
+      "input_tokens": 11,
+      "cache_creation_input_tokens": 13964,
+      "cache_read_input_tokens": 49793,
+      "output_tokens": 3394,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 13964,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 554,
+          "cache_read_input_tokens": 13711,
+          "cache_creation_input_tokens": 253,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 253
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 1032,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.001127,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 11,
+        "outputTokens": 3394,
+        "cacheReadInputTokens": 49793,
+        "cacheCreationInputTokens": 13964,
+        "webSearchRequests": 0,
+        "costUSD": 0.1496649,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "b982dfde-00f2-4de7-a554-fbc0dc7b36de"
+  }
+}

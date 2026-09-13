@@ -1,0 +1,27 @@
+First inspect the original to select a clear interior point of the target room, then call view_pixel_region with its background color. Use the actual returned contour/bbox to locate the target before tracing: do not guess a different wall path in empty circulation. The connected region may follow door arcs/leaves and furniture; restore straight logical walls across real apertures using jamb-to-jamb segments, not the arc or leaf. Then preview the complete room including all exterior door apertures. Do not infer exterior doors from a room label.
+
+Trace the COMPLETE plan footprint of the southeasternmost room,
+including its exterior sides, every real change of direction, and ALL of this
+room's door apertures (both internal and exterior if visible). Do not trace
+furniture, door swing arcs or leaves as room walls. Do not assume a rectangle.
+This is an independent original-image observation, not correction of an old BIM.
+
+Use preview_space_trace to submit an ordered closed room polygon in ORIGINAL
+pixels plus door aperture endpoints on the room boundary. The logical contour
+closes across a door; the opening uses the two jambs across the wall, not a
+hinge-to-swung-leaf-tip diagonal. Select a consistent light-weight representative
+wall line; use the outside footprint reference for exterior sides and a stated
+representative line for thin internal walls. Explain that choice in basis.
+Provide two [pixel,world_metres] calibration anchors on each image axis from
+visible dimension/extension endpoints; world origin is the building footprint's
+southwest corner, x east, y north. Keep dimension-chain labels tied to the actual
+extension endpoints; exterior aperture chains do not imply interior partitions.
+
+Preview early (aim within 80 seconds). Actually inspect the returned clean and
+marked images to check every turn and door segment against the drawing. Correct
+an erroneous trace with another preview, then select_space_trace for the most
+faithful executable observation. A valid polygon alone is not a visual pass.
+Exact pixel precision is secondary to the correct room shape and aperture hosts.
+Do not invent a segment to turn a door leaf into a wall. Use measurement/crops as
+needed, avoid long prose and unnecessary full reading. Finish within 180 seconds.
+No seed, prior observation, room count, supplied pixel coordinates or GT is given.
