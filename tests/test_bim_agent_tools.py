@@ -107,7 +107,8 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
         run = _run_with_one_image(tmp_path)
         async with _server_session(run, readonly=True) as session:
             tools = {tool.name for tool in (await session.list_tools()).tools}
-            assert {"inputs", "view_image", "pixel_profile", "map_pixels", "map_dimension_chain"} <= tools
+            assert {"inputs", "view_image", "pixel_profile", "view_pixel_profile",
+                    "map_pixels", "map_dimension_chain"} <= tools
             assert "build_bim" not in tools and "review_detail" not in tools
             assert "revise_bim" not in tools and "inspect_candidate" not in tools
             assert "check_openings" not in tools
@@ -188,6 +189,65 @@ def test_view_image_opt_in_display_scale_preserves_original_pixels_and_caps_outp
             assert capped_meta["returned_size"] == [1600, 400]
             assert capped_meta["display_scale_actual"] == [4.0, 4.0]
         assert digest(pattern_path) == before
+
+    asyncio.run(scenario())
+
+
+def test_view_pixel_profile_filters_sparse_strokes_and_reports_unbridged_peak_support(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        path = run / "images" / "plan.png"
+        pic = Image.new("RGB", (12, 8), "white")
+        # Sparse marks touch consecutive x coordinates but never reach the
+        # requested fraction. They must not become a candidate band.
+        for x in range(1, 6):
+            pic.putpixel((x, x % pic.height), (0, 0, 0))
+        # Candidate x=8 has two exact y intervals separated by a real gap.
+        for y in (1, 2, 4, 5, 6):
+            pic.putpixel((8, y), (0, 0, 0))
+        for y in (1, 2, 4):
+            pic.putpixel((9, y), (0, 0, 0))
+        for x in (*range(2, 8), 10):
+            pic.putpixel((x, 7), (0, 0, 0))
+        pic.save(path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["plan.png"]["sha256"] = digest(path)
+        (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+        async with _server_session(run, readonly=True) as session:
+            viewed = await session.call_tool("view_pixel_profile", {
+                "name": "plan.png", "box": [0, 0, 12, 8], "axis": "x",
+                "rgb": [0, 0, 0], "tolerance": 0, "min_fraction": 0.375})
+            assert viewed.content[0].type == "image"
+            result = json.loads(viewed.content[1].text)
+            assert result["minimum_count"] == 3
+            assert result["candidates"] == [{
+                "id": "C01", "pixels": [8, 9], "peak": 8, "max_count": 5,
+                "max_fraction": 0.625,
+                "support_intervals_at_peak": [[1, 2], [4, 6]],
+            }]
+            assert result["box_original_pixels"] == [0, 0, 12, 8]
+            assert (run / result["profile_image"]).is_file()
+            assert (run / result["profile_record"]).is_file()
+            assert digest(run / result["profile_image"]) == result["profile_image_sha256"]
+            assert json.loads((run / result["profile_record"]).read_text()) == result
+            assert "do not prove" in result["evidence_note"]
+
+            horizontal = await session.call_tool("view_pixel_profile", {
+                "name": "plan.png", "box": [2, 1, 11, 8], "axis": "y",
+                "rgb": [0, 0, 0], "tolerance": 0, "min_fraction": 0.5})
+            horizontal_result = json.loads(horizontal.content[1].text)
+            assert horizontal_result["minimum_count"] == 5
+            assert horizontal_result["candidates"] == [{
+                "id": "C01", "pixels": [7, 7], "peak": 7, "max_count": 7,
+                "max_fraction": 0.777778,
+                "support_intervals_at_peak": [[2, 7], [10, 10]],
+            }]
+            assert horizontal_result["box_original_pixels"] == [2, 1, 11, 8]
+            assert horizontal_result["panel_layout"]["mask_panel_combined_pixels"][0] == 12
+        records = [json.loads(line) for line in (run / "tools.jsonl").read_text().splitlines()]
+        assert records[-1]["action"] == "view_pixel_profile"
+        assert records[-1]["readonly"] is True
 
     asyncio.run(scenario())
 

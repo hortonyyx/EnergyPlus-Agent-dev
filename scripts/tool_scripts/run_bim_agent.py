@@ -11,6 +11,7 @@ import hashlib
 import html
 import io
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -137,6 +138,10 @@ to move a wall. Other nonzero dimension residuals may be genuine geometric or
 baseline differences and require image judgement; zero is not a fidelity verdict.
 Image views show a labelled grid in ORIGINAL pixel coordinates by default.
 Read its labels for crops/calibration, not the displayed thumbnail width/height.
+For a checkable color scan, view_pixel_profile returns numbered candidate bands
+and the exact unbridged support intervals at each band's peak coordinate beside
+an untouched crop. Peak support is pixel evidence only, not proof of a wall;
+filtered or empty results do not prove an object is absent.
 Plan overlays also label saved wall segments and original dimension evidence
 points. Compare the actual segment extent with those points, not just a wall's
 normal coordinate or a directional name in its ID. The spatial comparison uses
@@ -267,6 +272,19 @@ def dump(path: Path, value):
 
 def digest(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _inclusive_runs(flags):
+    """Return exact inclusive intervals of truthy values without gap bridging."""
+    runs = []
+    start = None
+    for index, flag in enumerate([*flags, False]):
+        if bool(flag) and start is None:
+            start = index
+        elif not bool(flag) and start is not None:
+            runs.append((start, index - 1))
+            start = None
+    return runs
 
 
 def coordinate_grid_view(pic, region):
@@ -998,6 +1016,116 @@ class Toolkit:
                                    "tolerance": tolerance, "result": result})
         return result
 
+    def view_profile(self, name, box, axis, rgb, tolerance, min_fraction):
+        """Return a checkable profile table and image without assigning semantics."""
+        import numpy as np
+        if (not isinstance(min_fraction, (int, float)) or isinstance(min_fraction, bool)
+                or not 0 < min_fraction <= 1):
+            raise ValueError("min_fraction must be a number greater than 0 and at most 1")
+        with PILImage.open(self.image_path(name)) as raw:
+            x0, y0, x1, y1 = box
+            if not (0 <= x0 < x1 <= raw.width and 0 <= y0 < y1 <= raw.height):
+                raise ValueError("box outside original image bounds")
+            crop = raw.convert("RGB").crop(box)
+            pixels = np.asarray(crop).astype(float)
+        if len(rgb) != 3 or not all(0 <= c <= 255 for c in rgb) or not 0 <= tolerance <= 442:
+            raise ValueError("RGB in 0..255 and distance tolerance in 0..442 required")
+        if axis not in {"x", "y"}:
+            raise ValueError("axis must be x or y")
+        mask = np.linalg.norm(pixels - np.asarray(rgb), axis=2) <= tolerance
+        counts = mask.sum(axis=0 if axis == "x" else 1)
+        projection_offset = x0 if axis == "x" else y0
+        support_offset = y0 if axis == "x" else x0
+        support_length = mask.shape[0] if axis == "x" else mask.shape[1]
+        minimum_count = max(1, math.ceil(support_length * float(min_fraction)))
+        candidates = []
+        for start, end in _inclusive_runs(counts >= minimum_count):
+            peak = start + int(counts[start:end + 1].argmax())
+            support = mask[:, peak] if axis == "x" else mask[peak, :]
+            candidates.append({
+                "id": f"C{len(candidates) + 1:02d}",
+                "pixels": [start + projection_offset, end + projection_offset],
+                "peak": peak + projection_offset,
+                "max_count": int(counts[peak]),
+                "max_fraction": round(float(counts[peak]) / support_length, 6),
+                "support_intervals_at_peak": [
+                    [lo + support_offset, hi + support_offset]
+                    for lo, hi in _inclusive_runs(support)
+                ],
+            })
+
+        # Keep the original crop untouched on the left.  The right panel is a
+        # separate exact mask view with candidate bands and peaks labelled.
+        panel_pixels = np.full((crop.height, crop.width, 3), 255, dtype=np.uint8)
+        panel_pixels[mask] = (150, 150, 150)
+        panel = PILImage.fromarray(panel_pixels, "RGB")
+        draw = ImageDraw.Draw(panel)
+        for candidate in candidates:
+            lo = candidate["pixels"][0] - projection_offset
+            hi = candidate["pixels"][1] - projection_offset
+            peak = candidate["peak"] - projection_offset
+            if axis == "x":
+                draw.rectangle((lo, 0, hi, crop.height - 1), outline=(220, 0, 120), width=1)
+                for support_lo, support_hi in candidate["support_intervals_at_peak"]:
+                    draw.line((peak, support_lo - support_offset,
+                               peak, support_hi - support_offset), fill=(0, 110, 220), width=1)
+                label_xy = (lo + 1, 1)
+            else:
+                draw.rectangle((0, lo, crop.width - 1, hi), outline=(220, 0, 120), width=1)
+                for support_lo, support_hi in candidate["support_intervals_at_peak"]:
+                    draw.line((support_lo - support_offset, peak,
+                               support_hi - support_offset, peak), fill=(0, 110, 220), width=1)
+                label_xy = (1, lo + 1)
+            draw.text(label_xy, candidate["id"], fill="black")
+        combined = PILImage.new("RGB", (crop.width * 2 + 3, crop.height), "white")
+        combined.paste(crop, (0, 0))
+        combined.paste(panel, (crop.width + 3, 0))
+        ImageDraw.Draw(combined).rectangle((crop.width, 0, crop.width + 2, crop.height - 1), fill="black")
+
+        folder = self.run / "pixel_profiles"
+        folder.mkdir(exist_ok=True)
+        stem = f"profile_{len(list(folder.glob('profile_*.json'))) + 1:03d}"
+        image_path = folder / f"{stem}.png"
+        record_path = folder / f"{stem}.json"
+        combined.save(image_path)
+        result = {
+            "name": name,
+            "image_sha256": self.manifest["images"][name]["sha256"],
+            "axis": axis,
+            "box_original_pixels": box,
+            "rgb": rgb,
+            "tolerance": tolerance,
+            "min_fraction": float(min_fraction),
+            "minimum_count": minimum_count,
+            "support_length": support_length,
+            "matching_pixels": int(mask.sum()),
+            "candidates": candidates,
+            "profile_image": str(image_path.relative_to(self.run)),
+            "profile_record": str(record_path.relative_to(self.run)),
+            "profile_image_sha256": digest(image_path),
+            "panel_layout": {
+                "original_crop_combined_pixels": [0, 0, crop.width, crop.height],
+                "mask_panel_combined_pixels": [crop.width + 3, 0, combined.width, crop.height],
+                "separator_width": 3,
+            },
+            "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+            "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+            "remaining_seconds": self.remaining_seconds(),
+        }
+        returned = combined.copy()
+        returned.thumbnail((1600, 1600))
+        data = io.BytesIO()
+        returned.save(data, "PNG")
+        result["returned_size"] = list(returned.size)
+        result["original_pixels_per_returned_pixel"] = [
+            combined.width / returned.width, combined.height / returned.height]
+        result["display_note"] = "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+        dump(record_path, result)
+        self.log("view_pixel_profile", {"name": name, "box": box, "rgb": rgb,
+                                        "tolerance": tolerance, "min_fraction": min_fraction,
+                                        "result": result})
+        return [Image(data=data.getvalue(), format="png"), json.dumps(result)]
+
 
 def serve(run: Path, readonly=False):
     from mcp.server.fastmcp import FastMCP, Image
@@ -1027,6 +1155,17 @@ def serve(run: Path, readonly=False):
         You select RGB/tolerance; results have no wall/door semantic labels.
         """
         return toolkit.profile(name, box, axis, rgb, tolerance)
+
+    @server.tool()
+    def view_pixel_profile(name: str, box: list[int], axis: str,
+                           rgb: list[int], tolerance: float = 70,
+                           min_fraction: float = 0.1):
+        """Show a numbered, thresholded color profile in ORIGINAL pixels.
+        axis=x searches x coordinates and reports unbridged y support at each
+        peak; axis=y does the converse. min_fraction is the required matching
+        share along the other axis. Results are pixel evidence, not object labels.
+        """
+        return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
 
     @server.tool()
     def map_dimension_chain(lengths: list[float], unit: str = "mm",
