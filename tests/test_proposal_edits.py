@@ -4,6 +4,8 @@ from __future__ import annotations
 import copy
 
 import pytest
+from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.geometry.proposal_edits import apply_proposal_edits
@@ -66,6 +68,33 @@ def _rectangular_wall_proposal():
             ],
         },
         "assumptions": ["synthetic rectangle"], "unresolved": [],
+    }
+
+
+def _proposal_with_upper_floor():
+    proposal = _proposal()
+    proposal["geometry"]["floors"].append({
+        "name": "F2", "z_floor": 3, "ceiling_height": 3, "cells": [
+            {"id": "upper_left", "role": "office", "x": [0, 4], "y": [0, 6]},
+            {"id": "upper_right", "role": "corridor", "x": [4, 8], "y": [0, 6]},
+        ],
+    })
+    proposal["geometry"]["windows"].append({
+        "id": "upper_north", "floor": "F2", "facade": "North", "span": [1, 2],
+        "z": [4, 5], "room": "upper_left",
+    })
+    proposal["geometry"]["openings"].append({
+        "id": "upper_door", "kind": "door", "space_id": "upper_left", "other_space_id": "upper_right",
+        "p1": [4, 1], "p2": [4, 2], "z": [3, 5.1], "source_refs": ["fixture:upper door"],
+    })
+    return proposal
+
+
+def _replace_region(polygon, *, space_id="left", neighbor_space_id="right"):
+    return {
+        "op": "replace_space_region", "space_id": space_id, "neighbor_space_id": neighbor_space_id,
+        "polygon": polygon, "reason": "plan trace locates the corrected room boundary",
+        "source_refs": ["plan: local boundary trace"],
     }
 
 
@@ -227,6 +256,69 @@ def test_reshape_spaces_rejects_stale_wall_declarations_and_invalid_rows_without
         apply_proposal_edits({**proposal, "enclosure_declaration": {}}, [{
             **operation, "spaces": [{"id": "left", "polygon": [[0, 0], [4, 0], [4, 4], [0, 4]]}],
         }])
+
+
+def test_replace_space_region_turns_interlocking_rooms_into_rectangles_and_preserves_other_objects():
+    proposal = _proposal_with_upper_floor()
+    original = copy.deepcopy(proposal)
+    old_cells = proposal["geometry"]["floors"][0]["cells"]
+    old_union = unary_union([Polygon(row["polygon"]) for row in old_cells])
+    revised = apply_proposal_edits(proposal, [
+        _replace_region([[0, 0], [5, 0], [5, 6], [0, 6]]),
+        {"op": "update_opening", "id": "door", "changes": {"p1": [5, .5], "p2": [5, 1.5]},
+         "reason": "door follows the observed replacement partition", "source_refs": ["plan: door on trace"]},
+    ])
+    cells = {row["id"]: row for row in revised["geometry"]["floors"][0]["cells"]}
+    assert Polygon(cells["left"]["polygon"]).equals(Polygon([[0, 0], [5, 0], [5, 6], [0, 6]]))
+    assert Polygon(cells["right"]["polygon"]).equals(Polygon([[5, 0], [8, 0], [8, 6], [5, 6]]))
+    assert cells["left"]["x"] == [0, 5] and cells["right"]["x"] == [5, 8]
+    assert cells["left"]["y"] == cells["right"]["y"] == [0, 6]
+    assert unary_union([Polygon(cells["left"]["polygon"]), Polygon(cells["right"]["polygon"])]).symmetric_difference(old_union).area < 1e-7
+    assert revised["geometry"]["windows"] == original["geometry"]["windows"]
+    assert revised["geometry"]["floors"][1] == original["geometry"]["floors"][1]
+    assert next(row for row in revised["geometry"]["openings"] if row["id"] == "upper_door") == original["geometry"]["openings"][-1]
+    assert next(row for row in revised["geometry"]["openings"] if row["id"] == "door")["p1"] == [5, .5]
+    audit = revised["geometry"]["corrections"]
+    assert [row["operation"] for row in audit] == ["replace_space_region", "update_opening"]
+    assert audit[0]["before"]["cells"]["left"] == original["geometry"]["floors"][0]["cells"][0]
+    assert audit[0]["after"]["cells"]["right"] == cells["right"]
+    assert proposal == original
+    assert build_source_bim(ensure_corrected_geometry(revised["geometry"]),
+                            capability_profile="orthogonal_polygon")["validation"]["status"] == "pass"
+
+
+@pytest.mark.parametrize(("polygon", "message"), [
+    ([[0, 0], [9, 0], [9, 6], [0, 6]], "extends outside"),
+    ([[3, 1], [5, 1], [5, 3], [3, 3]], "without holes"),
+    ([[3, 0], [5, 0], [5, 6], [3, 6]], "one valid polygon without holes"),
+])
+def test_replace_space_region_rejects_outside_hole_or_multiregion_remainders_without_mutating_input(polygon, message):
+    proposal = _proposal()
+    original = copy.deepcopy(proposal)
+    with pytest.raises(ValueError, match=message):
+        apply_proposal_edits(proposal, [_replace_region(polygon)])
+    assert proposal == original
+
+
+def test_replace_space_region_rejects_spaces_on_different_floors_without_mutating_input():
+    proposal = _proposal_with_upper_floor()
+    original = copy.deepcopy(proposal)
+    with pytest.raises(ValueError, match="together on exactly one floor"):
+        apply_proposal_edits(proposal, [_replace_region(
+            [[0, 0], [4, 0], [4, 6], [0, 6]], space_id="left", neighbor_space_id="upper_right",
+        )])
+    assert proposal == original
+
+
+def test_replace_space_region_requires_an_actual_shared_edge_without_mutating_input():
+    proposal = _proposal()
+    proposal["geometry"]["floors"][0]["cells"][1].update({
+        "polygon": [[4, 6], [8, 6], [8, 8], [4, 8]], "x": [4, 8], "y": [6, 8],
+    })
+    original = copy.deepcopy(proposal)
+    with pytest.raises(ValueError, match="actual boundary edge"):
+        apply_proposal_edits(proposal, [_replace_region([[0, 0], [4, 0], [4, 6], [0, 6]])])
+    assert proposal == original
 
 
 def test_invalid_operations_do_not_mutate_input_or_silently_ignore_unknowns():

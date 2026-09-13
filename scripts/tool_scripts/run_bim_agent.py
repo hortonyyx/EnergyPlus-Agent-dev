@@ -138,6 +138,11 @@ to move a wall. Other nonzero dimension residuals may be genuine geometric or
 baseline differences and require image judgement; zero is not a fidelity verdict.
 Image views show a labelled grid in ORIGINAL pixel coordinates by default.
 Read its labels for crops/calibration, not the displayed thumbnail width/height.
+view_pixel_region can locate a background region from your chosen seed/color;
+its contour may follow door symbols or leak and is not a physical wall verdict.
+For a complete local room contour, preview_space_trace can overlay ordered original-pixel
+vertices and wall-hosted aperture endpoints before geometry edits; select_space_trace
+records a reviewed observation, not a fidelity verdict.
 For a checkable color scan, view_pixel_profile returns numbered candidate bands
 and the exact unbridged support intervals at each band's peak coordinate beside
 an untouched crop. Peak support is pixel evidence only, not proof of a wall;
@@ -230,6 +235,11 @@ two cells move with the wall. Other objects retain their world coordinates and
 are checked by the normal builder. Polygon cells, partial shared sides and
 explicit enclosure declarations are unsupported by this edit; no new rooms or
 walls are invented. Preserve image basis and check the resulting geometry.
+replace_space_region takes space_id, neighbor_space_id, polygon, reason, source_refs.
+It replaces one complete room and computes the adjacent room as the remainder of
+their original union; both stay single hole-free spaces. It refuses third-space
+encroachment, does not move apertures, and records before/after. Use explicit
+update_opening operations in the same revision when hosts or positions change.
 reshape_spaces replaces only the listed existing space polygons, deriving their
 x/y bounds by code. It preserves other objects and NEVER moves or resizes an
 opening. Update all affected adjoining spaces in one operation; include explicit
@@ -353,12 +363,17 @@ def terminate_subscription(process):
 
 def subscription(run: Path, prompt: str, *, model: str, name: str,
                  readonly: bool = False, timeout: int = 900,
-                 log_run: Path | None = None, receipt_context: dict | None = None):
+                 log_run: Path | None = None, receipt_context: dict | None = None,
+                 effort: str | None = None):
     """Only the logged-in subscription; isolated cwd/env, explicit MCP tools.
 
     ``run`` is the MCP-visible workspace. ``log_run`` can retain a child
     observation's request, stream and receipt alongside its parent run.
     """
+    if effort not in {None, "low", "medium"}:
+        raise ValueError("effort must be low or medium when supplied")
+    if model == "haiku" and effort is not None:
+        raise ValueError("explicit effort is supported only for sonnet in this experiment")
     if model not in {"sonnet", "haiku"}:
         raise ValueError("only configured subscription aliases are allowed")
     run = run.resolve()
@@ -383,7 +398,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                                     "and near the limit state explicit unexamined items. Do not plan the whole building."
                                     if readonly else GUIDE)]
     if not readonly or model == "sonnet":
-        command.extend(["--effort", "medium"])
+        command.extend(["--effort", effort or "medium"])
     server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run)]
     if readonly:
         server.append("--readonly")
@@ -392,7 +407,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     started = time.monotonic()
     record = {"requested_model": model, "channel": "Claude subscription; no API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
-              "effort": "medium" if not readonly or model == "sonnet" else None}
+              "effort": (effort or "medium") if not readonly or model == "sonnet" else None}
     if receipt_context:
         record.update(receipt_context)
     dump(log_run / f"{name}_request.json", {**record, "prompt": prompt,
@@ -612,10 +627,15 @@ class Toolkit:
         counts = result["counts"]
         geometry_status = {"pass":"通过", "warning":"有警告", "severe":"有严重问题"}.get(
             (result.get("source_validation") or {}).get("status"), "未评价")
-        selected = "模型选定" if selection_origin == "agent_selected" else "系统保留的最新候选，模型未显式选定"
+        deterministic_replay = selection_origin == "developer_selected_deterministic_trace_replay"
+        selected = ("开发侧选定的局部轮廓确定性应用" if deterministic_replay else
+                    "模型选定" if selection_origin == "agent_selected" else
+                    "系统保留的最新候选，模型未显式选定")
         run_status = result["generation_status"]
         run_note = {"completed":"本次模型调用正常结束。", "in_progress":"模型调用尚未结束。",
                     "interrupted":"本次模型调用未正常完成，以下保留已生成候选。"}[run_status["state"]]
+        if deterministic_replay:
+            run_note = "本次由代码应用已保存的局部观察，未调用模型生成整案；不代表自主冷启动完成。"
         if run_status.get("error"):
             run_note += " " + html.escape(run_status["error"])
         feedback = result["source_image_feedback"]
@@ -1127,6 +1147,64 @@ class Toolkit:
         return [Image(data=data.getvalue(), format="png"), json.dumps(result)]
 
 
+    def pixel_region(self, name, seed_pixel, background_rgb, tolerance, simplify_pixels):
+        from src.agent.geometry.pixel_region import render_pixel_region
+        with PILImage.open(self.image_path(name)) as original:
+            picture, record = render_pixel_region(original, seed_pixel=seed_pixel,
+                background_rgb=background_rgb, tolerance=tolerance, simplify_pixels=simplify_pixels)
+        folder = self.run / "pixel_regions"
+        folder.mkdir(exist_ok=True)
+        region_id = f"region_{len(list(folder.glob('region_*.json'))) + 1:03d}"
+        picture.save(folder / f"{region_id}.png")
+        record.update(region_id=region_id, name=name, image_sha256=digest(self.image_path(name)),
+                      region_image=f"pixel_regions/{region_id}.png", remaining_seconds=self.remaining_seconds())
+        dump(folder / f"{region_id}.json", record)
+        self.log("view_pixel_region", record)
+        buffer = io.BytesIO(); picture.save(buffer, "PNG")
+        return [Image(data=buffer.getvalue(), format="png"), json.dumps(record)]
+
+    def preview_trace(self, name, polygon_pixels, openings, x_anchors, y_anchors, basis):
+        from src.agent.geometry.space_trace import render_space_trace
+        with PILImage.open(self.image_path(name)) as original:
+            picture, result = render_space_trace(original, polygon_pixels=polygon_pixels,
+                openings=openings, x_anchors=x_anchors, y_anchors=y_anchors, basis=basis)
+        folder = self.run / "space_traces"
+        folder.mkdir(exist_ok=True)
+        trace = f"trace_{len(list(folder.glob('trace_*.json'))) + 1:03d}"
+        picture.save(folder / f"{trace}.png")
+        result.update(trace_id=trace, name=name, image_sha256=digest(self.image_path(name)),
+                      trace_image=f"space_traces/{trace}.png", remaining_seconds=self.remaining_seconds())
+        dump(folder / f"{trace}.json", result)
+        self.log("preview_space_trace", result)
+        buffer = io.BytesIO(); picture.save(buffer, "PNG")
+        return [Image(data=buffer.getvalue(), format="png"), json.dumps(result)]
+
+    def view_trace(self, trace_id):
+        allowed = {p.stem for p in (self.run / "space_traces").glob("trace_*.json")}
+        if trace_id not in allowed:
+            raise ValueError("unknown trace_id")
+        record = json.loads((self.run / "space_traces" / f"{trace_id}.json").read_text())
+        if digest(self.image_path(record["name"])) != record["image_sha256"]:
+            raise ValueError("trace original image changed")
+        self.log("view_space_trace", {"trace_id": trace_id})
+        return [Image(data=(self.run / "space_traces" / f"{trace_id}.png").read_bytes(), format="png"), json.dumps(record)]
+
+    def select_trace(self, trace_id):
+        allowed = {p.stem for p in (self.run / "space_traces").glob("trace_*.json")}
+        if trace_id not in allowed:
+            raise ValueError("unknown trace_id; first preview_space_trace")
+        result = json.loads((self.run / "space_traces" / f"{trace_id}.json").read_text())
+        if not result["geometrically_executable"]:
+            raise ValueError("trace has geometry errors; revise the contour/aperture endpoints first")
+        if digest(self.image_path(result["name"])) != result["image_sha256"]:
+            raise ValueError("trace original image changed")
+        selection = {"trace_id": trace_id, "trace_sha256": digest(self.run / "space_traces" / f"{trace_id}.json"),
+                     "drawing_fidelity": "not_evaluated", "selection_origin": "model_selected"}
+        dump(self.run / "trace_selection.json", selection)
+        self.log("select_space_trace", selection)
+        return selection
+
+
 def serve(run: Path, readonly=False):
     from mcp.server.fastmcp import FastMCP, Image
     toolkit = Toolkit(run, readonly)
@@ -1166,6 +1244,41 @@ def serve(run: Path, readonly=False):
         share along the other axis. Results are pixel evidence, not object labels.
         """
         return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
+
+    @server.tool()
+    def view_pixel_region(name: str, seed_pixel: list[int], background_rgb: list[int],
+                          tolerance: float = 60, simplify_pixels: float = 1.5):
+        """Flood a model-selected background pixel and display its connected region.
+        Choose a seed inside the target clear floor, away from ink/furniture.
+        Returns a pixel contour candidate, NOT a room: it may follow door arcs/leaves,
+        furniture, or leak through gaps. Use actual wall jambs when tracing apertures.
+        All points and seed coordinates refer to the ORIGINAL image.
+        """
+        return toolkit.pixel_region(name, seed_pixel, background_rgb, tolerance, simplify_pixels)
+
+    @server.tool()
+    def preview_space_trace(name: str, polygon_pixels: list[list[float]], openings: list[dict],
+                            x_anchors: list[list[float]], y_anchors: list[list[float]], basis: str):
+        """Draw your COMPLETE ordered room contour on its original image before building.
+        Include interior and exterior boundaries; close logically across apertures.
+        openings = [{id,p1:[x,y],p2:[x,y]}] uses the two wall jambs, not hinge-to-leaf-tip.
+        All positions are ORIGINAL pixels; each axis has two [pixel,world_metres] anchors.
+        Use a declared representative wall plane; do not trace both faces as two walls.
+        Returns clean/marked images, geometry errors and mapped points, no source mutation.
+        """
+        return toolkit.preview_trace(name, polygon_pixels, openings, x_anchors, y_anchors, basis)
+
+    @server.tool()
+    def view_space_trace(trace_id: str):
+        """View the actual saved clean/marked image and coordinates for a local trace."""
+        return toolkit.view_trace(trace_id)
+
+    @server.tool()
+    def select_space_trace(trace_id: str) -> dict:
+        """Select a previewed local trace after visually checking its actual overlay.
+        This selects an observation; it is not a BIM or a drawing-fidelity pass.
+        """
+        return toolkit.select_trace(trace_id)
 
     @server.tool()
     def map_dimension_chain(lengths: list[float], unit: str = "mm",
@@ -1470,7 +1583,9 @@ def run_experiment(args):
                                  "src/agent/geometry/source_elevation_view.py":digest(ROOT/"src/agent/geometry/source_elevation_view.py"),
                                  "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
-                                 "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py")},
+                                 "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
+                                 "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
+                                 "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py")},
                              "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()

@@ -3,8 +3,14 @@ from __future__ import annotations
 
 import copy
 import math
+from types import SimpleNamespace
+
+from shapely.geometry import Polygon
+from shapely.geometry.polygon import orient
+from shapely.ops import unary_union
 
 from src.agent.correction.parse import ensure_corrected_geometry
+from src.agent.correction.cell_geometry import cell_polygon
 from src.agent.correction.schema import Window
 
 
@@ -20,6 +26,8 @@ _DIRECTION_NOTICE = (
     "Existing assumptions may contain direction language and require review; "
     "use set_notes to replace them."
 )
+_LOCAL_PARTITION_TOLERANCE_M = 1e-7
+_LOCAL_PARTITION_AREA_TOLERANCE_M2 = 1e-7
 
 
 def _require_fields(row: dict, allowed: set[str], *, operation: str) -> None:
@@ -276,6 +284,102 @@ def _reshape_spaces(proposal: dict, geometry: dict, operation: dict) -> dict:
     }
 
 
+def _cell_shape(cell: dict, *, operation: str) -> Polygon:
+    """Return one existing cell's complete plan shape under the shared contract."""
+    try:
+        shape = cell_polygon(SimpleNamespace(
+            id=cell.get("id"), polygon=cell.get("polygon"), x=cell.get("x"), y=cell.get("y"),
+        ))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{operation}: source space {cell.get('id')!r} has invalid geometry: {exc}") from exc
+    if shape.geom_type != "Polygon" or shape.interiors:
+        raise ValueError(f"{operation}: source space {cell.get('id')!r} must be one hole-free polygon")
+    return shape
+
+
+def _single_hole_free_polygon(shape: object, *, operation: str, name: str) -> Polygon:
+    if (getattr(shape, "geom_type", None) != "Polygon" or shape.is_empty or not shape.is_valid
+            or shape.area <= _LOCAL_PARTITION_AREA_TOLERANCE_M2 or shape.interiors):
+        raise ValueError(f"{operation}: {name} must be one valid polygon without holes")
+    return shape
+
+
+def _ring_from_polygon(shape: Polygon) -> list[list[float]]:
+    canonical = orient(shape, sign=1.0)
+    return [[float(x), float(y)] for x, y in list(canonical.exterior.coords)[:-1]]
+
+
+def _set_cell_polygon(cell: dict, shape: Polygon) -> None:
+    ring = _ring_from_polygon(shape)
+    cell["polygon"] = ring
+    cell["x"] = [float(shape.bounds[0]), float(shape.bounds[2])]
+    cell["y"] = [float(shape.bounds[1]), float(shape.bounds[3])]
+
+
+def _replace_space_region(proposal: dict, geometry: dict, operation: dict) -> dict:
+    """Replace one source room and derive its adjacent room's exact remainder.
+
+    This is deliberately a two-space conservation edit.  It changes neither
+    openings nor any third space, so an aperture whose host moves must be
+    supplied separately as an explicit ``update_opening`` operation.
+    """
+    name = "replace_space_region"
+    _require_fields(operation, {"op", "space_id", "neighbor_space_id", "polygon", "reason", "source_refs"}, operation=name)
+    if proposal.get("enclosure_declaration") is not None:
+        raise ValueError("replace_space_region: explicit enclosure_declaration requires an explicit revised proposal")
+    if proposal.get("wall_references") or proposal.get("wall_dimensions"):
+        raise ValueError("replace_space_region: wall references/dimensions require an explicit revised proposal")
+    space_id = _nonblank_string(operation.get("space_id"), field="space_id", operation=name)
+    neighbor_id = _nonblank_string(operation.get("neighbor_space_id"), field="neighbor_space_id", operation=name)
+    if space_id == neighbor_id:
+        raise ValueError("replace_space_region: space_id and neighbor_space_id must differ")
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    refs = _source_refs(operation.get("source_refs"), operation=name)
+
+    matches = []
+    for floor in geometry.get("floors", []):
+        cells = {cell.get("id"): cell for cell in floor.get("cells", [])}
+        if space_id in cells and neighbor_id in cells:
+            matches.append((floor, cells[space_id], cells[neighbor_id]))
+    if len(matches) != 1:
+        raise ValueError("replace_space_region: spaces must occur together on exactly one floor")
+    floor, target_cell, neighbor_cell = matches[0]
+    old_target = _cell_shape(target_cell, operation=name)
+    old_neighbor = _cell_shape(neighbor_cell, operation=name)
+    if old_target.intersection(old_neighbor).area > _LOCAL_PARTITION_AREA_TOLERANCE_M2:
+        raise ValueError("replace_space_region: source spaces overlap instead of sharing a partition")
+    if old_target.boundary.intersection(old_neighbor.boundary).length <= _LOCAL_PARTITION_TOLERANCE_M:
+        raise ValueError("replace_space_region: source spaces must share an actual boundary edge")
+    old_region = unary_union([old_target, old_neighbor])
+    old_region = _single_hole_free_polygon(old_region, operation=name, name="source two-space union")
+
+    ring, x, y = _polygon_ring_and_bbox(operation.get("polygon"), operation=name, space_id=space_id)
+    new_target = _cell_shape({"id": space_id, "polygon": ring, "x": x, "y": y}, operation=name)
+    new_target = _single_hole_free_polygon(new_target, operation=name, name="replacement polygon")
+    if new_target.difference(old_region).area > _LOCAL_PARTITION_AREA_TOLERANCE_M2:
+        raise ValueError("replace_space_region: replacement polygon extends outside the original two-space region")
+    new_neighbor = _single_hole_free_polygon(
+        old_region.difference(new_target), operation=name, name="neighbor remainder",
+    )
+    if unary_union([new_target, new_neighbor]).symmetric_difference(old_region).area > _LOCAL_PARTITION_AREA_TOLERANCE_M2:
+        raise ValueError("replace_space_region: replacement does not preserve the original two-space coverage")
+
+    before_cells = {space_id: copy.deepcopy(target_cell), neighbor_id: copy.deepcopy(neighbor_cell)}
+    _set_cell_polygon(target_cell, new_target)
+    _set_cell_polygon(neighbor_cell, new_neighbor)
+    return {
+        "operation": name,
+        "space_id": space_id,
+        "neighbor_space_id": neighbor_id,
+        "floor": floor.get("name"),
+        "reason": reason,
+        "source_refs": refs,
+        "before": {"cells": before_cells},
+        "after": {"cells": {space_id: copy.deepcopy(target_cell), neighbor_id: copy.deepcopy(neighbor_cell)}},
+        "opening_policy": "openings and windows are unchanged; use explicit update_opening for an opening edit",
+    }
+
+
 def _shared_rectangular_wall(left: dict, right: dict, *, operation: str) -> tuple[str, float, list[float], dict, dict]:
     """Return a complete common side, oriented from lower to higher coordinate."""
     if left.get("polygon") is not None or right.get("polygon") is not None:
@@ -477,6 +581,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _move_shared_wall(result, geometry, operation)
         elif name == "reshape_spaces":
             audit = _reshape_spaces(result, geometry, operation)
+        elif name == "replace_space_region":
+            audit = _replace_space_region(result, geometry, operation)
         elif name == "set_notes":
             audit = _set_notes(result, operation)
         elif name in {"update_wall_dimension", "update_wall_reference"}:
