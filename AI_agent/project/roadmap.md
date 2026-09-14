@@ -48,11 +48,13 @@
 
 **此前汇报任务已完成并收工。** 七页极简双语汇报、sm25 与 Voimatalo 直接交互展示、楼板/顶面恢复和跨设备离线交付均完成。[持续改稿入口](../../showcase/2026-09-11-research-report/index.html)；[可直接复制的文件夹](../../showcase/BIM-Agent-Presentation/index.html) / [ZIP](../../showcase/BIM-Agent-Presentation.zip)，内含全部演示依赖与七页 PDF，仓库外断网验证通过。完整成果、来源与人工推断范围见下方最新收工；展示探索不改变生产模型上限或常规还原状态。
 
-**当前方向：** 部分推理建模，Voimatalo首次Opus迁移已产生62空间/78窗/54门候选，质量未达标、订阅额度中断。通用参数化输出、逐层轮廓JSON往返已接，实跑暴露的同标高跨实例门清单误拦已修复；原两份候选不改、不替换旧展示。下一项是离散开口证据与竖向空间组织，Sonnet档及自主GLB观察另验。详见[迁移记录](../logs/worklog/2026-09-14_voimatalo_working_model_transfer.md)。
+**当前方向：** 部分推理建模，Voimatalo首次Opus迁移已产生62空间/78窗/54门候选，质量未达标、订阅额度中断。通用参数化输出、逐层轮廓JSON往返已接，实跑暴露的同标高跨实例门清单误拦已修复；原两份候选不改、不替换旧展示。收工时用户明确原三维模型直接输入，观察属于harness内部；下一次先接原网格查询/按需渲染，再结合离散开口与竖向空间问题验证。Sonnet档另验。详见[迁移记录](../logs/worklog/2026-09-14_voimatalo_working_model_transfer.md)。
 
 ## 当前交接
 
-**最新交接：[09-14 Voimatalo工作模型迁移](../logs/worklog/2026-09-14_voimatalo_working_model_transfer.md)。** Opus订阅603.05秒额度中断，首轮迁移失败但源可看；62项不同离线检查和真实输入/源/浏览器核验完成，跨实例开口误拦已修复。模型已停止，保持部分推理方向。
+**最新收工：[09-14 部分推理全会话收工与原网格输入澄清](../logs/worklog/2026-09-14_partial_inference_session_close.md)。** 统一产品入口和职责组织已确认，完成Voimatalo首轮Opus辅助视图迁移与公共工具修复；质量未达标。原三维资产应直接进入Agent，是否渲染、怎样观察由内部处理；下一次先补原网格观察接入。本次仅文档收工，不再实验或重复全量验证。
+
+**本轮实作：[09-14 Voimatalo工作模型迁移](../logs/worklog/2026-09-14_voimatalo_working_model_transfer.md)。** Opus订阅603.05秒额度中断，首轮迁移失败但源可看；62项不同离线检查和真实输入/源/浏览器核验完成，跨实例开口误拦已修复。模型已停止，保持部分推理方向。
 
 **本轮开工：[09-14 部分推理建模恢复推进](../logs/worklog/2026-09-14_partial_inference_restart.md)。** 先完成上下文及已有能力核对；模型生成成绩与开发辅助展示分开报告。
 
