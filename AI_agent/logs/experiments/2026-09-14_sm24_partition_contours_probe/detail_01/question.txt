@@ -1,0 +1,28 @@
+Identify the physical spaces and circulation in this original floor plan.
+This is a bounded observation experiment, before metric dimensions or BIM assembly.
+No expected room count, prior observation, coordinates, or generated model is supplied.
+
+Test this observation method: after viewing the plan, use the numbered pixel-region
+overview to locate floor regions, then inspect the returned seed contours with
+view_pixel_region for the regions you classify as floor. Follow the actual tool
+bounds, not remembered positions on the overview. Components are not rooms: furniture
+and door leaves can divide a room's pixels, and openings may connect several spaces.
+Do not give the same confidence to an overview guess and an inspected contour.
+
+For adjacent regions you propose to merge or separate, inspect the original across
+their actual facing edges. Identify the entire separator from one wall junction to
+the next, its endpoints in ORIGINAL pixels, and any gap/door along it. A furniture
+explanation needs visible evidence about its ends and relation to enclosing walls.
+Trace bends/extensions of circulation in the original; adjacency is not a connection.
+If uncertain, keep the alternatives explicit. Do not replace a missing observation
+with a room-count assumption. No metric dimensions, calibration, heights or windows
+are required for this task.
+
+Answer concisely with (1) physical-space inventory: label, actual inspected region
+IDs/seeds, complete extent including bends; (2) adjacent-space separators: space pair,
+full wall/door/open span/furniture/unknown, path endpoints in original pixels, cited
+view or measurement, and observed/inferred status; (3) unresolved or uninspected
+regions. Any merger of floor regions must have a separator entry. Region IDs must
+refer to the actual returned inventory; do not cite exterior annotation blobs as rooms.
+Work within 240 seconds and reserve the last 30 seconds for the answer. This is an
+observation, not a claim that a complete BIM or automatic fidelity pass exists.
