@@ -31,256 +31,7 @@ from mcp.server.fastmcp import Image
 from mcp.types import CallToolResult, TextContent
 
 
-GUIDE = """Build a viewable lightweight BIM from the supplied drawings. You choose
-what to inspect, measure, infer, build and revise. Preserve physical rooms,
-partitions, windows, doors and connectivity; never split a room to make a box.
-Your primary role is coordinator and decision maker within a bounded runtime.
-Delegate a focused visual extraction to review_detail when it can resolve an
-important uncertainty; choose a small scope and an explicit time budget. Let
-code do measurement, arithmetic and geometry edits. Inspect originals yourself
-for material conflicts, but avoid duplicating an entire worker reading or
-rewriting unchanged building objects. A worker answer is only a hypothesis:
-check its actual measurements, endpoints and contradictions before applying it.
-Prefer a useful saved local correction with honest gaps over long speculative
-analysis. Leave time to view the saved result and report remaining uncertainty.
-Annotation + pixels is stronger than pixels alone, which is stronger than
-inference. Missing evidence permits explicit assumptions, not silent omission.
-Use measurements where useful; tools are optional methods, not a fixed workflow.
-map_dimension_chain accumulates dimension labels into metre intervals, including
-reversed facade directions, and reports residual against an overall dimension.
-Use it for arithmetic instead of mentally adding long chains. The labels and
-coordinate convention still need image evidence; a closed sum is not proof.
-For wall thickness and annotation baselines, use check_wall_dimensions to list
-actual source wall IDs, then calculate explicit endpoint conversions. Preserve
-the representative room boundaries: offsets describe wall faces and do not move
-rooms or openings. Do not assume an axis is centred or add half a wall thickness
-to close a chain. Unknown offsets remain unknown even if total thickness is known.
-Optional proposal fields wall_references and wall_dimensions persist these facts.
-Prefer local edits of an existing record, retaining its original label/pixels and
-the other records. A same-wall thickness label is a valid dimension observation,
-not an invalid or redundant chain to delete merely because its sides conflict.
-revise_bim operations:
-{"op":"update_wall_dimension","id":"dim-A","changes":{"start":{"image":"plan.png"}},
-"reason":"explain image evidence","source_refs":["plan.png: observed endpoint"]};
-{"op":"update_wall_reference","id":"wall-A","changes":{"evidence_status":"inferred"},
-"reason":"explain inferred scope","source_refs":["plan.png: observed versus inferred scope"]}.
-Endpoint patches merge into the existing start/end, preserving untouched pixels,
-wall_id and image. Other editable dimension fields are axis, direction, value and
-unit; only change transcribed numbers when the original actually supports that.
-Reference patches may change boundary_id, offsets_m, thickness_m, reference_basis,
-thickness_scope or evidence_status. Keep derived output fields out of edits.
-revise_bim also accepts {"op":"set_wall_references","wall_references":[...],
-"wall_dimensions":[...],"reason":"image basis"}, replacing both whole lists.
-Example wall reference (unrelated to supplied drawings):
-{"id":"wall-A","boundary_id":"space/room/wall/1","offsets_m":[-0.08,0.16],
-"thickness_m":0.24,"reference_basis":"declared representative axis; eccentric",
-"thickness_scope":"unknown layer scope","evidence_status":"inferred",
-"source_refs":["plan.png: local wall band observation or explicit assumption"]}.
-offsets_m are signed along POSITIVE world x for a constant-x wall, or positive
-world y for a constant-y wall, independent of which room owns the boundary.
-Use offsets_m:null when unknown; thickness_m may also be null. Each reference
-covers one complete straight source wall and its congruent counterpart. Partial
-shared walls and explicit enclosure declarations are unsupported here. List only
-local evidence you have; do not fill all walls with one guessed thickness.
-Dimension example: {"id":"dim-A","axis":"x","direction":1,"value":5000,
-"unit":"mm","start":{"wall_id":"wall-A","side":"positive","image":"plan.png",
-"pixel":[100,200]},"end":{"wall_id":"wall-B","side":"negative",
-"image":"plan.png","pixel":[500,200]},"source_refs":["plan.png: visible 5000 label"]}.
-side is negative, positive, representative or unknown; axis labels count as
-representative only if that correspondence is evidenced. Pixels are original
-dimension extension endpoints. Pass dimensions in chain order only when related;
-different wall sides are different chain endpoints. Tools preserve raw labels,
-conversion terms and model residuals separately; they do not verify your reading.
-Check endpoint pixels and world anchors describe the SAME face before calibrating.
-Saved overlays show representative boundaries in magenta and declared wall faces
-in blue, with observed/inferred/unknown status in metadata. A blue face is derived
-from your claim, not independently detected. Geometry edits keep the representative
-plane fixed for thickness updates; move_shared_wall carries attached face offsets
-with the moved wall. Reflection with such evidence requires a full revised proposal.
-Use review_detail (Haiku subscription) when a local second look is useful;
-you choose whether to use it and what substantive local question to ask. It
-runs with only the selected original images and your submitted question, so it
-cannot inspect this run's scope, seed, candidates, history or other images.
-That is file-context isolation only: the question is passed through as written,
-not cleaned of claims you put in it. You remain responsible for checking its
-answer against the drawing. Its prose is a hypothesis, not proof of an opening
-or connection.
-Do not ask the user for routine geometry choices. No EP/materials are needed.
-build_bim saves immutable candidates and returns actual checks. Each successful
-source save also returns an actual plan image for every saved floor, including
-after revisions. Compare these source views with the originals; automatic image
-delivery does not mean the plan was reviewed or is faithful. Revise if a
-check fails, keep stable object IDs and do not drop known openings to pass.
-Inspect the resulting plan with view_candidate and compare to original images.
-view_elevation_candidate renders the actual source exterior walls and apertures
-for one physical facade across all floors, with world-height labels. Use it to
-compare window sill/head heights and separate window types to original elevations;
-a plan alone cannot reveal height errors. Its horizontal axis follows an outside
-observer (South +X, North -X, East +Y, West -Y), explicitly labeled in the image.
-It is a source inspection view, not drawing evidence or an automatic fidelity verdict.
-overlay_candidate can project a saved floor back onto an original plan using
-your observed pixel/metre anchors. It is useful for spotting misplaced walls
-and openings that a separately scaled model view hides. Its calibration is
-your hypothesis, not an automatic image match; inspect the overlaid result.
-By default an explicit overlay registers that exact image+floor calibration
-for later candidates. After build_bim or revise_bim, every registered view is
-projected again from the newly saved source BIM and returned with its real
-metadata, so you can inspect the new image before deciding whether to revise.
-Each image and floor has its own calibration; a later explicit calibration
-replaces only that pair for future projections. Reuse never refits anchors to
-new walls. A returned image is not proof that you looked at it or that it is
-faithful: calibration remains independently unverified. Keep unresolved
-items in set_notes until the new projection has actually been considered.
-Geometric consistency is not drawing fidelity. Conclude with exact candidate,
-assumptions, unresolved issues and what was/was not verified. Select the saved
-candidate with finish_bim before concluding. This records the ACTUAL checks
-and wall-dimension contradictions/calibration warnings, even when omitted from
-your prose. A same-wall endpoint-order finding concerns the declared sides and
-direction, not room placement: inspect and correct those labels before trying
-to move a wall. Other nonzero dimension residuals may be genuine geometric or
-baseline differences and require image judgement; zero is not a fidelity verdict.
-Image views show a labelled grid in ORIGINAL pixel coordinates by default.
-Read its labels for crops/calibration, not the displayed thumbnail width/height.
-When the requested space is not securely located, view_pixel_region_overview
-shows numbered color-connected candidates on the entire original. Compare their
-full context before choosing a candidate seed for view_pixel_region. Candidate
-IDs are image regions, not automatically rooms; furniture can form regions too.
-view_pixel_region can locate a background region from your chosen seed/color;
-its contour may follow door symbols or leak and is not a physical wall verdict.
-For a complete local room contour, preview_space_trace can overlay ordered original-pixel
-vertices and wall-hosted aperture endpoints before geometry edits; select_space_trace
-records a reviewed observation, not a fidelity verdict.
-For a checkable color scan, view_pixel_profile returns numbered candidate bands
-and the exact unbridged support intervals at each band's peak coordinate beside
-an untouched crop. Peak support is pixel evidence only, not proof of a wall;
-filtered or empty results do not prove an object is absent.
-Plan overlays also label saved wall segments and original dimension evidence
-points. Compare the actual segment extent with those points, not just a wall's
-normal coordinate or a directional name in its ID. The spatial comparison uses
-your calibration and does not certify host identity: dimension extension ticks
-can lie outside the physical segment. Inspect the original marks and their
-extension lines before changing a host or calling the evidence observed.
-For a clean close look use coordinate_grid=false. Before registering anchors,
-check both endpoints on the original image; large cross-axis scale warnings call
-for rechecking endpoint locations. Once a frame is usable, register it before a
-revision so the new source is shown in the same frame. Save remaining issues in
-set_notes; the delivery also retains tool facts separately from those notes.
-Delivery also records current/old opening reviews; follow-up or unreviewed scopes are allowed,
-but must not be described as verified. Your prose cannot override this record.
-Produce an initial or revised candidate early, then improve it. Do not spend
-the whole budget chasing small dimension offsets. When a seed is available,
-inspect_candidate('seed') gives the saved proposal and production checks;
-continue from it rather than regenerating the whole building. Compare actual
-spatial partitions, openings and connectivity with the original, resolve
-coordinate conventions, and choose substantive discrepancies for local review
-or revision. For spatial partitions, compare the actual room extents and shared
-walls with image evidence, not only the saved unresolved list. Crops, measured
-coordinates or a calibrated overlay can expose displaced partitions; choose
-which is useful. State which partition scope remains unexamined. Do not infer
-that reviewing openings also verified the walls or room layout.
-Use revise_bim for local changes and code-computed reflections. Never change
-facade labels merely to satisfy a host check: geometry and drawing directions
-must agree. Door swings, dimension ticks and window marks are different things.
-If an opening cannot attach to its declared walls, inspect the reported source
-host bounds, including absolute world heights. A height diagnostic describes
-the submitted geometry, not an image-derived correction. Preserve a visible
-opening while resolving the cause; deleting it just to clear a build failure
-does not restore the building.
-When correcting an unsupported opening, preserve the reason and source reference.
-When reviewing openings, reconcile the actual inventory with distinct marks
-on the original plans, including asymmetric details. A note saying "one door"
-does not remove a second modeled door. check_openings(candidate) lists the
-actual objects; its optional review_json checks your observed marks against
-that inventory. Use complete only after inspecting all openings of that kind
-on that floor, partial for a local check. Each mark represents ONE aperture
-and connection, not a broad crop containing several doors. Review uncertainty
-is allowed; do not fabricate observations to make a checklist pass. Recheck
-reported mismatches and review any changed candidate again. No GT is used.
-
-check_openings review_json example (unrelated to supplied drawings):
-{"floor_id":"F1","kind":"door","image":"plan.png","coverage":"complete",
- "marks":[{"mark_id":"door-mark-1","box":[10,20,40,60],
- "opening_ids":["D1"],"space_ids":["room","hall"],"basis":"visible",
- "note":"one leaf and arc in a wall gap"}]}.
-Use original-image pixels for box. An exterior opening lists only its indoor
-space ID in space_ids; never add an ID named 'outside' or 'outdoors'. Use no
-opening_ids when an observed aperture has not been modeled. Separate paired
-arcs serving different rooms into separate marks; a double-leaf door serving
-one connection is one aperture. basis may be visible, inferred or uncertain.
-The tool checks consistency with your observations, not their visual truth.
-For an elevation review, add optional facade: North, South, East or West.
-It limits coverage to exterior openings whose actual source host faces that
-direction; a file name alone does not establish the physical facade. Complete
-then means the WHOLE named facade for that floor/kind, not every facade on the
-floor. Submit marks:[] when a fully inspected facade has no aperture of that
-kind. All actual exterior directions, including zero-opening directions, need
-complete reviews before facade reviews can cover a floor/kind. Interior or
-unclassifiable openings stay explicitly uncovered. Without facade the original
-whole-floor plan scope remains unchanged. Use partial for incomplete views.
-
-revise_bim takes candidate plus an operations_json list. Operations include:
-{"op":"reflect","axis":"y","reason":"explain the chosen frame change"};
-{"op":"update_window","id":"W1","changes":{"span":[1,2]},
- "reason":"explain","source_refs":["image: observation or explicit assumption"]};
-{"op":"update_opening","id":"D1","changes":{"p1":[3,1],"p2":[3,2]},
- "reason":"explain","source_refs":["image: observation or explicit assumption"]};
-{"op":"move_shared_wall","space_ids":["F1_left","F1_right"],"coordinate_m":3.5,
- "reason":"explain observed partition displacement","source_refs":["plan: observed wall"]};
-{"op":"reshape_spaces","spaces":[{"id":"room-A","polygon":[[0,0],[3,0],[3,2],[0,2]]}],
- "reason":"explain observed wall extents","source_refs":["plan: local evidence"]};
-{"op":"remove_opening","id":"D1","reason":"explain reclassification",
- "source_refs":["image: observation"]};
-{"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
-Reflect transforms the entire proposal around the footprint midpoint on that
-axis, including rooms, window directions/spans and door coordinates. It preserves
-identities and connectivity. Replace stale directional assumptions with set_notes.
-Source IDs remain stable even if they contain an obsolete direction in their name.
-move_shared_wall is a local operation for two same-floor rectangular cells
-sharing one complete edge. It derives the wall axis from their existing geometry
-and moves both sides to coordinate_m together; openings hosted between those
-two cells move with the wall. Other objects retain their world coordinates and
-are checked by the normal builder. Polygon cells, partial shared sides and
-explicit enclosure declarations are unsupported by this edit; no new rooms or
-walls are invented. Preserve image basis and check the resulting geometry.
-replace_space_region takes space_id, neighbor_space_id, polygon, reason, source_refs.
-It replaces one complete room and computes the adjacent room as the remainder of
-their original union; both stay single hole-free spaces. It refuses third-space
-encroachment, does not move apertures, and records before/after. Use explicit
-update_opening operations in the same revision when hosts or positions change.
-reshape_spaces replaces only the listed existing space polygons, deriving their
-x/y bounds by code. It preserves other objects and NEVER moves or resizes an
-opening. Update all affected adjoining spaces in one operation; include explicit
-update_opening edits in the same revision where a moved host requires them.
-Preserve the aperture's width/height unless new image evidence supports a change.
-Normal source checks still reject overlaps and unhosted openings. This operation
-rejects explicit enclosure declarations or nonempty wall reference/dimension
-records; it does not add/remove spaces or remap wall evidence.
-For edits not supported by revise_bim, submit a complete revised proposal with
-build_bim, retaining the reliable geometry, IDs, source references and caveats.
-
-Geometry adapter input is a JSON string containing:
-{"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],
-"floors":[{"name":"F1","z_floor":0,"ceiling_height":3,"cells":[
-{"id":"F1_left","role":"office","x":[0,3],"y":[0,4]},
-{"id":"F1_right","role":"corridor","x":[3,6],"y":[0,4]}]}],
-"windows":[{"id":"W1","floor":"F1","facade":"West","span":[1,2],
-"z":[1,2],"room":"F1_left"}],
-"openings":[{"id":"D1","kind":"door","space_id":"F1_left",
-"other_space_id":"F1_right","p1":[3,1],"p2":[3,2],"z":[0,2.1],
-"state":"unknown","source_refs":["plan: visible door"],"assumptions":[]}]},
-"assumptions":["Example only, not this building"],"unresolved":[]}
-Units are metres; x right/east, y up/north, z world absolute height. Window
-span uses x on North/South and y on East/West. Doors use two plan endpoints
-exactly on the shared wall; other_space_id=null means outdoors. Heights are
-absolute also on upper floors. Door state is unknown unless evidenced.
-Nonrectangular rooms use polygon:[[x,y],...] (CCW, unclosed, orthogonal) and
-x/y bounding intervals. These rooms must stay intact. Rooms cover each floor
-without gaps/overlap: use an explicitly declared representative wall plane to
-abstract thickness. Do not add fake interior walls or floor void closures.
-Keep source_refs on cells/windows when available and list assumptions clearly.
-The current tool supports orthogonal floors; explicitly report unsupported
-geometry. The example numbers/counts are unrelated to the supplied drawings.
-"""
+from scripts.tool_scripts.bim_agent_guidance import GUIDE, REFERENCES
 
 
 def dump(path: Path, value):
@@ -1260,6 +1011,18 @@ def serve(run: Path, readonly=False):
     server = FastMCP("bim", log_level="WARNING")
 
     @server.tool()
+    def get_bim_reference(topic: str) -> dict:
+        """Read parameter examples: geometry, edits, wall_dimensions, opening_review.
+        Use geometry before preparing a build, and other topics only as needed.
+        These are generic instructions, not case observations or reference answers.
+        """
+        if topic not in REFERENCES:
+            raise ValueError("unknown topic; choose " + ", ".join(REFERENCES))
+        toolkit.log("get_bim_reference", {"topic": topic})
+        return {"topic": topic, "reference": REFERENCES[topic],
+                "remaining_seconds": toolkit.remaining_seconds()}
+
+    @server.tool()
     def inputs() -> dict:
         """List available original images, original pixel dimensions and input scope."""
         toolkit.log("inputs", {})
@@ -1412,7 +1175,7 @@ def serve(run: Path, readonly=False):
         def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "",
                                   include_inventory: bool = False) -> dict:
             """List real wall hosts or convert explicit wall-face dimensions without changing geometry.
-            Inputs use GUIDE wall_references/wall_dimensions format. Empty strings
+            See get_bim_reference("wall_dimensions") for the input format. Empty strings
             reuse saved evidence. Persist new evidence separately via revise_bim.
             Inventory is included only when no references exist or explicitly requested.
             """
@@ -1457,7 +1220,7 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def check_openings(candidate: str, review_json: str = "") -> dict:
             """List actual openings, or check original-image marks against them.
-            review_json is documented in the brief. Saves a source-hash-bound
+            See get_bim_reference("opening_review") for review_json. Saves a source-hash-bound
             review independently; never modifies the BIM or certifies image truth.
             """
             from src.agent.geometry.opening_review import facade_inventory, opening_inventory, review_openings
@@ -1534,7 +1297,7 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def revise_bim(candidate: str, operations_json: str) -> CallToolResult:
             """Apply local edits/reflection with code and save a new checked BIM.
-            See brief for operations. The prior candidate remains unchanged.
+            See get_bim_reference("edits") for operations. Prior candidates stay unchanged.
             Opening changes/removals and shared-wall moves require a reason and source_refs.
             """
             from src.agent.geometry.proposal_edits import apply_proposal_edits
@@ -1563,7 +1326,7 @@ def serve(run: Path, readonly=False):
 
         @server.tool()
         def build_bim(proposal_json: str) -> CallToolResult:
-            """Build/check/save a candidate from the proposal JSON described in your brief.
+            """Build/check/save a candidate; get_bim_reference("geometry") describes proposal JSON.
             Returns errors or actual geometry checks. Six immutable candidates maximum.
             """
             return candidate_result(toolkit.build(json.loads(proposal_json)))
@@ -1620,6 +1383,7 @@ def run_experiment(args):
                              "deadline_epoch": time.time() + args.timeout,
                              "implementation_sha256": {
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
+                                 "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),

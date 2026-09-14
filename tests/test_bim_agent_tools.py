@@ -103,6 +103,27 @@ def _two_floor_proposal() -> str:
     return json.dumps(proposal)
 
 
+def test_on_demand_reference_build_example_and_readonly_access(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        async with _server_session(run, readonly=True) as session:
+            reference = _json_result(await session.call_tool("get_bim_reference", {"topic": "geometry"}))
+            # The documented example must remain executable through the real API.
+            text = reference["reference"]
+            proposal, _ = json.JSONDecoder().raw_decode(text[text.index("{"):])
+            assert "build_bim" not in {t.name for t in (await session.list_tools()).tools}
+            rejected = await session.call_tool("get_bim_reference", {"topic": "../inputs.json"})
+            assert rejected.isError
+        async with _server_session(run, readonly=False) as session:
+            for topic in ("edits", "wall_dimensions", "opening_review"):
+                result = _json_result(await session.call_tool("get_bim_reference", {"topic": topic}))
+                assert result["topic"] == topic and result["reference"]
+            saved = _json_result(await session.call_tool("build_bim", {"proposal_json": json.dumps(proposal)}))
+            assert saved["source_geometry_ready"]
+            assert (run / saved["candidate"] / "source_model.json").is_file()
+    asyncio.run(scenario())
+
+
 def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)
