@@ -1,7 +1,11 @@
 """The pixel compiler is a source-producing MCP tool, with immutable input evidence."""
 import asyncio
+import base64
 import hashlib
+import io
 import json
+
+from PIL import Image
 
 from scripts.tool_scripts.bim_agent_guidance import REFERENCES
 from scripts.tool_scripts.run_bim_agent import Toolkit
@@ -29,6 +33,10 @@ def test_plan_tool_source_images_provenance_and_revised_calibration(tmp_path):
             record = built["plan_input"]
             assert (run / record["plan_file"]).read_bytes() == raw.encode()
             assert record["plan_sha256"] == hashlib.sha256(raw.encode()).hexdigest()
+            draft_view = record["draft_view"]
+            assert (run / draft_view["image_file"]).is_file()
+            assert (run / draft_view["metadata_file"]).is_file()
+            assert draft_view["draft_only"] and draft_view["drawing_fidelity"] == "not_evaluated"
             assert built["plan_compilation"] == json.loads((run / record["compilation_file"]).read_text())
             source = json.loads((run / built["candidate"] / "source_model.json").read_text())
             assert source["generation"]["provenance"]["plan_input"] == record
@@ -55,10 +63,52 @@ def test_plan_compile_failures_preserve_raw_input_without_candidate(tmp_path):
     result = toolkit.build_plan("plan.png", raw)
     assert result["status"] == "error"
     assert (run / result["plan_input"]["plan_file"]).read_text() == raw
+    assert result["plan_input"]["draft_view_errors"][0]["path"] == "plan_json"
+
     plan = example()
     plan["partitions"][0]["points"][-1] = [6, 6]
-    result = toolkit.build_plan("plan.png", json.dumps(plan))
-    assert result["status"] == "error" and result["error"]
+    failed_raw = json.dumps(plan)
+    host_plan = example()
+    host_plan["openings"][0]["p1"] = [7, 3]
+    host_plan["openings"][0]["p2"] = [7, 4.5]
+    host_raw = json.dumps(host_plan)
+
+    async def failed_mcp():
+        async with _server_session(run, readonly=False) as session:
+            results = []
+            for raw, expected_error in (
+                (failed_raw, "polygonize produced dangles"),
+                (host_raw, "requires one exterior or two interior full-boundary hosts; found []"),
+            ):
+                response = await session.call_tool(
+                    "build_plan_bim", {"image": "plan.png", "plan_json": raw})
+                result = _json_result(response)
+                assert result["status"] == "error"
+                assert expected_error in result["error"]
+                images = [block for block in response.content if block.type == "image"]
+                assert len(images) == 1
+                returned = Image.open(io.BytesIO(base64.b64decode(images[0].data)))
+                assert returned.size == (440, 32)
+                assert not list(run.glob("candidate_*"))
+                assert not (run / "overlay_calibrations").exists()
+                results.append(result)
+            return results
+
+    result, host_result = asyncio.run(failed_mcp())
+    record = result["plan_input"]
+    assert (run / record["plan_file"]).read_text() == failed_raw
+    sidecar = json.loads((run / record["draft_view"]["metadata_file"]).read_text())
+    assert sidecar["declaration"] == plan
+    assert sidecar["rendered"]["partitions"][0]["declared_pixel_points"] == [[6, 1], [6, 6]]
+    assert sidecar["draft_only"] and sidecar["drawing_fidelity"] == "not_evaluated"
+    assert sidecar["source_geometry_ready"] is False
+    assert record["draft_view"]["unrenderable_count"] == 0
+    assert sidecar["plan"]["sha256"] == record["plan_sha256"]
+    assert sidecar["image"]["sha256"] == record["image_sha256"]
+    host_sidecar = json.loads(
+        (run / host_result["plan_input"]["draft_view"]["metadata_file"]).read_text())
+    assert host_sidecar["rendered"]["openings"][0]["declared_p1"] == [7, 3]
+    assert host_sidecar["rendered"]["openings"][0]["declared_p2"] == [7, 4.5]
     assert not list(run.glob("candidate_*"))
-    assert len(list((run / "plan_drafts").glob("draft_*"))) == 2
-    assert len((run / "tools.jsonl").read_text().splitlines()) == 2
+    assert len(list((run / "plan_drafts").glob("draft_*"))) == 3
+    assert len((run / "tools.jsonl").read_text().splitlines()) == 3

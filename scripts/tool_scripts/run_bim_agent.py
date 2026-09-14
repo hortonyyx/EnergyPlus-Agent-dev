@@ -487,6 +487,7 @@ class Toolkit:
     def build_plan(self, image, plan_json):
         """Preserve a pixel declaration before deterministic compilation or errors."""
         from src.agent.geometry.plan_partition import compile_plan_partition
+        from src.agent.geometry.plan_draft_view import render_plan_draft
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -500,10 +501,54 @@ class Toolkit:
         dump(draft / "input.json", record)
         try:
             plan = json.loads(plan_json)
+        except (ValueError, TypeError) as error:
+            record["draft_view_errors"] = [{
+                "path": "plan_json", "reason": f"JSON could not be parsed: {error}",
+            }]
+            dump(draft / "input.json", record)
+            result = {"status": "error", "error": str(error), "plan_input": record,
+                      "remaining_seconds": self.remaining_seconds(),
+                      "source_geometry_ready": False}
+            dump(draft / "result.json", result)
+            self.log("build_plan_bim", result)
+            return result
+
+        try:
+            with PILImage.open(image_path) as original:
+                preview, preview_metadata = render_plan_draft(
+                    original, plan, image_name=image,
+                    image_sha256=record["image_sha256"],
+                    plan_file=record["plan_file"], plan_sha256=record["plan_sha256"],
+                )
+            preview_path = draft / "draft_view.png"
+            preview.save(preview_path)
+            preview_metadata["preview"] = {
+                "image_file": str(preview_path.relative_to(self.run)),
+                "image_sha256": digest(preview_path),
+            }
+            metadata_path = draft / "draft_view.json"
+            dump(metadata_path, preview_metadata)
+            record["draft_view"] = {
+                **preview_metadata["preview"],
+                "metadata_file": str(metadata_path.relative_to(self.run)),
+                "metadata_sha256": digest(metadata_path),
+                "draft_only": True,
+                "drawing_fidelity": "not_evaluated",
+                "source_geometry_ready": False,
+                "unrenderable_count": len(preview_metadata["unrenderable"]),
+                "unrenderable": preview_metadata["unrenderable"],
+            }
+        except Exception as error:
+            record.setdefault("draft_view_errors", []).append({
+                "path": "draft_view", "reason": str(error),
+            })
+        dump(draft / "input.json", record)
+
+        try:
             with PILImage.open(image_path) as original:
                 proposal, metadata = compile_plan_partition(
                     plan, image_size=original.size, image_name=image)
-        except (ValueError, TypeError, KeyError) as error:
+        except Exception as error:
             result = {"status": "error", "error": str(error), "plan_input": record,
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
@@ -1174,6 +1219,16 @@ def serve(run: Path, readonly=False):
     def candidate_result(result) -> CallToolResult:
         """Keep JSON structured output while attaching newly generated feedback views."""
         content = []
+        draft_view = result.get("plan_input", {}).get("draft_view")
+        if not result.get("source_geometry_ready") and draft_view:
+            try:
+                content.append(Image(data=(toolkit.run / draft_view["image_file"]).read_bytes(),
+                                     format="png").to_image_content())
+            except Exception as error:
+                result.setdefault("plan_input", {}).setdefault("draft_view_errors", []).append({
+                    "path": draft_view.get("image_file"),
+                    "reason": f"MCP result packaging failed: {error}",
+                })
         for metadata in result.get("source_image_projections", []):
             try:
                 content.append(toolkit.overlay_image(metadata).to_image_content())
@@ -1473,6 +1528,7 @@ def run_experiment(args):
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
+                                 "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
                                  "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
                              "only_input": (
@@ -1499,7 +1555,8 @@ def run_experiment(args):
                     "openings and connectivity with the original images. Choose substantive "
                     "discrepancies for local review or revision, while preserving reliable geometry; "
                     "do not redo a full reading." if seed_path else
-                    "Generate an initial candidate early, then inspect and revise it.")
+                    "Observe the real physical partitions before saving a quality-first candidate; "
+                    "inspect actual feedback and revise substantive discrepancies.")
     declaration_prompt = (
         " A structured user building declaration is available from inputs under "
         "building_input.declaration. Preserve each field's stated meaning. In particular, "

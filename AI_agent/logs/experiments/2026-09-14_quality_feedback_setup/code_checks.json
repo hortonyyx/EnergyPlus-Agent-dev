@@ -1,0 +1,19 @@
+{
+  "offline_unique_tests_passed": 36,
+  "groups": [
+    {
+      "command": "python -m pytest -n 0 tests/test_bim_agent_tools.py tests/test_bim_agent_inputs.py tests/test_plan_partition.py",
+      "passed": 32,
+      "elapsed_seconds": 40.94,
+      "evidence": "adjacent_tests.md"
+    },
+    {
+      "command": "pytest -n 0 -q tests/test_plan_draft_view.py tests/test_bim_agent_plan_partition.py",
+      "passed": 4,
+      "elapsed_seconds": 20.31,
+      "evidence": "Implementation agent final test receipt; test groups have no overlap."
+    }
+  ],
+  "real_failure_replay": "failed_draft_replay/verification.json",
+  "limits": "Offline consistency/transport checks only. No drawing fidelity or stable generation claim."
+}

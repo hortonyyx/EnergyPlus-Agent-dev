@@ -15,6 +15,8 @@
 
 每次原始 JSON 保存在 `plan_drafts/draft_*/plan.json`，编译失败也保留输入/错误，成功时另存像素到源空间/开口映射，源文件绑定这些声明与图像散列。导出后自动登记同一标定，返回实际源平面和原图回叠，后续普通修订继续复用。它是按需几何能力，并不判断墙与家具或标定是否正确，也不替代其他楼层；不完整开口/未看立面必须留在 `unresolved`。
 
+编译前还保存`draft_view.png/json`：原始像素墙线/门窗带ID和端点叠回原图，侧车绑定原JSON/图像散列并列出不能画的项目。失败时MCP实际返回这张声明草图与原错误；成功仍返回原有源图，草图仅留档。草图明确`draft_only`、保真未评价，不创建候选/源标定，不补线或裁门。JSON解析失败则保留原文并明确无法画图；不能把草图当成已建房间或修复成功。
+
 ```bash
 python scripts/tool_scripts/run_bim_agent.py run \
   --images case_tests/e2e_tests/sm21_anchor/case_data \

@@ -1,0 +1,976 @@
+{
+  "schema_version": "plan_draft_view_v1",
+  "mode": "draft_only",
+  "draft_only": true,
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_ready": false,
+  "source_bim": false,
+  "room_status": "not_inferred_or_claimed",
+  "image": {
+    "name": "1f_view.png",
+    "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "size": [
+      790,
+      1111
+    ]
+  },
+  "plan": {
+    "file": "plan_drafts/draft_001/plan.json",
+    "sha256": "58c119a8433dc57e5ac42464cdb883268ebc43f5462835ea54a5ccb70c9b9dbf"
+  },
+  "declaration": {
+    "floor_id": "F1",
+    "z_floor": 0,
+    "ceiling_height": 3.0,
+    "x_anchors": [
+      [
+        250,
+        0.0
+      ],
+      [
+        610,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        148,
+        20.0
+      ],
+      [
+        878,
+        0.0
+      ]
+    ],
+    "basis": "Outer wall faces at pixel x=250(world x=0) and x=610(world x=10m), matching top dimension '10000'. Outer wall faces at pixel y=148(world y=20, north/top) and y=878(world y=0, south/bottom), matching left dimension '20000'. Representative plane = wall centerline/inner face as drawn (gray fill band), consistent for perimeter, partitions and openings.",
+    "footprint_pixels": [
+      [
+        248,
+        148
+      ],
+      [
+        613,
+        148
+      ],
+      [
+        613,
+        878
+      ],
+      [
+        248,
+        878
+      ]
+    ],
+    "partitions": [
+      {
+        "id": "spine",
+        "points": [
+          [
+            403,
+            148
+          ],
+          [
+            403,
+            878
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows"
+        ]
+      },
+      {
+        "id": "H1",
+        "points": [
+          [
+            248,
+            290
+          ],
+          [
+            403,
+            290
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: wall between top-left room and row2 west room, y=290px"
+        ]
+      },
+      {
+        "id": "H2",
+        "points": [
+          [
+            248,
+            400
+          ],
+          [
+            403,
+            400
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: wall between row2 and row3 west rooms, y=400px"
+        ]
+      },
+      {
+        "id": "H3",
+        "points": [
+          [
+            248,
+            600
+          ],
+          [
+            403,
+            600
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: wall between row3 west office and bottom-left room, y=600px"
+        ]
+      },
+      {
+        "id": "H4",
+        "points": [
+          [
+            403,
+            290
+          ],
+          [
+            613,
+            290
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: wall between top-right lounge and east bench room, y=290px"
+        ]
+      },
+      {
+        "id": "H5",
+        "points": [
+          [
+            480,
+            380
+          ],
+          [
+            613,
+            380
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: wall between east bench room and meeting room, y=380px, starts near x=480 leaving spine door clear"
+        ]
+      },
+      {
+        "id": "H6",
+        "points": [
+          [
+            403,
+            600
+          ],
+          [
+            613,
+            600
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: wall between meeting room and bottom-right room, y=600px"
+        ]
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_top",
+        "kind": "door",
+        "p1": [
+          269,
+          150
+        ],
+        "p2": [
+          327,
+          150
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: double door arc at top wall, 540-2140mm from NW corner"
+        ]
+      },
+      {
+        "id": "W_top",
+        "kind": "window",
+        "p1": [
+          418,
+          150
+        ],
+        "p2": [
+          591,
+          150
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: ribbon window hatch on top wall, 4800mm wide"
+        ]
+      },
+      {
+        "id": "W_bot1",
+        "kind": "window",
+        "p1": [
+          269,
+          878
+        ],
+        "p2": [
+          323,
+          878
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: window hatch on bottom wall, 1500mm segment"
+        ]
+      },
+      {
+        "id": "D_bot",
+        "kind": "door",
+        "p1": [
+          413,
+          878
+        ],
+        "p2": [
+          445,
+          878
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: door arc centered on bottom wall, 900mm wide, aligned with spine wall"
+        ]
+      },
+      {
+        "id": "W_bot2",
+        "kind": "window",
+        "p1": [
+          536,
+          878
+        ],
+        "p2": [
+          590,
+          878
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: window hatch on bottom wall, 1500mm segment near SE corner"
+        ]
+      },
+      {
+        "id": "W_l1",
+        "kind": "window",
+        "p1": [
+          248,
+          170
+        ],
+        "p2": [
+          248,
+          225
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: west wall window hatch, 1500mm segment"
+        ]
+      },
+      {
+        "id": "W_l2",
+        "kind": "window",
+        "p1": [
+          248,
+          311
+        ],
+        "p2": [
+          248,
+          355
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: west wall window hatch, 1200mm segment"
+        ]
+      },
+      {
+        "id": "W_l3",
+        "kind": "window",
+        "p1": [
+          248,
+          418
+        ],
+        "p2": [
+          248,
+          473
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: west wall window hatch, 1500mm segment"
+        ]
+      },
+      {
+        "id": "W_l4",
+        "kind": "window",
+        "p1": [
+          248,
+          517
+        ],
+        "p2": [
+          248,
+          572
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: west wall window hatch, 1500mm segment"
+        ]
+      },
+      {
+        "id": "W_l5",
+        "kind": "window",
+        "p1": [
+          248,
+          684
+        ],
+        "p2": [
+          248,
+          858
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: west wall window hatch, 4800mm segment"
+        ]
+      },
+      {
+        "id": "W_r1",
+        "kind": "window",
+        "p1": [
+          613,
+          150
+        ],
+        "p2": [
+          613,
+          230
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: east wall window hatch near NE corner"
+        ]
+      },
+      {
+        "id": "W_r2",
+        "kind": "window",
+        "p1": [
+          613,
+          310
+        ],
+        "p2": [
+          613,
+          460
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: east wall window hatch beside meeting room"
+        ]
+      },
+      {
+        "id": "W_r3",
+        "kind": "window",
+        "p1": [
+          613,
+          600
+        ],
+        "p2": [
+          613,
+          660
+        ],
+        "z": [
+          1.0,
+          2.2
+        ],
+        "source_refs": [
+          "1f_view.png: east wall window hatch, 1600mm segment, labelled on drawing"
+        ]
+      },
+      {
+        "id": "D_r1",
+        "kind": "door",
+        "p1": [
+          613,
+          690
+        ],
+        "p2": [
+          613,
+          750
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: door arc on east wall leading outside, near bottom-right room"
+        ]
+      },
+      {
+        "id": "SD1",
+        "kind": "door",
+        "p1": [
+          403,
+          290
+        ],
+        "p2": [
+          403,
+          345
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: door arc through spine wall, row1"
+        ]
+      },
+      {
+        "id": "SD2",
+        "kind": "door",
+        "p1": [
+          403,
+          390
+        ],
+        "p2": [
+          403,
+          460
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: wide door arc through spine wall, row2/3, appears double-leaf"
+        ]
+      },
+      {
+        "id": "SD3",
+        "kind": "door",
+        "p1": [
+          403,
+          600
+        ],
+        "p2": [
+          403,
+          650
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: door arc through spine wall, row4"
+        ]
+      }
+    ],
+    "space_seeds": [
+      {
+        "id": "top_left_reception",
+        "point": [
+          300,
+          220
+        ],
+        "role": "reception"
+      },
+      {
+        "id": "top_right_lounge",
+        "point": [
+          500,
+          220
+        ],
+        "role": "lounge"
+      },
+      {
+        "id": "row2_west_office",
+        "point": [
+          320,
+          350
+        ],
+        "role": "office"
+      },
+      {
+        "id": "east_bench_room",
+        "point": [
+          500,
+          335
+        ],
+        "role": "office"
+      },
+      {
+        "id": "row3_west_office",
+        "point": [
+          320,
+          500
+        ],
+        "role": "office"
+      },
+      {
+        "id": "meeting_room",
+        "point": [
+          500,
+          490
+        ],
+        "role": "meeting"
+      },
+      {
+        "id": "bottom_left_dining",
+        "point": [
+          320,
+          700
+        ],
+        "role": "conference/dining"
+      },
+      {
+        "id": "bottom_right_office",
+        "point": [
+          500,
+          730
+        ],
+        "role": "office"
+      }
+    ],
+    "assumptions": [
+      "Wall representative plane = drawn gray fill band (approx centerline); wall thickness not separately verified beyond drawn 240mm interior wall label.",
+      "Left(west) facade window/wall alternation reconstructed from confirmed pixel dimension chain (540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540) matched to cyan hatch band positions; exact glazed-vs-solid assignment for each of the 10 segments is a best-effort visual read, not individually re-verified pixel by pixel.",
+      "East(right) facade window segments simplified to 3 representative bands plus one exterior door, not matching its own separate (partially inconsistent) dimension chain in the drawing; fine mullion/pier detail on this facade is not captured.",
+      "H5 (bench room / meeting room divider) drawn starting near x=480 rather than the spine, based on visible wall start point in crop, leaving the spine-door swing area clear; exact endpoint uncertain.",
+      "Small wall jog near bottom-right room (~y=700-750 px, observed step in east wall/door nook) is NOT modelled as a separate notch; bottom-right room is simplified to a rectangle. This is an explicit simplification.",
+      "Door/window sill and head heights (z ranges) are assumed typical values (doors 0-2.1m, windows 1.0-2.2m); no elevation drawing was supplied to verify.",
+      "8 space seeds were chosen; this happens to match the declared thermal_zones=8, but thermal_zones is a downstream simulation-zoning declaration, not a verified physical room count, and this match is coincidental/not used as validation."
+    ],
+    "unresolved": [
+      "Elevation drawings (South/North/East/West) were not supplied in this experiment; all opening heights and the building's true storey height are unexamined/assumed.",
+      "Exact west-facade window/wall segment classification (10 alternating segments) is uncertain beyond the confirmed segment boundary pixel positions.",
+      "East-facade window layout is coarsely simplified and may not reflect the drawing's actual (partially illegible) secondary dimension chain.",
+      "Bottom-right room's small wall jog/nook near the east door is omitted from the partition geometry."
+    ]
+  },
+  "rendered": {
+    "footprint": [
+      {
+        "id": "footprint",
+        "declared_pixel_points": [
+          [
+            248,
+            148
+          ],
+          [
+            613,
+            148
+          ],
+          [
+            613,
+            878
+          ],
+          [
+            248,
+            878
+          ]
+        ],
+        "drawn_segment_count": 4,
+        "closure_semantics": "closed only as declared footprint-ring semantics"
+      }
+    ],
+    "partitions": [
+      {
+        "id": "spine",
+        "declared_pixel_points": [
+          [
+            403,
+            148
+          ],
+          [
+            403,
+            878
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H1",
+        "declared_pixel_points": [
+          [
+            248,
+            290
+          ],
+          [
+            403,
+            290
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H2",
+        "declared_pixel_points": [
+          [
+            248,
+            400
+          ],
+          [
+            403,
+            400
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H3",
+        "declared_pixel_points": [
+          [
+            248,
+            600
+          ],
+          [
+            403,
+            600
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H4",
+        "declared_pixel_points": [
+          [
+            403,
+            290
+          ],
+          [
+            613,
+            290
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H5",
+        "declared_pixel_points": [
+          [
+            480,
+            380
+          ],
+          [
+            613,
+            380
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H6",
+        "declared_pixel_points": [
+          [
+            403,
+            600
+          ],
+          [
+            613,
+            600
+          ]
+        ],
+        "drawn_segment_count": 1
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_top",
+        "kind": "door",
+        "declared_p1": [
+          269,
+          150
+        ],
+        "declared_p2": [
+          327,
+          150
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_top",
+        "kind": "window",
+        "declared_p1": [
+          418,
+          150
+        ],
+        "declared_p2": [
+          591,
+          150
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_bot1",
+        "kind": "window",
+        "declared_p1": [
+          269,
+          878
+        ],
+        "declared_p2": [
+          323,
+          878
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_bot",
+        "kind": "door",
+        "declared_p1": [
+          413,
+          878
+        ],
+        "declared_p2": [
+          445,
+          878
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_bot2",
+        "kind": "window",
+        "declared_p1": [
+          536,
+          878
+        ],
+        "declared_p2": [
+          590,
+          878
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_l1",
+        "kind": "window",
+        "declared_p1": [
+          248,
+          170
+        ],
+        "declared_p2": [
+          248,
+          225
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_l2",
+        "kind": "window",
+        "declared_p1": [
+          248,
+          311
+        ],
+        "declared_p2": [
+          248,
+          355
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_l3",
+        "kind": "window",
+        "declared_p1": [
+          248,
+          418
+        ],
+        "declared_p2": [
+          248,
+          473
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_l4",
+        "kind": "window",
+        "declared_p1": [
+          248,
+          517
+        ],
+        "declared_p2": [
+          248,
+          572
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_l5",
+        "kind": "window",
+        "declared_p1": [
+          248,
+          684
+        ],
+        "declared_p2": [
+          248,
+          858
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_r1",
+        "kind": "window",
+        "declared_p1": [
+          613,
+          150
+        ],
+        "declared_p2": [
+          613,
+          230
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_r2",
+        "kind": "window",
+        "declared_p1": [
+          613,
+          310
+        ],
+        "declared_p2": [
+          613,
+          460
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_r3",
+        "kind": "window",
+        "declared_p1": [
+          613,
+          600
+        ],
+        "declared_p2": [
+          613,
+          660
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_r1",
+        "kind": "door",
+        "declared_p1": [
+          613,
+          690
+        ],
+        "declared_p2": [
+          613,
+          750
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "SD1",
+        "kind": "door",
+        "declared_p1": [
+          403,
+          290
+        ],
+        "declared_p2": [
+          403,
+          345
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "SD2",
+        "kind": "door",
+        "declared_p1": [
+          403,
+          390
+        ],
+        "declared_p2": [
+          403,
+          460
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "SD3",
+        "kind": "door",
+        "declared_p1": [
+          403,
+          600
+        ],
+        "declared_p2": [
+          403,
+          650
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      }
+    ]
+  },
+  "unrenderable": [],
+  "method": {
+    "coordinate_frame": "identity_original_image_pixels",
+    "original_image_box_in_preview": [
+      0,
+      0,
+      790,
+      1111
+    ],
+    "preview_output_size": [
+      790,
+      1135
+    ],
+    "endpoints_modified": false,
+    "endpoint_markers_centered_at_declared_points": true,
+    "partitions_extended_or_snapped": false,
+    "openings_clipped_or_hosted": false,
+    "spaces_or_rooms_derived": false
+  },
+  "scope": "Literal caller-declared pixel linework over the original image. This is neither a source BIM nor evidence that walls, openings, rooms, or drawing fidelity are valid.",
+  "preview": {
+    "image_file": "plan_drafts/draft_001/draft_view.png",
+    "image_sha256": "f260e04ed7e86eeac666d9ddc4fa92c510949c5a5e7de61bfaa392e5ee32899f"
+  }
+}
