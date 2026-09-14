@@ -1,0 +1,89 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 179.93673062324524,
+  "effort": "low",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "c25d04c49aa7464717fecd593e8f00ec293ac2da7786f1c430a4956be3796306",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 144.58,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 141741,
+    "duration_api_ms": 142087,
+    "ttft_ms": 2563,
+    "ttft_stream_ms": 2020,
+    "time_to_request_ms": 27,
+    "num_turns": 13,
+    "result": "**Final trace IDs:** `trace_001` (small cabinet room, R21 area) and `trace_002` (larger two-table room, R06 area) — trace_002 selected last.\n\n**Frame:** origin at SW exterior corner, +x east, +y north. Calibrated with x-anchors [pixel 248→0m, pixel 612→10m] (building outer E/W faces) and y-anchors [pixel 880→0m, pixel 150→20m] (outer S/N faces), giving ~36.4 px/m, derived from the 10000mm top/bottom and 20000mm side overall dimension chains.\n\n**Shared wall between the two rooms:** horizontal wall band at pixel y≈367–373 (world y≈13.97 m), visible as a double gray/white line running x≈450→605 in the crops — used as the small room's south edge / two-table room's north edge (trace_001 V3-V4 edge ≡ trace_002 V1-V2 edge).\n\n**Two-table room's south wall:** horizontal wall at pixel y≈595 (world y≈7.81 m), visible below the second table group, before the next room to the south begins (not independently verified against that further room, since it was out of scope).\n\n**Two corridor doors (west wall, x-pixel≈450, world x≈5.55 m):**\n- Small room door: jambs at pixel y 300/330 (world y≈15.89/15.07 m) — swing arc origin at ~(455,298) curving toward the corridor; jambs picked at wall face, not leaf tip.\n- Two-table room door: jambs at pixel y 400/430 (world y≈13.15/12.33 m) — corresponding arc visible entering from corridor; again jamb points used, arc kept as swing evidence only, not a corner.\n\n**Uncertainty:** East exterior wall outer face taken at pixel x≈605–610 (window strips visible along it in both rooms, included in crops) but not independently re-verified against the right-hand dimension chain in this pass; two-table room's south wall boundary is based on a single visual read and not cross-checked with the room further south — flagged as unconfirmed given remaining time. Door jamb widths (≈30 px ≈ 0.8 m) are approximate, read directly off the arcs rather than an explicit door-width label.",
+    "stop_reason": "end_turn",
+    "session_id": "8e24b5fe-8b2a-4ec7-a242-821a00d2db42",
+    "total_cost_usd": 0.3366776,
+    "usage": {
+      "input_tokens": 21,
+      "cache_creation_input_tokens": 24610,
+      "cache_read_input_tokens": 130452,
+      "output_tokens": 9915,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 24610,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 753,
+          "cache_read_input_tokens": 24404,
+          "cache_creation_input_tokens": 206,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 206
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 994,
+        "outputTokens": 20,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0010940000000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 21,
+        "outputTokens": 9915,
+        "cacheReadInputTokens": 130452,
+        "cacheCreationInputTokens": 24610,
+        "webSearchRequests": 0,
+        "costUSD": 0.3355836,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "22dc3b5c-7912-43f5-a1c5-d176fb4f0076"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "agent_assumptions": [
+    "Corridor and adjoining room x-boundaries corrected to x=4.18/5.82m per the plan's own '4180/1640/4180' dimension chain and matching vertical wall lines, replacing the seed's furniture/inference-based 3.767/5.843.",
+    "D_Rec_Corridor door span re-measured directly from its arc pixels and now fits within the corrected corridor width.",
+    "Local trace trace_002 uses model-observed image calibration; existing two-space outer boundary reconciled within 0.15m. Old notes retained; trace does not certify remaining partitions.",
+    "Developer-scoped deterministic replay of model-selected traces trace_001 and trace_002; only the A/B outer union was normalized within 0.125m. Calibration and drawing fidelity remain unverified; windows and all other openings were retained unchanged and were not validated by this local replay."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 11,
+    "openings": 22,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "2c601e4db9ef1e015751080ea24f413ab329abb9525afe96bc5ac6b1cbb1eccc",
+  "provenance": {
+    "proposal_sha256": "2c601e4db9ef1e015751080ea24f413ab329abb9525afe96bc5ac6b1cbb1eccc",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_bim_agent_sm24_run11/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "1377a1a5fd79a923c6a7639aeb4c21576deda24259a6e7cc519c1efd0591528e",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "East-side partitions (TopRightRoom/MeetingRoomBig/BottomRightOffice y-splits) still not independently re-derived from a matching dimension chain.",
+    "Door swing directions/states remain unknown/unverified.",
+    "Wall thickness/offsets not surveyed via check_wall_dimensions.",
+    "Model calibration remains unverified and representative wall faces retain observed pixel-scale reference-plane differences; bounded exterior normalization does not certify either calibration or drawing fidelity.",
+    "East-side partitions and other opening geometry remain unverified; new local contour/apertures need independent original-image evaluation.",
+    "East-side room boundaries and corridor doors remain model observations pending independent original-plan evaluation; this replay is not a fidelity verdict."
+  ]
+}

@@ -1,0 +1,93 @@
+[
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_Office1",
+    "changes": {
+      "p1": [
+        4.18,
+        14.328767
+      ],
+      "p2": [
+        4.18,
+        13.315068
+      ],
+      "assumptions": [
+        "Door jambs measured from the original gray-wall break and cyan swing; projected onto existing representative wall. Height and state inherited, not re-observed."
+      ]
+    },
+    "reason": "Apply independently measured west-wall jamb interval to the matching existing corridor door.",
+    "source_refs": [
+      "1f_view.png: model west-wall profile and reviewed inventory; receipt sha256 14526177a4acc0d3c5bf47175c0c6931f0e1f436c78101b1fc83f6d4fd47d2b2"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_Office2",
+    "changes": {
+      "p1": [
+        4.18,
+        12.712329
+      ],
+      "p2": [
+        4.18,
+        11.69863
+      ],
+      "assumptions": [
+        "Door jambs measured from the original gray-wall break and cyan swing; projected onto existing representative wall. Height and state inherited, not re-observed."
+      ]
+    },
+    "reason": "Apply independently measured west-wall jamb interval to the matching existing corridor door.",
+    "source_refs": [
+      "1f_view.png: model west-wall profile and reviewed inventory; receipt sha256 14526177a4acc0d3c5bf47175c0c6931f0e1f436c78101b1fc83f6d4fd47d2b2"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_Corridor_MeetingDining",
+    "changes": {
+      "p1": [
+        4.18,
+        7.780822
+      ],
+      "p2": [
+        4.18,
+        6.767123
+      ],
+      "assumptions": [
+        "Door jambs measured from the original gray-wall break and cyan swing; projected onto existing representative wall. Height and state inherited, not re-observed."
+      ]
+    },
+    "reason": "Apply independently measured west-wall jamb interval to the matching existing corridor door.",
+    "source_refs": [
+      "1f_view.png: model west-wall profile and reviewed inventory; receipt sha256 14526177a4acc0d3c5bf47175c0c6931f0e1f436c78101b1fc83f6d4fd47d2b2"
+    ]
+  },
+  {
+    "op": "remove_opening",
+    "id": "D_Corridor_Office3",
+    "reason": "Developer original-image review and the complete worker inventory show this old extra opening lies wholly within a continuous supported wall, with no door arc/gap. Retract the previous unverified distinct-arc claim.",
+    "source_refs": [
+      "1f_view.png: model west-wall profile and reviewed inventory; receipt sha256 14526177a4acc0d3c5bf47175c0c6931f0e1f436c78101b1fc83f6d4fd47d2b2",
+      "1f_view.png: profile C01 x=398, continuous y=[453, 583]; old aperture projects to y=[545.66, 582.16]"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Corridor and adjoining room x-boundaries corrected to x=4.18/5.82m per the plan's own '4180/1640/4180' dimension chain and matching vertical wall lines, replacing the seed's furniture/inference-based 3.767/5.843.",
+      "D_Rec_Corridor door span re-measured directly from its arc pixels and now fits within the corrected corridor width.",
+      "Local trace trace_002 uses model-observed image calibration; existing two-space outer boundary reconciled within 0.15m. Old notes retained; trace does not certify remaining partitions.",
+      "Developer-scoped deterministic replay of model-selected traces trace_001 and trace_002; only the A/B outer union was normalized within 0.125m. Calibration and drawing fidelity remain unverified; windows and all other openings were retained unchanged and were not validated by this local replay.",
+      "Three corridor-west apertures restored from original measured wall gaps. The previous extra Office2 aperture was explicitly removed after continuous-wall evidence and original-image review; this changes 11 old doors to 10 actual candidate doors."
+    ],
+    "unresolved": [
+      "East-side partitions (TopRightRoom/MeetingRoomBig/BottomRightOffice y-splits) still not independently re-derived from a matching dimension chain.",
+      "Door swing directions/states remain unknown/unverified.",
+      "Wall thickness/offsets not surveyed via check_wall_dimensions.",
+      "Model calibration remains unverified and representative wall faces retain observed pixel-scale reference-plane differences; bounded exterior normalization does not certify either calibration or drawing fidelity.",
+      "East-side partitions and other opening geometry remain unverified; new local contour/apertures need independent original-image evaluation.",
+      "East-side room boundaries and corridor doors remain model observations pending independent original-plan evaluation; this replay is not a fidelity verdict.",
+      "This remains developer-assisted local recovery. Global calibration, reference-plane offsets, original door heights/states and complete independent building fidelity remain unverified."
+    ]
+  }
+]

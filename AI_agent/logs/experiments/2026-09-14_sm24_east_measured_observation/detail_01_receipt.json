@@ -1,0 +1,79 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 179.95950984954834,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "f105f7ff55eb1003c0e0b57c8bbbb7c6b5296bd435c8d7fdd40e6f44b3a50ff9",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 100.18,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 97451,
+    "duration_api_ms": 96727,
+    "ttft_ms": 3264,
+    "ttft_stream_ms": 878,
+    "time_to_request_ms": 26,
+    "num_turns": 32,
+    "result": "Perfect! I have successfully measured both east-side rooms and created their traces. Here is the complete summary:\n\n## **MEASUREMENT RESULTS**\n\n### **Room IDs and Traces**\n- **R21 (Cabinet room)**: trace_001 (SHA: 86e5c6eb414301acb1dfff60ddba154af5a0996f1e0d023d9f710f398f729301)\n- **R06 (Table room)**: trace_002 (SHA: c05c5e7e26123bf22ec25f1e1fe8c14c3c5cd2e99ce8731c03a2f34d5d63c146)\n\n### **Measured Wall-Band Positions (Original Pixels)**\n\n**Vertical Walls:**\n- West wall (representative, internal boundary): **x = 462**\n- East wall (exterior boundary): **x = 602**\n\n**Horizontal Walls:**\n- R21 north wall: **y = 302**\n- R21 south wall (R21/R06 boundary): **y = 366**\n- R06 north wall: **y = 372**\n- R06 south wall: **y = 582**\n\n**Door-Jamb Intervals (West Wall, Original Pixels):**\n\n**R21 corridor door:**\n- Upper jamb: **y = 322**\n- Lower jamb: **y = 357**\n- Opening interval: **35 pixels** (≈0.96m at calibration scale)\n\n**R06 corridor door:**\n- Upper jamb: **y = 381**\n- Lower jamb: **y = 416**\n- Opening interval: **35 pixels** (≈0.96m at calibration scale)\n\n### **World Dimensions (Using Provided Calibration)**\nCalibration: x=[[248,0],[612,10]], y=[[880,0],[150,20]]\n\n**R21:** 3.85m × 1.75m (width × height)\n**R06:** 3.85m × 5.75m (width × height)\n\n### **Remaining Uncertainty**\n1. **Calibration hypothesis status**: The provided anchors are unverified; they were derived from a previous Sonnet observation claiming 10m × 20m exterior dimensions.\n2. **Door jamb precision**: ±2 pixels due to wall thickness (gray band measures ~4px); jambs placed at inner face of wall.\n3. **Shared wall consistency**: Internal wall at x=462 used as representative line in both traces; actual wall band spans ~462-466.\n4. **East wall exterior**: Traced at x=602 as exterior boundary per instructions; wall band actual thickness approximately 602-606.\n\nBoth traces are complete, geometrically valid, and selected. No BIM edits have been made.",
+    "stop_reason": "end_turn",
+    "session_id": "d1714773-c334-4cf1-9755-49ec156d20d6",
+    "total_cost_usd": 0.12496220000000001,
+    "usage": {
+      "input_tokens": 4087,
+      "cache_creation_input_tokens": 28596,
+      "cache_read_input_tokens": 197902,
+      "output_tokens": 8557,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 28596,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 8,
+          "output_tokens": 1109,
+          "cache_read_input_tokens": 27664,
+          "cache_creation_input_tokens": 932,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 932
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 5105,
+        "outputTokens": 8575,
+        "cacheReadInputTokens": 197902,
+        "cacheCreationInputTokens": 28596,
+        "webSearchRequests": 0,
+        "costUSD": 0.12496220000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "a9b1ba00-3449-4b13-b76d-519ba53185cc"
+  }
+}

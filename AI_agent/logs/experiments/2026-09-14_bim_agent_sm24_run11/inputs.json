@@ -1,0 +1,41 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "input_mode": "developer_orchestrated_two_trace_local_replay",
+  "only_input": "one named seed proposal plus two already saved model trace records and their original image; no new model/API/application call and no GT",
+  "scope": "two named rooms plus their existing corridor neighbor; windows and unrelated openings are retained unchanged",
+  "developer_selected_ids": {
+    "space_a": "TopRightRoom",
+    "space_b": "MeetingRoomBig",
+    "neighbor": "Corridor"
+  },
+  "auxiliary_mode": "developer_scoped continuation using independently saved model observations; not autonomous cold start",
+  "observation_run": {
+    "absolute_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_sm24_east_reference_review",
+    "trace_a": {
+      "id": "trace_001",
+      "sha256": "dd94ad48665669722ff55f4ebbe9dbd7fa26c3e1c8ddd25285d28f5d294b1123"
+    },
+    "trace_b": {
+      "id": "trace_002",
+      "sha256": "7898fa1319faaf72ef085d64f0cf124cf5e98ded5ab0a4994525962ae7ad3f60"
+    }
+  },
+  "seed": {
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-13_bim_agent_sm24_run07/candidate_01",
+    "proposal_sha256": "eb6d7ce65f138baf76f926a52dd99c165b1c4f5e358590b176a9cbeb7d1739eb"
+  },
+  "application_implementation_sha256": {
+    "AI_agent/logs/experiments/2026-09-14_east_wall_setup/apply_two_traces.py": "175153e7bcaca299578d562bae6b4f073e9e08f50470d0916377ba8f9e0a41d1",
+    "AI_agent/logs/experiments/2026-09-13_space_trace_setup/apply_trace.py": "87cbf0a7b15d9fab13a223b9ca52a6230f79a5f881c609260a4c4479a7d5b9a7",
+    "src/agent/geometry/proposal_edits.py": "7d47b14c2e8115613b04639b5fddf9b7d4f7073bf478eb38793e5a16b21c7ef6",
+    "scripts/tool_scripts/run_bim_agent.py": "05830da980ecbfaa85aeac5567f2b80816073f2047367e796748ae1433f12ed4"
+  }
+}

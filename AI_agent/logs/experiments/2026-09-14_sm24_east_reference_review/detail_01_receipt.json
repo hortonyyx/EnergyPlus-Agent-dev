@@ -1,0 +1,96 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 149.9594910144806,
+  "effort": "low",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "53b1943e924ab0cd6af031e2778ef86fe03d7092f5063643450c58305fa07e30",
+    "worker_evidence_sha256": {
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/pixel_regions/region_001.json": "45be6f51d9d50e6682d2c67535f18e1372f820ce6262b2f28cecc4cb9188e88b",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/pixel_regions/region_002.json": "3734dbb1caf7536bb38af9146f8941349d346103702900b47ee651bf52d9766b",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/pixel_profiles/profile_001.json": "272f59d490b53aafb7113eb45a0dbea9e221f64bc0c6b60a4cc25ff657edcba8",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/pixel_profiles/profile_002.json": "9a0d894f946e3f01c9d2c835f2710ae01a4be2241027dbccdd39cbd5cdf3ae80",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/pixel_profiles/profile_003.json": "96c2bad205a3ebcbace3dd87ccf4a1990cf1057f164e8fe53cd134fc6f7ac383",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/pixel_profiles/profile_004.json": "ea80270a72f7b002baa11009e37b23027e62063fe8d5b882de85c44374161da9",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/space_traces/trace_001.json": "86e5c6eb414301acb1dfff60ddba154af5a0996f1e0d023d9f710f398f729301",
+      "AI_agent/logs/experiments/2026-09-14_sm24_east_measured_observation/detail_01/space_traces/trace_002.json": "c05c5e7e26123bf22ec25f1e1fe8c14c3c5cd2e99ce8731c03a2f34d5d63c146"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 98.58,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 95920,
+    "duration_api_ms": 96642,
+    "ttft_ms": 4477,
+    "ttft_stream_ms": 2238,
+    "time_to_request_ms": 26,
+    "num_turns": 12,
+    "result": "## Resolution summary\n\n**Conflict found and fixed:**\n- Haiku's east edge at x=602 was the *interior* wall face; the actual exterior face is at x≈612 (band spans x≈602–612, ~10 px ≈ 240 mm wall, matching the \"240\" label visible at ~[600,494]). Crucially, the worker's own x-calibration anchor `[612px, 10.0m]` already assumes x=612 is the exterior limit — so the trace polygon must use x=612, not 602, to be self-consistent.\n- The shared horizontal wall between the cabinet room (north) and two-table room (south) is a single-line wall at **y=367** (confirmed via `pixel_profile`, full-width solid support, box [480,355]-[580,385], peak y=367). Haiku's two polygons stopped at y=366 and y=372 respectively, leaving a 6 px gap; both corrected traces now terminate exactly at y=367.\n- West wall (x=462) and door jamb pixels were left unchanged — they were not part of the flagged conflict and the corridor doors already sit correctly on that representative line.\n\n**Calibration cross-check:**\n- x_anchors `[248,0.0]→[612,10.0]`: scale ≈36.4 px/m.\n- y_anchors `[880,0.0]→[150,20.0]`: scale ≈36.5 px/m.\n- These two independently derived scales agree (~0.3% difference), supporting reuse of the worker's calibration hypothesis rather than discarding it.\n- The right-side vertical dimension chain (238/1200/740/4800/1540) was inspected but its individual tick pixel centers could not be cleanly isolated from adjacent green label glyphs sharing the color mask (ticks and digit strokes overlap in the profile scan) — I could not fully bind each numeric label to unambiguous tick endpoints in the time available, so I did **not** use it to re-derive scale, relying instead on the two independent, mutually consistent x/y anchor pairs above.\n\n**Final trace IDs (same image, same calibration, same x=612 east face, same y=367 shared wall):**\n- Cabinet room (north): `trace_001`\n- Two-table room (south, selected): `trace_002`\n\n**Remaining uncertainty:**\n1. Vertical dimension chain (238/1200/740/4800/1540) not independently verified against these wall lines due to tick/label pixel overlap — treat as unconfirmed cross-check, not contradicting evidence.\n2. Wall thickness measured as ~10 px (≈274 mm) vs. the drawn \"240\" label — close but not exact; could reflect anti-aliasing/line-weight rounding in the pixel scan rather than a true discrepancy.\n3. North and south exterior walls (y=302, y=582) and the west corridor wall (x=462) were not re-verified in this pass since they were outside the flagged conflict; treat as inherited from Haiku's original measurement, not re-validated against the exterior face convention.",
+    "stop_reason": "end_turn",
+    "session_id": "ea962e7f-342b-4302-8d8c-a64ce341c6c9",
+    "total_cost_usd": 0.3042869000000001,
+    "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 23756,
+      "cache_read_input_tokens": 153413,
+      "output_tokens": 7295,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 23756,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 997,
+          "cache_read_input_tokens": 27466,
+          "cache_creation_input_tokens": 268,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 268
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 6158,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.006248,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 18,
+        "outputTokens": 7295,
+        "cacheReadInputTokens": 153413,
+        "cacheCreationInputTokens": 23756,
+        "webSearchRequests": 0,
+        "costUSD": 0.29803890000000005,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "907d7db8-6d4a-48ae-b4f2-e4b1c64f0cc9"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "case": "sm24_anchor",
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_bim_agent_sm24_run11",
+  "run_summary_sha256": "56ebeb93c7bc051a1fc96c386bbd625f0a3c086458b44003b02658bd55cd3a87",
+  "run_completion_state": {
+    "summary_present": true,
+    "agent_response_completed": false,
+    "has_viewable_candidate": true,
+    "candidate_results": [],
+    "delivery": {
+      "candidate": "candidate_01",
+      "selection_origin": "developer_selected_deterministic_trace_replay"
+    },
+    "reported_not_evaluated": []
+  },
+  "reference": {
+    "path": "case_tests/test_baseline/gt/sm24_anchor/gt.json",
+    "file_sha256": "5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420",
+    "content_sha256": "dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2",
+    "schema_version": 3,
+    "verification_status": "human_verified"
+  },
+  "partition_basis": "reference_partition uses actual source_model spaces; GT never enters generation",
+  "candidates": [
+    {
+      "candidate": "seed",
+      "is_delivery_candidate": false,
+      "source_model_sha256": "7a9fe882fea6bf54fec299084557930097a15a30d91aefaf8ee014da38ecce2e",
+      "partition_status": "severe",
+      "source_to_reference_floor_mapping": {
+        "F1": "F1"
+      },
+      "reference_spaces": 8,
+      "actual_source_spaces": 8,
+      "opening_inventory": {
+        "all_built_openings_by_kind": {
+          "door": 11,
+          "window": 11
+        },
+        "built_exterior_openings_by_kind": {
+          "door": 3,
+          "window": 11
+        },
+        "unbuilt_openings_by_kind": {}
+      },
+      "typed_window_coordinate_diagnostic": {
+        "status": "coordinate_diagnostic_only",
+        "comparison_count": 11,
+        "unresolved_group_count": 0,
+        "not_a_complete_match_score": true
+      },
+      "typed_exterior_opening_coordinate_diagnostic": {
+        "status": "coordinate_diagnostic_only",
+        "comparison_count": 14,
+        "unresolved_group_count": 0,
+        "not_a_complete_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 13.906666994000005,
+          "extra_length_m": 14.619999994000008,
+          "missing_wkt": "MULTILINESTRING ((9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.4733330010000003), (9.979999999 8.059999999999999, 5.840000001 8.059999999999999), (9.979999999 13.999999999999996, 5.840000001 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((9.979999999 4.893333, 6.013514 4.893333), (6.013514 4.893333, 6.013514 3.453333), (6.013514 3.453333, 5.840000000999996 3.453333), (9.979999999 7.3, 5.82 7.3), (5.82 7.3, 5.82 8.039999998999999), (9.979999999 14.38, 5.840000000999996 14.38))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 13.906666994000005,
+          "extra_length_m": 14.619999994000008,
+          "missing_wkt": "MULTILINESTRING ((9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.4733330010000003), (9.979999999 8.059999999999999, 5.840000001 8.059999999999999), (9.979999999 13.999999999999996, 5.840000001 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((9.979999999 4.893333, 6.013514 4.893333), (6.013514 4.893333, 6.013514 3.453333), (6.013514 3.453333, 5.840000000999996 3.453333), (9.979999999 7.3, 5.82 7.3), (5.82 7.3, 5.82 8.039999998999999), (9.979999999 14.38, 5.840000000999996 14.38))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_01",
+      "is_delivery_candidate": true,
+      "source_model_sha256": "667fcf8251fa4564537ce2bbd38cc15351321d2aa60650e7d04cb9ce08c7d351",
+      "partition_status": "severe",
+      "source_to_reference_floor_mapping": {
+        "F1": "F1"
+      },
+      "reference_spaces": 8,
+      "actual_source_spaces": 8,
+      "opening_inventory": {
+        "all_built_openings_by_kind": {
+          "door": 11,
+          "window": 11
+        },
+        "built_exterior_openings_by_kind": {
+          "door": 3,
+          "window": 11
+        },
+        "unbuilt_openings_by_kind": {}
+      },
+      "typed_window_coordinate_diagnostic": {
+        "status": "coordinate_diagnostic_only",
+        "comparison_count": 11,
+        "unresolved_group_count": 0,
+        "not_a_complete_match_score": true
+      },
+      "typed_exterior_opening_coordinate_diagnostic": {
+        "status": "coordinate_diagnostic_only",
+        "comparison_count": 14,
+        "unresolved_group_count": 0,
+        "not_a_complete_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 14.01105099400001,
+          "extra_length_m": 13.859999994000013,
+          "missing_wkt": "MULTILINESTRING ((9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.4733330010000003), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 8.144383999), (9.979999999 13.999999999999996, 5.840000001 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((9.979999999 4.893333, 6.013514 4.893333), (6.013514 4.893333, 6.013514 3.453333), (6.013514 3.453333, 5.840000000999996 3.453333), (9.979999999 8.164384, 5.840000000999996 8.164384), (9.979999999 14.054795, 5.840000000999996 14.054795))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 14.01105099400001,
+          "extra_length_m": 13.859999994000013,
+          "missing_wkt": "MULTILINESTRING ((9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.4733330010000003), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 8.144383999), (9.979999999 13.999999999999996, 5.840000001 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((9.979999999 4.893333, 6.013514 4.893333), (6.013514 4.893333, 6.013514 3.453333), (6.013514 3.453333, 5.840000000999996 3.453333), (9.979999999 8.164384, 5.840000000999996 8.164384), (9.979999999 14.054795, 5.840000000999996 14.054795))"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "This is run-completion-only evaluation and was not supplied to the generating model.",
+    "Partition comparison evaluates actual emitted source spaces, not a recovered or corrected substitute.",
+    "Typed window/exterior-opening rows are coordinate diagnostics, not a complete typed opening-claim score or visual-fidelity verdict.",
+    "The typed GT exterior-door data cannot prove an internal-door count or inventory.",
+    "No candidate geometry, source model, or reference geometry is mutated."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "status": "completed_observation_audited_readonly",
+  "audit_scope": "Independent audit of input isolation, image transport, tool calls, saved traces, and visible original-plan correspondence. No BIM, GT, or model call was used by this audit.",
+  "transport": {
+    "status": "pass",
+    "image_name": "1f_view.png",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "matching_copies": [
+      "images/1f_view.png",
+      "detail_01/images/1f_view.png",
+      "../2026-09-13_bim_agent_sm24_run07/images/1f_view.png"
+    ],
+    "detail_input_boundary": "The isolated detail input contains the selected original image and local question; it contains no source BIM, prior wall geometry, candidate, history, evaluation, or GT. The question supplies only the previous R21/R06 region localization and asks the model to re-establish physical geometry.",
+    "tool_log": "detail_01/tools.jsonl records read-only inputs/view_image/preview_space_trace/select_space_trace calls. No mutation tool appears."
+  },
+  "execution": {
+    "requested_model": "sonnet",
+    "actual_model": "claude-sonnet-5",
+    "channel": "Claude subscription; no API/fallback",
+    "returncode": 0,
+    "completed": true,
+    "elapsed_seconds": 144.58,
+    "tool_sequence": "inputs, six view_image calls, preview trace_001, preview trace_002, select trace_002",
+    "trace_hashes": {
+      "trace_001": "77d88b13bbb713b90ff95e0de701a28f9a9b5b00603d97ce4e8c45c568b8a3fa",
+      "trace_002": "e20f829055687acf8c615b2d3b4660ba6ffe12f6462110db95ff50ca9037a5b3"
+    },
+    "selection_record_matches_saved_trace": true,
+    "saved_trace_images_inspected": true,
+    "explicit_view_space_trace_call_present": false
+  },
+  "independent_findings": [
+    {
+      "subject": "target identity",
+      "result": "supported",
+      "evidence": "trace_001 encloses the small cabinet room at the prior R21 location and trace_002 encloses the two-table room at the prior R06 location. Neither trace selects the full-width northern room or a furniture outline."
+    },
+    {
+      "subject": "north exterior anchor correction",
+      "result": "the model's approximately 150/151 px north exterior reference is supported; the auditor retracts the earlier approximately 128-135 px claim",
+      "evidence": "A direct row profile over x=235..624 finds only 18-28 nonblack pixels per row at y=127..140, belonging to the north door leaf/arc and sparse marks. At y=150 and 151 it finds 318 and 320 nonblack pixels, followed by 308-314 pixels across y=153..160, corresponding to the full-width gray exterior wall. Thus y=127..135 is not the full-width north wall."
+    },
+    {
+      "subject": "shared horizontal wall",
+      "result": "useful local observation",
+      "evidence": "Both saved trace images place the common small-room/two-table-room wall at approximately y=370 px within the visible horizontal wall band. This is the one consistently useful partition coordinate in the observation."
+    },
+    {
+      "subject": "west representative wall",
+      "result": "unsupported for application",
+      "evidence": "Both traces use x=450 px, while the visible west wall/door frame occupies a band and the plan's 4.18 m + 1.64 m width chain places the right corridor representative division near x=460 under the trace's own 248..612 px overall frame. The trace does not reconcile its x=450 choice with that chain or a declared face offset."
+    },
+    {
+      "subject": "east exterior wall",
+      "result": "internally inconsistent",
+      "evidence": "The traces declare x=612 px as the east exterior anchor but terminate both room polygons at x=605 px, producing world x=9.807692 rather than the declared 10 m exterior plane. No explicit inner-face offset is supplied."
+    },
+    {
+      "subject": "small-room corridor door",
+      "result": "incorrect aperture endpoints",
+      "evidence": "trace_001 uses x=450, y=300..330. In the saved overlay the orange segment begins at the north wall and ends partway along the visible swing/opening region instead of joining the two visible jamb limits; it follows only an upper portion of the aperture evidence."
+    },
+    {
+      "subject": "two-table-room corridor door",
+      "result": "incorrect aperture endpoints",
+      "evidence": "trace_002 uses x=450, y=400..430. In the saved overlay the orange segment begins within the swing region and continues beyond the visible lower jamb into the solid west wall; it is not the two jamb endpoints."
+    },
+    {
+      "subject": "two-table-room south wall",
+      "result": "not ready for application",
+      "evidence": "trace_002 places it at y=595 px/world y=7.808219 and itself reports no cross-check. The visible wall band and the plan's right-side dimension chain support a boundary near world y=8.06, so the submitted line remains materially unresolved."
+    },
+    {
+      "subject": "east windows",
+      "result": "requested trace content missing",
+      "evidence": "Both trace JSON files contain only one opening named corridor_door. The final text says the windows were included in crops, but neither east window was encoded in a trace."
+    }
+  ],
+  "application_verdict": {
+    "state": "reject_trace_application",
+    "reason": "The target rooms and shared wall are localized, but the west/east reference planes, two corridor door endpoints, larger room south wall, and requested windows are not established consistently enough to update the source BIM.",
+    "preserve": "Keep the R21/R06 identity and approximately y=370 px shared-wall observation as evidence for the next constrained measurement; do not use either complete trace as source geometry."
+  }
+}

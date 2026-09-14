@@ -1,0 +1,113 @@
+{
+  "status": "completed_observation_audited_readonly",
+  "audit_scope": "Independent audit of input isolation, image transport, deterministic pixel evidence, saved traces, and original-plan correspondence. The audit did not use GT, source BIM coordinates, or any model call.",
+  "transport": {
+    "status": "pass",
+    "image_name": "1f_view.png",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "matching_copies": [
+      "images/1f_view.png",
+      "detail_01/images/1f_view.png",
+      "../2026-09-13_bim_agent_sm24_run07/images/1f_view.png"
+    ],
+    "detail_input_boundary": "The isolated detail input contains the original plan, the previous Haiku R21/R06 seeds, the prior Sonnet calibration hypothesis, and a developer-specified measurement procedure. It contains no BIM, GT, old trace coordinates, candidate, or evaluation.",
+    "tool_log": "detail_01/tools.jsonl contains only read-only inputs, image/region/profile views, trace previews/views, and trace selections."
+  },
+  "execution": {
+    "requested_model": "haiku",
+    "actual_model": "claude-haiku-4-5-20251001",
+    "channel": "Claude subscription; no API/fallback",
+    "returncode": 0,
+    "completed": true,
+    "elapsed_seconds": 100.18,
+    "tool_sequence": "inputs; full image; R21 and R06 pixel regions; two clean crops; four pixel profiles; five further clean views; preview trace_001 and trace_002; view both saved traces; select trace_001 then trace_002; two final clean views",
+    "trace_hashes": {
+      "trace_001": "86e5c6eb414301acb1dfff60ddba154af5a0996f1e0d023d9f710f398f729301",
+      "trace_002": "c05c5e7e26123bf22ec25f1e1fe8c14c3c5cd2e99ce8731c03a2f34d5d63c146"
+    },
+    "final_selection_record_matches_trace_002": true,
+    "both_saved_trace_images_viewed": true
+  },
+  "deterministic_evidence": {
+    "R21_region": {
+      "bbox_px": [463, 302, 602, 366],
+      "west_contour_departure_and_return_px": [322.5, 356.5],
+      "straight_runs": "The black-region contour follows x=462.5 from y=301.5 to 322.5, departs around the door swing, and returns to x=462.5 at y=356.5 before continuing to y=365.5."
+    },
+    "R06_region": {
+      "bbox_px": [463, 372, 602, 582],
+      "west_contour_departure_and_return_px": [381.5, 415.5],
+      "straight_runs": "The black-region contour follows the west edge from y=371.5 to 381.5, departs around the door swing, and returns to x=462.5 at y=415.5 before continuing to y=581.5."
+    },
+    "west_wall_profiles": {
+      "small_room": "At x=462 the gray-support intervals are y=300..322, 357..367, and 371..381, directly leaving the door gap between the first two intervals.",
+      "two_table_room": "At x=462 the gray-support intervals are y=371..381 and 416..583, directly leaving the door gap between them.",
+      "wall_band": "Profiles identify substantial vertical support at x=457 and x=461..462. The trace chooses x=462 as its declared room-side representative line."
+    },
+    "east_wall_profiles": "The R21/R06 black regions end at x=601.5. Profiles show wall support at x=602 and through x=604..609; a separate full-height pixel check also finds substantial support at x=612. Therefore x=602 is the room-side face, not the requested exterior face.",
+    "north_anchor_correction": "A direct row profile over x=235..624 finds only sparse door-leaf/arc pixels at y=127..149, then 318 and 320 nonblack pixels at y=150 and 151 and approximately 308..314 across later wall rows. This confirms the full-width north exterior wall starts around y=150/151 and retracts the earlier audit claim that y=128..135 was its exterior face.",
+    "south_anchor_check": "The full-width south wall has strong support across y=869..878 and falls to only four and three nonblack pixels at y=879 and 880. The supplied y=880 anchor is therefore at least slightly outside the full-width wall evidence and remains unverified."
+  },
+  "independent_findings": [
+    {
+      "subject": "target identity",
+      "result": "supported",
+      "evidence": "trace_001 is the R21 cabinet room and trace_002 is the R06 two-table room. The mandatory region measurements match the prior localized components."
+    },
+    {
+      "subject": "small-room corridor door",
+      "result": "supported local aperture measurement",
+      "evidence": "The submitted y=322..357 interval agrees with both the R21 contour departure/return and the x=462 gray-profile gap. Its orange overlay spans the actual straight-wall break rather than a remote door-leaf tip."
+    },
+    {
+      "subject": "two-table-room corridor door",
+      "result": "supported local aperture measurement",
+      "evidence": "The submitted y=381..416 interval agrees with both the R06 contour departure/return and the x=462 gray-profile gap. Its orange overlay spans the actual straight-wall break."
+    },
+    {
+      "subject": "west internal wall",
+      "result": "usable as a declared room-side representative with reconciliation",
+      "evidence": "x=462 is supported by the measured gray band and black-region boundary. It is one face of a finite-thickness wall rather than a demonstrated centerline, so downstream application must explicitly reconcile it with the source representative plane instead of silently replacing the existing coordinate."
+    },
+    {
+      "subject": "shared R21/R06 wall",
+      "result": "complete traces are mutually inconsistent",
+      "evidence": "trace_001 ends at y=366 while trace_002 begins at y=372. These are the opposing room faces of the same approximately six-pixel wall band, not the one common representative line explicitly required by the task. Direct application would create a gap."
+    },
+    {
+      "subject": "east exterior wall",
+      "result": "incorrect reference face",
+      "evidence": "Both traces terminate at x=602, the black-region/room-side edge of the exterior wall band. The instruction required the exterior face, while the supplied exterior anchor is x=612 and wall support continues through the band to that side."
+    },
+    {
+      "subject": "R21 north wall",
+      "result": "inside face, not a complete source partition coordinate",
+      "evidence": "y=302 comes directly from the R21 black-region bbox. It is the room-side edge of the wall shared with the full-width northern room; applying it as a source partition would require a declared common representative line and updating the northern neighbor too."
+    },
+    {
+      "subject": "R06 south wall",
+      "result": "inside face, not independently established representative line",
+      "evidence": "y=582 comes from the R06 black-region boundary. The wall band continues below it; the trace did not establish one common line with the southern neighbor."
+    },
+    {
+      "subject": "calibration",
+      "result": "partially checked but still unverified",
+      "evidence": "The run reused x=248..612 and y=150..880. The north endpoint near y=150 is supported after separating the north door leaf from the wall. The south endpoint y=880 is slightly outside the measured full-width wall support, and no consistent face-offset treatment was applied to internal and exterior room edges."
+    },
+    {
+      "subject": "selection wording",
+      "result": "final text is imprecise",
+      "evidence": "The tool log selected trace_001 and then trace_002; the persisted trace_selection.json can retain only trace_002. The statement that both traces are selected should be read as both having passed a selection call, not as two simultaneous persisted selections."
+    }
+  ],
+  "application_verdict": {
+    "state": "partial_evidence_only_reject_complete_trace_application",
+    "reason": "The door jamb intervals are materially improved and supported by deterministic contour/profile evidence, but the two traces use opposing faces for their common wall, room-side faces for exterior and other boundaries, and an incompletely checked calibration. Applying either complete ring would change established outer/reference planes and would not produce a closed shared partition.",
+    "safe_reuse": [
+      "Preserve the R21/R06 identities.",
+      "Preserve the measured door gaps y=322..357 and y=381..416 as original-pixel evidence, then map them to the chosen source west-wall representative plane with an explicit audit.",
+      "Use the measured shared-wall band y=366..372 to choose one declared representative line for both rooms; do not use both faces as separate source boundaries.",
+      "Use the exterior face of the east wall rather than x=602 when forming source room rings."
+    ]
+  }
+}
