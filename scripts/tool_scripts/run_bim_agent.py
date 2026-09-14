@@ -548,7 +548,7 @@ class Toolkit:
             with PILImage.open(image_path) as original:
                 proposal, metadata = compile_plan_partition(
                     plan, image_size=original.size, image_name=image)
-        except Exception as error:
+        except (ValueError, TypeError, KeyError) as error:
             result = {"status": "error", "error": str(error), "plan_input": record,
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}

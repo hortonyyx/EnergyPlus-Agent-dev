@@ -1,5 +1,5 @@
 {
-  "offline_unique_tests_passed": 36,
+  "offline_unique_tests_passed": 37,
   "groups": [
     {
       "command": "python -m pytest -n 0 tests/test_bim_agent_tools.py tests/test_bim_agent_inputs.py tests/test_plan_partition.py",
@@ -15,5 +15,12 @@
     }
   ],
   "real_failure_replay": "failed_draft_replay/verification.json",
-  "limits": "Offline consistency/transport checks only. No drawing fidelity or stable generation claim."
+  "limits": "Offline consistency/transport checks only. No drawing fidelity or stable generation claim.",
+  "final_verification": {
+    "command": "python -m pytest -n 0 tests/test_plan_draft_view.py tests/test_bim_agent_plan_partition.py",
+    "passed": 5,
+    "elapsed_seconds": 10.17,
+    "evidence": "final_tests.md",
+    "overlap": "Includes the prior 4 tests plus one internal compiler-fault regression; do not add 4+5."
+  }
 }

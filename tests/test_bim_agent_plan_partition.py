@@ -4,12 +4,30 @@ import base64
 import hashlib
 import io
 import json
+import pytest
 
 from PIL import Image
 
 from scripts.tool_scripts.bim_agent_guidance import REFERENCES
 from scripts.tool_scripts.run_bim_agent import Toolkit
 from tests.test_bim_agent_tools import _json_result, _run_with_one_image, _server_session
+
+
+def test_internal_compiler_fault_is_not_reported_as_repairable_declaration(tmp_path, monkeypatch):
+    import src.agent.geometry.plan_partition as compiler
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("internal compiler fault")
+
+    run = _run_with_one_image(tmp_path)
+    monkeypatch.setattr(compiler, "compile_plan_partition", fail)
+    raw = json.dumps(example())
+    with pytest.raises(RuntimeError, match="internal compiler fault"):
+        Toolkit(run).build_plan("plan.png", raw)
+    draft = run / "plan_drafts" / "draft_001"
+    assert (draft / "plan.json").read_text() == raw
+    assert (draft / "draft_view.png").is_file()
+    assert not list(run.glob("candidate_*"))
 
 
 def example():
