@@ -73,7 +73,8 @@ def register_mesh_tools(server, toolkit):
         Omit target/spans for an automatic overview; give smaller metric spans
         and a local target for detail. Optional bounds selects triangles by their
         centres before rendering; excluded/occluded areas are not blank-wall proof.
-        Returns a 1200x900 image and observation ID for pixel-to-surface measurement.
+        Returns an image with equal metres per pixel on both axes (longest side
+        1200px) and an observation ID. Read resolution_px for measurement coordinates.
         """
         for value in (azimuth_degrees, elevation_degrees):
             if not math.isfinite(value):
@@ -94,6 +95,14 @@ def register_mesh_tools(server, toolkit):
             width_m = height_m * 4 / 3
         if height_m is None:
             height_m = width_m * 3 / 4
+        if not all(math.isfinite(v) and 0 < v <= 1_000_000 for v in (width_m, height_m)):
+            raise ValueError('view spans must be finite positive metres, at most 1000000')
+        requested_width, requested_height = width_m, height_m
+        metres_per_pixel = max(width_m, height_m) / 1200
+        width_px = max(1, math.ceil(width_m / metres_per_pixel - 1e-9))
+        height_px = max(1, math.ceil(height_m / metres_per_pixel - 1e-9))
+        # Pad by less than one pixel where needed; never stretch apparent angles.
+        width_m, height_m = width_px * metres_per_pixel, height_px * metres_per_pixel
         a,e = math.radians(azimuth_degrees), math.radians(elevation_degrees)
         direction = [math.cos(a)*math.cos(e), math.sin(a)*math.cos(e), math.sin(e)]
         distance = max(100, diameter*3)
@@ -101,11 +110,12 @@ def register_mesh_tools(server, toolkit):
         folder = toolkit.run / 'mesh_observations'; folder.mkdir(exist_ok=True)
         prefix = folder / f'mesh_{len(list(folder.glob("mesh_*.json")))+1:03d}'
         picture, metadata = mesh().render(prefix, eye=eye, target=centre,
-            width_m=width_m, height_m=height_m, width_px=1200, height_px=900,
+            width_m=width_m, height_m=height_m, width_px=width_px, height_px=height_px,
             yaw_degrees=yaw_degrees, bounds=bounds)
         request = dict(azimuth_degrees=azimuth_degrees, elevation_degrees=elevation_degrees,
-            yaw_degrees=yaw_degrees, target=target, width_m=width_m, height_m=height_m, bounds=bounds)
+            yaw_degrees=yaw_degrees, target=target, width_m=requested_width, height_m=requested_height, bounds=bounds)
         result = {**metadata, 'observation': prefix.name,
+                  'requested_view_span_m': {'width': requested_width, 'height': requested_height},
                   'camera_request': request, 'remaining_seconds': toolkit.remaining_seconds()}
         # The geometry module's frozen JSON/buffers remain the measurement source.
         toolkit.log('view_mesh', {'observation': prefix.name, 'request': request,
@@ -116,11 +126,19 @@ def register_mesh_tools(server, toolkit):
     @server.tool()
     def measure_mesh_pixels(observation: str, pixels: list[list[int]]) -> dict:
         """Read visible original-mesh surface XYZ at pixels of a saved mesh view.
-        Integer pixels refer to the returned 1200x900 image, origin upper left.
+        Integer pixels refer to that view's reported resolution_px, origin upper left.
         Background has no geometry. Two surface points also return their distance;
         texture marks still require your interpretation, and noisy mesh is not BIM truth.
         """
         result = mesh().pixel_query(observation_path(observation), pixels)
+        points = result['queries']
+        if len(points) >= 2 and points[0]['hit'] and points[1]['hit']:
+            delta = [b-a for a,b in zip(points[0]['world_xyz'], points[1]['world_xyz'])]
+            result['first_two_plan_geometry'] = {
+                'delta_xyz_m': delta,
+                'horizontal_heading_degrees': math.degrees(math.atan2(delta[1], delta[0]))
+                    if math.hypot(delta[0], delta[1]) > 1e-7 else None,
+                'note': 'Heading of your two selected surface points, not an inferred building axis.'}
         toolkit.log('measure_mesh_pixels', {'observation': observation, 'pixels': pixels, 'result': result})
         return result
 

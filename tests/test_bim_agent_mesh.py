@@ -81,6 +81,7 @@ def test_mesh_stdio_renders_measures_and_rejects_unadmitted_or_changed_asset(tmp
             measured = _json_result(queried)
             assert measured['first_two_distance']['distance_m'] == pytest.approx(0.5, abs=1e-6)
             assert all(row['hit'] and row['world_xyz'][0] == pytest.approx(2) for row in measured['queries'])
+            assert measured['first_two_plan_geometry']['horizontal_heading_degrees'] == pytest.approx(90)
             reopened = await session.call_tool('view_mesh_observation', {'observation': observation})
             assert not reopened.isError
             assert reopened.content[0].data == result.content[0].data
@@ -89,6 +90,22 @@ def test_mesh_stdio_renders_measures_and_rejects_unadmitted_or_changed_asset(tmp
             with (run / 'assets/input.glb').open('ab') as stream:
                 stream.write(b'changed')
             assert (await session.call_tool('inspect_mesh', {})).isError
+    asyncio.run(scenario())
+
+
+def test_tall_mesh_view_preserves_metric_aspect_instead_of_stretching_angles(tmp_path, monkeypatch):
+    _, run, _ = _prepare(tmp_path, monkeypatch)
+    async def scenario():
+        async with _server_session(run, readonly=True) as session:
+            result = await session.call_tool('view_mesh', {
+                'azimuth_degrees':0,'elevation_degrees':90,'width_m':4,'height_m':8})
+            assert not result.isError, result
+            metadata = json.loads(result.content[1].text)
+            assert metadata['resolution_px'] == {'width':600,'height':1200}
+            mapping = metadata['pixel_center_mapping']
+            assert mapping['pixel_width_m'] == pytest.approx(mapping['pixel_height_m'])
+            names = {t.name for t in (await session.list_tools()).tools}
+            assert 'inspect_mesh' in names and 'build_parametric_bim' not in names
     asyncio.run(scenario())
 
 
