@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>Voimatalo · 工作模型迁移</title>
+ <style>body{font:16px system-ui;margin:24px;color:#243643}a{color:#176777}.views{display:grid;grid-template-columns:1fr 1fr;gap:16px}iframe{width:100%;height:680px;border:1px solid #bbb}li{margin:.5em 0}@media(max-width:1000px){.views{grid-template-columns:1fr}}</style>
+ <h1>Voimatalo · 工作模型迁移</h1>
+ <p>Opus探索性生成；输入视图由开发侧预先准备。模型未获得旧BIM或内部平面。内部空间为假设，尚未验证真实布局。</p>
+ <p>62空间 · 78窗组 · 54门 · 源几何检查：severe。几何自洽不等于建筑保真。</p>
+ <p><a href="overlay.html">打开可切换贴图 / BIM / 固定坐标叠合的查看器</a> · <a href="candidate_02/source_model.json">源BIM</a> · <a href="delivery.html">实际交付检查</a> · <a href="README.md">结果与限制</a></p>
+ <div class="views"><section><h2>原始单体网格</h2><iframe title="原始贴图" src="../../../../case_tests/textured_mass/single_buildings/voimatalo/viewer.html"></iframe></section><section><h2>本轮实际生成</h2><iframe title="生成BIM" src="candidate_02/viewer.html"></iframe></section></div>
+ <h2>模型记录的未解决项</h2><ul><li>Exact storey/slab heights not surveyed; derived from facade pixels.</li><li>Setback penthouse true plan extent and whether it also covers the west wing north end.</li><li>Ground-level entrance inventory (only hypothetical entrances modelled).</li><li>Court-facade (x=0.7) window extent on floors overlapping annex not fully modelled.</li><li>Occluded ground floor on north/courtyard sides (missing mesh); annex-to-wing internal connection not modelled.</li></ul>

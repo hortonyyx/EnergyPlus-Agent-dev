@@ -1,0 +1,494 @@
+{
+  "images": {
+    "facade_annex_east.png": {
+      "size": [
+        1043,
+        1088
+      ],
+      "sha256": "d40a4645a5a29288bfd4e7872805fc8df94dbe4f7c8dae08674543c073d94fd5"
+    },
+    "facade_court_long.png": {
+      "size": [
+        1424,
+        1088
+      ],
+      "sha256": "9e9c3cc69537ce0e41f481a3363c7d69c46d8157323fea8a230ab11eba7a0e58"
+    },
+    "facade_court_short.png": {
+      "size": [
+        646,
+        1088
+      ],
+      "sha256": "3ed09c94e08cdb0800a824af0b376deaae61ba0ae763b4a3c3ab3e8a1f48bd35"
+    },
+    "facade_east_short.png": {
+      "size": [
+        608,
+        1088
+      ],
+      "sha256": "8adddbf610bf2cd7f61c73e56825877e9ab5b6af6a3adb5911b4467f49caae43"
+    },
+    "facade_north.png": {
+      "size": [
+        1107,
+        1088
+      ],
+      "sha256": "b902a18bd3002ccfc0a356e820175996ebe1e3cf64a73095a5a0a7a3cf904bee"
+    },
+    "facade_south_end.png": {
+      "size": [
+        525,
+        1088
+      ],
+      "sha256": "43759b8cd1fba5af36da3c62ee8ef0cb0bdf80f5d4681a625276fc32ed2c3a66"
+    },
+    "facade_west.png": {
+      "size": [
+        1968,
+        1088
+      ],
+      "sha256": "65db3a051d2dde53053ea7752dd6688d513bf989d1617c2512d79863ebc710a2"
+    },
+    "overview_courtyard.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "8ea9877f5048c2da3854cec057fea9917c4f63be5ea33250db5454a3c5bad6e8"
+    },
+    "overview_east.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "2dc8853d5cefeab1cc908c1ad306d14ecf44ebf3659ccbab5a17dcacfbd76a4c"
+    },
+    "overview_north.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "d74aefd1f2e73b6fe581e098d38cbcdded41a20ff45320e8aeceb253d59ba875"
+    },
+    "overview_south.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "c964a20c8e15642ed5816b62ce1e8178deff98395860d9d142f1b0725d9028ed"
+    },
+    "overview_street.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "2d9ab9f4969ecddf96fe15271d9e2ccc12427911b769076e6706927563fabd6d"
+    },
+    "overview_top.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "56f3d8d027a031a7190ea4a980f22adca4669bb1e3a4141253b90316f99a3baa"
+    },
+    "overview_west.png": {
+      "size": [
+        1600,
+        1200
+      ],
+      "sha256": "5c9db98c8f3877bc09faaa070db733b45cfbbf7f31efade49b5a1c7f1b28b82b"
+    }
+  },
+  "scope": "Exploratory transfer: build a useful moderately detailed lightweight BIM for Voimatalo from the supplied full-texture mesh views and metric projection metadata. These are prepared original-mesh observations, not drawings or prior BIM outputs. Inspect overview and relevant facades; use metric mappings for geometry. Preserve main shape, storeys, setbacks and visible aperture groups. Propose explicit plausible office/circulation/service space hypotheses where internal evidence is absent, retain continuous vertical circulation without fake slabs, and explain source simplification. Use the generic parametric reference/tool when repeating floor templates and window rows. You have no old BIM or measured window inventory; derive your own observations. Treat missing mesh surfaces by contextual reasoning, not automatically as empty or blank walls. Save candidate(s), inspect actual source plans/elevations and revise consequential discrepancies. Report observed, inferred, unexamined and unresolved content separately. This is an exploratory Opus run with developer-prepared views, not a Sonnet product validation. No simulation.",
+  "input_mode": "original_images_agent_experiment",
+  "exploratory_opus": true,
+  "source_input_mode": "original_images_with_building_declaration",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 14
+    },
+    "building_declaration": {
+      "included": true
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1789400286.617536,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "bb61f9322361bc3a73eb035bd0b3996f564c97917e8cae353522e44832182756",
+    "scripts/tool_scripts/bim_agent_guidance.py": "33d4b7dc4b9738ed342c3e5853160453c538a1b709b7d050da48c5d2890cccc7",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "b4ab86f4d64fb3126f2299549f5f69513ae2137fb8346df510d143f6ffcb9674",
+    "src/agent/execution/source_proposal.py": "09814d3e0b99669d419db477e5e17c7e1bef89f3d58f3297157d98f77ddc03f1",
+    "src/agent/geometry/proposal_edits.py": "7d47b14c2e8115613b04639b5fddf9b7d4f7073bf478eb38793e5a16b21c7ef6",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "23bfa28896a3c8884022a8a149689d72ea2b70dfebf9c213ac80c914501de2bd",
+    "src/agent/geometry/plan_draft_view.py": "7ba490bba520f5907037941136a33df3d9867d67729483d39a57820814943006",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, explicitly supplied building declaration, and optional saved generated proposal; no GT/evaluation",
+  "building_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_transfer_setup/building_input.json",
+    "frozen_path": "building_input.json",
+    "raw_sha256": "0e4e9585cee6aa3a7097835b89f876192523d8389c09f1ac967a245096b74e47",
+    "raw_size_bytes": 9903,
+    "declaration": {
+      "building": "Voimatalo",
+      "location": "Helsinki",
+      "use": "office with street-level commercial, from previously sourced input preparation",
+      "storey_information": "Prior public record describes eight above-ground storeys including six similar office storeys and a setback upper storey; reconcile with visual evidence. Not actual surveyed slab levels.",
+      "source_mesh": {
+        "sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+        "kind": "real photogrammetric textured mesh, metres, cropped to one building; not watertight"
+      },
+      "coordinate_frame": {
+        "units": "metres",
+        "x": "cos(15deg)*GLB.x+sin(15deg)*GLB.z",
+        "y": "sin(15deg)*GLB.x-cos(15deg)*GLB.z",
+        "z": "GLB.y",
+        "note": "Developer-prepared 15 degree local alignment from prior exploration. North/East facade names in tools refer to local axes, not geographic north."
+      },
+      "facade_image_mappings": {
+        "facade_west.png": {
+          "triangle_count": 2682,
+          "plane_median": -13.620570793285893,
+          "plane_q10_q90": [
+            -13.806595546745722,
+            -12.77451339712144
+          ],
+          "axis": 0,
+          "plane_estimate": -13.7,
+          "along_range": [
+            -33.4,
+            26.1
+          ],
+          "width_pixels": 1968,
+          "height_pixels": 1088,
+          "view_width_m": 61.5,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "decreasing",
+          "horizontal_world_axis": "y",
+          "horizontal_pixel_to_m": {
+            "offset": 27.1,
+            "scale": -0.03125
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        },
+        "facade_north.png": {
+          "triangle_count": 1115,
+          "plane_median": 26.193049643329072,
+          "plane_q10_q90": [
+            25.198284335211984,
+            26.3033010954857
+          ],
+          "axis": 1,
+          "plane_estimate": 26.1,
+          "along_range": [
+            -13.7,
+            18.9
+          ],
+          "width_pixels": 1107,
+          "height_pixels": 1088,
+          "view_width_m": 34.599999999999994,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "decreasing",
+          "horizontal_world_axis": "x",
+          "horizontal_pixel_to_m": {
+            "offset": 19.9,
+            "scale": -0.031255645889792225
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        },
+        "facade_court_long.png": {
+          "triangle_count": 1612,
+          "plane_median": 0.7874203760505838,
+          "plane_q10_q90": [
+            0.021857532293207076,
+            0.9545076835025453
+          ],
+          "axis": 0,
+          "plane_estimate": 0.7,
+          "along_range": [
+            -33.4,
+            9.1
+          ],
+          "width_pixels": 1424,
+          "height_pixels": 1088,
+          "view_width_m": 44.5,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "increasing",
+          "horizontal_world_axis": "y",
+          "horizontal_pixel_to_m": {
+            "offset": -34.4,
+            "scale": 0.03125
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        },
+        "facade_court_short.png": {
+          "triangle_count": 718,
+          "plane_median": 9.22038128943093,
+          "plane_q10_q90": [
+            8.784094164769623,
+            9.804348065506876
+          ],
+          "axis": 1,
+          "plane_estimate": 9.1,
+          "along_range": [
+            0.7,
+            18.9
+          ],
+          "width_pixels": 646,
+          "height_pixels": 1088,
+          "view_width_m": 20.2,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "increasing",
+          "horizontal_world_axis": "x",
+          "horizontal_pixel_to_m": {
+            "offset": -0.30000000000000004,
+            "scale": 0.03126934984520124
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        },
+        "facade_east_short.png": {
+          "triangle_count": 183,
+          "plane_median": 18.669525699530002,
+          "plane_q10_q90": [
+            18.258280667529846,
+            18.861963026508096
+          ],
+          "axis": 0,
+          "plane_estimate": 18.9,
+          "along_range": [
+            9.1,
+            26.1
+          ],
+          "width_pixels": 608,
+          "height_pixels": 1088,
+          "view_width_m": 19.0,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "increasing",
+          "horizontal_world_axis": "y",
+          "horizontal_pixel_to_m": {
+            "offset": 8.1,
+            "scale": 0.03125
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        },
+        "facade_south_end.png": {
+          "triangle_count": 209,
+          "plane_median": -32.85267068904085,
+          "plane_q10_q90": [
+            -33.50113589062168,
+            -32.44855482997251
+          ],
+          "axis": 1,
+          "plane_estimate": -33.4,
+          "along_range": [
+            -13.7,
+            0.7
+          ],
+          "width_pixels": 525,
+          "height_pixels": 1088,
+          "view_width_m": 16.4,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "increasing",
+          "horizontal_world_axis": "x",
+          "horizontal_pixel_to_m": {
+            "offset": -14.7,
+            "scale": 0.031238095238095235
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        },
+        "facade_annex_east.png": {
+          "triangle_count": 306,
+          "plane_median": 13.08778863610678,
+          "plane_q10_q90": [
+            12.794611863214946,
+            13.180919067046059
+          ],
+          "axis": 0,
+          "plane_estimate": 13,
+          "along_range": [
+            -21.5,
+            9.1
+          ],
+          "width_pixels": 1043,
+          "height_pixels": 1088,
+          "view_width_m": 32.6,
+          "view_height_m": 34,
+          "top_z_m": 33,
+          "bottom_z_m": -1,
+          "along_pixel_direction": "increasing",
+          "horizontal_world_axis": "y",
+          "horizontal_pixel_to_m": {
+            "offset": -22.5,
+            "scale": 0.031255992329817836
+          },
+          "vertical_pixel_to_z_m": {
+            "offset": 33,
+            "scale": -0.03125
+          },
+          "selection_caveat": "Developer-selected near-plane triangles, within 1.25m; plane is an estimated reference, not a verified BIM wall. Selection may exclude projecting/recessed surfaces. Use overview for context."
+        }
+      },
+      "overview_camera": {
+        "input": "case_tests/textured_mass/single_buildings/voimatalo/viewer.html",
+        "rotation_y_degrees": 15,
+        "frame": "local u east along short facade; v along long wing; y is height; orthographic 96x72m",
+        "views": {
+          "courtyard": {
+            "position": [
+              90,
+              62,
+              95
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          },
+          "street": {
+            "position": [
+              -80,
+              50,
+              -90
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          },
+          "east": {
+            "position": [
+              150,
+              15,
+              0
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          },
+          "west": {
+            "position": [
+              -150,
+              15,
+              0
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          },
+          "north": {
+            "position": [
+              0,
+              15,
+              -150
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          },
+          "south": {
+            "position": [
+              0,
+              15,
+              150
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          },
+          "top": {
+            "position": [
+              0,
+              150,
+              0.01
+            ],
+            "target": [
+              0,
+              15,
+              0
+            ]
+          }
+        },
+        "errors": []
+      },
+      "simplification_intent": "Retain main shape, storeys, setbacks and visible aperture groups. Infer a useful, moderately detailed office/circulation/service-space scheme from available constraints. Do not make room counts a goal or split a continuous open space just by orientation. No internal plan is supplied; all interior partition/door hypotheses must be explicit.",
+      "missing_information": [
+        "actual internal partitions and doors",
+        "precise storey/slab levels",
+        "occluded facade surfaces",
+        "stair/elevator details",
+        "complete ground-level entrance inventory"
+      ],
+      "experiment_condition": "Exploratory working-model transfer with developer-prepared observations. No old BIM, window coordinates/counts or interior layout supplied. Cropped mesh context is limited; missing pixels do not prove either an opening or blank wall."
+    },
+    "image_path_associations": [],
+    "image_path_policy": "Declared paths are provenance labels only. They are associated by exact basename with the already authorized PNG inventory and are never opened as file paths.",
+    "field_semantics": {
+      "thermal_zones": "User declaration for downstream simulation zoning; it is not a measured or authoritative count of physical source spaces.",
+      "other_fields": "User-supplied building declarations retain their stated meaning and are not ground truth or independently verified observations."
+    },
+    "conflict_policy": "The agent must compare declarations with supplied drawing evidence, preserve the conflict or uncertainty, and decide its modelling effect explicitly."
+  }
+}

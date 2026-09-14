@@ -1,0 +1,143 @@
+{
+  "mode": "post-run deterministic replay of original failed candidate; no model calls",
+  "original_source_sha256": "f7ba243485d2f686abf89e27496b49cfe59a0f8dd77803f564722904791da0b7",
+  "opening_count": 133,
+  "cx1_floor_membership": [
+    {
+      "floor_id": "A1",
+      "opening": {
+        "id": "cx1",
+        "kind": "door",
+        "space_ids": [
+          "L1:1c",
+          "A1:An_b"
+        ],
+        "floor_id": "L1",
+        "floor_ids": [
+          "A1",
+          "L1"
+        ],
+        "plan_endpoints": [
+          [
+            0.7,
+            2.0
+          ],
+          [
+            0.7,
+            3.0
+          ]
+        ],
+        "vertices": [
+          [
+            0.7,
+            2.0,
+            0.0
+          ],
+          [
+            0.7,
+            3.0,
+            0.0
+          ],
+          [
+            0.7,
+            3.0,
+            2.1
+          ],
+          [
+            0.7,
+            2.0,
+            2.1
+          ]
+        ],
+        "host_boundary_id": "space/L1%3A1c/wall/1",
+        "exterior": false
+      }
+    },
+    {
+      "floor_id": "L1",
+      "opening": {
+        "id": "cx1",
+        "kind": "door",
+        "space_ids": [
+          "L1:1c",
+          "A1:An_b"
+        ],
+        "floor_id": "L1",
+        "floor_ids": [
+          "A1",
+          "L1"
+        ],
+        "plan_endpoints": [
+          [
+            0.7,
+            2.0
+          ],
+          [
+            0.7,
+            3.0
+          ]
+        ],
+        "vertices": [
+          [
+            0.7,
+            2.0,
+            0.0
+          ],
+          [
+            0.7,
+            3.0,
+            0.0
+          ],
+          [
+            0.7,
+            3.0,
+            2.1
+          ],
+          [
+            0.7,
+            2.0,
+            2.1
+          ]
+        ],
+        "host_boundary_id": "space/L1%3A1c/wall/1",
+        "exterior": false
+      }
+    }
+  ],
+  "source_unchanged": true,
+  "delivery_summary_succeeded": true,
+  "source_validation_still": {
+    "findings": [
+      {
+        "area_m2": 3.8,
+        "boundary_id": "space/L1%3A1a/wall/3",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "L1:w1:1",
+          "L1:door:e1"
+        ],
+        "severity": "severe"
+      },
+      {
+        "area_m2": 3.8,
+        "boundary_id": "space/L1%3A2n/wall/2",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "L1:w5:1",
+          "L1:door:e2"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "restored_to_candidate_02": false
+}

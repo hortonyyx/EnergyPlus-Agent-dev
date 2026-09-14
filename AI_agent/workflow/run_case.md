@@ -299,3 +299,11 @@ python -m scripts.tool_scripts.run_stage flow CASE RUN --geometry required
 ```bash
 python scripts/tool_scripts/diagnose_source_checkpoint.py --out AI_agent/logs/experiments/NEW_SOURCE_CHECKPOINT_RUN
 ```
+
+## 09-14 参数化方案与探索性Opus
+
+独立run_bim_agent的`build_parametric_bim`工具按显式模板/实例展开空间与窗列，参数由`get_bim_reference('parametric')`提供；`inspect_parametric_plan`读取已保存的紧凑声明以供修订。原始声明单存parametric_drafts，展开方案仍进入同一源BIM出口。逐层轮廓可以通过JSON保存/恢复；不自动补墙、推断开口或裁剪失败跨距。
+
+普通运行默认Sonnet。只有任务中明确获准的探索可使用`--exploratory-opus`切到现有Claude订阅Opus，本轮Voimatalo已获用户许可。该开关不是付费API/DeepSeek授权，不作自动回退。模型原始回执、输入条件与实际输出分别报告，真实示例及准备脚本见[迁移输入](../logs/experiments/2026-09-14_voimatalo_transfer_setup/README.md)。
+
+开口清单现在允许同标高不同翼楼记录和连续高空间的门连接，按两侧空间与实际高度检查。在各关联楼层/空间组可见同一开口，全局仅计一次，不能直接相加分组数量。

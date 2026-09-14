@@ -1,0 +1,104 @@
+{
+  "agent_assumptions": [
+    "Local 15-degree frame per declaration; facade names are local axes, not geographic.",
+    "8 above-ground storeys: ground commercial (4.2m) + 6 office floors (3.6m) + setback penthouse (4.0m); floor-to-floor inferred from facade_west window bands and ~26m main roofline.",
+    "L-shaped footprint derived from developer facade planes: west wing x[-13.7,0.7] y[-33.4,26.1] and NE block x[0.7,18.9] y[9.1,26.1].",
+    "Low 2-storey annex fills part of courtyard: x[0.7,13] y[-21.5,9.1] (overview_top tan roof, facade_annex_east).",
+    "All interior partitions, corridors, core, room uses and doors are explicit hypotheses; no interior evidence supplied.",
+    "Setback penthouse footprint is a simplified inferred setback over the NE block."
+  ],
+  "counts": {
+    "boundaries": 372,
+    "connections": 54,
+    "openings": 132,
+    "spaces": 62,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "3dadc6e107b1ffc7aacfc23e35fe9827772296bf49319b803b588b2dad057b0d",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "c3adb18667a98010e122e937622eeac288b3aefeb798dc0d68dee149ca5420ad",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "area_m2": 3.8,
+        "boundary_id": "space/L1%3A1a/wall/3",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "L1:w1:1",
+          "L1:door:e1"
+        ],
+        "severity": "severe"
+      },
+      {
+        "area_m2": 3.8,
+        "boundary_id": "space/L1%3A2n/wall/2",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "L1:w5:1",
+          "L1:door:e2"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "ea5a090b2b697d2fb7bba8c24b299003d0a3966d73545d6ca8ec924b608a68bc",
+  "source_validation": {
+    "findings": [
+      {
+        "area_m2": 3.8,
+        "boundary_id": "space/L1%3A1a/wall/3",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "L1:w1:1",
+          "L1:door:e1"
+        ],
+        "severity": "severe"
+      },
+      {
+        "area_m2": 3.8,
+        "boundary_id": "space/L1%3A2n/wall/2",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "L1:w5:1",
+          "L1:door:e2"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Exact storey/slab heights not surveyed; derived from facade pixels.",
+    "Setback penthouse true plan extent and whether it also covers the west wing north end.",
+    "Ground-level entrance inventory (only hypothetical entrances modelled).",
+    "Court-facade (x=0.7) window extent on floors overlapping annex not fully modelled.",
+    "Occluded ground floor on north/courtyard sides (missing mesh); annex-to-wing internal connection not modelled."
+  ]
+}

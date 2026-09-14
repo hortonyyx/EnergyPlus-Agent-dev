@@ -1,0 +1,254 @@
+{
+  "input_hashes": {
+    "facade_annex_east.png": true,
+    "facade_court_long.png": true,
+    "facade_court_short.png": true,
+    "facade_east_short.png": true,
+    "facade_north.png": true,
+    "facade_south_end.png": true,
+    "facade_west.png": true,
+    "overview_courtyard.png": true,
+    "overview_east.png": true,
+    "overview_north.png": true,
+    "overview_south.png": true,
+    "overview_street.png": true,
+    "overview_top.png": true,
+    "overview_west.png": true
+  },
+  "code_hashes": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "src/agent/geometry/parametric_proposal.py": true,
+    "scripts/tool_scripts/bim_agent_inputs.py": true,
+    "src/agent/execution/source_proposal.py": true,
+    "src/agent/geometry/proposal_edits.py": true,
+    "src/agent/geometry/opening_review.py": true,
+    "src/agent/geometry/bim_delivery.py": true,
+    "src/agent/geometry/source_image_overlay.py": true,
+    "src/agent/geometry/source_elevation_view.py": true,
+    "src/agent/geometry/source_plan_view.py": true,
+    "src/agent/geometry/source_bim.py": true,
+    "src/agent/geometry/wall_reference.py": true,
+    "src/agent/geometry/dimension_chain.py": true,
+    "src/agent/geometry/space_trace.py": true,
+    "src/agent/geometry/plan_partition.py": true,
+    "src/agent/geometry/plan_draft_view.py": true,
+    "src/agent/geometry/pixel_region.py": true,
+    "src/agent/geometry/pixel_region_overview.py": true
+  },
+  "input_declaration_delivered": true,
+  "actual_model": "claude-opus-4-8",
+  "requested_model": "opus",
+  "elapsed_seconds": 603.05,
+  "calls": {
+    "mcp__bim__inputs": 1,
+    "mcp__bim__view_image": 9,
+    "mcp__bim__view_pixel_profile": 2,
+    "mcp__bim__get_bim_reference": 3,
+    "mcp__bim__build_parametric_bim": 2
+  },
+  "images_viewed": [
+    "facade_annex_east.png",
+    "facade_court_long.png",
+    "facade_north.png",
+    "facade_west.png",
+    "overview_courtyard.png",
+    "overview_north.png",
+    "overview_street.png",
+    "overview_top.png"
+  ],
+  "images_unexamined": [
+    "facade_court_short.png",
+    "facade_east_short.png",
+    "facade_south_end.png",
+    "overview_east.png",
+    "overview_south.png",
+    "overview_west.png"
+  ],
+  "image_transport": [
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "overview_top.png"
+      },
+      "exact": false
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "overview_courtyard.png"
+      },
+      "exact": false
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "overview_street.png"
+      },
+      "exact": false
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "facade_west.png"
+      },
+      "exact": false
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "facade_court_long.png"
+      },
+      "exact": false
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "facade_west.png",
+        "box": [
+          750,
+          200,
+          1300,
+          1000
+        ],
+        "display_scale": 2
+      },
+      "exact": true
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "facade_annex_east.png"
+      },
+      "exact": true
+    },
+    {
+      "tool": "mcp__bim__view_pixel_profile",
+      "exact": false,
+      "stored_png": null
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "facade_north.png"
+      },
+      "exact": true
+    },
+    {
+      "tool": "mcp__bim__view_image",
+      "input": {
+        "name": "overview_north.png"
+      },
+      "exact": true
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact": true,
+      "stored_png": "candidate_02/plan_L1.png"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact": true,
+      "stored_png": "candidate_02/plan_L2.png"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact": true,
+      "stored_png": "candidate_02/plan_L3.png"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact": true,
+      "stored_png": "candidate_02/plan_L8.png"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact": true,
+      "stored_png": "candidate_02/plan_A1.png"
+    }
+  ],
+  "source_replay": [
+    {
+      "candidate": "candidate_01",
+      "expanded_proposal_matches": true,
+      "source_matches": true,
+      "source_sha256": "9a3cdf6bd3e1f356bd167d3e04623fe481f0b53f9f59bd199c222110d37eb608",
+      "validation": {
+        "findings": [
+          {
+            "area_m2": 3.8,
+            "boundary_id": "space/L1%3A1a/wall/3",
+            "code": "source.opening_overlap",
+            "opening_ids": [
+              "L1:w1:1",
+              "L1:door:e1"
+            ],
+            "severity": "severe"
+          },
+          {
+            "area_m2": 3.8,
+            "boundary_id": "space/L1%3A2n/wall/2",
+            "code": "source.opening_overlap",
+            "opening_ids": [
+              "L1:w5:1",
+              "L1:door:e2"
+            ],
+            "severity": "severe"
+          }
+        ],
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "status": "severe"
+      },
+      "counts": {
+        "boundaries": 372,
+        "connections": 55,
+        "openings": 133,
+        "spaces": 62,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_02",
+      "expanded_proposal_matches": true,
+      "source_matches": true,
+      "source_sha256": "ea5a090b2b697d2fb7bba8c24b299003d0a3966d73545d6ca8ec924b608a68bc",
+      "validation": {
+        "findings": [
+          {
+            "area_m2": 3.8,
+            "boundary_id": "space/L1%3A1a/wall/3",
+            "code": "source.opening_overlap",
+            "opening_ids": [
+              "L1:w1:1",
+              "L1:door:e1"
+            ],
+            "severity": "severe"
+          },
+          {
+            "area_m2": 3.8,
+            "boundary_id": "space/L1%3A2n/wall/2",
+            "code": "source.opening_overlap",
+            "opening_ids": [
+              "L1:w5:1",
+              "L1:door:e2"
+            ],
+            "severity": "severe"
+          }
+        ],
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "status": "severe"
+      },
+      "counts": {
+        "boundaries": 372,
+        "connections": 54,
+        "openings": 132,
+        "spaces": 62,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    }
+  ],
+  "input_condition": "developer-prepared mesh views; not autonomous GLB observation",
+  "fidelity_or_real_interior_truth": "not established by this audit"
+}
