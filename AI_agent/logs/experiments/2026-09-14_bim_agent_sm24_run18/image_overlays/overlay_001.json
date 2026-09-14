@@ -1,0 +1,617 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "4071e9bdb1ffe3933e8c6ea5007def75314edf24360d68db62cb12346b1399e7",
+  "floor_id": "F1",
+  "basis": "Outer wall face pixels calibrated to dimension chains: x 246->0m,612->10m (10000mm south facade chain matches north facade chain, wall outer faces); y 880->0m(south wall),151->20m(north wall) using fine 20000mm chain on plan left/right margins matching West_view/East_view 20000mm facades. Interior wall/door pixel positions observed directly from plan cyan door arcs and gray wall lines. Vertical opening heights assumed from elevation drawings: exterior wall height 4500mm, windows sill 1000mm/head 3400mm, doors 0-2400mm (elevation chains showed 1100/2400/1000 for windows and ~1900/2400/200 for doors, consistent with these assumed heights).",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        246.0,
+        0.0
+      ],
+      [
+        612.0,
+        10.0
+      ]
+    ],
+    "y": [
+      [
+        880.0,
+        0.0
+      ],
+      [
+        151.0,
+        20.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.0273224043715847,
+      "y": -0.027434842249657063
+    },
+    "pixels_per_world_metre": {
+      "x": 36.6,
+      "y": -36.45
+    },
+    "axis_px_per_m": {
+      "x": 36.6,
+      "y": 36.45
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 36.6,
+        "y_px_per_m": 36.45,
+        "relative_deviation": 0.004106776180698112,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=36.6 px/m and y=36.45 px/m disagree by 0.410678%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "corridor",
+      "pixel_polygon": [
+        [
+          396.999998,
+          587.999998
+        ],
+        [
+          461.000002,
+          587.999998
+        ],
+        [
+          461.000002,
+          295.999995
+        ],
+        [
+          396.999998,
+          295.999995
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "dining_room",
+      "pixel_polygon": [
+        [
+          246.0,
+          880.0
+        ],
+        [
+          396.999998,
+          880.0
+        ],
+        [
+          396.999998,
+          587.999998
+        ],
+        [
+          246.0,
+          587.999998
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "meeting_room",
+      "pixel_polygon": [
+        [
+          461.000002,
+          587.999998
+        ],
+        [
+          612.0,
+          587.999998
+        ],
+        [
+          612.0,
+          295.999995
+        ],
+        [
+          461.000002,
+          295.999995
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "north_room",
+      "pixel_polygon": [
+        [
+          246.0,
+          295.999995
+        ],
+        [
+          612.0,
+          295.999995
+        ],
+        [
+          612.0,
+          151.0
+        ],
+        [
+          246.0,
+          151.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "office_A",
+      "pixel_polygon": [
+        [
+          246.0,
+          402.999991
+        ],
+        [
+          396.999998,
+          402.999991
+        ],
+        [
+          396.999998,
+          295.999995
+        ],
+        [
+          246.0,
+          295.999995
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "office_B",
+      "pixel_polygon": [
+        [
+          246.0,
+          587.999998
+        ],
+        [
+          396.999998,
+          587.999998
+        ],
+        [
+          396.999998,
+          402.999991
+        ],
+        [
+          246.0,
+          402.999991
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "south_east_room",
+      "pixel_polygon": [
+        [
+          396.999998,
+          880.0
+        ],
+        [
+          612.0,
+          880.0
+        ],
+        [
+          612.0,
+          587.999998
+        ],
+        [
+          396.999998,
+          587.999998
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D1",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "office_A"
+      ],
+      "pixel_endpoints": [
+        [
+          396.999998,
+          359.999999
+        ],
+        [
+          396.999998,
+          390.999995
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D2",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "office_B"
+      ],
+      "pixel_endpoints": [
+        [
+          396.999998,
+          418.000004
+        ],
+        [
+          396.999998,
+          447.999995
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D3",
+      "kind": "door",
+      "space_ids": [
+        "dining_room",
+        "south_east_room"
+      ],
+      "pixel_endpoints": [
+        [
+          396.999998,
+          599.999994
+        ],
+        [
+          396.999998,
+          629.999984
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D4",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "meeting_room"
+      ],
+      "pixel_endpoints": [
+        [
+          461.000002,
+          326.999991
+        ],
+        [
+          461.000002,
+          380.000005
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D5",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "meeting_room"
+      ],
+      "pixel_endpoints": [
+        [
+          461.000002,
+          400.00001
+        ],
+        [
+          461.000002,
+          459.999991
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O1",
+      "kind": "door",
+      "space_ids": [
+        "north_room"
+      ],
+      "pixel_endpoints": [
+        [
+          270.000011,
+          151.0
+        ],
+        [
+          354.999997,
+          151.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O10",
+      "kind": "window",
+      "space_ids": [
+        "dining_room"
+      ],
+      "pixel_endpoints": [
+        [
+          265.999997,
+          880.0
+        ],
+        [
+          320.000003,
+          880.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O11",
+      "kind": "door",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "pixel_endpoints": [
+        [
+          411.999995,
+          880.0
+        ],
+        [
+          444.999983,
+          880.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O12",
+      "kind": "window",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "pixel_endpoints": [
+        [
+          537.000012,
+          880.0
+        ],
+        [
+          592.000003,
+          880.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O2",
+      "kind": "window",
+      "space_ids": [
+        "north_room"
+      ],
+      "pixel_endpoints": [
+        [
+          399.99999,
+          151.0
+        ],
+        [
+          599.999995,
+          151.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O3",
+      "kind": "window",
+      "space_ids": [
+        "office_A"
+      ],
+      "pixel_endpoints": [
+        [
+          246.0,
+          400.00001
+        ],
+        [
+          246.0,
+          299.999982
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O4",
+      "kind": "window",
+      "space_ids": [
+        "office_B"
+      ],
+      "pixel_endpoints": [
+        [
+          246.0,
+          579.999988
+        ],
+        [
+          246.0,
+          409.999995
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O5",
+      "kind": "window",
+      "space_ids": [
+        "dining_room"
+      ],
+      "pixel_endpoints": [
+        [
+          246.0,
+          859.999994
+        ],
+        [
+          246.0,
+          599.999994
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O6",
+      "kind": "window",
+      "space_ids": [
+        "north_room"
+      ],
+      "pixel_endpoints": [
+        [
+          612.0,
+          289.999997
+        ],
+        [
+          612.0,
+          170.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O7",
+      "kind": "window",
+      "space_ids": [
+        "meeting_room"
+      ],
+      "pixel_endpoints": [
+        [
+          612.0,
+          570.000004
+        ],
+        [
+          612.0,
+          319.999988
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O8",
+      "kind": "door",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "pixel_endpoints": [
+        [
+          612.0,
+          599.999994
+        ],
+        [
+          612.0,
+          660.000011
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O9",
+      "kind": "window",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "pixel_endpoints": [
+        [
+          612.0,
+          850.00001
+        ],
+        [
+          612.0,
+          699.999986
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "1f_view.png",
+      "floor_id": "F1",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "candidate_01",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "trigger_action": "build_plan_bim",
+  "automatic_projection": true,
+  "reused_calibration": {
+    "calibration_id": "calibration_001",
+    "calibration_file": "overlay_calibrations/calibration_001.json",
+    "registered_by_candidate": "candidate_01",
+    "registered_source_model_sha256": "4071e9bdb1ffe3933e8c6ea5007def75314edf24360d68db62cb12346b1399e7",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "x_anchors": [
+      [
+        246,
+        0
+      ],
+      [
+        612,
+        10
+      ]
+    ],
+    "y_anchors": [
+      [
+        880,
+        0
+      ],
+      [
+        151,
+        20
+      ]
+    ],
+    "basis": "Outer wall face pixels calibrated to dimension chains: x 246->0m,612->10m (10000mm south facade chain matches north facade chain, wall outer faces); y 880->0m(south wall),151->20m(north wall) using fine 20000mm chain on plan left/right margins matching West_view/East_view 20000mm facades. Interior wall/door pixel positions observed directly from plan cyan door arcs and gray wall lines. Vertical opening heights assumed from elevation drawings: exterior wall height 4500mm, windows sill 1000mm/head 3400mm, doors 0-2400mm (elevation chains showed 1100/2400/1000 for windows and ~1900/2400/200 for doors, consistent with these assumed heights)."
+  },
+  "overlay_image": "image_overlays/overlay_001.png",
+  "original_size": [
+    790,
+    1111
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    790,
+    1111
+  ],
+  "returned_size": [
+    790,
+    1111
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "remaining_seconds": 908
+}

@@ -1,0 +1,1399 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "1f_view.png",
+  "image_size": [
+    790,
+    1111
+  ],
+  "floor_id": "F1",
+  "basis": "Outer wall face pixels calibrated to dimension chains: x 246->0m,612->10m (10000mm south facade chain matches north facade chain, wall outer faces); y 880->0m(south wall),151->20m(north wall) using fine 20000mm chain on plan left/right margins matching West_view/East_view 20000mm facades. Interior wall/door pixel positions observed directly from plan cyan door arcs and gray wall lines. Vertical opening heights assumed from elevation drawings: exterior wall height 4500mm, windows sill 1000mm/head 3400mm, doors 0-2400mm (elevation chains showed 1100/2400/1000 for windows and ~1900/2400/200 for doors, consistent with these assumed heights).",
+  "space_count": 7,
+  "space_mapping": [
+    {
+      "space_id": "north_room",
+      "role": "reception_open_office",
+      "pixel_polygon": [
+        [
+          246.0,
+          151.0
+        ],
+        [
+          612.0,
+          151.0
+        ],
+        [
+          612.0,
+          296.0
+        ],
+        [
+          246.0,
+          296.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          16.021948
+        ],
+        [
+          10.0,
+          16.021948
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          16.021948,
+          20.0
+        ]
+      },
+      "partition_ids": [
+        "PA1",
+        "PA2",
+        "PA3"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid gray wall, north room south wall west segment",
+        "1f_view.png: solid gray wall, north room south wall mid segment above corridor",
+        "1f_view.png: solid gray wall, north room south wall east segment"
+      ],
+      "seed": {
+        "id": "north_room",
+        "point_pixel": [
+          400.0,
+          220.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "office_A",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          246.0,
+          296.0
+        ],
+        [
+          397.0,
+          296.0
+        ],
+        [
+          397.0,
+          403.0
+        ],
+        [
+          246.0,
+          403.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          13.08642
+        ],
+        [
+          4.125683,
+          13.08642
+        ],
+        [
+          4.125683,
+          16.021948
+        ],
+        [
+          0.0,
+          16.021948
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.125683
+        ],
+        "y": [
+          13.08642,
+          16.021948
+        ]
+      },
+      "partition_ids": [
+        "PA1",
+        "PB1",
+        "PC"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid gray wall, north room south wall west segment",
+        "1f_view.png: vertical wall between office_A and corridor, continued through its door aperture",
+        "1f_view.png: horizontal wall between office_A and office_B"
+      ],
+      "seed": {
+        "id": "office_A",
+        "point_pixel": [
+          320.0,
+          350.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "corridor",
+      "role": "corridor",
+      "pixel_polygon": [
+        [
+          397.0,
+          296.0
+        ],
+        [
+          461.0,
+          296.0
+        ],
+        [
+          461.0,
+          588.0
+        ],
+        [
+          397.0,
+          588.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.125683,
+          8.010974
+        ],
+        [
+          5.874317,
+          8.010974
+        ],
+        [
+          5.874317,
+          16.021948
+        ],
+        [
+          4.125683,
+          16.021948
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.125683,
+          5.874317
+        ],
+        "y": [
+          8.010974,
+          16.021948
+        ]
+      },
+      "partition_ids": [
+        "PA2",
+        "PB1",
+        "PB2",
+        "PE",
+        "PF"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid gray wall, north room south wall mid segment above corridor",
+        "1f_view.png: vertical wall between office_A and corridor, continued through its door aperture",
+        "1f_view.png: vertical wall between office_B and corridor, continued through its door aperture",
+        "1f_view.png: vertical wall between corridor and meeting_room, continued through its door apertures",
+        "1f_view.png: horizontal wall separating north zone (corridor/meeting_room) from south zone (dining_room/south_east_room)"
+      ],
+      "seed": {
+        "id": "corridor",
+        "point_pixel": [
+          429.0,
+          450.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "meeting_room",
+      "role": "meeting_room",
+      "pixel_polygon": [
+        [
+          461.0,
+          296.0
+        ],
+        [
+          612.0,
+          296.0
+        ],
+        [
+          612.0,
+          588.0
+        ],
+        [
+          461.0,
+          588.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.874317,
+          8.010974
+        ],
+        [
+          10.0,
+          8.010974
+        ],
+        [
+          10.0,
+          16.021948
+        ],
+        [
+          5.874317,
+          16.021948
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.874317,
+          10.0
+        ],
+        "y": [
+          8.010974,
+          16.021948
+        ]
+      },
+      "partition_ids": [
+        "PA3",
+        "PE",
+        "PF"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid gray wall, north room south wall east segment",
+        "1f_view.png: vertical wall between corridor and meeting_room, continued through its door apertures",
+        "1f_view.png: horizontal wall separating north zone (corridor/meeting_room) from south zone (dining_room/south_east_room)"
+      ],
+      "seed": {
+        "id": "meeting_room",
+        "point_pixel": [
+          530.0,
+          450.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "office_B",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          246.0,
+          403.0
+        ],
+        [
+          397.0,
+          403.0
+        ],
+        [
+          397.0,
+          588.0
+        ],
+        [
+          246.0,
+          588.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          8.010974
+        ],
+        [
+          4.125683,
+          8.010974
+        ],
+        [
+          4.125683,
+          13.08642
+        ],
+        [
+          0.0,
+          13.08642
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.125683
+        ],
+        "y": [
+          8.010974,
+          13.08642
+        ]
+      },
+      "partition_ids": [
+        "PB2",
+        "PC",
+        "PD"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: vertical wall between office_B and corridor, continued through its door aperture",
+        "1f_view.png: horizontal wall between office_A and office_B",
+        "1f_view.png: horizontal wall between office_B and dining_room"
+      ],
+      "seed": {
+        "id": "office_B",
+        "point_pixel": [
+          320.0,
+          495.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "dining_room",
+      "role": "meeting_dining",
+      "pixel_polygon": [
+        [
+          246.0,
+          588.0
+        ],
+        [
+          397.0,
+          588.0
+        ],
+        [
+          397.0,
+          880.0
+        ],
+        [
+          246.0,
+          880.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4.125683,
+          0.0
+        ],
+        [
+          4.125683,
+          8.010974
+        ],
+        [
+          0.0,
+          8.010974
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.125683
+        ],
+        "y": [
+          0.0,
+          8.010974
+        ]
+      },
+      "partition_ids": [
+        "PB3",
+        "PD"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: vertical wall between dining_room and south_east_room, continued through its door aperture",
+        "1f_view.png: horizontal wall between office_B and dining_room"
+      ],
+      "seed": {
+        "id": "dining_room",
+        "point_pixel": [
+          320.0,
+          730.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "south_east_room",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          397.0,
+          588.0
+        ],
+        [
+          612.0,
+          588.0
+        ],
+        [
+          612.0,
+          880.0
+        ],
+        [
+          397.0,
+          880.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.125683,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          8.010974
+        ],
+        [
+          4.125683,
+          8.010974
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.125683,
+          10.0
+        ],
+        "y": [
+          0.0,
+          8.010974
+        ]
+      },
+      "partition_ids": [
+        "PB3",
+        "PF"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: vertical wall between dining_room and south_east_room, continued through its door aperture",
+        "1f_view.png: horizontal wall separating north zone (corridor/meeting_room) from south zone (dining_room/south_east_room)"
+      ],
+      "seed": {
+        "id": "south_east_room",
+        "point_pixel": [
+          500.0,
+          700.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "PA1",
+      "pixel_points": [
+        [
+          246.0,
+          296.0
+        ],
+        [
+          397.0,
+          296.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          16.021948
+        ],
+        [
+          4.125683,
+          16.021948
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: solid gray wall, north room south wall west segment"
+      ]
+    },
+    {
+      "partition_id": "PA2",
+      "pixel_points": [
+        [
+          397.0,
+          296.0
+        ],
+        [
+          461.0,
+          296.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.125683,
+          16.021948
+        ],
+        [
+          5.874317,
+          16.021948
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: solid gray wall, north room south wall mid segment above corridor"
+      ]
+    },
+    {
+      "partition_id": "PA3",
+      "pixel_points": [
+        [
+          461.0,
+          296.0
+        ],
+        [
+          612.0,
+          296.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.874317,
+          16.021948
+        ],
+        [
+          10.0,
+          16.021948
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: solid gray wall, north room south wall east segment"
+      ]
+    },
+    {
+      "partition_id": "PB1",
+      "pixel_points": [
+        [
+          397.0,
+          296.0
+        ],
+        [
+          397.0,
+          403.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.125683,
+          16.021948
+        ],
+        [
+          4.125683,
+          13.08642
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical wall between office_A and corridor, continued through its door aperture"
+      ]
+    },
+    {
+      "partition_id": "PB2",
+      "pixel_points": [
+        [
+          397.0,
+          403.0
+        ],
+        [
+          397.0,
+          588.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.125683,
+          13.08642
+        ],
+        [
+          4.125683,
+          8.010974
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical wall between office_B and corridor, continued through its door aperture"
+      ]
+    },
+    {
+      "partition_id": "PB3",
+      "pixel_points": [
+        [
+          397.0,
+          588.0
+        ],
+        [
+          397.0,
+          880.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.125683,
+          8.010974
+        ],
+        [
+          4.125683,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical wall between dining_room and south_east_room, continued through its door aperture"
+      ]
+    },
+    {
+      "partition_id": "PC",
+      "pixel_points": [
+        [
+          246.0,
+          403.0
+        ],
+        [
+          397.0,
+          403.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          13.08642
+        ],
+        [
+          4.125683,
+          13.08642
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: horizontal wall between office_A and office_B"
+      ]
+    },
+    {
+      "partition_id": "PD",
+      "pixel_points": [
+        [
+          246.0,
+          588.0
+        ],
+        [
+          397.0,
+          588.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          8.010974
+        ],
+        [
+          4.125683,
+          8.010974
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: horizontal wall between office_B and dining_room"
+      ]
+    },
+    {
+      "partition_id": "PE",
+      "pixel_points": [
+        [
+          461.0,
+          296.0
+        ],
+        [
+          461.0,
+          588.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.874317,
+          16.021948
+        ],
+        [
+          5.874317,
+          8.010974
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical wall between corridor and meeting_room, continued through its door apertures"
+      ]
+    },
+    {
+      "partition_id": "PF",
+      "pixel_points": [
+        [
+          397.0,
+          588.0
+        ],
+        [
+          612.0,
+          588.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.125683,
+          8.010974
+        ],
+        [
+          10.0,
+          8.010974
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: horizontal wall separating north zone (corridor/meeting_room) from south zone (dining_room/south_east_room)"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "O1",
+      "kind": "door",
+      "space_ids": [
+        "north_room"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        270.0,
+        151.0
+      ],
+      "p2_pixel": [
+        355.0,
+        151.0
+      ],
+      "p1_world_m": [
+        0.655738,
+        20.0
+      ],
+      "p2_world_m": [
+        2.978142,
+        20.0
+      ],
+      "width_m": 2.322404,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: main entrance door arc on north wall"
+      ]
+    },
+    {
+      "opening_id": "O2",
+      "kind": "window",
+      "space_ids": [
+        "north_room"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        400.0,
+        151.0
+      ],
+      "p2_pixel": [
+        600.0,
+        151.0
+      ],
+      "p1_world_m": [
+        4.20765,
+        20.0
+      ],
+      "p2_world_m": [
+        9.672131,
+        20.0
+      ],
+      "width_m": 5.464481,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: long ribbon window cyan double-line on north wall; North_view.png 4800mm window matches"
+      ]
+    },
+    {
+      "opening_id": "O3",
+      "kind": "window",
+      "space_ids": [
+        "office_A"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        246.0,
+        300.0
+      ],
+      "p2_pixel": [
+        246.0,
+        400.0
+      ],
+      "p1_world_m": [
+        0.0,
+        15.912209
+      ],
+      "p2_world_m": [
+        0.0,
+        13.168724
+      ],
+      "width_m": 2.743485,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: cyan hatch window on west wall at office_A"
+      ]
+    },
+    {
+      "opening_id": "O4",
+      "kind": "window",
+      "space_ids": [
+        "office_B"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        246.0,
+        410.0
+      ],
+      "p2_pixel": [
+        246.0,
+        580.0
+      ],
+      "p1_world_m": [
+        0.0,
+        12.894376
+      ],
+      "p2_world_m": [
+        0.0,
+        8.230453
+      ],
+      "width_m": 4.663923,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: cyan hatch window on west wall at office_B"
+      ]
+    },
+    {
+      "opening_id": "O5",
+      "kind": "window",
+      "space_ids": [
+        "dining_room"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        246.0,
+        600.0
+      ],
+      "p2_pixel": [
+        246.0,
+        860.0
+      ],
+      "p1_world_m": [
+        0.0,
+        7.681756
+      ],
+      "p2_world_m": [
+        0.0,
+        0.548697
+      ],
+      "width_m": 7.133059,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: cyan hatch window on west wall at dining_room; West_view.png confirms multiple windows on this facade"
+      ]
+    },
+    {
+      "opening_id": "O6",
+      "kind": "window",
+      "space_ids": [
+        "north_room"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        612.0,
+        170.0
+      ],
+      "p2_pixel": [
+        612.0,
+        290.0
+      ],
+      "p1_world_m": [
+        10.0,
+        19.478738
+      ],
+      "p2_world_m": [
+        10.0,
+        16.186557
+      ],
+      "width_m": 3.292181,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: cyan hatch window on east wall at north_room; East_view.png upper window segment"
+      ]
+    },
+    {
+      "opening_id": "O7",
+      "kind": "window",
+      "space_ids": [
+        "meeting_room"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        612.0,
+        320.0
+      ],
+      "p2_pixel": [
+        612.0,
+        570.0
+      ],
+      "p1_world_m": [
+        10.0,
+        15.363512
+      ],
+      "p2_world_m": [
+        10.0,
+        8.504801
+      ],
+      "width_m": 6.858711,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: cyan hatch window on east wall at meeting_room; East_view.png large 4800mm window matches"
+      ]
+    },
+    {
+      "opening_id": "O8",
+      "kind": "door",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        612.0,
+        600.0
+      ],
+      "p2_pixel": [
+        612.0,
+        660.0
+      ],
+      "p1_world_m": [
+        10.0,
+        7.681756
+      ],
+      "p2_world_m": [
+        10.0,
+        6.035665
+      ],
+      "width_m": 1.646091,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: exterior door arc on east wall; East_view.png 1600mm double-door matches"
+      ]
+    },
+    {
+      "opening_id": "O9",
+      "kind": "window",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        612.0,
+        700.0
+      ],
+      "p2_pixel": [
+        612.0,
+        850.0
+      ],
+      "p1_world_m": [
+        10.0,
+        4.938272
+      ],
+      "p2_world_m": [
+        10.0,
+        0.823045
+      ],
+      "width_m": 4.115227,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: cyan hatch window(s) on east wall at south_east_room; East_view.png small windows near south end"
+      ]
+    },
+    {
+      "opening_id": "O10",
+      "kind": "window",
+      "space_ids": [
+        "dining_room"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        266.0,
+        880.0
+      ],
+      "p2_pixel": [
+        320.0,
+        880.0
+      ],
+      "p1_world_m": [
+        0.546448,
+        0.0
+      ],
+      "p2_world_m": [
+        2.021858,
+        0.0
+      ],
+      "width_m": 1.47541,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: south wall window; South_view.png 1500mm window matches"
+      ]
+    },
+    {
+      "opening_id": "O11",
+      "kind": "door",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        412.0,
+        880.0
+      ],
+      "p2_pixel": [
+        445.0,
+        880.0
+      ],
+      "p1_world_m": [
+        4.535519,
+        0.0
+      ],
+      "p2_world_m": [
+        5.437158,
+        0.0
+      ],
+      "width_m": 0.901639,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: south wall door arc 900mm; South_view.png central glazed door assembly"
+      ]
+    },
+    {
+      "opening_id": "O12",
+      "kind": "window",
+      "space_ids": [
+        "south_east_room"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        537.0,
+        880.0
+      ],
+      "p2_pixel": [
+        592.0,
+        880.0
+      ],
+      "p1_world_m": [
+        7.95082,
+        0.0
+      ],
+      "p2_world_m": [
+        9.453552,
+        0.0
+      ],
+      "width_m": 1.502732,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: south wall window; South_view.png 1500mm window matches"
+      ]
+    },
+    {
+      "opening_id": "D1",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "office_A"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        397.0,
+        360.0
+      ],
+      "p2_pixel": [
+        397.0,
+        391.0
+      ],
+      "p1_world_m": [
+        4.125683,
+        14.266118
+      ],
+      "p2_world_m": [
+        4.125683,
+        13.415638
+      ],
+      "width_m": 0.85048,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: door arc between office_A and corridor"
+      ]
+    },
+    {
+      "opening_id": "D2",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "office_B"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        397.0,
+        418.0
+      ],
+      "p2_pixel": [
+        397.0,
+        448.0
+      ],
+      "p1_world_m": [
+        4.125683,
+        12.674897
+      ],
+      "p2_world_m": [
+        4.125683,
+        11.851852
+      ],
+      "width_m": 0.823045,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: door arc between office_B and corridor"
+      ]
+    },
+    {
+      "opening_id": "D3",
+      "kind": "door",
+      "space_ids": [
+        "dining_room",
+        "south_east_room"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        397.0,
+        600.0
+      ],
+      "p2_pixel": [
+        397.0,
+        630.0
+      ],
+      "p1_world_m": [
+        4.125683,
+        7.681756
+      ],
+      "p2_world_m": [
+        4.125683,
+        6.858711
+      ],
+      "width_m": 0.823045,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: door arc between dining_room and south_east_room"
+      ]
+    },
+    {
+      "opening_id": "D4",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "meeting_room"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        461.0,
+        327.0
+      ],
+      "p2_pixel": [
+        461.0,
+        380.0
+      ],
+      "p1_world_m": [
+        5.874317,
+        15.171468
+      ],
+      "p2_world_m": [
+        5.874317,
+        13.717421
+      ],
+      "width_m": 1.454047,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: door arc between corridor and meeting_room (upper)"
+      ]
+    },
+    {
+      "opening_id": "D5",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "meeting_room"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        461.0,
+        400.0
+      ],
+      "p2_pixel": [
+        461.0,
+        460.0
+      ],
+      "p1_world_m": [
+        5.874317,
+        13.168724
+      ],
+      "p2_world_m": [
+        5.874317,
+        11.522634
+      ],
+      "width_m": 1.64609,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: door arc between corridor and meeting_room (lower)"
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        246.0,
+        151.0
+      ],
+      [
+        612.0,
+        151.0
+      ],
+      [
+        612.0,
+        880.0
+      ],
+      [
+        246.0,
+        880.0
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        10.0,
+        0.0
+      ],
+      [
+        10.0,
+        20.0
+      ],
+      [
+        0.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        246.0,
+        0.0
+      ],
+      [
+        612.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        880.0,
+        0.0
+      ],
+      [
+        151.0,
+        20.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.0273224043715847,
+      "y": -0.027434842249657063
+    },
+    "basis": "Outer wall face pixels calibrated to dimension chains: x 246->0m,612->10m (10000mm south facade chain matches north facade chain, wall outer faces); y 880->0m(south wall),151->20m(north wall) using fine 20000mm chain on plan left/right margins matching West_view/East_view 20000mm facades. Interior wall/door pixel positions observed directly from plan cyan door arcs and gray wall lines. Vertical opening heights assumed from elevation drawings: exterior wall height 4500mm, windows sill 1000mm/head 3400mm, doors 0-2400mm (elevation chains showed 1100/2400/1000 for windows and ~1900/2400/200 for doors, consistent with these assumed heights).",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}

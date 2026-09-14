@@ -1,0 +1,81 @@
+{
+  "agent_assumptions": [
+    "Exterior wall/floor-to-ceiling height 4500mm from elevation chains.",
+    "Window sill 1000mm, head 3400mm (2400mm tall) assumed uniformly from elevation window chain 1100/2400/1000.",
+    "Door heights 0-2400mm assumed uniformly (interior and exterior) from elevation door chain pattern.",
+    "Vestibule area near the east exterior door merged into south_east_room as one physical room rather than a separate small jog, since wall evidence there was a minor step not a full room division.",
+    "North room's east-wall window (O6) position estimated from East_view's upper 1500mm segment; exact plan pixel hatch boundary approximate.",
+    "South_east_room's east-wall small windows (O9) approximated as one combined opening representing East_view's two small window rectangles near the south end.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 17,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "ac7f2db265aae45a0b4d2e8cbecf1400b05106a4ea6e581c0dd3f19261b2c788",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "ea1d61858137e992f967005e1c3a1b8ef40d4262ed5863912395f7966badad26",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "bcbf2f59f8174b95f07a9d8c454b8d1b666bd2cfbdb86579f4a4a8c2aeed7c8e",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "1635156913a89343e9698d4e172dc5452895c40b41e0c5b35cc523d878f01f56",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "a44d76be8a6dccc5b7c54318f209792d7adbef42236418679ba7b8e0fabc4672",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "454558ead9e26e55cda53b2a0320b03c43c9cfb8acc9359c8ca256a6df8faf2d"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "4071e9bdb1ffe3933e8c6ea5007def75314edf24360d68db62cb12346b1399e7",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact pixel extents of each cyan hatch window run were approximated from visible hatch spans rather than measuring every hatch tick individually.",
+    "Whether D4/D5 are truly two separate doors or one wide double-leaf door in the corridor/meeting_room wall is uncertain from the overlapping arc symbols; modeled as two doors.",
+    "Small wall jog near the east exterior door (vestibule) simplified to a straight partition (PF) rather than the stepped wall visible in the drawing.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

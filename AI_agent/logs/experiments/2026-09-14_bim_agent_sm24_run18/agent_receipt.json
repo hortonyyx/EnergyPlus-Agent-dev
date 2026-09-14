@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 937.07,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 933861,
+    "duration_api_ms": 928919,
+    "ttft_ms": 2428,
+    "ttft_stream_ms": 1752,
+    "time_to_request_ms": 457,
+    "num_turns": 47,
+    "result": "## Summary\n\nI reconstructed a single-floor (10 m × 20 m, 200 m² — matching the declared floor area) office building BIM as **candidate_01**, now selected via `finish_bim`.\n\n**Building declaration cross-check:** Location/type/area/floor-count match the drawings. `thermal_zones: 8` in the declaration is downstream simulation zoning per the schema note, not a physical room count — my physical reconstruction has **7 enclosed rooms**, which is the actual partition count observed in the plan; I did not force an 8-way split to match the declared zoning.\n\n**Physical layout modeled** (calibrated from `1f_view.png` outer-wall pixel positions against the 10000 mm / 20000 mm dimension chains, cross-checked against North/South/East/West elevation dimension chains):\n- `north_room` — full-width reception/open-office strip along the north wall (main entrance door + long window on north wall; separate windows on east and west walls)\n- `office_A`, `office_B` — two stacked west-side offices, each with a west window and its own door into a central corridor\n- `corridor` — narrow N–S connector linking office_A/B to `meeting_room` via two doors\n- `meeting_room` — east-side room with a large east window\n- `dining_room` — south-west room (oval table), west window, connects only to `south_east_room`\n- `south_east_room` — merges the small vestibule and the south-east office; holds the exterior east door, an exterior south door, and two south/east windows\n\n**Openings:** 17 total (8 doors, 9 windows), all with `source_refs` to specific plan wall/door marks, heights assumed from elevation chains (walls 4.5 m; windows sill 1.0 m/head 3.4 m; doors 0–2.4 m).\n\n**Explicit assumptions / unresolved items** (also recorded in the candidate):\n- The small stepped wall jog near the east exterior door was simplified into one straight partition, merging the vestibule into `south_east_room`.\n- The double-arc door symbol at the corridor/meeting_room wall was modeled as two separate doors (D4/D5); it could be one wide double-leaf door.\n- Window hatch pixel extents were approximated from visible cyan hatch spans, not tick-by-tick measured.\n- A calibration cross-axis disagreement of 0.41% (x: 36.60 px/m vs y: 36.45 px/m) was flagged by the tool; within normal drawing/measurement tolerance but not re-verified further.\n- Calibration and drawing fidelity are caller-supplied/not independently certified by the tool chain, per its own status flags.\n- Opening reviews (`check_openings` marks-vs-observation pass) were not additionally run against annotated originals beyond the automatic overlay comparison already inspected.\n\nThe overlay comparison (magenta boundary vs. gray walls, orange doors vs. cyan arcs, blue windows vs. cyan hatch) matched the source drawing well on visual inspection, supporting reasonable — though not pixel-perfect — fidelity for this lightweight reconstruction.",
+    "stop_reason": "end_turn",
+    "session_id": "995275ed-df29-46c0-8a83-f25d5116ae76",
+    "total_cost_usd": 2.5131210000000004,
+    "usage": {
+      "input_tokens": 56,
+      "cache_creation_input_tokens": 163543,
+      "cache_read_input_tokens": 1820160,
+      "output_tokens": 65650,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 163543,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1026,
+          "cache_read_input_tokens": 154873,
+          "cache_creation_input_tokens": 8670,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 8670
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 812,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000897,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 56,
+        "outputTokens": 65650,
+        "cacheReadInputTokens": 1820160,
+        "cacheCreationInputTokens": 163543,
+        "webSearchRequests": 0,
+        "costUSD": 2.5122240000000002,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "12a5c621-cec8-4da4-ae0b-3332d6b6a076"
+  }
+}
