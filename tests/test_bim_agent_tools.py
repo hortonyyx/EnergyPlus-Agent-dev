@@ -600,12 +600,30 @@ def test_detail_review_requested_time_limits_worker_without_spending_parent_rese
 
 
 def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
+    from src.agent.geometry.source_plan_view import render_source_plan
+
+    def check_automatic_plan(run, call):
+        result = _json_result(call)
+        assert result["source_plan_errors"] == []
+        assert len(result["source_plan_views"]) == 1
+        metadata = result["source_plan_views"][0]
+        source = json.loads((run / result["candidate"] / "source_model.json").read_text())
+        replay, evidence = render_source_plan(source, "F1")
+        assert all(metadata[key] == value for key, value in evidence.items())
+        images = [block for block in call.content if block.type == "image"]
+        assert len(images) == 1
+        actual = Image.open(io.BytesIO(base64.b64decode(images[0].data)))
+        assert actual.tobytes() == replay.tobytes()
+        assert Image.open(run / metadata["plan_image"]).tobytes() == replay.tobytes()
+        return result, actual.tobytes()
+
     async def scenario():
         run = _run_with_one_image(tmp_path)
         async with _server_session(run, readonly=False) as session:
             tools = {tool.name for tool in (await session.list_tools()).tools}
             assert "build_bim" in tools and "view_candidate" in tools
-            built = _json_result(await session.call_tool("build_bim", {"proposal_json": _two_room_proposal()}))
+            built, initial_pixels = check_automatic_plan(run, await session.call_tool(
+                "build_bim", {"proposal_json": _two_room_proposal()}))
             assert built["candidate"] == "candidate_01"
             assert built["source_geometry_ready"]
             assert built["source_image_projections"] == [] and built["projection_errors"] == []
@@ -615,10 +633,12 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert viewed.content[0].mimeType == "image/png"
             assert (run / "candidate_01" / "source_model.json").exists()
             original = (run / "candidate_01" / "proposal.json").read_bytes()
-            revised = _json_result(await session.call_tool("revise_bim", {
+            revised, revised_pixels = check_automatic_plan(run, await session.call_tool("revise_bim", {
                 "candidate": "candidate_01",
                 "operations_json": json.dumps([{"op":"reflect", "axis":"x", "reason":"synthetic frame reflection"}]),
             }))
+            assert revised_pixels != initial_pixels
+            assert Image.open(run / built["source_plan_views"][0]["plan_image"]).tobytes() == initial_pixels
             assert revised["candidate"] == "candidate_02"
             assert revised["source_geometry_ready"]
             assert (run / "candidate_01" / "proposal.json").read_bytes() == original
@@ -721,6 +741,8 @@ def test_registered_source_overlay_feedback_reuses_only_explicit_image_floor_cal
             # automatic overlay image with the source-bound projection metadata.
             first_call = await session.call_tool("build_bim", {"proposal_json": proposal_json})
             first = _json_result(first_call)
+            assert {row["floor_id"] for row in first["source_plan_views"]} == {"F1", "F2"}
+            assert len([block for block in first_call.content if block.type == "image"]) == 3
             assert first["source_image_projections"], first["projection_errors"]
             assert first["projection_errors"] == []
             assert first_call.content[0].type == "image"

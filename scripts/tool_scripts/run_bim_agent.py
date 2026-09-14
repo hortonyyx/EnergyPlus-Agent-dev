@@ -106,7 +106,10 @@ not cleaned of claims you put in it. You remain responsible for checking its
 answer against the drawing. Its prose is a hypothesis, not proof of an opening
 or connection.
 Do not ask the user for routine geometry choices. No EP/materials are needed.
-build_bim saves immutable candidates and returns actual checks. Revise if a
+build_bim saves immutable candidates and returns actual checks. Each successful
+source save also returns an actual plan image for every saved floor, including
+after revisions. Compare these source views with the originals; automatic image
+delivery does not mean the plan was reviewed or is faithful. Revise if a
 check fails, keep stable object IDs and do not drop known openings to pass.
 Inspect the resulting plan with view_candidate and compare to original images.
 view_elevation_candidate renders the actual source exterior walls and apertures
@@ -752,8 +755,33 @@ class Toolkit:
             projections, errors = self.project_registered_calibrations(candidate, action)
             result["source_image_projections"] = projections
             result["projection_errors"] = errors
+            result["source_plan_views"], result["source_plan_errors"] = [], []
+            source = json.loads(source_path.read_text())
+            for floor in source["floors"]:
+                try:
+                    _, metadata = self.plan_view(candidate, floor["id"])
+                    result["source_plan_views"].append(metadata)
+                except Exception as error:
+                    result["source_plan_errors"].append({"candidate": candidate,
+                        "floor_id": floor["id"], "error": str(error)})
         self.log(action, result)
         return result
+
+    def plan_view(self, candidate, floor_id):
+        from src.agent.geometry.source_plan_view import render_source_plan
+        path = self.candidate_path(candidate)
+        source = json.loads((path / "source_model.json").read_text())
+        pic, metadata = render_source_plan(source, floor_id)
+        # Retain the existing plan filename for ordinary floor names. A digest
+        # suffix separates names that would otherwise alias after slash removal.
+        stem = "plan_" + floor_id.replace("/", "_").replace("\\", "_")
+        if "/" in floor_id or "\\" in floor_id:
+            stem += "_" + hashlib.sha256(floor_id.encode()).hexdigest()[:12]
+        image_path = path / (stem + ".png")
+        pic.save(image_path)
+        metadata.update(candidate=candidate, plan_image=str(image_path.relative_to(self.run)))
+        dump(path / (stem + ".json"), metadata)
+        return Image(data=image_path.read_bytes(), format="png"), metadata
 
     def image_path(self, name):
         if name not in self.manifest["images"]:
@@ -1341,6 +1369,14 @@ def serve(run: Path, readonly=False):
                     "image": metadata.get("image"), "floor_id": metadata.get("floor_id"),
                     "overlay_image": metadata.get("overlay_image"), "error": str(error),
                 })
+        for metadata in result.get("source_plan_views", []):
+            try:
+                content.append(Image(data=(toolkit.run / metadata["plan_image"]).read_bytes(),
+                                     format="png").to_image_content())
+            except Exception as error:
+                result.setdefault("source_plan_errors", []).append({
+                    "candidate": result.get("candidate"), "floor_id": metadata.get("floor_id"),
+                    "trigger_action": "mcp_result_packaging", "error": str(error)})
         content.append(TextContent(type="text", text=json.dumps(result, ensure_ascii=False)))
         return CallToolResult(content=content, structuredContent=result)
 
@@ -1561,34 +1597,9 @@ def serve(run: Path, readonly=False):
             Use exact candidate from build_bim; floor_id is the proposed floor name.
             This is an inspection projection, not evidence from the original drawing.
             """
-            path = toolkit.candidate_path(candidate)
-            source = json.loads((path/"source_model.json").read_text())
-            rooms = [s for s in source["spaces"] if s["floor_id"] == floor_id]
-            if not rooms: raise ValueError("unknown floor_id")
-            points = [p for s in rooms for p in s["polygon"]]
-            x0,x1 = min(p[0] for p in points),max(p[0] for p in points)
-            y0,y1 = min(p[1] for p in points),max(p[1] for p in points)
-            scale = min(1000/(x1-x0),700/(y1-y0))
-            convert = lambda p: (40+(p[0]-x0)*scale,40+(y1-p[1])*scale)
-            pic = PILImage.new("RGB", (1080,800), "white"); draw = ImageDraw.Draw(pic)
-            draw.text((1040, 15), "+Y / N", fill="black", anchor="rt")
-            draw.line([(1050,70),(1050,30)], fill="black", width=3)
-            draw.polygon([(1050,25),(1045,35),(1055,35)], fill="black")
-            from shapely.geometry import Polygon
-            for i,space in enumerate(rooms):
-                ring = [convert(p) for p in space["polygon"]]
-                draw.polygon(ring, fill=(220+(i*11)%30,225,235), outline="black", width=3)
-                pt = Polygon(space["polygon"]).representative_point()
-                draw.text(convert((pt.x,pt.y)), space["id"], fill="black", anchor="mm")
-            ids = {s["id"] for s in rooms}
-            for opening in source["openings"]:
-                if not ids.intersection(opening["space_ids"]): continue
-                pts = list(dict.fromkeys(tuple(v[:2]) for v in opening["vertices"]))
-                draw.line([convert(p) for p in pts], fill="blue" if opening["kind"]=="window" else "red", width=6)
-            data = io.BytesIO(); pic.save(data,"PNG")
-            pic.save(run/candidate/f"plan_{rooms[0]['floor_id'].replace('/', '_')}.png")
-            toolkit.log("view_candidate", {"candidate":candidate,"floor_id":floor_id})
-            return Image(data=data.getvalue(), format="png")
+            image, metadata = toolkit.plan_view(candidate, floor_id)
+            toolkit.log("view_candidate", metadata)
+            return image
 
     server.run()
 
@@ -1615,6 +1626,7 @@ def run_experiment(args):
                                  "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
                                  "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
                                  "src/agent/geometry/source_elevation_view.py":digest(ROOT/"src/agent/geometry/source_elevation_view.py"),
+                                 "src/agent/geometry/source_plan_view.py":digest(ROOT/"src/agent/geometry/source_plan_view.py"),
                                  "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
