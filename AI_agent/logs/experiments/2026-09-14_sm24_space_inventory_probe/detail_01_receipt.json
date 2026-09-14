@@ -1,0 +1,89 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 179.9393265247345,
+  "effort": "low",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "17fbad2badb87788cb87185cebfd8f6f0dd3fe658b37874c3f757d4786145f5b",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 90.6,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 87295,
+    "duration_api_ms": 84432,
+    "ttft_ms": 3517,
+    "ttft_stream_ms": 2516,
+    "time_to_request_ms": 26,
+    "num_turns": 5,
+    "result": "## Physical Space Inventory — 1f_view.png\n\n**Method note:** `view_pixel_region_overview` (background black, tol 60) produced 40 colour-connected blobs. Many (R01, R07–R09, R11, R12, R15, R18–R20, R22, R24, R16, R17, R30) sit outside the wall envelope (x≈249–611, y≈152–878) and coincide with the green/cyan dimension-line columns and text — these are **annotation regions, not rooms**, and are excluded below. Several interior blobs are split only by furniture (desks, cabinets, partial partitions) rather than full walls; these were merged back into single rooms after checking the original crops at 1.5×–2.5× zoom.\n\n### 1. Top room (reception/open room)\n- Extent: full building width, x≈258–602, y≈150–296.\n- Evidence: candidate R03 (bbox [258,128,602,296]) plus furniture blobs R25/R28/R29/R37/R38 (sofa, cabinets) sitting inside it — furniture only, not separators.\n- Openings: exterior door arc top-left (~x260–330,y100–150); a straight double-door glyph mid-top wall (~x400–420,y150) leading down into the central corridor.\n- One continuous space; no internal walls observed.\n\n### 2. Central corridor / circulation spine\n- Extent: vertical band x≈397–463, running from the top room's opening (y≈296) down to the south exterior door (~x420–460, near y≈880/1140 \"240\" glyph); it also widens near y≈600–750 into the R02 blob (bbox [369,279,635,750]).\n- Evidence: seed/candidate R02, R39, R40 (door-arc fragments), R35/R36 (small connector fragments).\n- This is the main circulation: door-arc swing symbols recur at each junction (top y≈296–400, mid y≈403–460, y≈560–600, and near R05 at y≈700–750), each confirmed as a real jamb opening in the crops, not a solid wall.\n- Uncertain: exact corridor footprint through the y≈600–870 zone is irregular (see R05 note below); treated as corridor/circulation rather than a room.\n\n### 3. Left-upper office (R14)\n- Extent: x≈258–397, y≈296–403.\n- Evidence: candidate R14, furniture R26.\n- Separated from top room by a full horizontal wall at y≈296 (with the corridor door gap only at x397–420); separated from the room below by a full wall at y≈403. Door arc into corridor at ~x370–420,y≈370–403.\n\n### 4. Left-mid office (R10/R13, merged)\n- Extent: x≈258–397, y≈403–587.\n- Evidence: candidates R10, R13, furniture blobs R33/R34.\n- A short partition line near y≈495 (only ~60 px wide, x258–320) does **not** span the room width — read as a low partition/counter, not a wall, so kept as one room with two workstation clusters. Door arc to corridor at ~x370–420,y≈403–460.\n\n### 5. Right-mid room (R06, merged with R21)\n- Extent: x≈463–602, y≈296–582.\n- Evidence: candidates R06, R21, furniture R37/R38 (cabinet), plus two round-table clusters.\n- A partial partition near y≈403 (x463–540) again does not reach the east wall — furniture/counter, not a room divider. Two door arcs connect this room to the corridor (~y296–400 and ~y460–580).\n\n### 6. Bottom-left large room (R04, with table sub-blob R23)\n- Extent: x≈258–397, y≈587–869 (oval-table meeting room).\n- Evidence: candidate R04; R23 is just the table shape, not a separate space.\n- Full wall at y≈587 separates it from room 4 above; door arc at ~x360–410,y≈587–650 connects it to the corridor. West/south sides are exterior walls.\n\n### 7. Bottom-right room (R05)\n- Extent: x≈403–602, y≈702–869, with a stepped/jogged wall at its NW corner (verified in the 2.5× crop: wall steps from x≈400 at y≈700 out to x≈460, then east to x≈520 before a door arc into the room near x≈520–560,y≈700–750).\n- Evidence: candidate R05, furniture R27 (desk).\n- This jog is a genuine drawn wall (double parallel lines), not a furniture artifact — confirmed enclosed room accessed only via the door arc from the corridor.\n\n### Separators summary\n- **Full walls** (solid double-line, verified in crops): between top room and left/right mid rooms (y≈296); between R14/R10 (y≈403); between R10 and R04 (y≈587); the jogged wall enclosing R05; and all exterior walls (x≈258/602 sides, y≈152/878 top/bottom).\n- **Door openings** (arc symbols, real jamb gaps): top-left exterior entry, top-mid into corridor, corridor↔R14, corridor↔R10, corridor↔R06 (×2), corridor↔R04, corridor↔R05, and a south exterior door (~y≈878, \"240\" label) — circulation stays continuous through all of these.\n- **Not separators** (furniture/partial partitions, ignored per instructions): short partition stub at y≈495 in R10; partial partition at y≈403 in R06; cabinet/sofa blocks R25/R28/R29/R37/R38; desks/tables throughout.\n\n### Unclear / unexamined\n- The exact solid-vs-open character of the small notch wall in R05's NW corner was read from one crop only; a second confirming crop was not taken (time budget) — flagged as the single re-check item, but geometry looked consistent (parallel wall lines) so treated as a real wall.\n- The far bottom-center exterior door glyph (~y≈1140 region reported in dimension strip) was not independently re-cropped; its exact jamb pixel span is unconfirmed, only inferred from the \"240\" label pattern matching the top door.\n- Exterior/annotation-only blobs (R01, R07–R09, R11, R12, R15, R16–R20, R22, R24, R30) were not further inspected since they lie outside the wall envelope and are dimension-line artifacts, per the overview's own bbox coordinates.\n\nNo metric dimensions, wall thicknesses, or BIM elements were computed; this is a spatial/topological inventory only.",
+    "stop_reason": "end_turn",
+    "session_id": "8f71abda-2e7a-4b16-9169-14702cc9951d",
+    "total_cost_usd": 0.2088911,
+    "usage": {
+      "input_tokens": 9,
+      "cache_creation_input_tokens": 17887,
+      "cache_read_input_tokens": 38557,
+      "output_tokens": 5934,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 17887,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2371,
+          "cache_read_input_tokens": 14716,
+          "cache_creation_input_tokens": 3171,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3171
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 890,
+        "outputTokens": 15,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0009649999999999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 9,
+        "outputTokens": 5934,
+        "cacheReadInputTokens": 38557,
+        "cacheCreationInputTokens": 17887,
+        "webSearchRequests": 0,
+        "costUSD": 0.2079261,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "f493838a-3863-4b70-b039-3a87c8b4d703"
+  }
+}

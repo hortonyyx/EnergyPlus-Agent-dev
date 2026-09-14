@@ -1,0 +1,16 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 179.9393265247345,
+  "effort": "low",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "17fbad2badb87788cb87185cebfd8f6f0dd3fe658b37874c3f757d4786145f5b",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "prompt": "Images: [1f_view.png]\nQuestion: Inspect ONLY the physical space partition of the supplied floor plan.\nDo not compute metric dimensions, wall thickness, heights, window sizes, or a BIM.\nThe task is to distinguish full physical rooms and circulation from furniture,\ndoor symbols and annotation regions before any geometry generation.\n\nFor this bounded method probe, obtain view_pixel_region_overview after seeing the\noriginal, choosing the background color yourself. Compare its numbered regions\nwith the original walls, and use view_pixel_region on relevant returned seeds to\nresolve ambiguous extents. Pixel regions are not rooms; furniture and door symbols\nmay divide them, or actual openings may join rooms. If it is unsuitable, explain\nthat and use original crops. Do not trace precise metric polygons or spend the\nbudget measuring dimension chains. Do not assume room counts or rectangular shapes.\n\nReturn a concise inventory of physical spaces: your space label, location, any\nsupporting candidate IDs/seeds actually returned by the tool, and the full extent\nin words including bends/extensions. Explain the visible physical separators\nbetween neighboring spaces, and where circulation stays continuous. Distinguish\nobserved walls from uncertain hypotheses. Do not create walls from differing\nfurniture/use, or require a separate room for each colored component. Mark unclear\nboundaries rather than inventing connections. Cover the floor, including small\nspaces; do not infer omitted content from a fixed expected count.\n\nOnly this original plan and the generic task are supplied: no previous BIM,\ncorrect room/door counts, prior observations, coordinates or GT. Finish within\n180 seconds. State what remained unexamined. No BIM write or final fidelity claim.\n",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}

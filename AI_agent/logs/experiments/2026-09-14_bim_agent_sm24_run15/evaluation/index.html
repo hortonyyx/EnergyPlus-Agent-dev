@@ -1,0 +1,575 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>sm24 生成后独立评价</title><style>body{font:16px/1.6 system-ui;margin:30px;max-width:1200px}pre{white-space:pre-wrap;font-size:13px}section{margin:36px 0}figure{max-width:850px}a{color:#1263ad}</style><h1>sm24 生成后独立评价</h1><p>本页只在运行完成后读取独立参照，未送回生成模型。蓝线为参照分区，橙线为实际输出的 source spaces。</p><p>门窗部分使用 typed v3 世界坐标；等数量同楼层/立面/类型组才按世界轴顺序列出差值。它不是完整匹配评分，也不自动反射、拟合或判定图像保真。</p><p>完整限制、GT 文件 SHA 与各候选汇总见 <a href="summary.json">summary.json</a>。</p><section><h2>candidate_01</h2><p>非交付候选。<a href="../candidate_01/viewer.html">查看候选</a> · <a href="candidate_01_partition.json">分区详情</a> · <a href="candidate_01_openings.json">已建门窗与 typed 坐标诊断</a></p><pre>{
+  &quot;candidate&quot;: &quot;candidate_01&quot;,
+  &quot;is_delivery_candidate&quot;: false,
+  &quot;source_model_sha256&quot;: &quot;bfd779b5d16837a70da22d254d885088f8231fe37c6ad1be486c5448ccd0a87b&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;source_to_reference_floor_mapping&quot;: {
+    &quot;F1&quot;: &quot;F1&quot;
+  },
+  &quot;reference_spaces&quot;: 8,
+  &quot;actual_source_spaces&quot;: 7,
+  &quot;opening_inventory&quot;: {
+    &quot;all_built_openings_by_kind&quot;: {
+      &quot;door&quot;: 7,
+      &quot;window&quot;: 1
+    },
+    &quot;built_exterior_openings_by_kind&quot;: {
+      &quot;door&quot;: 2,
+      &quot;window&quot;: 1
+    },
+    &quot;unbuilt_openings_by_kind&quot;: {
+      &quot;None&quot;: 2
+    }
+  },
+  &quot;typed_window_coordinate_diagnostic&quot;: {
+    &quot;status&quot;: &quot;coordinate_diagnostic_only&quot;,
+    &quot;comparison_count&quot;: 1,
+    &quot;unresolved_group_count&quot;: 3,
+    &quot;not_a_complete_match_score&quot;: true
+  },
+  &quot;typed_exterior_opening_coordinate_diagnostic&quot;: {
+    &quot;status&quot;: &quot;coordinate_diagnostic_only&quot;,
+    &quot;comparison_count&quot;: 3,
+    &quot;unresolved_group_count&quot;: 4,
+    &quot;not_a_complete_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z0&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Dining&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z0&quot;,
+        &quot;candidate_id&quot;: &quot;F1_Dining&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 33.690799999999996,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 0.9785644576633517,
+        &quot;iou&quot;: 0.9785644576633517,
+        &quot;symmetric_difference_area_m2&quot;: 0.7380000000000061,
+        &quot;boundary_hausdorff_m&quot;: 0.0848528137423864,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z1&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_O2&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z1&quot;,
+        &quot;candidate_id&quot;: &quot;F1_O2&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 20.398399999999988,
+        &quot;reference_coverage_fraction&quot;: 0.9878542510121456,
+        &quot;candidate_coverage_fraction&quot;: 0.9719077568134163,
+        &quot;iou&quot;: 0.9604309094675775,
+        &quot;symmetric_difference_area_m2&quot;: 0.8404000000000207,
+        &quot;boundary_hausdorff_m&quot;: 0.0921954445729321,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z2&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_O1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z2&quot;,
+        &quot;candidate_id&quot;: &quot;F1_O1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 11.996599999999974,
+        &quot;reference_coverage_fraction&quot;: 0.9761904761904748,
+        &quot;candidate_coverage_fraction&quot;: 0.962376460017967,
+        &quot;iou&quot;: 0.9403050587073375,
+        &quot;symmetric_difference_area_m2&quot;: 0.7616000000000485,
+        &quot;boundary_hausdorff_m&quot;: 0.0921954445729348,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z3&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_HallLounge&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z3&quot;,
+        &quot;candidate_id&quot;: &quot;F1_HallLounge&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 39.89999999999995,
+        &quot;reference_coverage_fraction&quot;: 0.9827586206896534,
+        &quot;candidate_coverage_fraction&quot;: 0.9999999999999991,
+        &quot;iou&quot;: 0.9827586206896527,
+        &quot;symmetric_difference_area_m2&quot;: 0.7000000000001094,
+        &quot;boundary_hausdorff_m&quot;: 0.07000000000000739,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z4&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_SmallOffice&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z4&quot;,
+        &quot;candidate_id&quot;: &quot;F1_SmallOffice&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 20.68840000000001,
+        &quot;reference_coverage_fraction&quot;: 0.7869064463614647,
+        &quot;candidate_coverage_fraction&quot;: 0.9957835964574512,
+        &quot;iou&quot;: 0.78429320959573,
+        &quot;symmetric_difference_area_m2&quot;: 5.690000000000002,
+        &quot;boundary_hausdorff_m&quot;: 1.58,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z5&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Corridor&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z5&quot;,
+        &quot;candidate_id&quot;: &quot;F1_Corridor&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 17.891999999999996,
+        &quot;reference_coverage_fraction&quot;: 0.5334271471843927,
+        &quot;candidate_coverage_fraction&quot;: 0.7682926829268292,
+        &quot;iou&quot;: 0.45950443786982303,
+        &quot;symmetric_difference_area_m2&quot;: 21.04559999999996,
+        &quot;boundary_hausdorff_m&quot;: 8.29021712622775,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z6&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Meeting&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z6&quot;,
+        &quot;candidate_id&quot;: &quot;F1_Meeting&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 24.82920000000001,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 0.5156250000000002,
+        &quot;iou&quot;: 0.5156250000000002,
+        &quot;symmetric_difference_area_m2&quot;: 23.32439999999999,
+        &quot;boundary_hausdorff_m&quot;: 2.556657974778795,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z7&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 8.109199999999996
+    },
+    {
+      &quot;code&quot;: &quot;source_spaces_merged&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z6&quot;,
+        &quot;z7&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Meeting&quot;
+      ],
+      &quot;message&quot;: &quot;One candidate source space substantially covers multiple reference spaces.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;overlaps&quot;: [
+        {
+          &quot;reference_id&quot;: &quot;z6&quot;,
+          &quot;intersection_area_m2&quot;: 24.82920000000001,
+          &quot;reference_coverage_fraction&quot;: 1.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;z7&quot;,
+          &quot;intersection_area_m2&quot;: 8.109199999999996,
+          &quot;reference_coverage_fraction&quot;: 1.0
+        }
+      ]
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 57.45999998000002,
+      &quot;extra_length_m&quot;: 48.989999980000015,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((4.18 8.059999999999999, 0.020000001 8.059999999999999), (4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.059999999999999), (4.18 12.999999999999996, 0.020000001 12.999999999999996), (4.18 8.059999999999999, 4.18 8.099999999), (4.18 8.140000000999999, 4.18 12.999999999999996), (4.18 15.939999999999994, 0.020000001 15.939999999999994), (4.18 12.999999999999996, 4.18 13.049999999), (4.18 13.090000001, 4.18 15.939999999999994), (4.18 15.939999999999994, 4.219999999000001 15.939999999999994), (4.260000001 15.939999999999994, 5.819999999999997 15.939999999999994), (5.819999999999997 15.939999999999994, 9.979999999 15.939999999999994), (9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 4.920000001), (5.819999999999997 4.879999999000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 5.780000000999999 3.4400000000000013), (5.739999999 3.4400000000000013, 4.260000001 3.4400000000000013), (4.219999999000001 3.4400000000000013, 4.18 3.4400000000000013), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.939999999999994), (9.979999999 13.999999999999996, 5.819999999999997 13.999999999999996))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.24 7.65, 4.24 3.4600000010000014), (4.24 3.419999999000001, 4.24 0.020000001), (9.979999999 7.65, 4.24 7.65), (5.76 0.020000001, 5.76 3.419999999000001), (5.76 3.4600000010000014, 5.76 4.9), (5.76 4.9, 5.799999998999997 4.9), (5.840000000999996 4.9, 9.979999999 4.9), (4.24 7.65, 4.24 8.12), (4.24 8.12, 4.200000000999999 8.12), (4.159999999 8.12, 0.020000001 8.12), (4.24 16.01, 9.979999999 16.01), (0.020000001 16.01, 4.24 16.01), (4.24 16.01, 4.24 15.960000000999994), (4.24 15.919999998999995, 4.24 13.07), (4.24 13.07, 4.24 8.12), (0.020000001 13.07, 4.159999999 13.07), (4.200000000999999 13.07, 4.24 13.07))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 57.45999998000002,
+      &quot;extra_length_m&quot;: 48.989999980000015,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((4.18 8.059999999999999, 0.020000001 8.059999999999999), (4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.059999999999999), (4.18 12.999999999999996, 0.020000001 12.999999999999996), (4.18 8.059999999999999, 4.18 8.099999999), (4.18 8.140000000999999, 4.18 12.999999999999996), (4.18 15.939999999999994, 0.020000001 15.939999999999994), (4.18 12.999999999999996, 4.18 13.049999999), (4.18 13.090000001, 4.18 15.939999999999994), (4.18 15.939999999999994, 4.219999999000001 15.939999999999994), (4.260000001 15.939999999999994, 5.819999999999997 15.939999999999994), (5.819999999999997 15.939999999999994, 9.979999999 15.939999999999994), (9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 4.920000001), (5.819999999999997 4.879999999000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 5.780000000999999 3.4400000000000013), (5.739999999 3.4400000000000013, 4.260000001 3.4400000000000013), (4.219999999000001 3.4400000000000013, 4.18 3.4400000000000013), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.939999999999994), (9.979999999 13.999999999999996, 5.819999999999997 13.999999999999996))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.24 7.65, 4.24 3.4600000010000014), (4.24 3.419999999000001, 4.24 0.020000001), (9.979999999 7.65, 4.24 7.65), (5.76 0.020000001, 5.76 3.419999999000001), (5.76 3.4600000010000014, 5.76 4.9), (5.76 4.9, 5.799999998999997 4.9), (5.840000000999996 4.9, 9.979999999 4.9), (4.24 7.65, 4.24 8.12), (4.24 8.12, 4.200000000999999 8.12), (4.159999999 8.12, 0.020000001 8.12), (4.24 16.01, 9.979999999 16.01), (0.020000001 16.01, 4.24 16.01), (4.24 16.01, 4.24 15.960000000999994), (4.24 15.919999998999995, 4.24 13.07), (4.24 13.07, 4.24 8.12), (0.020000001 13.07, 4.159999999 13.07), (4.200000000999999 13.07, 4.24 13.07))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 8 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 10.6 20.6"><polygon points="0.3,20.3 4.4799999999999995,20.3 4.4799999999999995,12.240000000000002 0.3,12.240000000000002" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z0</title></polygon><polygon points="0.3,12.240000000000002 4.4799999999999995,12.240000000000002 4.4799999999999995,7.300000000000003 0.3,7.300000000000003" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z1</title></polygon><polygon points="0.3,7.300000000000003 4.4799999999999995,7.300000000000003 4.4799999999999995,4.360000000000006 0.3,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z2</title></polygon><polygon points="0.3,4.360000000000006 10.3,4.360000000000006 10.3,0.30000000000000354 0.3,0.30000000000000354" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z3</title></polygon><polygon points="4.4799999999999995,20.3 10.3,20.3 10.3,15.36 6.1199999999999966,15.36 6.1199999999999966,16.86 4.4799999999999995,16.86" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z4</title></polygon><polygon points="4.4799999999999995,16.86 6.1199999999999966,16.86 6.1199999999999966,15.36 10.3,15.36 10.3,12.240000000000002 6.1199999999999966,12.240000000000002 6.1199999999999966,4.360000000000006 4.4799999999999995,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z5</title></polygon><polygon points="6.1199999999999966,12.240000000000002 10.3,12.240000000000002 10.3,6.300000000000003 6.1199999999999966,6.300000000000003" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z6</title></polygon><polygon points="6.1199999999999966,6.300000000000003 10.3,6.300000000000003 10.3,4.360000000000006 6.1199999999999966,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z7</title></polygon><polygon points="4.54,20.3 6.06,20.3 6.06,15.4 10.3,15.4 10.3,12.65 4.54,12.65" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_Corridor</title></polygon><polygon points="0.3,20.3 4.54,20.3 4.54,12.180000000000001 0.3,12.180000000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_Dining</title></polygon><polygon points="0.3,4.289999999999998 10.3,4.289999999999998 10.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_HallLounge</title></polygon><polygon points="4.54,12.65 10.3,12.65 10.3,4.289999999999998 4.54,4.289999999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_Meeting</title></polygon><polygon points="0.3,7.2299999999999995 4.54,7.2299999999999995 4.54,4.289999999999998 0.3,4.289999999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_O1</title></polygon><polygon points="0.3,12.180000000000001 4.54,12.180000000000001 4.54,7.2299999999999995 0.3,7.2299999999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_O2</title></polygon><polygon points="6.06,20.3 10.3,20.3 10.3,15.4 6.06,15.4" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_SmallOffice</title></polygon></svg></figure></section><section><h2>candidate_02</h2><p>交付候选。<a href="../candidate_02/viewer.html">查看候选</a> · <a href="candidate_02_partition.json">分区详情</a> · <a href="candidate_02_openings.json">已建门窗与 typed 坐标诊断</a></p><pre>{
+  &quot;candidate&quot;: &quot;candidate_02&quot;,
+  &quot;is_delivery_candidate&quot;: true,
+  &quot;source_model_sha256&quot;: &quot;e60b5f405e69260cf5aa76a74b64ed3fd2f0214425897d18517832e8d2385dc7&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;source_to_reference_floor_mapping&quot;: {
+    &quot;F1&quot;: &quot;F1&quot;
+  },
+  &quot;reference_spaces&quot;: 8,
+  &quot;actual_source_spaces&quot;: 7,
+  &quot;opening_inventory&quot;: {
+    &quot;all_built_openings_by_kind&quot;: {
+      &quot;door&quot;: 9,
+      &quot;window&quot;: 1
+    },
+    &quot;built_exterior_openings_by_kind&quot;: {
+      &quot;door&quot;: 2,
+      &quot;window&quot;: 1
+    },
+    &quot;unbuilt_openings_by_kind&quot;: {}
+  },
+  &quot;typed_window_coordinate_diagnostic&quot;: {
+    &quot;status&quot;: &quot;coordinate_diagnostic_only&quot;,
+    &quot;comparison_count&quot;: 1,
+    &quot;unresolved_group_count&quot;: 3,
+    &quot;not_a_complete_match_score&quot;: true
+  },
+  &quot;typed_exterior_opening_coordinate_diagnostic&quot;: {
+    &quot;status&quot;: &quot;coordinate_diagnostic_only&quot;,
+    &quot;comparison_count&quot;: 3,
+    &quot;unresolved_group_count&quot;: 4,
+    &quot;not_a_complete_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z0&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Dining&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z0&quot;,
+        &quot;candidate_id&quot;: &quot;F1_Dining&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 33.690799999999996,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 0.9785644576633517,
+        &quot;iou&quot;: 0.9785644576633517,
+        &quot;symmetric_difference_area_m2&quot;: 0.7380000000000061,
+        &quot;boundary_hausdorff_m&quot;: 0.0848528137423864,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z1&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_O2&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z1&quot;,
+        &quot;candidate_id&quot;: &quot;F1_O2&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 20.398399999999988,
+        &quot;reference_coverage_fraction&quot;: 0.9878542510121456,
+        &quot;candidate_coverage_fraction&quot;: 0.9719077568134163,
+        &quot;iou&quot;: 0.9604309094675775,
+        &quot;symmetric_difference_area_m2&quot;: 0.8404000000000207,
+        &quot;boundary_hausdorff_m&quot;: 0.0921954445729321,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z2&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_O1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z2&quot;,
+        &quot;candidate_id&quot;: &quot;F1_O1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 11.996599999999974,
+        &quot;reference_coverage_fraction&quot;: 0.9761904761904748,
+        &quot;candidate_coverage_fraction&quot;: 0.962376460017967,
+        &quot;iou&quot;: 0.9403050587073375,
+        &quot;symmetric_difference_area_m2&quot;: 0.7616000000000485,
+        &quot;boundary_hausdorff_m&quot;: 0.0921954445729348,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z3&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_HallLounge&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z3&quot;,
+        &quot;candidate_id&quot;: &quot;F1_HallLounge&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 39.89999999999995,
+        &quot;reference_coverage_fraction&quot;: 0.9827586206896534,
+        &quot;candidate_coverage_fraction&quot;: 0.9999999999999991,
+        &quot;iou&quot;: 0.9827586206896527,
+        &quot;symmetric_difference_area_m2&quot;: 0.7000000000001094,
+        &quot;boundary_hausdorff_m&quot;: 0.07000000000000739,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z4&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_SmallOffice&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z4&quot;,
+        &quot;candidate_id&quot;: &quot;F1_SmallOffice&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 20.68840000000001,
+        &quot;reference_coverage_fraction&quot;: 0.7869064463614647,
+        &quot;candidate_coverage_fraction&quot;: 0.9957835964574512,
+        &quot;iou&quot;: 0.78429320959573,
+        &quot;symmetric_difference_area_m2&quot;: 5.690000000000002,
+        &quot;boundary_hausdorff_m&quot;: 1.58,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z5&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Corridor&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z5&quot;,
+        &quot;candidate_id&quot;: &quot;F1_Corridor&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 17.891999999999996,
+        &quot;reference_coverage_fraction&quot;: 0.5334271471843927,
+        &quot;candidate_coverage_fraction&quot;: 0.7682926829268292,
+        &quot;iou&quot;: 0.45950443786982303,
+        &quot;symmetric_difference_area_m2&quot;: 21.04559999999996,
+        &quot;boundary_hausdorff_m&quot;: 8.29021712622775,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z6&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Meeting&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;z6&quot;,
+        &quot;candidate_id&quot;: &quot;F1_Meeting&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 24.82920000000001,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 0.5156250000000002,
+        &quot;iou&quot;: 0.5156250000000002,
+        &quot;symmetric_difference_area_m2&quot;: 23.32439999999999,
+        &quot;boundary_hausdorff_m&quot;: 2.556657974778795,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 1.5,
+        &quot;z_top_delta_m&quot;: 1.5
+      }
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z7&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 8.109199999999996
+    },
+    {
+      &quot;code&quot;: &quot;source_spaces_merged&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;z6&quot;,
+        &quot;z7&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1_Meeting&quot;
+      ],
+      &quot;message&quot;: &quot;One candidate source space substantially covers multiple reference spaces.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;overlaps&quot;: [
+        {
+          &quot;reference_id&quot;: &quot;z6&quot;,
+          &quot;intersection_area_m2&quot;: 24.82920000000001,
+          &quot;reference_coverage_fraction&quot;: 1.0
+        },
+        {
+          &quot;reference_id&quot;: &quot;z7&quot;,
+          &quot;intersection_area_m2&quot;: 8.109199999999996,
+          &quot;reference_coverage_fraction&quot;: 1.0
+        }
+      ]
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 57.45999998000002,
+      &quot;extra_length_m&quot;: 48.989999980000015,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((4.18 8.059999999999999, 0.020000001 8.059999999999999), (4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.059999999999999), (4.18 12.999999999999996, 0.020000001 12.999999999999996), (4.18 8.059999999999999, 4.18 8.099999999), (4.18 8.140000000999999, 4.18 12.999999999999996), (4.18 15.939999999999994, 0.020000001 15.939999999999994), (4.18 12.999999999999996, 4.18 13.049999999), (4.18 13.090000001, 4.18 15.939999999999994), (4.18 15.939999999999994, 4.219999999000001 15.939999999999994), (4.260000001 15.939999999999994, 5.819999999999997 15.939999999999994), (5.819999999999997 15.939999999999994, 9.979999999 15.939999999999994), (9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 4.920000001), (5.819999999999997 4.879999999000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 5.780000000999999 3.4400000000000013), (5.739999999 3.4400000000000013, 4.260000001 3.4400000000000013), (4.219999999000001 3.4400000000000013, 4.18 3.4400000000000013), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.939999999999994), (9.979999999 13.999999999999996, 5.819999999999997 13.999999999999996))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.24 7.65, 4.24 3.4600000010000014), (4.24 3.419999999000001, 4.24 0.020000001), (9.979999999 7.65, 4.24 7.65), (5.76 0.020000001, 5.76 3.419999999000001), (5.76 3.4600000010000014, 5.76 4.9), (5.76 4.9, 5.799999998999997 4.9), (5.840000000999996 4.9, 9.979999999 4.9), (4.24 7.65, 4.24 8.12), (4.24 8.12, 4.200000000999999 8.12), (4.159999999 8.12, 0.020000001 8.12), (4.24 16.01, 9.979999999 16.01), (0.020000001 16.01, 4.24 16.01), (4.24 16.01, 4.24 15.960000000999994), (4.24 15.919999998999995, 4.24 13.07), (4.24 13.07, 4.24 8.12), (0.020000001 13.07, 4.159999999 13.07), (4.200000000999999 13.07, 4.24 13.07))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 57.45999998000002,
+      &quot;extra_length_m&quot;: 48.989999980000015,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((4.18 8.059999999999999, 0.020000001 8.059999999999999), (4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.059999999999999), (4.18 12.999999999999996, 0.020000001 12.999999999999996), (4.18 8.059999999999999, 4.18 8.099999999), (4.18 8.140000000999999, 4.18 12.999999999999996), (4.18 15.939999999999994, 0.020000001 15.939999999999994), (4.18 12.999999999999996, 4.18 13.049999999), (4.18 13.090000001, 4.18 15.939999999999994), (4.18 15.939999999999994, 4.219999999000001 15.939999999999994), (4.260000001 15.939999999999994, 5.819999999999997 15.939999999999994), (5.819999999999997 15.939999999999994, 9.979999999 15.939999999999994), (9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 4.920000001), (5.819999999999997 4.879999999000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 5.780000000999999 3.4400000000000013), (5.739999999 3.4400000000000013, 4.260000001 3.4400000000000013), (4.219999999000001 3.4400000000000013, 4.18 3.4400000000000013), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.939999999999994), (9.979999999 13.999999999999996, 5.819999999999997 13.999999999999996))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.24 7.65, 4.24 3.4600000010000014), (4.24 3.419999999000001, 4.24 0.020000001), (9.979999999 7.65, 4.24 7.65), (5.76 0.020000001, 5.76 3.419999999000001), (5.76 3.4600000010000014, 5.76 4.9), (5.76 4.9, 5.799999998999997 4.9), (5.840000000999996 4.9, 9.979999999 4.9), (4.24 7.65, 4.24 8.12), (4.24 8.12, 4.200000000999999 8.12), (4.159999999 8.12, 0.020000001 8.12), (4.24 16.01, 9.979999999 16.01), (0.020000001 16.01, 4.24 16.01), (4.24 16.01, 4.24 15.960000000999994), (4.24 15.919999998999995, 4.24 13.07), (4.24 13.07, 4.24 8.12), (0.020000001 13.07, 4.159999999 13.07), (4.200000000999999 13.07, 4.24 13.07))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 8 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 10.6 20.6"><polygon points="0.3,20.3 4.4799999999999995,20.3 4.4799999999999995,12.240000000000002 0.3,12.240000000000002" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z0</title></polygon><polygon points="0.3,12.240000000000002 4.4799999999999995,12.240000000000002 4.4799999999999995,7.300000000000003 0.3,7.300000000000003" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z1</title></polygon><polygon points="0.3,7.300000000000003 4.4799999999999995,7.300000000000003 4.4799999999999995,4.360000000000006 0.3,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z2</title></polygon><polygon points="0.3,4.360000000000006 10.3,4.360000000000006 10.3,0.30000000000000354 0.3,0.30000000000000354" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z3</title></polygon><polygon points="4.4799999999999995,20.3 10.3,20.3 10.3,15.36 6.1199999999999966,15.36 6.1199999999999966,16.86 4.4799999999999995,16.86" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z4</title></polygon><polygon points="4.4799999999999995,16.86 6.1199999999999966,16.86 6.1199999999999966,15.36 10.3,15.36 10.3,12.240000000000002 6.1199999999999966,12.240000000000002 6.1199999999999966,4.360000000000006 4.4799999999999995,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z5</title></polygon><polygon points="6.1199999999999966,12.240000000000002 10.3,12.240000000000002 10.3,6.300000000000003 6.1199999999999966,6.300000000000003" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z6</title></polygon><polygon points="6.1199999999999966,6.300000000000003 10.3,6.300000000000003 10.3,4.360000000000006 6.1199999999999966,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z7</title></polygon><polygon points="4.54,20.3 6.06,20.3 6.06,15.4 10.3,15.4 10.3,12.65 4.54,12.65" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_Corridor</title></polygon><polygon points="0.3,20.3 4.54,20.3 4.54,12.180000000000001 0.3,12.180000000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_Dining</title></polygon><polygon points="0.3,4.289999999999998 10.3,4.289999999999998 10.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_HallLounge</title></polygon><polygon points="4.54,12.65 10.3,12.65 10.3,4.289999999999998 4.54,4.289999999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_Meeting</title></polygon><polygon points="0.3,7.2299999999999995 4.54,7.2299999999999995 4.54,4.289999999999998 0.3,4.289999999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_O1</title></polygon><polygon points="0.3,12.180000000000001 4.54,12.180000000000001 4.54,7.2299999999999995 0.3,7.2299999999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_O2</title></polygon><polygon points="6.06,20.3 10.3,20.3 10.3,15.4 6.06,15.4" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1_SmallOffice</title></polygon></svg></figure></section></html>

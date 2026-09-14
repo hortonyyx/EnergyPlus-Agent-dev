@@ -1,0 +1,249 @@
+{
+  "agent_assumptions": [
+    "Wall thickness treated as zero-thickness representative planes at measured centerlines (~240mm exterior walls observed but not modeled with thickness).",
+    "Door heights assumed 2.1m (not verified against elevation drawings due to time budget).",
+    "Window sill/head assumed 1.0-2.1m (not verified against elevation).",
+    "O1-O2 and O2-Dining doors (D8,D9) are position-approximate; exact jamb pixels not measured.",
+    "Only 1f_view.png plan available; building assumed single-storey (no upper floor plan supplied, though elevations show multiple floor lines - unexamined)."
+  ],
+  "counts": {
+    "boundaries": 44,
+    "connections": 7,
+    "openings": 8,
+    "spaces": 7,
+    "unbuilt_openings": 2,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "12d27dd615f0d678b553c50903993fe8c1ebd65c67148e9a021826e06728e482",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "f1f2930153c6abad85e3576bb98366f550bb654b87d9b570c6825d42581865e2",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_HallLounge",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "F1_Meeting",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D3",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_Dining",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "F1_Corridor",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D6",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "bfd779b5d16837a70da22d254d885088f8231fe37c6ad1be486c5448ccd0a87b",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_HallLounge",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "F1_Meeting",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D3",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.1
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_Dining",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.1
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "F1_Corridor",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D6",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Elevation drawings (East/West/North/South) not cross-checked for door/window heights or upper floor massing due to time budget.",
+    "Exact wall thickness not modeled.",
+    "D4,D5,D6,D7 jamb spans approximate."
+  ]
+}

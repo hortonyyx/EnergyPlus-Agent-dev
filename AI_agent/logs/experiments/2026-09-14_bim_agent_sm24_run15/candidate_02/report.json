@@ -1,0 +1,61 @@
+{
+  "agent_assumptions": [
+    "Wall thickness treated as zero-thickness representative planes at measured centerlines (~240mm exterior walls observed but not modeled with thickness).",
+    "Door heights assumed 2.1m (not verified against elevation drawings due to time budget).",
+    "Window sill/head assumed 1.0-2.1m (not verified against elevation).",
+    "O1-O2 and O2-Dining doors (D8,D9) are position-approximate; exact jamb pixels not measured.",
+    "Only 1f_view.png plan available; building assumed single-storey (no upper floor plan supplied, though elevations show multiple floor lines - unexamined)."
+  ],
+  "counts": {
+    "boundaries": 44,
+    "connections": 9,
+    "openings": 10,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "e653e85b842f19615b762753a935e9024b2ba9b369ceca27c0b628dd65757891",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "f1f2930153c6abad85e3576bb98366f550bb654b87d9b570c6825d42581865e2",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "12d27dd615f0d678b553c50903993fe8c1ebd65c67148e9a021826e06728e482"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e60b5f405e69260cf5aa76a74b64ed3fd2f0214425897d18517832e8d2385dc7",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Elevation drawings (East/West/North/South) not cross-checked for door/window heights or upper floor massing due to time budget.",
+    "Exact wall thickness not modeled.",
+    "D4,D5,D6,D7 jamb spans approximate."
+  ]
+}

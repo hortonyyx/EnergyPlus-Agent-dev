@@ -1,0 +1,20 @@
+{
+  "command": "python -m pytest -n 2 tests/test_bim_agent_tools.py tests/test_bim_agent_region_overview.py -q",
+  "result": "22 passed in 25.96s",
+  "ordinary_tests": "offline; no production model calls",
+  "guide_characters": 5128,
+  "prior_guide_characters": 18710,
+  "reference_topics": {
+    "geometry": 1502,
+    "edits": 3011,
+    "wall_dimensions": 3680,
+    "opening_review": 1465
+  },
+  "scope": "Actual stdio reference reads and executable geometry example; existing build/revision/image/worker isolation checks. No fidelity conclusion.",
+  "post_run_reference_clarification": {
+    "change": "Restored whole-floor complete scope, review-after-edit and wall residual semantics in on-demand docs after frozen run15 completed. GUIDE unchanged.",
+    "command": "python -m pytest -n 0 tests/test_bim_agent_tools.py::test_on_demand_reference_build_example_and_readonly_access -q",
+    "result": "1 passed in 6.96s",
+    "overlap_with_prior_22": true
+  }
+}

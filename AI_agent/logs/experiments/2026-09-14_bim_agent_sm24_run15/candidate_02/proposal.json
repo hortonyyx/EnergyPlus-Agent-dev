@@ -1,0 +1,495 @@
+{
+  "assumptions": [
+    "Wall thickness treated as zero-thickness representative planes at measured centerlines (~240mm exterior walls observed but not modeled with thickness).",
+    "Door heights assumed 2.1m (not verified against elevation drawings due to time budget).",
+    "Window sill/head assumed 1.0-2.1m (not verified against elevation).",
+    "O1-O2 and O2-Dining doors (D8,D9) are position-approximate; exact jamb pixels not measured.",
+    "Only 1f_view.png plan available; building assumed single-storey (no upper floor plan supplied, though elevations show multiple floor lines - unexamined)."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "assumptions": [],
+          "id": "D3",
+          "kind": "door",
+          "other_space_id": "F1_Meeting",
+          "p1": [
+            4.24,
+            16.01
+          ],
+          "p2": [
+            5.21,
+            16.01
+          ],
+          "source_refs": [
+            "1f_view.png door arc y=296px"
+          ],
+          "space_id": "F1_HallLounge",
+          "state": "unknown",
+          "z": [
+            0,
+            2.1
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "D3",
+          "kind": "door",
+          "other_space_id": "F1_Meeting",
+          "p1": [
+            4.1,
+            16.01
+          ],
+          "p2": [
+            5.21,
+            16.01
+          ],
+          "source_refs": [
+            "1f_view.png double-door arc at y=296px, x397-437px"
+          ],
+          "space_id": "F1_HallLounge",
+          "state": "unknown",
+          "z": [
+            0,
+            2.1
+          ]
+        },
+        "id": "D3",
+        "operation": "update_opening",
+        "reason": "clip jamb to actual shared boundary between HallLounge and Meeting",
+        "source_refs": [
+          "1f_view.png door arc y=296px"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "approximate jamb span"
+          ],
+          "id": "D6",
+          "kind": "door",
+          "other_space_id": "F1_Corridor",
+          "p1": [
+            4.24,
+            6.27
+          ],
+          "p2": [
+            4.24,
+            7.65
+          ],
+          "source_refs": [
+            "1f_view.png door arc x398,y600-650px"
+          ],
+          "space_id": "F1_Dining",
+          "state": "unknown",
+          "z": [
+            0,
+            2.1
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "approximate jamb span"
+          ],
+          "id": "D6",
+          "kind": "door",
+          "other_space_id": "F1_Corridor",
+          "p1": [
+            4.24,
+            6.27
+          ],
+          "p2": [
+            4.24,
+            8.12
+          ],
+          "source_refs": [
+            "1f_view.png door arc near x398,y600-650px"
+          ],
+          "space_id": "F1_Dining",
+          "state": "unknown",
+          "z": [
+            0,
+            2.1
+          ]
+        },
+        "id": "D6",
+        "operation": "update_opening",
+        "reason": "clip jamb to actual shared boundary between Dining and Corridor",
+        "source_refs": [
+          "1f_view.png door arc x398,y600-650px"
+        ]
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 3,
+        "cells": [
+          {
+            "id": "F1_HallLounge",
+            "role": "lobby",
+            "x": [
+              0,
+              10
+            ],
+            "y": [
+              16.01,
+              20
+            ]
+          },
+          {
+            "id": "F1_O1",
+            "role": "office",
+            "x": [
+              0,
+              4.24
+            ],
+            "y": [
+              13.07,
+              16.01
+            ]
+          },
+          {
+            "id": "F1_O2",
+            "role": "office",
+            "x": [
+              0,
+              4.24
+            ],
+            "y": [
+              8.12,
+              13.07
+            ]
+          },
+          {
+            "id": "F1_Dining",
+            "role": "dining",
+            "x": [
+              0,
+              4.24
+            ],
+            "y": [
+              0,
+              8.12
+            ]
+          },
+          {
+            "id": "F1_Meeting",
+            "role": "meeting",
+            "x": [
+              4.24,
+              10
+            ],
+            "y": [
+              7.65,
+              16.01
+            ]
+          },
+          {
+            "id": "F1_Corridor",
+            "polygon": [
+              [
+                4.24,
+                0
+              ],
+              [
+                5.76,
+                0
+              ],
+              [
+                5.76,
+                4.9
+              ],
+              [
+                10,
+                4.9
+              ],
+              [
+                10,
+                7.65
+              ],
+              [
+                4.24,
+                7.65
+              ]
+            ],
+            "role": "corridor",
+            "x": [
+              4.24,
+              10
+            ],
+            "y": [
+              0,
+              7.65
+            ]
+          },
+          {
+            "id": "F1_SmallOffice",
+            "role": "office",
+            "x": [
+              5.76,
+              10
+            ],
+            "y": [
+              0,
+              4.9
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.58,
+          20
+        ],
+        "p2": [
+          2.1,
+          20
+        ],
+        "source_refs": [
+          "1f_view.png top wall double-door arc x269-324px"
+        ],
+        "space_id": "F1_HallLounge",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D2",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.55,
+          0
+        ],
+        "p2": [
+          5.46,
+          0
+        ],
+        "source_refs": [
+          "1f_view.png bottom wall door gap x413-446px"
+        ],
+        "space_id": "F1_Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D3",
+        "kind": "door",
+        "other_space_id": "F1_Meeting",
+        "p1": [
+          4.24,
+          16.01
+        ],
+        "p2": [
+          5.21,
+          16.01
+        ],
+        "source_refs": [
+          "1f_view.png door arc y=296px"
+        ],
+        "space_id": "F1_HallLounge",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "approximate jamb span"
+        ],
+        "id": "D4",
+        "kind": "door",
+        "other_space_id": "F1_Meeting",
+        "p1": [
+          4.24,
+          13.29
+        ],
+        "p2": [
+          4.24,
+          15.08
+        ],
+        "source_refs": [
+          "1f_view.png door arc near x398,y330-395px"
+        ],
+        "space_id": "F1_O1",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "approximate jamb span"
+        ],
+        "id": "D5",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          7.49,
+          7.65
+        ],
+        "p2": [
+          9.7,
+          7.65
+        ],
+        "source_refs": [
+          "1f_view.png door arc near x520-600,y595-615px"
+        ],
+        "space_id": "F1_Meeting",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "approximate jamb span"
+        ],
+        "id": "D6",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          4.24,
+          6.27
+        ],
+        "p2": [
+          4.24,
+          7.65
+        ],
+        "source_refs": [
+          "1f_view.png door arc x398,y600-650px"
+        ],
+        "space_id": "F1_Dining",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "approximate location, not fully verified"
+        ],
+        "id": "D7",
+        "kind": "door",
+        "other_space_id": "F1_Corridor",
+        "p1": [
+          5.76,
+          3.0
+        ],
+        "p2": [
+          5.76,
+          4.5
+        ],
+        "source_refs": [
+          "1f_view.png door arc near x550-600,y605-635px"
+        ],
+        "space_id": "F1_SmallOffice",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "approximate; exact door position not verified due to time"
+        ],
+        "id": "D8",
+        "kind": "door",
+        "other_space_id": "F1_O2",
+        "p1": [
+          2.0,
+          13.07
+        ],
+        "p2": [
+          3.2,
+          13.07
+        ],
+        "source_refs": [
+          "assumed adjacency, unresolved exact location"
+        ],
+        "space_id": "F1_O1",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "approximate; exact door position not verified due to time"
+        ],
+        "id": "D9",
+        "kind": "door",
+        "other_space_id": "F1_Dining",
+        "p1": [
+          2.0,
+          8.12
+        ],
+        "p2": [
+          3.2,
+          8.12
+        ],
+        "source_refs": [
+          "assumed adjacency, unresolved exact location"
+        ],
+        "space_id": "F1_O2",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W1",
+        "room": "F1_HallLounge",
+        "span": [
+          4.66,
+          9.46
+        ],
+        "z": [
+          1.0,
+          2.1
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Elevation drawings (East/West/North/South) not cross-checked for door/window heights or upper floor massing due to time budget.",
+    "Exact wall thickness not modeled.",
+    "D4,D5,D6,D7 jamb spans approximate."
+  ]
+}

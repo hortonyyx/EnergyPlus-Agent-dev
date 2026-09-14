@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 557.64,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 552217,
+    "duration_api_ms": 553214,
+    "ttft_ms": 9019,
+    "ttft_stream_ms": 7969,
+    "time_to_request_ms": 1153,
+    "num_turns": 44,
+    "result": "**Delivered: candidate_02** (finish_bim recorded, geometry self-consistency = pass, 0 unbuilt openings).\n\nSummary of the reconstruction (single-storey footprint, 10m × 20m, from `1f_view.png`; calibrated with pixel-tick dimension chains, scale ≈36.3 px/m):\n\n**Spaces (7):** F1_HallLounge (open-plan north room with entrance + window), F1_O1, F1_O2 (west-side offices), F1_Dining (west-side), F1_Meeting (large east-central room), F1_Corridor (L-shaped, connects meeting/dining/small-office to the south door), F1_SmallOffice (south-east).\n\n**Openings (10):** exterior double-door D1 (north) and door D2 (south), one north window W1 (lounge), plus 7 internal doors linking the rooms per observed arcs.\n\nAssumptions / unresolved scope (also recorded in the saved BIM):\n- Wall thickness modeled as zero-thickness representative planes (measured ~240mm exterior walls not given volume).\n- Door heights assumed 2.1m and window sill/head 1.0–2.1m — **not verified against the East/North/South/West elevation drawings** due to time budget; these were listed as supplied inputs but not opened this session.\n- Internal doors D4–D7 jamb spans are approximate (read from arc hinge pixels, not independently re-measured); D8/D9 (O1–O2, O2–Dining) are position-assumed since no clear door arc was resolved there before time ran out.\n- Only one plan (`1f_view.png`) was supplied/used; whether upper floors exist (elevations hint at multiple storeys) was not examined.\n- No overlay_candidate cross-check against the original raster was performed after the final revision (time-limited) — the plan-view render matches intended topology, but pixel-perfect fidelity to the source drawing is unverified.\n\nThese gaps are honestly carried in the candidate's `assumptions`/`unresolved` fields rather than hidden.",
+    "stop_reason": "end_turn",
+    "session_id": "d34939d5-968c-4fdb-9460-de74bb4cb2e1",
+    "total_cost_usd": 1.3752762,
+    "usage": {
+      "input_tokens": 54,
+      "cache_creation_input_tokens": 84576,
+      "cache_read_input_tokens": 1018684,
+      "output_tokens": 37422,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 84576,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 684,
+          "cache_read_input_tokens": 77881,
+          "cache_creation_input_tokens": 6695,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 6695
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 638,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000723,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 54,
+        "outputTokens": 37422,
+        "cacheReadInputTokens": 1018684,
+        "cacheCreationInputTokens": 84576,
+        "webSearchRequests": 0,
+        "costUSD": 1.3745532000000003,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "efba4307-ae17-41a0-9447-0b923a3e4a63"
+  }
+}
