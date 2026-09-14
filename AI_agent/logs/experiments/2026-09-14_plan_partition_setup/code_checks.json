@@ -1,0 +1,24 @@
+{
+  "checks": [
+    {
+      "command": "python -m pytest -n 2 tests/test_bim_agent_tools.py tests/test_bim_agent_inputs.py tests/test_source_proposal.py -q",
+      "passed": 30,
+      "elapsed_seconds": 26.95
+    },
+    {
+      "command": "python -m pytest -n 2 tests/test_plan_partition.py tests/test_source_proposal.py -q",
+      "passed": 14,
+      "elapsed_seconds": 7.08,
+      "executor": "5.6 Sol/high development agent",
+      "overlap": "6 source-proposal tests overlap prior group"
+    },
+    {
+      "command": "python -m pytest -n 2 tests/test_bim_agent_plan_partition.py -q",
+      "passed": 2,
+      "elapsed_seconds": 7.09,
+      "scope": "Actual stdio, persisted declaration, compiled source, two images, registered anchors across revisions, failed input retention"
+    }
+  ],
+  "distinct_tests": 40,
+  "limits": "Offline behavior checks only; not evidence of drawing interpretation or full-case restoration."
+}

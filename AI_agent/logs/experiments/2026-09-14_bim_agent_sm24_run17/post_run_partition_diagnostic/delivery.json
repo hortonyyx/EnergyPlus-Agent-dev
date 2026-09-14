@@ -1,0 +1,651 @@
+{
+  "candidate": "candidate_01",
+  "selection_origin": "developer_post_run_diagnostic_not_model_selected",
+  "viewer": "candidate_01/viewer.html",
+  "source_model": "candidate_01/source_model.json",
+  "viewer_exists": true,
+  "generation_status": {
+    "state": "in_progress"
+  },
+  "schema_version": "bim_delivery_v1",
+  "source_model_sha256": "be2eadb430b747b33987fd7c3748fbbccdc5094b0b5d99d7844fef1ab71cd521",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "wall_dimension_report": null,
+  "counts": {
+    "spaces": 8,
+    "boundaries": 48,
+    "openings": 0,
+    "connections": 0,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "unbuilt_openings": [],
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "West facade window/wall alternation reconstructed from confirmed dimension chain matched to cyan hatch bands; best-effort visual read.",
+    "East facade window layout simplified to 3 representative bands plus 1 exterior door; fine mullion detail not captured, secondary dimension chain on this side not fully reconciled.",
+    "H5 partition simplified to run full width from spine to east wall (observed drawing shows it starting slightly short of spine, near x=480, leaving a gap likely for the spine-door swing); joined for closure.",
+    "Bottom-right room's small wall jog/nook near east door (~y=700-750) omitted; room simplified to rectangle.",
+    "Door/window z heights assumed (doors 0-2.1m, windows 1.0-2.2m); no elevation drawing supplied.",
+    "8 space seeds coincide with declared thermal_zones=8 but this is not used as validation; thermal_zones is a downstream simulation-zoning declaration only.",
+    "DEVELOPER POST-RUN DIAGNOSTIC: original generated walls unchanged. ALL 17 declared openings excluded solely to inspect partitions; retained in excluded_openings.json and original_declaration.json. This is not a runtime BIM candidate.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "generation": {
+    "unresolved": [
+      "Elevation drawings not supplied; all opening heights/storey height unexamined.",
+      "West facade exact glazed/solid segment assignment uncertain beyond boundary pixel positions.",
+      "East facade window layout coarse/simplified.",
+      "Bottom-right room nook geometry omitted.",
+      "NO openings are built in this diagnostic. Original door/window declarations and failed-host details remain unresolved and are not discarded from the experiment. Do not adopt as restored BIM.",
+      "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+    ]
+  },
+  "opening_inventory": {
+    "schema_version": "opening_inventory_v1",
+    "source_model_sha256": "be2eadb430b747b33987fd7c3748fbbccdc5094b0b5d99d7844fef1ab71cd521",
+    "opening_count": 0,
+    "counts": {
+      "door": 0,
+      "passage": 0,
+      "window": 0
+    },
+    "floors": [
+      {
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": [],
+        "openings": []
+      }
+    ],
+    "spaces": [
+      {
+        "space_id": "bottom_left_dining",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "bottom_right_office",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "east_bench_room",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "meeting_room",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "row2_west_office",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "row3_west_office",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "top_left_reception",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      },
+      {
+        "space_id": "top_right_lounge",
+        "floor_id": "F1",
+        "opening_count": 0,
+        "counts": {
+          "door": 0,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": []
+      }
+    ],
+    "scope": {
+      "actual_openings": "only explicit built source openings are inventoried",
+      "unbuilt_opening_ids": [],
+      "unbuilt_opening_count": 0,
+      "unsupported_observation_count": 0
+    }
+  },
+  "facade_inventory": {
+    "schema_version": "opening_facade_inventory_v1",
+    "source_model_sha256": "be2eadb430b747b33987fd7c3748fbbccdc5094b0b5d99d7844fef1ab71cd521",
+    "floors": [
+      {
+        "floor_id": "F1",
+        "facades": [
+          {
+            "facade": "North",
+            "exterior_boundary_ids": [
+              "space/top_left_reception/wall/2",
+              "space/top_right_lounge/wall/2"
+            ],
+            "opening_ids": []
+          },
+          {
+            "facade": "South",
+            "exterior_boundary_ids": [
+              "space/bottom_left_dining/wall/0",
+              "space/bottom_right_office/wall/0"
+            ],
+            "opening_ids": []
+          },
+          {
+            "facade": "East",
+            "exterior_boundary_ids": [
+              "space/bottom_right_office/wall/1",
+              "space/east_bench_room/wall/1",
+              "space/meeting_room/wall/1",
+              "space/top_right_lounge/wall/1"
+            ],
+            "opening_ids": []
+          },
+          {
+            "facade": "West",
+            "exterior_boundary_ids": [
+              "space/bottom_left_dining/wall/3",
+              "space/row2_west_office/wall/3",
+              "space/row3_west_office/wall/3",
+              "space/top_left_reception/wall/3"
+            ],
+            "opening_ids": []
+          }
+        ],
+        "non_facade_openings": [],
+        "unsupported_exterior_boundaries": []
+      }
+    ],
+    "opening_classifications": {}
+  },
+  "opening_review_scopes": [
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": [],
+      "facade_coverage": {
+        "required_facades": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
+        "facade_scope_refs": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "non_facade_openings": [],
+        "unsupported_exterior_boundaries": [],
+        "unavailable_facade_review_refs": []
+      }
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": [],
+      "facade_coverage": {
+        "required_facades": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
+        "facade_scope_refs": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "non_facade_openings": [],
+        "unsupported_exterior_boundaries": [],
+        "unavailable_facade_review_refs": []
+      }
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": [],
+      "facade_coverage": {
+        "required_facades": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
+        "facade_scope_refs": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "non_facade_openings": [],
+        "unsupported_exterior_boundaries": [],
+        "unavailable_facade_review_refs": []
+      }
+    }
+  ],
+  "facade_review_scopes": [
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "North",
+      "exterior_boundary_ids": [
+        "space/top_left_reception/wall/2",
+        "space/top_right_lounge/wall/2"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "South",
+      "exterior_boundary_ids": [
+        "space/bottom_left_dining/wall/0",
+        "space/bottom_right_office/wall/0"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "East",
+      "exterior_boundary_ids": [
+        "space/bottom_right_office/wall/1",
+        "space/east_bench_room/wall/1",
+        "space/meeting_room/wall/1",
+        "space/top_right_lounge/wall/1"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "West",
+      "exterior_boundary_ids": [
+        "space/bottom_left_dining/wall/3",
+        "space/row2_west_office/wall/3",
+        "space/row3_west_office/wall/3",
+        "space/top_left_reception/wall/3"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "North",
+      "exterior_boundary_ids": [
+        "space/top_left_reception/wall/2",
+        "space/top_right_lounge/wall/2"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "South",
+      "exterior_boundary_ids": [
+        "space/bottom_left_dining/wall/0",
+        "space/bottom_right_office/wall/0"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "East",
+      "exterior_boundary_ids": [
+        "space/bottom_right_office/wall/1",
+        "space/east_bench_room/wall/1",
+        "space/meeting_room/wall/1",
+        "space/top_right_lounge/wall/1"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "West",
+      "exterior_boundary_ids": [
+        "space/bottom_left_dining/wall/3",
+        "space/row2_west_office/wall/3",
+        "space/row3_west_office/wall/3",
+        "space/top_left_reception/wall/3"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "North",
+      "exterior_boundary_ids": [
+        "space/top_left_reception/wall/2",
+        "space/top_right_lounge/wall/2"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "South",
+      "exterior_boundary_ids": [
+        "space/bottom_left_dining/wall/0",
+        "space/bottom_right_office/wall/0"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "East",
+      "exterior_boundary_ids": [
+        "space/bottom_right_office/wall/1",
+        "space/east_bench_room/wall/1",
+        "space/meeting_room/wall/1",
+        "space/top_right_lounge/wall/1"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "West",
+      "exterior_boundary_ids": [
+        "space/bottom_left_dining/wall/3",
+        "space/row2_west_office/wall/3",
+        "space/row3_west_office/wall/3",
+        "space/top_left_reception/wall/3"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    }
+  ],
+  "current_reviews": [],
+  "stale_reviews": [],
+  "drawing_fidelity": "not_evaluated",
+  "source_image_feedback": {
+    "current_source_projections": [
+      {
+        "image": "1f_view.png",
+        "floor_id": "F1",
+        "overlay_image": "image_overlays/overlay_001.png",
+        "source_model_sha256": "be2eadb430b747b33987fd7c3748fbbccdc5094b0b5d99d7844fef1ab71cd521",
+        "trigger_action": "build_plan_bim",
+        "automatic_projection": true,
+        "reused_calibration": {
+          "calibration_id": "calibration_001",
+          "calibration_file": "overlay_calibrations/calibration_001.json",
+          "registered_by_candidate": "candidate_01",
+          "registered_source_model_sha256": "be2eadb430b747b33987fd7c3748fbbccdc5094b0b5d99d7844fef1ab71cd521",
+          "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+          "x_anchors": [
+            [
+              250,
+              0.0
+            ],
+            [
+              610,
+              10.0
+            ]
+          ],
+          "y_anchors": [
+            [
+              148,
+              20.0
+            ],
+            [
+              878,
+              0.0
+            ]
+          ],
+          "basis": "Outer wall faces at pixel x=250(world x=0) and x=610(world x=10m). Outer wall faces at pixel y=148(world y=20,north) and y=878(world y=0,south). Representative plane = drawn gray wall band, consistent for perimeter, partitions, openings."
+        },
+        "anchors": {
+          "x": [
+            [
+              250.0,
+              0.0
+            ],
+            [
+              610.0,
+              10.0
+            ]
+          ],
+          "y": [
+            [
+              148.0,
+              20.0
+            ],
+            [
+              878.0,
+              0.0
+            ]
+          ]
+        },
+        "basis": "Outer wall faces at pixel x=250(world x=0) and x=610(world x=10m). Outer wall faces at pixel y=148(world y=20,north) and y=878(world y=0,south). Representative plane = drawn gray wall band, consistent for perimeter, partitions, openings.",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "calibration_warnings": [
+          {
+            "type": "cross_axis_disagreement",
+            "x_px_per_m": 36.0,
+            "y_px_per_m": 36.5,
+            "relative_deviation": 0.013793103448275862,
+            "relative_deviation_limit": 0.003,
+            "guidance": "x=36 px/m and y=36.5 px/m disagree by 1.379310%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+          },
+          {
+            "type": "residual_exceeds_threshold",
+            "axis": "x",
+            "dimension_ref": "caller_x_anchors",
+            "span_px": 360.0,
+            "value_m": 10.0,
+            "residual_px": -4.0,
+            "residual_m": -0.10989010989010989
+          },
+          {
+            "type": "residual_exceeds_threshold",
+            "axis": "y",
+            "dimension_ref": "caller_y_anchors",
+            "span_px": 730.0,
+            "value_m": 20.0,
+            "residual_px": 2.0,
+            "residual_m": 0.054945054945054944
+          }
+        ],
+        "wall_evidence_projection": {
+          "scope": {
+            "image_name": "1f_view.png",
+            "floor_id": "F1",
+            "endpoint_selection": "exact original image name and linked wall floor",
+            "view_status": "not_visually_verified"
+          },
+          "walls": [],
+          "endpoints": [],
+          "limits": [
+            "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+            "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+            "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+            "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+          ]
+        }
+      }
+    ],
+    "old_source_projections": [],
+    "registered_calibration_uncovered_floors": [],
+    "floors_without_registered_views": [],
+    "projection_errors": [],
+    "calibration_independently_verified": false,
+    "drawing_fidelity": "not_evaluated"
+  }
+}

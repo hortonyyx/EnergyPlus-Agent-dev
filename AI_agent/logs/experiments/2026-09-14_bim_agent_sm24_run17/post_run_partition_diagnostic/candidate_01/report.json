@@ -1,0 +1,73 @@
+{
+  "agent_assumptions": [
+    "West facade window/wall alternation reconstructed from confirmed dimension chain matched to cyan hatch bands; best-effort visual read.",
+    "East facade window layout simplified to 3 representative bands plus 1 exterior door; fine mullion detail not captured, secondary dimension chain on this side not fully reconciled.",
+    "H5 partition simplified to run full width from spine to east wall (observed drawing shows it starting slightly short of spine, near x=480, leaving a gap likely for the spine-door swing); joined for closure.",
+    "Bottom-right room's small wall jog/nook near east door (~y=700-750) omitted; room simplified to rectangle.",
+    "Door/window z heights assumed (doors 0-2.1m, windows 1.0-2.2m); no elevation drawing supplied.",
+    "8 space seeds coincide with declared thermal_zones=8 but this is not used as validation; thermal_zones is a downstream simulation-zoning declaration only.",
+    "DEVELOPER POST-RUN DIAGNOSTIC: original generated walls unchanged. ALL 17 declared openings excluded solely to inspect partitions; retained in excluded_openings.json and original_declaration.json. This is not a runtime BIM candidate.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 48,
+    "connections": 0,
+    "openings": 0,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "bad87971a72d908f060396c282f5ab5f9bc6df118c86149315e312cbfb25626d",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "3c46b3e61eba1fb8bd92c376df02e775d890f21c011365de7ba2de997bcfbc66",
+    "mode": "developer_post_generation_wall_only_diagnostic",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "fd7d894bda45c6b83fbcf21d45a20669cc90e839b1ca36ca98cc70624de4e9f6",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "b9d430bc6b2c83d941ba14fe94d8402df4de24bdc5992eea557138edb1c5327f"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "be2eadb430b747b33987fd7c3748fbbccdc5094b0b5d99d7844fef1ab71cd521",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Elevation drawings not supplied; all opening heights/storey height unexamined.",
+    "West facade exact glazed/solid segment assignment uncertain beyond boundary pixel positions.",
+    "East facade window layout coarse/simplified.",
+    "Bottom-right room nook geometry omitted.",
+    "NO openings are built in this diagnostic. Original door/window declarations and failed-host details remain unresolved and are not discarded from the experiment. Do not adopt as restored BIM.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

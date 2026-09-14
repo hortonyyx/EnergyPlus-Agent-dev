@@ -1,0 +1,327 @@
+{
+  "assumptions": [
+    "West facade window/wall alternation reconstructed from confirmed dimension chain matched to cyan hatch bands; best-effort visual read.",
+    "East facade window layout simplified to 3 representative bands plus 1 exterior door; fine mullion detail not captured, secondary dimension chain on this side not fully reconciled.",
+    "H5 partition simplified to run full width from spine to east wall (observed drawing shows it starting slightly short of spine, near x=480, leaving a gap likely for the spine-door swing); joined for closure.",
+    "Bottom-right room's small wall jog/nook near east door (~y=700-750) omitted; room simplified to rectangle.",
+    "Door/window z heights assumed (doors 0-2.1m, windows 1.0-2.2m); no elevation drawing supplied.",
+    "8 space seeds coincide with declared thermal_zones=8 but this is not used as validation; thermal_zones is a downstream simulation-zoning declaration only.",
+    "DEVELOPER POST-RUN DIAGNOSTIC: original generated walls unchanged. ALL 17 declared openings excluded solely to inspect partitions; retained in excluded_openings.json and original_declaration.json. This is not a runtime BIM candidate.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "top_left_reception",
+            "polygon": [
+              [
+                -0.055556,
+                16.109589
+              ],
+              [
+                4.25,
+                16.109589
+              ],
+              [
+                4.25,
+                20.0
+              ],
+              [
+                -0.055556,
+                20.0
+              ]
+            ],
+            "role": "reception",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=290px west side"
+            ],
+            "x": [
+              -0.055556,
+              4.25
+            ],
+            "y": [
+              16.109589,
+              20.0
+            ]
+          },
+          {
+            "id": "top_right_lounge",
+            "polygon": [
+              [
+                4.25,
+                16.109589
+              ],
+              [
+                10.083333,
+                16.109589
+              ],
+              [
+                10.083333,
+                20.0
+              ],
+              [
+                4.25,
+                20.0
+              ]
+            ],
+            "role": "lounge",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=290px east side"
+            ],
+            "x": [
+              4.25,
+              10.083333
+            ],
+            "y": [
+              16.109589,
+              20.0
+            ]
+          },
+          {
+            "id": "row2_west_office",
+            "polygon": [
+              [
+                -0.055556,
+                13.09589
+              ],
+              [
+                4.25,
+                13.09589
+              ],
+              [
+                4.25,
+                16.109589
+              ],
+              [
+                -0.055556,
+                16.109589
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=290px west side",
+              "1f_view.png: wall y=400px west side"
+            ],
+            "x": [
+              -0.055556,
+              4.25
+            ],
+            "y": [
+              13.09589,
+              16.109589
+            ]
+          },
+          {
+            "id": "east_bench_room",
+            "polygon": [
+              [
+                4.25,
+                13.643836
+              ],
+              [
+                10.083333,
+                13.643836
+              ],
+              [
+                10.083333,
+                16.109589
+              ],
+              [
+                4.25,
+                16.109589
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=290px east side",
+              "1f_view.png: wall y=380px east side, joined to spine (simplified from observed partial start near x=480)"
+            ],
+            "x": [
+              4.25,
+              10.083333
+            ],
+            "y": [
+              13.643836,
+              16.109589
+            ]
+          },
+          {
+            "id": "meeting_room",
+            "polygon": [
+              [
+                4.25,
+                7.616438
+              ],
+              [
+                10.083333,
+                7.616438
+              ],
+              [
+                10.083333,
+                13.643836
+              ],
+              [
+                4.25,
+                13.643836
+              ]
+            ],
+            "role": "meeting",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=380px east side, joined to spine (simplified from observed partial start near x=480)",
+              "1f_view.png: wall y=600px east side"
+            ],
+            "x": [
+              4.25,
+              10.083333
+            ],
+            "y": [
+              7.616438,
+              13.643836
+            ]
+          },
+          {
+            "id": "row3_west_office",
+            "polygon": [
+              [
+                -0.055556,
+                7.616438
+              ],
+              [
+                4.25,
+                7.616438
+              ],
+              [
+                4.25,
+                13.09589
+              ],
+              [
+                -0.055556,
+                13.09589
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=400px west side",
+              "1f_view.png: wall y=600px west side"
+            ],
+            "x": [
+              -0.055556,
+              4.25
+            ],
+            "y": [
+              7.616438,
+              13.09589
+            ]
+          },
+          {
+            "id": "bottom_left_dining",
+            "polygon": [
+              [
+                -0.055556,
+                0.0
+              ],
+              [
+                4.25,
+                0.0
+              ],
+              [
+                4.25,
+                7.616438
+              ],
+              [
+                -0.055556,
+                7.616438
+              ]
+            ],
+            "role": "conference/dining",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=600px west side"
+            ],
+            "x": [
+              -0.055556,
+              4.25
+            ],
+            "y": [
+              0.0,
+              7.616438
+            ]
+          },
+          {
+            "id": "bottom_right_office",
+            "polygon": [
+              [
+                4.25,
+                0.0
+              ],
+              [
+                10.083333,
+                0.0
+              ],
+              [
+                10.083333,
+                7.616438
+              ],
+              [
+                4.25,
+                7.616438
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: continuous central north-south wall, door arcs cut through it at 3 rows",
+              "1f_view.png: wall y=600px east side"
+            ],
+            "x": [
+              4.25,
+              10.083333
+            ],
+            "y": [
+              0.0,
+              7.616438
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      -0.055556,
+      10.083333
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [],
+    "schema_version": "2",
+    "windows": []
+  },
+  "unresolved": [
+    "Elevation drawings not supplied; all opening heights/storey height unexamined.",
+    "West facade exact glazed/solid segment assignment uncertain beyond boundary pixel positions.",
+    "East facade window layout coarse/simplified.",
+    "Bottom-right room nook geometry omitted.",
+    "NO openings are built in this diagnostic. Original door/window declarations and failed-host details remain unresolved and are not discarded from the experiment. Do not adopt as restored BIM.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
