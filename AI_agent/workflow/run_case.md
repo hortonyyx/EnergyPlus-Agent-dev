@@ -7,6 +7,8 @@
 
 独立于旧 `flow`，用已登录 Claude 订阅的 Sonnet 自主选择原图查看、量测、局部 Haiku 复核和源 BIM 生成/检查。当前支持输入目录中的 PNG；不要把 GT、历史生成图或辅助答案放进该目录。
 
+**09-14 收工核对：此独立入口只枚举PNG，不读取同目录`testdata_prompt.json`。** 自动生成的`inputs.json`是图片/运行清单，不含原始case的用途、面积、层数等声明；因此近期“仅原图实跑”不能称为完整case输入。`--resume-candidate`只在显式使用时另取旧proposal，run15没有使用。完整声明接入尚待实现，后续需区分基础建筑信息与`thermal_zones`后端数量，不把后者直接当源房间正确数；详见[收工核对](../logs/worklog/2026-09-14_focused_guidance_session_close.md)。
+
 ```bash
 python scripts/tool_scripts/run_bim_agent.py run \
   --images case_tests/e2e_tests/sm21_anchor/case_data \
