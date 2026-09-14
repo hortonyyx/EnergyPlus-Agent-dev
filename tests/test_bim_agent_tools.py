@@ -963,3 +963,32 @@ time.sleep(60)
                 os.killpg(os.getpgid(pid), 9)
             except ProcessLookupError:
                 pass
+
+
+def test_parametric_tool_stdio_builds_repeated_spaces_and_preserves_compact_plan(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    compact = {
+        'templates': {'t': {'footprint': [[0,0],[6,0],[6,4],[0,4]],
+            'spaces': [{'id':'room','role':'office_inferred','rect':[0,0,6,4],
+                        'source_refs':['synthetic hypothesis']}],
+            'window_rows': [{'id':'w','facade':'West','plane':0,'spans':[[1,2]],
+                             'z':[1,2],'source_refs':['synthetic observation']}]}},
+        'instances':[{'id':'A','template':'t','z':0,'height':3},
+                     {'id':'B','template':'t','z':3,'height':3}],
+        'assumptions':['test'], 'unresolved':['interiors unknown']}
+    async def exercise():
+        async with _server_session(run, readonly=False) as session:
+            result=await session.call_tool('build_parametric_bim', {'plan_json':json.dumps(compact)})
+            payload=_json_result(result)
+            assert payload['source_geometry_ready'],payload
+            assert payload['counts']['spaces']==2
+            assert len([c for c in result.content if c.type=='image'])==1
+            restored=await session.call_tool('inspect_parametric_plan', {'candidate':payload['candidate']})
+            assert _json_result(restored)==compact
+            failed=await session.call_tool('build_parametric_bim', {'plan_json':'{"oops":1}'})
+            assert 'missing fields' in _json_result(failed)['error']
+        async with _server_session(run, readonly=True) as session:
+            names={t.name for t in (await session.list_tools()).tools}
+            assert 'build_parametric_bim' not in names
+            assert 'inspect_parametric_plan' not in names
+    asyncio.run(exercise())

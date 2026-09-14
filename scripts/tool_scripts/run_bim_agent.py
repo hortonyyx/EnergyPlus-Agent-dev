@@ -124,7 +124,7 @@ def terminate_subscription(process):
 def subscription(run: Path, prompt: str, *, model: str, name: str,
                  readonly: bool = False, timeout: int = 900,
                  log_run: Path | None = None, receipt_context: dict | None = None,
-                 effort: str | None = None):
+                 effort: str | None = None, exploratory_opus: bool = False):
     """Only the logged-in subscription; isolated cwd/env, explicit MCP tools.
 
     ``run`` is the MCP-visible workspace. ``log_run`` can retain a child
@@ -134,7 +134,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         raise ValueError("effort must be low or medium when supplied")
     if model == "haiku" and effort is not None:
         raise ValueError("explicit effort is supported only for sonnet in this experiment")
-    if model not in {"sonnet", "haiku"}:
+    if model not in ({"sonnet", "haiku", "opus"} if exploratory_opus else {"sonnet", "haiku"}):
         raise ValueError("only configured subscription aliases are allowed")
     run = run.resolve()
     log_run = (log_run or run).resolve()
@@ -167,6 +167,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     started = time.monotonic()
     record = {"requested_model": model, "channel": "Claude subscription; no API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
+              "exploratory_opus": exploratory_opus,
               "effort": (effort or "medium") if not readonly or model == "sonnet" else None}
     if receipt_context:
         record.update(receipt_context)
@@ -1443,6 +1444,45 @@ def serve(run: Path, readonly=False):
             return candidate_result(toolkit.build_plan(image, plan_json))
 
         @server.tool()
+        def build_parametric_bim(plan_json: str) -> CallToolResult:
+            """Expand model-declared floor templates and window rows, then build source BIM.
+            Read get_bim_reference('parametric') first. Never infers or trims geometry.
+            Relative aperture heights are offset by each explicit instance base.
+            """
+            from src.agent.geometry.parametric_proposal import expand_parametric_proposal
+            folder = toolkit.run / 'parametric_drafts'
+            folder.mkdir(exist_ok=True)
+            draft = folder / f'draft_{len(list(folder.glob("*.json")))+1:03d}.json'
+            draft.write_text(plan_json)
+            try:
+                plan = json.loads(plan_json)
+                proposal = expand_parametric_proposal(plan)
+            except (ValueError, TypeError, KeyError) as error:
+                result = {'error': str(error), 'draft': str(draft.relative_to(toolkit.run)),
+                          'remaining_seconds': toolkit.remaining_seconds()}
+                toolkit.log('build_parametric_bim', result)
+                return candidate_result(result)
+            result = toolkit.build(proposal, action='build_parametric_bim')
+            if result.get('candidate'):
+                dump(toolkit.run / result['candidate'] / 'parametric_plan.json', plan)
+            # Full inventories and every plan remain on disk/available on demand.
+            # Return representative template plans without repeating identical floors.
+            result.pop('opening_inventory', None)
+            representatives = {}
+            for instance in plan['instances']:
+                representatives.setdefault(instance['template'], instance['id'])
+            result['source_plan_views'] = [v for v in result.get('source_plan_views', [])
+                                         if v['floor_id'] in representatives.values()]
+            return candidate_result(result)
+
+        @server.tool()
+        def inspect_parametric_plan(candidate: str) -> dict:
+            """Read the exact saved compact plan for revision; original evidence is separate."""
+            value = json.loads((toolkit.candidate_path(candidate) / 'parametric_plan.json').read_text())
+            toolkit.log('inspect_parametric_plan', {'candidate': candidate})
+            return value
+
+        @server.tool()
         def build_bim(proposal_json: str) -> CallToolResult:
             """Build/check/save a candidate; get_bim_reference("geometry") describes proposal JSON.
             Returns errors or actual geometry checks. Six immutable candidates maximum.
@@ -1504,6 +1544,7 @@ def run_experiment(args):
                          if building_input else "original_images_only")
     manifest = {"images":images,"scope":args.scope,
                              "input_mode": generation_mode,
+                             "exploratory_opus": getattr(args, "exploratory_opus", False),
                              "source_input_mode": source_input_mode,
                              "input_contents": {
                                  "original_png_images": {"included": True, "count": len(images)},
@@ -1515,6 +1556,7 @@ def run_experiment(args):
                              "implementation_sha256": {
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
                                  "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
+                                 "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
@@ -1569,8 +1611,10 @@ def run_experiment(args):
     record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
                           f"Start by listing supplied inputs.{declaration_prompt} {continuation} "
                           "Report limitations honestly, and finish within the budget.",
-                          model="sonnet", name="agent", timeout=args.timeout,
-                          effort=getattr(args, "effort", None))
+                          model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
+                          name="agent", timeout=args.timeout,
+                          effort=getattr(args, "effort", None),
+                          exploratory_opus=getattr(args, "exploratory_opus", False))
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
         report = json.loads(path.read_text())
@@ -1628,6 +1672,8 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--exploratory-opus", action="store_true",
+                     help="Explicit task-authorized exploratory Opus subscription run; default remains Sonnet")
     run.add_argument("--effort", choices=("low", "medium"), default="medium",
                      help="Sonnet reasoning effort for this run; local Haiku configuration is unchanged")
     run.add_argument("--resume-candidate",type=Path,help="Recover from a saved proposal directory, not an independent cold start")

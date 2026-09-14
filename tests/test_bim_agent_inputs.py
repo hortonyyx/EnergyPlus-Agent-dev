@@ -152,3 +152,17 @@ def test_building_declaration_and_saved_candidate_recovery_are_independent_modes
     assert summary["input_mode"] == "saved_candidate_recovery"
     assert summary["source_input_mode"] == "original_images_with_building_declaration"
     assert summary["delivery"]["candidate"] == "seed"
+
+
+def test_opus_is_explicit_experimental_choice_and_not_a_fallback(tmp_path, monkeypatch):
+    images=_images(tmp_path/'images')
+    captured={}
+    def offline_subscription(run,prompt,**kwargs):
+        captured.update(kwargs)
+        return _completed_receipt(run)
+    monkeypatch.setattr(runner,'subscription',offline_subscription)
+    args=SimpleNamespace(images=images,out=tmp_path/'run',scope='migration test',
+        timeout=30,effort='medium',resume_candidate=None,building_input=None,exploratory_opus=True)
+    runner.run_experiment(args)
+    assert captured['model']=='opus' and captured['exploratory_opus'] is True
+    assert runner.Toolkit(args.out).manifest['exploratory_opus'] is True

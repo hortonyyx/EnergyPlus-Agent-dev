@@ -116,6 +116,14 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
         report["unresolved"] = unresolved
 
         geom = ensure_corrected_geometry(geometry)
+        # Legacy Floor accepts extra fields without hydrating their types. Keep
+        # explicitly supplied per-floor rings usable after JSON save/reload,
+        # just as in the existing typed geometry entry point.
+        from src.agent.correction.schema import FootprintRing
+        for floor in geom.floors:
+            footprint = getattr(floor, "footprint", None)
+            if isinstance(footprint, dict):
+                floor.footprint = FootprintRing.model_validate(footprint)
         source = build_source_bim(
             geom,
             capability_profile="orthogonal_polygon",

@@ -5,9 +5,20 @@ Examples are independent of case inputs. Reference reads never inspect run files
 from __future__ import annotations
 
 GUIDE = """Build a viewable lightweight BIM of the target building from the supplied
-original drawings. You choose observations, tools, delegation and revisions.
+visual inputs and building declarations. You choose observations, tools, delegation and revisions.
 Preserve actual physical spaces, partitions, openings and connectivity. Geometry
 checks prove internal consistency, not drawing fidelity. No EP or materials.
+
+When inputs are prepared views of a textured 3D mesh, use their supplied metric
+projection metadata. Local x/y need not be geographic east/north: retain the
+explicit transform. Treat missing mesh surfaces as missing evidence, not proof
+of an opening or blank wall. Infer plausible missing parts using available
+context and record the basis. Without interior evidence, propose a useful
+layout at the requested simplification, explicitly marking partitions/doors as
+hypotheses. Do not claim recovered true interiors. build_parametric_bim can
+expand explicit templates and window spans without mental coordinate repetition;
+get_bim_reference('parametric') documents it. Full original images remain the
+visual evidence; no prior generated model is an observation.
 
 Work from the physical partition layout before assigning detailed room uses.
 Trace each space's full extent, including corridor turns and nonrectangular
@@ -285,3 +296,57 @@ whole-floor plan scope remains unchanged. Use partial for incomplete views.
 
 """,
 }
+
+REFERENCES['parametric'] = """build_parametric_bim(plan_json) takes this compact JSON structure:
+{
+ "templates": {"typical": {
+   "footprint": [[0,0],[12,0],[12,8],[0,8]],
+   "spaces": [
+     {"id":"office","role":"office_inferred","rect":[0,0,9,8],
+      "source_refs":["explicit illustrative layout hypothesis"]},
+     {"id":"hall","role":"corridor_inferred","rect":[9,0,12,8],
+      "source_refs":["explicit illustrative circulation hypothesis"]}],
+   "window_rows": [{"id":"northrow","facade":"North","plane":8,
+      "spans":[[1,3],[4,6]],"z":[1,2.5],
+      "source_refs":["actual supplied image and pixel bounds"],
+      "assumptions":["example only"]}],
+   "doors":[{"id":"office_door","space":"office","other_space":"hall",
+      "p1":[9,3],"p2":[9,4],"z":[0,2.1],
+      "source_refs":["hypothetical interior door"]}]
+ }},
+ "instances": [{"id":"L1","template":"typical","z":0,"height":3},
+               {"id":"L2","template":"typical","z":3,"height":3}],
+ "connections": [],
+ "assumptions": ["Example only; unrelated to current building"], "unresolved": []
+}
+All x/y/plane/span values are in the ONE common building frame. Instance z is
+absolute. Window row and template door z are RELATIVE to instance z. A template
+may contain many rows with different heights/spans. Repetition is your explicit
+inference, never automatic evidence. Instance IDs and local IDs cannot contain ':';
+expanded space IDs are INSTANCE:SPACE, windows INSTANCE:ROW:1 (one-based),
+doors INSTANCE:door:DOOR. Only provide listed fields; no hidden variables/expressions.
+Spaces use EITHER rect:[xmin,ymin,xmax,ymax] OR polygon:[[x,y],...], with id,
+role, source_refs and optional assumptions. Footprints and spaces are single
+orthogonal rings; clockwise input is normalized without coordinate movement.
+Code derives bounds but never splits spaces. Spaces must cover the declared
+instance footprint exactly, without overlap. Different instances may have
+independent footprints, setbacks, heights and base levels. A continuous vertical
+core can be its own tall instance; surrounding floor polygons must exclude its
+footprint. Never insert fake intermediate slabs to simplify a core. Holes within
+one space ring are unsupported: do not split a continuous open room just to fit.
+For windows declare facade, plane, spans, relative z, id and source_refs; optional
+assumptions. The code resolves each whole span to exactly ONE outward room edge
+on that plane. It refuses spanning a partition, wrong plane or wrong direction;
+no window clipping, wall movement or answer inference. The complete source kernel
+then checks exterior status, contacts, overlaps and host heights. North/South
+span along x, East/West along y; these names refer to the LOCAL frame.
+Template doors identify local space and other_space (null=outdoors), p1/p2,
+relative z and source_refs. kind defaults door; state defaults unknown.
+Cross-instance connections are ordinary geometry.openings records with GLOBAL
+space_id/other_space_id and ABSOLUTE z (see geometry reference); not auto-created.
+The tool saves the compact plan and expanded proposal with each candidate. Use
+inspect_parametric_plan(candidate) to read/edit a template and resubmit the FULL
+compact plan. Preserve all reliable IDs/geometry/evidence and explain changes.
+A failed expansion is saved as parametric_drafts; a failed source build retains
+its candidate. Return feedback is a geometric check, not input fidelity approval.
+"""
