@@ -172,3 +172,44 @@ def test_duplicate_box_and_unknown_floor_are_findings_not_rejections():
     unknown = _review()
     unknown["floor_id"] = "F404"
     assert "unknown_floor" in {row["code"] for row in review_openings(_source(), unknown, _images())["findings"]}
+
+
+def test_same_level_wing_connection_is_listed_on_both_sides_and_counted_once():
+    from src.agent.geometry.opening_review import facade_inventory
+    from src.agent.geometry.bim_delivery import summarize_delivery
+    source=_source()
+    # Keep the exact built doorway and room geometry, but give the adjoining
+    # building wing its own floor/volume identity at the same elevation.
+    floor=copy.deepcopy(source['floors'][0]);floor['id']='ANNEX'
+    source['floors'].append(floor)
+    next(s for s in source['spaces'] if s['id']=='B')['floor_id']='ANNEX'
+    source['source_model_sha256']=_digest({k:v for k,v in source.items() if k!='source_model_sha256'})
+    before=copy.deepcopy(source)
+    inventory=opening_inventory(source)
+    assert inventory['opening_count']==3
+    assert inventory['counts']['door']==2
+    floors={f['floor_id']:f for f in inventory['floors']}
+    assert floors['ANNEX']['opening_ids']==['D1']
+    assert floors['F1']['opening_ids']==['D1','DOUT','W1']
+    assert floors['ANNEX']['openings'][0]['floor_ids']==['ANNEX','F1']
+    assert next(f for f in facade_inventory(source)['floors'] if f['floor_id']=='ANNEX')['non_facade_openings'][0]['opening_id']=='D1'
+    review=_review(marks=_review()['marks'][:1]);review['floor_id']='ANNEX'
+    result=review_openings(source,review,images=_images())
+    assert result['conclusion']=='consistent_with_supplied_observations'
+    delivery=summarize_delivery(source,[])
+    assert delivery['counts']['openings']==3
+    assert source==before
+
+
+def test_continuous_core_connection_is_scoped_without_accepting_wrong_height():
+    source=_source()
+    floor=copy.deepcopy(source['floors'][0]);floor.update(id='CORE',z_floor=-3,ceiling_height=9)
+    source['floors'].append(floor)
+    core=next(s for s in source['spaces'] if s['id']=='B')
+    core.update(floor_id='CORE',z_floor=-3,height=9)
+    def rehash():source['source_model_sha256']=_digest({k:v for k,v in source.items() if k!='source_model_sha256'})
+    rehash()
+    assert opening_inventory(source)['opening_count']==3
+    core['z_floor']=3;rehash()
+    with pytest.raises(ValueError,match='outside a connected space'):
+        opening_inventory(source)

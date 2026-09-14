@@ -76,8 +76,6 @@ def _source_index(source: dict) -> tuple[str, dict, dict, dict]:
         if not isinstance(space_ids, list) or not space_ids or any(sid not in spaces for sid in space_ids):
             raise ValueError(f"source opening {row['id']} has invalid space_ids")
         floor_ids = {spaces[sid]["floor_id"] for sid in space_ids}
-        if len(floor_ids) != 1:
-            raise ValueError(f"source opening {row['id']} spans multiple floors")
         vertices = row.get("vertices")
         if not isinstance(vertices, list) or len(vertices) < 2:
             raise ValueError(f"source opening {row['id']} requires vertices")
@@ -95,11 +93,31 @@ def _source_index(source: dict) -> tuple[str, dict, dict, dict]:
                 break
         if len(endpoints) != 2:
             raise ValueError(f"source opening {row['id']} requires two distinct plan endpoints")
+        if len(floor_ids) > 1:
+            # Floor IDs can denote same-level wings or a tall circulation
+            # volume. Identity differences alone do not invalidate a doorway.
+            # Its actual aperture must still lie within BOTH source spaces.
+            try:
+                z_values = [float(vertex[2]) for vertex in vertices]
+                if not all(math.isfinite(z) for z in z_values):
+                    raise ValueError("non-finite opening height")
+                if max(z_values) <= min(z_values):
+                    raise ValueError("non-positive opening height")
+                for sid in space_ids:
+                    base = float(spaces[sid]["z_floor"])
+                    height = float(spaces[sid]["height"])
+                    if not math.isfinite(base) or not math.isfinite(height) or height <= 0:
+                        raise ValueError("invalid space height")
+                    if min(z_values) < base - 1e-7 or max(z_values) > base + height + 1e-7:
+                        raise ValueError("aperture lies outside a connected space")
+            except (KeyError, IndexError, TypeError, ValueError) as error:
+                raise ValueError(f"source opening {row['id']} has invalid cross-instance heights: {error}") from error
         openings[row["id"]] = {
             "id": row["id"],
             "kind": _SOURCE_TO_REVIEW_KIND[row["kind"]],
             "space_ids": list(row["space_ids"]),
-            "floor_id": next(iter(floor_ids)),
+            "floor_id": spaces[space_ids[0]]["floor_id"],
+            **({"floor_ids": sorted(floor_ids)} if len(floor_ids) > 1 else {}),
             "plan_endpoints": endpoints,
             "vertices": copy.deepcopy(vertices),
             # These are intentionally retained from the immutable source
@@ -115,6 +133,9 @@ def _source_index(source: dict) -> tuple[str, dict, dict, dict]:
 def opening_inventory(source: dict) -> dict:
     """Expose actual explicit source openings by floor and source space.
 
+    A cross-instance opening appears in every associated floor/volume group,
+    with explicit floor_ids, but is counted once in the global inventory.
+    Group counts must not be summed to count unique building openings.
     The inventory is evidence for a later visual review, never a count inferred
     from room names, free text, or the review itself.
     """
@@ -122,7 +143,8 @@ def opening_inventory(source: dict) -> dict:
     by_floor = {floor_id: [] for floor_id in floors}
     by_space = {space_id: [] for space_id in spaces}
     for opening in openings.values():
-        by_floor[opening["floor_id"]].append(opening)
+        for floor_id in opening.get("floor_ids", [opening["floor_id"]]):
+            by_floor[floor_id].append(opening)
         for space_id in opening["space_ids"]:
             by_space[space_id].append(opening)
 
@@ -266,7 +288,8 @@ def facade_inventory(source: dict) -> dict:
     classifications: dict[str, dict] = {}
     for opening_id, opening in openings.items():
         result = {"opening_id": opening_id, "kind": opening["kind"],
-                  "floor_id": opening["floor_id"], "facade": None}
+                  "floor_id": opening["floor_id"], "facade": None,
+                  **({"floor_ids": opening["floor_ids"]} if "floor_ids" in opening else {})}
         if opening.get("exterior") is not True:
             result["reason"] = "not_exterior"
         else:
@@ -296,11 +319,11 @@ def facade_inventory(source: dict) -> dict:
             if not boundary_ids:
                 continue
             opening_ids = sorted(opening_id for opening_id, row in classifications.items()
-                                 if row["floor_id"] == floor_id and row.get("facade") == facade)
+                                 if floor_id in row.get("floor_ids", [row["floor_id"]]) and row.get("facade") == facade)
             facades.append({"facade": facade, "exterior_boundary_ids": boundary_ids,
                             "opening_ids": opening_ids})
         unresolved = [copy.deepcopy(row) for row in classifications.values()
-                      if row["floor_id"] == floor_id and row.get("facade") is None]
+                      if floor_id in row.get("floor_ids", [row["floor_id"]]) and row.get("facade") is None]
         by_floor.append({"floor_id": floor_id, "facades": facades,
                          "non_facade_openings": sorted(unresolved, key=lambda row: row["opening_id"]),
                          "unsupported_exterior_boundaries": sorted(
@@ -386,7 +409,7 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
     facade_index = facade_inventory(source) if "facade" in review else None
     facade = review.get("facade")
     floor_kind_ids = {opening_id for opening_id, opening in openings.items()
-                      if opening["floor_id"] == review["floor_id"] and opening["kind"] == review["kind"]}
+                      if review["floor_id"] in opening.get("floor_ids", [opening["floor_id"]]) and opening["kind"] == review["kind"]}
     if facade_index is None:
         scope = floor_kind_ids
         exclusions = []
@@ -435,7 +458,7 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
                 valid_mark = False
                 continue
             referenced_ids.add(opening_id)
-            if opening["floor_id"] != review["floor_id"]:
+            if review["floor_id"] not in opening.get("floor_ids", [opening["floor_id"]]):
                 finding("mark_floor_mismatch", mark_id=mark_id, opening_id=opening_id,
                         actual_floor_id=opening["floor_id"], review_floor_id=review["floor_id"])
                 valid_mark = False

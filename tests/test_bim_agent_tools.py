@@ -992,3 +992,24 @@ def test_parametric_tool_stdio_builds_repeated_spaces_and_preserves_compact_plan
             assert 'build_parametric_bim' not in names
             assert 'inspect_parametric_plan' not in names
     asyncio.run(exercise())
+
+
+def test_source_build_feedback_and_finish_preserve_same_level_annex_connection(tmp_path):
+    run=_run_with_one_image(tmp_path)
+    proposal=json.loads(_two_room_proposal())
+    geometry=proposal['geometry']
+    floor=geometry['floors'][0]
+    left,right=floor['cells']
+    floor['cells']=[left]
+    floor['footprint']={'vertices':[[0,0],[3,0],[3,4],[0,4]]}
+    geometry['floors'].append({'name':'ANNEX','z_floor':0,'ceiling_height':3,
+        'cells':[right],'footprint':{'vertices':[[3,0],[6,0],[6,4],[3,4]]}})
+    async def exercise():
+        async with _server_session(run,readonly=False) as session:
+            result=_json_result(await session.call_tool('build_bim',{'proposal_json':json.dumps(proposal)}))
+            assert result['source_geometry_ready'],result
+            assert len(result['source_plan_views'])==2
+            assert any(len(o.get('floor_ids',[]))==2 for f in result['opening_inventory']['floors'] for o in f['openings'])
+            finished=_json_result(await session.call_tool('finish_bim',{'candidate':result['candidate']}))
+            assert finished['viewer_exists']
+    asyncio.run(exercise())
