@@ -9,6 +9,8 @@
 
 **09-14 收工核对：此独立入口只枚举PNG，不读取同目录`testdata_prompt.json`。** 自动生成的`inputs.json`是图片/运行清单，不含原始case的用途、面积、层数等声明；因此近期“仅原图实跑”不能称为完整case输入。`--resume-candidate`只在显式使用时另取旧proposal，run15没有使用。完整声明接入尚待实现，后续需区分基础建筑信息与`thermal_zones`后端数量，不把后者直接当源房间正确数；详见[收工核对](../logs/worklog/2026-09-14_focused_guidance_session_close.md)。
 
+09-14用户随后明确：`testdata_prompt.json`是实际产品输入模态，实际使用需填写这类基础声明；开发阶段可为能力研究自行限定输入。所以上述PNG-only是当前独立入口的实现/本批实验范围，不代表产品不接声明，也不要求每次能力探针都带完整JSON。详见[产品目标](../project/goal.md#建筑基础声明作为输入09-14-用户确认)。
+
 ```bash
 python scripts/tool_scripts/run_bim_agent.py run \
   --images case_tests/e2e_tests/sm21_anchor/case_data \
