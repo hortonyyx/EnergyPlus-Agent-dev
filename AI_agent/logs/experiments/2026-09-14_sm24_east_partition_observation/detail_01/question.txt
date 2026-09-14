@@ -1,0 +1,27 @@
+Observe only physical partition relationships in the middle-right part of this original plan.
+Your local scope is original pixel box [360,260,630,610]. View the whole plan for orientation,
+then a clean magnified crop and any measurements needed. You may look just outside this box
+for wall junctions. No source BIM, expected room count, wall locations or answers are supplied.
+Do not reconstruct the whole floor or calculate metric coordinates.
+
+Within this scope identify visible physical dividers and their full path between enclosing
+wall junctions, including continuation through an actual doorway. Distinguish them from
+furniture edges and door-leaf/swing strokes. For each divider give two clear interior-floor
+points immediately on opposite sides, away from wall thickness and furniture. Explain
+whether it separates two actual spaces, is merely a free-ended wall fragment within one
+space, or is uncertain. Two points on opposite sides of some ink do not by themselves prove
+a physical room division; cite the wall's extent, end junctions, and aperture evidence.
+If needed return multiple observed alternatives instead of guessing.
+
+Also report any clearly continuous interior passage through this local scope as a short
+path of interior points. Such a path must stay within one actual space; crossing a door
+between rooms is connectivity, not continuous-space evidence. Pixel components can leak
+through doorways and are never room identity by themselves.
+
+Return a concise JSON object with image, scope_box, partitions, continuities and unresolved.
+Each partition has id, points (a polyline in original pixels), side_a and side_b (interior
+pixel points), relation (separates_spaces, wall_fragment, or uncertain), and evidence (what
+visible marks, junctions and openings support it, with original pixel locations).
+Each continuity has id, path (original-pixel polyline within one continuous space), evidence.
+Only state measurements/relations you actually checked. Keep unexamined parts explicit.
+No full-floor space count, BIM output, heights or windows are requested.

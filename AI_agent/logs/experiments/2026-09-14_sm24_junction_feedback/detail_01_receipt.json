@@ -1,0 +1,89 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 239.95801043510437,
+  "effort": "medium",
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "f0c569946e1daccfbc2ff5b6e8eecee7c1c75f6d59aa6ed3475d9cfbcd3021da",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 139.18,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 135506,
+    "duration_api_ms": 137071,
+    "ttft_ms": 2847,
+    "ttft_stream_ms": 2368,
+    "time_to_request_ms": 22,
+    "num_turns": 8,
+    "result": "## Findings\n\n**Context crop** [360,260,630,660]@3×: Two dining-table rooms are separated by a horizontal double line around y≈367–371 that runs from the vertical wall near x≈457 rightward to the exterior wall at x≈603–611. Lower down, near y≈583–587, a single cyan door-leaf arc is attached to the vertical wall at x≈402, swinging into the corridor; the vertical wall at x≈457 turns into a second solid horizontal run toward the exterior wall at that same height.\n\n**Junction A** — box [422,319,512,419]@6×, confirmed further in [430,300,620,420]@5×: The vertical wall at x≈457 (C02) runs continuously through y≈367/371. The horizontal double line (C04/C05) meets it in a clean, capped T‑junction — both wall faces (the two parallel grey strokes) terminate flush against the vertical wall’s faces, no gap, no furniture outline. This is a real corner, not a coincidental crossing: the horizontal member is a load-bearing-drawn partition separating the shelf/cabinet area above (with the \"240\" dimension) from the dining-table room below.\n\n**Junction B** — box [362,533,497,652]@6×, plus [380,500,500,660]@4× and [360,560,470,660]@5×: The vertical wall at x≈402 is continuous (not terminating at y≈583 as first appearance suggested); a single cyan door leaf is hinged on this vertical wall near (402,583) and swings left into the corridor, capped by flat head/sill ticks at x≈360–397. Separately, the vertical wall at x≈457 turns and continues as a solid horizontal wall from x≈462 to the exterior wall (x≈603–611) with no door. Between x≈397 and x≈462 (the \"gap\" the profile flagged) there is no drawn wall of any orientation — it is open corridor floor bounded by the two independent vertical walls. So the earlier framing of \"C06/C07 = one horizontal wall with a central door\" is not supported: the door belongs to the vertical wall (x≈402), and the x≈462–611 run is an unrelated solid horizontal wall with no opening.\n\n```json\n{\n  \"junctions\": [\n    {\n      \"id\": \"A\",\n      \"object\": \"physical_wall\",\n      \"relation\": \"separates_spaces (T-junction)\",\n      \"joins\": [\"C04/C05 horizontal (y=367/371, x=462-611)\", \"C02 vertical (x=457, peak y=415-587 run)\"],\n      \"separate_runs\": [],\n      \"evidence\": \"Crop [430,300,620,420]@5x shows both parallel grey strokes of the horizontal element terminate flush against both faces of the continuous x=457 vertical wall, forming a capped T-junction with no gap; the vertical wall continues above and below the junction row. This is a genuine end-cap connection, not a coincidental profile crossing.\",\n      \"prior_claim_action\": \"revise (prior 'wall_fragment / unresolved whether it connects left of x=462' is corrected: it clearly connects to and terminates at the x=457 wall, forming a real T-junction and dividing the cabinet/shelf area above from the dining-table room below)\"\n    },\n    {\n      \"id\": \"B\",\n      \"object\": \"uncertain (composite: door in vertical wall x=402 + unrelated solid horizontal wall x=462-611; no wall at all spans x=397-462)\",\n      \"relation\": \"not a single horizontal wall with a central door\",\n      \"joins\": [\"door leaf hinge belongs to C01 vertical wall (x=402), not to a horizontal member\", \"C02 vertical wall (x=457) turns into the solid horizontal run x=462-611 with no opening\"],\n      \"separate_runs\": [\n        [\"C06/C07 support interval [360,397] (door-leaf head/sill cap on x=402 wall)\"],\n        [\"C06/C07 support interval [462,611] (solid horizontal wall attached to x=457 wall)\"]\n      ],\n      \"evidence\": \"Crops [380,500,500,660]@4x and [360,560,470,660]@5x show the x=402 vertical wall running continuously through y=583-650 with a single cyan door leaf hinged on it, swinging left into the corridor (flat cyan caps at x~360-397 mark head/sill, not a wall face). Crop [440,550,630,620]@5x shows the x=462-611 span is an unbroken solid double-line wall joined to the x=457 vertical wall, with no arc or jamb break. Between x=397 and x=462 no wall ink of either orientation is present; this is open corridor floor, not a doorway cut into a horizontal wall.\",\n      \"prior_claim_action\": \"revise (prior 'W-bottom-with-door: unbridged interval x=397-462 is a doorway opening in a bottom horizontal wall' is corrected: there is no single horizontal wall there; the door belongs to the x=402 vertical wall, the x=462-611 stretch is an unrelated solid wall, and the x=397-462 zone is simply open corridor space between two independent verticals — black-pixel/profile adjacency should not have been read as one continuous horizontal wall with a central door)\"\n    }\n  ],\n  \"unresolved\": [\n    \"Exact hinge coordinate and swing direction of the door leaf on the x=402 wall relative to the corridor floor were read visually from the arc icon only; no jamb-width/frame ink was separately isolated to confirm leaf thickness.\",\n    \"Whether the x=457→horizontal (x=462-611) wall at y=583/587 is the same physical wall thickness/material as the x=402 wall, or a distinct partition type, was not checked beyond line width comparison.\"\n  ]\n}\n```",
+    "stop_reason": "end_turn",
+    "session_id": "0b3da0a4-0d8f-44e1-934e-9b6c1e668408",
+    "total_cost_usd": 0.3039209,
+    "usage": {
+      "input_tokens": 12,
+      "cache_creation_input_tokens": 18967,
+      "cache_read_input_tokens": 83453,
+      "output_tokens": 10724,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 18967,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 3206,
+          "cache_read_input_tokens": 21901,
+          "cache_creation_input_tokens": 1223,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1223
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 4102,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.004187,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 12,
+        "outputTokens": 10724,
+        "cacheReadInputTokens": 83453,
+        "cacheCreationInputTokens": 18967,
+        "webSearchRequests": 0,
+        "costUSD": 0.2997339,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "fffba4f8-99f9-4da6-bca8-d0d8bb4c38b4"
+  }
+}

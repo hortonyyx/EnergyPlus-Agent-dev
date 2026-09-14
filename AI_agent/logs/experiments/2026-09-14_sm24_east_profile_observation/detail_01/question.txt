@@ -1,0 +1,38 @@
+Classify measured ink candidates in a bounded part of an original floor plan.
+The developer selected box [360,260,630,610] and the measurement parameters below.
+These are assistance, not an autonomous localization or a list of true walls.
+No source BIM, expected room count, known wall coordinates, old observations or GT
+are provided. Do not reconstruct the floor or create any new coordinate estimates.
+
+First view the original plan and a clean enlarged local crop (coordinate_grid=false).
+Then you MUST call view_pixel_profile twice, once with axis='x' and once axis='y',
+using name='1f_view.png', box=[360,260,630,610], rgb=[169,169,169], tolerance=100,
+min_fraction=0.3. This filter finds some grey ink, including furniture, intersecting
+lines and walls. It does not identify objects or prove that missing ink is absent.
+Use the returned candidate IDs, pixels and support_intervals_at_peak as exact
+location references. A profile_record plus C## identifies a candidate uniquely.
+Each support interval is numbered from 0 in its returned list. Do not replace the
+actual disjoint intervals by their enclosing span. A one-pixel interval is usually
+an intersecting stroke; it does not establish a wall running along this axis.
+
+Inspect clean magnified original crops as needed to classify every candidate's
+substantial intervals. Do not classify by color or length alone: check wall
+thickness, junctions, doorway details and furniture context. Distinguish physical
+walls from furniture edges, door leaves/arcs, annotation and uncertain marks.
+Keep object identity separate from whether it actually divides spaces. A physical
+wall with a free end may lie within one space; a door opening can belong to a
+divider between two rooms. If parallel ink candidates are faces of the same wall,
+group their references instead of counting them as separate room dividers.
+
+Return JSON {image, scope_box, assessments, unresolved}. Each assessment has:
+- id;
+- refs: [{profile_record, candidate_id, interval_indices}];
+- object: physical_wall | not_wall | uncertain;
+- relation: separates_spaces | wall_fragment | exterior_boundary | not_applicable | uncertain;
+- evidence: explain the actual visual junctions, thickness, opening or furniture
+  context, citing measurement references rather than inventing pixel coordinates;
+- gaps: explain only visually checked discontinuities, without filling them in.
+You may classify disjoint portions separately. Account for all candidates, including
+rejected ones; group only with visible evidence. Leave unresolved readings explicit.
+Do not invent side points, continuous-space paths, metre coordinates, heights, room
+counts or geometry. The result is a local observation, not a verified source model.
