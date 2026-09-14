@@ -1,0 +1,581 @@
+{
+  "assumptions": [
+    "Wall thickness abstracted to zero-thickness representative planes at approximate centerlines; ~240mm actual thickness per plan label not separately modeled.",
+    "Building orientation: plan top=North, bottom=South, left=West, right=East, derived by comparing door/window sequences between plan edges and the four elevations (mirroring analysis).",
+    "Door/window heights derived from North_view dimension chain (sill 1.0m, head 3.4m for windows; door head assumed 2.4m, exterior door threshold detail (~0.2m) ignored).",
+    "Ceiling height 4.5m taken from elevation total wall height.",
+    "Interior door opening widths/positions approximated from plan arc symbol pixel extents, not exact.",
+    "R_Corridor modeled as one L/T-shaped continuous circulation space per guidance to keep open space intact; its exact widened-alcove extent near the east exterior door is approximated as rectangular rather than following the door-swing pixel contour.",
+    "No clear evidence of a door between R_Conference and R_SE_office; modeled as a plain adjoining wall (unknown/no opening)."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "R_North",
+            "role": "reception/lounge",
+            "source_refs": [
+              "plan: open room under north wall with sofa group"
+            ],
+            "x": [
+              0,
+              10
+            ],
+            "y": [
+              15.9,
+              20
+            ]
+          },
+          {
+            "id": "R_NW",
+            "role": "meeting_small",
+            "source_refs": [
+              "plan: small room with table+2 chairs"
+            ],
+            "x": [
+              0,
+              4.0
+            ],
+            "y": [
+              13.0,
+              15.9
+            ]
+          },
+          {
+            "id": "R_Workstation",
+            "role": "office",
+            "source_refs": [
+              "plan: two workstation cubicles"
+            ],
+            "x": [
+              0,
+              4.0
+            ],
+            "y": [
+              8.0,
+              13.0
+            ]
+          },
+          {
+            "id": "R_Conference",
+            "role": "conference",
+            "source_refs": [
+              "plan: room with oval table"
+            ],
+            "x": [
+              0,
+              4.0
+            ],
+            "y": [
+              0,
+              8.0
+            ]
+          },
+          {
+            "id": "R_Store",
+            "role": "storage",
+            "source_refs": [
+              "plan: small room with credenza/shelf"
+            ],
+            "x": [
+              4.6,
+              10
+            ],
+            "y": [
+              13.8,
+              15.9
+            ]
+          },
+          {
+            "id": "R_RoundTable",
+            "role": "meeting",
+            "source_refs": [
+              "plan: room with round table+4 chairs"
+            ],
+            "x": [
+              4.6,
+              10
+            ],
+            "y": [
+              8.0,
+              13.8
+            ]
+          },
+          {
+            "id": "R_SE_office",
+            "role": "office",
+            "source_refs": [
+              "plan: room with desk, south door+window"
+            ],
+            "x": [
+              4.0,
+              10
+            ],
+            "y": [
+              0,
+              4.8
+            ]
+          },
+          {
+            "id": "R_Corridor",
+            "polygon": [
+              [
+                4.0,
+                4.8
+              ],
+              [
+                10,
+                4.8
+              ],
+              [
+                10,
+                8.0
+              ],
+              [
+                4.6,
+                8.0
+              ],
+              [
+                4.6,
+                15.9
+              ],
+              [
+                4.0,
+                15.9
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "plan: central circulation spine with doors to all rooms, widens near east exterior door"
+            ],
+            "x": [
+              4.0,
+              10
+            ],
+            "y": [
+              4.8,
+              15.9
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "id": "D_north_corridor",
+        "kind": "door",
+        "other_space_id": "R_Corridor",
+        "p1": [
+          4.1,
+          15.9
+        ],
+        "p2": [
+          5.0,
+          15.9
+        ],
+        "source_refs": [
+          "plan door arc at R_North/corridor boundary"
+        ],
+        "space_id": "R_North",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_NW_corridor",
+        "kind": "door",
+        "other_space_id": "R_Corridor",
+        "p1": [
+          4.0,
+          13.2
+        ],
+        "p2": [
+          4.0,
+          13.7
+        ],
+        "source_refs": [
+          "plan door arc"
+        ],
+        "space_id": "R_NW",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_workstation_corridor",
+        "kind": "door",
+        "other_space_id": "R_Corridor",
+        "p1": [
+          4.0,
+          11.9
+        ],
+        "p2": [
+          4.0,
+          12.4
+        ],
+        "source_refs": [
+          "plan door arc"
+        ],
+        "space_id": "R_Workstation",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_conference_corridor",
+        "kind": "door",
+        "other_space_id": "R_Corridor",
+        "p1": [
+          4.0,
+          6.8
+        ],
+        "p2": [
+          4.0,
+          7.7
+        ],
+        "source_refs": [
+          "plan door arc"
+        ],
+        "space_id": "R_Conference",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_store_corridor",
+        "kind": "door",
+        "other_space_id": "R_Corridor",
+        "p1": [
+          4.6,
+          14.7
+        ],
+        "p2": [
+          4.6,
+          15.3
+        ],
+        "source_refs": [
+          "plan door arc"
+        ],
+        "space_id": "R_Store",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_roundtable_corridor",
+        "kind": "door",
+        "other_space_id": "R_Corridor",
+        "p1": [
+          4.6,
+          12.0
+        ],
+        "p2": [
+          4.6,
+          12.6
+        ],
+        "source_refs": [
+          "plan door arc"
+        ],
+        "space_id": "R_RoundTable",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "id": "D_corridor_office",
+        "kind": "door",
+        "other_space_id": "R_SE_office",
+        "p1": [
+          8.56,
+          4.8
+        ],
+        "p2": [
+          9.75,
+          4.8
+        ],
+        "source_refs": [
+          "plan door arc near SE office"
+        ],
+        "space_id": "R_Corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "N_door",
+        "kind": "door",
+        "room": "R_North",
+        "source_refs": [
+          "plan north double-door arc; North_view door symbol"
+        ],
+        "span": [
+          0.54,
+          2.14
+        ],
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "N_win1",
+        "room": "R_North",
+        "source_refs": [
+          "plan north window; North_view large window box"
+        ],
+        "span": [
+          4.66,
+          9.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "S_win1",
+        "room": "R_Conference",
+        "source_refs": [
+          "South_view window box"
+        ],
+        "span": [
+          0.54,
+          2.04
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "S_door",
+        "kind": "door",
+        "room": "R_SE_office",
+        "source_refs": [
+          "plan south door arc 900mm; South_view door symbol"
+        ],
+        "span": [
+          4.54,
+          5.44
+        ],
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "S_win2",
+        "room": "R_SE_office",
+        "source_refs": [
+          "South_view window box"
+        ],
+        "span": [
+          7.96,
+          9.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "E_door",
+        "kind": "door",
+        "room": "R_Corridor",
+        "source_refs": [
+          "plan east double-door arc 1600mm; East_view door symbol"
+        ],
+        "span": [
+          5.7,
+          7.3
+        ],
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "E_win1",
+        "room": "R_RoundTable",
+        "source_refs": [
+          "East_view large window box"
+        ],
+        "span": [
+          8.84,
+          13.64
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "E_win2",
+        "room": "R_Store",
+        "source_refs": [
+          "East_view window box"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "E_win3",
+        "room": "R_North",
+        "source_refs": [
+          "East_view window box"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_win1",
+        "room": "R_North",
+        "source_refs": [
+          "West_view window box"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_win2",
+        "room": "R_NW",
+        "source_refs": [
+          "West_view window box"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_win3",
+        "room": "R_Workstation",
+        "source_refs": [
+          "West_view window box"
+        ],
+        "span": [
+          11.14,
+          12.64
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_win4",
+        "room": "R_Workstation",
+        "source_refs": [
+          "West_view window box"
+        ],
+        "span": [
+          8.42,
+          9.92
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_win5",
+        "room": "R_Conference",
+        "source_refs": [
+          "West_view large window box"
+        ],
+        "span": [
+          0.54,
+          5.34
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact wall thickness not modeled (zero-thickness abstraction).",
+    "Small notch/step in wall near east door (observed in pixel crop) not modeled as geometry; treated as door-swing artifact only.",
+    "Declared thermal_zones=8 in building_input coincides with our 8 physical source rooms, but per field_semantics this is downstream zoning guidance, not verified as the physical room count; treated as coincidental match, not evidence."
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "building_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/e2e_tests/sm24_anchor/case_data/testdata_prompt.json",
+    "frozen_path": "building_input.json",
+    "raw_sha256": "f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701",
+    "raw_size_bytes": 688,
+    "declaration": {
+      "TestName": "sm24_anchor",
+      "Building location": "Shenzhen",
+      "Floor area": "200m²",
+      "Building type": "Office",
+      "Number of floors": 1,
+      "Floor plans": [
+        {
+          "floor": 1,
+          "path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "thermal_zones": 8
+        }
+      ],
+      "South view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+      "North view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+      "East view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+      "West view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png"
+    },
+    "image_path_associations": [
+      {
+        "json_pointer": "/Floor plans/0/path",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+        "declared_basename": "1f_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "1f_view.png",
+        "authorized_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+      },
+      {
+        "json_pointer": "/South view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+        "declared_basename": "South_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "South_view.png",
+        "authorized_image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+      },
+      {
+        "json_pointer": "/North view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+        "declared_basename": "North_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "North_view.png",
+        "authorized_image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+      },
+      {
+        "json_pointer": "/East view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+        "declared_basename": "East_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "East_view.png",
+        "authorized_image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+      },
+      {
+        "json_pointer": "/West view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png",
+        "declared_basename": "West_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "West_view.png",
+        "authorized_image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+      }
+    ],
+    "image_path_policy": "Declared paths are provenance labels only. They are associated by exact basename with the already authorized PNG inventory and are never opened as file paths.",
+    "field_semantics": {
+      "thermal_zones": "User declaration for downstream simulation zoning; it is not a measured or authoritative count of physical source spaces.",
+      "other_fields": "User-supplied building declarations retain their stated meaning and are not ground truth or independently verified observations."
+    },
+    "conflict_policy": "The agent must compare declarations with supplied drawing evidence, preserve the conflict or uncertainty, and decide its modelling effect explicitly."
+  },
+  "input_mode": "offline_input_transport_check_no_model_generation"
+}

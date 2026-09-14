@@ -1,0 +1,16 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 239.94719886779785,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "fe81044189c83198eb65083b699c8fe81cd22aa697c16b0c26be5a8fecbfffbc",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "prompt": "Images: [1f_view.png]\nQuestion: Identify the physical spaces and circulation in this original floor plan.\nThis is a bounded observation experiment, before metric dimensions or BIM assembly.\nNo expected room count, prior observation, coordinates, or generated model is supplied.\n\nTest this observation method: after viewing the plan, use the numbered pixel-region\noverview to locate floor regions, then inspect the returned seed contours with\nview_pixel_region for the regions you classify as floor. Follow the actual tool\nbounds, not remembered positions on the overview. Components are not rooms: furniture\nand door leaves can divide a room's pixels, and openings may connect several spaces.\nDo not give the same confidence to an overview guess and an inspected contour.\n\nFor adjacent regions you propose to merge or separate, inspect the original across\ntheir actual facing edges. Identify the entire separator from one wall junction to\nthe next, its endpoints in ORIGINAL pixels, and any gap/door along it. A furniture\nexplanation needs visible evidence about its ends and relation to enclosing walls.\nTrace bends/extensions of circulation in the original; adjacency is not a connection.\nIf uncertain, keep the alternatives explicit. Do not replace a missing observation\nwith a room-count assumption. No metric dimensions, calibration, heights or windows\nare required for this task.\n\nAnswer concisely with (1) physical-space inventory: label, actual inspected region\nIDs/seeds, complete extent including bends; (2) adjacent-space separators: space pair,\nfull wall/door/open span/furniture/unknown, path endpoints in original pixels, cited\nview or measurement, and observed/inferred status; (3) unresolved or uninspected\nregions. Any merger of floor regions must have a separator entry. Region IDs must\nrefer to the actual returned inventory; do not cite exterior annotation blobs as rooms.\nWork within 240 seconds and reserve the last 30 seconds for the answer. This is an\nobservation, not a claim that a complete BIM or automatic fidelity pass exists.\n",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}

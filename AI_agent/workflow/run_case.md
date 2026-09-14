@@ -5,21 +5,24 @@
 
 ## 最小 BIM Agent 实验入口（09-10）
 
-独立于旧 `flow`，用已登录 Claude 订阅的 Sonnet 自主选择原图查看、量测、局部 Haiku 复核和源 BIM 生成/检查。当前支持输入目录中的 PNG；不要把 GT、历史生成图或辅助答案放进该目录。
+独立于旧 `flow`，用已登录 Claude 订阅的 Sonnet 自主选择原图查看、量测、局部 Haiku 复核和源 BIM 生成/检查。支持输入目录中的 PNG，以及显式提供的建筑基础声明 JSON；不要把 GT、历史生成图或辅助答案放进图片目录。
 
-**09-14 收工核对：此独立入口只枚举PNG，不读取同目录`testdata_prompt.json`。** 自动生成的`inputs.json`是图片/运行清单，不含原始case的用途、面积、层数等声明；因此近期“仅原图实跑”不能称为完整case输入。`--resume-candidate`只在显式使用时另取旧proposal，run15没有使用。完整声明接入尚待实现，后续需区分基础建筑信息与`thermal_zones`后端数量，不把后者直接当源房间正确数；详见[收工核对](../logs/worklog/2026-09-14_focused_guidance_session_close.md)。
+**09-14 新增 `--building-input 文件.json`。** 该文件原字节复制为运行目录的`building_input.json`；`inputs.json`保留原声明、散列与图面关联，模型通过`inputs`取得。用途、位置、面积、层数等按原字段提供；`thermal_zones`明确为后端分区声明，不自动解释成源物理房间数。声明与图证冲突需模型说明取舍，接口本身不判真。
 
-09-14用户随后明确：`testdata_prompt.json`是实际产品输入模态，实际使用需填写这类基础声明；开发阶段可为能力研究自行限定输入。所以上述PNG-only是当前独立入口的实现/本批实验范围，不代表产品不接声明，也不要求每次能力探针都带完整JSON。详见[产品目标](../project/goal.md#建筑基础声明作为输入09-14-用户确认)。
+声明中的路径只按文件名关联到本次PNG清单，保留未提供图面的状态，不据路径读取额外文件。省略该参数仍只枚举PNG，不自动读取邻近JSON；`source_input_mode`与`input_contents`记录实际提供内容，`input_mode`继续区分原图起跑和`--resume-candidate`恢复。局部Haiku观察仍只获得父模型选择的图片和问题，不自动继承整案声明。此前run15等仅原图成绩不变，见[收工核对](../logs/worklog/2026-09-14_focused_guidance_session_close.md)。开发可按研究目的限定输入，详见[产品目标](../project/goal.md#建筑基础声明作为输入09-14-用户确认)。
 
 ```bash
 python scripts/tool_scripts/run_bim_agent.py run \
   --images case_tests/e2e_tests/sm21_anchor/case_data \
+  --building-input case_tests/e2e_tests/sm21_anchor/case_data/testdata_prompt.json \
   --out AI_agent/logs/experiments/<新的实验目录> \
   --scope '根据所给平面与立面生成保留房间、门窗和连通的可查看 BIM' \
   --timeout 900
 ```
 
 输出目录须不存在。每个 `candidate_XX` 保存原方案、源 BIM、查看器和检查报告；`tools.jsonl`、订阅回执及流式记录说明真实执行过程。模型回复结束不代表已有候选；以实际保存的 `viewer.html`、`source_model.json` 及报告为准。源 BIM 的几何检查通过也不等于原图保真验收，独立对照须在生成结束后另做，不反馈 GT。
+
+独立proposal入口的`geometry.windows`只接窗；显式`kind`若不是`window`，会保留原proposal并一次报告所有类别冲突，不生成改类后的源。门和空开口应放`geometry.openings`，使用`space_id`、`p1/p2`和`z`，室外另一侧为`other_space_id:null`。无kind的既有窗格式仍可用。该校验修复run16暴露的“三外门被生成为窗”，没有自动修正原候选或改变旧flow。
 
 运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。主模型默认使用medium effort，可显式加`--effort low`，仅支持low/medium，不改变Haiku设置；实际档位与模型版本以回执为准。此入口未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
 

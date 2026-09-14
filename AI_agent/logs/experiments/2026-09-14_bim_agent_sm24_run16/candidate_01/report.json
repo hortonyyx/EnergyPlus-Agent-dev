@@ -1,0 +1,157 @@
+{
+  "agent_assumptions": [
+    "Wall thickness abstracted to zero-thickness representative planes at approximate centerlines; ~240mm actual thickness per plan label not separately modeled.",
+    "Building orientation: plan top=North, bottom=South, left=West, right=East, derived by comparing door/window sequences between plan edges and the four elevations (mirroring analysis).",
+    "Door/window heights derived from North_view dimension chain (sill 1.0m, head 3.4m for windows; door head assumed 2.4m, exterior door threshold detail (~0.2m) ignored).",
+    "Ceiling height 4.5m taken from elevation total wall height.",
+    "Interior door opening widths/positions approximated from plan arc symbol pixel extents, not exact.",
+    "R_Corridor modeled as one L/T-shaped continuous circulation space per guidance to keep open space intact; its exact widened-alcove extent near the east exterior door is approximated as rectangular rather than following the door-swing pixel contour.",
+    "No clear evidence of a door between R_Conference and R_SE_office; modeled as a plain adjoining wall (unknown/no opening)."
+  ],
+  "counts": {
+    "boundaries": 50,
+    "connections": 6,
+    "openings": 20,
+    "spaces": 8,
+    "unbuilt_openings": 1,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f030372458b7ca1b4cf03e12b3822f72dfb7b8f002d448dbb99fe040de85cfb6",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "4fcd40dca8f28f91d7c7523482a13564e97eb9f0d5d7c9c2a9c0ebae16d3817e",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.4
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "R_North",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "R_Corridor",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D_north_corridor",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "725b3773afaa460d430e920a2aad801b9162c25ea4ffa53a4aea8c3c76466a6e",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.4
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "R_North",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "R_Corridor",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D_north_corridor",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Exact wall thickness not modeled (zero-thickness abstraction).",
+    "Small notch/step in wall near east door (observed in pixel crop) not modeled as geometry; treated as door-swing artifact only.",
+    "Declared thermal_zones=8 in building_input coincides with our 8 physical source rooms, but per field_semantics this is downstream zoning guidance, not verified as the physical room count; treated as coincidental match, not evidence."
+  ]
+}
