@@ -1,0 +1,137 @@
+{
+  "input_checks": {
+    "asset_bytes": true,
+    "no_prepared_images": true,
+    "no_seed": true,
+    "declaration_bytes": true
+  },
+  "input_manifest_delivered": true,
+  "code_hashes": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_mesh.py": true,
+    "src/agent/geometry/mesh_observation.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "scripts/tool_scripts/bim_agent_inputs.py": true
+  },
+  "tool_calls": {
+    "mcp__bim__inspect_mesh": 1,
+    "mcp__bim__view_mesh": 5,
+    "mcp__bim__measure_mesh_pixels": 5,
+    "mcp__bim__view_image": 2,
+    "mcp__bim__inputs": 1
+  },
+  "image_transport": [
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_001.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_002.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_003.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_004.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_005.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    }
+  ],
+  "mesh_render_replay": [
+    {
+      "observation": "mesh_001",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_002",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_003",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_004",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_005",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 11.4
+    }
+  ],
+  "surface_measurement_replay": [
+    {
+      "observation": "mesh_002",
+      "points": 4,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_002",
+      "points": 4,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_002",
+      "points": 3,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_003",
+      "points": 3,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_004",
+      "points": 3,
+      "queries_match": true,
+      "distances_match": true
+    }
+  ],
+  "source_replay": [],
+  "note": "PNG exact or measured JPEG approximation; these checks do not establish architectural fidelity.",
+  "passed": true
+}

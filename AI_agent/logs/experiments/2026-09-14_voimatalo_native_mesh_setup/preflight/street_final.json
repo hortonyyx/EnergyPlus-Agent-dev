@@ -1,0 +1,148 @@
+{
+  "mesh_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+  "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+  "coordinate_frame": "BIM-local right-handed Z-up metres",
+  "source_coordinate_transform": {
+    "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+    "y_up_to_z_up": "[X, -Z, Y]",
+    "y_up_to_z_up_matrix": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "yaw_degrees_counterclockwise_about_positive_z": 0.0,
+    "yaw_matrix": [
+      [
+        1.0,
+        -0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "vertex_count": 8242,
+  "face_count": 12520,
+  "scene_instance_count": 1,
+  "selected_vertex_count": 8242,
+  "selected_face_count": 12520,
+  "bounds": [
+    [
+      -22.37481689453125,
+      -33.08087158203125,
+      0.0
+    ],
+    [
+      26.085182189941406,
+      29.569124221801758,
+      34.27320098876953
+    ]
+  ],
+  "selection_bounds": null,
+  "selection_method": "all faces",
+  "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+  "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint.",
+  "camera": {
+    "projection": "orthographic",
+    "eye": [
+      -110.0,
+      -95.0,
+      60.0
+    ],
+    "target": [
+      0.0,
+      0.0,
+      16.0
+    ],
+    "eye_target_distance_m": 151.85848675658534,
+    "forward_from_eye": [
+      0.7243585943031258,
+      0.6255824223526996,
+      -0.28974343772125033
+    ],
+    "screen_right": [
+      0.6536198703460924,
+      -0.7568230077691596,
+      0.0
+    ],
+    "screen_up": [
+      0.21928450001757288,
+      0.1893820681969948,
+      0.9571043518328981
+    ],
+    "up_reference": "+Z",
+    "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+  },
+  "view_span_m": {
+    "width": 85.0,
+    "height": 64.0
+  },
+  "resolution_px": {
+    "width": 1200,
+    "height": 900
+  },
+  "pixel_center_mapping": {
+    "formula": "plane_xyz(row,col)=top_left+col*column_step+row*row_step; surface_xyz additionally advances along camera forward to the visible triangle",
+    "top_left_pixel_center_plane_xyz": [
+      -20.74638823429468,
+      38.191666279654285,
+      46.59330888169868
+    ],
+    "column_step_world_xyz": [
+      0.046298074149514874,
+      -0.0536082963836488,
+      0.0
+    ],
+    "row_step_world_xyz": [
+      -0.015593564445694071,
+      -0.013467169294008518,
+      -0.0680607539081172
+    ],
+    "pixel_width_m": 0.07083333333333333,
+    "pixel_height_m": 0.07111111111111111,
+    "pixel_coordinates": "zero-based [column, row] with image origin at top-left"
+  },
+  "rasterizer": {
+    "texture_interpolation": "barycentric UV, glTF REPEAT wrap, nearest texture pixel",
+    "texture_v_mapping": "PIL image rows are the vertical inverse of glTF UV",
+    "depth_test": "nearest positive distance along camera forward",
+    "lighting": "none; base-color texture is multiplied only by material baseColorFactor",
+    "candidate_faces_overlapping_view": 12463,
+    "visible_pixel_count": 300271
+  },
+  "artifacts": {
+    "png": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/preflight/street_final.png",
+    "metadata_json": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/preflight/street_final.json",
+    "pixel_buffer_npz": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/preflight/street_final.npz",
+    "pixel_buffer_layout": "sorted flat pixel indices with compact world XYZ and global face IDs"
+  }
+}

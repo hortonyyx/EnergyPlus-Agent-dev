@@ -307,3 +307,13 @@ python scripts/tool_scripts/diagnose_source_checkpoint.py --out AI_agent/logs/ex
 普通运行默认Sonnet。只有任务中明确获准的探索可使用`--exploratory-opus`切到现有Claude订阅Opus，本轮Voimatalo已获用户许可。该开关不是付费API/DeepSeek授权，不作自动回退。模型原始回执、输入条件与实际输出分别报告，真实示例及准备脚本见[迁移输入](../logs/experiments/2026-09-14_voimatalo_transfer_setup/README.md)。
 
 开口清单现在允许同标高不同翼楼记录和连续高空间的门连接，按两侧空间与实际高度检查。在各关联楼层/空间组可见同一开口，全局仅计一次，不能直接相加分组数量。
+
+### 原始GLB输入与内部观察（09-14续推）
+
+同一实验入口可用`--mesh ORIGINAL.glb`直接提供原始三维资产，`--images`变为可选；至少提供其中一种。原GLB原样保存在run/assets/input.glb，输入摘要与声明可核；`inspect_mesh`、`view_mesh`、`measure_mesh_pixels`和`view_mesh_observation`仅对本次获准资产可见。图片目录为空时不会先生成固定截图包。普通图纸运行及只接收局部原图的子任务不会因此取得原网格访问权限。
+
+`view_mesh`方位角指相机所在方向（0=局部+x、90=+y），仰角90为俯视；可指定旋转、观察目标、米制范围和三角面中心选区。输出最长边1200像素，按视图物理比例调整另一边并保持两个方向每像素米数一致，`measure_mesh_pixels`使用该视图resolution_px原分辨率查询可见表面，背景不返回虚构坐标。每次相机参数及选区都留档，判读依据引用mesh_observations记录。几何查询不自动识别房间或可靠墙位。
+
+本程真实运行入口与辅助边界见[原网格实验准备](../logs/experiments/2026-09-14_voimatalo_native_mesh_setup/README.md)。Opus沿用本次任务的探索授权，仍不作为常规产品默认档。
+
+续推实跑后修正：独立指定米制宽高时，视图不再被固定画幅拉伸；两选点另返回坐标差与水平朝向，仍不证明所选点属于同一条墙边。大规模`finish_bim`回执保留状态、数量、未建项、假设及未核范围摘要，详细开口/立面/回查清单保留在delivery.json；原图小案例回执保持。实际大案已通过MCP重放，源与报告事实不变，避免原18.4万字符回执被CLI截断。

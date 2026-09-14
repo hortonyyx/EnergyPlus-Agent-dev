@@ -1,0 +1,18 @@
+[
+  "python",
+  "scripts/tool_scripts/run_bim_agent.py",
+  "run",
+  "--mesh",
+  "case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+  "--building-input",
+  "AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/building_input.json",
+  "--out",
+  "AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_run01",
+  "--scope",
+  "Build a useful lightweight BIM of the supplied single textured building. Use the ORIGINAL GLB through the native mesh tools; choose your own observations and coordinate alignment. Preserve the visible main shape, storeys, setbacks, discrete openings and intervening wall strips. Infer missing interior spaces and circulation at the declared simplification, recording hypotheses. Continuous vertical space must not acquire fake intermediate slabs. Assess actual generated source geometry and substantive discrepancies before choosing a candidate; report unexamined regions and unresolved errors. No EnergyPlus.",
+  "--timeout",
+  "1800",
+  "--exploratory-opus",
+  "--effort",
+  "medium"
+]

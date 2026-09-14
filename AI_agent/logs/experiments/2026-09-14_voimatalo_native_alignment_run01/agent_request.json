@@ -1,0 +1,13 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 480,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "experiment": "post-aspect-fix alignment observation",
+  "developer_selected_subtask": true,
+  "previous_angle_or_candidate_supplied": false,
+  "prompt": "Determine a defensible local xy yaw to align the main walls of this original textured building mesh. Choose your own views and metric span, then measure well-separated surface points tied to the SAME visibly straight facade/roof edge to verify direction; verify an independent edge or an aligned view. Use the returned point differences and horizontal heading rather than trusting apparent pixel slope alone. Explain the chosen coordinate transform and uncertainty. Do not model interiors or create a BIM; this is a bounded native geometry observation. No earlier views, candidate, alignment angle or numerical answer are supplied.",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}

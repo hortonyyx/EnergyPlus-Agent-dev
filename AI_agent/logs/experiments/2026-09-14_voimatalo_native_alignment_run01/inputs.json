@@ -1,0 +1,124 @@
+{
+  "images": {},
+  "mesh_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+    "frozen_path": "assets/input.glb",
+    "sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "bytes": 969568,
+    "geometry": {
+      "mesh_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_alignment_run01/assets/input.glb",
+      "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "coordinate_frame": "BIM-local right-handed Z-up metres",
+      "source_coordinate_transform": {
+        "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+        "y_up_to_z_up": "[X, -Z, Y]",
+        "y_up_to_z_up_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "yaw_degrees_counterclockwise_about_positive_z": 0.0,
+        "yaw_matrix": [
+          [
+            1.0,
+            -0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "vertex_count": 8242,
+      "face_count": 12520,
+      "scene_instance_count": 1,
+      "selected_vertex_count": 8242,
+      "selected_face_count": 12520,
+      "bounds": [
+        [
+          -22.37481689453125,
+          -33.08087158203125,
+          0.0
+        ],
+        [
+          26.085182189941406,
+          29.569124221801758,
+          34.27320098876953
+        ]
+      ],
+      "selection_bounds": null,
+      "selection_method": "all faces",
+      "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+      "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint."
+    },
+    "note": "Original mesh asset; no preselected cameras or BIM observations. Mesh surfaces may be incomplete/noisy and are not room semantics."
+  },
+  "building_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/building_input.json",
+    "frozen_path": "building_input.json",
+    "raw_sha256": "e250eddd5280a2342d01f0a3648dab032c7f300cd526ad534369bb7dbbfba7e7",
+    "raw_size_bytes": 1342,
+    "declaration": {
+      "building": "Voimatalo",
+      "location": "Helsinki",
+      "use": "office with street-level commercial, from previously sourced input preparation",
+      "storey_information": "Prior public record describes eight above-ground storeys including six similar office storeys and a setback upper storey; reconcile with visual evidence. Not actual surveyed slab levels.",
+      "simplification_intent": "Retain main shape, storeys, setbacks and visible aperture groups. Infer a useful, moderately detailed office/circulation/service-space scheme from available constraints. Do not make room counts a goal or split a continuous open space just by orientation. No internal plan is supplied; all interior partition/door hypotheses must be explicit.",
+      "missing_information": [
+        "actual internal partitions and doors",
+        "precise storey/slab levels",
+        "occluded facade surfaces",
+        "stair/elevator details",
+        "complete ground-level entrance inventory"
+      ],
+      "input_condition": "Original self-contained GLB of the previously selected target single building. The prior single-building crop is retained and may omit occluded/context surfaces. No prepared screenshots, facade plane selections, local alignment angle, prior BIM, window coordinates/counts or interior plan is supplied in this run. View and measure the asset through tools as needed."
+    },
+    "image_path_associations": [],
+    "image_path_policy": "Declared paths are provenance labels only. They are associated by exact basename with the already authorized PNG inventory and are never opened as file paths.",
+    "field_semantics": {
+      "thermal_zones": "User declaration for downstream simulation zoning; it is not a measured or authoritative count of physical source spaces.",
+      "other_fields": "User-supplied building declarations retain their stated meaning and are not ground truth or independently verified observations."
+    },
+    "conflict_policy": "The agent must compare declarations with supplied drawing evidence, preserve the conflict or uncertainty, and decide its modelling effect explicitly."
+  },
+  "scope": "Determine a defensible local xy yaw to align the main walls of this original textured building mesh. Choose your own views and metric span, then measure well-separated surface points tied to the SAME visibly straight facade/roof edge to verify direction; verify an independent edge or an aligned view. Use the returned point differences and horizontal heading rather than trusting apparent pixel slope alone. Explain the chosen coordinate transform and uncertainty. Do not model interiors or create a BIM; this is a bounded native geometry observation. No earlier views, candidate, alignment angle or numerical answer are supplied.",
+  "input_mode": "native_mesh_alignment_observation",
+  "source_input_mode": "native_mesh_with_building_declaration",
+  "deadline_epoch": 1789404754.942923,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "4fb8f4a8e694c48110f7800a6814b029beb6b0aef0ac872843aa7bfdc8a98577",
+    "scripts/tool_scripts/bim_agent_mesh.py": "d9b20dc752c2eb5351ed577facf563a2d8a3896eb7e73a8e96b9ac6ed112aee5",
+    "src/agent/geometry/mesh_observation.py": "8f51ca7ffeb1da236488501fa32594a44ecfea94c0fa6afc63b23f230bebf185",
+    "scripts/tool_scripts/bim_agent_guidance.py": "40a4c8813bf59bf429330ec28a786abc69f9bdfcb2663e8b72db20a6016e2647",
+    "scripts/tool_scripts/bim_agent_inputs.py": "b4ab86f4d64fb3126f2299549f5f69513ae2137fb8346df510d143f6ffcb9674"
+  },
+  "only_input": "Original single-building GLB and same user building declaration; no previous candidate, views, angle or evaluation."
+}

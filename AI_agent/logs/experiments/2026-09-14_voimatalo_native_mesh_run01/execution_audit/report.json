@@ -1,0 +1,343 @@
+{
+  "input_checks": {
+    "asset_bytes": true,
+    "no_prepared_images": true,
+    "no_seed": true,
+    "declaration_bytes": true
+  },
+  "input_manifest_delivered": true,
+  "code_hashes": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "src/agent/geometry/parametric_proposal.py": true,
+    "scripts/tool_scripts/bim_agent_inputs.py": true,
+    "scripts/tool_scripts/bim_agent_mesh.py": true,
+    "src/agent/geometry/mesh_observation.py": true,
+    "src/agent/execution/source_proposal.py": true,
+    "src/agent/geometry/proposal_edits.py": true,
+    "src/agent/geometry/opening_review.py": true,
+    "src/agent/geometry/bim_delivery.py": true,
+    "src/agent/geometry/source_image_overlay.py": true,
+    "src/agent/geometry/source_elevation_view.py": true,
+    "src/agent/geometry/source_plan_view.py": true,
+    "src/agent/geometry/source_bim.py": true,
+    "src/agent/geometry/wall_reference.py": true,
+    "src/agent/geometry/dimension_chain.py": true,
+    "src/agent/geometry/space_trace.py": true,
+    "src/agent/geometry/plan_partition.py": true,
+    "src/agent/geometry/plan_draft_view.py": true,
+    "src/agent/geometry/pixel_region.py": true,
+    "src/agent/geometry/pixel_region_overview.py": true
+  },
+  "tool_calls": {
+    "mcp__bim__inputs": 1,
+    "mcp__bim__inspect_mesh": 1,
+    "mcp__bim__view_mesh": 9,
+    "mcp__bim__measure_mesh_pixels": 5,
+    "mcp__bim__get_bim_reference": 2,
+    "mcp__bim__build_parametric_bim": 2,
+    "mcp__bim__inspect_parametric_plan": 1,
+    "mcp__bim__view_elevation_candidate": 1,
+    "mcp__bim__finish_bim": 1
+  },
+  "image_transport": [
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_001.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_002.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_003.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_004.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_005.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": false,
+      "expected": "mesh_observations/mesh_006.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 1.0215166666666666,
+      "consistent": true,
+      "encoding": "JPEG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": false,
+      "expected": "mesh_observations/mesh_007.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 1.0403243827160493,
+      "consistent": true,
+      "encoding": "JPEG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_008.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_009.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_01/plan_L1.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_L2.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_L8.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_01/plan_P1.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_P2.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_PH.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_L1.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_L2.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_L8.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_P1.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_P2.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__build_parametric_bim",
+      "exact_png": true,
+      "expected": "candidate_02/plan_PH.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_elevation_candidate",
+      "exact_png": true,
+      "expected": "candidate_02/elevation_West.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    }
+  ],
+  "mesh_render_replay": [
+    {
+      "observation": "mesh_001",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_002",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_003",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_004",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_005",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_006",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_007",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 8.0
+    },
+    {
+      "observation": "mesh_008",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 8.0
+    },
+    {
+      "observation": "mesh_009",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 8.0
+    }
+  ],
+  "surface_measurement_replay": [
+    {
+      "observation": "mesh_002",
+      "points": 10,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_002",
+      "points": 20,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_002",
+      "points": 10,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_002",
+      "points": 10,
+      "queries_match": true,
+      "distances_match": true
+    },
+    {
+      "observation": "mesh_007",
+      "points": 10,
+      "queries_match": true,
+      "distances_match": true
+    }
+  ],
+  "source_replay": [
+    {
+      "candidate": "candidate_01",
+      "source_matches": true
+    },
+    {
+      "candidate": "candidate_02",
+      "source_matches": true
+    }
+  ],
+  "note": "PNG exact or measured JPEG approximation; these checks do not establish architectural fidelity.",
+  "passed": true
+}
