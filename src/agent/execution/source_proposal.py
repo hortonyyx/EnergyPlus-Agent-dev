@@ -40,6 +40,23 @@ def _validate_proposal(proposal: dict) -> tuple[dict, list[str], list[str], dict
         raise ValueError("proposal fields: " + "; ".join(details))
     if not isinstance(proposal["geometry"], dict):
         raise TypeError("proposal.geometry must be an object")
+    # Legacy Window permits extra fields, but source generation always emits
+    # entries from this collection as windows. Reject a conflicting declaration
+    # before that can silently turn an explicitly identified door into glazing.
+    windows = proposal["geometry"].get("windows", [])
+    if isinstance(windows, list):
+        conflicts = [
+            f"windows[{index}] id={window.get('id')!r} kind={window['kind']!r}"
+            for index, window in enumerate(windows)
+            if isinstance(window, dict) and "kind" in window and window["kind"] != "window"
+        ]
+        if conflicts:
+            raise ValueError(
+                "geometry.windows only accepts windows; conflicting kinds: " + "; ".join(conflicts)
+                + ". Put doors/passages in geometry.openings with kind, space_id, p1, p2 and z; "
+                "use other_space_id=null for an exterior opening. Preserve the declared type "
+                "and observed size when correcting the proposal."
+            )
     for field in ("assumptions", "unresolved"):
         if not isinstance(proposal[field], list) or any(not isinstance(item, str) for item in proposal[field]):
             raise TypeError(f"proposal.{field} must be a list of strings")

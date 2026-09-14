@@ -68,6 +68,43 @@ def test_invalid_opening_still_exports_candidate_with_severe_finding(tmp_path):
     assert (out / "viewer.html").exists()
 
 
+def test_conflicting_window_kinds_are_reported_together_without_retyping(tmp_path):
+    proposal = _proposal()
+    for kind in ("door", "passage", None):
+        item = copy.deepcopy(proposal["geometry"]["windows"][0])
+        item.update(id=f"declared_{kind}", kind=kind, z=[0, 2.1])
+        proposal["geometry"]["windows"].append(item)
+    original = copy.deepcopy(proposal)
+    out = tmp_path / "conflicting_types"
+    report = export_source_proposal(proposal, out)
+
+    assert report["status"] == "error" and not report["source_geometry_ready"]
+    for kind in ("door", "passage", None):
+        assert f"declared_{kind}" in report["error"]
+    assert "geometry.openings" in report["error"]
+    assert "other_space_id=null" in report["error"]
+    assert proposal == original
+    assert json.loads((out / "proposal.json").read_text()) == original
+    assert not (out / "source_model.json").exists()
+    assert not (out / "viewer.html").exists()
+
+
+def test_explicit_window_kind_and_exterior_door_keep_their_declared_types(tmp_path):
+    proposal = _proposal()
+    proposal["geometry"]["windows"][0]["kind"] = "window"
+    proposal["geometry"]["openings"].append({
+        "id": "external_door", "kind": "door", "space_id": "hall", "other_space_id": None,
+        "p1": [0, 3], "p2": [0, 4], "z": [0, 2.1], "source_refs": ["synthetic exterior door"],
+    })
+    out = tmp_path / "explicit_types"
+    report = export_source_proposal(proposal, out)
+    assert report["source_geometry_ready"]
+    source = json.loads((out / "source_model.json").read_text())
+    kinds = {opening["id"]: opening["kind"] for opening in source["openings"]}
+    assert kinds == {"window": "window", "door": "door", "external_door": "door"}
+    assert json.loads((out / "proposal.json").read_text()) == proposal
+
+
 def test_proposal_output_never_overwrites_or_invents_a_run_record(tmp_path):
     out = tmp_path / "candidate"
     export_source_proposal(_proposal(), out)

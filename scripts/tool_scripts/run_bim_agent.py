@@ -1,8 +1,9 @@
 """Small subscription-driven BIM experiment; no legacy flow or solver stages.
 
-The model sees only an explicit image inventory and the tools below. MCP owns
-file access and geometry execution; the model has no shell/repository tools.
-This is an experimental entry point, not a complete product orchestrator.
+The model sees an explicit image inventory, an optional frozen user building
+declaration, and the tools below. MCP owns file access and geometry execution;
+the model has no shell/repository tools. This is an experimental entry point,
+not a complete product orchestrator.
 """
 from __future__ import annotations
 
@@ -32,6 +33,7 @@ from mcp.types import CallToolResult, TextContent
 
 
 from scripts.tool_scripts.bim_agent_guidance import GUIDE, REFERENCES
+from scripts.tool_scripts.bim_agent_inputs import freeze_building_input
 
 
 def dump(path: Path, value):
@@ -1378,12 +1380,26 @@ def run_experiment(args):
         images[path.name] = {"size":size,"sha256":digest(target)}
     if not images: raise ValueError("no PNG drawings in input directory")
     seed_path = getattr(args, "resume_candidate", None)
+    building_input_path = getattr(args, "building_input", None)
+    building_input = (freeze_building_input(building_input_path, run, images)
+                      if building_input_path is not None else None)
+    generation_mode = "saved_candidate_recovery" if seed_path else "original_images_agent_experiment"
+    source_input_mode = ("original_images_with_building_declaration"
+                         if building_input else "original_images_only")
     manifest = {"images":images,"scope":args.scope,
-                             "input_mode": "saved_candidate_recovery" if seed_path else "original_images_agent_experiment",
+                             "input_mode": generation_mode,
+                             "source_input_mode": source_input_mode,
+                             "input_contents": {
+                                 "original_png_images": {"included": True, "count": len(images)},
+                                 "building_declaration": {"included": bool(building_input)},
+                                 "saved_generated_proposal": {"included": bool(seed_path)},
+                                 "ground_truth_or_evaluation": {"included": False},
+                             },
                              "deadline_epoch": time.time() + args.timeout,
                              "implementation_sha256": {
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
                                  "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
+                                 "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
@@ -1397,7 +1413,15 @@ def run_experiment(args):
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
                                  "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
-                             "only_input": "original images, user scope, optional saved generated proposal; no GT/evaluation"}
+                             "only_input": (
+                                 "authorized original PNG images, user scope, explicitly supplied building "
+                                 "declaration, and optional saved generated proposal; no GT/evaluation"
+                                 if building_input else
+                                 "authorized original PNG images, user scope, and optional saved generated "
+                                 "proposal; no building declaration and no GT/evaluation"
+                             )}
+    if building_input:
+        manifest["building_input"] = building_input
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
         # Only the proposal is imported, never a report that might hold evaluation.
@@ -1414,8 +1438,17 @@ def run_experiment(args):
                     "discrepancies for local review or revision, while preserving reliable geometry; "
                     "do not redo a full reading." if seed_path else
                     "Generate an initial candidate early, then inspect and revise it.")
+    declaration_prompt = (
+        " A structured user building declaration is available from inputs under "
+        "building_input.declaration. Preserve each field's stated meaning. In particular, "
+        "thermal_zones describes downstream simulation zoning and is not the physical source-room "
+        "count. Compare declaration claims with the supplied drawings and report conflicts or "
+        "uncertainty explicitly."
+        if building_input else
+        " No structured building declaration was supplied for this experiment."
+    )
     record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
-                          f"Start by listing supplied inputs. {continuation} "
+                          f"Start by listing supplied inputs.{declaration_prompt} {continuation} "
                           "Report limitations honestly, and finish within the budget.",
                           model="sonnet", name="agent", timeout=args.timeout,
                           effort=getattr(args, "effort", None))
@@ -1447,7 +1480,11 @@ def run_experiment(args):
             delivery = Toolkit(run).delivery(saved[-1].parent.name,
                 selection_origin="latest_saved_fallback_not_agent_selected", generation_status=generation_status)
     receipts, cost_summary = cost_receipt_summary(run)
-    summary = {"input_mode":manifest["input_mode"], "candidate_results":candidates,
+    summary = {"input_mode":manifest["input_mode"],
+               "source_input_mode": manifest["source_input_mode"],
+               "input_contents": manifest["input_contents"],
+               "building_input_sha256": (building_input["raw_sha256"] if building_input else None),
+               "candidate_results":candidates,
                "agent_response_completed":response_completed,
                "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or bool(delivery and delivery["viewer_exists"]),
                "elapsed_seconds":record["elapsed_seconds"],"drawing_fidelity":"not_evaluated",
@@ -1467,6 +1504,8 @@ def main():
     commands=parser.add_subparsers(dest="command",required=True)
     run=commands.add_parser("run")
     run.add_argument("--images",type=Path,required=True)
+    run.add_argument("--building-input", type=Path,
+                     help="Explicit user building declaration JSON; omitted runs remain PNG-only")
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
