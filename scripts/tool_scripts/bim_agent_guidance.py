@@ -38,7 +38,12 @@ plus pixels is stronger evidence than pixels alone, then explicit inference.
 Uncertainty permits stated assumptions, not silent omission or invented evidence.
 
 Save a useful initial candidate early and reserve time to compare the actual
-saved source with the originals. If a seed exists, inspect_candidate('seed')
+saved source with the originals. For a single floor with a rectangular footprint,
+build_plan_bim can derive complete rooms and opening hosts from your observed
+pixel partition paths; read plan_partition for its compact input format. This
+avoids repeating shared room vertices and doing coordinate arithmetic yourself.
+It returns the actual source overlaid on the same original using your anchors.
+If a seed exists, inspect_candidate('seed')
 reads its proposal and checks; preserve reliable objects with local revisions.
 A successful build/revision returns source plan images. Inspect them; for
 positional comparisons use overlay_candidate with original pixel/metre anchors
@@ -65,6 +70,7 @@ and display_scale magnify thin lines and labels without changing coordinates.
 
 Parameter details are available through get_bim_reference(topic):
 - geometry: build_bim JSON schema, nonrectangular rooms and coordinate conventions.
+- plan_partition: optional build_plan_bim from pixel walls/openings, single floor.
 - edits: revise_bim operations, supported scopes and examples.
 - wall_dimensions: optional wall-face offsets and dimension endpoint conversions.
 - opening_review: observed-mark schema for check_openings; partial review is allowed.
@@ -81,6 +87,49 @@ reconstruction. Do not ask the user for routine geometry choices.
 """
 
 REFERENCES = {
+    'plan_partition': """build_plan_bim(image, plan_json) compiles the following JSON string.
+This synthetic example is unrelated to the supplied drawing:
+{"floor_id":"F1","z_floor":0,"ceiling_height":3,
+"x_anchors":[[1,0],[11,6]],"y_anchors":[[1,4],[7,0]],
+"basis":"synthetic example calibration and representative wall planes",
+"footprint_pixels":[[1,1],[11,1],[11,7],[1,7]],
+"partitions":[{"id":"wall-A","points":[[6,1],[6,7]],
+"source_refs":["plan.png: physical divider, continued through its door aperture"]}],
+"openings":[{"id":"D1","kind":"door","p1":[6,3],"p2":[6,4.5],
+"z":[0,2.1],"source_refs":["plan.png: observed door; height assumed"]},
+{"id":"W1","kind":"window","p1":[1,2],"p2":[1,3],
+"z":[1,2],"source_refs":["plan.png: observed exterior window; heights assumed"]}],
+"space_seeds":[{"id":"left","point":[3,4],"role":"office"}],
+"assumptions":["Synthetic dimensions/heights only"],"unresolved":[]}
+All plan points use ORIGINAL image pixels. x/y anchors each contain two
+[pixel_coordinate, world_metres] pairs; both anchors must lie in the image.
+Declare the SAME representative plane for calibration, perimeter and dividers.
+World z is absolute. basis explains observed dimensions and reference planes.
+Current scope: ONE floor, rectangular outer footprint, orthogonal partitions;
+rooms may be nonrectangular. Unsupported outer shapes explicitly fail.
+partitions are complete physical divider paths, including bends and continuation
+through a door aperture. Put the aperture separately in openings. Shared path
+endpoints must coincide explicitly. The compiler will not extend, snap or bridge
+paths; revise coordinates only with evidence and record any regularization.
+Every enclosed face becomes one space. No room count is supplied or enforced.
+Optional space_seeds assign IDs/roles to containing faces; every unseeded face is
+retained with a stable derived ID and unknown role. Seeds are points INSIDE rooms,
+not wall points. Two seeds in one face fail rather than inventing a divider.
+The whole opening segment must belong to exactly one exterior host or two
+interior hosts. A door spanning a wall junction fails; no width is clipped.
+kind is window, door or open. Only exterior facade windows are supported here;
+doors/open passages may connect rooms or outdoors. Door state defaults unknown;
+its optional state is unknown/open/closed. For open passages state is open or
+omitted; window state is not supported. Preserve IDs, source_refs and assumptions.
+Empty openings or incomplete observed coverage is allowed ONLY as an explicit
+partial draft: record unexamined views and omissions in unresolved. A partial
+draft does not establish room completeness or drawing fidelity.
+The raw declaration and deterministic mapping are retained in plan_drafts.
+Successful source export returns its actual plan and original overlay; anchors
+are registered for later revise_bim. Inspect the images before claiming accuracy.
+Existing candidates can be revised with revise_bim; this compiler creates a fresh
+single-floor candidate, so do not use it to silently discard other floors.
+""",
     'geometry': """Geometry adapter input is a JSON string containing:
 {"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],
 "floors":[{"name":"F1","z_floor":0,"ceiling_height":3,"cells":[

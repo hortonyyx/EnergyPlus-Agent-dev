@@ -484,7 +484,47 @@ class Toolkit:
             '</html>', encoding="utf-8")
         return result
 
-    def build(self, proposal, *, action="build_bim", parent=None, operations=None):
+    def build_plan(self, image, plan_json):
+        """Preserve a pixel declaration before deterministic compilation or errors."""
+        from src.agent.geometry.plan_partition import compile_plan_partition
+        image_path = self.image_path(image)
+        folder = self.run / "plan_drafts"
+        folder.mkdir(exist_ok=True)
+        draft = folder / f"draft_{len(list(folder.glob('draft_*'))) + 1:03d}"
+        draft.mkdir(exist_ok=False)
+        raw_path = draft / "plan.json"
+        raw_path.write_text(plan_json, encoding="utf-8")
+        record = {"plan_file": str(raw_path.relative_to(self.run)),
+                  "plan_sha256": digest(raw_path), "image": image,
+                  "image_sha256": digest(image_path)}
+        dump(draft / "input.json", record)
+        try:
+            plan = json.loads(plan_json)
+            with PILImage.open(image_path) as original:
+                proposal, metadata = compile_plan_partition(
+                    plan, image_size=original.size, image_name=image)
+        except (ValueError, TypeError, KeyError) as error:
+            result = {"status": "error", "error": str(error), "plan_input": record,
+                      "remaining_seconds": self.remaining_seconds(),
+                      "source_geometry_ready": False}
+            dump(draft / "result.json", result)
+            self.log("build_plan_bim", result)
+            return result
+        dump(draft / "compilation.json", metadata)
+        record.update(compilation_file=str((draft / "compilation.json").relative_to(self.run)),
+                      compilation_sha256=digest(draft / "compilation.json"))
+        result = self.build(proposal, action="build_plan_bim", plan_input=record,
+                            calibration={key: plan[key] for key in
+                                         ("floor_id", "x_anchors", "y_anchors", "basis")})
+        if "candidate" not in result:
+            result.update(plan_input=record, source_geometry_ready=False,
+                          remaining_seconds=self.remaining_seconds())
+            self.log("build_plan_bim", result)
+        dump(draft / "result.json", result)
+        return result
+
+    def build(self, proposal, *, action="build_bim", parent=None, operations=None,
+              plan_input=None, calibration=None):
         from src.agent.execution.source_proposal import export_source_proposal
         index = len(list(self.run.glob("candidate_*"))) + 1
         if index > 6:
@@ -496,15 +536,24 @@ class Toolkit:
         if parent is not None:
             provenance.update(parent_candidate=parent,
                               parent_proposal_sha256=digest(self.candidate_path(parent)/"proposal.json"))
+        if plan_input is not None:
+            provenance["plan_input"] = plan_input
         report = export_source_proposal(proposal, self.run/candidate, provenance=provenance)
         if operations is not None:
             dump(self.run/candidate/"operations.json", operations)
         result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report}
+        if plan_input is not None:
+            result["plan_input"] = plan_input
+            result["plan_compilation"] = json.loads(
+                (self.run / plan_input["compilation_file"]).read_text())
         source_path = self.run / candidate / "source_model.json"
         if source_path.exists():
             from src.agent.geometry.opening_review import opening_inventory
             result["opening_inventory"] = opening_inventory(json.loads(source_path.read_text()))
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
+            if calibration is not None:
+                self._save_calibration(candidate=candidate, image=plan_input["image"],
+                                       metadata=report, **calibration)
             projections, errors = self.project_registered_calibrations(candidate, action)
             result["source_image_projections"] = projections
             result["projection_errors"] = errors
@@ -1014,8 +1063,8 @@ def serve(run: Path, readonly=False):
 
     @server.tool()
     def get_bim_reference(topic: str) -> dict:
-        """Read parameter examples: geometry, edits, wall_dimensions, opening_review.
-        Use geometry before preparing a build, and other topics only as needed.
+        """Read geometry, plan_partition, edits, wall_dimensions or opening_review.
+        Choose geometry for a full proposal or plan_partition for pixel walls.
         These are generic instructions, not case observations or reference answers.
         """
         if topic not in REFERENCES:
@@ -1327,6 +1376,18 @@ def serve(run: Path, readonly=False):
             return response
 
         @server.tool()
+        def build_plan_bim(image: str, plan_json: str) -> CallToolResult:
+            """Build one floor from observed pixel wall paths, apertures and calibration.
+            Read get_bim_reference('plan_partition') for the JSON contract. Code
+            closes faces and finds opening hosts; it never fills wall-path gaps,
+            invents partitions or trims openings. Returns actual source plan and
+            original overlay images. Rectangular outer footprint, orthogonal
+            interior partitions only. A draft with known omissions needs explicit
+            unresolved notes. Each source export uses the shared candidate budget.
+            """
+            return candidate_result(toolkit.build_plan(image, plan_json))
+
+        @server.tool()
         def build_bim(proposal_json: str) -> CallToolResult:
             """Build/check/save a candidate; get_bim_reference("geometry") describes proposal JSON.
             Returns errors or actual geometry checks. Six immutable candidates maximum.
@@ -1411,6 +1472,7 @@ def run_experiment(args):
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
+                                 "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
                                  "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
                              "only_input": (
