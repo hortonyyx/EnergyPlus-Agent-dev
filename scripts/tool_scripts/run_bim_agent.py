@@ -324,6 +324,25 @@ def cost_receipt_summary(run: Path):
                       "reported_partial_cost_usd": partial}
 
 
+def delivery_tool_reply(result: dict) -> dict:
+    """Keep full reports on disk; avoid losing a large handoff to CLI truncation."""
+    reply = {k:v for k,v in result.items() if k != 'opening_inventory'}
+    if len(json.dumps(reply, ensure_ascii=False)) <= 20000:
+        return reply
+    from collections import Counter
+    large = {'facade_inventory', 'opening_review_scopes', 'facade_review_scopes',
+             'current_reviews', 'stale_reviews'}
+    compact = {k:v for k,v in reply.items() if k not in large}
+    compact.update(response_compacted=True, full_delivery_report='delivery.json',
+                   omitted_detail_fields=sorted(large | {'opening_inventory'}),
+                   review_scope_status_counts={key:dict(Counter(
+                       row['review_status'] for row in result.get(key, [])))
+                       for key in ['opening_review_scopes', 'facade_review_scopes']},
+                   current_review_count=len(result.get('current_reviews', [])),
+                   stale_review_count=len(result.get('stale_reviews', [])))
+    return compact
+
+
 class Toolkit:
     def __init__(self, run: Path, readonly=False):
         self.run = run.resolve()
@@ -1362,7 +1381,7 @@ def serve(run: Path, readonly=False):
             dump(run / "delivery_selection.json", {
                 "candidate": candidate, "source_model_sha256": result["source_model_sha256"]})
             toolkit.log("finish_bim", result)
-            return {**{k:v for k,v in result.items() if k != "opening_inventory"},
+            return {**delivery_tool_reply(result),
                     "remaining_seconds": toolkit.remaining_seconds()}
 
         @server.tool()
