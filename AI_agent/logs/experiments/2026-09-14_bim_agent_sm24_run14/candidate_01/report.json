@@ -1,0 +1,234 @@
+{
+  "agent_assumptions": [
+    "Single-story building (only 1F plan supplied); ceiling height 4.5m taken from facade total height dimension.",
+    "North=top, South=bottom, West=left, East=right of 1f_view.png, confirmed by matching elevation dimension chains to plan wall dimension chains.",
+    "Room columns (west/east) and row boundaries derived from coarse dimension chains (4060/2940/4940/8060 west, 4060/1940/5940/3120/4940 east) matched against visible partition lines.",
+    "Central corridor width taken as gap between visible parallel wall lines (~1.64m), connecting all rooms via doors seen as arcs in plan.",
+    "Interior door widths/positions are approximate (visible arcs used for host wall and general position, but not measured precisely); D5b (corridor-west_storage2) is inferred since only one clear arc was seen serving the double storage room area.",
+    "Window sill/head heights approximated from elevation dimension groups (typically sill 1.0m, head 3.4m on N/W/E walls; sill 1.0m head 2.8m on S windows); exact figures not individually re-verified per opening.",
+    "Door heights set to 2.4m (floor to head) as a standard assumption; some elevation dimension chains showed unusual bottom offsets (e.g. 200mm) not modeled.",
+    "Wall thickness observed as 240mm in several plan annotations but not implemented as explicit wall_references/offsets in this pass."
+  ],
+  "counts": {
+    "boundaries": 60,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 10,
+    "unbuilt_openings": 3,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5c20f7de0e71ea98c37fdbf957db15a6783a6aae8aba71e525f870d38ff65e3a",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "b8e5fcf43b77a30193def6208ef72f80e64834b7ba84ebf5b9eacb90104f6795",
+    "mode": "original_images_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W11",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.4
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_corridor",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "F1_east_office1",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D4",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.4
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_east_conf",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D11",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "d7d88f4016b459f477b585d55c267ad7d9bdf7a0d2f62ca9fed8dd2fa7e0d0fe",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W11",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.4
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_corridor",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "other_space",
+              "space_id": "F1_east_office1",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D4",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      },
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            2.4
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                0.0,
+                2.4
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                0.0,
+                4.5
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1_east_conf",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "D11",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Exact partition wall between the two west storage rooms and its door not fully confirmed pixel-by-pixel.",
+    "East wall exterior door (D11) position approximate; original arc position only roughly read from a narrow crop.",
+    "Fine dimension chains on facades (window positions) matched to rows via approximate pixel/row correspondence; not converted through calibrated map_pixels/dimension-chain tools.",
+    "No wall_references/wall_dimensions records saved; 240mm thickness annotations exist in source but are not yet attached to boundary IDs.",
+    "Furniture-implied room use (office/meeting/lobby) is a label guess, not verified against any legend."
+  ]
+}

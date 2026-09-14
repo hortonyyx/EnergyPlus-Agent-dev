@@ -1,0 +1,853 @@
+{
+  "assumptions": [
+    "Single-story building (only 1F plan supplied); ceiling height 4.5m taken from facade total height dimension.",
+    "North=top, South=bottom, West=left, East=right of 1f_view.png, confirmed by matching elevation dimension chains to plan wall dimension chains.",
+    "Room columns (west/east) and row boundaries derived from coarse dimension chains (4060/2940/4940/8060 west, 4060/1940/5940/3120/4940 east) matched against visible partition lines.",
+    "Central corridor width taken as gap between visible parallel wall lines (~1.64m), connecting all rooms via doors seen as arcs in plan.",
+    "Interior door widths/positions are approximate (visible arcs used for host wall and general position, but not measured precisely); D5b (corridor-west_storage2) is inferred since only one clear arc was seen serving the double storage room area.",
+    "Window sill/head heights approximated from elevation dimension groups (typically sill 1.0m, head 3.4m on N/W/E walls; sill 1.0m head 2.8m on S windows); exact figures not individually re-verified per opening.",
+    "Door heights set to 2.4m (floor to head) as a standard assumption; some elevation dimension chains showed unusual bottom offsets (e.g. 200mm) not modeled.",
+    "Wall thickness observed as 240mm in several plan annotations but not implemented as explicit wall_references/offsets in this pass."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W11",
+          "room": "F1_east_conf2",
+          "source_refs": [
+            "East_view.png: window rectangle"
+          ],
+          "span": [
+            5.0,
+            5.9
+          ],
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "before": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W11",
+          "room": "F1_east_conf2",
+          "source_refs": [
+            "East_view.png: window"
+          ],
+          "span": [
+            3.87,
+            4.81
+          ],
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "id": "W11",
+        "operation": "update_window",
+        "reason": "window span corrected to fall within F1_east_conf2 room bounds (y 4.94-8.06) matching east elevation window observation",
+        "source_refs": [
+          "East_view.png: window rectangle"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "approx position/width"
+          ],
+          "id": "D4",
+          "kind": "door",
+          "other_space_id": "F1_east_office1",
+          "p1": [
+            5.79,
+            14.2
+          ],
+          "p2": [
+            5.79,
+            15.0
+          ],
+          "source_refs": [
+            "1f_view.png: door arc between corridor and east office"
+          ],
+          "space_id": "F1_corridor",
+          "state": "unknown",
+          "z": [
+            0,
+            2.4
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "approx position/width"
+          ],
+          "id": "D4",
+          "kind": "door",
+          "other_space_id": "F1_east_office1",
+          "p1": [
+            5.79,
+            13.5
+          ],
+          "p2": [
+            5.79,
+            14.5
+          ],
+          "source_refs": [
+            "1f_view.png: door arc"
+          ],
+          "space_id": "F1_corridor",
+          "state": "unknown",
+          "z": [
+            0,
+            2.4
+          ]
+        },
+        "id": "D4",
+        "operation": "update_opening",
+        "reason": "door endpoints corrected to fall within F1_east_office1 room bounds (y 14.0-15.94)",
+        "source_refs": [
+          "1f_view.png: door arc between corridor and east office"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "approx position/width"
+          ],
+          "id": "D11",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            10,
+            7.0
+          ],
+          "p2": [
+            10,
+            7.9
+          ],
+          "source_refs": [
+            "1f_view.png: east wall door arc near y~7"
+          ],
+          "space_id": "F1_east_conf2",
+          "state": "unknown",
+          "z": [
+            0,
+            2.4
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "approx position/width"
+          ],
+          "id": "D11",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            10,
+            6.5
+          ],
+          "p2": [
+            10,
+            7.5
+          ],
+          "source_refs": [
+            "1f_view.png: east wall door arc"
+          ],
+          "space_id": "F1_east_conf",
+          "state": "unknown",
+          "z": [
+            0,
+            2.4
+          ]
+        },
+        "id": "D11",
+        "operation": "update_opening",
+        "reason": "exterior east door re-hosted to F1_east_conf2 whose bounds (y 4.94-8.06) actually contain the observed door arc position",
+        "source_refs": [
+          "1f_view.png: east wall door arc near y~7"
+        ]
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "F1_lobby",
+            "role": "lobby",
+            "source_refs": [
+              "1f_view.png: north room, sofa+reception desk, open plan"
+            ],
+            "x": [
+              0,
+              10
+            ],
+            "y": [
+              15.94,
+              20
+            ]
+          },
+          {
+            "id": "F1_west_office1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk with 2 chairs"
+            ],
+            "x": [
+              0,
+              4.15
+            ],
+            "y": [
+              13.0,
+              15.94
+            ]
+          },
+          {
+            "id": "F1_west_storage1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: cabinet+2 chairs room"
+            ],
+            "x": [
+              0,
+              4.15
+            ],
+            "y": [
+              10.53,
+              13.0
+            ]
+          },
+          {
+            "id": "F1_west_storage2",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: cabinet+2 chairs room"
+            ],
+            "x": [
+              0,
+              4.15
+            ],
+            "y": [
+              8.06,
+              10.53
+            ]
+          },
+          {
+            "id": "F1_west_meeting",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png: oval table with 8 chairs"
+            ],
+            "x": [
+              0,
+              4.15
+            ],
+            "y": [
+              0,
+              8.06
+            ]
+          },
+          {
+            "id": "F1_corridor",
+            "role": "corridor",
+            "source_refs": [
+              "1f_view.png: central circulation between room columns, door arcs"
+            ],
+            "x": [
+              4.15,
+              5.79
+            ],
+            "y": [
+              0,
+              15.94
+            ]
+          },
+          {
+            "id": "F1_east_office1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: credenza/cabinet room"
+            ],
+            "x": [
+              5.79,
+              10
+            ],
+            "y": [
+              14.0,
+              15.94
+            ]
+          },
+          {
+            "id": "F1_east_conf",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png: round table with 4 chairs"
+            ],
+            "x": [
+              5.79,
+              10
+            ],
+            "y": [
+              8.06,
+              14.0
+            ]
+          },
+          {
+            "id": "F1_east_conf2",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png: round table with 4 chairs"
+            ],
+            "x": [
+              5.79,
+              10
+            ],
+            "y": [
+              4.94,
+              8.06
+            ]
+          },
+          {
+            "id": "F1_east_office2",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk with 2 chairs"
+            ],
+            "x": [
+              5.79,
+              10
+            ],
+            "y": [
+              0,
+              4.94
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.54,
+          20
+        ],
+        "p2": [
+          2.14,
+          20
+        ],
+        "source_refs": [
+          "1f_view.png: north wall door arc, 1600mm"
+        ],
+        "space_id": "F1_lobby",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx width"
+        ],
+        "id": "D2",
+        "kind": "door",
+        "other_space_id": "F1_corridor",
+        "p1": [
+          4.4,
+          15.94
+        ],
+        "p2": [
+          5.6,
+          15.94
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between lobby and corridor"
+        ],
+        "space_id": "F1_lobby",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D3",
+        "kind": "door",
+        "other_space_id": "F1_west_office1",
+        "p1": [
+          4.15,
+          13.5
+        ],
+        "p2": [
+          4.15,
+          14.5
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D4",
+        "kind": "door",
+        "other_space_id": "F1_east_office1",
+        "p1": [
+          5.79,
+          14.2
+        ],
+        "p2": [
+          5.79,
+          15.0
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between corridor and east office"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D5",
+        "kind": "door",
+        "other_space_id": "F1_west_storage1",
+        "p1": [
+          4.15,
+          11.3
+        ],
+        "p2": [
+          4.15,
+          12.2
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "inferred door, not clearly resolved in crops"
+        ],
+        "id": "D5b",
+        "kind": "door",
+        "other_space_id": "F1_west_storage2",
+        "p1": [
+          4.15,
+          9.0
+        ],
+        "p2": [
+          4.15,
+          9.9
+        ],
+        "source_refs": [
+          "1f_view.png: inferred access"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D6",
+        "kind": "door",
+        "other_space_id": "F1_east_conf",
+        "p1": [
+          5.79,
+          10.2
+        ],
+        "p2": [
+          5.79,
+          11.2
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D7",
+        "kind": "door",
+        "other_space_id": "F1_west_meeting",
+        "p1": [
+          4.15,
+          7.3
+        ],
+        "p2": [
+          4.15,
+          8.0
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D8",
+        "kind": "door",
+        "other_space_id": "F1_east_conf2",
+        "p1": [
+          5.79,
+          6.8
+        ],
+        "p2": [
+          5.79,
+          7.7
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D9",
+        "kind": "door",
+        "other_space_id": "F1_east_office2",
+        "p1": [
+          5.79,
+          4.0
+        ],
+        "p2": [
+          5.79,
+          4.9
+        ],
+        "source_refs": [
+          "1f_view.png: door arc"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D10",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.54,
+          0
+        ],
+        "p2": [
+          5.44,
+          0
+        ],
+        "source_refs": [
+          "1f_view.png: south wall door, 900mm"
+        ],
+        "space_id": "F1_corridor",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "approx position/width"
+        ],
+        "id": "D11",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10,
+          7.0
+        ],
+        "p2": [
+          10,
+          7.9
+        ],
+        "source_refs": [
+          "1f_view.png: east wall door arc near y~7"
+        ],
+        "space_id": "F1_east_conf2",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W1",
+        "room": "F1_lobby",
+        "source_refs": [
+          "North_view.png: 4800mm window"
+        ],
+        "span": [
+          4.66,
+          9.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W2",
+        "room": "F1_lobby",
+        "source_refs": [
+          "West_view.png: window"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W3",
+        "room": "F1_west_office1",
+        "source_refs": [
+          "West_view.png: window"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W4",
+        "room": "F1_west_storage1",
+        "source_refs": [
+          "West_view.png: window"
+        ],
+        "span": [
+          11.14,
+          12.64
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W5",
+        "room": "F1_west_storage2",
+        "source_refs": [
+          "West_view.png: window"
+        ],
+        "span": [
+          8.42,
+          9.92
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W6",
+        "room": "F1_west_meeting",
+        "source_refs": [
+          "West_view.png: 4800mm window"
+        ],
+        "span": [
+          0.54,
+          5.34
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W7",
+        "room": "F1_west_meeting",
+        "source_refs": [
+          "South_view.png: 1500mm window"
+        ],
+        "span": [
+          0.54,
+          2.04
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W8",
+        "room": "F1_east_office2",
+        "source_refs": [
+          "South_view.png: 1500mm window"
+        ],
+        "span": [
+          7.96,
+          9.46
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W9",
+        "room": "F1_lobby",
+        "source_refs": [
+          "East_view.png: window"
+        ],
+        "span": [
+          17.92,
+          19.68
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W10",
+        "room": "F1_east_conf",
+        "source_refs": [
+          "East_view.png: window"
+        ],
+        "span": [
+          10.35,
+          11.7
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W11",
+        "room": "F1_east_conf2",
+        "source_refs": [
+          "East_view.png: window rectangle"
+        ],
+        "span": [
+          5.0,
+          5.9
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W12",
+        "room": "F1_east_office2",
+        "source_refs": [
+          "East_view.png: window"
+        ],
+        "span": [
+          1.97,
+          3.05
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact partition wall between the two west storage rooms and its door not fully confirmed pixel-by-pixel.",
+    "East wall exterior door (D11) position approximate; original arc position only roughly read from a narrow crop.",
+    "Fine dimension chains on facades (window positions) matched to rows via approximate pixel/row correspondence; not converted through calibrated map_pixels/dimension-chain tools.",
+    "No wall_references/wall_dimensions records saved; 240mm thickness annotations exist in source but are not yet attached to boundary IDs.",
+    "Furniture-implied room use (office/meeting/lobby) is a label guess, not verified against any legend."
+  ]
+}

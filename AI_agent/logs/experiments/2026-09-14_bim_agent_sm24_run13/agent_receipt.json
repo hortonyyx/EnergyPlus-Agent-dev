@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 537.5,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 533801,
+    "duration_api_ms": 482537,
+    "ttft_ms": 3939,
+    "ttft_stream_ms": 3835,
+    "time_to_request_ms": 29,
+    "num_turns": 18,
+    "result": "I've saved and finished candidate_03 as the delivered lightweight BIM. Summary:\n\n**Delivered candidate: `candidate_03`** (geometry checks pass: 9 spaces, 54 boundaries, 19 openings, 0 unbuilt/unsupported).\n\n**Building model:**\n- Single-storey, 10m (E‑W) × 20m (N‑S) rectangular footprint, split by a central N‑S partition (assumed at x=4.9m) into a West block and East block, each further divided by horizontal partitions into stacked rooms, matching the furniture/wall layout in `1f_view.png` and cross-checked against the North/East facade dimension chains.\n- Rooms: West — Reception (entrance), OfficeA (2-seat), OfficeB, OfficeC (desk+cabinet offices), Dining/boardroom (oval table). East — Lounge (sofa, big north window), MeetingSmall (round table), MeetingBig (two round tables, long east window), BottomRoom (desk office with south+east exterior doors).\n- Openings: north double-door entrance, south exterior door, east exterior door, 3 internal doors between west/east room pairs (matched to visible door-swing arcs), plus 2 inferred circulation doors (Reception↔OfficeA, OfficeC↔Dining) with no confirmed arc — flagged as assumptions.\n- 11 windows placed from the North/West/East/South dimension chains (sill 1.0m, head 2.6m — heights are an assumption, not independently dimensioned).\n- Ceiling height assumed 3.0m (elevation only gives an overall 4.5m facade height including parapet/roof).\n\n**Verified:** overall footprint and facade dimension chains (10000×20000mm, door/window mm labels), single-storey height from North elevation, geometry self-consistency (all openings host correctly after fixing two build errors: window z exceeding ceiling height, and one window span exceeding its room's extent).\n\n**Not verified / unresolved:**\n- Exact position of the central partition (evidence conflicted: north wall break at 4.66m vs. south door at 4.54–5.44m) — used 4.9m as a compromise; the south door was clipped to fit entirely in the east room, losing ~0.36m of its true span.\n- Two circulation doors (D4, D5) are inferred, not confirmed against a visible door-swing mark.\n- A Haiku sub-review reported 6 door arcs along the central wall vs. 3 I identified directly; not reconciled.\n- A minor wall jog near pixel (430–620, 600–700) was not modeled.\n- No `check_openings` review or `overlay_candidate` calibration pass was run against the original image due to time budget — opening/partition placement is geometry-consistent but not independently image-verified.\n- Only `1f_view.png` (plan) and the four elevations were used; no evidence of upper floors was found, consistent with a single-storey building.",
+    "stop_reason": "end_turn",
+    "session_id": "b9917024-09f1-4e47-a484-b3efb3a89bc7",
+    "total_cost_usd": 1.3444878999999998,
+    "usage": {
+      "input_tokens": 32,
+      "cache_creation_input_tokens": 93999,
+      "cache_read_input_tokens": 624083,
+      "output_tokens": 39497,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 93999,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 977,
+          "cache_read_input_tokens": 86326,
+          "cache_creation_input_tokens": 7673,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 7673
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 638,
+        "outputTokens": 16,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000718,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 32,
+        "outputTokens": 39497,
+        "cacheReadInputTokens": 624083,
+        "cacheCreationInputTokens": 93999,
+        "webSearchRequests": 0,
+        "costUSD": 1.3437698999999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "6d8b5006-62b8-4a5e-a437-177297e11949"
+  }
+}

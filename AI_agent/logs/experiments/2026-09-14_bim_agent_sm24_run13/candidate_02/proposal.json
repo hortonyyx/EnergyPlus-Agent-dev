@@ -1,0 +1,1016 @@
+{
+  "assumptions": [
+    "Single storey building (only 1F plan supplied; elevations confirm one storey, ~4.5m facade height).",
+    "Ceiling height assumed 3.0m (not explicitly dimensioned; elevation shows overall facade height 4500mm including parapet/roof edge).",
+    "Central partition wall placed at x=4.9m (approx midpoint of conflicting evidence: north wall break at 4.66m vs south door position 4.54-5.44m).",
+    "South exterior door (900mm) clipped to fully lie within E_BottomRoom (4.9-5.44m) since it straddles the assumed partition; true position may extend slightly into W_Dining.",
+    "Internal doors D4 and D5 are inferred for circulation continuity between stacked west rooms; no unambiguous door arc was confirmed at those locations in available crops.",
+    "Window sill/head heights (1.1m-3.5m) are approximate, scaled from elevation proportions, not independently dimensioned on elevation for each window."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "facade": "North",
+          "floor": "F1",
+          "id": "W_N_lounge",
+          "room": "E_Lounge",
+          "source_refs": [
+            "North_view.png: window band below head, clipped to ceiling height"
+          ],
+          "span": [
+            4.9,
+            9.46
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "North",
+          "floor": "F1",
+          "id": "W_N_lounge",
+          "room": "E_Lounge",
+          "source_refs": [
+            "1f_view.png/North_view.png: 4800mm north window"
+          ],
+          "span": [
+            4.9,
+            9.46
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_N_lounge",
+        "operation": "update_window",
+        "reason": "original z[1.1,3.5] exceeded 3.0m ceiling height causing unbuilt host",
+        "source_refs": [
+          "North_view.png: window band below head, clipped to ceiling height"
+        ]
+      },
+      {
+        "after": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_reception",
+          "room": "W_Reception",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            17.96,
+            19.46
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_reception",
+          "room": "W_Reception",
+          "source_refs": [
+            "1f_view.png: west facade 1500mm window band"
+          ],
+          "span": [
+            17.96,
+            19.46
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_W_reception",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_officeA",
+          "room": "W_OfficeA",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            14.38,
+            15.58
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_officeA",
+          "room": "W_OfficeA",
+          "source_refs": [
+            "1f_view.png: west facade 1200mm window band"
+          ],
+          "span": [
+            14.38,
+            15.58
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_W_officeA",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_officeB",
+          "room": "W_OfficeB",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            11.14,
+            12.64
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_officeB",
+          "room": "W_OfficeB",
+          "source_refs": [
+            "1f_view.png: west facade 1500mm window band"
+          ],
+          "span": [
+            11.14,
+            12.64
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_W_officeB",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_officeC",
+          "room": "W_OfficeC",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            8.42,
+            9.92
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_officeC",
+          "room": "W_OfficeC",
+          "source_refs": [
+            "1f_view.png: west facade 1500mm window band"
+          ],
+          "span": [
+            8.42,
+            9.92
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_W_officeC",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_dining",
+          "room": "W_Dining",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            0.54,
+            5.34
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_dining",
+          "room": "W_Dining",
+          "source_refs": [
+            "1f_view.png: west facade 4800mm window band"
+          ],
+          "span": [
+            0.54,
+            5.34
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_W_dining",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E_lounge",
+          "room": "E_Lounge",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            17.96,
+            19.46
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E_lounge",
+          "room": "E_Lounge",
+          "source_refs": [
+            "1f_view.png: east facade 1500mm window band"
+          ],
+          "span": [
+            17.96,
+            19.46
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_E_lounge",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E_meetSmall",
+          "room": "E_MeetingSmall",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            14.38,
+            15.58
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E_meetSmall",
+          "room": "E_MeetingSmall",
+          "source_refs": [
+            "1f_view.png: east facade 1200mm window band"
+          ],
+          "span": [
+            14.38,
+            15.58
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_E_meetSmall",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E_meetBig",
+          "room": "E_MeetingBig",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            8.84,
+            13.64
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E_meetBig",
+          "room": "E_MeetingBig",
+          "source_refs": [
+            "1f_view.png: east facade 4800mm window band"
+          ],
+          "span": [
+            8.84,
+            13.64
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_E_meetBig",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "South",
+          "floor": "F1",
+          "id": "W_S_dining",
+          "room": "W_Dining",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            0.54,
+            2.04
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "South",
+          "floor": "F1",
+          "id": "W_S_dining",
+          "room": "W_Dining",
+          "source_refs": [
+            "1f_view.png: south facade 1500mm window band"
+          ],
+          "span": [
+            0.54,
+            2.04
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_S_dining",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      },
+      {
+        "after": {
+          "facade": "South",
+          "floor": "F1",
+          "id": "W_S_bottom",
+          "room": "E_BottomRoom",
+          "source_refs": [
+            "North_view.png: window band"
+          ],
+          "span": [
+            7.96,
+            9.46
+          ],
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "before": {
+          "facade": "South",
+          "floor": "F1",
+          "id": "W_S_bottom",
+          "room": "E_BottomRoom",
+          "source_refs": [
+            "1f_view.png: south facade 1500mm window band"
+          ],
+          "span": [
+            7.96,
+            9.46
+          ],
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "id": "W_S_bottom",
+        "operation": "update_window",
+        "reason": "same z-height fix",
+        "source_refs": [
+          "North_view.png: window band"
+        ]
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "W_Reception",
+            "role": "reception",
+            "source_refs": [
+              "1f_view.png: top-left room with entrance door"
+            ],
+            "x": [
+              0,
+              4.9
+            ],
+            "y": [
+              16.27,
+              20
+            ]
+          },
+          {
+            "id": "W_OfficeA",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: 2-chair desk room"
+            ],
+            "x": [
+              0,
+              4.9
+            ],
+            "y": [
+              13.23,
+              16.27
+            ]
+          },
+          {
+            "id": "W_OfficeB",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk+cabinet room"
+            ],
+            "x": [
+              0,
+              4.9
+            ],
+            "y": [
+              10.5,
+              13.23
+            ]
+          },
+          {
+            "id": "W_OfficeC",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk+cabinet room"
+            ],
+            "x": [
+              0,
+              4.9
+            ],
+            "y": [
+              7.7,
+              10.5
+            ]
+          },
+          {
+            "id": "W_Dining",
+            "role": "boardroom",
+            "source_refs": [
+              "1f_view.png: oval table room, big west window"
+            ],
+            "x": [
+              0,
+              4.9
+            ],
+            "y": [
+              0,
+              7.7
+            ]
+          },
+          {
+            "id": "E_Lounge",
+            "role": "lounge",
+            "source_refs": [
+              "1f_view.png: sofa room, long north window"
+            ],
+            "x": [
+              4.9,
+              10
+            ],
+            "y": [
+              16.27,
+              20
+            ]
+          },
+          {
+            "id": "E_MeetingSmall",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png: round table 4 chairs"
+            ],
+            "x": [
+              4.9,
+              10
+            ],
+            "y": [
+              13.23,
+              16.27
+            ]
+          },
+          {
+            "id": "E_MeetingBig",
+            "role": "meeting",
+            "source_refs": [
+              "1f_view.png: two round tables, long east window"
+            ],
+            "x": [
+              4.9,
+              10
+            ],
+            "y": [
+              7.7,
+              13.23
+            ]
+          },
+          {
+            "id": "E_BottomRoom",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk room with south and east doors"
+            ],
+            "x": [
+              4.9,
+              10
+            ],
+            "y": [
+              0,
+              7.7
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_main",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.54,
+          20
+        ],
+        "p2": [
+          2.14,
+          20
+        ],
+        "source_refs": [
+          "1f_view.png: north facade double door, 1600mm"
+        ],
+        "space_id": "W_Reception",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "door originally spans 4.54-5.44m straddling the internal partition at 4.9m; clipped fully into east room, width reduced from 0.9m to 0.54m"
+        ],
+        "id": "D_ext_south",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.9,
+          0
+        ],
+        "p2": [
+          5.44,
+          0
+        ],
+        "source_refs": [
+          "1f_view.png: south facade door near center, 900mm, clipped to east room face"
+        ],
+        "space_id": "E_BottomRoom",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_ext_east",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10,
+          5.7
+        ],
+        "p2": [
+          10,
+          7.3
+        ],
+        "source_refs": [
+          "East facade dimension chain: door 1600mm at y=12.70-14.30 from north"
+        ],
+        "space_id": "E_BottomRoom",
+        "state": "unknown",
+        "z": [
+          0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D1",
+        "kind": "door",
+        "other_space_id": "E_MeetingSmall",
+        "p1": [
+          4.9,
+          14.5
+        ],
+        "p2": [
+          4.9,
+          15.5
+        ],
+        "source_refs": [
+          "1f_view.png: door arc in central partition ~y=280-370px"
+        ],
+        "space_id": "W_OfficeA",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D2",
+        "kind": "door",
+        "other_space_id": "E_MeetingBig",
+        "p1": [
+          4.9,
+          11.6
+        ],
+        "p2": [
+          4.9,
+          12.6
+        ],
+        "source_refs": [
+          "1f_view.png: door arc in central partition ~y=400-460px"
+        ],
+        "space_id": "W_OfficeB",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D3",
+        "kind": "door",
+        "other_space_id": "E_MeetingBig",
+        "p1": [
+          4.9,
+          8.2
+        ],
+        "p2": [
+          4.9,
+          9.2
+        ],
+        "source_refs": [
+          "1f_view.png: door arc in central partition ~y=590-650px"
+        ],
+        "space_id": "W_OfficeC",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "inferred opening for circulation; not confidently identified as a distinct door mark"
+        ],
+        "id": "D4",
+        "kind": "door",
+        "other_space_id": "W_OfficeA",
+        "p1": [
+          2.0,
+          16.27
+        ],
+        "p2": [
+          3.0,
+          16.27
+        ],
+        "source_refs": [
+          "1f_view.png: inferred connectivity, no clear arc identified"
+        ],
+        "space_id": "W_Reception",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "inferred opening for circulation; not confidently identified as a distinct door mark"
+        ],
+        "id": "D5",
+        "kind": "door",
+        "other_space_id": "W_Dining",
+        "p1": [
+          2.0,
+          7.7
+        ],
+        "p2": [
+          3.0,
+          7.7
+        ],
+        "source_refs": [
+          "1f_view.png: inferred connectivity, no clear arc identified"
+        ],
+        "space_id": "W_OfficeC",
+        "state": "unknown",
+        "z": [
+          0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_N_lounge",
+        "room": "E_Lounge",
+        "source_refs": [
+          "North_view.png: window band below head, clipped to ceiling height"
+        ],
+        "span": [
+          4.9,
+          9.46
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_reception",
+        "room": "W_Reception",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_officeA",
+        "room": "W_OfficeA",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_officeB",
+        "room": "W_OfficeB",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          11.14,
+          12.64
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_officeC",
+        "room": "W_OfficeC",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          8.42,
+          9.92
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_dining",
+        "room": "W_Dining",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          0.54,
+          5.34
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_lounge",
+        "room": "E_Lounge",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          17.96,
+          19.46
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_meetSmall",
+        "room": "E_MeetingSmall",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          14.38,
+          15.58
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_meetBig",
+        "room": "E_MeetingBig",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          8.84,
+          13.64
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S_dining",
+        "room": "W_Dining",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          0.54,
+          2.04
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S_bottom",
+        "room": "E_BottomRoom",
+        "source_refs": [
+          "North_view.png: window band"
+        ],
+        "span": [
+          7.96,
+          9.46
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact partition wall thickness/offsets not measured from dedicated wall-dimension callouts.",
+    "Whether D4/D5 circulation doors actually exist as drawn openings vs open archways without swing symbols.",
+    "Minor jog/setback wall visible near pixel (430-620,600-700) in original plan not modeled (treated as furniture/alcove, not verified).",
+    "Second Haiku review reported 6 door arcs along the central wall vs 3 identified by direct pixel inspection; discrepancy not fully reconciled given time budget."
+  ]
+}

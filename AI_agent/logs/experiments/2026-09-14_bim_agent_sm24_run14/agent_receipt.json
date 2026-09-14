@@ -1,0 +1,82 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 600,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 427.48,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 424811,
+    "duration_api_ms": 422800,
+    "ttft_ms": 1538,
+    "ttft_stream_ms": 1002,
+    "time_to_request_ms": 24,
+    "num_turns": 19,
+    "result": "## Summary\n\nI reconstructed a single-story (10m × 20m footprint, 4.5m ceiling height) building from `1f_view.png` (plan) plus North/South/East/West elevations, and delivered it as **candidate_02** via `finish_bim`.\n\n**Layout modeled:** North lobby/reception (full width), a central north‑south corridor (~1.64m wide), and 4 rooms on the west side (office, two storage/cabinet rooms, large meeting room with oval table) and 4 on the east side (office, two conference rooms with round tables, second office), all connected to the corridor by doors, plus exterior doors on North, South and East walls and 12 windows distributed per facade elevation drawings.\n\n**Verification performed:**\n- Cross-checked plan dimension chains (10000×20000mm, 240mm partition callouts) against all four elevation drawings — the elevation dimension strings matched the plan's edge dimension chains exactly, confirming orientation (top=North, left=West) and giving window/door facade positions.\n- Built and revised the candidate; all 24 openings now build cleanly (`unbuilt_openings: 0`, self-consistency `status: pass`).\n- Ran `overlay_candidate` projecting the saved geometry back onto the original plan image — the magenta room boundaries visually align with the drawn partition walls, and the corridor/door positions track the arcs shown in the plan.\n\n**Known limitations (recorded in assumptions/unresolved, not hidden):**\n- Calibration warning: the overlay's x/y pixel-per-metre anchors disagreed by ~1.1% (over tool's 0.3% tolerance) and x had an ~87mm residual — my anchor picks were not re-measured to eliminate this; overlay is a useful sanity check but not certified pixel-exact.\n- Interior door widths/positions are approximate (arc positions read from crops, not precisely measured); one door (D5b, corridor↔west storage2) is inferred rather than directly observed.\n- The east exterior door (D11) position is approximate from a narrow crop.\n- No `wall_references`/`wall_dimensions` records were saved even though 240mm wall-thickness labels exist in the source — thickness/offsets are not yet attached to boundary IDs.\n- Room-use labels (office/meeting/lobby/storage) are inferred from furniture symbols, not from any legend.\n- Opening reviews (`check_openings`) were not run in this session — the delivery's opening_review_scopes are all `not_reviewed`.\n\nThe saved candidate is `candidate_02`, selected via `finish_bim`; viewer and source model are available at `candidate_02/viewer.html` and `candidate_02/source_model.json`.",
+    "stop_reason": "end_turn",
+    "session_id": "5e95d1cb-c658-4084-8330-b9332ce3144d",
+    "total_cost_usd": 1.2661835000000001,
+    "usage": {
+      "input_tokens": 24,
+      "cache_creation_input_tokens": 93998,
+      "cache_read_input_tokens": 490985,
+      "output_tokens": 36940,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 93998,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 901,
+          "cache_read_input_tokens": 90550,
+          "cache_creation_input_tokens": 9762,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 9762
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 638,
+        "outputTokens": 18,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000728,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 24,
+        "outputTokens": 36940,
+        "cacheReadInputTokens": 490985,
+        "cacheCreationInputTokens": 93998,
+        "webSearchRequests": 0,
+        "costUSD": 1.2654555,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "c79c34cb-aa84-4b99-9efa-cd610b47df48"
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "run": "2026-09-14_bim_agent_sm24_run13",
+  "calls": [
+    {
+      "name": "agent",
+      "model": "claude-sonnet-5",
+      "effort": "medium",
+      "elapsed_seconds": 537.5,
+      "timed_out": false,
+      "returncode": 0,
+      "result_present": true,
+      "is_error": false,
+      "cli_estimated_cost_usd": 1.3444878999999998,
+      "usage": {
+        "input_tokens": 32,
+        "cache_creation_input_tokens": 93999,
+        "cache_read_input_tokens": 624083,
+        "output_tokens": 39497,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 93999,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 977,
+            "cache_read_input_tokens": 86326,
+            "cache_creation_input_tokens": 7673,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 7673
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 638,
+          "outputTokens": 16,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.000718,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        },
+        "claude-sonnet-5": {
+          "inputTokens": 32,
+          "outputTokens": 39497,
+          "cacheReadInputTokens": 624083,
+          "cacheCreationInputTokens": 93999,
+          "webSearchRequests": 0,
+          "costUSD": 1.3437698999999999,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      }
+    },
+    {
+      "name": "detail_01",
+      "model": "claude-haiku-4-5-20251001",
+      "effort": null,
+      "elapsed_seconds": 51.21,
+      "timed_out": false,
+      "returncode": 0,
+      "result_present": true,
+      "is_error": false,
+      "cli_estimated_cost_usd": 0.054463300000000006,
+      "usage": {
+        "input_tokens": 3771,
+        "cache_creation_input_tokens": 12815,
+        "cache_read_input_tokens": 40163,
+        "output_tokens": 4040,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 12815,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 8,
+            "output_tokens": 1144,
+            "cache_read_input_tokens": 10503,
+            "cache_creation_input_tokens": 2312,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2312
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 4537,
+          "outputTokens": 4056,
+          "cacheReadInputTokens": 40163,
+          "cacheCreationInputTokens": 12815,
+          "webSearchRequests": 0,
+          "costUSD": 0.054463300000000006,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        }
+      }
+    }
+  ],
+  "recorded_parent_actions": {
+    "inputs": 1,
+    "view_image": 10,
+    "review_detail": 1,
+    "build_bim": 1,
+    "inspect_candidate": 1,
+    "revise_bim": 2,
+    "finish_bim": 1
+  },
+  "actual_parent_tool_attempts": {
+    "inputs": 1,
+    "view_image": 10,
+    "review_detail": 1,
+    "build_bim": 1,
+    "inspect_candidate": 1,
+    "revise_bim": 2,
+    "finish_bim": 1
+  },
+  "parent_timeline_from_first_logged_action_seconds": [
+    {
+      "elapsed_seconds": 0.0,
+      "action": "inputs",
+      "remaining_seconds": null
+    },
+    {
+      "elapsed_seconds": 2.62,
+      "action": "view_image",
+      "remaining_seconds": 588
+    },
+    {
+      "elapsed_seconds": 15.31,
+      "action": "view_image",
+      "remaining_seconds": 576
+    },
+    {
+      "elapsed_seconds": 15.82,
+      "action": "view_image",
+      "remaining_seconds": 575
+    },
+    {
+      "elapsed_seconds": 20.13,
+      "action": "view_image",
+      "remaining_seconds": 571
+    },
+    {
+      "elapsed_seconds": 42.78,
+      "action": "view_image",
+      "remaining_seconds": 548
+    },
+    {
+      "elapsed_seconds": 43.36,
+      "action": "view_image",
+      "remaining_seconds": 548
+    },
+    {
+      "elapsed_seconds": 52.99,
+      "action": "view_image",
+      "remaining_seconds": 538
+    },
+    {
+      "elapsed_seconds": 65.17,
+      "action": "view_image",
+      "remaining_seconds": 526
+    },
+    {
+      "elapsed_seconds": 216.52,
+      "action": "view_image",
+      "remaining_seconds": 375
+    },
+    {
+      "elapsed_seconds": 302.04,
+      "action": "view_image",
+      "remaining_seconds": 289
+    },
+    {
+      "elapsed_seconds": 443.55,
+      "action": "review_detail",
+      "remaining_seconds": null
+    },
+    {
+      "elapsed_seconds": 477.37,
+      "action": "build_bim",
+      "remaining_seconds": 114
+    },
+    {
+      "elapsed_seconds": 485.75,
+      "action": "inspect_candidate",
+      "remaining_seconds": null
+    },
+    {
+      "elapsed_seconds": 507.11,
+      "action": "revise_bim",
+      "remaining_seconds": 84
+    },
+    {
+      "elapsed_seconds": 512.79,
+      "action": "revise_bim",
+      "remaining_seconds": 78
+    },
+    {
+      "elapsed_seconds": 516.33,
+      "action": "finish_bim",
+      "remaining_seconds": null
+    }
+  ],
+  "saved_source_candidates": [
+    "candidate_01",
+    "candidate_02",
+    "candidate_03"
+  ],
+  "delivery": {
+    "candidate": "candidate_03",
+    "selection_origin": "agent_selected",
+    "report": "delivery.json",
+    "viewer": "delivery.html"
+  },
+  "limitations": [
+    "Parent elapsed includes awaited local calls; do not add child time as end-to-end latency.",
+    "CLI costs are reported estimates, not subscription bills. Missing timeout costs stay unknown.",
+    "A logged image response or saved candidate is not proof of faithful interpretation.",
+    "Timeline starts at first logged tool action, not process launch."
+  ]
+}

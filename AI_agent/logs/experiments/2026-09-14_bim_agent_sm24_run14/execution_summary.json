@@ -1,0 +1,192 @@
+{
+  "run": "2026-09-14_bim_agent_sm24_run14",
+  "calls": [
+    {
+      "name": "agent",
+      "model": "claude-sonnet-5",
+      "effort": "medium",
+      "elapsed_seconds": 427.48,
+      "timed_out": false,
+      "returncode": 0,
+      "result_present": true,
+      "is_error": false,
+      "cli_estimated_cost_usd": 1.2661835000000001,
+      "usage": {
+        "input_tokens": 24,
+        "cache_creation_input_tokens": 93998,
+        "cache_read_input_tokens": 490985,
+        "output_tokens": 36940,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 93998,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 901,
+            "cache_read_input_tokens": 90550,
+            "cache_creation_input_tokens": 9762,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 9762
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 638,
+          "outputTokens": 18,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.000728,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        },
+        "claude-sonnet-5": {
+          "inputTokens": 24,
+          "outputTokens": 36940,
+          "cacheReadInputTokens": 490985,
+          "cacheCreationInputTokens": 93998,
+          "webSearchRequests": 0,
+          "costUSD": 1.2654555,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      }
+    }
+  ],
+  "recorded_parent_actions": {
+    "inputs": 1,
+    "view_image": 13,
+    "build_bim": 1,
+    "revise_bim": 1,
+    "overlay_candidate": 1,
+    "finish_bim": 1
+  },
+  "actual_parent_tool_attempts": {
+    "inputs": 1,
+    "view_image": 13,
+    "build_bim": 1,
+    "revise_bim": 1,
+    "overlay_candidate": 1,
+    "finish_bim": 1
+  },
+  "parent_timeline_from_first_logged_action_seconds": [
+    {
+      "elapsed_seconds": 0.0,
+      "action": "inputs",
+      "remaining_seconds": null
+    },
+    {
+      "elapsed_seconds": 1.63,
+      "action": "view_image",
+      "remaining_seconds": 593
+    },
+    {
+      "elapsed_seconds": 1.92,
+      "action": "view_image",
+      "remaining_seconds": 593
+    },
+    {
+      "elapsed_seconds": 4.14,
+      "action": "view_image",
+      "remaining_seconds": 591
+    },
+    {
+      "elapsed_seconds": 4.33,
+      "action": "view_image",
+      "remaining_seconds": 590
+    },
+    {
+      "elapsed_seconds": 4.48,
+      "action": "view_image",
+      "remaining_seconds": 590
+    },
+    {
+      "elapsed_seconds": 21.81,
+      "action": "view_image",
+      "remaining_seconds": 573
+    },
+    {
+      "elapsed_seconds": 22.48,
+      "action": "view_image",
+      "remaining_seconds": 572
+    },
+    {
+      "elapsed_seconds": 39.3,
+      "action": "view_image",
+      "remaining_seconds": 555
+    },
+    {
+      "elapsed_seconds": 39.95,
+      "action": "view_image",
+      "remaining_seconds": 555
+    },
+    {
+      "elapsed_seconds": 104.39,
+      "action": "view_image",
+      "remaining_seconds": 490
+    },
+    {
+      "elapsed_seconds": 104.87,
+      "action": "view_image",
+      "remaining_seconds": 490
+    },
+    {
+      "elapsed_seconds": 277.85,
+      "action": "view_image",
+      "remaining_seconds": 317
+    },
+    {
+      "elapsed_seconds": 278.27,
+      "action": "view_image",
+      "remaining_seconds": 316
+    },
+    {
+      "elapsed_seconds": 394.85,
+      "action": "build_bim",
+      "remaining_seconds": 201
+    },
+    {
+      "elapsed_seconds": 404.47,
+      "action": "revise_bim",
+      "remaining_seconds": 190
+    },
+    {
+      "elapsed_seconds": 409.15,
+      "action": "overlay_candidate",
+      "remaining_seconds": 186
+    },
+    {
+      "elapsed_seconds": 413.47,
+      "action": "finish_bim",
+      "remaining_seconds": null
+    }
+  ],
+  "saved_source_candidates": [
+    "candidate_01",
+    "candidate_02"
+  ],
+  "delivery": {
+    "candidate": "candidate_02",
+    "selection_origin": "agent_selected",
+    "report": "delivery.json",
+    "viewer": "delivery.html"
+  },
+  "limitations": [
+    "Parent elapsed includes awaited local calls; do not add child time as end-to-end latency.",
+    "CLI costs are reported estimates, not subscription bills. Missing timeout costs stay unknown.",
+    "A logged image response or saved candidate is not proof of faithful interpretation.",
+    "Timeline starts at first logged tool action, not process launch."
+  ]
+}

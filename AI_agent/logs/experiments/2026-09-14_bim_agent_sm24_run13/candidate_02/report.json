@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "Single storey building (only 1F plan supplied; elevations confirm one storey, ~4.5m facade height).",
+    "Ceiling height assumed 3.0m (not explicitly dimensioned; elevation shows overall facade height 4500mm including parapet/roof edge).",
+    "Central partition wall placed at x=4.9m (approx midpoint of conflicting evidence: north wall break at 4.66m vs south door position 4.54-5.44m).",
+    "South exterior door (900mm) clipped to fully lie within E_BottomRoom (4.9-5.44m) since it straddles the assumed partition; true position may extend slightly into W_Dining.",
+    "Internal doors D4 and D5 are inferred for circulation continuity between stacked west rooms; no unambiguous door arc was confirmed at those locations in available crops.",
+    "Window sill/head heights (1.1m-3.5m) are approximate, scaled from elevation proportions, not independently dimensioned on elevation for each window."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 8,
+    "openings": 18,
+    "spaces": 9,
+    "unbuilt_openings": 1,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "65b143bbfa3743252350137db748e8ea9e3f0ab5c8ea1eb7b097344f6c8d43c8",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "779949da8fde1aae31edecb226619074eb1b26c516b3fb999933de7bfcf28f02",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "2a7c82135af4d6782ddbc5e6a6aede53b82514e96cbbf09c08a106cf06936d94"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_E_meetBig",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "bebb69d6bb3731407cb216d929e3a49fe835e92d81e3c97083b6428d6de4ced4",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "opening_id": "W_E_meetBig",
+        "reason": "expected one complete exterior host; found 0",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Exact partition wall thickness/offsets not measured from dedicated wall-dimension callouts.",
+    "Whether D4/D5 circulation doors actually exist as drawn openings vs open archways without swing symbols.",
+    "Minor jog/setback wall visible near pixel (430-620,600-700) in original plan not modeled (treated as furniture/alcove, not verified).",
+    "Second Haiku review reported 6 door arcs along the central wall vs 3 identified by direct pixel inspection; discrepancy not fully reconciled given time budget."
+  ]
+}

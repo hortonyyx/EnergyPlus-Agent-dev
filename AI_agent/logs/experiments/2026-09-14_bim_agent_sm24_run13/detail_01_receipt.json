@@ -1,0 +1,79 @@
+{
+  "requested_model": "haiku",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 149.96953964233398,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "f5d0c209e519a999893ac1d6938ab8b84b6fe82c6ef7fe8e7cc6e381e16addf6",
+    "images": {
+      "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "returncode": 0,
+  "elapsed_seconds": 51.21,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 48275,
+    "duration_api_ms": 49107,
+    "ttft_ms": 1866,
+    "ttft_stream_ms": 1015,
+    "time_to_request_ms": 25,
+    "num_turns": 7,
+    "result": "Based on my detailed examination of the floor plan, here are my findings:\n\n## **Question 1 & 2: Horizontal Divisions (West & East sides)**\n\n**YES, these ARE actual full-height WALLS** (thick gray filled bands), NOT just furniture outlines. \n\n**Evidence:**\n- **Line thickness/fill**: The horizontal divisions are rendered as **solid gray filled bands** (approximately 12-18 pixels thick), clearly distinct from the thin white-outline furniture (desks, tables, chairs) which have simple 1-2 pixel strokes\n- **Consistency**: These gray bands run continuously across the full width of their respective rooms\n- **Positioning**: They separate distinct rooms vertically\n\n**Specific y-coordinates of horizontal wall divisions:**\n\n**WEST SIDE (x≈250-400):**\n- y ≈ 290-310px (gray filled band)\n- y ≈ 350-370px (gray filled band)\n- y ≈ 400-420px (gray filled band)\n- y ≈ 490-510px (gray filled band)\n- y ≈ 560-580px (gray filled band)\n\n**EAST SIDE (x≈400-620):**\n- y ≈ 290-310px (gray filled band)\n- y ≈ 350-370px (gray filled band)\n- y ≈ 405-425px (gray filled band)\n- y ≈ 490-510px (gray filled band)\n- y ≈ 605-625px (gray filled band)\n\n---\n\n## **Question 3: Door Swing Arc Symbols Along Central Wall**\n\nSix door swing arcs (cyan curved lines) are located along the central vertical wall (x≈390-440):\n\n| Location | Y-range (pixels) | Direction | Description |\n|----------|-----------------|-----------|-------------|\n| **Arc 1** | y ≈ 285-320 | Opens East | Upper area, arc extends rightward from wall |\n| **Arc 2** | y ≈ 350-385 | Opens West | Between upper rooms, arc curves left |\n| **Arc 3** | y ≈ 400-435 | Opens East | Between middle rooms, arc extends right |\n| **Arc 4** | y ≈ 495-530 | Opens West | Below middle rooms, arc curves left |\n| **Arc 5** | y ≈ 600-630 | Opens East | Lower-middle area, arc extends right |\n| **Arc 6** | y ≈ 825-855 | Opens West | Bottom area near conference table, arc curves left |\n\nAll arcs are drawn as **cyan-colored double-curved symbols** (approximately 30-50 pixels tall) and indicate door swing clearance paths perpendicular to the wall.",
+    "stop_reason": "end_turn",
+    "session_id": "f486caa1-ca6a-4002-86d8-3828d960a890",
+    "total_cost_usd": 0.054463300000000006,
+    "usage": {
+      "input_tokens": 3771,
+      "cache_creation_input_tokens": 12815,
+      "cache_read_input_tokens": 40163,
+      "output_tokens": 4040,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 12815,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 8,
+          "output_tokens": 1144,
+          "cache_read_input_tokens": 10503,
+          "cache_creation_input_tokens": 2312,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 2312
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 4537,
+        "outputTokens": 4056,
+        "cacheReadInputTokens": 40163,
+        "cacheCreationInputTokens": 12815,
+        "webSearchRequests": 0,
+        "costUSD": 0.054463300000000006,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "42b02531-969e-4869-998f-7fd15c691153"
+  }
+}

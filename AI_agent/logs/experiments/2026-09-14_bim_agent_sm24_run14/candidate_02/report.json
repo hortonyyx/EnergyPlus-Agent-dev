@@ -1,0 +1,66 @@
+{
+  "agent_assumptions": [
+    "Single-story building (only 1F plan supplied); ceiling height 4.5m taken from facade total height dimension.",
+    "North=top, South=bottom, West=left, East=right of 1f_view.png, confirmed by matching elevation dimension chains to plan wall dimension chains.",
+    "Room columns (west/east) and row boundaries derived from coarse dimension chains (4060/2940/4940/8060 west, 4060/1940/5940/3120/4940 east) matched against visible partition lines.",
+    "Central corridor width taken as gap between visible parallel wall lines (~1.64m), connecting all rooms via doors seen as arcs in plan.",
+    "Interior door widths/positions are approximate (visible arcs used for host wall and general position, but not measured precisely); D5b (corridor-west_storage2) is inferred since only one clear arc was seen serving the double storage room area.",
+    "Window sill/head heights approximated from elevation dimension groups (typically sill 1.0m, head 3.4m on N/W/E walls; sill 1.0m head 2.8m on S windows); exact figures not individually re-verified per opening.",
+    "Door heights set to 2.4m (floor to head) as a standard assumption; some elevation dimension chains showed unusual bottom offsets (e.g. 200mm) not modeled.",
+    "Wall thickness observed as 240mm in several plan annotations but not implemented as explicit wall_references/offsets in this pass."
+  ],
+  "counts": {
+    "boundaries": 60,
+    "connections": 12,
+    "openings": 24,
+    "spaces": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "ea29499661b5695c7e0dd676633606d24e889c379710c213da047323f1a288d9",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "b8e5fcf43b77a30193def6208ef72f80e64834b7ba84ebf5b9eacb90104f6795",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "5c20f7de0e71ea98c37fdbf957db15a6783a6aae8aba71e525f870d38ff65e3a"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e26b1214248fbdba83fa9d2ce0368a4991cd195f0407bfc5f8ea541126212b98",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact partition wall between the two west storage rooms and its door not fully confirmed pixel-by-pixel.",
+    "East wall exterior door (D11) position approximate; original arc position only roughly read from a narrow crop.",
+    "Fine dimension chains on facades (window positions) matched to rows via approximate pixel/row correspondence; not converted through calibrated map_pixels/dimension-chain tools.",
+    "No wall_references/wall_dimensions records saved; 240mm thickness annotations exist in source but are not yet attached to boundary IDs.",
+    "Furniture-implied room use (office/meeting/lobby) is a label guess, not verified against any legend."
+  ]
+}
