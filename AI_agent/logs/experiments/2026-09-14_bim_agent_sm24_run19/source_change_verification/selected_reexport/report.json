@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Exterior wall/floor-to-ceiling height 4500mm from elevation chains.",
+    "Window sill 1000mm, head 3400mm (2400mm tall) assumed uniformly from elevation window chain 1100/2400/1000.",
+    "Door heights 0-2400mm assumed uniformly (interior and exterior) from elevation door chain pattern.",
+    "Vestibule area near the east exterior door merged into south_east_room as one physical room rather than a separate small jog, since wall evidence there was a minor step not a full room division.",
+    "North room's east-wall window (O6) position estimated from East_view's upper 1500mm segment; exact plan pixel hatch boundary approximate.",
+    "South_east_room's east-wall small windows (O9) approximated as one combined opening representing East_view's two small window rectangles near the south end.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "CORRECTION (this revision): the seed's single 'meeting_room' cell (x:5.874-10, y:8.011-16.022) actually contains a real interior partition wall observed at pixel y=367/371 on 1f_view.png, forming a clean capped T-junction against the vertical corridor wall at pixel x=457 and running solid (no door break) to the east exterior wall at pixel x=603-611. This wall was confirmed by direct high-zoom inspection (crops [380,270,630,430] and [430,355,620,600]) showing both wall faces terminating flush with no gap or furniture outline, and by the exterior-wall pixel profile at x=600-630 showing a solid cross-band at y=356-381 interrupting the east window run. The room is therefore split into a small north storage/shelving room and a larger south meeting/dining room with two table settings, each reached by its own separate door from the shared corridor (D4 and D5, both already present in the seed, now correctly hosted to their respective new rooms).",
+    "Calibration for this revision's pixel reads used anchors (pixel y=296 -> world y=16.021948, the north_room south wall) and (pixel y=585 -> world y=8.010974, the office/meeting zone to dining/south_east zone boundary), consistent with the seed's own office_A/office_B boundary (13.086 world vs 13.056 computed here, 0.03m residual). The storage_room/meeting_room boundary was set at world y=13.700 (rather than the raw 13.998 pixel-midpoint conversion) to stay consistent with the seed's own already-fixed D4 door endpoint (13.717421), since the T-junction wall's true pixel thickness (y=361-384 both walls) spans a world range of about 13.58-14.22 and either value is within that observed band; 13.700 was chosen to keep D4 fully hosted without moving its previously-fixed coordinates.",
+    "O7 (single east window on the old meeting_room) was likewise split into O7a (storage_room) and O7b (meeting_room) because the exterior wall profile shows solid (non-window) grey bands at the same two wall junctions (pixel y=356-381 and y=558-612) interrupting the cyan window hatch; exact window pixel edges (310/356 and 381/558) were read visually from the crop and are less precise than the wall-junction dimension chain."
+  ],
+  "counts": {
+    "boundaries": 48,
+    "connections": 8,
+    "openings": 18,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0f61bf44afe46096d61e081f1999bef4f7bbc7692d1ed33a07e03960f7d6e06f",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "4b183c73af15a0809c20081dd54525ab94aefa3bb2564e6a268d7a116529051b",
+    "mode": "saved_candidate_recovery"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "ed1639c7e2b9f3097f9bd2d878c2033f9d1b50312c04e37b42e2eb0c5b416e92",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact pixel extents of each cyan hatch window run were approximated from visible hatch spans rather than measuring every hatch tick individually.",
+    "O7a/O7b split boundary pixels (310/356/381/558) were read visually from a single zoomed crop, not cross-checked against a printed dimension label; residual error up to roughly 0.2-0.3m is possible.",
+    "Small wall jog near the east exterior door (vestibule) simplified to a straight partition rather than the stepped wall visible in the drawing.",
+    "Pixel-to-world calibration was supplied/derived by the caller (cross-checked against the office_A/office_B boundary to within 0.03m) and is not independently verified beyond that single check.",
+    "The storage_room/meeting_room boundary (y=13.700) was chosen to keep D4's pre-existing endpoint hosted rather than independently re-deriving it from the wall pixel band (which itself spans a world range of about 13.58-14.22 given wall thickness); the true partition centreline could be anywhere in that band.",
+    "Between the corridor (x:4.125683-5.874317) and south_east_room (x:4.125683-10, y:0-8.010974), direct pixel inspection at pixel box [390,555,470,630] found NO wall ink at all spanning pixel x=402-457 at the y=8.01 zone boundary row: the corridor's east-side wall (pixel x=457) and the south_east_room's north wall both stop at this row without closing the gap. This suggests the corridor may be physically open to south_east_room there (no door, no wall) rather than fully separated as modeled. This revision leaves the corridor/south_east_room boundary as originally modeled (closed cells sharing an edge, per seed) because fixing it would reshape south-zone rooms outside this revision's assigned scope (the meeting_room/storage_room partition); it is recorded here as an unresolved discrepancy rather than silently corrected or ignored."
+  ]
+}

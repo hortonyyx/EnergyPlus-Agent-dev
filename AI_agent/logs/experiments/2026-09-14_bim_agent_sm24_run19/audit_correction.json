@@ -1,0 +1,13 @@
+{
+  "scope": "post-run audit only; runtime source/images/raw stream unchanged",
+  "reason": "Earlier auditor compared the cropped seed overlay MCP image against the full saved PNG. Toolkit._save_overlay deliberately stores full image but returns requested box, then thumbnail(1600,1600).",
+  "affected_artifact": "image_overlays/overlay_001.png",
+  "requested_box": [
+    0,
+    0,
+    790,
+    700
+  ],
+  "initial_report": "execution_verification_initial.json",
+  "correction": "Reconstruct the documented return crop and thumbnail from the full saved overlay, and still compare pixels exactly. No relaxation of pixel matching or semantic quality checks."
+}

@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<title>源变化离线核验</title><style>body{font:15px/1.55 system-ui;max-width:1400px;margin:24px auto;padding:0 16px}
+.notice{padding:12px;background:#fff3cd;border:1px solid #dbbd54}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:7px;text-align:left;vertical-align:top}iframe{width:100%;height:760px;border:1px solid #aaa}</style>
+<h1>源变化离线核验</h1><p class="notice">这里只比较保存的源数据、ID 和确定性重导出。房间数量、几何自洽与 viewer 可打开都不代表图纸保真。</p>
+<p>最终选择：candidate_02；实际新候选：candidate_01, candidate_02。</p>
+<p><a href="source_change_verification.json">完整 JSON</a> · <a href="selected_reexport/viewer.html">独立重导出 viewer</a></p>
+<table><thead><tr><th>类别</th><th>新增</th><th>删除</th><th>同 ID 改动</th><th>保留 ID</th><th>完全未变</th></tr></thead><tbody><tr><td>空间</td><td>storage_room</td><td>无</td><td>meeting_room</td><td>corridor, dining_room, meeting_room, north_room, office_A, office_B, south_east_room</td><td>corridor, dining_room, north_room, office_A, office_B, south_east_room</td></tr><tr><td>开口</td><td>O7a, O7b</td><td>O7</td><td>D4, D5</td><td>D1, D2, D3, D4, D5, O1, O10, O11, O12, O2, O3, O4, O5, O6, O8, O9</td><td>D1, D2, D3, O1, O10, O11, O12, O2, O3, O4, O5, O6, O8, O9</td></tr><tr><td>连接</td><td>无</td><td>无</td><td>D4</td><td>D1, D2, D3, D4, D5, O1, O11, O8</td><td>D1, D2, D3, D5, O1, O11, O8</td></tr></tbody></table>
+<h2>独立重导出查看</h2><iframe src="selected_reexport/viewer.html" title="独立重导出源模型"></iframe></html>

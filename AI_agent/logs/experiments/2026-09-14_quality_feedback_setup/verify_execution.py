@@ -65,8 +65,20 @@ def audit_stream(run, prefix, image_root):
                         actual = Image.open(io.BytesIO(base64.b64decode(encoded["source"]["data"])))
                         saved_path = image_root.parent/metadata[key]
                         with Image.open(saved_path) as saved:
-                            row = {"tool":name,"artifact":metadata[key],"pixels_match":same(actual,saved),
+                            expected = saved
+                            if key == "overlay_image":
+                                # Explicit overlay calls save the full image but
+                                # return the requested crop. Automatic build
+                                # responses return the full stored projection.
+                                region = (args.get("box") if name == "overlay_candidate" else None)
+                                region = region or [0, 0, saved.width, saved.height]
+                                expected = saved.crop(region)
+                                expected.thumbnail((1600, 1600))
+                            row = {"tool":name,"artifact":metadata[key],"pixels_match":same(actual,expected),
                                    "candidate":metadata.get("candidate"), "floor_id":metadata.get("floor_id")}
+                            if key == "overlay_image":
+                                row.update(returned_crop_original_pixels=region,
+                                           expected_returned_size=list(expected.size))
                             if key == "image_file":
                                 declaration = read(image_root.parent/metadata["metadata_file"])
                                 row.update(failed_declaration_only=True,

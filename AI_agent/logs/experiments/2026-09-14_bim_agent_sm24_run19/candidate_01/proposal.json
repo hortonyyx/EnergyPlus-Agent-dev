@@ -1,0 +1,796 @@
+{
+  "assumptions": [
+    "Exterior wall/floor-to-ceiling height 4500mm from elevation chains.",
+    "Window sill 1000mm, head 3400mm (2400mm tall) assumed uniformly from elevation window chain 1100/2400/1000.",
+    "Door heights 0-2400mm assumed uniformly (interior and exterior) from elevation door chain pattern.",
+    "Vestibule area near the east exterior door merged into south_east_room as one physical room rather than a separate small jog, since wall evidence there was a minor step not a full room division.",
+    "North room's east-wall window (O6) position estimated from East_view's upper 1500mm segment; exact plan pixel hatch boundary approximate.",
+    "South_east_room's east-wall small windows (O9) approximated as one combined opening representing East_view's two small window rectangles near the south end.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "CORRECTION (this revision): the seed's single 'meeting_room' cell (x:5.874-10, y:8.011-16.022) actually contains a real interior partition wall observed at pixel y=367/371 on 1f_view.png, forming a clean capped T-junction against the vertical corridor wall at pixel x=457 and running solid (no door break) to the east exterior wall at pixel x=603-611. This wall was confirmed by direct high-zoom inspection (crops [380,270,630,430] and [430,355,620,600]) showing both wall faces terminating flush with no gap or furniture outline, and by the exterior-wall pixel profile at x=600-630 showing a solid cross-band at y=356-381 interrupting the east window run. The room is therefore split into a small north storage/shelving room and a larger south meeting/dining room with two table settings, each reached by its own separate door from the shared corridor (D4 and D5, both already present in the seed, now correctly hosted to their respective new rooms).",
+    "Calibration for this revision's pixel reads used anchors (pixel y=296 -> world y=16.021948, the north_room south wall) and (pixel y=585 -> world y=8.010974, the office/meeting zone to dining/south_east zone boundary), consistent with the seed's own office_A/office_B boundary (13.086 world vs 13.056 computed here, 0.03m residual).",
+    "The T-junction partition pixel position (y=367-371, midpoint 369) converts to world y=13.998 under this calibration; used as the new shared boundary between meeting_room and storage_room.",
+    "O7 (single east window on the old meeting_room) was likewise split into O7a (storage_room) and O7b (meeting_room) because the exterior wall profile shows solid (non-window) grey bands at the same two wall junctions (pixel y=356-381 and y=558-612) interrupting the cyan window hatch; exact window pixel edges (310/356 and 381/558) were read visually from the crop and are less precise than the wall-junction dimension chain."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "north_room",
+            "polygon": [
+              [
+                0.0,
+                16.021948
+              ],
+              [
+                10.0,
+                16.021948
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                0.0,
+                20.0
+              ]
+            ],
+            "role": "reception_open_office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: solid gray wall, north room south wall west segment",
+              "1f_view.png: solid gray wall, north room south wall mid segment above corridor",
+              "1f_view.png: solid gray wall, north room south wall east segment"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              16.021948,
+              20.0
+            ]
+          },
+          {
+            "id": "office_A",
+            "polygon": [
+              [
+                0.0,
+                13.08642
+              ],
+              [
+                4.125683,
+                13.08642
+              ],
+              [
+                4.125683,
+                16.021948
+              ],
+              [
+                0.0,
+                16.021948
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: solid gray wall, north room south wall west segment",
+              "1f_view.png: vertical wall between office_A and corridor, continued through its door aperture",
+              "1f_view.png: horizontal wall between office_A and office_B"
+            ],
+            "x": [
+              0.0,
+              4.125683
+            ],
+            "y": [
+              13.08642,
+              16.021948
+            ]
+          },
+          {
+            "id": "corridor",
+            "polygon": [
+              [
+                4.125683,
+                8.010974
+              ],
+              [
+                5.874317,
+                8.010974
+              ],
+              [
+                5.874317,
+                16.021948
+              ],
+              [
+                4.125683,
+                16.021948
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: solid gray wall, north room south wall mid segment above corridor",
+              "1f_view.png: vertical wall between office_A and corridor, continued through its door aperture",
+              "1f_view.png: vertical wall between office_B and corridor, continued through its door aperture",
+              "1f_view.png: vertical wall between corridor and meeting_room/storage_room, continued through its door apertures"
+            ],
+            "x": [
+              4.125683,
+              5.874317
+            ],
+            "y": [
+              8.010974,
+              16.021948
+            ]
+          },
+          {
+            "id": "storage_room",
+            "polygon": [
+              [
+                5.874317,
+                13.998
+              ],
+              [
+                10.0,
+                13.998
+              ],
+              [
+                10.0,
+                16.021948
+              ],
+              [
+                5.874317,
+                16.021948
+              ]
+            ],
+            "role": "storage",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: solid gray wall, north room south wall east segment (north boundary)",
+              "1f_view.png: vertical wall between corridor and storage_room with door D4",
+              "1f_view.png: T-junction horizontal partition at pixel y=367/371 separating storage_room from meeting_room, capped flush against corridor vertical wall and running solid to east exterior wall"
+            ],
+            "x": [
+              5.874317,
+              10.0
+            ],
+            "y": [
+              13.998,
+              16.021948
+            ]
+          },
+          {
+            "id": "meeting_room",
+            "polygon": [
+              [
+                5.874317,
+                8.010974
+              ],
+              [
+                10.0,
+                8.010974
+              ],
+              [
+                10.0,
+                13.998
+              ],
+              [
+                5.874317,
+                13.998
+              ]
+            ],
+            "role": "meeting_room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: T-junction horizontal partition at pixel y=367/371 separating storage_room from meeting_room (north boundary)",
+              "1f_view.png: vertical wall between corridor and meeting_room with door D5",
+              "1f_view.png: horizontal wall separating north zone (corridor/meeting_room/storage_room) from south zone (dining_room/south_east_room)"
+            ],
+            "x": [
+              5.874317,
+              10.0
+            ],
+            "y": [
+              8.010974,
+              13.998
+            ]
+          },
+          {
+            "id": "office_B",
+            "polygon": [
+              [
+                0.0,
+                8.010974
+              ],
+              [
+                4.125683,
+                8.010974
+              ],
+              [
+                4.125683,
+                13.08642
+              ],
+              [
+                0.0,
+                13.08642
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall between office_B and corridor, continued through its door aperture",
+              "1f_view.png: horizontal wall between office_A and office_B",
+              "1f_view.png: horizontal wall between office_B and dining_room"
+            ],
+            "x": [
+              0.0,
+              4.125683
+            ],
+            "y": [
+              8.010974,
+              13.08642
+            ]
+          },
+          {
+            "id": "dining_room",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.125683,
+                0.0
+              ],
+              [
+                4.125683,
+                8.010974
+              ],
+              [
+                0.0,
+                8.010974
+              ]
+            ],
+            "role": "meeting_dining",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall between dining_room and south_east_room, continued through its door aperture",
+              "1f_view.png: horizontal wall between office_B and dining_room"
+            ],
+            "x": [
+              0.0,
+              4.125683
+            ],
+            "y": [
+              0.0,
+              8.010974
+            ]
+          },
+          {
+            "id": "south_east_room",
+            "polygon": [
+              [
+                4.125683,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                8.010974
+              ],
+              [
+                4.125683,
+                8.010974
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall between dining_room and south_east_room, continued through its door aperture",
+              "1f_view.png: horizontal wall separating north zone (corridor/meeting_room) from south zone (dining_room/south_east_room)"
+            ],
+            "x": [
+              4.125683,
+              10.0
+            ],
+            "y": [
+              0.0,
+              8.010974
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels; this revision corrects the seed's undivided meeting_room into storage_room + meeting_room per an observed T-junction partition wall. Calibration and full drawing fidelity remain unverified beyond the checks noted in assumptions.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "O1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.655738,
+          20.0
+        ],
+        "p2": [
+          2.978142,
+          20.0
+        ],
+        "source_refs": [
+          "1f_view.png: main entrance door arc on north wall"
+        ],
+        "space_id": "north_room",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "O8",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.681756
+        ],
+        "p2": [
+          10.0,
+          6.035665
+        ],
+        "source_refs": [
+          "1f_view.png: exterior door arc on east wall; East_view.png 1600mm double-door matches"
+        ],
+        "space_id": "south_east_room",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "O11",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.535519,
+          0.0
+        ],
+        "p2": [
+          5.437158,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view.png: south wall door arc 900mm; South_view.png central glazed door assembly"
+        ],
+        "space_id": "south_east_room",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D1",
+        "kind": "door",
+        "other_space_id": "office_A",
+        "p1": [
+          4.125683,
+          14.266118
+        ],
+        "p2": [
+          4.125683,
+          13.415638
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between office_A and corridor"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D2",
+        "kind": "door",
+        "other_space_id": "office_B",
+        "p1": [
+          4.125683,
+          12.674897
+        ],
+        "p2": [
+          4.125683,
+          11.851852
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between office_B and corridor"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D3",
+        "kind": "door",
+        "other_space_id": "south_east_room",
+        "p1": [
+          4.125683,
+          7.681756
+        ],
+        "p2": [
+          4.125683,
+          6.858711
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between dining_room and south_east_room"
+        ],
+        "space_id": "dining_room",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [
+          "Revised host: this door was placed at the seed's world y-values, previously labelled as connecting corridor to a single undivided meeting_room; corrected to connect corridor to the newly separated storage_room (small shelf/cabinet room) based on the observed T-junction partition."
+        ],
+        "id": "D4",
+        "kind": "door",
+        "other_space_id": "storage_room",
+        "p1": [
+          5.874317,
+          15.171468
+        ],
+        "p2": [
+          5.874317,
+          13.717421
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between corridor and storage_room (upper), hinged on corridor wall near pixel (457,300-361)"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D5",
+        "kind": "door",
+        "other_space_id": "meeting_room",
+        "p1": [
+          5.874317,
+          13.168724
+        ],
+        "p2": [
+          5.874317,
+          11.522634
+        ],
+        "source_refs": [
+          "1f_view.png: door arc between corridor and meeting_room, hinged at the T-junction corner (pixel 457,367) swinging into corridor"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.4
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "O2",
+        "kind": "window",
+        "p1": [
+          4.20765,
+          20.0
+        ],
+        "p2": [
+          9.672131,
+          20.0
+        ],
+        "room": "north_room",
+        "source_refs": [
+          "1f_view.png: long ribbon window cyan double-line on north wall; North_view.png 4800mm window matches"
+        ],
+        "span": [
+          4.20765,
+          9.672131
+        ],
+        "width_m": 5.464481,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "O3",
+        "kind": "window",
+        "p1": [
+          0.0,
+          15.912209
+        ],
+        "p2": [
+          0.0,
+          13.168724
+        ],
+        "room": "office_A",
+        "source_refs": [
+          "1f_view.png: cyan hatch window on west wall at office_A"
+        ],
+        "span": [
+          13.168724,
+          15.912209
+        ],
+        "width_m": 2.743485,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "O4",
+        "kind": "window",
+        "p1": [
+          0.0,
+          12.894376
+        ],
+        "p2": [
+          0.0,
+          8.230453
+        ],
+        "room": "office_B",
+        "source_refs": [
+          "1f_view.png: cyan hatch window on west wall at office_B"
+        ],
+        "span": [
+          8.230453,
+          12.894376
+        ],
+        "width_m": 4.663923,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "O5",
+        "kind": "window",
+        "p1": [
+          0.0,
+          7.681756
+        ],
+        "p2": [
+          0.0,
+          0.548697
+        ],
+        "room": "dining_room",
+        "source_refs": [
+          "1f_view.png: cyan hatch window on west wall at dining_room; West_view.png confirms multiple windows on this facade"
+        ],
+        "span": [
+          0.548697,
+          7.681756
+        ],
+        "width_m": 7.133059,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "O6",
+        "kind": "window",
+        "p1": [
+          10.0,
+          19.478738
+        ],
+        "p2": [
+          10.0,
+          16.186557
+        ],
+        "room": "north_room",
+        "source_refs": [
+          "1f_view.png: cyan hatch window on east wall at north_room; East_view.png upper window segment"
+        ],
+        "span": [
+          16.186557,
+          19.478738
+        ],
+        "width_m": 3.292181,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [
+          "Split from seed's single O7 (span 8.504801-15.363512) because the exterior wall pixel profile at x=600-630 shows solid grey (non-window) bands at pixel y=356-381 and y=558-612 that interrupt the cyan window hatch at exactly the two new wall junctions; exact window edge pixels (310,356,381,558) read visually, less precise than the dimension-chain-derived wall positions."
+        ],
+        "facade": "East",
+        "floor": "F1",
+        "id": "O7a",
+        "kind": "window",
+        "p1": [
+          10.0,
+          15.634
+        ],
+        "p2": [
+          10.0,
+          14.358
+        ],
+        "room": "storage_room",
+        "source_refs": [
+          "1f_view.png: cyan hatch window on east wall at storage_room, north segment of the former single O7 run"
+        ],
+        "span": [
+          14.358,
+          15.634
+        ],
+        "width_m": 1.276,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [
+          "Split from seed's single O7; see O7a assumption note."
+        ],
+        "facade": "East",
+        "floor": "F1",
+        "id": "O7b",
+        "kind": "window",
+        "p1": [
+          10.0,
+          13.665
+        ],
+        "p2": [
+          10.0,
+          8.756
+        ],
+        "room": "meeting_room",
+        "source_refs": [
+          "1f_view.png: cyan hatch window on east wall at meeting_room, south segment of the former single O7 run; East_view.png large window matches this larger segment"
+        ],
+        "span": [
+          8.756,
+          13.665
+        ],
+        "width_m": 4.909,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "O9",
+        "kind": "window",
+        "p1": [
+          10.0,
+          4.938272
+        ],
+        "p2": [
+          10.0,
+          0.823045
+        ],
+        "room": "south_east_room",
+        "source_refs": [
+          "1f_view.png: cyan hatch window(s) on east wall at south_east_room; East_view.png small windows near south end"
+        ],
+        "span": [
+          0.823045,
+          4.938272
+        ],
+        "width_m": 4.115227,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "O10",
+        "kind": "window",
+        "p1": [
+          0.546448,
+          0.0
+        ],
+        "p2": [
+          2.021858,
+          0.0
+        ],
+        "room": "dining_room",
+        "source_refs": [
+          "1f_view.png: south wall window; South_view.png 1500mm window matches"
+        ],
+        "span": [
+          0.546448,
+          2.021858
+        ],
+        "width_m": 1.47541,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "O12",
+        "kind": "window",
+        "p1": [
+          7.95082,
+          0.0
+        ],
+        "p2": [
+          9.453552,
+          0.0
+        ],
+        "room": "south_east_room",
+        "source_refs": [
+          "1f_view.png: south wall window; South_view.png 1500mm window matches"
+        ],
+        "span": [
+          7.95082,
+          9.453552
+        ],
+        "width_m": 1.502732,
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact pixel extents of each cyan hatch window run were approximated from visible hatch spans rather than measuring every hatch tick individually.",
+    "O7a/O7b split boundary pixels (310/356/381/558) were read visually from a single zoomed crop, not cross-checked against a printed dimension label; residual error up to roughly 0.2-0.3m is possible.",
+    "Small wall jog near the east exterior door (vestibule) simplified to a straight partition rather than the stepped wall visible in the drawing.",
+    "Pixel-to-world calibration was supplied/derived by the caller (cross-checked against the office_A/office_B boundary to within 0.03m) and is not independently verified beyond that single check.",
+    "Between the corridor (x:4.125683-5.874317) and south_east_room (x:4.125683-10, y:0-8.010974), direct pixel inspection at pixel box [390,555,470,630] found NO wall ink at all spanning pixel x=402-457 at the y=8.01 zone boundary row: the corridor's east-side wall (pixel x=457) and the south_east_room's north wall both stop at this row without closing the gap. This suggests the corridor may be physically open to south_east_room there (no door, no wall) rather than fully separated as modeled. This revision leaves the corridor/south_east_room boundary as originally modeled (closed cells sharing an edge, per seed) because fixing it would reshape south-zone rooms outside this revision's assigned scope (the meeting_room/storage_room partition); it is recorded here as an unresolved discrepancy rather than silently corrected or ignored."
+  ]
+}

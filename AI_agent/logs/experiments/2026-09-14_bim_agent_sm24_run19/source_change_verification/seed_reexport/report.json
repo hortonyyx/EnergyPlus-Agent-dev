@@ -1,0 +1,63 @@
+{
+  "agent_assumptions": [
+    "Exterior wall/floor-to-ceiling height 4500mm from elevation chains.",
+    "Window sill 1000mm, head 3400mm (2400mm tall) assumed uniformly from elevation window chain 1100/2400/1000.",
+    "Door heights 0-2400mm assumed uniformly (interior and exterior) from elevation door chain pattern.",
+    "Vestibule area near the east exterior door merged into south_east_room as one physical room rather than a separate small jog, since wall evidence there was a minor step not a full room division.",
+    "North room's east-wall window (O6) position estimated from East_view's upper 1500mm segment; exact plan pixel hatch boundary approximate.",
+    "South_east_room's east-wall small windows (O9) approximated as one combined opening representing East_view's two small window rectangles near the south end.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 17,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "ac7f2db265aae45a0b4d2e8cbecf1400b05106a4ea6e581c0dd3f19261b2c788",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "ac7f2db265aae45a0b4d2e8cbecf1400b05106a4ea6e581c0dd3f19261b2c788",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_bim_agent_sm24_run18/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "44c8638f58d53d01909f8a1f9c8998ed74b998c73f2f1898d232f74bd5abe3af",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact pixel extents of each cyan hatch window run were approximated from visible hatch spans rather than measuring every hatch tick individually.",
+    "Whether D4/D5 are truly two separate doors or one wide double-leaf door in the corridor/meeting_room wall is uncertain from the overlapping arc symbols; modeled as two doors.",
+    "Small wall jog near the east exterior door (vestibule) simplified to a straight partition (PF) rather than the stepped wall visible in the drawing.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

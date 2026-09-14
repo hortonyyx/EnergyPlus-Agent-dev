@@ -1,0 +1,157 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "Continue restoration from the saved seed proposal. This increment concerns\nphysical partitions and spatial continuity in the middle part of the plan, with\nthe doors/windows whose hosts are affected by an actual partition correction.\nDo not redo unrelated parts of the building or optimize first-draft speed.\n\nThe complete earlier local observation below is FALLIBLE, NOT APPROVED. Its\nclaims, IDs, references, door descriptions and assumptions may be wrong. It is\nsupplied intact, not filtered to correct conclusions. Compare it with original\ndrawings and the actual seed, decide what is supported, and apply useful local\ncorrections yourself. Do not merely restate the observation or add notes while\nretaining a substantiated physical discrepancy. Independently verify wall end\njunctions, the full extent of the spaces on both sides, and which oriented wall\na door swing belongs to. Clean magnified crops retain context around junctions.\nMeasured grey ink includes furniture, walls, crossings and omissions; it is not\na wall catalogue. Missing color support does not decide whether an opening exists.\n\nUse the existing deterministic geometry, pixel/dimension mapping and inspection\ntools. Inspect seed and read the relevant geometry/edit reference. If a change\nadds/removes a physical space or exceeds a local edit's supported scope, use a\ncomplete revised build_bim proposal (or build_plan_bim if suitable), preserving\nthe unaffected geometry and IDs. Do not invent an abstract divider to keep a\nspace rectangular. Do not delete, clip, resize or silently reclassify openings\njust to make the geometry compile: inspect affected openings in the plan and\nelevations, then represent supported changes explicitly and keep uncertainty.\nThe supplied building declaration retains its original meaning; thermal zoning\nis not the source-room count. Reliable exterior shape, vertical properties and\nunrelated source spaces/openings should remain stable. Old notes are hypotheses;\ndo not copy them as fresh evidence or infer structural load-bearing from ink alone.\n\nRegister an observed image calibration and inspect the NEW actual source plan,\nits original-image overlay, and the affected source opening/connection inventory.\nRevise conflicts using the original evidence and save an honest final selection\nwith finish_bim. Record the remaining unexamined scope and unsupported claims.\n\nDevelopment boundary: the developer chose this local aspect, failed seed and\nprevious observation. No GT, evaluation report, correct source geometry or\ndeveloper-approved subset of observations is supplied. This is assisted local\nrecovery, not an independent cold start or proof of whole-building fidelity.\n\nComplete earlier observation (unmodified):\n## Findings\n\n**Context crop** [360,260,630,660]@3×: Two dining-table rooms are separated by a horizontal double line around y≈367–371 that runs from the vertical wall near x≈457 rightward to the exterior wall at x≈603–611. Lower down, near y≈583–587, a single cyan door-leaf arc is attached to the vertical wall at x≈402, swinging into the corridor; the vertical wall at x≈457 turns into a second solid horizontal run toward the exterior wall at that same height.\n\n**Junction A** — box [422,319,512,419]@6×, confirmed further in [430,300,620,420]@5×: The vertical wall at x≈457 (C02) runs continuously through y≈367/371. The horizontal double line (C04/C05) meets it in a clean, capped T‑junction — both wall faces (the two parallel grey strokes) terminate flush against the vertical wall’s faces, no gap, no furniture outline. This is a real corner, not a coincidental crossing: the horizontal member is a load-bearing-drawn partition separating the shelf/cabinet area above (with the \"240\" dimension) from the dining-table room below.\n\n**Junction B** — box [362,533,497,652]@6×, plus [380,500,500,660]@4× and [360,560,470,660]@5×: The vertical wall at x≈402 is continuous (not terminating at y≈583 as first appearance suggested); a single cyan door leaf is hinged on this vertical wall near (402,583) and swings left into the corridor, capped by flat head/sill ticks at x≈360–397. Separately, the vertical wall at x≈457 turns and continues as a solid horizontal wall from x≈462 to the exterior wall (x≈603–611) with no door. Between x≈397 and x≈462 (the \"gap\" the profile flagged) there is no drawn wall of any orientation — it is open corridor floor bounded by the two independent vertical walls. So the earlier framing of \"C06/C07 = one horizontal wall with a central door\" is not supported: the door belongs to the vertical wall (x≈402), and the x≈462–611 run is an unrelated solid horizontal wall with no opening.\n\n```json\n{\n  \"junctions\": [\n    {\n      \"id\": \"A\",\n      \"object\": \"physical_wall\",\n      \"relation\": \"separates_spaces (T-junction)\",\n      \"joins\": [\"C04/C05 horizontal (y=367/371, x=462-611)\", \"C02 vertical (x=457, peak y=415-587 run)\"],\n      \"separate_runs\": [],\n      \"evidence\": \"Crop [430,300,620,420]@5x shows both parallel grey strokes of the horizontal element terminate flush against both faces of the continuous x=457 vertical wall, forming a capped T-junction with no gap; the vertical wall continues above and below the junction row. This is a genuine end-cap connection, not a coincidental profile crossing.\",\n      \"prior_claim_action\": \"revise (prior 'wall_fragment / unresolved whether it connects left of x=462' is corrected: it clearly connects to and terminates at the x=457 wall, forming a real T-junction and dividing the cabinet/shelf area above from the dining-table room below)\"\n    },\n    {\n      \"id\": \"B\",\n      \"object\": \"uncertain (composite: door in vertical wall x=402 + unrelated solid horizontal wall x=462-611; no wall at all spans x=397-462)\",\n      \"relation\": \"not a single horizontal wall with a central door\",\n      \"joins\": [\"door leaf hinge belongs to C01 vertical wall (x=402), not to a horizontal member\", \"C02 vertical wall (x=457) turns into the solid horizontal run x=462-611 with no opening\"],\n      \"separate_runs\": [\n        [\"C06/C07 support interval [360,397] (door-leaf head/sill cap on x=402 wall)\"],\n        [\"C06/C07 support interval [462,611] (solid horizontal wall attached to x=457 wall)\"]\n      ],\n      \"evidence\": \"Crops [380,500,500,660]@4x and [360,560,470,660]@5x show the x=402 vertical wall running continuously through y=583-650 with a single cyan door leaf hinged on it, swinging left into the corridor (flat cyan caps at x~360-397 mark head/sill, not a wall face). Crop [440,550,630,620]@5x shows the x=462-611 span is an unbroken solid double-line wall joined to the x=457 vertical wall, with no arc or jamb break. Between x=397 and x=462 no wall ink of either orientation is present; this is open corridor floor, not a doorway cut into a horizontal wall.\",\n      \"prior_claim_action\": \"revise (prior 'W-bottom-with-door: unbridged interval x=397-462 is a doorway opening in a bottom horizontal wall' is corrected: there is no single horizontal wall there; the door belongs to the x=402 vertical wall, the x=462-611 stretch is an unrelated solid wall, and the x=397-462 zone is simply open corridor space between two independent verticals — black-pixel/profile adjacency should not have been read as one continuous horizontal wall with a central door)\"\n    }\n  ],\n  \"unresolved\": [\n    \"Exact hinge coordinate and swing direction of the door leaf on the x=402 wall relative to the corridor floor were read visually from the arc icon only; no jamb-width/frame ink was separately isolated to confirm leaf thickness.\",\n    \"Whether the x=457→horizontal (x=462-611) wall at y=583/587 is the same physical wall thickness/material as the x=402 wall, or a distinct partition type, was not checked beyond line width comparison.\"\n  ]\n}\n```\nEarlier measured profile (unmodified; original-pixel references only):\n{\n  \"name\": \"1f_view.png\",\n  \"image_sha256\": \"47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350\",\n  \"axis\": \"x\",\n  \"box_original_pixels\": [\n    360,\n    260,\n    630,\n    610\n  ],\n  \"rgb\": [\n    169,\n    169,\n    169\n  ],\n  \"tolerance\": 100.0,\n  \"min_fraction\": 0.3,\n  \"minimum_count\": 105,\n  \"support_length\": 350,\n  \"matching_pixels\": 4632,\n  \"candidates\": [\n    {\n      \"id\": \"C01\",\n      \"pixels\": [\n        402,\n        402\n      ],\n      \"peak\": 402,\n      \"max_count\": 235,\n      \"max_fraction\": 0.671429,\n      \"support_intervals_at_peak\": [\n        [\n          296,\n          296\n        ],\n        [\n          301,\n          359\n        ],\n        [\n          392,\n          418\n        ],\n        [\n          451,\n          598\n        ]\n      ]\n    },\n    {\n      \"id\": \"C02\",\n      \"pixels\": [\n        457,\n        457\n      ],\n      \"peak\": 457,\n      \"max_count\": 224,\n      \"max_fraction\": 0.64,\n      \"support_intervals_at_peak\": [\n        [\n          296,\n          296\n        ],\n        [\n          301,\n          323\n        ],\n        [\n          356,\n          382\n        ],\n        [\n          415,\n          587\n        ]\n      ]\n    },\n    {\n      \"id\": \"C03\",\n      \"pixels\": [\n        603,\n        611\n      ],\n      \"peak\": 603,\n      \"max_count\": 129,\n      \"max_fraction\": 0.368571,\n      \"support_intervals_at_peak\": [\n        [\n          260,\n          310\n        ],\n        [\n          356,\n          381\n        ],\n        [\n          558,\n          609\n        ]\n      ]\n    }\n  ],\n  \"profile_image\": \"pixel_profiles/profile_001.png\",\n  \"profile_record\": \"pixel_profiles/profile_001.json\",\n  \"profile_image_sha256\": \"3f860afbe1a510829d848289b7d529fb1f184b674bd5da2c40e740a4106bb8fc\",\n  \"panel_layout\": {\n    \"original_crop_combined_pixels\": [\n      0,\n      0,\n      270,\n      350\n    ],\n    \"mask_panel_combined_pixels\": [\n      273,\n      0,\n      543,\n      350\n    ],\n    \"separator_width\": 3\n  },\n  \"panel_note\": \"Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.\",\n  \"evidence_note\": \"Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.\",\n  \"remaining_seconds\": 226,\n  \"returned_size\": [\n    543,\n    350\n  ],\n  \"original_pixels_per_returned_pixel\": [\n    1.0,\n    1.0\n  ],\n  \"display_note\": \"For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates.\"\n}\n\nEarlier measured profile (unmodified; original-pixel references only):\n{\n  \"name\": \"1f_view.png\",\n  \"image_sha256\": \"47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350\",\n  \"axis\": \"y\",\n  \"box_original_pixels\": [\n    360,\n    260,\n    630,\n    610\n  ],\n  \"rgb\": [\n    169,\n    169,\n    169\n  ],\n  \"tolerance\": 100.0,\n  \"min_fraction\": 0.3,\n  \"minimum_count\": 81,\n  \"support_length\": 270,\n  \"matching_pixels\": 4632,\n  \"candidates\": [\n    {\n      \"id\": \"C01\",\n      \"pixels\": [\n        296,\n        296\n      ],\n      \"peak\": 296,\n      \"max_count\": 208,\n      \"max_fraction\": 0.77037,\n      \"support_intervals_at_peak\": [\n        [\n          360,\n          407\n        ],\n        [\n          452,\n          611\n        ]\n      ]\n    },\n    {\n      \"id\": \"C02\",\n      \"pixels\": [\n        305,\n        307\n      ],\n      \"peak\": 305,\n      \"max_count\": 99,\n      \"max_fraction\": 0.366667,\n      \"support_intervals_at_peak\": [\n        [\n          402,\n          402\n        ],\n        [\n          457,\n          457\n        ],\n        [\n          508,\n          595\n        ],\n        [\n          603,\n          611\n        ]\n      ]\n    },\n    {\n      \"id\": \"C03\",\n      \"pixels\": [\n        327,\n        327\n      ],\n      \"peak\": 327,\n      \"max_count\": 87,\n      \"max_fraction\": 0.322222,\n      \"support_intervals_at_peak\": [\n        [\n          402,\n          402\n        ],\n        [\n          509,\n          594\n        ]\n      ]\n    },\n    {\n      \"id\": \"C04\",\n      \"pixels\": [\n        367,\n        367\n      ],\n      \"peak\": 367,\n      \"max_count\": 151,\n      \"max_fraction\": 0.559259,\n      \"support_intervals_at_peak\": [\n        [\n          457,\n          457\n        ],\n        [\n          462,\n          611\n        ]\n      ]\n    },\n    {\n      \"id\": \"C05\",\n      \"pixels\": [\n        371,\n        371\n      ],\n      \"peak\": 371,\n      \"max_count\": 151,\n      \"max_fraction\": 0.559259,\n      \"support_intervals_at_peak\": [\n        [\n          457,\n          457\n        ],\n        [\n          462,\n          611\n        ]\n      ]\n    },\n    {\n      \"id\": \"C06\",\n      \"pixels\": [\n        583,\n        583\n      ],\n      \"peak\": 583,\n      \"max_count\": 190,\n      \"max_fraction\": 0.703704,\n      \"support_intervals_at_peak\": [\n        [\n          360,\n          397\n        ],\n        [\n          402,\n          402\n        ],\n        [\n          457,\n          457\n        ],\n        [\n          462,\n          611\n        ]\n      ]\n    },\n    {\n      \"id\": \"C07\",\n      \"pixels\": [\n        587,\n        587\n      ],\n      \"peak\": 587,\n      \"max_count\": 194,\n      \"max_fraction\": 0.718519,\n      \"support_intervals_at_peak\": [\n        [\n          360,\n          397\n        ],\n        [\n          402,\n          402\n        ],\n        [\n          457,\n          611\n        ]\n      ]\n    }\n  ],\n  \"profile_image\": \"pixel_profiles/profile_002.png\",\n  \"profile_record\": \"pixel_profiles/profile_002.json\",\n  \"profile_image_sha256\": \"f016865e28c86fa718c90b420c8901ad57bb77f9de79f61aa8b1c664574b1fa9\",\n  \"panel_layout\": {\n    \"original_crop_combined_pixels\": [\n      0,\n      0,\n      270,\n      350\n    ],\n    \"mask_panel_combined_pixels\": [\n      273,\n      0,\n      543,\n      350\n    ],\n    \"separator_width\": 3\n  },\n  \"panel_note\": \"Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.\",\n  \"evidence_note\": \"Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.\",\n  \"remaining_seconds\": 226,\n  \"returned_size\": [\n    543,\n    350\n  ],\n  \"original_pixels_per_returned_pixel\": [\n    1.0,\n    1.0\n  ],\n  \"display_note\": \"For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates.\"\n}\n",
+  "input_mode": "saved_candidate_recovery",
+  "source_input_mode": "original_images_with_building_declaration",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": true
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1789386922.85262,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "5db9500dd6081a7b075ad9cfa5b822269c537a14d43c7ab7ab17ee89b8053d79",
+    "scripts/tool_scripts/bim_agent_guidance.py": "35f11d2c379046f0e46ddfaaf6802dd474922e24a01e89bf37c1881f54b6be19",
+    "scripts/tool_scripts/bim_agent_inputs.py": "b4ab86f4d64fb3126f2299549f5f69513ae2137fb8346df510d143f6ffcb9674",
+    "src/agent/execution/source_proposal.py": "ff370fb2cec6d96b3e6ac5e14661704825edcb344c25f164adb31e6bc0206d4c",
+    "src/agent/geometry/proposal_edits.py": "7d47b14c2e8115613b04639b5fddf9b7d4f7073bf478eb38793e5a16b21c7ef6",
+    "src/agent/geometry/opening_review.py": "b9a5deb0ff1e3feb00a4419f77b4c3b45eb18fe743617d08de355cbfa0195953",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "23bfa28896a3c8884022a8a149689d72ea2b70dfebf9c213ac80c914501de2bd",
+    "src/agent/geometry/plan_draft_view.py": "7ba490bba520f5907037941136a33df3d9867d67729483d39a57820814943006",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, explicitly supplied building declaration, and optional saved generated proposal; no GT/evaluation",
+  "building_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/e2e_tests/sm24_anchor/case_data/testdata_prompt.json",
+    "frozen_path": "building_input.json",
+    "raw_sha256": "f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701",
+    "raw_size_bytes": 688,
+    "declaration": {
+      "TestName": "sm24_anchor",
+      "Building location": "Shenzhen",
+      "Floor area": "200m²",
+      "Building type": "Office",
+      "Number of floors": 1,
+      "Floor plans": [
+        {
+          "floor": 1,
+          "path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "thermal_zones": 8
+        }
+      ],
+      "South view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+      "North view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+      "East view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+      "West view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png"
+    },
+    "image_path_associations": [
+      {
+        "json_pointer": "/Floor plans/0/path",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+        "declared_basename": "1f_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "1f_view.png",
+        "authorized_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+      },
+      {
+        "json_pointer": "/South view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+        "declared_basename": "South_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "South_view.png",
+        "authorized_image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+      },
+      {
+        "json_pointer": "/North view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+        "declared_basename": "North_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "North_view.png",
+        "authorized_image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+      },
+      {
+        "json_pointer": "/East view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+        "declared_basename": "East_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "East_view.png",
+        "authorized_image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+      },
+      {
+        "json_pointer": "/West view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png",
+        "declared_basename": "West_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "West_view.png",
+        "authorized_image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+      }
+    ],
+    "image_path_policy": "Declared paths are provenance labels only. They are associated by exact basename with the already authorized PNG inventory and are never opened as file paths.",
+    "field_semantics": {
+      "thermal_zones": "User declaration for downstream simulation zoning; it is not a measured or authoritative count of physical source spaces.",
+      "other_fields": "User-supplied building declarations retain their stated meaning and are not ground truth or independently verified observations."
+    },
+    "conflict_policy": "The agent must compare declarations with supplied drawing evidence, preserve the conflict or uncertainty, and decide its modelling effect explicitly."
+  },
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "ac7f2db265aae45a0b4d2e8cbecf1400b05106a4ea6e581c0dd3f19261b2c788",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_bim_agent_sm24_run18/candidate_01",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

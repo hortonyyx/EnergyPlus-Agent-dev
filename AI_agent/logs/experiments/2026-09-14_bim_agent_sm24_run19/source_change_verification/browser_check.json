@@ -1,0 +1,33 @@
+{
+  "schema_version": "source_change_browser_check_v1",
+  "mode": "offline_post_run_developer_browser_check",
+  "page": "index.html",
+  "page_sha256": "fcd39ca81c28879d6e6f4d244f60925901990e3cf3b31b2512189f289e285035",
+  "screenshot": "index_browser.png",
+  "title": "源变化离线核验",
+  "notice": "这里只比较保存的源数据、ID 和确定性重导出。房间数量、几何自洽与 viewer 可打开都不代表图纸保真。",
+  "change_table_rows": [
+    "空间\tstorage_room\t无\tmeeting_room\tcorridor, dining_room, meeting_room, north_room, office_A, office_B, south_east_room\tcorridor, dining_room, north_room, office_A, office_B, south_east_room",
+    "开口\tO7a, O7b\tO7\tD4, D5\tD1, D2, D3, D4, D5, O1, O10, O11, O12, O2, O3, O4, O5, O6, O8, O9\tD1, D2, D3, O1, O10, O11, O12, O2, O3, O4, O5, O6, O8, O9",
+    "连接\t无\t无\tD4\tD1, D2, D3, D4, D5, O1, O11, O8\tD1, D2, D3, D5, O1, O11, O8"
+  ],
+  "links": [
+    {
+      "text": "完整 JSON",
+      "href": "file:///workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_bim_agent_sm24_run19/source_change_verification/source_change_verification.json"
+    },
+    {
+      "text": "独立重导出 viewer",
+      "href": "file:///workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_bim_agent_sm24_run19/source_change_verification/selected_reexport/viewer.html"
+    }
+  ],
+  "embedded_reexport_viewer_canvas_visible": true,
+  "embedded_viewer": "selected_reexport/viewer.html",
+  "offline": true,
+  "page_errors": [],
+  "external_requests": [],
+  "failed_requests": [],
+  "actual_candidate_viewer_check": "actual_candidate_browser_check/summary.json",
+  "generation_agent_tool_actions_claimed": false,
+  "scope": "Developer post-run display/transport check only. This does not mean the generating model called view_candidate/check_openings and is not a drawing-fidelity judgment."
+}
