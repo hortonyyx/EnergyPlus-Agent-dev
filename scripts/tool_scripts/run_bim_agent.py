@@ -1106,6 +1106,8 @@ def serve(run: Path, readonly=False):
     from mcp.server.fastmcp import FastMCP, Image
     toolkit = Toolkit(run, readonly)
     server = FastMCP("bim", log_level="WARNING")
+    from scripts.tool_scripts.bim_agent_mesh import register_mesh_tools
+    register_mesh_tools(server, toolkit)
 
     @server.tool()
     def get_bim_reference(topic: str) -> dict:
@@ -1121,7 +1123,7 @@ def serve(run: Path, readonly=False):
 
     @server.tool()
     def inputs() -> dict:
-        """List available original images, original pixel dimensions and input scope."""
+        """List admitted original images, native mesh, building declaration and scope."""
         toolkit.log("inputs", {})
         return {**toolkit.manifest, "remaining_seconds": toolkit.remaining_seconds()}
 
@@ -1529,12 +1531,18 @@ def run_experiment(args):
     run = args.out.resolve(); run.mkdir(parents=True, exist_ok=False)
     (run/"images").mkdir()
     images = {}
-    for path in sorted(args.images.glob("*.png")):
+    for path in sorted(args.images.glob("*.png")) if args.images else []:
         target = run/"images"/path.name
         shutil.copy2(path,target)
         with PILImage.open(target) as im: size=list(im.size)
         images[path.name] = {"size":size,"sha256":digest(target)}
-    if not images: raise ValueError("no PNG drawings in input directory")
+    mesh_path = getattr(args, 'mesh', None)
+    if not images and mesh_path is None:
+        raise ValueError("provide PNG drawings or a native --mesh GLB")
+    mesh_input = None
+    if mesh_path is not None:
+        from scripts.tool_scripts.bim_agent_mesh import freeze_mesh
+        mesh_input = freeze_mesh(mesh_path, run)
     seed_path = getattr(args, "resume_candidate", None)
     building_input_path = getattr(args, "building_input", None)
     building_input = (freeze_building_input(building_input_path, run, images)
@@ -1542,12 +1550,18 @@ def run_experiment(args):
     generation_mode = "saved_candidate_recovery" if seed_path else "original_images_agent_experiment"
     source_input_mode = ("original_images_with_building_declaration"
                          if building_input else "original_images_only")
+    if mesh_input:
+        source_input_mode = 'native_mesh_with_images' if images else 'native_mesh'
+        if building_input:
+            source_input_mode += '_with_building_declaration'
+        if not seed_path:
+            generation_mode = 'native_mesh_agent_experiment'
     manifest = {"images":images,"scope":args.scope,
                              "input_mode": generation_mode,
                              "exploratory_opus": getattr(args, "exploratory_opus", False),
                              "source_input_mode": source_input_mode,
                              "input_contents": {
-                                 "original_png_images": {"included": True, "count": len(images)},
+                                 "original_png_images": {"included": bool(images), "count": len(images)},
                                  "building_declaration": {"included": bool(building_input)},
                                  "saved_generated_proposal": {"included": bool(seed_path)},
                                  "ground_truth_or_evaluation": {"included": False},
@@ -1558,6 +1572,8 @@ def run_experiment(args):
                                  "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
                                  "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
+                                 "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
+                                 "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
@@ -1582,6 +1598,12 @@ def run_experiment(args):
                              )}
     if building_input:
         manifest["building_input"] = building_input
+    if mesh_input:
+        manifest['mesh_input'] = mesh_input
+        manifest['input_contents']['original_mesh'] = {'included': True, 'sha256': mesh_input['sha256']}
+        manifest['only_input'] = ('Admitted original GLB and optional original PNGs, explicit building '
+                                  'declaration, user scope and optional saved proposal. Mesh views are '
+                                  'generated on demand internally; no GT/evaluation or preselected camera package.')
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
         # Only the proposal is imported, never a report that might hold evaluation.
@@ -1666,7 +1688,8 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     commands=parser.add_subparsers(dest="command",required=True)
     run=commands.add_parser("run")
-    run.add_argument("--images",type=Path,required=True)
+    run.add_argument("--images",type=Path,help="Optional original PNG image directory")
+    run.add_argument("--mesh",type=Path,help="Original self-contained GLB; observed on demand by the agent")
     run.add_argument("--building-input", type=Path,
                      help="Explicit user building declaration JSON; omitted runs remain PNG-only")
     run.add_argument("--out",type=Path,required=True)

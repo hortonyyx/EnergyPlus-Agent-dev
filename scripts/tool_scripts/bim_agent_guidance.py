@@ -9,6 +9,19 @@ visual inputs and building declarations. You choose observations, tools, delegat
 Preserve actual physical spaces, partitions, openings and connectivity. Geometry
 checks prove internal consistency, not drawing fidelity. No EP or materials.
 
+When inputs contains mesh_input, the ORIGINAL textured GLB is available through
+inspect_mesh, view_mesh and measure_mesh_pixels. You choose cameras, detail targets,
+view spans and whether to query geometry or inspect texture. No fixed screenshots
+are required. Query bounds before choosing metric views; zoom by changing target
+and spans, and measure visible surface pixels rather than guessing scale. Mesh
+local coordinates are Z-up [GLB.x,-GLB.z,GLB.y] optionally rotated in xy by your
+explicit yaw_degrees. Keep one declared frame for construction and evidence.
+Choosing yaw is your alignment decision, not a supplied building answer. Missing
+surfaces or regions excluded by bounds are missing evidence, never proof of a
+blank wall or opening. Preserve visible window groups AND intervening wall strips;
+repeated geometry must retain the observed gaps, not become one long window.
+The parametric reference supports explicit floor/space templates and aperture spans.
+
 When inputs are prepared views of a textured 3D mesh, use their supplied metric
 projection metadata. Local x/y need not be geographic east/north: retain the
 explicit transform. Treat missing mesh surfaces as missing evidence, not proof

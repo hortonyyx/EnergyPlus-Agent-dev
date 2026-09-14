@@ -1,0 +1,259 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+import pytest
+import trimesh
+
+from src.agent.geometry.mesh_observation import MeshObservation
+
+
+_BACKGROUND_FOR_TEST = (238, 242, 246)
+
+
+def _textured_mesh(
+    bim_vertices: list[list[float]],
+    faces: list[list[int]],
+    uv: list[list[float]],
+    texture: np.ndarray,
+    base_color_factor: list[int] | None = None,
+) -> trimesh.Trimesh:
+    bim = np.asarray(bim_vertices, dtype=float)
+    # Module input is glTF Y-up; inverse of public [X, -Z, Y].
+    source = np.column_stack((bim[:, 0], bim[:, 2], -bim[:, 1]))
+    material = trimesh.visual.material.PBRMaterial(
+        baseColorTexture=Image.fromarray(np.asarray(texture, dtype=np.uint8), mode="RGB"),
+        baseColorFactor=base_color_factor,
+    )
+    visual = trimesh.visual.texture.TextureVisuals(
+        uv=np.asarray(uv, dtype=float), material=material
+    )
+    return trimesh.Trimesh(
+        vertices=source,
+        faces=np.asarray(faces, dtype=np.int64),
+        visual=visual,
+        process=False,
+    )
+
+
+def _quad(z: float, color: tuple[int, int, int]) -> trimesh.Trimesh:
+    return _textured_mesh(
+        [[-2, -1, z], [2, -1, z], [2, 1, z], [-2, 1, z]],
+        [[0, 1, 2], [0, 2, 3]],
+        # One full positive repeat also exercises GLB's default wrap mode.
+        [[1, 1], [2, 1], [2, 2], [1, 2]],
+        np.full((2, 2, 3), color, dtype=np.uint8),
+    )
+
+
+def _export(scene: trimesh.Scene, path: Path) -> Path:
+    path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
+    return path
+
+
+def test_describe_applies_scene_transform_y_up_mapping_yaw_and_selection(
+    tmp_path: Path,
+) -> None:
+    mesh = _textured_mesh(
+        [[0, 0, 0], [2, 0, 0], [0, 1, 3]],
+        [[0, 1, 2]],
+        [[0, 0], [1, 0], [0, 1]],
+        np.full((2, 2, 3), 200, dtype=np.uint8),
+    )
+    # Scene transform is in source Y-up axes. It becomes [10, -30, 20].
+    transform = trimesh.transformations.translation_matrix([10, 20, 30])
+    scene = trimesh.Scene()
+    scene.add_geometry(mesh, node_name="translated", transform=transform)
+    observation = MeshObservation(_export(scene, tmp_path / "scene.glb"))
+
+    description = observation.describe()
+    np.testing.assert_allclose(
+        description["bounds"], [[10, -30, 20], [12, -29, 23]], atol=1e-6
+    )
+    assert description["vertex_count"] == 3
+    assert description["face_count"] == 1
+    assert description["selected_face_count"] == 1
+
+    yawed = observation.describe(yaw_degrees=90)
+    np.testing.assert_allclose(
+        yawed["bounds"], [[29, 10, 20], [30, 12, 23]], atol=1e-6
+    )
+    excluded = observation.describe(bounds=[[0, 0, 0], [1, 1, 1]])
+    assert excluded["selected_face_count"] == 0
+    assert excluded["selected_vertex_count"] == 0
+    assert excluded["bounds"] is None
+    assert "not evidence of enclosure truth" in excluded["selection_caveat"]
+
+
+def test_render_metric_pixel_query_and_uv_image_orientation(tmp_path: Path) -> None:
+    texture = np.array(
+        [
+            [[255, 0, 0], [0, 255, 0]],
+            [[0, 0, 255], [255, 255, 0]],
+        ],
+        dtype=np.uint8,
+    )
+    mesh = _textured_mesh(
+        [[-2, -1, 0], [2, -1, 0], [2, 1, 0], [-2, 1, 0]],
+        [[0, 1, 2], [0, 2, 3]],
+        # One full positive repeat also exercises GLB's default wrap mode.
+        [[1, 1], [2, 1], [2, 2], [1, 2]],
+        texture,
+    )
+    observation = MeshObservation(
+        _export(trimesh.Scene(mesh), tmp_path / "metric.glb")
+    )
+    prefix = tmp_path / "views" / "top"
+    image, metadata = observation.render(
+        prefix,
+        eye=[0, 0, 10],
+        target=[0, 0, 0],
+        width_m=4,
+        height_m=2,
+        width_px=40,
+        height_px=20,
+    )
+
+    assert image.getpixel((5, 4)) == (255, 0, 0)
+    assert image.getpixel((34, 4)) == (0, 255, 0)
+    assert image.getpixel((5, 15)) == (0, 0, 255)
+    assert image.getpixel((34, 15)) == (255, 255, 0)
+    assert metadata["camera"]["up_reference"].startswith("+Y fallback")
+    np.testing.assert_allclose(
+        metadata["pixel_center_mapping"]["column_step_world_xyz"],
+        [0.1, 0, 0],
+        atol=1e-9,
+    )
+
+    query = observation.pixel_query(prefix, [[15, 10], [25, 10]])
+    first, second = query["queries"]
+    np.testing.assert_allclose(first["world_xyz"], [-0.45, -0.05, 0], atol=1e-6)
+    np.testing.assert_allclose(second["world_xyz"], [0.55, -0.05, 0], atol=1e-6)
+    assert query["first_two_distance"]["distance_m"] == pytest.approx(1.0)
+    assert (tmp_path / "views" / "top.png").is_file()
+    assert (tmp_path / "views" / "top.json").is_file()
+    assert (tmp_path / "views" / "top.npz").is_file()
+
+
+def test_render_depth_uses_nearest_surface_and_global_face_id(tmp_path: Path) -> None:
+    scene = trimesh.Scene()
+    scene.add_geometry(_quad(0, (220, 0, 0)), node_name="far")
+    scene.add_geometry(_quad(2, (0, 220, 0)), node_name="near")
+    observation = MeshObservation(_export(scene, tmp_path / "depth.glb"))
+    prefix = tmp_path / "depth"
+    image, _ = observation.render(
+        prefix,
+        eye=[0, 0, 10],
+        target=[0, 0, 0],
+        width_m=4,
+        height_m=2,
+        width_px=40,
+        height_px=20,
+    )
+
+    assert image.getpixel((20, 10)) == (0, 220, 0)
+    hit = observation.pixel_query(prefix, [[20, 10]])["queries"][0]
+    assert hit["world_xyz"][2] == pytest.approx(2.0)
+    assert isinstance(hit["face_id"], int)
+    assert 0 <= hit["face_id"] < 4
+
+
+def test_base_color_factor_is_applied_in_linear_not_srgb_space(tmp_path: Path) -> None:
+    mesh = _textured_mesh(
+        [[-1, -1, 0], [1, -1, 0], [0, 1, 0]],
+        [[0, 1, 2]],
+        [[0, 0], [1, 0], [0.5, 1]],
+        np.full((2, 2, 3), 255, dtype=np.uint8),
+        base_color_factor=[64, 64, 64, 255],
+    )
+    observation = MeshObservation(_export(trimesh.Scene(mesh), tmp_path / "factor.glb"))
+    image, _ = observation.render(
+        tmp_path / "factor",
+        eye=[0, 0, 5],
+        target=[0, 0, 0],
+        width_m=2,
+        height_m=2,
+        width_px=20,
+        height_px=20,
+    )
+    # A linear factor of 64/255 encodes to about 137 in sRGB. Direct byte
+    # multiplication would incorrectly produce 64 and visibly darken the mesh.
+    assert image.getpixel((10, 10)) == (137, 137, 137)
+
+
+def test_bounds_filter_is_centroid_selection_for_render(tmp_path: Path) -> None:
+    mesh = _textured_mesh(
+        [[-2, -1, 0], [0, -1, 0], [-1, 1, 0], [0, -1, 0], [2, -1, 0], [1, 1, 0]],
+        [[0, 1, 2], [3, 4, 5]],
+        [[0, 0], [1, 0], [0.5, 1], [0, 0], [1, 0], [0.5, 1]],
+        np.full((2, 2, 3), (30, 80, 160), dtype=np.uint8),
+    )
+    observation = MeshObservation(_export(trimesh.Scene(mesh), tmp_path / "select.glb"))
+    prefix = tmp_path / "selected"
+    image, metadata = observation.render(
+        prefix,
+        eye=[0, 0, 5],
+        target=[0, 0, 0],
+        width_m=4,
+        height_m=2,
+        width_px=40,
+        height_px=20,
+        bounds=[[-3, -2, -1], [-0.01, 2, 1]],
+    )
+    assert metadata["selected_face_count"] == 1
+    assert image.getpixel((10, 10)) != _BACKGROUND_FOR_TEST
+    assert image.getpixel((30, 10)) == _BACKGROUND_FOR_TEST
+
+
+def test_invalid_parameters_missing_buffer_and_asset_hash_are_rejected(
+    tmp_path: Path,
+) -> None:
+    first = MeshObservation(
+        _export(trimesh.Scene(_quad(0, (1, 2, 3))), tmp_path / "first.glb")
+    )
+    with pytest.raises(ValueError, match="distinct"):
+        first.render(
+            tmp_path / "bad",
+            eye=[0, 0, 0],
+            target=[0, 0, 0],
+            width_m=1,
+            height_m=1,
+        )
+    with pytest.raises(ValueError, match="at most 1600"):
+        first.render(
+            tmp_path / "bad",
+            eye=[0, 0, 1],
+            target=[0, 0, 0],
+            width_m=1,
+            height_m=1,
+            width_px=1601,
+        )
+    with pytest.raises(FileNotFoundError, match="pixel buffer"):
+        first.pixel_query(tmp_path / "missing", [[0, 0]])
+
+    prefix = tmp_path / "owned"
+    first.render(
+        prefix,
+        eye=[0, 0, 5],
+        target=[0, 0, 0],
+        width_m=4,
+        height_m=2,
+        width_px=20,
+        height_px=10,
+    )
+    second = MeshObservation(
+        _export(trimesh.Scene(_quad(0, (4, 5, 6))), tmp_path / "second.glb")
+    )
+    with pytest.raises(ValueError, match="different mesh asset"):
+        second.pixel_query(prefix, [[10, 5]])
+    with pytest.raises(ValueError, match="outside image bounds"):
+        first.pixel_query(prefix, [[20, 5]])
+
+
+def test_non_textured_geometry_fails_explicitly(tmp_path: Path) -> None:
+    mesh = trimesh.creation.box()
+    path = _export(trimesh.Scene(mesh), tmp_path / "plain.glb")
+    with pytest.raises(ValueError, match="UV-mapped base-color texture"):
+        MeshObservation(path)
