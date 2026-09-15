@@ -1,0 +1,8991 @@
+{
+  "assumptions": [
+    "Local construction frame is the mesh BIM-local frame rotated yaw=+8 deg about +z to axis-align the building; all coordinates are in this yawed frame (metres).",
+    "Building is a courtyard/perimeter block: L-shaped 8-storey tall mass (west wing + north/northeast bar) plus a ~2-storey low podium (~6.85m) filling the inner SE corner; far SE is open/not built.",
+    "Storeys reconciled with declaration: ground (commercial) + six similar office storeys + one setback upper storey = 8; floor-to-floor ~3.4m, ground 4.0m, main roof ~28m.",
+    "All interior partitions, corridors, cores and doors are explicit hypotheses; no interior evidence exists in the mesh.",
+    "Window rows are representative regular rhythms preserving piers between openings; exact counts/positions per bay are not surveyed.",
+    "Rooftop penthouse footprint/height approximate from mesh green roof structures (~31-34m)."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.0,
+        "cells": [
+          {
+            "assumptions": [
+              "street-level commercial per declaration"
+            ],
+            "id": "L1:ww_retail_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "commercial_inferred",
+            "source_refs": [
+              "mesh_008 street-level metro 'M' entrance and shopfront glazing"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "double-loaded corridor hypothesis"
+            ],
+            "id": "L1:ww_lobby",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "lobby_inferred",
+            "source_refs": [
+              "hypothesis: circulation spine in west wing"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L1:ww_retail_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "commercial_inferred",
+            "source_refs": [
+              "mesh_008 ground glazing"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core location is a hypothesis"
+            ],
+            "id": "L1:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis: vertical circulation at wing junction"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L1:nb_retail_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "commercial_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L1:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L1:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L1",
+        "z_floor": 0.0
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "double-loaded corridor office hypothesis"
+            ],
+            "id": "L2:ww_office_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L2:ww_corr",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L2:ww_office_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core hypothesis"
+            ],
+            "id": "L2:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L2:nb_office_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L2:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L2:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L2",
+        "z_floor": 4.0
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "double-loaded corridor office hypothesis"
+            ],
+            "id": "L3:ww_office_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L3:ww_corr",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L3:ww_office_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core hypothesis"
+            ],
+            "id": "L3:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L3:nb_office_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L3:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L3:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L3",
+        "z_floor": 7.4
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "double-loaded corridor office hypothesis"
+            ],
+            "id": "L4:ww_office_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L4:ww_corr",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L4:ww_office_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core hypothesis"
+            ],
+            "id": "L4:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L4:nb_office_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L4:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L4:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L4",
+        "z_floor": 10.8
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "double-loaded corridor office hypothesis"
+            ],
+            "id": "L5:ww_office_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L5:ww_corr",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L5:ww_office_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core hypothesis"
+            ],
+            "id": "L5:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L5:nb_office_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L5:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L5:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L5",
+        "z_floor": 14.2
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "double-loaded corridor office hypothesis"
+            ],
+            "id": "L6:ww_office_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L6:ww_corr",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L6:ww_office_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core hypothesis"
+            ],
+            "id": "L6:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L6:nb_office_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L6:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L6:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L6",
+        "z_floor": 17.6
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "double-loaded corridor office hypothesis"
+            ],
+            "id": "L7:ww_office_w",
+            "polygon": [
+              [
+                -11.3,
+                -31.0
+              ],
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -7.0,
+                24.0
+              ],
+              [
+                -11.3,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -11.3,
+              -7.0
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L7:ww_corr",
+            "polygon": [
+              [
+                -7.0,
+                -31.0
+              ],
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -5.5,
+                24.0
+              ],
+              [
+                -7.0,
+                24.0
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -7.0,
+              -5.5
+            ],
+            "y": [
+              -31.0,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L7:ww_office_e",
+            "polygon": [
+              [
+                -5.5,
+                -31.0
+              ],
+              [
+                -2.2,
+                -31.0
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -5.5,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              -31.0,
+              7.3
+            ]
+          },
+          {
+            "assumptions": [
+              "stair/elevator core hypothesis"
+            ],
+            "id": "L7:ww_core",
+            "polygon": [
+              [
+                -5.5,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                -2.2,
+                24.0
+              ],
+              [
+                -5.5,
+                24.0
+              ]
+            ],
+            "role": "core_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -5.5,
+              -2.2
+            ],
+            "y": [
+              7.3,
+              24.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L7:nb_office_s",
+            "polygon": [
+              [
+                -2.2,
+                7.3
+              ],
+              [
+                20.0,
+                7.3
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                -2.2,
+                15.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              7.3,
+              15.0
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L7:nb_corr",
+            "polygon": [
+              [
+                -2.2,
+                15.0
+              ],
+              [
+                20.0,
+                15.0
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                -2.2,
+                16.5
+              ]
+            ],
+            "role": "corridor_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              15.0,
+              16.5
+            ]
+          },
+          {
+            "assumptions": [
+              "hypothesis"
+            ],
+            "id": "L7:nb_office_n",
+            "polygon": [
+              [
+                -2.2,
+                16.5
+              ],
+              [
+                20.0,
+                16.5
+              ],
+              [
+                20.0,
+                24.0
+              ],
+              [
+                -2.2,
+                24.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "hypothesis"
+            ],
+            "x": [
+              -2.2,
+              20.0
+            ],
+            "y": [
+              16.5,
+              24.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -11.3,
+              -31.0
+            ],
+            [
+              -2.2,
+              -31.0
+            ],
+            [
+              -2.2,
+              7.3
+            ],
+            [
+              20.0,
+              7.3
+            ],
+            [
+              20.0,
+              24.0
+            ],
+            [
+              -11.3,
+              24.0
+            ]
+          ]
+        },
+        "name": "L7",
+        "z_floor": 21.0
+      },
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "assumptions": [
+              "setback upper storey per declaration; inset ~2m assumed"
+            ],
+            "id": "L8:sb_office_w",
+            "polygon": [
+              [
+                -9.3,
+                -29.0
+              ],
+              [
+                -4.2,
+                -29.0
+              ],
+              [
+                -4.2,
+                22.0
+              ],
+              [
+                -9.3,
+                22.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "mesh_007/mesh_002 setback upper roof step"
+            ],
+            "x": [
+              -9.3,
+              -4.2
+            ],
+            "y": [
+              -29.0,
+              22.0
+            ]
+          },
+          {
+            "assumptions": [
+              "setback storey hypothesis"
+            ],
+            "id": "L8:sb_office_n",
+            "polygon": [
+              [
+                -4.2,
+                7.3
+              ],
+              [
+                18.0,
+                7.3
+              ],
+              [
+                18.0,
+                22.0
+              ],
+              [
+                -4.2,
+                22.0
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "mesh_007 setback"
+            ],
+            "x": [
+              -4.2,
+              18.0
+            ],
+            "y": [
+              7.3,
+              22.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -9.3,
+              -29.0
+            ],
+            [
+              -4.2,
+              -29.0
+            ],
+            [
+              -4.2,
+              7.3
+            ],
+            [
+              18.0,
+              7.3
+            ],
+            [
+              18.0,
+              22.0
+            ],
+            [
+              -9.3,
+              22.0
+            ]
+          ]
+        },
+        "name": "L8",
+        "z_floor": 24.4
+      },
+      {
+        "ceiling_height": 3.4,
+        "cells": [
+          {
+            "assumptions": [
+              "single open commercial/service hall; internal partitions unknown"
+            ],
+            "id": "P1:pod_hall",
+            "polygon": [
+              [
+                -2.2,
+                -20.3
+              ],
+              [
+                10.4,
+                -20.3
+              ],
+              [
+                10.4,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ]
+            ],
+            "role": "commercial_inferred",
+            "source_refs": [
+              "mesh_002/mesh_006 low podium roof ~6.85m filling inner corner"
+            ],
+            "x": [
+              -2.2,
+              10.4
+            ],
+            "y": [
+              -20.3,
+              7.3
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -2.2,
+              -20.3
+            ],
+            [
+              10.4,
+              -20.3
+            ],
+            [
+              10.4,
+              7.3
+            ],
+            [
+              -2.2,
+              7.3
+            ]
+          ]
+        },
+        "name": "P1",
+        "z_floor": 0.0
+      },
+      {
+        "ceiling_height": 3.45,
+        "cells": [
+          {
+            "assumptions": [
+              "single open space; partitions unknown"
+            ],
+            "id": "P2:pod_upper",
+            "polygon": [
+              [
+                -2.2,
+                -20.3
+              ],
+              [
+                10.4,
+                -20.3
+              ],
+              [
+                10.4,
+                7.3
+              ],
+              [
+                -2.2,
+                7.3
+              ]
+            ],
+            "role": "office_inferred",
+            "source_refs": [
+              "mesh_002 podium 2nd level"
+            ],
+            "x": [
+              -2.2,
+              10.4
+            ],
+            "y": [
+              -20.3,
+              7.3
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -2.2,
+              -20.3
+            ],
+            [
+              10.4,
+              -20.3
+            ],
+            [
+              10.4,
+              7.3
+            ],
+            [
+              -2.2,
+              7.3
+            ]
+          ]
+        },
+        "name": "P2",
+        "z_floor": 3.4
+      },
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "assumptions": [
+              "rooftop mechanical/stair penthouse; footprint approximate"
+            ],
+            "id": "PH:ph_mech",
+            "polygon": [
+              [
+                -6.0,
+                9.0
+              ],
+              [
+                8.0,
+                9.0
+              ],
+              [
+                8.0,
+                20.0
+              ],
+              [
+                -6.0,
+                20.0
+              ]
+            ],
+            "role": "service_inferred",
+            "source_refs": [
+              "mesh_004/mesh_007 green rooftop penthouse structures reaching ~34m"
+            ],
+            "x": [
+              -6.0,
+              8.0
+            ],
+            "y": [
+              9.0,
+              20.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              -6.0,
+              9.0
+            ],
+            [
+              8.0,
+              9.0
+            ],
+            [
+              8.0,
+              20.0
+            ],
+            [
+              -6.0,
+              20.0
+            ]
+          ]
+        },
+        "name": "PH",
+        "z_floor": 28.0
+      }
+    ],
+    "footprint_x": [
+      -11.3,
+      20.0
+    ],
+    "footprint_y": [
+      -31.0,
+      24.0
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "L1:door:ent_west",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          -11.3,
+          -1.0
+        ],
+        "p2": [
+          -11.3,
+          0.0
+        ],
+        "source_refs": [
+          "mesh_008 street entrance / metro headhouse"
+        ],
+        "space_id": "L1:ww_retail_w",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L1:door:ent_west2",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          -11.3,
+          7.6
+        ],
+        "p2": [
+          -11.3,
+          8.9
+        ],
+        "source_refs": [
+          "hypothesis: secondary street entrance in west-wing shopfront"
+        ],
+        "space_id": "L1:ww_retail_w",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L2:door:d_ww_w",
+        "kind": "door",
+        "other_space_id": "L2:ww_corr",
+        "p1": [
+          -7.0,
+          -0.5
+        ],
+        "p2": [
+          -7.0,
+          0.5
+        ],
+        "source_refs": [
+          "hypothesis: office to corridor"
+        ],
+        "space_id": "L2:ww_office_w",
+        "state": "unknown",
+        "z": [
+          4.0,
+          6.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L2:door:d_ww_e",
+        "kind": "door",
+        "other_space_id": "L2:ww_corr",
+        "p1": [
+          -5.5,
+          -2.5
+        ],
+        "p2": [
+          -5.5,
+          -1.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L2:ww_office_e",
+        "state": "unknown",
+        "z": [
+          4.0,
+          6.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L2:door:d_core",
+        "kind": "door",
+        "other_space_id": "L2:ww_corr",
+        "p1": [
+          -5.5,
+          9.5
+        ],
+        "p2": [
+          -5.5,
+          10.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L2:ww_core",
+        "state": "unknown",
+        "z": [
+          4.0,
+          6.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L2:door:d_nb_s",
+        "kind": "door",
+        "other_space_id": "L2:nb_corr",
+        "p1": [
+          8.0,
+          15.0
+        ],
+        "p2": [
+          9.0,
+          15.0
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L2:nb_office_s",
+        "state": "unknown",
+        "z": [
+          4.0,
+          6.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L2:door:d_nb_n",
+        "kind": "door",
+        "other_space_id": "L2:nb_corr",
+        "p1": [
+          8.0,
+          16.5
+        ],
+        "p2": [
+          9.0,
+          16.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L2:nb_office_n",
+        "state": "unknown",
+        "z": [
+          4.0,
+          6.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L3:door:d_ww_w",
+        "kind": "door",
+        "other_space_id": "L3:ww_corr",
+        "p1": [
+          -7.0,
+          -0.5
+        ],
+        "p2": [
+          -7.0,
+          0.5
+        ],
+        "source_refs": [
+          "hypothesis: office to corridor"
+        ],
+        "space_id": "L3:ww_office_w",
+        "state": "unknown",
+        "z": [
+          7.4,
+          9.5
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L3:door:d_ww_e",
+        "kind": "door",
+        "other_space_id": "L3:ww_corr",
+        "p1": [
+          -5.5,
+          -2.5
+        ],
+        "p2": [
+          -5.5,
+          -1.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L3:ww_office_e",
+        "state": "unknown",
+        "z": [
+          7.4,
+          9.5
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L3:door:d_core",
+        "kind": "door",
+        "other_space_id": "L3:ww_corr",
+        "p1": [
+          -5.5,
+          9.5
+        ],
+        "p2": [
+          -5.5,
+          10.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L3:ww_core",
+        "state": "unknown",
+        "z": [
+          7.4,
+          9.5
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L3:door:d_nb_s",
+        "kind": "door",
+        "other_space_id": "L3:nb_corr",
+        "p1": [
+          8.0,
+          15.0
+        ],
+        "p2": [
+          9.0,
+          15.0
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L3:nb_office_s",
+        "state": "unknown",
+        "z": [
+          7.4,
+          9.5
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L3:door:d_nb_n",
+        "kind": "door",
+        "other_space_id": "L3:nb_corr",
+        "p1": [
+          8.0,
+          16.5
+        ],
+        "p2": [
+          9.0,
+          16.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L3:nb_office_n",
+        "state": "unknown",
+        "z": [
+          7.4,
+          9.5
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L4:door:d_ww_w",
+        "kind": "door",
+        "other_space_id": "L4:ww_corr",
+        "p1": [
+          -7.0,
+          -0.5
+        ],
+        "p2": [
+          -7.0,
+          0.5
+        ],
+        "source_refs": [
+          "hypothesis: office to corridor"
+        ],
+        "space_id": "L4:ww_office_w",
+        "state": "unknown",
+        "z": [
+          10.8,
+          12.9
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L4:door:d_ww_e",
+        "kind": "door",
+        "other_space_id": "L4:ww_corr",
+        "p1": [
+          -5.5,
+          -2.5
+        ],
+        "p2": [
+          -5.5,
+          -1.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L4:ww_office_e",
+        "state": "unknown",
+        "z": [
+          10.8,
+          12.9
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L4:door:d_core",
+        "kind": "door",
+        "other_space_id": "L4:ww_corr",
+        "p1": [
+          -5.5,
+          9.5
+        ],
+        "p2": [
+          -5.5,
+          10.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L4:ww_core",
+        "state": "unknown",
+        "z": [
+          10.8,
+          12.9
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L4:door:d_nb_s",
+        "kind": "door",
+        "other_space_id": "L4:nb_corr",
+        "p1": [
+          8.0,
+          15.0
+        ],
+        "p2": [
+          9.0,
+          15.0
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L4:nb_office_s",
+        "state": "unknown",
+        "z": [
+          10.8,
+          12.9
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L4:door:d_nb_n",
+        "kind": "door",
+        "other_space_id": "L4:nb_corr",
+        "p1": [
+          8.0,
+          16.5
+        ],
+        "p2": [
+          9.0,
+          16.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L4:nb_office_n",
+        "state": "unknown",
+        "z": [
+          10.8,
+          12.9
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L5:door:d_ww_w",
+        "kind": "door",
+        "other_space_id": "L5:ww_corr",
+        "p1": [
+          -7.0,
+          -0.5
+        ],
+        "p2": [
+          -7.0,
+          0.5
+        ],
+        "source_refs": [
+          "hypothesis: office to corridor"
+        ],
+        "space_id": "L5:ww_office_w",
+        "state": "unknown",
+        "z": [
+          14.2,
+          16.3
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L5:door:d_ww_e",
+        "kind": "door",
+        "other_space_id": "L5:ww_corr",
+        "p1": [
+          -5.5,
+          -2.5
+        ],
+        "p2": [
+          -5.5,
+          -1.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L5:ww_office_e",
+        "state": "unknown",
+        "z": [
+          14.2,
+          16.3
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L5:door:d_core",
+        "kind": "door",
+        "other_space_id": "L5:ww_corr",
+        "p1": [
+          -5.5,
+          9.5
+        ],
+        "p2": [
+          -5.5,
+          10.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L5:ww_core",
+        "state": "unknown",
+        "z": [
+          14.2,
+          16.3
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L5:door:d_nb_s",
+        "kind": "door",
+        "other_space_id": "L5:nb_corr",
+        "p1": [
+          8.0,
+          15.0
+        ],
+        "p2": [
+          9.0,
+          15.0
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L5:nb_office_s",
+        "state": "unknown",
+        "z": [
+          14.2,
+          16.3
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L5:door:d_nb_n",
+        "kind": "door",
+        "other_space_id": "L5:nb_corr",
+        "p1": [
+          8.0,
+          16.5
+        ],
+        "p2": [
+          9.0,
+          16.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L5:nb_office_n",
+        "state": "unknown",
+        "z": [
+          14.2,
+          16.3
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L6:door:d_ww_w",
+        "kind": "door",
+        "other_space_id": "L6:ww_corr",
+        "p1": [
+          -7.0,
+          -0.5
+        ],
+        "p2": [
+          -7.0,
+          0.5
+        ],
+        "source_refs": [
+          "hypothesis: office to corridor"
+        ],
+        "space_id": "L6:ww_office_w",
+        "state": "unknown",
+        "z": [
+          17.6,
+          19.7
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L6:door:d_ww_e",
+        "kind": "door",
+        "other_space_id": "L6:ww_corr",
+        "p1": [
+          -5.5,
+          -2.5
+        ],
+        "p2": [
+          -5.5,
+          -1.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L6:ww_office_e",
+        "state": "unknown",
+        "z": [
+          17.6,
+          19.7
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L6:door:d_core",
+        "kind": "door",
+        "other_space_id": "L6:ww_corr",
+        "p1": [
+          -5.5,
+          9.5
+        ],
+        "p2": [
+          -5.5,
+          10.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L6:ww_core",
+        "state": "unknown",
+        "z": [
+          17.6,
+          19.7
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L6:door:d_nb_s",
+        "kind": "door",
+        "other_space_id": "L6:nb_corr",
+        "p1": [
+          8.0,
+          15.0
+        ],
+        "p2": [
+          9.0,
+          15.0
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L6:nb_office_s",
+        "state": "unknown",
+        "z": [
+          17.6,
+          19.7
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L6:door:d_nb_n",
+        "kind": "door",
+        "other_space_id": "L6:nb_corr",
+        "p1": [
+          8.0,
+          16.5
+        ],
+        "p2": [
+          9.0,
+          16.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L6:nb_office_n",
+        "state": "unknown",
+        "z": [
+          17.6,
+          19.7
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L7:door:d_ww_w",
+        "kind": "door",
+        "other_space_id": "L7:ww_corr",
+        "p1": [
+          -7.0,
+          -0.5
+        ],
+        "p2": [
+          -7.0,
+          0.5
+        ],
+        "source_refs": [
+          "hypothesis: office to corridor"
+        ],
+        "space_id": "L7:ww_office_w",
+        "state": "unknown",
+        "z": [
+          21.0,
+          23.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L7:door:d_ww_e",
+        "kind": "door",
+        "other_space_id": "L7:ww_corr",
+        "p1": [
+          -5.5,
+          -2.5
+        ],
+        "p2": [
+          -5.5,
+          -1.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L7:ww_office_e",
+        "state": "unknown",
+        "z": [
+          21.0,
+          23.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L7:door:d_core",
+        "kind": "door",
+        "other_space_id": "L7:ww_corr",
+        "p1": [
+          -5.5,
+          9.5
+        ],
+        "p2": [
+          -5.5,
+          10.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L7:ww_core",
+        "state": "unknown",
+        "z": [
+          21.0,
+          23.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L7:door:d_nb_s",
+        "kind": "door",
+        "other_space_id": "L7:nb_corr",
+        "p1": [
+          8.0,
+          15.0
+        ],
+        "p2": [
+          9.0,
+          15.0
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L7:nb_office_s",
+        "state": "unknown",
+        "z": [
+          21.0,
+          23.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "L7:door:d_nb_n",
+        "kind": "door",
+        "other_space_id": "L7:nb_corr",
+        "p1": [
+          8.0,
+          16.5
+        ],
+        "p2": [
+          9.0,
+          16.5
+        ],
+        "source_refs": [
+          "hypothesis"
+        ],
+        "space_id": "L7:nb_office_n",
+        "state": "unknown",
+        "z": [
+          21.0,
+          23.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "P1:door:ent_pod",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          3.6,
+          -20.3
+        ],
+        "p2": [
+          4.9,
+          -20.3
+        ],
+        "source_refs": [
+          "hypothesis: podium street entrance"
+        ],
+        "space_id": "P1:pod_hall",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.6
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:1",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:2",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:3",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:4",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:5",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:6",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:7",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:8",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:9",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:10",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:11",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:12",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:13",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:14",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:15",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:16",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:17",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved between spans"
+        ],
+        "facade": "West",
+        "floor": "L1",
+        "id": "L1:w_west:18",
+        "room": "L1:ww_retail_w",
+        "source_refs": [
+          "mesh_008 regular punched shopfront/window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:1",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:2",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:3",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:4",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:5",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:6",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L1",
+        "id": "L1:w_north_main:7",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade window grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "East",
+        "floor": "L1",
+        "id": "L1:w_east:1",
+        "room": "L1:nb_retail_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "East",
+        "floor": "L1",
+        "id": "L1:w_east:2",
+        "room": "L1:nb_retail_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "East",
+        "floor": "L1",
+        "id": "L1:w_east:3",
+        "room": "L1:nb_retail_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "East",
+        "floor": "L1",
+        "id": "L1:w_east:4",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "East",
+        "floor": "L1",
+        "id": "L1:w_east:5",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "East",
+        "floor": "L1",
+        "id": "L1:w_east:6",
+        "room": "L1:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          0.5,
+          3.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:1",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:2",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:3",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:4",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:5",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:6",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:7",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:8",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:9",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:10",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:11",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:12",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:13",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:14",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:15",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:16",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:17",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L2",
+        "id": "L2:w_west:18",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:1",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:2",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:3",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:4",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:5",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:6",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_main:7",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_wing:1",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L2",
+        "id": "L2:w_north_wing:2",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L2",
+        "id": "L2:w_east:1",
+        "room": "L2:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L2",
+        "id": "L2:w_east:2",
+        "room": "L2:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L2",
+        "id": "L2:w_east:3",
+        "room": "L2:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L2",
+        "id": "L2:w_east:4",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L2",
+        "id": "L2:w_east:5",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L2",
+        "id": "L2:w_east:6",
+        "room": "L2:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L2",
+        "id": "L2:w_south:1",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L2",
+        "id": "L2:w_south:2",
+        "room": "L2:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L2",
+        "id": "L2:w_south:3",
+        "room": "L2:ww_office_e",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -5.0,
+          -3.5
+        ],
+        "z": [
+          5.0,
+          6.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:1",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:2",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:3",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:4",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:5",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:6",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:7",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:8",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:9",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:10",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:11",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:12",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:13",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:14",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:15",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:16",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:17",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L3",
+        "id": "L3:w_west:18",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:1",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:2",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:3",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:4",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:5",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:6",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_main:7",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_wing:1",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L3",
+        "id": "L3:w_north_wing:2",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L3",
+        "id": "L3:w_east:1",
+        "room": "L3:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L3",
+        "id": "L3:w_east:2",
+        "room": "L3:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L3",
+        "id": "L3:w_east:3",
+        "room": "L3:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L3",
+        "id": "L3:w_east:4",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L3",
+        "id": "L3:w_east:5",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L3",
+        "id": "L3:w_east:6",
+        "room": "L3:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L3",
+        "id": "L3:w_south:1",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L3",
+        "id": "L3:w_south:2",
+        "room": "L3:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L3",
+        "id": "L3:w_south:3",
+        "room": "L3:ww_office_e",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -5.0,
+          -3.5
+        ],
+        "z": [
+          8.4,
+          10.2
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:1",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:2",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:3",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:4",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:5",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:6",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:7",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:8",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:9",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:10",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:11",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:12",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:13",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:14",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:15",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:16",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:17",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L4",
+        "id": "L4:w_west:18",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:1",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:2",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:3",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:4",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:5",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:6",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_main:7",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_wing:1",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L4",
+        "id": "L4:w_north_wing:2",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L4",
+        "id": "L4:w_east:1",
+        "room": "L4:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L4",
+        "id": "L4:w_east:2",
+        "room": "L4:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L4",
+        "id": "L4:w_east:3",
+        "room": "L4:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L4",
+        "id": "L4:w_east:4",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L4",
+        "id": "L4:w_east:5",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L4",
+        "id": "L4:w_east:6",
+        "room": "L4:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L4",
+        "id": "L4:w_south:1",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L4",
+        "id": "L4:w_south:2",
+        "room": "L4:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L4",
+        "id": "L4:w_south:3",
+        "room": "L4:ww_office_e",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -5.0,
+          -3.5
+        ],
+        "z": [
+          11.8,
+          13.6
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:1",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:2",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:3",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:4",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:5",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:6",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:7",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:8",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:9",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:10",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:11",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:12",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:13",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:14",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:15",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:16",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:17",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L5",
+        "id": "L5:w_west:18",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:1",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:2",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:3",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:4",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:5",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:6",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_main:7",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_wing:1",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L5",
+        "id": "L5:w_north_wing:2",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L5",
+        "id": "L5:w_east:1",
+        "room": "L5:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L5",
+        "id": "L5:w_east:2",
+        "room": "L5:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L5",
+        "id": "L5:w_east:3",
+        "room": "L5:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L5",
+        "id": "L5:w_east:4",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L5",
+        "id": "L5:w_east:5",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L5",
+        "id": "L5:w_east:6",
+        "room": "L5:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L5",
+        "id": "L5:w_south:1",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L5",
+        "id": "L5:w_south:2",
+        "room": "L5:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L5",
+        "id": "L5:w_south:3",
+        "room": "L5:ww_office_e",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -5.0,
+          -3.5
+        ],
+        "z": [
+          15.2,
+          17.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:1",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:2",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:3",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:4",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:5",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:6",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:7",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:8",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:9",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:10",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:11",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:12",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:13",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:14",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:15",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:16",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:17",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L6",
+        "id": "L6:w_west:18",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:1",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:2",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:3",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:4",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:5",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:6",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_main:7",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_wing:1",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L6",
+        "id": "L6:w_north_wing:2",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L6",
+        "id": "L6:w_east:1",
+        "room": "L6:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L6",
+        "id": "L6:w_east:2",
+        "room": "L6:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L6",
+        "id": "L6:w_east:3",
+        "room": "L6:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L6",
+        "id": "L6:w_east:4",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L6",
+        "id": "L6:w_east:5",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L6",
+        "id": "L6:w_east:6",
+        "room": "L6:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L6",
+        "id": "L6:w_south:1",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L6",
+        "id": "L6:w_south:2",
+        "room": "L6:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L6",
+        "id": "L6:w_south:3",
+        "room": "L6:ww_office_e",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -5.0,
+          -3.5
+        ],
+        "z": [
+          18.6,
+          20.4
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:1",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -30.0,
+          -28.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:2",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -27.0,
+          -25.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:3",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:4",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -21.0,
+          -19.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:5",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:6",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -15.0,
+          -13.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:7",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:8",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -9.0,
+          -7.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:9",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:10",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:11",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:12",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:13",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:14",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:15",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:16",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:17",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          18.0,
+          19.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm, piers preserved"
+        ],
+        "facade": "West",
+        "floor": "L7",
+        "id": "L7:w_west:18",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_008 regular punched window rhythm"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:1",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:2",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:3",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:4",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:5",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:6",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative rhythm"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_main:7",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_009 north facade grid"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_wing:1",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L7",
+        "id": "L7:w_north_wing:2",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_007 wing north end"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L7",
+        "id": "L7:w_east:1",
+        "room": "L7:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L7",
+        "id": "L7:w_east:2",
+        "room": "L7:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L7",
+        "id": "L7:w_east:3",
+        "room": "L7:nb_office_s",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          13.0,
+          14.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L7",
+        "id": "L7:w_east:4",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L7",
+        "id": "L7:w_east:5",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          19.0,
+          20.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L7",
+        "id": "L7:w_east:6",
+        "room": "L7:nb_office_n",
+        "source_refs": [
+          "mesh_005 east facade windows"
+        ],
+        "span": [
+          21.0,
+          22.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L7",
+        "id": "L7:w_south:1",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -10.5,
+          -9.0
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L7",
+        "id": "L7:w_south:2",
+        "room": "L7:ww_office_w",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -8.5,
+          -7.1
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "L7",
+        "id": "L7:w_south:3",
+        "room": "L7:ww_office_e",
+        "source_refs": [
+          "mesh_007 south end of west wing"
+        ],
+        "span": [
+          -5.0,
+          -3.5
+        ],
+        "z": [
+          22.0,
+          23.8
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:1",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -28.0,
+          -26.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:2",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -24.0,
+          -22.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:3",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -20.0,
+          -18.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:4",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -16.0,
+          -14.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:5",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -12.0,
+          -10.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:6",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -8.0,
+          -6.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:7",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          -4.0,
+          -2.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:8",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:9",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          4.0,
+          5.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:10",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:11",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:12",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          16.0,
+          17.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "West",
+        "floor": "L8",
+        "id": "L8:w_west:13",
+        "room": "L8:sb_office_w",
+        "source_refs": [
+          "mesh_008 upper storey windows"
+        ],
+        "span": [
+          20.0,
+          21.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:1",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          -3.0,
+          -1.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:2",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          0.0,
+          1.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:3",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          3.0,
+          4.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:4",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          6.0,
+          7.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:5",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          9.0,
+          10.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:6",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          12.0,
+          13.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "North",
+        "floor": "L8",
+        "id": "L8:w_north:7",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_009"
+        ],
+        "span": [
+          15.0,
+          16.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L8",
+        "id": "L8:w_east:1",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_005"
+        ],
+        "span": [
+          8.5,
+          10.0
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L8",
+        "id": "L8:w_east:2",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_005"
+        ],
+        "span": [
+          11.0,
+          12.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L8",
+        "id": "L8:w_east:3",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_005"
+        ],
+        "span": [
+          14.0,
+          15.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L8",
+        "id": "L8:w_east:4",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_005"
+        ],
+        "span": [
+          17.0,
+          18.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "L8",
+        "id": "L8:w_east:5",
+        "room": "L8:sb_office_n",
+        "source_refs": [
+          "mesh_005"
+        ],
+        "span": [
+          20.0,
+          21.5
+        ],
+        "z": [
+          25.4,
+          27.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative shopfront"
+        ],
+        "facade": "South",
+        "floor": "P1",
+        "id": "P1:w_south:1",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "podium street frontage hypothesis"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative shopfront"
+        ],
+        "facade": "South",
+        "floor": "P1",
+        "id": "P1:w_south:2",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "podium street frontage hypothesis"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative shopfront"
+        ],
+        "facade": "South",
+        "floor": "P1",
+        "id": "P1:w_south:3",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "podium street frontage hypothesis"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative shopfront"
+        ],
+        "facade": "South",
+        "floor": "P1",
+        "id": "P1:w_south:4",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "podium street frontage hypothesis"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:1",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:2",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          -14.0,
+          -12.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:3",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          -10.0,
+          -8.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:4",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:5",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          -2.0,
+          -0.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:6",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P1",
+        "id": "P1:w_east:7",
+        "room": "P1:pod_hall",
+        "source_refs": [
+          "mesh_002 podium east edge open to courtyard/street"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          0.5,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "P2",
+        "id": "P2:w_south:1",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "hypothesis"
+        ],
+        "span": [
+          -1.0,
+          0.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "P2",
+        "id": "P2:w_south:2",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "hypothesis"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "P2",
+        "id": "P2:w_south:3",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "hypothesis"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "South",
+        "floor": "P2",
+        "id": "P2:w_south:4",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "hypothesis"
+        ],
+        "span": [
+          8.0,
+          9.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:1",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          -18.0,
+          -16.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:2",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          -14.0,
+          -12.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:3",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          -10.0,
+          -8.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:4",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          -6.0,
+          -4.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:5",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          -2.0,
+          -0.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:6",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          2.0,
+          3.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      },
+      {
+        "assumptions": [
+          "representative"
+        ],
+        "facade": "East",
+        "floor": "P2",
+        "id": "P2:w_east:7",
+        "room": "P2:pod_upper",
+        "source_refs": [
+          "mesh_002"
+        ],
+        "span": [
+          5.0,
+          6.5
+        ],
+        "z": [
+          4.4,
+          6.0
+        ]
+      }
+    ]
+  },
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "reason": "Developer preflight preserves OLD stated frame; not model input",
+    "source_refs": [
+      "prior generated candidate assumption"
+    ],
+    "translation_m": [
+      0,
+      0,
+      0
+    ],
+    "yaw_degrees": 8
+  },
+  "unresolved": [
+    "Exact footprint edge coordinates (+/- ~0.5m) and true wall thickness not resolved.",
+    "Inner courtyard-facing facades (west wing east face, north bar south face toward podium) not glazed in model; window presence there unknown.",
+    "Exact setback geometry of upper storey assumed as uniform ~2m inset.",
+    "Vertical circulation core location and stair/elevator count are hypothetical.",
+    "Precise slab levels not surveyed; storey heights inferred from ~28m cornice over 8 storeys."
+  ]
+}

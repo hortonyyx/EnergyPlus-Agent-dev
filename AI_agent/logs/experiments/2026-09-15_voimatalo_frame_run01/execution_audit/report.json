@@ -1,0 +1,149 @@
+{
+  "direction_replay": [
+    {
+      "evidence": "directions_001",
+      "matches": true
+    },
+    {
+      "evidence": "directions_002",
+      "matches": true
+    },
+    {
+      "evidence": "directions_003",
+      "matches": true
+    }
+  ],
+  "overlay_replay": [
+    {
+      "overlay": "overlay_001",
+      "pixel_exact": true,
+      "projection_exact": true
+    }
+  ],
+  "preserved_geometry": [
+    {
+      "candidate": "candidate_01",
+      "geometry_unchanged": true
+    }
+  ],
+  "input_checks": {
+    "asset_bytes": true,
+    "no_prepared_images": true,
+    "saved_candidate_recovery": true,
+    "declaration_bytes": true
+  },
+  "input_manifest_delivered": true,
+  "code_hashes": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "src/agent/geometry/parametric_proposal.py": true,
+    "scripts/tool_scripts/bim_agent_inputs.py": true,
+    "scripts/tool_scripts/bim_agent_mesh.py": true,
+    "src/agent/geometry/mesh_observation.py": true,
+    "src/agent/geometry/mesh_bim_frame.py": true,
+    "src/agent/execution/source_proposal.py": true,
+    "src/agent/geometry/proposal_edits.py": true,
+    "src/agent/geometry/opening_review.py": true,
+    "src/agent/geometry/bim_delivery.py": true,
+    "src/agent/geometry/source_image_overlay.py": true,
+    "src/agent/geometry/source_elevation_view.py": true,
+    "src/agent/geometry/source_plan_view.py": true,
+    "src/agent/geometry/source_bim.py": true,
+    "src/agent/geometry/wall_reference.py": true,
+    "src/agent/geometry/dimension_chain.py": true,
+    "src/agent/geometry/space_trace.py": true,
+    "src/agent/geometry/plan_partition.py": true,
+    "src/agent/geometry/plan_draft_view.py": true,
+    "src/agent/geometry/pixel_region.py": true,
+    "src/agent/geometry/pixel_region_overview.py": true
+  },
+  "tool_calls": {
+    "mcp__bim__inputs": 1,
+    "mcp__bim__inspect_candidate": 2,
+    "mcp__bim__inspect_mesh_directions": 3,
+    "mcp__bim__view_mesh": 3,
+    "mcp__bim__overlay_mesh_candidate": 3,
+    "mcp__bim__get_bim_reference": 3,
+    "mcp__bim__set_candidate_mesh_frame": 2,
+    "mcp__bim__check_wall_dimensions": 2,
+    "mcp__bim__view_candidate": 1,
+    "mcp__bim__view_image": 1,
+    "mcp__bim__inspect_mesh": 1
+  },
+  "image_transport": [
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_001.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_002.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_mesh",
+      "exact_png": true,
+      "expected": "mesh_observations/mesh_003.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__overlay_mesh_candidate",
+      "exact_png": true,
+      "expected": "mesh_overlays/overlay_001.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    },
+    {
+      "tool": "mcp__bim__view_candidate",
+      "exact_png": true,
+      "expected": "candidate_01/plan_L1.png",
+      "same_size": true,
+      "mean_absolute_channel_error": 0.0,
+      "consistent": true,
+      "encoding": "PNG"
+    }
+  ],
+  "mesh_render_replay": [
+    {
+      "observation": "mesh_001",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    },
+    {
+      "observation": "mesh_002",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": -76.0
+    },
+    {
+      "observation": "mesh_003",
+      "exact_replay": true,
+      "mesh_hash": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "yaw": 0.0
+    }
+  ],
+  "surface_measurement_replay": [],
+  "source_replay": [
+    {
+      "candidate": "candidate_01",
+      "source_matches": true
+    }
+  ],
+  "note": "PNG exact or measured JPEG approximation; these checks do not establish architectural fidelity.",
+  "passed": true
+}

@@ -1,0 +1,78 @@
+{
+  "agent_assumptions": [
+    "Local construction frame is the mesh BIM-local frame rotated yaw=+8 deg about +z to axis-align the building; all coordinates are in this yawed frame (metres).",
+    "Building is a courtyard/perimeter block: L-shaped 8-storey tall mass (west wing + north/northeast bar) plus a ~2-storey low podium (~6.85m) filling the inner SE corner; far SE is open/not built.",
+    "Storeys reconciled with declaration: ground (commercial) + six similar office storeys + one setback upper storey = 8; floor-to-floor ~3.4m, ground 4.0m, main roof ~28m.",
+    "All interior partitions, corridors, cores and doors are explicit hypotheses; no interior evidence exists in the mesh.",
+    "Window rows are representative regular rhythms preserving piers between openings; exact counts/positions per bay are not surveyed.",
+    "Rooftop penthouse footprint/height approximate from mesh green roof structures (~31-34m)."
+  ],
+  "counts": {
+    "boundaries": 324,
+    "connections": 33,
+    "openings": 327,
+    "spaces": 54,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "reason": "Correcting the mesh-to-BIM registration. Seed's stated yaw=+8 deg does not axis-align the mesh: independent area-weighted near-vertical triangle direction analysis at yaw=+8 shows dominant wall directions at ~82-86 deg and ~170-178 deg (off-axis). At yaw=-76 deg the same dominant surfaces land at ~0/88/90/178/180 deg, consistent with an axis-aligned rectilinear/L-shaped footprint. Translation kept at zero pending overlay check.",
+    "source_refs": [
+      "mesh_directions:directions_002 (yaw=-76, peaks 0.0/88.0/90.0/178.1/179.9 deg, areas 582/219/189/480/244 m2)",
+      "mesh_directions:directions_003 (yaw=8, peaks 82-86/170-178 deg, non-axis-aligned)"
+    ],
+    "translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "yaw_degrees": -76.0
+  },
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "a8e053873581cc3ccc9099b7a10a4db640c2ad702d632712379078b44490c2ea",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "4a0a6a2d0731d32d5395e53d9e1b40bbe1ca82bedf2a67442fc737de5cec441f",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "7dd7121d6bb03815a9862d1b6f71a269c23639cec5d31226c5b5c83f55129780"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "497e592606837278588c60f150486655875ed61d7f92033750a1573196a29e2d",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact footprint edge coordinates (+/- ~0.5m) and true wall thickness not resolved.",
+    "Inner courtyard-facing facades (west wing east face, north bar south face toward podium) not glazed in model; window presence there unknown.",
+    "Exact setback geometry of upper storey assumed as uniform ~2m inset.",
+    "Vertical circulation core location and stair/elevator count are hypothetical.",
+    "Precise slab levels not surveyed; storey heights inferred from ~28m cornice over 8 storeys."
+  ]
+}

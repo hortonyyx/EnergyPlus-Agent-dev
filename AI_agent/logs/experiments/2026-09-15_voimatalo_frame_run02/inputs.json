@@ -1,0 +1,167 @@
+{
+  "images": {},
+  "scope": "Recover the saved Voimatalo candidate using its original GLB and declaration. This bounded task concerns the mesh-to-BIM coordinate frame and exterior alignment, not a full rebuilding. Start with inspect_candidate(seed, include_geometry=False) to read its assumptions and floor IDs. Register the old stated frame explicitly if needed to inspect the baseline. Choose your own native mesh views and surface-direction evidence, using independent local near-vertical surfaces to establish a defensible frame; no new angle or fitted target is supplied. Use the saved-source overlay to compare before/after placement and make a substantive, evidenced registration correction if supported. Preserve existing numerical room/opening geometry for this controlled frame recovery; mark residual shape, height, courtyard openings and vertical-connectivity defects rather than silently fixing or certifying them. Update obsolete coordinate assumptions while retaining other unresolved limitations. Inspect actual overlays in top and side views before selecting a candidate; no internal truth or surveyed fidelity claim. No EnergyPlus. First establish a baseline overlay using the seed's own stated frame. Direction alignment alone leaves quarter-turn/half-turn ambiguities: use the asymmetric whole-building footprint to resolve them. Paged candidate/host reads are available; they are not whole replacement proposals.",
+  "input_mode": "saved_candidate_recovery",
+  "exploratory_opus": false,
+  "source_input_mode": "native_mesh_with_building_declaration",
+  "input_contents": {
+    "original_png_images": {
+      "included": false,
+      "count": 0
+    },
+    "building_declaration": {
+      "included": true
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    },
+    "original_mesh": {
+      "included": true,
+      "sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc"
+    }
+  },
+  "deadline_epoch": 1789444052.6502604,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "2f8a561250359e621341d3d5982c2c80791dadaeedd700e54448f6cf80f17bfa",
+    "scripts/tool_scripts/bim_agent_guidance.py": "0f0a146d08669e7fb61e2283880001dc240cb5e2268863f15d5da4f6fcbf7a26",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "b4ab86f4d64fb3126f2299549f5f69513ae2137fb8346df510d143f6ffcb9674",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "8d2c70b9c2cc189f849041bdce8f53641d7d9f5178cca6f218f9bd526460ce57",
+    "src/agent/geometry/proposal_edits.py": "f994e3471315499d3fe2eb674867aa28a1e45e2ce5a054528d6e0b89cbc152ed",
+    "src/agent/geometry/opening_review.py": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "56ce8e6a8e9380ec342624a6e71f9a2844394832318f8ca706c184f9fd1265ab",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "23bfa28896a3c8884022a8a149689d72ea2b70dfebf9c213ac80c914501de2bd",
+    "src/agent/geometry/plan_draft_view.py": "7ba490bba520f5907037941136a33df3d9867d67729483d39a57820814943006",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "Admitted original GLB and optional original PNGs, explicit building declaration, user scope and optional saved proposal. Mesh views are generated on demand internally; no GT/evaluation or preselected camera package.",
+  "building_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/building_input.json",
+    "frozen_path": "building_input.json",
+    "raw_sha256": "e250eddd5280a2342d01f0a3648dab032c7f300cd526ad534369bb7dbbfba7e7",
+    "raw_size_bytes": 1342,
+    "declaration": {
+      "building": "Voimatalo",
+      "location": "Helsinki",
+      "use": "office with street-level commercial, from previously sourced input preparation",
+      "storey_information": "Prior public record describes eight above-ground storeys including six similar office storeys and a setback upper storey; reconcile with visual evidence. Not actual surveyed slab levels.",
+      "simplification_intent": "Retain main shape, storeys, setbacks and visible aperture groups. Infer a useful, moderately detailed office/circulation/service-space scheme from available constraints. Do not make room counts a goal or split a continuous open space just by orientation. No internal plan is supplied; all interior partition/door hypotheses must be explicit.",
+      "missing_information": [
+        "actual internal partitions and doors",
+        "precise storey/slab levels",
+        "occluded facade surfaces",
+        "stair/elevator details",
+        "complete ground-level entrance inventory"
+      ],
+      "input_condition": "Original self-contained GLB of the previously selected target single building. The prior single-building crop is retained and may omit occluded/context surfaces. No prepared screenshots, facade plane selections, local alignment angle, prior BIM, window coordinates/counts or interior plan is supplied in this run. View and measure the asset through tools as needed."
+    },
+    "image_path_associations": [],
+    "image_path_policy": "Declared paths are provenance labels only. They are associated by exact basename with the already authorized PNG inventory and are never opened as file paths.",
+    "field_semantics": {
+      "thermal_zones": "User declaration for downstream simulation zoning; it is not a measured or authoritative count of physical source spaces.",
+      "other_fields": "User-supplied building declarations retain their stated meaning and are not ground truth or independently verified observations."
+    },
+    "conflict_policy": "The agent must compare declarations with supplied drawing evidence, preserve the conflict or uncertainty, and decide its modelling effect explicitly."
+  },
+  "mesh_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+    "frozen_path": "assets/input.glb",
+    "sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "bytes": 969568,
+    "geometry": {
+      "mesh_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-15_voimatalo_frame_run02/assets/input.glb",
+      "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "coordinate_frame": "BIM-local right-handed Z-up metres",
+      "source_coordinate_transform": {
+        "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+        "y_up_to_z_up": "[X, -Z, Y]",
+        "y_up_to_z_up_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "yaw_degrees_counterclockwise_about_positive_z": 0.0,
+        "yaw_matrix": [
+          [
+            1.0,
+            -0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "vertex_count": 8242,
+      "face_count": 12520,
+      "scene_instance_count": 1,
+      "selected_vertex_count": 8242,
+      "selected_face_count": 12520,
+      "bounds": [
+        [
+          -22.37481689453125,
+          -33.08087158203125,
+          0.0
+        ],
+        [
+          26.085182189941406,
+          29.569124221801758,
+          34.27320098876953
+        ]
+      ],
+      "selection_bounds": null,
+      "selection_method": "all faces",
+      "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+      "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint."
+    },
+    "note": "Original mesh asset; no preselected cameras or BIM observations. Mesh surfaces may be incomplete/noisy and are not room semantics."
+  },
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "7dd7121d6bb03815a9862d1b6f71a269c23639cec5d31226c5b5c83f55129780",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_run01/candidate_02",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

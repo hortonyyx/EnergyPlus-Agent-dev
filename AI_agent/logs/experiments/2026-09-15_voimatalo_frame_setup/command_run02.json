@@ -1,0 +1,19 @@
+[
+  "python",
+  "scripts/tool_scripts/run_bim_agent.py",
+  "run",
+  "--mesh",
+  "case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+  "--building-input",
+  "AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_setup/building_input.json",
+  "--resume-candidate",
+  "AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_run01/candidate_02",
+  "--out",
+  "AI_agent/logs/experiments/2026-09-15_voimatalo_frame_run02",
+  "--scope",
+  "Recover the saved Voimatalo candidate using its original GLB and declaration. This bounded task concerns the mesh-to-BIM coordinate frame and exterior alignment, not a full rebuilding. Start with inspect_candidate(seed, include_geometry=False) to read its assumptions and floor IDs. Register the old stated frame explicitly if needed to inspect the baseline. Choose your own native mesh views and surface-direction evidence, using independent local near-vertical surfaces to establish a defensible frame; no new angle or fitted target is supplied. Use the saved-source overlay to compare before/after placement and make a substantive, evidenced registration correction if supported. Preserve existing numerical room/opening geometry for this controlled frame recovery; mark residual shape, height, courtyard openings and vertical-connectivity defects rather than silently fixing or certifying them. Update obsolete coordinate assumptions while retaining other unresolved limitations. Inspect actual overlays in top and side views before selecting a candidate; no internal truth or surveyed fidelity claim. No EnergyPlus. First establish a baseline overlay using the seed's own stated frame. Direction alignment alone leaves quarter-turn/half-turn ambiguities: use the asymmetric whole-building footprint to resolve them. Paged candidate/host reads are available; they are not whole replacement proposals.",
+  "--timeout",
+  "1800",
+  "--effort",
+  "medium"
+]

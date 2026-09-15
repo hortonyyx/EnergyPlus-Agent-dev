@@ -1,0 +1,74 @@
+{
+  "scope": "One-sided distance from original near-vertical triangle centroids at raw Z 8..22m to candidate exterior wall segments at matching heights. Area weighted. Original subset fixed before candidate transforms.",
+  "not_ground_truth": true,
+  "limitations": [
+    "Photogrammetric noise and exterior relief remain; not survey accuracy.",
+    "No source-to-mesh completeness measure; missing source surfaces/windows/interiors are not certified.",
+    "The seed +8 degree/zero translation frame is transcribed from its old explicit assumption for evaluation only; not a new angle supplied to the model."
+  ],
+  "results": [
+    {
+      "candidate": "seed_explicit_old_statement",
+      "mesh_frame": {
+        "yaw_degrees": 8,
+        "translation_m": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sample_count": 2090,
+      "matched_height_sample_count": 2090,
+      "matched_surface_area_m2": 1817.8242629875008,
+      "weighted_mean_distance_m": 2.102863624777835,
+      "weighted_median_distance_m": 1.8431524330587887,
+      "weighted_p90_distance_m": 4.406994369050478
+    },
+    {
+      "candidate": "candidate_01",
+      "mesh_frame": {
+        "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+        "reason": "Register the seed's own stated frame (yaw=+8 deg, zero translation, per its assumptions text) to inspect the baseline overlay before any correction.",
+        "source_refs": [
+          "seed proposal assumptions: yaw=+8 deg stated frame"
+        ],
+        "translation_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_degrees": 8.0
+      },
+      "sample_count": 2090,
+      "matched_height_sample_count": 2090,
+      "matched_surface_area_m2": 1817.8242629875008,
+      "weighted_mean_distance_m": 2.102863624777835,
+      "weighted_median_distance_m": 1.8431524330587887,
+      "weighted_p90_distance_m": 4.406994369050478
+    },
+    {
+      "candidate": "candidate_02",
+      "mesh_frame": {
+        "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+        "reason": "Independent near-vertical mesh surface-direction evidence (inspect_mesh_directions) shows dominant wall directions at ~76 deg and ~166 deg at yaw=0, exactly 90 deg apart, indicating true wall axes are offset from the raw mesh frame by 14 deg (76+14=90). A yaw=14 deg top-down mesh view (mesh_002) confirms the L-shaped footprint edges are cleanly axis-aligned (horizontal/vertical), unlike the seed's stated yaw=8 deg, whose footprint is visibly ~6 deg skewed against the axis-aligned building edges in the same top view (overlay_002). This corrects the seed's obsolete yaw assumption; translation kept at zero pending position check.",
+        "source_refs": [
+          "directions_002 (yaw=14) area-weighted direction 89.9 deg / 179.9 deg dominant clusters",
+          "mesh_002 top view: axis-aligned L-footprint at yaw=14",
+          "overlay_002: seed yaw=8 footprint skewed ~6 deg vs axis-aligned mesh_002"
+        ],
+        "translation_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_degrees": 14.0
+      },
+      "sample_count": 2090,
+      "matched_height_sample_count": 2090,
+      "matched_surface_area_m2": 1817.8242629875008,
+      "weighted_mean_distance_m": 2.3641464581335208,
+      "weighted_median_distance_m": 2.4256699570085356,
+      "weighted_p90_distance_m": 2.899651859774716
+    }
+  ]
+}

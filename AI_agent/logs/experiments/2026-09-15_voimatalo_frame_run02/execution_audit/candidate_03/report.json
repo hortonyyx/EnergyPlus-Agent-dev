@@ -1,0 +1,82 @@
+{
+  "agent_assumptions": [
+    "Local construction frame corrected from the seed's stated yaw=+8 deg to yaw=+14 deg about +z, translation=[0,0,0], based on independent near-vertical mesh surface-direction evidence (inspect_mesh_directions at yaw=0 shows dominant wall directions at ~76 deg and ~166 deg, exactly 90 deg apart; 76+14=90) and a yaw=14 deg top-down mesh render (mesh_002) showing the asymmetric L-shaped footprint edges cleanly axis-aligned, vs. the seed's yaw=8 deg footprint which is visibly ~6 deg skewed against the same axis-aligned mesh (overlay_002/overlay_003). The quarter/half-turn ambiguity was resolved using the asymmetric whole-building L-footprint (long north-south west wing vs. shorter east-west north bar, matched to the mesh's own long/short wings) rather than translation.",
+    "Translation kept at [0,0,0]: direct low/high-z bounded mesh queries at the tower's east wall (x~19.75-20, matches footprint x=20.0 within 0.3m) and south wall (y~-31.2 to -32.3, matches footprint y=-31.0 within ~0.3-1.3m) show good agreement without translation; applying any nonzero translation would improve the west/north edges only by degrading these already-good east/south matches.",
+    "Building is a courtyard/perimeter block: L-shaped 8-storey tall mass (west wing + north/northeast bar) plus a ~2-storey low podium (~6.85m) filling the inner SE corner; far SE is open/not built.",
+    "Storeys reconciled with declaration: ground (commercial) + six similar office storeys + one setback upper storey = 8; floor-to-floor ~3.4m, ground 4.0m, main roof ~28m.",
+    "All interior partitions, corridors, cores and doors are explicit hypotheses; no interior evidence exists in the mesh.",
+    "Window rows are representative regular rhythms preserving piers between openings; exact counts/positions per bay are not surveyed.",
+    "Rooftop penthouse footprint/height approximate from mesh green roof structures (~31-34m)."
+  ],
+  "counts": {
+    "boundaries": 324,
+    "connections": 33,
+    "openings": 327,
+    "spaces": 54,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "reason": "Independent near-vertical mesh surface-direction evidence (inspect_mesh_directions) shows dominant wall directions at ~76 deg and ~166 deg at yaw=0, exactly 90 deg apart, indicating true wall axes are offset from the raw mesh frame by 14 deg (76+14=90). A yaw=14 deg top-down mesh view (mesh_002) confirms the L-shaped footprint edges are cleanly axis-aligned (horizontal/vertical), unlike the seed's stated yaw=8 deg, whose footprint is visibly ~6 deg skewed against the axis-aligned building edges in the same top view (overlay_002). This corrects the seed's obsolete yaw assumption; translation kept at zero pending position check.",
+    "source_refs": [
+      "directions_002 (yaw=14) area-weighted direction 89.9 deg / 179.9 deg dominant clusters",
+      "mesh_002 top view: axis-aligned L-footprint at yaw=14",
+      "overlay_002: seed yaw=8 footprint skewed ~6 deg vs axis-aligned mesh_002"
+    ],
+    "translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "yaw_degrees": 14.0
+  },
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0ecfa63644fe7d2b58d431783299bf5e5aa1a381266b2c3d26e82755b6003672",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "05d76fbda1abeb930e9d8349d45cd9d85589baecbbc747638973caa5fc053178",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "a2de27316059a58ca3af40bc68f144e873e0364bebf78f66a7255187043ff657"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "c28b6d54e63a5ba4b39df340fefff8a0fab938f9d7829d7e0b3c1af80c38928a",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Residual footprint shape/size mismatch discovered during this frame recovery: bounded mesh queries (both near-ground z0-3m and upper-floor z10-14m) place the true west wall of the west wing at x~-13.2 to -14.2 m, about 2-3 m further west than the seed's stated footprint edge x=-11.3 m, at both the north and south ends of that wing. The true north facade (west wing north end and north bar) sits at y~26.2-27.1 m, about 2.2-3.1 m further north than the seed's stated footprint edge y=24.0 m. The east wall (x~19.75-20) and south wall (y~-31.2) match the stated footprint well. Because one edge matches and the opposite edge does not, this is a genuine footprint sizing/shape limitation inherited from the seed geometry, not a pure translation error, and has NOT been corrected here per the frame-recovery scope (numerical room/opening geometry preserved). A future revision should widen/lengthen the west-wing and north-bar footprint polygons (and dependent window spans) toward the true wall lines identified above.",
+    "Exact footprint edge coordinates (+/- ~0.5m, now specifically +/- ~2-3m on the west and north edges per above) and true wall thickness not resolved.",
+    "Inner courtyard-facing facades (west wing east face, north bar south face toward podium) not glazed in model; window presence there unknown.",
+    "Exact setback geometry of upper storey assumed as uniform ~2m inset.",
+    "Vertical circulation core location and stair/elevator count are hypothetical.",
+    "Precise slab levels not surveyed; storey heights inferred from ~28m cornice over 8 storeys.",
+    "Podium/courtyard structure (P1/P2) and vertical connectivity between podium and tower floors are not verified against interior evidence; unknown as before."
+  ]
+}

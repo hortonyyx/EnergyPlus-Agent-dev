@@ -1,0 +1,63 @@
+{
+  "agent_assumptions": [
+    "Local construction frame is the mesh BIM-local frame rotated yaw=+8 deg about +z to axis-align the building; all coordinates are in this yawed frame (metres).",
+    "Building is a courtyard/perimeter block: L-shaped 8-storey tall mass (west wing + north/northeast bar) plus a ~2-storey low podium (~6.85m) filling the inner SE corner; far SE is open/not built.",
+    "Storeys reconciled with declaration: ground (commercial) + six similar office storeys + one setback upper storey = 8; floor-to-floor ~3.4m, ground 4.0m, main roof ~28m.",
+    "All interior partitions, corridors, cores and doors are explicit hypotheses; no interior evidence exists in the mesh.",
+    "Window rows are representative regular rhythms preserving piers between openings; exact counts/positions per bay are not surveyed.",
+    "Rooftop penthouse footprint/height approximate from mesh green roof structures (~31-34m)."
+  ],
+  "counts": {
+    "boundaries": 324,
+    "connections": 33,
+    "openings": 327,
+    "spaces": 54,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "7dd7121d6bb03815a9862d1b6f71a269c23639cec5d31226c5b5c83f55129780",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "7dd7121d6bb03815a9862d1b6f71a269c23639cec5d31226c5b5c83f55129780",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-14_voimatalo_native_mesh_run01/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9f4f986c493cc128b1ce68f87d6619ffd47bf7034a37cc72e52122fd20b70f11",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact footprint edge coordinates (+/- ~0.5m) and true wall thickness not resolved.",
+    "Inner courtyard-facing facades (west wing east face, north bar south face toward podium) not glazed in model; window presence there unknown.",
+    "Exact setback geometry of upper storey assumed as uniform ~2m inset.",
+    "Vertical circulation core location and stair/elevator count are hypothetical.",
+    "Precise slab levels not surveyed; storey heights inferred from ~28m cornice over 8 storeys."
+  ]
+}

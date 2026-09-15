@@ -317,3 +317,19 @@ python scripts/tool_scripts/diagnose_source_checkpoint.py --out AI_agent/logs/ex
 本程真实运行入口与辅助边界见[原网格实验准备](../logs/experiments/2026-09-14_voimatalo_native_mesh_setup/README.md)。Opus沿用本次任务的探索授权，仍不作为常规产品默认档。
 
 续推实跑后修正：独立指定米制宽高时，视图不再被固定画幅拉伸；两选点另返回坐标差与水平朝向，仍不证明所选点属于同一条墙边。大规模`finish_bim`回执保留状态、数量、未建项、假设及未核范围摘要，详细开口/立面/回查清单保留在delivery.json；原图小案例回执保持。实际大案已通过MCP重放，源与报告事实不变，避免原18.4万字符回执被CLI截断。
+
+
+### 网格方向、坐标关系与源叠图（09-15）
+
+`inspect_mesh_directions(yaw_degrees=0, bounds=None, face_ids=None, max_plane_tilt_degrees=15)`只查询本次原GLB，按旋转后坐标中的三角形质心选区、按偏离竖直面角度过滤。方向是局部+X逆时针模180°的表面水平迹线，已经含查询yaw，**不是要施加的yaw**；平行但不同位置的面会同档。完整结果见`mesh_evidence/`，MCP返回前10档详细记录、未详列面积及全档紧凑分布。像素量测同时返回命中面法向/倾斜，防止将屋顶点当同一墙边。图片输入的独立子任务不会因此取得网格或候选访问。
+
+`set_candidate_mesh_frame(candidate, yaw_degrees, translation_m, reason, source_refs)`绑定本次原网格SHA256，创建新候选；公式为源坐标=R(yaw)×原GLB经节点变换后的[X,-Z,Y]+translation_m。数值几何保留，原网格相对位置改变；房间、外形、门窗和高度错误不会随坐标声明自动消失。直接`build_bim`可提供同字段`mesh_frame`，局部`revise_bim`继续保留它，几何模板生成后也可用此工具登记。不能从相机旋转隐式继承坐标；旧备注需显式修订。
+
+`overlay_mesh_candidate(candidate, observation, floor_id=None, exterior_only=True)`在既有原网格视角上绘制实际源边：品红墙、绿窗、橙门，源背面也显示，按楼层/视角降低重叠。保存于`mesh_overlays/`；返回图片及简短摘要，完整逐对象坐标/像素映射在旁文件。图像不自动拟合候选，不改变源数据，不证明模型已正确回查。`measure_mesh_pixels(..., candidate=...)`可将实际命中点转换到该候选保存的坐标系。未保存frame或引用不符会拒绝。
+
+大案核坐标可先调用`inspect_candidate(candidate, include_geometry=False)`取得备注、楼层和检查；需要改具体空间时再读完整方案。使用普通`run --mesh ... --resume-candidate ...`明确记录旧候选恢复，不能报告冷启动生成。实际参数及新旧范围见[09-15实验准备](../logs/experiments/2026-09-15_voimatalo_frame_setup/README.md)。
+
+
+首轮实跑后补充：`inspect_candidate(..., floor_id="...")`可按楼层读取；回执过大时自动提供摘要。`read_candidate_items(candidate, collection="cells"|"windows"|"openings", floor_id=None, offset=0, limit=20)`按页返回准确原方案条目，读取`next_offset`直到null才能宣称完整。`check_wall_dimensions`的墙宿主清单增加`floor_id/offset/limit`（默认30，上限50），不改变显式墙面尺寸换算。未查完的部分须保留，不能拿部分页面覆写整案。
+
+外部源墙叠图按精确接触区域扣除，保留墙上未与邻空间接触的外露片；这是显示派生，不生成源隔墙。方向统计留下90°/180°歧义时，要用整栋不对称形状和原坐标基线叠图核准，不可把错转当成可用平移补偿的误差。
