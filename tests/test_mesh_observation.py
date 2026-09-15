@@ -48,6 +48,31 @@ def _quad(z: float, color: tuple[int, int, int]) -> trimesh.Trimesh:
     )
 
 
+def _vertical_quad(
+    direction_degrees: float,
+    *,
+    origin: tuple[float, float],
+    length: float,
+    height: float,
+    color: tuple[int, int, int] = (120, 140, 160),
+) -> trimesh.Trimesh:
+    angle = np.radians(direction_degrees)
+    direction = np.array([np.cos(angle), np.sin(angle)])
+    start = np.asarray(origin, dtype=float)
+    end = start + length * direction
+    return _textured_mesh(
+        [
+            [start[0], start[1], 0],
+            [end[0], end[1], 0],
+            [end[0], end[1], height],
+            [start[0], start[1], height],
+        ],
+        [[0, 1, 2], [0, 2, 3]],
+        [[0, 0], [1, 0], [1, 1], [0, 1]],
+        np.full((2, 2, 3), color, dtype=np.uint8),
+    )
+
+
 def _export(scene: trimesh.Scene, path: Path) -> Path:
     path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
     return path
@@ -132,6 +157,11 @@ def test_render_metric_pixel_query_and_uv_image_orientation(tmp_path: Path) -> N
     np.testing.assert_allclose(first["world_xyz"], [-0.45, -0.05, 0], atol=1e-6)
     np.testing.assert_allclose(second["world_xyz"], [0.55, -0.05, 0], atol=1e-6)
     assert query["first_two_distance"]["distance_m"] == pytest.approx(1.0)
+    assert query["first_two_distance"]["same_triangle"] is False
+    surface = first["triangle_surface_evidence"]
+    assert surface["triangle_normal_xyz"][2] == pytest.approx(1)
+    assert surface["plane_tilt_from_vertical_degrees"] == pytest.approx(90)
+    assert surface["horizontal_surface_trace_direction_degrees"] is None
     assert (tmp_path / "views" / "top.png").is_file()
     assert (tmp_path / "views" / "top.json").is_file()
     assert (tmp_path / "views" / "top.npz").is_file()
@@ -205,6 +235,88 @@ def test_bounds_filter_is_centroid_selection_for_render(tmp_path: Path) -> None:
     assert metadata["selected_face_count"] == 1
     assert image.getpixel((10, 10)) != _BACKGROUND_FOR_TEST
     assert image.getpixel((30, 10)) == _BACKGROUND_FOR_TEST
+
+
+def test_surface_direction_evidence_weights_vertical_faces_and_excludes_roof(
+    tmp_path: Path,
+) -> None:
+    scene = trimesh.Scene()
+    scene.add_geometry(
+        _vertical_quad(14, origin=(0, 0), length=4, height=3), node_name="surface_14"
+    )
+    scene.add_geometry(
+        _vertical_quad(16, origin=(20, 0), length=2, height=3), node_name="surface_16"
+    )
+    # Its much larger area must not dominate a near-vertical surface query.
+    scene.add_geometry(_quad(5, (60, 80, 100)), node_name="horizontal_surface")
+    observation = MeshObservation(_export(scene, tmp_path / "directions.glb"))
+
+    evidence = observation.surface_direction_evidence(
+        angle_bin_degrees=2,
+        max_plane_tilt_degrees=10,
+    )
+
+    assert evidence["selected_triangle_count"] == 6
+    assert evidence["eligible_triangle_count"] == 4
+    assert evidence["excluded_triangle_counts"]["outside_plane_tilt_limit"] == 2
+    assert evidence["eligible_surface_area_m2"] == pytest.approx(18)
+    assert [item["angle_bin_center_degrees"] for item in evidence["candidates"]] == [
+        14,
+        16,
+    ]
+    assert evidence["candidates"][0]["surface_area_m2"] == pytest.approx(12)
+    assert evidence["candidates"][0]["eligible_area_fraction"] == pytest.approx(2 / 3)
+    assert evidence["candidates"][0][
+        "area_weighted_direction_degrees"
+    ] == pytest.approx(14)
+    assert "do not make it a fitted wall" in evidence["evidence_caveat"]
+
+    local = observation.surface_direction_evidence(
+        bounds=[[-1, -1, -1], [6, 3, 4]], angle_bin_degrees=2
+    )
+    assert [item["angle_bin_center_degrees"] for item in local["candidates"]] == [14]
+    assert local["selection_method"].startswith("triangle centroid")
+
+    selected_face = evidence["candidates"][1]["face_id_sample"][0]
+    by_face = observation.surface_direction_evidence(
+        face_ids=[selected_face], angle_bin_degrees=2
+    )
+    assert by_face["selected_triangle_count"] == 1
+    assert by_face["candidates"][0]["angle_bin_center_degrees"] == 16
+
+
+def test_pixel_query_reports_operation_frame_triangle_normal_and_direction(
+    tmp_path: Path,
+) -> None:
+    observation = MeshObservation(
+        _export(
+            trimesh.Scene(_vertical_quad(0, origin=(-2, 0), length=4, height=3)),
+            tmp_path / "pixel_surface.glb",
+        )
+    )
+    yaw_degrees = 14
+    normal_angle = np.radians(yaw_degrees + 90)
+    target = np.array([0, 0, 1.5])
+    eye = target + 10 * np.array([np.cos(normal_angle), np.sin(normal_angle), 0])
+    prefix = tmp_path / "vertical_view"
+    observation.render(
+        prefix,
+        eye=eye.tolist(),
+        target=target.tolist(),
+        width_m=4,
+        height_m=3,
+        width_px=80,
+        height_px=60,
+        yaw_degrees=yaw_degrees,
+    )
+
+    hit = observation.pixel_query(prefix, [[40, 30]])["queries"][0]
+    assert hit["hit"] is True
+    surface = hit["triangle_surface_evidence"]
+    assert surface["horizontal_surface_trace_direction_degrees"] == pytest.approx(14)
+    assert surface["plane_tilt_from_vertical_degrees"] == pytest.approx(0)
+    assert surface["triangle_area_m2"] == pytest.approx(6)
+    assert surface["triangle_horizontal_span_m"] == pytest.approx(4)
 
 
 def test_invalid_parameters_missing_buffer_and_asset_hash_are_rejected(

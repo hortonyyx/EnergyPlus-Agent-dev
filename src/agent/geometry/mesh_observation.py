@@ -28,6 +28,7 @@ import trimesh
 _MAX_IMAGE_SIDE = 1600
 _MAX_IMAGE_PIXELS = _MAX_IMAGE_SIDE**2
 _MAX_VIEW_SPAN_M = 1_000_000.0
+_MAX_CANDIDATE_FACE_ID_SAMPLE = 12
 _BACKGROUND = np.array([238, 242, 246], dtype=np.uint8)
 _Y_UP_TO_Z_UP = np.array(
     [
@@ -150,6 +151,38 @@ def _validated_bounds(bounds: Any | None) -> np.ndarray | None:
     if np.any(result[1] <= result[0]):
         raise ValueError("each bounds maximum must be greater than its minimum")
     return result
+
+
+def _finite_nonnegative(name: str, value: Any) -> float:
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be a finite non-negative number") from exc
+    if not math.isfinite(result) or result < 0:
+        raise ValueError(f"{name} must be a finite non-negative number")
+    return result
+
+
+def _axial_angle_degrees(vector_xy: np.ndarray) -> float | None:
+    """Return an unoriented horizontal angle in [0, 180), or None if undefined."""
+
+    length = float(np.linalg.norm(vector_xy))
+    if length <= 1e-12:
+        return None
+    return math.degrees(math.atan2(float(vector_xy[1]), float(vector_xy[0]))) % 180.0
+
+
+def _axial_delta_degrees(angle: np.ndarray, reference: float) -> np.ndarray:
+    """Smallest signed differences between axial angles, in [-90, 90)."""
+
+    return (angle - reference + 90.0) % 180.0 - 90.0
+
+
+def _weighted_axial_mean_degrees(angles: np.ndarray, weights: np.ndarray) -> float:
+    doubled = np.radians(angles * 2.0)
+    sine = float(np.sum(weights * np.sin(doubled)))
+    cosine = float(np.sum(weights * np.cos(doubled)))
+    return (math.degrees(math.atan2(sine, cosine)) / 2.0) % 180.0
 
 
 def _material_texture(
@@ -278,6 +311,53 @@ class MeshObservation:
         self.vertex_count = sum(len(part.vertices) for part in self._parts)
         self.face_count = face_offset
 
+    def _face_location(self, global_face_id: int) -> tuple[_MeshPart, int]:
+        if global_face_id < 0 or global_face_id >= self.face_count:
+            raise ValueError(
+                f"face_id {global_face_id} is outside mesh face range "
+                f"[0,{self.face_count - 1}]"
+            )
+        for part in self._parts:
+            local_face_id = global_face_id - part.face_offset
+            if 0 <= local_face_id < len(part.faces):
+                return part, local_face_id
+        raise RuntimeError(f"could not resolve valid global face_id {global_face_id}")
+
+    @staticmethod
+    def _triangle_evidence(
+        part: _MeshPart,
+        local_face_id: int,
+        vertices: np.ndarray,
+    ) -> dict[str, Any]:
+        triangle = vertices[part.faces[local_face_id]]
+        cross = np.cross(triangle[1] - triangle[0], triangle[2] - triangle[0])
+        doubled_area = float(np.linalg.norm(cross))
+        normal = cross / doubled_area if doubled_area > 1e-15 else None
+        xy_edges = triangle[[1, 2, 0], :2] - triangle[[0, 1, 2], :2]
+        horizontal_span = float(np.linalg.norm(xy_edges, axis=1).max(initial=0.0))
+        if normal is None:
+            plane_tilt = None
+            trace_angle = None
+        else:
+            # A vertical plane has a horizontal normal.  Its horizontal trace is
+            # perpendicular to that normal and is axial, so triangle winding
+            # cannot change the reported direction.
+            plane_tilt = math.degrees(math.asin(min(1.0, abs(float(normal[2])))))
+            trace_angle = _axial_angle_degrees(np.array([-normal[1], normal[0]]))
+        return {
+            "global_face_id": part.face_offset + local_face_id,
+            "local_face_id": local_face_id,
+            "node_name": part.node_name,
+            "geometry_name": part.geometry_name,
+            "triangle_vertices_xyz": triangle.tolist(),
+            "triangle_centroid_xyz": triangle.mean(axis=0).tolist(),
+            "triangle_area_m2": doubled_area / 2.0,
+            "triangle_horizontal_span_m": horizontal_span,
+            "triangle_normal_xyz": None if normal is None else normal.tolist(),
+            "plane_tilt_from_vertical_degrees": plane_tilt,
+            "horizontal_surface_trace_direction_degrees": trace_angle,
+        }
+
     def _operation_parts(
         self, yaw_degrees: float, bounds: Any | None
     ) -> tuple[list[tuple[_MeshPart, np.ndarray, np.ndarray]], np.ndarray | None]:
@@ -347,6 +427,225 @@ class MeshObservation:
             "evidence_caveat": (
                 "Bounds and counts describe the supplied surface mesh only; they do not "
                 "establish floors, rooms, enclosure, or a true footprint."
+            ),
+        }
+
+    def surface_direction_evidence(
+        self,
+        *,
+        yaw_degrees: float = 0,
+        bounds: Any | None = None,
+        face_ids: list[int] | None = None,
+        max_plane_tilt_degrees: float = 15,
+        min_triangle_area_m2: float = 1e-6,
+        min_horizontal_span_m: float = 0.05,
+        angle_bin_degrees: float = 2,
+    ) -> dict[str, Any]:
+        """Summarise near-vertical triangle surface directions in a selection.
+
+        Directions describe the unoriented horizontal trace of supplied mesh
+        triangles.  They are area-weighted orientation candidates, not fitted
+        wall lines or a declaration of a building coordinate frame.
+        """
+
+        yaw = _validated_yaw(yaw_degrees)
+        maximum_tilt = _finite_nonnegative(
+            "max_plane_tilt_degrees", max_plane_tilt_degrees
+        )
+        if maximum_tilt > 90:
+            raise ValueError("max_plane_tilt_degrees must be no greater than 90")
+        minimum_area = _finite_nonnegative(
+            "min_triangle_area_m2", min_triangle_area_m2
+        )
+        minimum_span = _finite_nonnegative(
+            "min_horizontal_span_m", min_horizontal_span_m
+        )
+        bin_width = _finite_nonnegative("angle_bin_degrees", angle_bin_degrees)
+        if bin_width <= 0 or bin_width > 45:
+            raise ValueError("angle_bin_degrees must be greater than 0 and at most 45")
+        bin_count = int(round(180.0 / bin_width))
+        if bin_count < 1 or not math.isclose(
+            bin_count * bin_width, 180.0, rel_tol=0.0, abs_tol=1e-9
+        ):
+            raise ValueError("angle_bin_degrees must divide the 180-degree axial range")
+
+        requested_face_ids: set[int] | None = None
+        if face_ids is not None:
+            if not isinstance(face_ids, list):
+                raise ValueError("face_ids must be a list of global integer face IDs")
+            requested_face_ids = set()
+            for face_id in face_ids:
+                if isinstance(face_id, bool) or not isinstance(
+                    face_id, (int, np.integer)
+                ):
+                    raise ValueError(
+                        "face_ids must be a list of global integer face IDs"
+                    )
+                value = int(face_id)
+                self._face_location(value)
+                requested_face_ids.add(value)
+
+        selected, clip = self._operation_parts(yaw, bounds)
+        observations: list[dict[str, Any]] = []
+        for part, vertices, local_face_ids in selected:
+            for local_face_id_raw in local_face_ids:
+                local_face_id = int(local_face_id_raw)
+                global_face_id = part.face_offset + local_face_id
+                if (
+                    requested_face_ids is not None
+                    and global_face_id not in requested_face_ids
+                ):
+                    continue
+                observations.append(
+                    self._triangle_evidence(part, local_face_id, vertices)
+                )
+
+        excluded = {
+            "below_minimum_area": 0,
+            "below_minimum_horizontal_span": 0,
+            "outside_plane_tilt_limit": 0,
+        }
+        eligible: list[dict[str, Any]] = []
+        for item in observations:
+            if item["triangle_area_m2"] < minimum_area:
+                excluded["below_minimum_area"] += 1
+            elif item["triangle_horizontal_span_m"] < minimum_span:
+                excluded["below_minimum_horizontal_span"] += 1
+            elif (
+                item["plane_tilt_from_vertical_degrees"] is None
+                or item["plane_tilt_from_vertical_degrees"] > maximum_tilt
+                or item["horizontal_surface_trace_direction_degrees"] is None
+            ):
+                excluded["outside_plane_tilt_limit"] += 1
+            else:
+                eligible.append(item)
+
+        eligible_area = float(sum(item["triangle_area_m2"] for item in eligible))
+        buckets: dict[int, list[dict[str, Any]]] = {}
+        for item in eligible:
+            angle = item["horizontal_surface_trace_direction_degrees"]
+            bin_index = int(math.floor(angle / bin_width + 0.5)) % bin_count
+            buckets.setdefault(bin_index, []).append(item)
+
+        candidates: list[dict[str, Any]] = []
+        for bin_index, items in buckets.items():
+            weights = np.asarray(
+                [item["triangle_area_m2"] for item in items], dtype=np.float64
+            )
+            angles = np.asarray(
+                [item["horizontal_surface_trace_direction_degrees"] for item in items],
+                dtype=np.float64,
+            )
+            spans = np.asarray(
+                [item["triangle_horizontal_span_m"] for item in items], dtype=np.float64
+            )
+            tilts = np.asarray(
+                [item["plane_tilt_from_vertical_degrees"] for item in items],
+                dtype=np.float64,
+            )
+            mean_angle = _weighted_axial_mean_degrees(angles, weights)
+            residuals = _axial_delta_degrees(angles, mean_angle)
+            direction = np.array(
+                [math.cos(math.radians(mean_angle)), math.sin(math.radians(mean_angle))]
+            )
+            vertices = np.vstack(
+                [
+                    np.asarray(item["triangle_vertices_xyz"], dtype=np.float64)
+                    for item in items
+                ]
+            )
+            projected = vertices[:, :2] @ direction
+            area = float(weights.sum())
+            candidate_face_ids = sorted(item["global_face_id"] for item in items)
+            candidates.append(
+                {
+                    "angle_bin_center_degrees": bin_index * bin_width,
+                    "area_weighted_direction_degrees": mean_angle,
+                    "area_weighted_angular_rms_degrees": float(
+                        math.sqrt(float(np.average(residuals**2, weights=weights)))
+                    ),
+                    "surface_area_m2": area,
+                    "eligible_area_fraction": (
+                        area / eligible_area if eligible_area > 0 else None
+                    ),
+                    "triangle_count": len(items),
+                    "face_id_sample": candidate_face_ids[
+                        :_MAX_CANDIDATE_FACE_ID_SAMPLE
+                    ],
+                    "omitted_face_id_count": max(
+                        0, len(candidate_face_ids) - _MAX_CANDIDATE_FACE_ID_SAMPLE
+                    ),
+                    "area_weighted_plane_tilt_degrees": float(
+                        np.average(tilts, weights=weights)
+                    ),
+                    "triangle_horizontal_span_m": {
+                        "minimum": float(spans.min()),
+                        "area_weighted_mean": float(np.average(spans, weights=weights)),
+                        "maximum": float(spans.max()),
+                    },
+                    "selected_vertex_projection_extent_m": float(
+                        projected.max() - projected.min()
+                    ),
+                }
+            )
+        candidates.sort(
+            key=lambda candidate: (
+                -candidate["surface_area_m2"],
+                candidate["angle_bin_center_degrees"],
+            )
+        )
+
+        return {
+            "mesh_sha256": self.mesh_sha256,
+            "coordinate_frame": "BIM-local right-handed Z-up metres",
+            "yaw_degrees_counterclockwise_about_positive_z": yaw,
+            "selection_bounds": None if clip is None else clip.tolist(),
+            "selection_method": (
+                (
+                    "triangle centroid inside inclusive bounds in the yaw-rotated BIM "
+                    "frame, intersected with requested global face IDs"
+                )
+                if clip is not None and requested_face_ids is not None
+                else (
+                    "triangle centroid inside inclusive bounds in the yaw-rotated BIM frame"
+                    if clip is not None
+                    else (
+                        "requested global face IDs"
+                        if requested_face_ids is not None
+                        else "all mesh faces"
+                    )
+                )
+            ),
+            "requested_face_ids": (
+                None if requested_face_ids is None else sorted(requested_face_ids)
+            ),
+            "selected_triangle_count": len(observations),
+            "eligible_triangle_count": len(eligible),
+            "eligible_surface_area_m2": eligible_area,
+            "excluded_triangle_counts": excluded,
+            "filters": {
+                "max_plane_tilt_degrees": maximum_tilt,
+                "max_abs_normal_z": math.sin(math.radians(maximum_tilt)),
+                "min_triangle_area_m2": minimum_area,
+                "min_horizontal_span_m": minimum_span,
+                "angle_bin_degrees": bin_width,
+                "angle_binning": (
+                    "nearest bin centre over an unoriented 180-degree axial range"
+                ),
+            },
+            "direction_semantics": (
+                "degrees counter-clockwise from operation-frame +X, modulo 180; "
+                "the direction is the horizontal trace of each near-vertical triangle "
+                "plane; it is not an alignment yaw"
+            ),
+            "candidates": candidates,
+            "evidence_caveat": (
+                "These are area-weighted orientation statistics of selected mesh "
+                "triangles. A bin may combine disconnected, parallel, adjacent, or "
+                "differently semantic surfaces; its area share, angular concentration, "
+                "and projection extent do not make it a fitted wall, a reliable wall "
+                "edge, or a true coordinate axis. Use tight bounds or explicit face IDs "
+                "and inspect the underlying surface evidence."
             ),
         }
 
@@ -526,6 +825,7 @@ class MeshObservation:
             world_points=world_buffer.reshape(-1, 3)[hit_flat],
             face_ids=face_buffer.reshape(-1)[hit_flat],
             mesh_sha256=np.asarray(self.mesh_sha256),
+            operation_yaw_degrees=np.asarray(_validated_yaw(yaw_degrees)),
         )
 
         pixel_dx = view_width / image_width
@@ -620,6 +920,11 @@ class MeshObservation:
             hit_indices = np.asarray(data["pixel_indices"], dtype=np.int64)
             world_points = np.asarray(data["world_points"], dtype=np.float64)
             face_ids = np.asarray(data["face_ids"], dtype=np.int64)
+            operation_yaw = (
+                float(data["operation_yaw_degrees"].item())
+                if "operation_yaw_degrees" in data.files
+                else None
+            )
         if image_shape.shape != (2,) or np.any(image_shape <= 0):
             raise ValueError(f"invalid image shape in render pixel buffer: {npz_path}")
         if (
@@ -653,14 +958,25 @@ class MeshObservation:
             location = int(np.searchsorted(hit_indices, flat_index))
             if location < len(hit_indices) and hit_indices[location] == flat_index:
                 point = world_points[location]
-                results.append(
-                    {
-                        "pixel": [column, row],
-                        "hit": True,
-                        "world_xyz": point.tolist(),
-                        "face_id": int(face_ids[location]),
-                    }
-                )
+                face_id = int(face_ids[location])
+                result = {
+                    "pixel": [column, row],
+                    "hit": True,
+                    "world_xyz": point.tolist(),
+                    "face_id": face_id,
+                }
+                if operation_yaw is not None and math.isfinite(operation_yaw):
+                    part, local_face_id = self._face_location(face_id)
+                    vertices = part.vertices @ _yaw_matrix(operation_yaw).T
+                    result["triangle_surface_evidence"] = self._triangle_evidence(
+                        part, local_face_id, vertices
+                    )
+                else:
+                    result["triangle_surface_evidence"] = None
+                    result["triangle_surface_evidence_unavailable_reason"] = (
+                        "legacy pixel buffer does not record its operation yaw"
+                    )
+                results.append(result)
                 hit_points.append(point)
             else:
                 results.append({"pixel": [column, row], "hit": False, "background": True})
@@ -674,6 +990,12 @@ class MeshObservation:
                     {
                         "available": True,
                         "distance_m": float(np.linalg.norm(hit_points[1] - hit_points[0])),
+                        "same_triangle": results[0]["face_id"] == results[1]["face_id"],
+                        "surface_relation_caveat": (
+                            "Different face IDs may still tessellate one surface, while "
+                            "similar normals on different faces do not establish one wall "
+                            "or wall edge."
+                        ),
                     }
                 )
             else:
@@ -688,6 +1010,7 @@ class MeshObservation:
             "mesh_sha256": self.mesh_sha256,
             "pixel_buffer_npz": str(npz_path),
             "resolution_px": {"width": width, "height": height},
+            "operation_yaw_degrees_counterclockwise_about_positive_z": operation_yaw,
             "queries": results,
             "first_two_distance": pairwise,
         }

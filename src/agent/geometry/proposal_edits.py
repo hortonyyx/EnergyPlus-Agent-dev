@@ -15,7 +15,7 @@ from src.agent.correction.schema import Window
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
-                    "wall_references", "wall_dimensions"}
+                    "wall_references", "wall_dimensions", "mesh_frame"}
 _WINDOW_FIELDS = {"facade", "span", "z", "room", "floor", "assumptions"}
 _OPENING_FIELDS = {"space_id", "other_space_id", "p1", "p2", "z", "state", "assumptions"}
 _FACADE_REFLECTIONS = {
@@ -69,6 +69,9 @@ def _validate_proposal(proposal: dict) -> dict:
         raise ValueError("proposal geometry must use legacy schema_version 1 or 2")
     _notes(proposal["assumptions"], field="assumptions")
     _notes(proposal["unresolved"], field="unresolved")
+    if "mesh_frame" in proposal:
+        from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
+        validate_mesh_frame(proposal["mesh_frame"])
     enclosure = proposal.get("enclosure_declaration")
     if enclosure is not None and not isinstance(enclosure, dict):
         raise TypeError("proposal.enclosure_declaration must be an object")

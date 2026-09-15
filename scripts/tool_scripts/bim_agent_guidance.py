@@ -16,6 +16,22 @@ are required. Query bounds before choosing metric views; zoom by changing target
 and spans, and measure visible surface pixels rather than guessing scale. Mesh
 local coordinates are Z-up [GLB.x,-GLB.z,GLB.y] optionally rotated in xy by your
 explicit yaw_degrees. Keep one declared frame for construction and evidence.
+inspect_mesh_directions reports area-weighted near-vertical triangle directions,
+with selectable local bounds; these are surface evidence, not a supplied axis.
+measure_mesh_pixels includes hit-triangle normals/tilts: do not use roof/slope
+points as if they established one physical wall edge. Check independent local
+surfaces and their texture before deciding a construction frame. A direction
+is not the rotation to apply; state the transform and inspect an aligned view.
+set_candidate_mesh_frame saves that transform on a NEW candidate: source XYZ =
+rotate_xy(yaw)*original_Zup + translation_m. It keeps numerical BIM geometry,
+changing placement relative to the original. overlay_mesh_candidate projects
+actual source edges onto any saved mesh view without fitting; use side/top views
+and individual floors to identify orientation, displacement and shape errors.
+Hidden source edges are drawn as X-ray lines. Frame-only correction does not
+establish footprint, heights or aperture fidelity. A later revise_bim preserves
+the frame; remove obsolete frame claims in notes explicitly. For direct build_bim,
+the optional mesh_frame uses mesh_sha256, yaw_degrees, translation_m, reason and
+source_refs. No candidate receives an implicit frame from a viewing camera.
 Choosing yaw is your alignment decision, not a supplied building answer. Missing
 surfaces or regions excluded by bounds are missing evidence, never proof of a
 blank wall or opening. Preserve visible window groups AND intervening wall strips;
@@ -72,8 +88,9 @@ If compilation fails, its draft overlay shows the submitted pixel paths and
 apertures, not a constructed or verified BIM. Compare the numbered paths with
 the original before revising them. Closing a polygon is not evidence for a wall:
 check both adjoining spatial extents and any continuation through a door aperture.
-If a seed exists, inspect_candidate('seed')
-reads its proposal and checks; preserve reliable objects with local revisions.
+If a seed exists, inspect_candidate('seed') reads its proposal and checks;
+include_geometry=False retrieves notes/frame/floor summary without a large
+expanded geometry. Preserve reliable objects with local revisions.
 A successful build/revision returns source plan images. Inspect them; for
 positional comparisons use overlay_candidate with original pixel/metre anchors
 supported by the same observed reference plane. Registered anchors are reused

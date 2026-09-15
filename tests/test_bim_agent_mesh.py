@@ -68,6 +68,10 @@ def test_mesh_stdio_renders_measures_and_rejects_unadmitted_or_changed_asset(tmp
             assert {'inspect_mesh','view_mesh','measure_mesh_pixels','view_mesh_observation'} <= names
             desc = _json_result(await session.call_tool('inspect_mesh', {}))
             assert desc['bounds'] == [[-2,-4,-3],[2,4,3]]
+            directions = _json_result(await session.call_tool('inspect_mesh_directions', {}))
+            assert directions['eligible_triangle_count'] == 8
+            assert directions['excluded_triangle_counts']['outside_plane_tilt_limit'] == 4
+            assert (run/directions['complete_evidence_file']).exists()
             result = await session.call_tool('view_mesh', {
                 'azimuth_degrees': 0, 'elevation_degrees': 0,
                 'target': [0,0,0], 'width_m': 12, 'height_m': 9})
@@ -81,6 +85,8 @@ def test_mesh_stdio_renders_measures_and_rejects_unadmitted_or_changed_asset(tmp
             measured = _json_result(queried)
             assert measured['first_two_distance']['distance_m'] == pytest.approx(0.5, abs=1e-6)
             assert all(row['hit'] and row['world_xyz'][0] == pytest.approx(2) for row in measured['queries'])
+            assert all(row['triangle_surface_evidence']['plane_tilt_from_vertical_degrees'] == 0
+                       for row in measured['queries'])
             assert measured['first_two_plan_geometry']['horizontal_heading_degrees'] == pytest.approx(90)
             reopened = await session.call_tool('view_mesh_observation', {'observation': observation})
             assert not reopened.isError
@@ -114,3 +120,44 @@ def test_empty_input_is_rejected_before_subscription(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, 'subscription', lambda *a, **k: pytest.fail('unexpected model call'))
     with pytest.raises(ValueError, match='provide PNG drawings or a native'):
         runner.main()
+
+
+def test_mesh_frame_and_overlay_reach_stdio_and_preserve_saved_geometry(tmp_path, monkeypatch):
+    from test_bim_agent_tools import _two_room_proposal
+    _, run, _ = _prepare(tmp_path, monkeypatch)
+    built = runner.Toolkit(run).build(json.loads(_two_room_proposal()))
+    original = run/built['candidate']/'source_model.json'
+    original_bytes = original.read_bytes()
+    async def scenario():
+        async with _server_session(run, readonly=False) as session:
+            result = await session.call_tool('view_mesh', {'azimuth_degrees':0,
+                'elevation_degrees':90, 'target':[0,0,0], 'width_m':12, 'height_m':12})
+            assert not result.isError
+            observation = json.loads(result.content[1].text)['observation']
+            missing = await session.call_tool('overlay_mesh_candidate', {
+                'candidate':built['candidate'], 'observation':observation})
+            assert missing.isError  # never infer a transform from prose or camera
+            response = _json_result(await session.call_tool('set_candidate_mesh_frame', {
+                'candidate':built['candidate'], 'yaw_degrees':90, 'translation_m':[3,4,0],
+                'reason':'synthetic coordinate reference', 'source_refs':['synthetic']}))
+            assert response['source_geometry_ready']
+            candidate = response['candidate']
+            overlay = await session.call_tool('overlay_mesh_candidate', {
+                'candidate':candidate, 'observation':observation, 'floor_id':'F1'})
+            assert not overlay.isError, overlay
+            assert overlay.content[0].type == 'image'
+            record = json.loads(overlay.content[1].text)
+            assert record['fitted_to_mesh'] is False
+            assert (run/record['complete_projection_file']).exists()
+            points = _json_result(await session.call_tool('measure_mesh_pixels', {
+                'observation':observation,'pixels':[[600,600]],'candidate':candidate}))
+            x,y,z = points['queries'][0]['world_xyz']
+            assert points['queries'][0]['source_xyz'] == pytest.approx([3-y,4+x,z])
+            source = json.loads((run/candidate/'source_model.json').read_text())
+            for key in ('spaces','boundaries','openings','connections'):
+                assert source[key] == json.loads(original_bytes)[key]
+        async with _server_session(run, readonly=True) as session:
+            names = {t.name for t in (await session.list_tools()).tools}
+            assert 'set_candidate_mesh_frame' not in names and 'overlay_mesh_candidate' not in names
+    asyncio.run(scenario())
+    assert original.read_bytes() == original_bytes

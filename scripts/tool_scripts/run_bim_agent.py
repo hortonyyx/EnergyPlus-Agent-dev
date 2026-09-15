@@ -591,6 +591,11 @@ class Toolkit:
     def build(self, proposal, *, action="build_bim", parent=None, operations=None,
               plan_input=None, calibration=None):
         from src.agent.execution.source_proposal import export_source_proposal
+        if isinstance(proposal, dict) and 'mesh_frame' in proposal:
+            from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
+            frame = validate_mesh_frame(proposal['mesh_frame'])
+            if frame['mesh_sha256'] != self.manifest.get('mesh_input', {}).get('sha256'):
+                raise ValueError('candidate mesh_frame must refer to the admitted original mesh')
         index = len(list(self.run.glob("candidate_*"))) + 1
         if index > 6:
             return {"error": "candidate budget exhausted; report saved partial results"}
@@ -1330,19 +1335,26 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
-        def inspect_candidate(candidate: str = "seed") -> dict:
+        def inspect_candidate(candidate: str = "seed", include_geometry: bool = True) -> dict:
             """Read a saved candidate's proposal and production geometry checks.
+            include_geometry=False returns notes/frame and a floor summary without
+            the expanded rooms/apertures; useful for registration of large candidates.
             No independent evaluation or reference answer is exposed.
             """
             path = toolkit.candidate_path(candidate)
             proposal = json.loads((path/"proposal.json").read_text())
+            floors = [{'id': f['name'], 'z_floor': f['z_floor'], 'height': f['ceiling_height'],
+                       'space_count': len(f['cells'])} for f in proposal['geometry']['floors']]
+            if not include_geometry:
+                proposal = {key: value for key, value in proposal.items() if key != 'geometry'}
             report = json.loads((path/"report.json").read_text())
-            result = {"candidate": candidate, "proposal": proposal,
+            result = {"candidate": candidate, "proposal": proposal, "floors": floors,
+                      "geometry_included": include_geometry,
                       "wall_dimension_report": report.get("wall_dimension_report"),
                       "source_validation": report.get("source_validation"),
                       "counts": report.get("counts"),
                       "remaining_seconds": toolkit.remaining_seconds()}
-            toolkit.log("inspect_candidate", {"candidate": candidate})
+            toolkit.log("inspect_candidate", {"candidate": candidate, 'include_geometry': include_geometry})
             return result
 
         @server.tool()
@@ -1593,6 +1605,7 @@ def run_experiment(args):
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
                                  "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
                                  "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),
+                                 "src/agent/geometry/mesh_bim_frame.py":digest(ROOT/"src/agent/geometry/mesh_bim_frame.py"),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
                                  "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),

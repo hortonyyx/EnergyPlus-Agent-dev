@@ -17,7 +17,7 @@ from src.agent.geometry.source_model import _digest
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
-                    "wall_references", "wall_dimensions"}
+                    "wall_references", "wall_dimensions", "mesh_frame"}
 
 
 def _json_bytes(value: object, *, indent: int | None = None) -> bytes:
@@ -60,6 +60,9 @@ def _validate_proposal(proposal: dict) -> tuple[dict, list[str], list[str], dict
     for field in ("assumptions", "unresolved"):
         if not isinstance(proposal[field], list) or any(not isinstance(item, str) for item in proposal[field]):
             raise TypeError(f"proposal.{field} must be a list of strings")
+    if "mesh_frame" in proposal:
+        from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
+        validate_mesh_frame(proposal["mesh_frame"])
     enclosure = proposal.get("enclosure_declaration")
     if enclosure is not None and not isinstance(enclosure, dict):
         raise TypeError("proposal.enclosure_declaration must be an object")
@@ -137,6 +140,10 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             report["wall_dimension_report"] = source["wall_dimension_report"]
         # The standalone BIM must retain the same caveats as its HTML/report.
         # Keep this adapter metadata out of the legacy kernel and its outputs.
+        if "mesh_frame" in proposal:
+            from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
+            source["mesh_frame"] = validate_mesh_frame(proposal["mesh_frame"])
+            report["mesh_frame"] = source["mesh_frame"]
         source["assumptions"].extend(assumptions)
         source["generation"] = {
             "method": "agent_geometry_proposal",
