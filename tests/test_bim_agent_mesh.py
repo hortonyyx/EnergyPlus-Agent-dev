@@ -161,3 +161,43 @@ def test_mesh_frame_and_overlay_reach_stdio_and_preserve_saved_geometry(tmp_path
             assert 'set_candidate_mesh_frame' not in names and 'overlay_mesh_candidate' not in names
     asyncio.run(scenario())
     assert original.read_bytes() == original_bytes
+
+
+def test_large_candidate_reads_are_scoped_paged_and_complete(tmp_path, monkeypatch):
+    from test_bim_agent_tools import _two_room_proposal
+    import copy
+    _, run, _ = _prepare(tmp_path, monkeypatch)
+    proposal = json.loads(_two_room_proposal())
+    template = proposal['geometry']['floors'][0]
+    floors = []
+    for i in range(20):
+        floor = copy.deepcopy(template)
+        floor.update(name=f'F{i+1}', z_floor=3*i)
+        for cell in floor['cells']:
+            cell['id'] = f'F{i+1}_{cell["id"]}'
+            cell['source_refs'] = ['large synthetic saved proposal '*40]
+        floors.append(floor)
+    proposal['geometry'].update(floors=floors,openings=[])
+    result = runner.Toolkit(run).build(proposal)
+    candidate = result['candidate']
+    async def scenario():
+        async with _server_session(run, readonly=False) as session:
+            summary = _json_result(await session.call_tool('inspect_candidate', {'candidate':candidate}))
+            assert summary['summary_due_to_size'] and not summary['geometry_included']
+            assert len(json.dumps(summary)) < 22000
+            single = _json_result(await session.call_tool('inspect_candidate', {'candidate':candidate,'floor_id':'F4'}))
+            assert single['geometry_included']
+            assert [f['name'] for f in single['proposal']['geometry']['floors']] == ['F4']
+            seen=[];offset=0
+            while offset is not None:
+                page = _json_result(await session.call_tool('read_candidate_items', {
+                    'candidate':candidate,'collection':'cells','offset':offset,'limit':7}))
+                assert len(json.dumps(page)) < 22000 and page['page_is_partial']
+                seen.extend(c['id'] for c in page['items']);offset=page['next_offset']
+            assert seen == [c['id'] for f in floors for c in f['cells']]
+            wall = _json_result(await session.call_tool('check_wall_dimensions', {
+                'candidate':candidate,'floor_id':'F4','include_inventory':True,'limit':3}))
+            assert wall['boundary_inventory_page']['total'] == 8
+            assert wall['boundary_inventory_page']['next_offset'] == 3
+            assert all(b['space_id'].startswith('F4_') for b in wall['boundary_inventory'])
+    asyncio.run(scenario())

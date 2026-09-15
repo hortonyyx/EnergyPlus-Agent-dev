@@ -54,6 +54,10 @@ def observation_to_source(points, frame, observation_yaw):
 
 def render_mesh_bim_overlay(picture, observation, source, *, floor_id=None, exterior_only=True):
     """Project actual source edges onto an unchanged mesh rendering as X-ray lines."""
+    from shapely.ops import unary_union
+
+    from src.agent.geometry.openings import _frame, _lift, _project
+    from src.agent.geometry.source_bim import _parts
     from src.agent.geometry.source_model import _digest
 
     expected = _digest({k: v for k, v in source.items() if k != 'source_model_sha256'})
@@ -70,10 +74,36 @@ def render_mesh_bim_overlay(picture, observation, source, *, floor_id=None, exte
         raise ValueError('unknown floor_id')
     spaces = {s['id'] for s in source['spaces'] if floor_id is None or s['floor_id'] == floor_id}
     bounds = [b for b in source['boundaries'] if b['space_id'] in spaces
-              and b['geometry_type'] == 'wall'
-              and (not exterior_only or not b.get('adjacent_space_ids'))]
+              and b['geometry_type'] == 'wall']
     openings = [o for o in source['openings'] if spaces.intersection(o['space_ids'])
                 and (not exterior_only or o['exterior'])]
+    boundary_parts = []
+    for boundary in bounds:
+        if not exterior_only:
+            boundary_parts.append({**boundary, 'holes': []})
+            continue
+        origin = boundary['vertices'][0][:2]
+        direction, _ = _frame(origin, boundary['vertices'][1][:2])
+        parent = _project(boundary['vertices'], origin, direction)
+        contacts = []
+        for relation in source.get('boundary_relations', []):
+            if boundary['id'] not in relation.get('boundary_ids', []):
+                continue
+            for region in relation.get('regions', []):
+                patch = _project(region['vertices'], origin, direction)
+                if region.get('holes'):
+                    patch = patch.difference(unary_union(
+                        [_project(hole, origin, direction) for hole in region['holes']]))
+                contacts.append(patch)
+        contact = unary_union(contacts)
+        exterior = parent.difference(contact) if contacts else parent
+        for part in _parts(exterior):
+            boundary_parts.append({
+                **boundary,
+                'vertices': _lift(list(part.exterior.coords)[:-1], origin, direction),
+                'holes': [_lift(list(ring.coords)[:-1], origin, direction)
+                          for ring in part.interiors],
+            })
     yaw = observation['source_coordinate_transform']['yaw_degrees_counterclockwise_about_positive_z']
     camera = observation['camera']
     target = np.asarray(camera['target'])
@@ -82,17 +112,25 @@ def render_mesh_bim_overlay(picture, observation, source, *, floor_id=None, exte
     rendered = picture.convert('RGB').copy()
     draw = ImageDraw.Draw(rendered)
     rows = []
-    for obj in bounds + openings:
-        world = source_to_observation(obj['vertices'], frame, yaw)
-        delta = world - target
-        screen = np.column_stack(((delta @ right / span['width'] + .5) * width - .5,
-                                  (.5 - delta @ up / span['height']) * height - .5))
+    for obj in boundary_parts + openings:
+        source_rings = [obj['vertices'], *obj.get('holes', [])]
+        world_rings = [source_to_observation(ring, frame, yaw) for ring in source_rings]
+        screen_rings = []
+        for world in world_rings:
+            delta = world - target
+            screen_rings.append(np.column_stack(
+                ((delta @ right / span['width'] + .5) * width - .5,
+                 (.5 - delta @ up / span['height']) * height - .5)))
         kind = obj.get('geometry_type', obj.get('kind'))
         color = {'window': '#00b85b', 'door': '#ff8800', 'passage': '#ff8800'}.get(kind, '#dc24c5')
-        points = [tuple(p) for p in screen.tolist()]
-        draw.line(points + points[:1], fill=color, width=2)
-        rows.append({'id': obj['id'], 'kind': kind, 'observation_xyz': world.tolist(),
-                     'projected_pixels': screen.tolist()})
+        for screen in screen_rings:
+            points = [tuple(p) for p in screen.tolist()]
+            draw.line(points + points[:1], fill=color, width=2)
+        rows.append({'id': obj['id'], 'kind': kind,
+                     'observation_xyz': world_rings[0].tolist(),
+                     'projected_pixels': screen_rings[0].tolist(),
+                     'hole_observation_xyz': [ring.tolist() for ring in world_rings[1:]],
+                     'hole_projected_pixels': [ring.tolist() for ring in screen_rings[1:]]})
     draw.rectangle((0, 0, min(width, 760), 31), fill='white')
     draw.text((6, 4), 'SOURCE BIM X-RAY: magenta walls / green windows / orange doors', fill='black')
     draw.text((6, 17), 'Hidden source edges shown; mesh gaps are missing evidence. No automatic fitting.', fill='black')
@@ -101,4 +139,5 @@ def render_mesh_bim_overlay(picture, observation, source, *, floor_id=None, exte
         'projection': 'orthographic source edge X-ray over unchanged original textured mesh image',
         'occlusion': 'source edges are not depth-tested; hidden edges remain visible',
         'fitted_to_mesh': False, 'fidelity': 'not_evaluated',
-        'boundary_count': len(bounds), 'opening_count': len(openings), 'objects': rows}
+        'boundary_count': len({part['id'] for part in boundary_parts}),
+        'boundary_part_count': len(boundary_parts), 'opening_count': len(openings), 'objects': rows}

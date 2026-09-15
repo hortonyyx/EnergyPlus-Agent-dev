@@ -10,6 +10,9 @@ from src.agent.geometry.mesh_bim_frame import (
 )
 from src.agent.execution.source_proposal import export_source_proposal
 from src.agent.geometry.proposal_edits import apply_proposal_edits
+from src.agent.geometry.source_bim import build_source_bim
+from src.agent.geometry.source_model import _digest
+from test_source_bim import three_rooms
 from test_source_proposal import _proposal
 
 
@@ -70,3 +73,35 @@ def test_overlay_uses_saved_camera_rotation_and_explicit_frame(tmp_path):
         render_mesh_bim_overlay(image, {**observation,'mesh_sha256':'b'*64}, source)
     with pytest.raises(ValueError, match='unknown floor'):
         render_mesh_bim_overlay(image, observation, source, floor_id='absent')
+
+
+def test_exterior_overlay_preserves_exposed_part_of_partially_contacted_wall():
+    from PIL import Image
+
+    geom = three_rooms()
+    geom.floors[0].cells.pop()  # Hall's long east wall now contacts a room over half its length.
+    source = build_source_bim(geom, capability_profile='orthogonal_polygon')
+    source['mesh_frame'] = dict(mesh_sha256='a'*64, yaw_degrees=0,
+                                translation_m=[0, 0, 0], reason='identity test frame',
+                                source_refs=['synthetic partial contact'])
+    source['source_model_sha256'] = _digest(
+        {key: value for key, value in source.items() if key != 'source_model_sha256'})
+    observation = {'mesh_sha256':'a'*64, 'resolution_px':{'width':200,'height':200},
+        'source_coordinate_transform': {'yaw_degrees_counterclockwise_about_positive_z':0},
+        'camera':{'target':[3,3,1.5], 'screen_right':[1,0,0], 'screen_up':[0,0,1]},
+        'view_span_m':{'width':8,'height':4}}
+
+    _, record = render_mesh_bim_overlay(
+        Image.new('RGB', (200, 200), 'white'), observation, source,
+        floor_id='F1', exterior_only=True)
+
+    full_wall = next(
+        boundary for boundary in source['boundaries']
+        if boundary['space_id'] == 'hall' and boundary['geometry_type'] == 'wall'
+        and boundary['adjacent_space_ids'] == ['a'])
+    exposed = [row for row in record['objects'] if row['id'] == full_wall['id']]
+    assert len(exposed) == 1
+    points = np.asarray(exposed[0]['observation_xyz'])
+    assert set(points[:, 0]) == {3.0}
+    assert set(points[:, 1]) == {3.0, 6.0}
+    assert set(points[:, 2]) == {0.0, 3.0}

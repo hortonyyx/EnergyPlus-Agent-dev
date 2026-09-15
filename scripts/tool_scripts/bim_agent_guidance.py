@@ -22,6 +22,10 @@ measure_mesh_pixels includes hit-triangle normals/tilts: do not use roof/slope
 points as if they established one physical wall edge. Check independent local
 surfaces and their texture before deciding a construction frame. A direction
 is not the rotation to apply; state the transform and inspect an aligned view.
+Axis-parallel directions leave quarter-turn and half-turn ambiguities. Resolve
+these using the asymmetric whole-building footprint and its long/short wings,
+not a translation chosen to compensate for the wrong orientation. Establish the
+old candidate's explicitly stated frame and inspect its baseline when recovering.
 set_candidate_mesh_frame saves that transform on a NEW candidate: source XYZ =
 rotate_xy(yaw)*original_Zup + translation_m. It keeps numerical BIM geometry,
 changing placement relative to the original. overlay_mesh_candidate projects
@@ -90,7 +94,11 @@ the original before revising them. Closing a polygon is not evidence for a wall:
 check both adjoining spatial extents and any continuation through a door aperture.
 If a seed exists, inspect_candidate('seed') reads its proposal and checks;
 include_geometry=False retrieves notes/frame/floor summary without a large
-expanded geometry. Preserve reliable objects with local revisions.
+expanded geometry. Use floor_id to inspect one floor or read_candidate_items
+to page exact cells/windows/openings; oversized inspections return a summary.
+check_wall_dimensions also pages its host inventory and accepts floor_id.
+Partial pages are observations of a saved proposal, never full replacement input.
+Preserve reliable objects with local revisions.
 A successful build/revision returns source plan images. Inspect them; for
 positional comparisons use overlay_candidate with original pixel/metre anchors
 supported by the same observed reference plane. Registered anchors are reused

@@ -1306,11 +1306,15 @@ def serve(run: Path, readonly=False):
     if not readonly:
         @server.tool()
         def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "",
-                                  include_inventory: bool = False) -> dict:
+                                  include_inventory: bool = False, floor_id: str | None = None,
+                                  offset: int = 0, limit: int = 30) -> dict:
             """List real wall hosts or convert explicit wall-face dimensions without changing geometry.
             See get_bim_reference("wall_dimensions") for the input format. Empty strings
             reuse saved evidence. Persist new evidence separately via revise_bim.
             Inventory is included only when no references exist or explicitly requested.
+            Its wall list is paged (limit 1..50); floor_id narrows the inventory only,
+            without changing explicit reference/dimension conversion. Read next_offset
+            until null when you need the full selected inventory.
             """
             from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
             path = toolkit.candidate_path(candidate)
@@ -1329,32 +1333,102 @@ def serve(run: Path, readonly=False):
             result = {"candidate": candidate, "source_model_sha256": source["source_model_sha256"],
                       "dimension_report": convert_wall_dimensions(walls, dimensions), "walls": walls}
             if include_inventory or not references:
-                result["boundary_inventory"] = [{k: b[k] for k in ("id", "space_id", "vertices", "counterpart_ids")}
-                                                 for b in source["boundaries"] if b["geometry_type"] == "wall"]
+                if not 1 <= limit <= 50 or offset < 0:
+                    raise ValueError('inventory requires offset >= 0 and limit 1..50')
+                if floor_id is not None and floor_id not in {f['id'] for f in source['floors']}:
+                    raise ValueError('unknown floor_id')
+                selected_spaces = {s['id'] for s in source['spaces']
+                                   if floor_id is None or s['floor_id'] == floor_id}
+                inventory = [{k: b[k] for k in ('id', 'space_id', 'vertices', 'counterpart_ids')}
+                             for b in source['boundaries'] if b['geometry_type'] == 'wall'
+                             and b['space_id'] in selected_spaces]
+                result['boundary_inventory'] = inventory[offset:offset+limit]
+                result['boundary_inventory_page'] = {'floor_id':floor_id, 'total':len(inventory),
+                    'offset':offset, 'returned':len(result['boundary_inventory']),
+                    'next_offset':offset+limit if offset+limit < len(inventory) else None}
             toolkit.log("check_wall_dimensions", result)
             return result
 
         @server.tool()
-        def inspect_candidate(candidate: str = "seed", include_geometry: bool = True) -> dict:
+        def inspect_candidate(candidate: str = "seed", include_geometry: bool = True,
+                              floor_id: str | None = None) -> dict:
             """Read a saved candidate's proposal and production geometry checks.
             include_geometry=False returns notes/frame and a floor summary without
             the expanded rooms/apertures; useful for registration of large candidates.
+            floor_id selects one floor. If geometry is still too large, the response
+            keeps only the summary; read_candidate_items pages cells/windows/openings.
+            A selected page is NOT a whole replacement proposal.
             No independent evaluation or reference answer is exposed.
             """
             path = toolkit.candidate_path(candidate)
             proposal = json.loads((path/"proposal.json").read_text())
+            original_geometry = proposal['geometry']
             floors = [{'id': f['name'], 'z_floor': f['z_floor'], 'height': f['ceiling_height'],
                        'space_count': len(f['cells'])} for f in proposal['geometry']['floors']]
+            if floor_id is not None:
+                selected = [f for f in original_geometry['floors'] if f['name'] == floor_id]
+                if not selected:
+                    raise ValueError('unknown floor_id')
+                ids = {cell['id'] for f in selected for cell in f['cells']}
+                proposal['geometry'] = {**original_geometry, 'floors':selected,
+                    'windows':[w for w in original_geometry.get('windows',[]) if w['floor'] == floor_id],
+                    'openings':[o for o in original_geometry.get('openings',[])
+                                if o['space_id'] in ids or o.get('other_space_id') in ids]}
+            summary_due_to_size = include_geometry and len(json.dumps(proposal)) > 22000
+            if summary_due_to_size:
+                include_geometry = False
             if not include_geometry:
                 proposal = {key: value for key, value in proposal.items() if key != 'geometry'}
             report = json.loads((path/"report.json").read_text())
             result = {"candidate": candidate, "proposal": proposal, "floors": floors,
                       "geometry_included": include_geometry,
+                      'floor_filter':floor_id, 'summary_due_to_size':summary_due_to_size,
+                      'geometry_read_hint':'Use floor_id or read_candidate_items for bounded reads; partial results must not replace the full proposal.',
                       "wall_dimension_report": report.get("wall_dimension_report"),
                       "source_validation": report.get("source_validation"),
                       "counts": report.get("counts"),
                       "remaining_seconds": toolkit.remaining_seconds()}
             toolkit.log("inspect_candidate", {"candidate": candidate, 'include_geometry': include_geometry})
+            return result
+
+        @server.tool()
+        def read_candidate_items(candidate: str, collection: str, floor_id: str | None = None,
+                                 offset: int = 0, limit: int = 20) -> dict:
+            """Read exact saved proposal cells, windows or openings in bounded pages.
+            collection is cells/windows/openings; floor_id optionally narrows it.
+            Each cell includes floor_id. Read next_offset for more; page_is_partial
+            means this is not a complete build_bim input. Prefer revise_bim to keep
+            unexamined objects. This reads the proposal, not mesh/GT observations.
+            """
+            if collection not in {'cells','windows','openings'}:
+                raise ValueError('collection must be cells, windows or openings')
+            if not 1 <= limit <= 50 or offset < 0:
+                raise ValueError('requires offset >= 0 and limit 1..50')
+            proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
+            geometry = json.loads(proposal_path.read_text())['geometry']
+            if floor_id is not None and floor_id not in {f['name'] for f in geometry['floors']}:
+                raise ValueError('unknown floor_id')
+            floors = [f for f in geometry['floors'] if floor_id is None or f['name'] == floor_id]
+            cells = [{**c,'floor_id':f['name']} for f in floors for c in f['cells']]
+            ids = {c['id'] for c in cells}
+            items = (cells if collection == 'cells' else
+                [w for w in geometry.get('windows',[]) if floor_id is None or w['floor'] == floor_id]
+                if collection == 'windows' else
+                [o for o in geometry.get('openings',[]) if floor_id is None or o['space_id'] in ids
+                 or o.get('other_space_id') in ids])
+            page = []
+            for item in items[offset:offset+limit]:
+                if len(json.dumps(page+[item])) > 18000:
+                    if not page:
+                        raise ValueError('single object exceeds reply size; exact proposal remains on disk')
+                    break
+                page.append(item)
+            result = {'candidate':candidate,'proposal_sha256':digest(proposal_path),
+                'collection':collection,'floor_id':floor_id,'total':len(items),'offset':offset,
+                'items':page,'returned':len(page),
+                'next_offset':offset+len(page) if offset+len(page)<len(items) else None,
+                'page_is_partial':True}
+            toolkit.log('read_candidate_items', {k:v for k,v in result.items() if k!='items'})
             return result
 
         @server.tool()
