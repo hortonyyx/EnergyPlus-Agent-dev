@@ -333,3 +333,9 @@ python scripts/tool_scripts/diagnose_source_checkpoint.py --out AI_agent/logs/ex
 首轮实跑后补充：`inspect_candidate(..., floor_id="...")`可按楼层读取；回执过大时自动提供摘要。`read_candidate_items(candidate, collection="cells"|"windows"|"openings", floor_id=None, offset=0, limit=20)`按页返回准确原方案条目，读取`next_offset`直到null才能宣称完整。`check_wall_dimensions`的墙宿主清单增加`floor_id/offset/limit`（默认30，上限50），不改变显式墙面尺寸换算。未查完的部分须保留，不能拿部分页面覆写整案。
 
 外部源墙叠图按精确接触区域扣除，保留墙上未与邻空间接触的外露片；这是显示派生，不生成源隔墙。方向统计留下90°/180°歧义时，要用整栋不对称形状和原坐标基线叠图核准，不可把错转当成可用平移补偿的误差。
+
+## 连续跨层源空间的覆盖声明（09-15）
+
+直接源方案的 `geometry.floors[].spanning_space_ids` 可引用另一源分组中已定义的连续空间ID。例如两层各有本层房间，同时各声明 `["CORE"]`；另一个分组只定义一次贯通两层的 `CORE`。各层声明轮廓包含核心占地，本层房间不与核心重叠。入口核引用存在、覆盖本层全高及完整平面覆盖；不增加中间楼板，不自动推断核心位置或门。省略或空列表保持旧行为。
+
+当前由共同源出口和Voimatalo开发装配实际验证，尚未做Sonnet迁移或EP贯通。按标高筛选的通用楼层视图可能不包含从更低处开始的连续空间；核源体或实际高度剖切，不用补源楼板修显示。契约见[共同模型](../design/model.md)，可重放实例见[本次探路](../logs/experiments/2026-09-15_voimatalo_developer_walkthrough/README.md)。

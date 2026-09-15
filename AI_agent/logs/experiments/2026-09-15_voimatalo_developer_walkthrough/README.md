@@ -2,7 +2,9 @@
 
 ## 本次已完成的范围
 
-用户要求先捋清现有工作方式，再考虑由开发助手完整做一次、提炼给工作模型。当前已经完成方法复盘和新探路的整体证据起点，**完整开发示范、源 BIM 重建和 Sonnet 迁移尚未完成**。本目录不替换现有候选；不把新的观察图或方向计算算作新建模成绩。
+本程已经生成[可旋转查看的新开发草稿](result_02/index.html)：**8个主楼楼层、30个源空间、244组窗、34处门**，两个交通核心保持贯通；[原网格实际回叠与水平剖切](result_02/observations.html)可逐项查看。它来自本次证据与新方案，不是修改旧候选的坐标；全部录入开口建成，源只有24面明确未知围护的warning。
+
+用户确认与还原建模沿用相同方法，但**部分推理目前还没有工作模型达标案例**。本目录是开发助手先做、保存依据和实际返工的一次阶段成果，仍有首层开口、例外大窗、退台和屋顶缺项；完整开发示范、整案保真验收和Sonnet迁移均未完成。旧候选保留作比较，当前不以新窗数或自洽检查冒充完整性成绩。
 
 [查看七张原纹理观察和六个高度剖切](evidence_01/index.html)。原始像素缓冲、相机、坐标映射、剖切端点及其三角面 ID 均保留。主助手已实际查看全部七张观察和剖切图。
 
@@ -20,9 +22,9 @@
 - 建模声明沿用 `2026-09-14_voimatalo_native_mesh_setup/building_input.json` 的办公/沿街商业、八层描述和中等空间细节意图；它不提供实际平面或楼板标高。本目录保存原声明副本及[当前输入范围](input_scope.json)；原声明的历史 `input_condition` 不代表本次开发助手没有旧案上下文。
 - 主助手已看过旧案例、旧候选与其失败，当前不可能称盲测冷启动。此次几何脚本不读取旧 BIM、父瓦片、OSM 轮廓或 GT；观察高度带和裁区由开发助手选定。
 - 父瓦片 `derived/Tile_+1984_+2690/input.glb` 有 385,685 面，是额外原始观测，既不是本次单体输入，也不是 GT。旧展示从中得到的交通盒、窄窗和邻楼关系不得静默变成本次单体观测事实。如继续采用类似补全，只能基于本次证据重新推断并明示未知。
-- Sol 子任务只读审计了上述旧方法和额外输入；主助手完成本次几何脚本、观察选择与图像判读。没有新的产品模型/订阅/API/DeepSeek 调用。
+- 开发侧Sol子任务完成旧方法审计、原网格墙位量测、四主立面窗组判读及独立验证；主助手负责方案、补充观察、确定性装配、公共几何修复和实际图像复核。这些均属于开发探路，不是工作模型冷启动。此次续推没有新的产品模型/Claude或GLM订阅/付费API/DeepSeek调用。
 
-## 本次实际操作与发现
+## 整体证据起点（此前阶段）
 
 | 操作 | 可回放产物 | 当前能说明什么 |
 |---|---|---|
@@ -36,7 +38,7 @@
 
 脚本首次启动因环境没有 matplotlib 在输出创建前失败；改用已有 Pillow 画米制线段图，没有安装依赖。早期交互探针误读摘要键名 `bounds_xyz_m` 报错，随后按实际 `bounds` 字段继续，未形成错误结果文件。
 
-## 接下来完整示范要交什么
+## 完整示范安排与完成边界
 
 以下是本次开发任务的安排，不是所有建筑必须经过的产品流水线。
 
@@ -57,4 +59,57 @@ python AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/prep
 PYTHONPATH=/tmp/ep-bim-browser-qa/lib/python3.12/site-packages PLAYWRIGHT_BROWSERS_PATH=/tmp/ep-bim-browser-qa/browsers python AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/verify_evidence.py /tmp/voimatalo-evidence-replay
 ```
 
-六个高度共2,057段的面ID及全部剖切端点与独立 `trimesh.intersections.mesh_plane` 对照通过；证据页面离线八张图片加载、零页面错误及零外部请求通过。实际结果见 [verification.json](evidence_01/verification.json)。只验证本次派生计算和显示，不复跑生产测试，也不认证尚未生成的新 BIM。
+六个高度共2,057段的面ID及全部剖切端点与独立 `trimesh.intersections.mesh_plane` 对照通过；证据页面离线八张图片加载、零页面错误及零外部请求通过。实际结果见 [verification.json](evidence_01/verification.json)。这份早期证据只验证派生计算和显示；本程新BIM另按下文验证。
+
+
+## 本程从证据到新源模型
+
+| 环节 | 实际产物与取舍 |
+|---|---|
+| 局部墙位量测 | [wall_measurements](wall_measurements/README.md)保存原面ID、选择范围、加权主峰及离散程度；西墙约X=-13.700、北墙Y=26.216、内院长墙X=0.773、短墙Y=8.781m，另保留短墙9.5m附近的台阶，不能强归为一个平面 |
+| 原纹理窗组观察 | [aperture_observations](aperture_observations/README.md)保存220条常规窗实例：西90、北48、长内院60、短内院22；每窗有像素框、命中面/深度等。深度只核宿主，不自动证明窗语义 |
+| 额外观察与假设 | `additional_views/`补附属体、首层和退台内院；7组退台窗、17组附属体窗纳入，另一个附属体玻璃格暂作假设入口。`case_plan.json`分列观测墙位、规整值、楼层/内部方案及未知 |
+| 退台触发修订 | 7组退台窗中心命中X=-0.075..-0.200m，不能放在普通楼层X=0.8m墙面；退台内院改为X=-0.1m，南侧假设核心移入各层共同范围。旧`case_plan_initial.json`及`revise_case_plan.py`保留 |
+| 观察格式接合 | 原窗观察的`span_m`是宽度标量。`normalize_observations.py`按冻结相机及像素边框换成绝对区间，原值保留为`observed_span_width_m`；不覆盖原观察，也不重新猜窗位 |
+| 窗宿主触发返工 | 首次候选被`court_short_R01_G01`完整宿主检查拒绝，失败见`candidate_01_host_failure.json`。其跨度约X=6.182..8.653m跨过假设隔墙8.2m；以G01/G02间隙8.653..9.287m为依据，把隔墙移到9.0m，窗不改。保留旧方案和`revise_for_window_host.py` |
+| 新源装配 | `assemble_model.py`通过共同源出口构造`candidate_02`，保存证据和假设来源、未决项及开口映射。不是旧BIM重定位，不读父瓦片或GT |
+| 实际反馈 | `package_candidate.py`生成`result_02`，按记录的14.887°和零平移回叠，不在显示时偷偷拟合；主助手已查看全部7张源回叠、3张高度剖切及浏览器BIM/叠合截图 |
+
+墙位量测是扫描表面的近似位置，不是墙中线或实测结构轴线。退台西/北面支持稀疏且断续，观察到的跨度不能直接当连续完整墙。分箱敏感性小不代表真实误差只有毫米。
+
+### 当前空间方案及共同工具修复
+
+- 八层主体各保留一个连通L形开放商业/办公空间及两个服务/候梯空间；没有按朝向或每扇窗拆办公空间。内部开放程度、分隔和门均为明确假设。
+- 两核心作为0–27.8m连续空间，单独定义一次。原逐层覆盖只看本层cells，不能识别其他分组中的连续核心；已补`spanning_space_ids`显式引用，原覆盖/越界/重叠检查保留。
+- 两核心只有底顶水平边界，各层有声明的连接门。它不表示楼梯/电梯实体已建或真实内部布局已知。
+- 附属体是一个合并空间，不由两排窗凭空推一块内部楼板。三个屋顶空间体为粗略体量，未作为使用空间评价门连通。
+- 主体楼层标高为0、5.6、8.8、12、15.2、18.4、21.6、24.8、27.8m，均为结合声明/窗排的估计，非实测楼板。源分组、查看器基准标高组不是建筑层数；当前查看器单层筛选尚未全面适配跨层归属，专门高度剖切按实际空间相交显示核心。
+
+首次单元检查因把边界索引误当空间对象出现3失败/26通过，随后修复；最终29项全部通过。空引用字段采用wrap序列化省略，避免引入高于项目最低依赖的`exclude_if`要求；新旧真实proposal均精确重放。未单独安装/实跑旧Pydantic版本。
+
+## 新候选验证及其限制
+
+[独立验证报告](validation/candidate_02_validation.md)、[最终序列化重放](validation/final_serialization_replay.json)、[冻结方案完整重装配](validation/final_assembly_replay.json)、[最终离线浏览器报告](result_02/browser_qa_final/report.json)。
+
+- 29项定向测试通过：连续空间引用及旧source/source_proposal链路；不跑无关全量。
+- 新候选和旧frame_run02/candidate_03均从原proposal及provenance精确重放，源摘要、JSON和文件字节一致；新候选也由当前方案与观察重新装配，源/proposal/开口映射字节一致。
+- 同高空间零重叠；八层轮廓相对各自**声明方案**差异为零；两核心完整跨层引用、没有中间水平面。27个非屋顶空间按**声明门图**可到室外。此项不验证真实房间和入口。
+- 220条主立面观察+24组额外窗=244组窗；244条映射和34处门均建成，0未建开口。原观察的9条未决/排除记录进入源provenance和未决说明，不能用0未建掩盖未录入项。
+- 对同一批原网格2090个中段近竖直面（1817.824m²），面积加权的“原面中心→同高候选外周”平均距离从旧候选2.364m降到新候选0.0695m，90分位2.897m→0.1826m；平均轴差10.14°→4.54°。这只说明已观测墙面更贴近，**不罚候选多出来的外墙，不评价缺面、内部、屋顶和窗完整性，不是GT或整案评分**。
+- 最终浏览器在断网状态验证三种模式、旋转、标高筛选、分解视图及10张反馈图；8242个原始顶点全部按显式坐标关系核对，最大允许绝对误差3e-6m；零页面错误、零外部请求。界面将原`floors`计数改标“基准标高组”，避免当作实际建筑层数；早期截图留`browser_qa/`，最终在`browser_qa_final/`。
+
+## 冻结产物的重放入口
+
+以下直接使用已保留方案/观察，新输出目录必须不存在，不改原件。生成脚本的量测/判读参数仍含本例选择，尚未提炼成工作模型通用kit。
+
+```bash
+python AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/assemble_model.py --apertures AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/assembly_observations.json --out /tmp/voimatalo-new-candidate
+python AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/package_candidate.py --candidate /tmp/voimatalo-new-candidate --out /tmp/voimatalo-new-result
+python -m pytest -n 0 -q tests/test_source_spanning_spaces.py tests/test_source_bim.py tests/test_source_proposal.py
+```
+
+装配可直接在新目录重放；包装页的相对链接按本仓库`candidate_02`与`result_02`同级布局设计，外部临时目录仅用于输出诊断，不直接当完整离线交付。验证脚本的独立报告限写本实验`validation/`，可通过`--report`指定新名字；它读取旧候选仅用于生成完成后的比较。`prepare_case_plan.py`、两份`revise_*.py`和`normalize_observations.py`保存本次实际顺序与决策，不应直接覆盖已冻结方案；继续修改须新候选并保留旧输入。
+
+## 下轮入口
+
+先从原观察中已列出的缺项继续：首层商业开口、主立面例外大窗/残窗、退台其余立面和屋顶体量。对每一项决定建入、明确简化或保留未知，并保留图证和理由；先完成可解释的开发整案，再把有效操作提炼成目标模型可执行的支撑，分别验证教学辅助和自主执行。不要先用244窗/30空间作为答案提示，也不要先开同型Sonnet局部重试。

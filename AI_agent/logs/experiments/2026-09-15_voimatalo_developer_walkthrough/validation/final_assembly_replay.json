@@ -1,0 +1,26 @@
+{
+  "scope": "Fresh deterministic assembly from frozen current case_plan and normalized original-mesh observations; no old candidate consumed by assembly. Output compared only after generation.",
+  "command": [
+    "/opt/venv/bin/python",
+    "AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/assemble_model.py",
+    "--apertures",
+    "AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/assembly_observations.json",
+    "--out",
+    "<new temporary candidate directory>"
+  ],
+  "checks": {
+    "source_model.json": {
+      "exact_bytes": true,
+      "sha256": "7597ab8f6f3db622103d5a84f625909d593dfc9c04235f07a3471b80d02fde37"
+    },
+    "proposal.json": {
+      "exact_bytes": true,
+      "sha256": "b7039d9af6ce959948e25492cd88fd43dd4c58bf0525de470d3245303df3e7ae"
+    },
+    "opening_mapping.json": {
+      "exact_bytes": true,
+      "sha256": "088ea2e13abafea016e59009258e0a350cdafc131b7dbdcaaf08c42524bcd2a0"
+    }
+  },
+  "temporary_directory_removed": true
+}

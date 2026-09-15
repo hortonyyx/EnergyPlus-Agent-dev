@@ -1,6 +1,6 @@
 # 部分推理建模研究计划
 
-**09-15 方法调整：** 先由开发助手完整做一次Voimatalo，记录有效工具操作、量测与规整、语义取舍、源装配和检查返工，再提炼kit给Sonnet实测。已完成此前方式复盘和新探路整体证据；完整示范尚未完成。具体顺序和输入边界见[本次记录](../logs/worklog/2026-09-15_partial_inference_developer_method.md)及[探路操作页](../logs/experiments/2026-09-15_voimatalo_developer_walkthrough/README.md)。下面原坐标恢复结果保留，局部工作纳入本次完整示范，不再先开同型局部模型恢复。
+**09-15 方法调整与本程收工：** 用户确认与还原建模同一思路，但部分推理尚无工作模型达标案例；先由开发助手走通Voimatalo，保留证据、取舍和返工，再提炼kit给Sonnet。本程已产生30空间/244组窗/34门的新开发草稿及真实回叠，连续核心保持贯通；完整示范尚有首层/例外窗、退台及屋顶缺项，未宣称整案保真通过或迁移成功。具体输入边界、验证与下一入口见[收工记录](../logs/worklog/2026-09-15_partial_inference_developer_close.md)及[探路操作页](../logs/experiments/2026-09-15_voimatalo_developer_walkthrough/README.md)。下方旧模型恢复结果保留，不再先开同型局部重试。
 
 **09-15 已推进原网格反馈与坐标恢复：** 增加近竖直表面方向依据、显式frame、实际源叠图、大案分页及部分接触墙外露片显示。Sonnet第二轮正常选择14°候选，保留54空间/294窗/33门；角差改善但整体墙位未全面改善，西/北外形仍约2–3m偏差。下一项外围轮廓及依附开口，再处理内院窗/竖向连通，见[最新交接](../logs/worklog/2026-09-15_partial_inference_frame_feedback.md)。
 
