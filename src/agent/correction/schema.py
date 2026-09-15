@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from typing import Annotated, Literal, get_args, get_origin
 
-from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
+from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_serializer, model_validator
 
 from src.agent.correction.claims import WINDOW_CLAIMS
 
@@ -279,6 +279,16 @@ class Floor(BaseModel):
     z_floor: float
     ceiling_height: float
     cells: list[Cell]
+    # Storey membership for existing continuous source spaces; no copies or slabs.
+    spanning_space_ids: list[str] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def _serialize_floor(self, handler):
+        # Keep legacy proposal bytes stable, including on supported Pydantic 2.11.
+        result = handler(self)
+        if not self.spanning_space_ids:
+            result.pop("spanning_space_ids", None)
+        return result
 
 
 class WallOpening(BaseModel):

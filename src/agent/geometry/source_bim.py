@@ -170,12 +170,24 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
     # Reuse polygon validity/bounds checks, without the legacy EP kernel's
     # configurable minimum edge length. Small valid source spaces stay present.
     spaces, boundaries, polygons, by_space = source_primitives(geom, polygon_builder=cell_polygon)
+    source_spaces_by_id = {space.id: space for space in spaces}
     for floor, fid in zip(geom.floors, floor_ids):
         footprint = getattr(floor, "footprint", None)
         expected = Polygon(footprint.vertices) if footprint else box(geom.footprint_x[0], geom.footprint_y[0], geom.footprint_x[1], geom.footprint_y[1])
         if not expected.is_valid or expected.area <= EPS ** 2:
             raise ValueError(f"floor {fid}: invalid declared footprint")
-        actual = unary_union([polygons[c.id] for c in floor.cells])
+        spanning = floor.spanning_space_ids
+        if len(spanning) != len(set(spanning)):
+            raise ValueError(f"floor {fid}: duplicate spanning space references")
+        for sid in spanning:
+            space = source_spaces_by_id.get(sid)
+            if space is None:
+                raise ValueError(f"floor {fid}: unknown spanning space {sid}")
+            if space.floor_id == fid:
+                raise ValueError(f"floor {fid}: spanning space {sid} is already a local member")
+            if space.z_floor > floor.z_floor + EPS or space.z_floor + space.height < floor.z_floor + floor.ceiling_height - EPS:
+                raise ValueError(f"floor {fid}: spanning space {sid} does not cover the whole storey height")
+        actual = unary_union([polygons[c.id] for c in floor.cells] + [polygons[sid] for sid in spanning])
         missing = expected.difference(actual.buffer(EPS)).area
         outside = actual.difference(expected.buffer(EPS)).area
         if missing > EPS ** 2 or outside > EPS ** 2:
@@ -309,7 +321,8 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
                     "footprint": list(getattr(f, "footprint").vertices) if getattr(f, "footprint", None)
                     else [[geom.footprint_x[0],geom.footprint_y[0]], [geom.footprint_x[1],geom.footprint_y[0]],
                           [geom.footprint_x[1],geom.footprint_y[1]], [geom.footprint_x[0],geom.footprint_y[1]]],
-                    "footprint_basis": "per_floor_correction" if getattr(f,"footprint",None) else "legacy_common_footprint"}
+                    "footprint_basis": "per_floor_correction" if getattr(f,"footprint",None) else "legacy_common_footprint",
+                    **({"spanning_space_ids": list(f.spanning_space_ids)} if f.spanning_space_ids else {})}
                    for f,fid in zip(geom.floors,floor_ids)],
         "spaces": [s.model_dump(mode="json") for s in sorted(spaces, key=lambda s: s.id)],
         "boundaries": [boundaries[k].model_dump(mode="json") for k in sorted(boundaries)],
