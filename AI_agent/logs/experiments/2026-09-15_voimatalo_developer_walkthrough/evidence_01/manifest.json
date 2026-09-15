@@ -1,0 +1,413 @@
+{
+  "mode": "development_assistant_exploration; no product-model call; no new BIM yet",
+  "input": {
+    "mesh_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "coordinate_frame": "BIM-local right-handed Z-up metres",
+    "source_coordinate_transform": {
+      "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+      "y_up_to_z_up": "[X, -Z, Y]",
+      "y_up_to_z_up_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "yaw_degrees_counterclockwise_about_positive_z": 0.0,
+      "yaw_matrix": [
+        [
+          1.0,
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "vertex_count": 8242,
+    "face_count": 12520,
+    "scene_instance_count": 1,
+    "selected_vertex_count": 8242,
+    "selected_face_count": 12520,
+    "bounds": [
+      [
+        -22.37481689453125,
+        -33.08087158203125,
+        0.0
+      ],
+      [
+        26.085182189941406,
+        29.569124221801758,
+        34.27320098876953
+      ]
+    ],
+    "selection_bounds": null,
+    "selection_method": "all faces",
+    "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+    "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint."
+  },
+  "code_sha256": "2a9a0fdb73aa4382da843bd79f43dcf076b14d99b34d29b0ffd6bd2c2bec7c76",
+  "prior_context": "Developer has seen old candidates and known failures. This is not a blind cold start.",
+  "geometry_dependencies": "Original input.glb only. No prior BIM coordinates, parent tile, OSM contour or GT read by this script.",
+  "views": [
+    {
+      "name": "top",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          2.0,
+          -3.0,
+          110.0
+        ],
+        "target": [
+          2.0,
+          -3.0,
+          15.0
+        ],
+        "eye_target_distance_m": 95.0,
+        "forward_from_eye": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "screen_right": [
+          1.0,
+          -0.0,
+          0.0
+        ],
+        "screen_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "up_reference": "+Y fallback because the view is parallel to +Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": null,
+      "view_span_m": {
+        "width": 48.0,
+        "height": 72.0
+      },
+      "resolution_px": {
+        "width": 800,
+        "height": 1200
+      }
+    },
+    {
+      "name": "street",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          -90.0,
+          85.0,
+          65.0
+        ],
+        "target": [
+          0.0,
+          -3.0,
+          15.0
+        ],
+        "eye_target_distance_m": 135.4400236266961,
+        "forward_from_eye": [
+          0.6645007700830053,
+          -0.649734086303383,
+          -0.3691670944905585
+        ],
+        "screen_right": [
+          -0.6991176319238785,
+          -0.7150066690130576,
+          0.0
+        ],
+        "screen_up": [
+          0.26395693454092295,
+          -0.25809122488445796,
+          0.9293630379703074
+        ],
+        "up_reference": "+Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": null,
+      "view_span_m": {
+        "width": 78.0,
+        "height": 56.0
+      },
+      "resolution_px": {
+        "width": 1200,
+        "height": 862
+      }
+    },
+    {
+      "name": "courtyard",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          100.0,
+          -95.0,
+          65.0
+        ],
+        "target": [
+          0.0,
+          -3.0,
+          15.0
+        ],
+        "eye_target_distance_m": 144.78950238190612,
+        "forward_from_eye": [
+          -0.6906578056759499,
+          0.635405181221874,
+          -0.34532890283797496
+        ],
+        "screen_right": [
+          0.6770565308208834,
+          0.7359310117618297,
+          -0.0
+        ],
+        "screen_up": [
+          -0.2541382488561535,
+          0.23380718894766123,
+          0.9384817253760036
+        ],
+        "up_reference": "+Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": null,
+      "view_span_m": {
+        "width": 78.0,
+        "height": 56.0
+      },
+      "resolution_px": {
+        "width": 1200,
+        "height": 862
+      }
+    },
+    {
+      "name": "west",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          -100.0,
+          -3.0,
+          17.0
+        ],
+        "target": [
+          0.0,
+          -3.0,
+          17.0
+        ],
+        "eye_target_distance_m": 100.0,
+        "forward_from_eye": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "screen_right": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "screen_up": [
+          -0.0,
+          0.0,
+          1.0
+        ],
+        "up_reference": "+Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": null,
+      "view_span_m": {
+        "width": 70.0,
+        "height": 38.0
+      },
+      "resolution_px": {
+        "width": 1200,
+        "height": 651
+      }
+    },
+    {
+      "name": "north",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          2.0,
+          100.0,
+          17.0
+        ],
+        "target": [
+          2.0,
+          0.0,
+          17.0
+        ],
+        "eye_target_distance_m": 100.0,
+        "forward_from_eye": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "screen_right": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "screen_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "up_reference": "+Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": null,
+      "view_span_m": {
+        "width": 43.0,
+        "height": 38.0
+      },
+      "resolution_px": {
+        "width": 1200,
+        "height": 1060
+      }
+    },
+    {
+      "name": "court_long",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          100.0,
+          -11.0,
+          17.0
+        ],
+        "target": [
+          0.0,
+          -11.0,
+          17.0
+        ],
+        "eye_target_distance_m": 100.0,
+        "forward_from_eye": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "screen_right": [
+          0.0,
+          1.0,
+          -0.0
+        ],
+        "screen_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "up_reference": "+Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": [
+        [
+          -25,
+          -36,
+          -1
+        ],
+        [
+          8,
+          9,
+          36
+        ]
+      ],
+      "view_span_m": {
+        "width": 47.0,
+        "height": 38.0
+      },
+      "resolution_px": {
+        "width": 1200,
+        "height": 970
+      }
+    },
+    {
+      "name": "court_short",
+      "camera": {
+        "projection": "orthographic",
+        "eye": [
+          10.0,
+          -100.0,
+          17.0
+        ],
+        "target": [
+          10.0,
+          10.0,
+          17.0
+        ],
+        "eye_target_distance_m": 110.0,
+        "forward_from_eye": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "screen_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "screen_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "up_reference": "+Z",
+        "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+      },
+      "selection_bounds": [
+        [
+          0,
+          6,
+          -1
+        ],
+        [
+          25,
+          30,
+          36
+        ]
+      ],
+      "view_span_m": {
+        "width": 25.0,
+        "height": 38.0
+      },
+      "resolution_px": {
+        "width": 789,
+        "height": 1200
+      }
+    }
+  ],
+  "section_heights_m": [
+    2.13,
+    6.53,
+    12.13,
+    21.13,
+    25.53,
+    28.53
+  ]
+}
