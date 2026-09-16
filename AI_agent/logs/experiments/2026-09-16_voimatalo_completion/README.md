@@ -1,5 +1,7 @@
 # Voimatalo：开口、退台与屋顶续推
 
+**09-16 用户验收状态：未通过。** 内部主要整层开放，扫描缺失部分没有充分合理补全。下文几何/重放/显示通过只保留技术事实，不能作为完整开发示范成功或直接进入工作模型迁移的依据。先修开发模型并由用户验收成功，再迁移方法；见[最新纠偏](../../worklog/2026-09-16_partial_inference_acceptance_and_vision.md)。
+
 ## 当前结果
 
 [可旋转查看原纹理 / BIM / 叠合](result_04/index.html) · [实际源回叠和高度剖切](result_04/observations.html) · [屋顶新旧对照](roof_comparison/index.html) · [源BIM](candidate_04/source_model.json) · [独立验证](validation/candidate_04_validation.md)
