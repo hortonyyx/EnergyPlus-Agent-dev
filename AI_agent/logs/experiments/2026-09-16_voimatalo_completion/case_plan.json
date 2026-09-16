@@ -1,0 +1,2775 @@
+{
+  "schema": "voimatalo_developer_case_decisions_v1",
+  "mode": "developer exploration, new source assembly; not working-model success or blind cold start",
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "yaw_degrees": 14.887066917997172,
+    "translation_m": [
+      0,
+      0,
+      0
+    ],
+    "reason": "Area-weighted orthogonal direction family from original mesh, disambiguated by developer inspection of asymmetric whole L shape. Approximate frame, not survey truth.",
+    "source_refs": [
+      "evidence_01/direction.json",
+      "evidence_01/top.png"
+    ]
+  },
+  "shell": {
+    "west": -13.7,
+    "north": 26.2,
+    "court_long": 0.8,
+    "court_short": 8.8,
+    "court_step_x": 4.6,
+    "court_corner_y": 9.5,
+    "east_end": 19.5,
+    "south_end": -33.4,
+    "annex_east": 13.1,
+    "annex_south": -21.7,
+    "annex_roof": 6.7,
+    "attic_west": -11.6,
+    "attic_north": 24.0,
+    "attic_east_end": 18.5,
+    "attic_south_end": -31.5,
+    "attic_court_long": -0.1,
+    "attic_west_north": -12.8
+  },
+  "shell_basis": {
+    "measured_regularised": [
+      "west",
+      "north",
+      "court_long",
+      "court_short",
+      "annex_east",
+      "annex_south",
+      "annex_roof",
+      "attic_west",
+      "attic_north"
+    ],
+    "measurement_reference": "wall_measurements/: selected near-vertical surface distributions; measured values retained separately",
+    "inferred_end_closures": [
+      "east_end",
+      "south_end",
+      "attic_east_end",
+      "attic_south_end"
+    ],
+    "end_note": "Short ends are incomplete in original sections; approximate logical closures inferred from remaining ends/roof, rendered as unknown enclosure. No party-wall or blank-facade truth claim.",
+    "corner_note": "Inner short facade includes a shallower segment near x0.8..4.6, regularised to y9.5; main segment y8.8. Breakpoint is an estimate, needs opening-host review."
+  },
+  "storey_levels_m": [
+    0,
+    5.6,
+    9.32,
+    12.48,
+    15.63,
+    18.78,
+    21.93,
+    25.25,
+    27.8
+  ],
+  "storey_basis": "Eight storeys retained. Interfaces F2/F3 through F7/F8 re-estimated from full nonstandard windows and neighbouring row gaps; actual slabs remain unknown. F1 top and roof base unchanged.",
+  "inferred_core_rectangles": {
+    "CORE_S": [
+      -4.2,
+      -26.3,
+      -1.4,
+      -23.7
+    ],
+    "CORE_N": [
+      0.8,
+      9.5,
+      4.6,
+      14.4
+    ]
+  },
+  "inferred_service_rectangles": {
+    "services_s": [
+      -6,
+      -27.4,
+      0.8,
+      -23.7
+    ],
+    "services_n": [
+      4.6,
+      8.8,
+      9.0,
+      13.4
+    ]
+  },
+  "interior_basis": "One possible moderately simplified office/circulation/service scheme. One connected L-shaped open tenant space per main storey; no orientation-derived splits. Core positions and service partitions are inferred, actual room layout unavailable.",
+  "additional_openings": [
+    {
+      "id": "roof_court_row1_01",
+      "view": "court_long",
+      "pixel_box": [
+        393,
+        90,
+        431,
+        124
+      ],
+      "span_m": [
+        -19.087916666666672,
+        -17.599583333333335
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            412,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.07527782022953033,
+            -18.34375,
+            26.784313201904297
+          ],
+          "face_id": 4277,
+          "triangle_surface_evidence": {
+            "global_face_id": 4277,
+            "local_face_id": 4277,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                0.08342597784106139,
+                -18.8211915094816,
+                25.780601501464844
+              ],
+              [
+                -0.06106068225622444,
+                -18.238760124617528,
+                26.327301025390625
+              ],
+              [
+                -0.08956006190777538,
+                -18.44293393814879,
+                27.227800369262695
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.02239825544097948,
+              -18.500961857415973,
+              26.445234298706055
+            ],
+            "triangle_area_m2": 0.3239854937711855,
+            "triangle_horizontal_span_m": 0.6000855880795257,
+            "triangle_normal_xyz": [
+              0.98168099931273,
+              0.1767510390589835,
+              0.07114411978462772
+            ],
+            "plane_tilt_from_vertical_degrees": 4.079704310105877,
+            "horizontal_surface_trace_direction_degrees": 100.20671325512333
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "roof_court_row1_02",
+      "view": "court_long",
+      "pixel_box": [
+        449,
+        90,
+        490,
+        124
+      ],
+      "span_m": [
+        -16.894583333333337,
+        -15.288750000000004
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            470,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.11973822861909866,
+            -16.07208251953125,
+            26.784313201904297
+          ],
+          "face_id": 4284,
+          "triangle_surface_evidence": {
+            "global_face_id": 4284,
+            "local_face_id": 4284,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -0.11626137612493963,
+                -16.3184863819201,
+                27.229000091552734
+              ],
+              [
+                -0.1223820071558233,
+                -15.906219215691516,
+                26.466899871826172
+              ],
+              [
+                -0.09841947023952155,
+                -14.906507579558069,
+                26.93120002746582
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.11235428450676149,
+              -15.710404392389895,
+              26.875699996948242
+            ],
+            "triangle_area_m2": 0.4767775399688678,
+            "triangle_horizontal_span_m": 1.412091523919515,
+            "triangle_normal_xyz": [
+              0.9997284761650027,
+              -0.01617111065034037,
+              -0.01677704160857704
+            ],
+            "plane_tilt_from_vertical_degrees": 0.9612987764713459,
+            "horizontal_surface_trace_direction_degrees": 89.0732927823693
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "roof_court_row1_03",
+      "view": "court_long",
+      "pixel_box": [
+        503,
+        90,
+        541,
+        124
+      ],
+      "span_m": [
+        -14.779583333333335,
+        -13.291250000000002
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            522,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.19955207407474518,
+            -14.035416603088379,
+            26.784313201904297
+          ],
+          "face_id": 3798,
+          "triangle_surface_evidence": {
+            "global_face_id": 3798,
+            "local_face_id": 3798,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -0.21489552753006627,
+                -13.923434713508254,
+                26.52050018310547
+              ],
+              [
+                -0.2327588158405224,
+                -13.700541211394288,
+                27.320899963378906
+              ],
+              [
+                -0.09841947023952155,
+                -14.906507579558069,
+                26.93120002746582
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.1820246045367034,
+              -14.176827834820203,
+              26.9242000579834
+            ],
+            "triangle_area_m2": 0.4420856924768691,
+            "triangle_horizontal_span_m": 1.2134257047378896,
+            "triangle_normal_xyz": [
+              0.9934653479564363,
+              0.11373797218804865,
+              -0.009501373182215885
+            ],
+            "plane_tilt_from_vertical_degrees": 0.5443967741315182,
+            "horizontal_surface_trace_direction_degrees": 96.53113466910915
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "roof_court_row1_04",
+      "view": "court_long",
+      "pixel_box": [
+        557,
+        90,
+        597,
+        124
+      ],
+      "span_m": [
+        -12.664583333333336,
+        -11.09791666666667
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            577,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.19073374569416046,
+            -11.881250381469727,
+            26.784313201904297
+          ],
+          "face_id": 4269,
+          "triangle_surface_evidence": {
+            "global_face_id": 4269,
+            "local_face_id": 4269,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -0.23437922770235045,
+                -11.631508567784822,
+                27.45840072631836
+              ],
+              [
+                -0.11398829795086934,
+                -12.551459336898766,
+                27.251300811767578
+              ],
+              [
+                -0.19841133330097452,
+                -11.766808751355528,
+                26.398700714111328
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.1822596196513981,
+              -11.983258885346372,
+              27.036134084065754
+            ],
+            "triangle_area_m2": 0.47729457692600763,
+            "triangle_horizontal_span_m": 0.9277949092120324,
+            "triangle_normal_xyz": [
+              0.9918939273329533,
+              0.12584400460178166,
+              0.0175989609294638
+            ],
+            "plane_tilt_from_vertical_degrees": 1.008398243735744,
+            "horizontal_surface_trace_direction_degrees": 97.23062439803716
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "roof_court_row1_05",
+      "view": "court_long",
+      "pixel_box": [
+        613,
+        90,
+        653,
+        124
+      ],
+      "span_m": [
+        -10.471250000000001,
+        -8.904583333333335
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            633,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.18134981393814087,
+            -9.68791675567627,
+            26.784313201904297
+          ],
+          "face_id": 425,
+          "triangle_surface_evidence": {
+            "global_face_id": 425,
+            "local_face_id": 425,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -0.15965651480217707,
+                -9.966420881983755,
+                26.322500228881836
+              ],
+              [
+                -0.19379832307583542,
+                -9.137366908035728,
+                27.0487003326416
+              ],
+              [
+                -0.20908036155475954,
+                -9.741571786966073,
+                27.375301361083984
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.18751173314425731,
+              -9.615119858995184,
+              26.91550064086914
+            ],
+            "triangle_area_m2": 0.3551622143778119,
+            "triangle_horizontal_span_m": 0.8297566840895045,
+            "triangle_normal_xyz": [
+              0.9989006397260628,
+              7.451773282916952e-05,
+              0.04687756821732965
+            ],
+            "plane_tilt_from_vertical_degrees": 2.6868714956428787,
+            "horizontal_surface_trace_direction_degrees": 90.0042742505233
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "roof_court_row1_06",
+      "view": "court_long",
+      "pixel_box": [
+        710,
+        90,
+        748,
+        124
+      ],
+      "span_m": [
+        -6.672083333333337,
+        -5.183750000000003
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            729,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.1104159876704216,
+            -5.927916526794434,
+            26.784313201904297
+          ],
+          "face_id": 3245,
+          "triangle_surface_evidence": {
+            "global_face_id": 3245,
+            "local_face_id": 3245,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -0.09095664530358541,
+                -6.098959098713193,
+                27.27519989013672
+              ],
+              [
+                -0.021828182971674395,
+                -6.670378900974587,
+                26.439599990844727
+              ],
+              [
+                -0.14662644868240532,
+                -5.6170835411936535,
+                26.401500701904297
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.08647042565255504,
+              -6.128807180293811,
+              26.705433527628582
+            ],
+            "triangle_area_m2": 0.4541101909376184,
+            "triangle_horizontal_span_m": 1.0606628691815567,
+            "triangle_normal_xyz": [
+              0.993045523651556,
+              0.11771940561314134,
+              0.0016521191529571672
+            ],
+            "plane_tilt_from_vertical_degrees": 0.09465949777935433,
+            "horizontal_surface_trace_direction_degrees": 96.76051047129967
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "roof_court_row1_07",
+      "view": "court_long",
+      "pixel_box": [
+        766,
+        90,
+        803,
+        124
+      ],
+      "span_m": [
+        -4.478750000000002,
+        -3.029583333333335
+      ],
+      "z_m": [
+        26.11764705882353,
+        27.450980392156865
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/roof_court.png",
+        "additional_views/roof_court.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            784,
+            107
+          ],
+          "hit": true,
+          "world_xyz": [
+            -0.12058675289154053,
+            -3.773750066757202,
+            26.784313201904297
+          ],
+          "face_id": 3244,
+          "triangle_surface_evidence": {
+            "global_face_id": 3244,
+            "local_face_id": 3244,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -0.2910244067505306,
+                -2.4271081526197875,
+                27.333900451660156
+              ],
+              [
+                -0.13858045505860989,
+                -3.5454812022403073,
+                27.06599998474121
+              ],
+              [
+                -0.06186552568852685,
+                -4.301136257980179,
+                26.430200576782227
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -0.16382346249922244,
+              -3.424575204280091,
+              26.94336700439453
+            ],
+            "triangle_area_m2": 0.25758098590369943,
+            "triangle_horizontal_span_m": 1.887987058337596,
+            "triangle_normal_xyz": [
+              0.9873022629740856,
+              0.148248149153573,
+              -0.05706774744800735
+            ],
+            "plane_tilt_from_vertical_degrees": 3.2715184572348033,
+            "horizontal_surface_trace_direction_degrees": 98.53943822886627
+          }
+        }
+      ],
+      "plane_key": "attic_court_long"
+    },
+    {
+      "id": "annex_east_row1_01",
+      "view": "annex_east",
+      "pixel_box": [
+        96,
+        133,
+        174,
+        177
+      ],
+      "span_m": [
+        -20.685416666666665,
+        -18.410416666666666
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            135,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            12.965129852294922,
+            -19.547916412353516,
+            4.962864875793457
+          ],
+          "face_id": 12245,
+          "triangle_surface_evidence": {
+            "global_face_id": 12245,
+            "local_face_id": 12245,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.121550009830685,
+                -20.808198755214388,
+                6.350500106811523
+              ],
+              [
+                13.07580242436046,
+                -20.830709717212937,
+                5.225500106811523
+              ],
+              [
+                12.941698003284534,
+                -19.314262175148674,
+                4.83750057220459
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.046350145825228,
+              -20.317723549192,
+              5.471166928609212
+            ],
+            "triangle_area_m2": 0.860709942204849,
+            "triangle_horizontal_span_m": 1.5223656405689319,
+            "triangle_normal_xyz": [
+              0.9961182295679697,
+              0.07733001869222933,
+              -0.04205402396243411
+            ],
+            "plane_tilt_from_vertical_degrees": 2.410228872303594,
+            "horizontal_surface_trace_direction_degrees": 94.43904641108148
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_02",
+      "view": "annex_east",
+      "pixel_box": [
+        201,
+        133,
+        277,
+        177
+      ],
+      "span_m": [
+        -17.622916666666665,
+        -15.406249999999998
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            239,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.05025577545166,
+            -16.514583587646484,
+            4.962864875793457
+          ],
+          "face_id": 12025,
+          "triangle_surface_evidence": {
+            "global_face_id": 12025,
+            "local_face_id": 12025,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.113190683317162,
+                -17.468238045786663,
+                5.482300758361816
+              ],
+              [
+                13.038673644682879,
+                -16.370539297600942,
+                4.763999938964844
+              ],
+              [
+                13.052981330601208,
+                -16.19082933237006,
+                6.183600425720215
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.068281886200417,
+              -16.676535558585886,
+              5.476633707682292
+            ],
+            "triangle_area_m2": 0.8451653405980697,
+            "triangle_horizontal_span_m": 1.2788268793183586,
+            "triangle_normal_xyz": [
+              0.9982540761316022,
+              0.056502081433204024,
+              -0.017213781698306084
+            ],
+            "plane_tilt_from_vertical_degrees": 0.986325755263678,
+            "horizontal_surface_trace_direction_degrees": 93.23953630895276
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_03",
+      "view": "annex_east",
+      "pixel_box": [
+        299,
+        133,
+        382,
+        177
+      ],
+      "span_m": [
+        -14.764583333333333,
+        -12.343749999999998
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            340,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.12299633026123,
+            -13.568750381469727,
+            4.962864875793457
+          ],
+          "face_id": 12448,
+          "triangle_surface_evidence": {
+            "global_face_id": 12448,
+            "local_face_id": 12448,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.08268753270805,
+                -14.434237142218302,
+                5.678400039672852
+              ],
+              [
+                13.17014765782181,
+                -13.790149496425645,
+                4.263500213623047
+              ],
+              [
+                13.089384417548382,
+                -12.435423364074694,
+                5.35260009765625
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.114073202692746,
+              -13.553270000906215,
+              5.098166783650716
+            ],
+            "triangle_area_m2": 1.3119461084247812,
+            "triangle_horizontal_span_m": 1.9988249968327119,
+            "triangle_normal_xyz": [
+              0.9978601760144642,
+              0.007248423686397227,
+              0.06498099320913057
+            ],
+            "plane_tilt_from_vertical_degrees": 3.725761826413299,
+            "horizontal_surface_trace_direction_degrees": 90.41618734871847
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_04",
+      "view": "annex_east",
+      "pixel_box": [
+        409,
+        133,
+        485,
+        177
+      ],
+      "span_m": [
+        -11.556249999999999,
+        -9.339583333333332
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            447,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.097206115722656,
+            -10.447916984558105,
+            4.962864875793457
+          ],
+          "face_id": 12018,
+          "triangle_surface_evidence": {
+            "global_face_id": 12018,
+            "local_face_id": 12018,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.167407900469327,
+                -10.665986617410004,
+                3.6718006134033203
+              ],
+              [
+                13.072687641473518,
+                -8.207809165408785,
+                5.149300575256348
+              ],
+              [
+                13.089384417548382,
+                -12.435423364074694,
+                5.35260009765625
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.109826653163742,
+              -10.436406382297827,
+              4.72456709543864
+            ],
+            "triangle_area_m2": 3.3778778100539126,
+            "triangle_horizontal_span_m": 4.22764717012819,
+            "triangle_normal_xyz": [
+              0.9985627809190328,
+              0.0065020216685136014,
+              0.05319864920719425
+            ],
+            "plane_tilt_from_vertical_degrees": 3.0494976257557265,
+            "horizontal_surface_trace_direction_degrees": 90.3730693174143
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_05",
+      "view": "annex_east",
+      "pixel_box": [
+        516,
+        133,
+        597,
+        177
+      ],
+      "span_m": [
+        -8.435416666666665,
+        -6.072916666666664
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            556,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.078662872314453,
+            -7.268750190734863,
+            4.962864875793457
+          ],
+          "face_id": 11215,
+          "triangle_surface_evidence": {
+            "global_face_id": 11215,
+            "local_face_id": 11215,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.072687641473518,
+                -8.207809165408785,
+                5.149300575256348
+              ],
+              [
+                13.16772169908618,
+                -6.930521110882415,
+                3.1922006607055664
+              ],
+              [
+                13.04630786669957,
+                -2.3478955250443305,
+                5.23390007019043
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.095572402419755,
+              -5.82874193377851,
+              4.525133768717448
+            ],
+            "triangle_area_m2": 5.795815612896977,
+            "triangle_horizontal_span_m": 5.8599730174333144,
+            "triangle_normal_xyz": [
+              0.9986941599185993,
+              0.0037603009301575086,
+              0.05094933838037318
+            ],
+            "plane_tilt_from_vertical_degrees": 2.920446488282867,
+            "horizontal_surface_trace_direction_degrees": 90.21573006383775
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_06",
+      "view": "annex_east",
+      "pixel_box": [
+        624,
+        133,
+        701,
+        177
+      ],
+      "span_m": [
+        -5.285416666666666,
+        -3.039583333333333
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            662,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.067022323608398,
+            -4.177083492279053,
+            4.962864875793457
+          ],
+          "face_id": 11215,
+          "triangle_surface_evidence": {
+            "global_face_id": 11215,
+            "local_face_id": 11215,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.072687641473518,
+                -8.207809165408785,
+                5.149300575256348
+              ],
+              [
+                13.16772169908618,
+                -6.930521110882415,
+                3.1922006607055664
+              ],
+              [
+                13.04630786669957,
+                -2.3478955250443305,
+                5.23390007019043
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.095572402419755,
+              -5.82874193377851,
+              4.525133768717448
+            ],
+            "triangle_area_m2": 5.795815612896977,
+            "triangle_horizontal_span_m": 5.8599730174333144,
+            "triangle_normal_xyz": [
+              0.9986941599185993,
+              0.0037603009301575086,
+              0.05094933838037318
+            ],
+            "plane_tilt_from_vertical_degrees": 2.920446488282867,
+            "horizontal_surface_trace_direction_degrees": 90.21573006383775
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_07",
+      "view": "annex_east",
+      "pixel_box": [
+        730,
+        133,
+        807,
+        177
+      ],
+      "span_m": [
+        -2.193749999999998,
+        0.0520833333333357
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            768,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.077556610107422,
+            -1.0854166746139526,
+            4.962864875793457
+          ],
+          "face_id": 12240,
+          "triangle_surface_evidence": {
+            "global_face_id": 12240,
+            "local_face_id": 12240,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.126754336944003,
+                0.8915064168840031,
+                6.013100624084473
+              ],
+              [
+                13.04630786669957,
+                -2.3478955250443305,
+                5.23390007019043
+              ],
+              [
+                13.117463422719966,
+                0.5372276036602689,
+                3.189300537109375
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.096841875454514,
+              -0.3063871681666862,
+              4.812100410461426
+            ],
+            "triangle_area_m2": 4.437047493133698,
+            "triangle_horizontal_span_m": 3.240400681388622,
+            "triangle_normal_xyz": [
+              0.9996928420978204,
+              -0.024782838644825556,
+              -0.0001799085513361052
+            ],
+            "plane_tilt_from_vertical_degrees": 0.010308000745478194,
+            "horizontal_surface_trace_direction_degrees": 88.57990252494528
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_08",
+      "view": "annex_east",
+      "pixel_box": [
+        837,
+        133,
+        912,
+        177
+      ],
+      "span_m": [
+        0.9270833333333357,
+        3.1145833333333357
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            874,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.063180923461914,
+            2.0062499046325684,
+            4.962864875793457
+          ],
+          "face_id": 10840,
+          "triangle_surface_evidence": {
+            "global_face_id": 10840,
+            "local_face_id": 10840,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.126754336944003,
+                0.8915064168840031,
+                6.013100624084473
+              ],
+              [
+                13.117463422719966,
+                0.5372276036602689,
+                3.189300537109375
+              ],
+              [
+                13.035346371830007,
+                2.636601069398081,
+                5.237700462341309
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.093188043831326,
+              1.355111696647451,
+              4.813367207845052
+            ],
+            "triangle_area_m2": 2.6043900901470414,
+            "triangle_horizontal_span_m": 2.1009788572688817,
+            "triangle_normal_xyz": [
+              0.9987955146018778,
+              0.04817128670476786,
+              -0.009329906129072453
+            ],
+            "plane_tilt_from_vertical_degrees": 0.5345720001350781,
+            "horizontal_surface_trace_direction_degrees": 92.76120023302691
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row1_09",
+      "view": "annex_east",
+      "pixel_box": [
+        945,
+        133,
+        1014,
+        177
+      ],
+      "span_m": [
+        4.077083333333334,
+        6.089583333333334
+      ],
+      "z_m": [
+        4.320954907161804,
+        5.604774535809019
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            980,
+            155
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.005311965942383,
+            5.097916603088379,
+            4.962864875793457
+          ],
+          "face_id": 11989,
+          "triangle_surface_evidence": {
+            "global_face_id": 11989,
+            "local_face_id": 11989,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.103590163682105,
+                4.248226670493513,
+                5.798000335693359
+              ],
+              [
+                12.936099098036335,
+                5.072876015084174,
+                4.49630069732666
+              ],
+              [
+                13.121904655846173,
+                6.281172372153716,
+                5.526300430297852
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.053864639188205,
+              5.200758352577134,
+              5.273533821105957
+            ],
+            "triangle_area_m2": 1.2245865597551542,
+            "triangle_horizontal_span_m": 2.0330281961945147,
+            "triangle_normal_xyz": [
+              0.9889980893816014,
+              -0.028314566236645106,
+              -0.14519319728683114
+            ],
+            "plane_tilt_from_vertical_degrees": 8.3484669728662,
+            "horizontal_surface_trace_direction_degrees": 88.360095799901
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_01",
+      "view": "annex_east",
+      "pixel_box": [
+        96,
+        234,
+        174,
+        282
+      ],
+      "span_m": [
+        -20.685416666666665,
+        -18.410416666666666
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            135,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.064065933227539,
+            -19.547916412353516,
+            1.9575597047805786
+          ],
+          "face_id": 12032,
+          "triangle_surface_evidence": {
+            "global_face_id": 12032,
+            "local_face_id": 12032,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.199598561830172,
+                -20.673633332974077,
+                3.315000534057617
+              ],
+              [
+                12.990633073192306,
+                -19.342643602511878,
+                1.1735000610351562
+              ],
+              [
+                13.163200856829484,
+                -16.09944744701284,
+                3.4633007049560547
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.117810830617321,
+              -18.705241460832934,
+              2.6506004333496094
+            ],
+            "triangle_area_m2": 5.017355854503281,
+            "triangle_horizontal_span_m": 4.574330695550587,
+            "triangle_normal_xyz": [
+              0.9958439796532604,
+              0.010855849506369229,
+              -0.09042631652263398
+            ],
+            "plane_tilt_from_vertical_degrees": 5.188133234362935,
+            "horizontal_surface_trace_direction_degrees": 90.6245654298648
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_02",
+      "view": "annex_east",
+      "pixel_box": [
+        201,
+        234,
+        277,
+        282
+      ],
+      "span_m": [
+        -17.622916666666665,
+        -15.406249999999998
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            239,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.030125617980957,
+            -16.514583587646484,
+            1.9575597047805786
+          ],
+          "face_id": 12308,
+          "triangle_surface_evidence": {
+            "global_face_id": 12308,
+            "local_face_id": 12308,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.163200856829484,
+                -16.09944744701284,
+                3.4633007049560547
+              ],
+              [
+                13.080649379059055,
+                -17.89078301333915,
+                2.0657005310058594
+              ],
+              [
+                12.964899235213139,
+                -15.976257058624665,
+                1.4437007904052734
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.069583157033891,
+              -16.655495839658883,
+              2.3242340087890625
+            ],
+            "triangle_area_m2": 1.9045631664708538,
+            "triangle_horizontal_span_m": 1.9180218265378939,
+            "triangle_normal_xyz": [
+              0.9949662294339806,
+              0.028989698361916186,
+              -0.09592601146098283
+            ],
+            "plane_tilt_from_vertical_degrees": 5.504619785003447,
+            "horizontal_surface_trace_direction_degrees": 91.66891853837015
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_03",
+      "view": "annex_east",
+      "pixel_box": [
+        299,
+        234,
+        382,
+        282
+      ],
+      "span_m": [
+        -14.764583333333333,
+        -12.343749999999998
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            340,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.031728744506836,
+            -13.568750381469727,
+            1.9575597047805786
+          ],
+          "face_id": 11237,
+          "triangle_surface_evidence": {
+            "global_face_id": 11237,
+            "local_face_id": 11237,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.141765250406985,
+                -13.839080879679914,
+                2.6912002563476562
+              ],
+              [
+                13.032282940139487,
+                -14.633888607656825,
+                1.4528999328613281
+              ],
+              [
+                12.935615691112822,
+                -13.024707434698161,
+                1.4639005661010742
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.036554627219765,
+              -13.832558974011633,
+              1.8693335851033528
+            ],
+            "triangle_area_m2": 1.0018128277042329,
+            "triangle_horizontal_span_m": 1.6120820712479262,
+            "triangle_normal_xyz": [
+              0.9901581033143574,
+              0.060344336356132365,
+              -0.12627545886138095
+            ],
+            "plane_tilt_from_vertical_degrees": 7.254417881131185,
+            "horizontal_surface_trace_direction_degrees": 93.48752862900302
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_04",
+      "view": "annex_east",
+      "pixel_box": [
+        409,
+        234,
+        485,
+        282
+      ],
+      "span_m": [
+        -11.556249999999999,
+        -9.339583333333332
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            447,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.016036987304688,
+            -10.447916984558105,
+            1.9575597047805786
+          ],
+          "face_id": 12103,
+          "triangle_surface_evidence": {
+            "global_face_id": 12103,
+            "local_face_id": 12103,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                12.966772488085796,
+                -10.222652336289226,
+                1.4209003448486328
+              ],
+              [
+                13.167407900469327,
+                -10.665986617410004,
+                3.6718006134033203
+              ],
+              [
+                13.05732672890282,
+                -12.236998376966232,
+                2.187000274658203
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.063835705819315,
+              -11.04187911022182,
+              2.4265670776367188
+            ],
+            "triangle_area_m2": 2.105258435728942,
+            "triangle_horizontal_span_m": 2.016380430901143,
+            "triangle_normal_xyz": [
+              0.9961849840114329,
+              0.011903951737904867,
+              -0.08645098937064075
+            ],
+            "plane_tilt_from_vertical_degrees": 4.959467614098945,
+            "horizontal_surface_trace_direction_degrees": 90.6846255910016
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_06",
+      "view": "annex_east",
+      "pixel_box": [
+        624,
+        234,
+        701,
+        282
+      ],
+      "span_m": [
+        -5.285416666666666,
+        -3.039583333333333
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            662,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.039708137512207,
+            -4.177083492279053,
+            1.9575597047805786
+          ],
+          "face_id": 12340,
+          "triangle_surface_evidence": {
+            "global_face_id": 12340,
+            "local_face_id": 12340,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                12.998871569711776,
+                -4.543786464965702,
+                1.241800308227539
+              ],
+              [
+                13.03860492195181,
+                -3.1363376175563893,
+                1.783400535583496
+              ],
+              [
+                13.156417308473646,
+                -3.2291853389209013,
+                4.017900466918945
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.06463126671241,
+              -3.636436473814331,
+              2.3477004369099936
+            ],
+            "triangle_area_m2": 1.5999105209292157,
+            "triangle_horizontal_span_m": 1.408009587095924,
+            "triangle_normal_xyz": [
+              0.9985654379093037,
+              -0.007805735758273458,
+              -0.052972980870177724
+            ],
+            "plane_tilt_from_vertical_degrees": 3.036549525029638,
+            "horizontal_surface_trace_direction_degrees": 89.55213089808912
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_07",
+      "view": "annex_east",
+      "pixel_box": [
+        730,
+        234,
+        807,
+        282
+      ],
+      "span_m": [
+        -2.193749999999998,
+        0.0520833333333357
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            768,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.01614761352539,
+            -1.0854166746139526,
+            1.9575597047805786
+          ],
+          "face_id": 11892,
+          "triangle_surface_evidence": {
+            "global_face_id": 11892,
+            "local_face_id": 11892,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                12.945601644681139,
+                -0.9570817610651462,
+                1.3333005905151367
+              ],
+              [
+                13.117463422719966,
+                0.5372276036602689,
+                3.189300537109375
+              ],
+              [
+                13.03860492195181,
+                -3.1363376175563893,
+                1.783400535583496
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.033889996450972,
+              -1.1853972583204222,
+              2.1020005544026694
+            ],
+            "triangle_area_m2": 2.3730551404802056,
+            "triangle_horizontal_span_m": 3.6744115307999996,
+            "triangle_normal_xyz": [
+              0.9939270343474604,
+              0.02007098342720187,
+              -0.10819522178694949
+            ],
+            "plane_tilt_from_vertical_degrees": 6.211288446487981,
+            "horizontal_surface_trace_direction_degrees": 91.1568518869016
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_08",
+      "view": "annex_east",
+      "pixel_box": [
+        837,
+        234,
+        912,
+        282
+      ],
+      "span_m": [
+        0.9270833333333357,
+        3.1145833333333357
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            874,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            12.93352222442627,
+            2.0062499046325684,
+            1.9575597047805786
+          ],
+          "face_id": 11523,
+          "triangle_surface_evidence": {
+            "global_face_id": 11523,
+            "local_face_id": 11523,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.117463422719966,
+                0.5372276036602689,
+                3.189300537109375
+              ],
+              [
+                12.948141079087602,
+                1.4855608953969575,
+                1.3994007110595703
+              ],
+              [
+                12.867867840723509,
+                2.643814751776553,
+                1.7018003463745117
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              12.977824114177025,
+              1.555534416944593,
+              2.096833864847819
+            ],
+            "triangle_area_m2": 1.1855026952797667,
+            "triangle_horizontal_span_m": 2.1213220800153967,
+            "triangle_normal_xyz": [
+              0.9953305154977421,
+              0.08219469728976535,
+              -0.05060826668087672
+            ],
+            "plane_tilt_from_vertical_degrees": 2.900879276112843,
+            "horizontal_surface_trace_direction_degrees": 94.72079122241652
+          }
+        }
+      ]
+    },
+    {
+      "id": "annex_east_row2_09",
+      "view": "annex_east",
+      "pixel_box": [
+        945,
+        234,
+        1014,
+        282
+      ],
+      "span_m": [
+        4.077083333333334,
+        6.089583333333334
+      ],
+      "z_m": [
+        1.2572944297082227,
+        2.657824933687003
+      ],
+      "basis": "development_assistant_visible_glazing_group_estimate",
+      "notes": "New raw-asset observation; box estimates glazing groups, not individual sashes. Ground-level class/hidden extent and roof curvature remain uncertain.",
+      "source_refs": [
+        "additional_views/annex_east.png",
+        "additional_views/annex_east.json"
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            980,
+            258
+          ],
+          "hit": true,
+          "world_xyz": [
+            13.052102088928223,
+            5.097916603088379,
+            1.9575597047805786
+          ],
+          "face_id": 11524,
+          "triangle_surface_evidence": {
+            "global_face_id": 11524,
+            "local_face_id": 11524,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                13.139157528369969,
+                6.099506814019118,
+                3.4265003204345703
+              ],
+              [
+                13.0250580022911,
+                3.4926912701906456,
+                1.1911001205444336
+              ],
+              [
+                13.007896562803934,
+                6.281905406933845,
+                1.617300033569336
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              13.057370697821668,
+              5.291367830381202,
+              2.07830015818278
+            ],
+            "triangle_area_m2": 2.5687813576047365,
+            "triangle_horizontal_span_m": 2.7892669315813756,
+            "triangle_normal_xyz": [
+              0.9973572226361747,
+              0.016932521931747137,
+              -0.07065309728870095
+            ],
+            "plane_tilt_from_vertical_degrees": 4.051499817319848,
+            "horizontal_surface_trace_direction_degrees": 90.97263931798963
+          }
+        }
+      ]
+    },
+    {
+      "id": "attic_west_01",
+      "view": "west",
+      "facade": "West",
+      "plane_key": "attic_west_north",
+      "kind": "window",
+      "pixel_box": [
+        208,
+        166,
+        269,
+        210
+      ],
+      "pixel_box_convention": "left/top inclusive; right/bottom exclusive",
+      "span_m": [
+        19.567499999999995,
+        22.159999999999997
+      ],
+      "z_m": [
+        25.57843137254902,
+        27.447712418300657
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            238,
+            188
+          ],
+          "hit": true,
+          "world_xyz": [
+            -12.774948120117188,
+            20.863750457763672,
+            26.491830825805664
+          ],
+          "face_id": 1288,
+          "triangle_surface_evidence": {
+            "global_face_id": 1288,
+            "local_face_id": 1288,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -12.834850560743194,
+                20.665317711744795,
+                25.587900161743164
+              ],
+              [
+                -12.767441786738306,
+                20.372814838288257,
+                26.18920135498047
+              ],
+              [
+                -12.776623596559766,
+                20.991211410951824,
+                26.573801040649414
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -12.792971981347089,
+              20.67644798699496,
+              26.116967519124348
+            ],
+            "triangle_area_m2": 0.2434616109674432,
+            "triangle_horizontal_span_m": 0.6184647336054366,
+            "triangle_normal_xyz": [
+              -0.9946929791117628,
+              -0.06458189931950994,
+              0.08009404213829428
+            ],
+            "plane_tilt_from_vertical_degrees": 4.593971299382884,
+            "horizontal_surface_trace_direction_degrees": 93.71479845852228
+          }
+        }
+      ],
+      "source_refs": [
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.png",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.json"
+      ],
+      "basis": "developer observed visible glazing group; orthographic pixel bounds; regularised host plane",
+      "notes": "Glass category is developer judgement; boundaries and pane divisions approximate. Depth evidence validates host only."
+    },
+    {
+      "id": "attic_west_02",
+      "view": "west",
+      "facade": "West",
+      "plane_key": "attic_west_north",
+      "kind": "window",
+      "pixel_box": [
+        282,
+        164,
+        349,
+        211
+      ],
+      "pixel_box_convention": "left/top inclusive; right/bottom exclusive",
+      "span_m": [
+        16.167499999999997,
+        19.014999999999997
+      ],
+      "z_m": [
+        25.535947712418302,
+        27.532679738562095
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            315,
+            187
+          ],
+          "hit": true,
+          "world_xyz": [
+            -12.65520191192627,
+            17.591249465942383,
+            26.534313201904297
+          ],
+          "face_id": 5967,
+          "triangle_surface_evidence": {
+            "global_face_id": 5967,
+            "local_face_id": 5967,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                -12.702696571338722,
+                18.299871988922977,
+                26.577701568603516
+              ],
+              [
+                -12.649970974513748,
+                18.17936826811541,
+                26.130401611328125
+              ],
+              [
+                -12.64861522296066,
+                17.434728481631723,
+                26.563199996948242
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              -12.667094256271042,
+              17.971322912890034,
+              26.42376772562663
+            ],
+            "triangle_area_m2": 0.19395907632917256,
+            "triangle_horizontal_span_m": 0.8668322100906274,
+            "triangle_normal_xyz": [
+              -0.9930733013304741,
+              -0.0603889780304007,
+              -0.10078982844035976
+            ],
+            "plane_tilt_from_vertical_degrees": 5.784654113111862,
+            "horizontal_surface_trace_direction_degrees": 93.47988217427026
+          }
+        }
+      ],
+      "source_refs": [
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.png",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.json"
+      ],
+      "basis": "developer observed visible glazing group; orthographic pixel bounds; regularised host plane",
+      "notes": "Glass category is developer judgement; boundaries and pane divisions approximate. Depth evidence validates host only."
+    },
+    {
+      "id": "attic_attic_corner_01",
+      "view": "attic_corner",
+      "facade": "South",
+      "plane_key": "court_corner_y",
+      "kind": "window",
+      "pixel_box": [
+        170,
+        200,
+        241,
+        446
+      ],
+      "pixel_box_convention": "left/top inclusive; right/bottom exclusive",
+      "span_m": [
+        1.0500000000000003,
+        1.4050000000000002
+      ],
+      "z_m": [
+        25.82,
+        27.05
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            205,
+            323
+          ],
+          "hit": true,
+          "world_xyz": [
+            1.2274999618530273,
+            9.61970043182373,
+            26.4325008392334
+          ],
+          "face_id": 1481,
+          "triangle_surface_evidence": {
+            "global_face_id": 1481,
+            "local_face_id": 1481,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                0.7585582961946025,
+                9.544382455203976,
+                25.951601028442383
+              ],
+              [
+                1.4260032243491647,
+                9.680424287887607,
+                26.363901138305664
+              ],
+              [
+                1.4678489574222,
+                9.639808719798136,
+                26.853500366210938
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              1.217470159321989,
+              9.621538487629907,
+              26.389667510986328
+            ],
+            "triangle_area_m2": 0.16111388749507638,
+            "triangle_horizontal_span_m": 0.7156810840584492,
+            "triangle_normal_xyz": [
+              0.25867347851289346,
+              -0.9605860983271894,
+              -0.10179577208600984
+            ],
+            "plane_tilt_from_vertical_degrees": 5.842588416944828,
+            "horizontal_surface_trace_direction_degrees": 15.071499376165299
+          }
+        }
+      ],
+      "source_refs": [
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/attic_corner.png",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/attic_corner.json"
+      ],
+      "basis": "developer observed visible glazing group; orthographic pixel bounds; regularised host plane",
+      "notes": "Glass category is developer judgement; boundaries and pane divisions approximate. Depth evidence validates host only."
+    },
+    {
+      "id": "attic_attic_corner_02",
+      "view": "attic_corner",
+      "facade": "South",
+      "plane_key": "court_corner_y",
+      "kind": "window",
+      "pixel_box": [
+        298,
+        213,
+        370,
+        448
+      ],
+      "pixel_box_convention": "left/top inclusive; right/bottom exclusive",
+      "span_m": [
+        1.6900000000000002,
+        2.0500000000000003
+      ],
+      "z_m": [
+        25.81,
+        26.985
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            334,
+            330
+          ],
+          "hit": true,
+          "world_xyz": [
+            1.872499942779541,
+            9.663886070251465,
+            26.397499084472656
+          ],
+          "face_id": 1477,
+          "triangle_surface_evidence": {
+            "global_face_id": 1477,
+            "local_face_id": 1477,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                1.4678489574222,
+                9.639808719798136,
+                26.853500366210938
+              ],
+              [
+                1.4260032243491647,
+                9.680424287887607,
+                26.363901138305664
+              ],
+              [
+                2.6054304724702324,
+                9.642147671797586,
+                26.38530158996582
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              1.8330942180805323,
+              9.654126893161111,
+              26.534234364827473
+            ],
+            "triangle_area_m2": 0.28934167672360045,
+            "triangle_horizontal_span_m": 1.180048190943801,
+            "triangle_normal_xyz": [
+              -0.03088219157592044,
+              -0.9963154271298862,
+              -0.08001162357095772
+            ],
+            "plane_tilt_from_vertical_degrees": 4.589233859082568,
+            "horizontal_surface_trace_direction_degrees": 178.2246055361953
+          }
+        }
+      ],
+      "source_refs": [
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/attic_corner.png",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/attic_corner.json"
+      ],
+      "basis": "developer observed visible glazing group; orthographic pixel bounds; regularised host plane",
+      "notes": "Glass category is developer judgement; boundaries and pane divisions approximate. Depth evidence validates host only."
+    },
+    {
+      "id": "attic_attic_corner_03",
+      "view": "attic_corner",
+      "facade": "South",
+      "plane_key": "court_corner_y",
+      "kind": "window",
+      "pixel_box": [
+        416,
+        211,
+        487,
+        448
+      ],
+      "pixel_box_convention": "left/top inclusive; right/bottom exclusive",
+      "span_m": [
+        2.2800000000000002,
+        2.6350000000000002
+      ],
+      "z_m": [
+        25.81,
+        26.995
+      ],
+      "hit_check": [
+        {
+          "pixel": [
+            451,
+            329
+          ],
+          "hit": true,
+          "world_xyz": [
+            2.4574999809265137,
+            9.64535140991211,
+            26.40250015258789
+          ],
+          "face_id": 1477,
+          "triangle_surface_evidence": {
+            "global_face_id": 1477,
+            "local_face_id": 1477,
+            "node_name": "input.glb",
+            "geometry_name": "input.glb",
+            "triangle_vertices_xyz": [
+              [
+                1.4678489574222,
+                9.639808719798136,
+                26.853500366210938
+              ],
+              [
+                1.4260032243491647,
+                9.680424287887607,
+                26.363901138305664
+              ],
+              [
+                2.6054304724702324,
+                9.642147671797586,
+                26.38530158996582
+              ]
+            ],
+            "triangle_centroid_xyz": [
+              1.8330942180805323,
+              9.654126893161111,
+              26.534234364827473
+            ],
+            "triangle_area_m2": 0.28934167672360045,
+            "triangle_horizontal_span_m": 1.180048190943801,
+            "triangle_normal_xyz": [
+              -0.03088219157592044,
+              -0.9963154271298862,
+              -0.08001162357095772
+            ],
+            "plane_tilt_from_vertical_degrees": 4.589233859082568,
+            "horizontal_surface_trace_direction_degrees": 178.2246055361953
+          }
+        }
+      ],
+      "source_refs": [
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/attic_corner.png",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/attic_corner.json"
+      ],
+      "basis": "developer observed visible glazing group; orthographic pixel bounds; regularised host plane",
+      "notes": "Glass category is developer judgement; boundaries and pane divisions approximate. Depth evidence validates host only."
+    }
+  ],
+  "inferred_entrances": [
+    {
+      "id": "D_entry_west",
+      "space_id": "F1_open",
+      "axis": 0,
+      "plane_key": "west",
+      "span_m": [
+        -16,
+        -14.4
+      ],
+      "z_m": [
+        0,
+        2.8
+      ],
+      "source_refs": [
+        "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_west.png",
+        "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_west_annotated.png"
+      ],
+      "note": "保留原几何。该跨度落在独立窄门扇/把手样竖带，不再只写无图假设；门的开启方式、准确门槛和是否为主入口仍未知。"
+    },
+    {
+      "id": "D_entry_annex",
+      "space_id": "ANNEX_open",
+      "axis": 0,
+      "plane_key": "annex_east",
+      "span_m": [
+        -8.2,
+        -6.1
+      ],
+      "z_m": [
+        0,
+        2.8
+      ],
+      "source_refs": [
+        "additional_views/annex_east.png: lower central glazed bay"
+      ],
+      "note": "Central lower glazed bay treated as an entrance hypothesis instead of a window; actual door class and threshold unknown."
+    }
+  ],
+  "assumptions": [
+    "开发助手从原单体GLB和声明重新装配的部分推理草稿；已有历史上下文，不是Sonnet达标案例。",
+    "主要外墙、低体屋顶和退台面按选定原三角面量测规整，米制坐标与窗框转换交代码执行；窗口是可见窗组的估测与显式重复，不是逐窗扇实测。退台墙面支持稀疏，完整延展轮廓仍结合屋顶外形推断，不能把采样跨度当连续实测墙段。",
+    "主体仍按八层；普通层界线结合完整例外大窗与相邻窗排间隙重新估计。实际楼板位置未测得；原244窗保持坐标，假设内门随新层底平移，外门不动。",
+    "内部采用一种连续L形开放办公/商业空间，加两处服务空间及两处连续竖向交通核心的方案。实际房间布局、核心位置、用途和全部内门均未被外网格证实。",
+    "两交通核心跨0–27.8m连续表达，仅有底/顶边界；每层连接门为方案假设，不建立逐层堵死核心的假楼板，也不绘制未证实的楼梯/电梯。",
+    "低层附属体保留一个合并空间；两排窗不推导为两层。它与主楼的接触分隔是假设，内部连通未知。",
+    "缺失短端和南核心临内院缺面用未知围护显示；未借用旧父瓦片的贴邻建筑或交通盒结论。",
+    "屋顶按原剖切规整为较低长翼、南北凸起和烟囱等五个屋盖几何部件；不是五个实际房间。弧面/局部坡度用棱柱近似，部件相接的水平界面显式双面敞开，外露屋盖保留；27.8m与主楼之间的顶板仍是方案假设。",
+    "新屋顶窗命中显示长翼内院的退台墙约X=-0.1m，按此回退轮廓；南交通核心及其服务/候梯空间随之调整到各层共同范围内，未挪动观察到的窗。服务/候梯区可环绕核心保持一个连续空间，仍为内部方案假设。",
+    "退台西面按北端与长翼分别规整，北面及南端参考26.5m原截线；西北端两组玻璃和内院角部三组竖窗按新原图像素框补入。其余暗带/窄槽不按重复规则凭空填窗。",
+    "新增例外窗按逐层可见重复估测，凹入/起伏表面规整到主墙；残缺窗允许明确的同列重复推断。38个新增窗表达的已见/推断部分分别留证，数量不代表全楼窗完整率。"
+  ],
+  "unresolved": [
+    "首层西侧补入可见店面玻璃，原西入口保留且新增纹理依据；窗/玻璃门细分类、远端暗面、北侧与内院首层缺扫描处仍未知。",
+    "退台西面局部玻璃、角部竖窗及屋顶主要高低体量已处理；西/北暗带、金属小槽和局部残片的开口语义仍未确定。弧面、坡度和局部突出仍为屋盖棱柱简化。",
+    "原单体裁剪缺失的两短端及局部凸出体仍保留未知；未使用父瓦片补出实际窗洞。",
+    "内部房间、服务分隔、交通核心和内门仍为方案假设；没有真实内部参照。八层楼板按窗间空隙调整，不是实测楼层标高。",
+    "例外窗包含重复推断与表面规整；残窗补全及旧短内院G02最低排下沿仍有不确定性，不能以开口全部装配成功宣称全楼窗完整。",
+    "实际地面坡度、入口门槛及门类、屋盖构造和内部交通实体未验证；未开展后端模拟。",
+    "原九条例外逐项处理、新首层剩余未知及六条退台/屋顶取舍保存在源provenance.aperture_input_metadata。原始未决记录保留，新增决策不改写历史观察。"
+  ],
+  "revision": {
+    "reason": "Seven roof-window centres hit original mesh X=-0.075..-0.200m, so the attic inner facade is recessed from main X=0.8m. Preserve measured window coordinates and adjust the inferred interior scenario.",
+    "changes": [
+      "Set attic inner wall to X=-0.1m.",
+      "Move hypothetical southern vertical core fully inside both main and attic footprints.",
+      "Express the southern service/lobby as one connected U-shaped space around the core, clipped to each storey footprint; no fabricated open-office partition or exterior core projection.",
+      "Retain the original missing-scan region as unknown enclosure on the service-space outside wall."
+    ],
+    "evidence": "additional_views/aperture_queries.json",
+    "prior": "case_plan_initial.json",
+    "not_measured": "Core and service/lobby layout remain internal hypotheses, not observed reality."
+  },
+  "host_revision": {
+    "trigger": "candidate_01_host_failure.json",
+    "moved_inferred_partition_x_m": [
+      8.2,
+      9.0
+    ],
+    "observed_gap_x_m": [
+      8.653358681875794,
+      9.287072243346008
+    ],
+    "observed_opening_ids": [
+      "court_short_R01_G01",
+      "court_short_R01_G02"
+    ],
+    "window_coordinates_modified": false,
+    "reason": "Original inferred service boundary crossed a visible complete window group; choose a position inside the observed inter-window gap."
+  },
+  "parent_plan_sha256": "00c46d5a82233c525ef751a5cad83c03793609de8e42587c01376ba8fb805673",
+  "inherited_evidence_root": "AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough",
+  "attic_outline": [
+    [
+      -11.6,
+      -31.5
+    ],
+    [
+      -0.1,
+      -31.5
+    ],
+    [
+      -0.1,
+      9.5
+    ],
+    [
+      6.5,
+      9.5
+    ],
+    [
+      6.5,
+      12.7
+    ],
+    [
+      18.5,
+      12.7
+    ],
+    [
+      18.5,
+      24
+    ],
+    [
+      -12.8,
+      24
+    ],
+    [
+      -12.8,
+      16
+    ],
+    [
+      -11.6,
+      16
+    ]
+  ],
+  "roof_volumes": {
+    "ROOF": {
+      "rectangles": [
+        [
+          -11,
+          -31.3,
+          0.8,
+          -20.8
+        ],
+        [
+          -11,
+          -20.8,
+          -0.1,
+          10
+        ],
+        [
+          -10.8,
+          10,
+          6.5,
+          23.6
+        ],
+        [
+          6.5,
+          12.7,
+          16.8,
+          23.6
+        ],
+        [
+          -12.6,
+          16,
+          -10.8,
+          23.6
+        ]
+      ],
+      "z": [
+        27.8,
+        28.6
+      ],
+      "evidence": "roof/sections.json z27.9 traces and roof/top.png. Curved roof simplified to low envelope; footprint approximate, top is a representative level, not a surveyed flat roof."
+    },
+    "ROOF_N_BASE": {
+      "rectangles": [
+        [
+          -6.8,
+          16,
+          16.3,
+          21.3
+        ],
+        [
+          -4,
+          10,
+          6.5,
+          16
+        ],
+        [
+          6.5,
+          12.7,
+          16.3,
+          16
+        ]
+      ],
+      "z": [
+        28.6,
+        31.0
+      ],
+      "evidence": "roof/sections.json z29 and z30.5 plus courtyard/top texture: raised northern roof main mass. Contact to lower envelope is logical/open, no slab asserted."
+    },
+    "ROOF_N": {
+      "rectangles": [
+        [
+          -3.5,
+          10,
+          6.5,
+          16.5
+        ]
+      ],
+      "z": [
+        31.0,
+        32.1
+      ],
+      "evidence": "roof/sections.json z31.5 northern contour and original courtyard pixels. Approximate raised roof box, not an occupied storey; base logical/open."
+    },
+    "ROOF_S": {
+      "rectangles": [
+        [
+          -8,
+          -28.5,
+          0.8,
+          -20.8
+        ]
+      ],
+      "z": [
+        28.6,
+        31.6
+      ],
+      "evidence": "roof/south_box.png and sections z29/30.5/31.5. Southern raised mass formerly missing beneath the stack. Rounded/tapered cap simplified as prism, no internal room inferred."
+    },
+    "ROOF_STACK": {
+      "rectangles": [
+        [
+          -6.5,
+          -25.5,
+          -5,
+          -23.3
+        ]
+      ],
+      "z": [
+        31.6,
+        34.2
+      ],
+      "evidence": "roof/sections.json z33 contour and roof/south_box.png. Stack outline/height regularised; interior function unknown, logical base open to underlying envelope."
+    }
+  },
+  "roof_representation": {
+    "components_not_rooms": true,
+    "horizontal_contacts": "explicit reciprocal open regions; exposed lower roof stays physical",
+    "limits": "Piecewise prism approximation of roof envelope, no true curvature or roof thickness. These five parts are NOT five measured rooms or new usable floors."
+  },
+  "attic_feedback_revision": {
+    "source_refs": [
+      "roof/sections.json:z26.5,z27.9",
+      "roof/court_short.png",
+      "roof/initial_window_queries.json"
+    ],
+    "before": [
+      [
+        -11.6,
+        -31.5
+      ],
+      [
+        -0.1,
+        -31.5
+      ],
+      [
+        -0.1,
+        9.5
+      ],
+      [
+        4.6,
+        9.5
+      ],
+      [
+        4.6,
+        8.8
+      ],
+      [
+        18.5,
+        8.8
+      ],
+      [
+        18.5,
+        24
+      ],
+      [
+        -12.8,
+        24
+      ],
+      [
+        -12.8,
+        16
+      ],
+      [
+        -11.6,
+        16
+      ]
+    ],
+    "after": [
+      [
+        -11.6,
+        -31.5
+      ],
+      [
+        -0.1,
+        -31.5
+      ],
+      [
+        -0.1,
+        9.5
+      ],
+      [
+        6.5,
+        9.5
+      ],
+      [
+        6.5,
+        12.7
+      ],
+      [
+        18.5,
+        12.7
+      ],
+      [
+        18.5,
+        24
+      ],
+      [
+        -12.8,
+        24
+      ],
+      [
+        -12.8,
+        16
+      ],
+      [
+        -11.6,
+        16
+      ]
+    ],
+    "reason": "Short-wing upper inner face visibly retreats to y about12.7 for x>6.5; old normal-storey y8.8 extends into courtyard. Corner retains y9.5 supporting three measured windows. Service-room clipping is an explicit change to the interior hypothesis; no observed opening is clipped."
+  },
+  "storey_revision": [
+    {
+      "interface": "F2/F3",
+      "previous_z_m": 8.8,
+      "selected_z_m": 9.32,
+      "observed_clear_gap_m": [
+        9.20737,
+        9.44086
+      ],
+      "lower_constraint_ids": [
+        "west_R06_corner_large"
+      ],
+      "upper_constraint_ids": [
+        "west_R05_corner_large"
+      ],
+      "reason": "Keep existing level if it lies inside observed gap; otherwise choose gap midpoint. Slab remains inferred, not measured. No observed opening moved or trimmed."
+    },
+    {
+      "interface": "F3/F4",
+      "previous_z_m": 12.0,
+      "selected_z_m": 12.48,
+      "observed_clear_gap_m": [
+        12.35945,
+        12.59293
+      ],
+      "lower_constraint_ids": [
+        "west_R05_corner_large"
+      ],
+      "upper_constraint_ids": [
+        "west_R04_corner_large"
+      ],
+      "reason": "Keep existing level if it lies inside observed gap; otherwise choose gap midpoint. Slab remains inferred, not measured. No observed opening moved or trimmed."
+    },
+    {
+      "interface": "F4/F5",
+      "previous_z_m": 15.2,
+      "selected_z_m": 15.63,
+      "observed_clear_gap_m": [
+        15.51152,
+        15.74501
+      ],
+      "lower_constraint_ids": [
+        "west_R04_corner_large"
+      ],
+      "upper_constraint_ids": [
+        "west_R03_corner_large"
+      ],
+      "reason": "Keep existing level if it lies inside observed gap; otherwise choose gap midpoint. Slab remains inferred, not measured. No observed opening moved or trimmed."
+    },
+    {
+      "interface": "F5/F6",
+      "previous_z_m": 18.4,
+      "selected_z_m": 18.78,
+      "observed_clear_gap_m": [
+        18.66359,
+        18.89708
+      ],
+      "lower_constraint_ids": [
+        "west_R03_corner_large"
+      ],
+      "upper_constraint_ids": [
+        "west_R02_corner_large"
+      ],
+      "reason": "Keep existing level if it lies inside observed gap; otherwise choose gap midpoint. Slab remains inferred, not measured. No observed opening moved or trimmed."
+    },
+    {
+      "interface": "F6/F7",
+      "previous_z_m": 21.6,
+      "selected_z_m": 21.93,
+      "observed_clear_gap_m": [
+        21.81567,
+        22.04916
+      ],
+      "lower_constraint_ids": [
+        "west_R02_corner_large"
+      ],
+      "upper_constraint_ids": [
+        "west_R01_corner_large"
+      ],
+      "reason": "Keep existing level if it lies inside observed gap; otherwise choose gap midpoint. Slab remains inferred, not measured. No observed opening moved or trimmed."
+    },
+    {
+      "interface": "F7/F8",
+      "previous_z_m": 24.8,
+      "selected_z_m": 25.25,
+      "observed_clear_gap_m": [
+        24.96774,
+        25.535947712418302
+      ],
+      "lower_constraint_ids": [
+        "west_R01_corner_large"
+      ],
+      "upper_constraint_ids": [
+        "attic_west_02"
+      ],
+      "reason": "Keep existing level if it lies inside observed gap; otherwise choose gap midpoint. Slab remains inferred, not measured. No observed opening moved or trimmed."
+    }
+  ]
+}

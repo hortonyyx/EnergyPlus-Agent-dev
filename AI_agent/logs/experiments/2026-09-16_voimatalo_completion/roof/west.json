@@ -1,0 +1,148 @@
+{
+  "mesh_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+  "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+  "coordinate_frame": "BIM-local right-handed Z-up metres",
+  "source_coordinate_transform": {
+    "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+    "y_up_to_z_up": "[X, -Z, Y]",
+    "y_up_to_z_up_matrix": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "yaw_degrees_counterclockwise_about_positive_z": 14.887066917997172,
+    "yaw_matrix": [
+      [
+        0.9664340959661831,
+        -0.25691465149739207,
+        0.0
+      ],
+      [
+        0.25691465149739207,
+        0.9664340959661831,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "vertex_count": 8242,
+  "face_count": 12520,
+  "scene_instance_count": 1,
+  "selected_vertex_count": 8242,
+  "selected_face_count": 12520,
+  "bounds": [
+    [
+      -14.597717588816785,
+      -34.39398983081385,
+      0.0
+    ],
+    [
+      20.03043407465869,
+      26.887443828732383,
+      34.27320098876953
+    ]
+  ],
+  "selection_bounds": null,
+  "selection_method": "all faces",
+  "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+  "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint.",
+  "camera": {
+    "projection": "orthographic",
+    "eye": [
+      -100.0,
+      -3.0,
+      28.0
+    ],
+    "target": [
+      0.0,
+      -3.0,
+      28.0
+    ],
+    "eye_target_distance_m": 100.0,
+    "forward_from_eye": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "screen_right": [
+      0.0,
+      -1.0,
+      0.0
+    ],
+    "screen_up": [
+      -0.0,
+      0.0,
+      1.0
+    ],
+    "up_reference": "+Z",
+    "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+  },
+  "view_span_m": {
+    "width": 68.0,
+    "height": 13.0
+  },
+  "resolution_px": {
+    "width": 1600,
+    "height": 306
+  },
+  "pixel_center_mapping": {
+    "formula": "plane_xyz(row,col)=top_left+col*column_step+row*row_step; surface_xyz additionally advances along camera forward to the visible triangle",
+    "top_left_pixel_center_plane_xyz": [
+      0.0,
+      30.978749999999998,
+      34.47875816993464
+    ],
+    "column_step_world_xyz": [
+      0.0,
+      -0.0425,
+      0.0
+    ],
+    "row_step_world_xyz": [
+      0.0,
+      -0.0,
+      -0.042483660130718956
+    ],
+    "pixel_width_m": 0.0425,
+    "pixel_height_m": 0.042483660130718956,
+    "pixel_coordinates": "zero-based [column, row] with image origin at top-left"
+  },
+  "rasterizer": {
+    "texture_interpolation": "barycentric UV, glTF REPEAT wrap, nearest texture pixel",
+    "texture_v_mapping": "PIL image rows are the vertical inverse of glTF UV",
+    "depth_test": "nearest positive distance along camera forward",
+    "material_display": "unlit, double-sided geometric observation; sRGB base-color texture is decoded to linear RGB, multiplied by baseColorFactor, and encoded back to sRGB; this is not PBR-lighting or backface-culling faithful",
+    "candidate_faces_overlapping_view": 7596,
+    "visible_pixel_count": 273015
+  },
+  "artifacts": {
+    "png": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.png",
+    "metadata_json": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.json",
+    "pixel_buffer_npz": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/roof/west.npz",
+    "pixel_buffer_layout": "sorted flat pixel indices with compact world XYZ and global face IDs"
+  }
+}

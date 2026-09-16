@@ -1,0 +1,1957 @@
+{
+  "schema": "voimatalo_completion_validation_v1",
+  "candidate": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/candidate_04",
+  "baseline_for_retention_only": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/candidate_02",
+  "result": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04",
+  "overall_required_checks": "pass",
+  "checks": {
+    "source_export_replay": {
+      "status": "pass",
+      "stored_digest": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+      "calculated_digest": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+      "replayed_digest": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+      "exact_json": true,
+      "exact_source_model_bytes": true,
+      "source_file_sha256": "3659b3da662d7897406c3fef3bca4ecb59592dfaef1c96730423b6151da6de54",
+      "replayed_source_file_sha256": "3659b3da662d7897406c3fef3bca4ecb59592dfaef1c96730423b6151da6de54",
+      "temporary_directory_removed_after_check": true
+    },
+    "frozen_assembly_replay": {
+      "status": "pass",
+      "command": [
+        "/opt/venv/bin/python",
+        "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/assemble_model.py",
+        "--plan",
+        "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/case_plan.json",
+        "--apertures",
+        "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/assembly_observations_04.json",
+        "--out",
+        "<temporary-output>"
+      ],
+      "returncode": 0,
+      "stdout": "{\"ready\": true, \"status\": \"not_evaluated\", \"error\": null, \"counts\": {\"spaces\": 32, \"boundaries\": 326, \"openings\": 321, \"connections\": 34, \"unbuilt_openings\": 0, \"unsupported\": 0}, \"validation\": {\"status\": \"warning\", \"scope\": \"source geometry, contacts and explicit opening hosts\", \"findings\": [{\"code\": \"source.enclosure_unknown\", \"severity\": \"warning\", \"boundary_ids\": [\"space/F1_open/wall/0\", \"space/F1_open/wall/11\", \"space/F1_services_s/wall/1\", \"space/F2_open/wall/0\", \"space/F2_open/wall/11\", \"space/F2_services_s/wall/1\", \"space/F3_open/wall/0\", \"space/F3_open/wall/11\", \"space/F3_services_s/wall/1\", \"space/F4_open/wall/0\", \"space/F4_open/wall/11\", \"space/F4_services_s/wall/1\", \"space/F5_open/wall/0\", \"space/F5_open/wall/11\", \"space/F5_services_s/wall/1\", \"space/F6_open/wall/0\", \"space/F6_open/wall/11\", \"space/F6_services_s/wall/1\", \"space/F7_open/wall/0\", \"space/F7_open/wall/11\", \"space/F7_services_s/wall/1\", \"space/F8_open/wall/15\", \"space/F8_open/wall/2\", \"space/F8_services_s/wall/1\"], \"message\": \"Unknown enclosure remains unresolved and is not treated as open.\"}]}}\n",
+      "stderr": "",
+      "files": {
+        "source_model.json": {
+          "expected_exists": true,
+          "replayed_exists": true,
+          "exact_bytes": true,
+          "expected_sha256": "3659b3da662d7897406c3fef3bca4ecb59592dfaef1c96730423b6151da6de54",
+          "replayed_sha256": "3659b3da662d7897406c3fef3bca4ecb59592dfaef1c96730423b6151da6de54"
+        },
+        "proposal.json": {
+          "expected_exists": true,
+          "replayed_exists": true,
+          "exact_bytes": true,
+          "expected_sha256": "634b17223fb3ead90a07524a16a85e82adf4e75c87cb46f5212b6545dde3ff30",
+          "replayed_sha256": "634b17223fb3ead90a07524a16a85e82adf4e75c87cb46f5212b6545dde3ff30"
+        },
+        "opening_mapping.json": {
+          "expected_exists": true,
+          "replayed_exists": true,
+          "exact_bytes": true,
+          "expected_sha256": "b2b738e54b64fa2395c0f1ce5294638523009355ee1a2dfb8935d938ebdd7d6b",
+          "replayed_sha256": "b2b738e54b64fa2395c0f1ce5294638523009355ee1a2dfb8935d938ebdd7d6b"
+        }
+      },
+      "temporary_directory_removed_after_check": true
+    },
+    "same_height_non_overlap": {
+      "status": "pass",
+      "overlaps": []
+    },
+    "old_window_retention_and_new_openings": {
+      "status": "pass",
+      "comparison_fields": [
+        "id",
+        "kind",
+        "vertices",
+        "space_ids"
+      ],
+      "baseline_window_count": 244,
+      "candidate_window_count": 287,
+      "preserved_window_count": 244,
+      "missing_window_ids": [],
+      "changed_window_ids": [],
+      "added_window_ids": [
+        "attic_attic_corner_01",
+        "attic_attic_corner_02",
+        "attic_attic_corner_03",
+        "attic_west_01",
+        "attic_west_02",
+        "court_long_R01_right_partial",
+        "court_long_R02_right_partial",
+        "court_long_R03_right_partial",
+        "court_long_R04_right_partial",
+        "court_long_R05_right_partial",
+        "court_long_R06_right_partial",
+        "court_short_R05_G03_completed",
+        "court_short_R06_G03_inferred_complete",
+        "ground_west_GW01",
+        "ground_west_GW02",
+        "ground_west_GW03",
+        "ground_west_GW04",
+        "ground_west_GW05",
+        "ground_west_GW06",
+        "ground_west_GW07",
+        "ground_west_GW08",
+        "ground_west_GW09",
+        "ground_west_GW10",
+        "ground_west_GW11",
+        "ground_west_GW12",
+        "north_R01_right_large_01",
+        "north_R01_right_large_02",
+        "north_R02_right_large_01",
+        "north_R02_right_large_02",
+        "north_R03_right_large_01",
+        "north_R03_right_large_02",
+        "north_R04_right_large_01",
+        "north_R04_right_large_02",
+        "north_R05_right_large_01",
+        "north_R05_right_large_02",
+        "north_R06_right_large_01",
+        "north_R06_right_large_02",
+        "west_R01_corner_large",
+        "west_R02_corner_large",
+        "west_R03_corner_large",
+        "west_R04_corner_large",
+        "west_R05_corner_large",
+        "west_R06_corner_large"
+      ],
+      "door_changes_are_reported_but_do_not_fail_window_retention": true,
+      "baseline_door_count": 34,
+      "candidate_door_count": 34,
+      "missing_door_ids": [],
+      "changed_door_ids": [
+        "D_F3_CORE_N",
+        "D_F3_CORE_S",
+        "D_F3_services_n",
+        "D_F3_services_s",
+        "D_F4_CORE_N",
+        "D_F4_CORE_S",
+        "D_F4_services_n",
+        "D_F4_services_s",
+        "D_F5_CORE_N",
+        "D_F5_CORE_S",
+        "D_F5_services_n",
+        "D_F5_services_s",
+        "D_F6_CORE_N",
+        "D_F6_CORE_S",
+        "D_F6_services_n",
+        "D_F6_services_s",
+        "D_F7_CORE_N",
+        "D_F7_CORE_S",
+        "D_F7_services_n",
+        "D_F7_services_s",
+        "D_F8_CORE_N",
+        "D_F8_CORE_S",
+        "D_F8_services_n",
+        "D_F8_services_s"
+      ],
+      "changed_door_details": [
+        {
+          "id": "D_F3_CORE_N",
+          "xy_changed": false,
+          "old_z_m": [
+            8.8,
+            10.9
+          ],
+          "new_z_m": [
+            9.32,
+            11.42
+          ],
+          "old_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "new_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "old_space_ids": [
+            "F3_open",
+            "CORE_N_continuous"
+          ],
+          "new_space_ids": [
+            "F3_open",
+            "CORE_N_continuous"
+          ]
+        },
+        {
+          "id": "D_F3_CORE_S",
+          "xy_changed": false,
+          "old_z_m": [
+            8.8,
+            10.9
+          ],
+          "new_z_m": [
+            9.32,
+            11.42
+          ],
+          "old_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "old_space_ids": [
+            "F3_open",
+            "CORE_S_continuous"
+          ],
+          "new_space_ids": [
+            "F3_open",
+            "CORE_S_continuous"
+          ]
+        },
+        {
+          "id": "D_F3_services_n",
+          "xy_changed": false,
+          "old_z_m": [
+            8.8,
+            10.9
+          ],
+          "new_z_m": [
+            9.32,
+            11.42
+          ],
+          "old_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "new_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "old_space_ids": [
+            "F3_open",
+            "F3_services_n"
+          ],
+          "new_space_ids": [
+            "F3_open",
+            "F3_services_n"
+          ]
+        },
+        {
+          "id": "D_F3_services_s",
+          "xy_changed": false,
+          "old_z_m": [
+            8.8,
+            10.9
+          ],
+          "new_z_m": [
+            9.32,
+            11.42
+          ],
+          "old_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "old_space_ids": [
+            "F3_open",
+            "F3_services_s"
+          ],
+          "new_space_ids": [
+            "F3_open",
+            "F3_services_s"
+          ]
+        },
+        {
+          "id": "D_F4_CORE_N",
+          "xy_changed": false,
+          "old_z_m": [
+            12.0,
+            14.1
+          ],
+          "new_z_m": [
+            12.48,
+            14.58
+          ],
+          "old_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "new_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "old_space_ids": [
+            "F4_open",
+            "CORE_N_continuous"
+          ],
+          "new_space_ids": [
+            "F4_open",
+            "CORE_N_continuous"
+          ]
+        },
+        {
+          "id": "D_F4_CORE_S",
+          "xy_changed": false,
+          "old_z_m": [
+            12.0,
+            14.1
+          ],
+          "new_z_m": [
+            12.48,
+            14.58
+          ],
+          "old_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "old_space_ids": [
+            "F4_open",
+            "CORE_S_continuous"
+          ],
+          "new_space_ids": [
+            "F4_open",
+            "CORE_S_continuous"
+          ]
+        },
+        {
+          "id": "D_F4_services_n",
+          "xy_changed": false,
+          "old_z_m": [
+            12.0,
+            14.1
+          ],
+          "new_z_m": [
+            12.48,
+            14.58
+          ],
+          "old_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "new_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "old_space_ids": [
+            "F4_open",
+            "F4_services_n"
+          ],
+          "new_space_ids": [
+            "F4_open",
+            "F4_services_n"
+          ]
+        },
+        {
+          "id": "D_F4_services_s",
+          "xy_changed": false,
+          "old_z_m": [
+            12.0,
+            14.1
+          ],
+          "new_z_m": [
+            12.48,
+            14.58
+          ],
+          "old_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "old_space_ids": [
+            "F4_open",
+            "F4_services_s"
+          ],
+          "new_space_ids": [
+            "F4_open",
+            "F4_services_s"
+          ]
+        },
+        {
+          "id": "D_F5_CORE_N",
+          "xy_changed": false,
+          "old_z_m": [
+            15.2,
+            17.3
+          ],
+          "new_z_m": [
+            15.63,
+            17.73
+          ],
+          "old_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "new_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "old_space_ids": [
+            "F5_open",
+            "CORE_N_continuous"
+          ],
+          "new_space_ids": [
+            "F5_open",
+            "CORE_N_continuous"
+          ]
+        },
+        {
+          "id": "D_F5_CORE_S",
+          "xy_changed": false,
+          "old_z_m": [
+            15.2,
+            17.3
+          ],
+          "new_z_m": [
+            15.63,
+            17.73
+          ],
+          "old_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "old_space_ids": [
+            "F5_open",
+            "CORE_S_continuous"
+          ],
+          "new_space_ids": [
+            "F5_open",
+            "CORE_S_continuous"
+          ]
+        },
+        {
+          "id": "D_F5_services_n",
+          "xy_changed": false,
+          "old_z_m": [
+            15.2,
+            17.3
+          ],
+          "new_z_m": [
+            15.63,
+            17.73
+          ],
+          "old_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "new_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "old_space_ids": [
+            "F5_open",
+            "F5_services_n"
+          ],
+          "new_space_ids": [
+            "F5_open",
+            "F5_services_n"
+          ]
+        },
+        {
+          "id": "D_F5_services_s",
+          "xy_changed": false,
+          "old_z_m": [
+            15.2,
+            17.3
+          ],
+          "new_z_m": [
+            15.63,
+            17.73
+          ],
+          "old_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "old_space_ids": [
+            "F5_open",
+            "F5_services_s"
+          ],
+          "new_space_ids": [
+            "F5_open",
+            "F5_services_s"
+          ]
+        },
+        {
+          "id": "D_F6_CORE_N",
+          "xy_changed": false,
+          "old_z_m": [
+            18.4,
+            20.5
+          ],
+          "new_z_m": [
+            18.78,
+            20.880000000000003
+          ],
+          "old_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "new_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "old_space_ids": [
+            "F6_open",
+            "CORE_N_continuous"
+          ],
+          "new_space_ids": [
+            "F6_open",
+            "CORE_N_continuous"
+          ]
+        },
+        {
+          "id": "D_F6_CORE_S",
+          "xy_changed": false,
+          "old_z_m": [
+            18.4,
+            20.5
+          ],
+          "new_z_m": [
+            18.78,
+            20.880000000000003
+          ],
+          "old_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "old_space_ids": [
+            "F6_open",
+            "CORE_S_continuous"
+          ],
+          "new_space_ids": [
+            "F6_open",
+            "CORE_S_continuous"
+          ]
+        },
+        {
+          "id": "D_F6_services_n",
+          "xy_changed": false,
+          "old_z_m": [
+            18.4,
+            20.5
+          ],
+          "new_z_m": [
+            18.78,
+            20.880000000000003
+          ],
+          "old_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "new_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "old_space_ids": [
+            "F6_open",
+            "F6_services_n"
+          ],
+          "new_space_ids": [
+            "F6_open",
+            "F6_services_n"
+          ]
+        },
+        {
+          "id": "D_F6_services_s",
+          "xy_changed": false,
+          "old_z_m": [
+            18.4,
+            20.5
+          ],
+          "new_z_m": [
+            18.78,
+            20.880000000000003
+          ],
+          "old_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "old_space_ids": [
+            "F6_open",
+            "F6_services_s"
+          ],
+          "new_space_ids": [
+            "F6_open",
+            "F6_services_s"
+          ]
+        },
+        {
+          "id": "D_F7_CORE_N",
+          "xy_changed": false,
+          "old_z_m": [
+            21.6,
+            23.700000000000003
+          ],
+          "new_z_m": [
+            21.93,
+            24.03
+          ],
+          "old_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "new_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "old_space_ids": [
+            "F7_open",
+            "CORE_N_continuous"
+          ],
+          "new_space_ids": [
+            "F7_open",
+            "CORE_N_continuous"
+          ]
+        },
+        {
+          "id": "D_F7_CORE_S",
+          "xy_changed": false,
+          "old_z_m": [
+            21.6,
+            23.700000000000003
+          ],
+          "new_z_m": [
+            21.93,
+            24.03
+          ],
+          "old_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "old_space_ids": [
+            "F7_open",
+            "CORE_S_continuous"
+          ],
+          "new_space_ids": [
+            "F7_open",
+            "CORE_S_continuous"
+          ]
+        },
+        {
+          "id": "D_F7_services_n",
+          "xy_changed": false,
+          "old_z_m": [
+            21.6,
+            23.700000000000003
+          ],
+          "new_z_m": [
+            21.93,
+            24.03
+          ],
+          "old_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "new_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "old_space_ids": [
+            "F7_open",
+            "F7_services_n"
+          ],
+          "new_space_ids": [
+            "F7_open",
+            "F7_services_n"
+          ]
+        },
+        {
+          "id": "D_F7_services_s",
+          "xy_changed": false,
+          "old_z_m": [
+            21.6,
+            23.700000000000003
+          ],
+          "new_z_m": [
+            21.93,
+            24.03
+          ],
+          "old_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.075,
+              -27.4
+            ],
+            [
+              -2.1250000000000004,
+              -27.4
+            ]
+          ],
+          "old_space_ids": [
+            "F7_open",
+            "F7_services_s"
+          ],
+          "new_space_ids": [
+            "F7_open",
+            "F7_services_s"
+          ]
+        },
+        {
+          "id": "D_F8_CORE_N",
+          "xy_changed": false,
+          "old_z_m": [
+            24.8,
+            26.900000000000002
+          ],
+          "new_z_m": [
+            25.25,
+            27.35
+          ],
+          "old_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "new_xy_m": [
+            [
+              0.8,
+              11.475
+            ],
+            [
+              0.8,
+              12.425
+            ]
+          ],
+          "old_space_ids": [
+            "F8_open",
+            "CORE_N_continuous"
+          ],
+          "new_space_ids": [
+            "F8_open",
+            "CORE_N_continuous"
+          ]
+        },
+        {
+          "id": "D_F8_CORE_S",
+          "xy_changed": false,
+          "old_z_m": [
+            24.8,
+            26.900000000000002
+          ],
+          "new_z_m": [
+            25.25,
+            27.35
+          ],
+          "old_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.275,
+              -23.7
+            ],
+            [
+              -2.325,
+              -23.7
+            ]
+          ],
+          "old_space_ids": [
+            "F8_open",
+            "CORE_S_continuous"
+          ],
+          "new_space_ids": [
+            "F8_open",
+            "CORE_S_continuous"
+          ]
+        },
+        {
+          "id": "D_F8_services_n",
+          "xy_changed": true,
+          "old_z_m": [
+            24.8,
+            26.900000000000002
+          ],
+          "new_z_m": [
+            25.25,
+            27.35
+          ],
+          "old_xy_m": [
+            [
+              9.0,
+              10.625
+            ],
+            [
+              9.0,
+              11.575000000000001
+            ]
+          ],
+          "new_xy_m": [
+            [
+              6.325,
+              13.4
+            ],
+            [
+              7.275,
+              13.4
+            ]
+          ],
+          "old_space_ids": [
+            "F8_open",
+            "F8_services_n"
+          ],
+          "new_space_ids": [
+            "F8_open",
+            "F8_services_n"
+          ]
+        },
+        {
+          "id": "D_F8_services_s",
+          "xy_changed": false,
+          "old_z_m": [
+            24.8,
+            26.900000000000002
+          ],
+          "new_z_m": [
+            25.25,
+            27.35
+          ],
+          "old_xy_m": [
+            [
+              -3.525,
+              -27.4
+            ],
+            [
+              -2.5749999999999997,
+              -27.4
+            ]
+          ],
+          "new_xy_m": [
+            [
+              -3.525,
+              -27.4
+            ],
+            [
+              -2.5749999999999997,
+              -27.4
+            ]
+          ],
+          "old_space_ids": [
+            "F8_open",
+            "F8_services_s"
+          ],
+          "new_space_ids": [
+            "F8_open",
+            "F8_services_s"
+          ]
+        }
+      ],
+      "added_door_ids": []
+    },
+    "proposal_opening_account": {
+      "status": "pass",
+      "input_aperture_observation_count": 258,
+      "case_plan_additional_opening_count": 29,
+      "declared_count": 321,
+      "built_count": 321,
+      "mapping_count": 287,
+      "declared_but_not_built": [],
+      "built_but_not_declared": [],
+      "declared_windows_without_mapping": [],
+      "unexpected_mapping_ids": [],
+      "expected_observations_without_mapping": [],
+      "mapping_ids_without_input_observation": [],
+      "unbuilt_openings": []
+    },
+    "declared_door_graph": {
+      "status": "pass",
+      "door_opening_ids_used": [
+        "D_F1_CORE_N",
+        "D_F1_CORE_S",
+        "D_F1_services_n",
+        "D_F1_services_s",
+        "D_F2_CORE_N",
+        "D_F2_CORE_S",
+        "D_F2_services_n",
+        "D_F2_services_s",
+        "D_F3_CORE_N",
+        "D_F3_CORE_S",
+        "D_F3_services_n",
+        "D_F3_services_s",
+        "D_F4_CORE_N",
+        "D_F4_CORE_S",
+        "D_F4_services_n",
+        "D_F4_services_s",
+        "D_F5_CORE_N",
+        "D_F5_CORE_S",
+        "D_F5_services_n",
+        "D_F5_services_s",
+        "D_F6_CORE_N",
+        "D_F6_CORE_S",
+        "D_F6_services_n",
+        "D_F6_services_s",
+        "D_F7_CORE_N",
+        "D_F7_CORE_S",
+        "D_F7_services_n",
+        "D_F7_services_s",
+        "D_F8_CORE_N",
+        "D_F8_CORE_S",
+        "D_F8_services_n",
+        "D_F8_services_s",
+        "D_entry_annex",
+        "D_entry_west"
+      ],
+      "usable_space_count": 27,
+      "unreachable_usable_space_ids": [],
+      "roof_spaces_excluded_from_door_requirement": [
+        "ROOF_N_BASE_enclosure",
+        "ROOF_N_enclosure",
+        "ROOF_STACK_enclosure",
+        "ROOF_S_enclosure",
+        "ROOF_enclosure"
+      ],
+      "interpretation": "Declared partly inferred door graph only; not real-plan evidence."
+    },
+    "continuous_cores": {
+      "status": "pass",
+      "expected_core_ids_from_baseline": [
+        "CORE_N_continuous",
+        "CORE_S_continuous"
+      ],
+      "cores": [
+        {
+          "core_space_id": "CORE_N_continuous",
+          "space_exists": true,
+          "horizontal_boundary_ids": [
+            "space/CORE_N_continuous/ceiling",
+            "space/CORE_N_continuous/floor"
+          ],
+          "horizontal_boundary_z_values_m": [
+            0.0,
+            27.8
+          ],
+          "only_bottom_and_top_horizontal_boundaries": true,
+          "referenced_by_main_storeys": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8"
+          ],
+          "storey_connection_doors": {
+            "F1": [
+              "D_F1_CORE_N"
+            ],
+            "F2": [
+              "D_F2_CORE_N"
+            ],
+            "F3": [
+              "D_F3_CORE_N"
+            ],
+            "F4": [
+              "D_F4_CORE_N"
+            ],
+            "F5": [
+              "D_F5_CORE_N"
+            ],
+            "F6": [
+              "D_F6_CORE_N"
+            ],
+            "F7": [
+              "D_F7_CORE_N"
+            ],
+            "F8": [
+              "D_F8_CORE_N"
+            ]
+          },
+          "status": "pass"
+        },
+        {
+          "core_space_id": "CORE_S_continuous",
+          "space_exists": true,
+          "horizontal_boundary_ids": [
+            "space/CORE_S_continuous/ceiling",
+            "space/CORE_S_continuous/floor"
+          ],
+          "horizontal_boundary_z_values_m": [
+            0.0,
+            27.8
+          ],
+          "only_bottom_and_top_horizontal_boundaries": true,
+          "referenced_by_main_storeys": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8"
+          ],
+          "storey_connection_doors": {
+            "F1": [
+              "D_F1_CORE_S"
+            ],
+            "F2": [
+              "D_F2_CORE_S"
+            ],
+            "F3": [
+              "D_F3_CORE_S"
+            ],
+            "F4": [
+              "D_F4_CORE_S"
+            ],
+            "F5": [
+              "D_F5_CORE_S"
+            ],
+            "F6": [
+              "D_F6_CORE_S"
+            ],
+            "F7": [
+              "D_F7_CORE_S"
+            ],
+            "F8": [
+              "D_F8_CORE_S"
+            ]
+          },
+          "status": "pass"
+        }
+      ]
+    },
+    "roof_horizontal_interfaces": {
+      "status": "pass",
+      "roof_space_ids": [
+        "ROOF_N_BASE_enclosure",
+        "ROOF_N_enclosure",
+        "ROOF_STACK_enclosure",
+        "ROOF_S_enclosure",
+        "ROOF_enclosure"
+      ],
+      "roof_to_roof_shared_pairs": [
+        {
+          "lower_space_id": "ROOF_N_BASE_enclosure",
+          "upper_space_id": "ROOF_N_enclosure",
+          "z_m": 31.0,
+          "shared_area_m2": 65.0
+        },
+        {
+          "lower_space_id": "ROOF_S_enclosure",
+          "upper_space_id": "ROOF_STACK_enclosure",
+          "z_m": 31.6,
+          "shared_area_m2": 3.299999999999999
+        },
+        {
+          "lower_space_id": "ROOF_enclosure",
+          "upper_space_id": "ROOF_N_BASE_enclosure",
+          "z_m": 28.6,
+          "shared_area_m2": 217.77000000000004
+        },
+        {
+          "lower_space_id": "ROOF_enclosure",
+          "upper_space_id": "ROOF_S_enclosure",
+          "z_m": 28.6,
+          "shared_area_m2": 67.76
+        }
+      ],
+      "roof_open_interface_sides": [
+        {
+          "space_id": "ROOF_N_BASE_enclosure",
+          "boundary_id": "space/ROOF_N_BASE_enclosure/ceiling",
+          "geometry_type": "ceiling",
+          "z_m": 31.0,
+          "expected_shared_open_area_m2": 65.0,
+          "declared_open_area_m2": 65.0,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "mixed",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_N_enclosure",
+          "boundary_id": "space/ROOF_N_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 31.0,
+          "expected_shared_open_area_m2": 65.0,
+          "declared_open_area_m2": 65.0,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_S_enclosure",
+          "boundary_id": "space/ROOF_S_enclosure/ceiling",
+          "geometry_type": "ceiling",
+          "z_m": 31.6,
+          "expected_shared_open_area_m2": 3.299999999999999,
+          "declared_open_area_m2": 3.299999999999999,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "mixed",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_STACK_enclosure",
+          "boundary_id": "space/ROOF_STACK_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 31.6,
+          "expected_shared_open_area_m2": 3.299999999999999,
+          "declared_open_area_m2": 3.299999999999999,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_enclosure",
+          "boundary_id": "space/ROOF_enclosure/ceiling",
+          "geometry_type": "ceiling",
+          "z_m": 28.6,
+          "expected_shared_open_area_m2": 285.53000000000003,
+          "declared_open_area_m2": 285.53000000000003,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "mixed",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_N_BASE_enclosure",
+          "boundary_id": "space/ROOF_N_BASE_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 28.6,
+          "expected_shared_open_area_m2": 217.77000000000004,
+          "declared_open_area_m2": 217.77,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_S_enclosure",
+          "boundary_id": "space/ROOF_S_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 28.6,
+          "expected_shared_open_area_m2": 67.76,
+          "declared_open_area_m2": 67.76,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        }
+      ],
+      "main_to_roof_physical_slab_hypothesis_contacts": [
+        {
+          "main_space_id": "CORE_N_continuous",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 16.72,
+          "main_boundary_id": "space/CORE_N_continuous/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "CORE_S_continuous",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 7.280000000000005,
+          "main_boundary_id": "space/CORE_S_continuous/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_open",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 764.6400000000002,
+          "main_boundary_id": "space/F8_open/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_services_n",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 8.210000000000004,
+          "main_boundary_id": "space/F8_services_n/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_services_s",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 14.549999999999994,
+          "main_boundary_id": "space/F8_services_s/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        }
+      ],
+      "interpretation": "Roof-volume contacts must be open on both source sides and absent from physical display parts; exposed roof outside those contacts remains physical. Main-storey-to-roof contacts remain the explicitly inferred physical slab."
+    },
+    "result_links": {
+      "status": "pass",
+      "links": [
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "overlay.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/overlay.html",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "observations.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/observations.html",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../candidate_04/source_model.json",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/candidate_04/source_model.json",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../candidate_04/report.json",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/candidate_04/report.json",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../README.md",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/README.md",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "iframe",
+          "target": "overlay.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/overlay.html",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_top.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_top.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_top.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_top.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_street.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_street.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_street.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_street.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_courtyard.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_courtyard.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_courtyard.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_courtyard.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_west.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_west.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_west.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_west.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_north.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_north.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_north.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_north.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_court_long.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_court_long.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_court_long.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_court_long.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_court_short.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_court_short.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_court_short.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/primary_court_short.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/roof_west.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_west.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/roof_west.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_west.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/roof_north.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_north.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/roof_north.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_north.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/roof_court_short.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_court_short.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/roof_court_short.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_court_short.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/roof_south_box.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_south_box.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/roof_south_box.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_south_box.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/roof_top.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_top.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/roof_top.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_top.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/roof_raw_sections.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_raw_sections.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/roof_raw_sections.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/roof_raw_sections.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_2.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_2.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_2.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_2.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_10.4.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_10.4.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_10.4.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_10.4.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_26.3.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_26.3.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_26.3.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_26.3.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_28.2.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_28.2.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_28.2.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_28.2.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_29.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_29.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_29.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_29.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_30.1.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_30.1.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_30.1.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_30.1.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_31.55.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_31.55.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_31.55.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_31.55.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_32.9.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_32.9.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_32.9.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/feedback/section_32.9.png",
+          "exists": true
+        }
+      ]
+    },
+    "offline_browser": {
+      "status": "pass",
+      "source_hash": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+      "modes": {
+        "input": {
+          "rawVisible": true,
+          "bimVisible": false,
+          "sourceHash": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb"
+        },
+        "overlay": {
+          "rawVisible": true,
+          "bimVisible": true,
+          "sourceHash": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb"
+        },
+        "bim": {
+          "rawVisible": false,
+          "bimVisible": true,
+          "sourceHash": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb"
+        }
+      },
+      "rotation_verified": true,
+      "floor_selection_exercised": true,
+      "exploded_view_exercised": true,
+      "frame_vertex_mapping_verified": true,
+      "verified_input_vertices": 8242,
+      "maximum_allowed_absolute_error_m": 3e-06,
+      "observation_image_count": 21,
+      "expected_observation_image_count": 21,
+      "all_observation_images_loaded": true,
+      "errors": [],
+      "external_requests": [],
+      "screenshots": [
+        "bim.png",
+        "input.png",
+        "observations.png",
+        "overlay.png",
+        "rotated_floor.png"
+      ]
+    },
+    "fixed_mesh_diagnostic": {
+      "status": "pass",
+      "interpretation": "Reused 09-15 one-way diagnostic on the same fixed original faces; not ground truth and not a completeness metric.",
+      "baseline": {
+        "summary": {
+          "candidate": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/candidate_02",
+          "source_model_sha256": "5a1357c70de581715bd12373345d966803794813dfd519b5d9f2c6fc2dc9397f",
+          "mesh_frame": {
+            "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+            "reason": "Area-weighted orthogonal direction family from original mesh, disambiguated by developer inspection of asymmetric whole L shape. Approximate frame, not survey truth.",
+            "source_refs": [
+              "evidence_01/direction.json",
+              "evidence_01/top.png"
+            ],
+            "translation_m": [
+              0,
+              0,
+              0
+            ],
+            "yaw_degrees": 14.887066917997172
+          },
+          "fixed_face_count": 2090,
+          "fixed_surface_area_m2": 1817.8242629875008,
+          "one_way_area_weighted_distance_m": {
+            "mean": 0.0695398023349886,
+            "q50": 0.03383366387675545,
+            "q90": 0.1826329512025852,
+            "q95": 0.2600533778063699,
+            "maximum": 1.5028068307757148
+          },
+          "area_weighted_axis_difference_degrees": {
+            "mean": 4.541519851201113,
+            "q50": 2.066888911429338,
+            "q90": 9.151070660516572,
+            "q95": 13.843110040829869,
+            "maximum": 89.77931784760662
+          }
+        }
+      },
+      "candidate": {
+        "summary": {
+          "candidate": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/candidate_04",
+          "source_model_sha256": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+          "mesh_frame": {
+            "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+            "reason": "Area-weighted orthogonal direction family from original mesh, disambiguated by developer inspection of asymmetric whole L shape. Approximate frame, not survey truth.",
+            "source_refs": [
+              "evidence_01/direction.json",
+              "evidence_01/top.png"
+            ],
+            "translation_m": [
+              0,
+              0,
+              0
+            ],
+            "yaw_degrees": 14.887066917997172
+          },
+          "fixed_face_count": 2090,
+          "fixed_surface_area_m2": 1817.8242629875008,
+          "one_way_area_weighted_distance_m": {
+            "mean": 0.0695398023349886,
+            "q50": 0.03383366387675545,
+            "q90": 0.1826329512025852,
+            "q95": 0.2600533778063699,
+            "maximum": 1.5028068307757148
+          },
+          "area_weighted_axis_difference_degrees": {
+            "mean": 4.541519851201113,
+            "q50": 2.066888911429338,
+            "q90": 9.151070660516572,
+            "q95": 13.843110040829869,
+            "maximum": 89.77931784760662
+          }
+        }
+      },
+      "face_detail_artifact": {
+        "path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/validation/candidate_04_mesh_faces.json",
+        "sha256": "bfbeb2ed474ad292b1e2c212452b8cc555d0f4725e2278b49dcdfdc70d46ff72"
+      }
+    }
+  },
+  "claims": {
+    "old_candidate_used_only_after_generation_for_comparison": true,
+    "interior_scheme_is_inferred_not_measured": true,
+    "browser_transport_is_not_visual_fidelity": true,
+    "fidelity_pass_claimed": false
+  },
+  "evidence_reuse": {
+    "previous_report": "candidate_04_validation_before_readme.json",
+    "reused_passed_checks": [
+      "source_export_replay",
+      "frozen_assembly_replay",
+      "same_height_non_overlap",
+      "proposal_opening_account",
+      "declared_door_graph",
+      "continuous_cores",
+      "roof_horizontal_interfaces",
+      "offline_browser"
+    ],
+    "recomputed_checks": [
+      "result_links",
+      "old_window_retention_and_new_openings"
+    ],
+    "reason": "README was added after the actual browser and assembly run; final title-only wording was updated without changing source/display geometry.",
+    "browser_not_repeated": true,
+    "assembly_not_repeated": true
+  }
+}
