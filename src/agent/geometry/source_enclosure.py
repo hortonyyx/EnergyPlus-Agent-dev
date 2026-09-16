@@ -69,23 +69,51 @@ def _vertices(value, *, target: str) -> list[list[float]]:
 
 
 def _axis_aligned(shape: Polygon) -> bool:
-    points = list(shape.exterior.coords)
-    return all(abs(a[0] - b[0]) <= EPS or abs(a[1] - b[1]) <= EPS
-               for a, b in zip(points, points[1:]))
+    rings = [shape.exterior, *shape.interiors]
+    return all(
+        abs(a[0] - b[0]) <= EPS or abs(a[1] - b[1]) <= EPS
+        for ring in rings
+        for a, b in zip(ring.coords, list(ring.coords)[1:])
+    )
 
 
-def _wall_frame(boundary: dict):
+def _boundary_frame(boundary: dict):
+    """Return projection/lift functions for one supported source plane.
+
+    Wall coordinates remain ``(distance along wall, z)``.  Horizontal floor
+    and ceiling coordinates are their world ``(x, y)`` values, so applying an
+    enclosure declaration never changes or closes the logical source volume.
+    """
     vertices = boundary["vertices"]
-    if boundary.get("geometry_type") != "wall":
-        _fail(f"boundary {boundary.get('id')}: horizontal floor/ceiling openings are not supported")
-    if len(vertices) < 4:
-        _fail(f"boundary {boundary.get('id')}: wall must have a complete vertical parent polygon")
-    origin = vertices[0][:2]
-    direction, _ = _frame(origin, vertices[1][:2])
-    parent = _on_wall(vertices, _DictBoundary(boundary))
+    geometry_type = boundary.get("geometry_type")
+    if geometry_type == "wall":
+        if len(vertices) < 4:
+            _fail(f"boundary {boundary.get('id')}: wall must have a complete vertical parent polygon")
+        origin = vertices[0][:2]
+        direction, _ = _frame(origin, vertices[1][:2])
+        project = lambda ring: _on_wall(ring, _DictBoundary(boundary))
+        lift = lambda ring: _lift(list(ring), origin, direction)
+        plane_name = "wall"
+    elif geometry_type in {"floor", "ceiling"}:
+        if len(vertices) < 3:
+            _fail(f"boundary {boundary.get('id')}: floor/ceiling must have a complete horizontal parent polygon")
+        z = vertices[0][2]
+
+        def project(ring):
+            if (len(ring) < 3 or
+                    any(abs(point[2] - z) > EPS for point in ring)):
+                return None
+            return Polygon([point[:2] for point in ring])
+
+        lift = lambda ring: [[x, y, z] for x, y in ring]
+        plane_name = "floor/ceiling"
+    else:
+        _fail(f"boundary {boundary.get('id')}: unsupported geometry type {geometry_type!r}")
+
+    parent = project(vertices)
     if parent is None or not parent.is_valid or parent.area <= EPS ** 2 or not _axis_aligned(parent):
-        _fail(f"boundary {boundary.get('id')}: only vertical orthogonal wall planes are supported")
-    return origin, direction, parent
+        _fail(f"boundary {boundary.get('id')}: only orthogonal {plane_name} planes are supported")
+    return {"project": project, "lift": lift, "parent": parent, "plane_name": plane_name}
 
 
 class _DictBoundary:
@@ -95,38 +123,38 @@ class _DictBoundary:
         self.vertices = row["vertices"]
 
 
-def _shape_from_vertices(vertices: list[list[float]], boundary: dict, parent: Polygon, *, target: str) -> Polygon:
-    shape = _on_wall(vertices, _DictBoundary(boundary))
+def _shape_from_vertices(vertices: list[list[float]], frame: dict, *, target: str) -> Polygon:
+    shape = frame["project"](vertices)
     if shape is None or not shape.is_valid or shape.area <= EPS ** 2:
-        _fail(f"{target}: vertices must form a nonempty planar polygon on its source wall")
+        _fail(f"{target}: vertices must form a nonempty planar polygon on its source {frame['plane_name']}")
     if not _axis_aligned(shape):
-        _fail(f"{target}: only orthogonal wall-plane regions are supported")
-    if not parent.buffer(EPS).covers(shape):
+        _fail(f"{target}: only orthogonal {frame['plane_name']}-plane regions are supported")
+    if not frame["parent"].buffer(EPS).covers(shape):
         _fail(f"{target}: region lies outside its source boundary")
     return shape
 
 
-def _lift_shape(shape, origin, direction):
-    """Turn a local wall polygon into its world-coordinate representation."""
+def _lift_shape(shape, frame):
+    """Turn a local boundary polygon into its world-coordinate representation."""
     rows = []
     for part in _parts(shape):
         rows.append({
-            "vertices": [list(point) for point in _lift(list(part.exterior.coords)[:-1], origin, direction)],
-            "holes": [[list(point) for point in _lift(list(ring.coords)[:-1], origin, direction)]
+            "vertices": [list(point) for point in frame["lift"](list(part.exterior.coords)[:-1])],
+            "holes": [[list(point) for point in frame["lift"](list(ring.coords)[:-1])]
                       for ring in part.interiors],
         })
     return rows
 
 
-def _opening_shapes(source: dict, boundary: dict, parent: Polygon) -> list[Polygon]:
+def _opening_shapes(source: dict, boundary: dict, frame: dict) -> list[Polygon]:
     bid = boundary["id"]
     hosts = source.get("opening_hosts", {})
     result = []
     for opening in source.get("openings", []):
         if bid not in hosts.get(opening.get("id"), [opening.get("host_boundary_id")]):
             continue
-        shape = _on_wall(opening["vertices"], _DictBoundary(boundary))
-        if shape is None or not parent.buffer(EPS).covers(shape):
+        shape = frame["project"](opening["vertices"])
+        if shape is None or not frame["parent"].buffer(EPS).covers(shape):
             _fail(f"boundary {bid}: source opening {opening.get('id')} lacks a valid host polygon")
         result.append(shape)
     return result
@@ -155,14 +183,15 @@ def _declared_open_shapes(entries: list[dict]):
     return unary_union([entry["shape"] for entry in entries if entry["condition"] == "open"])
 
 
-def _map_wall_part(part: Polygon, origin, direction, other: dict) -> tuple[dict, Polygon]:
-    """Map one wall-plane polygon, including its holes, to a counterpart wall."""
-    rows = _lift_shape(part, origin, direction)
+def _map_boundary_part(part: Polygon, frame: dict, other: dict) -> tuple[dict, Polygon]:
+    """Map one planar polygon, including its holes, to a counterpart boundary."""
+    rows = _lift_shape(part, frame)
     if len(rows) != 1:
         _fail(f"boundary {other['id']}: unable to preserve shared-region geometry")
     row = rows[0]
-    exterior = _on_wall(row["vertices"], _DictBoundary(other))
-    holes = [_on_wall(ring, _DictBoundary(other)) for ring in row["holes"]]
+    other_frame = _boundary_frame(other)
+    exterior = other_frame["project"](row["vertices"])
+    holes = [other_frame["project"](ring) for ring in row["holes"]]
     if exterior is None or any(hole is None for hole in holes):
         _fail(f"boundary {other['id']}: counterpart does not share the declared open plane")
     mapped = Polygon(list(exterior.exterior.coords), [list(hole.exterior.coords) for hole in holes])
@@ -184,7 +213,7 @@ def _validate_reciprocal_openings(source: dict, entries_by_boundary: dict[str, l
         if open_shape.is_empty:
             continue
         boundary = boundaries[bid]
-        origin, direction, _ = _wall_frame(boundary)
+        frame = _boundary_frame(boundary)
         contact_shapes = []
         for other_id, regions in _relation_regions(source, bid):
             other = boundaries.get(other_id)
@@ -192,17 +221,24 @@ def _validate_reciprocal_openings(source: dict, entries_by_boundary: dict[str, l
                 _fail(f"boundary {bid}: relation names unknown counterpart {other_id}")
             other_open = _declared_open_shapes(entries_by_boundary.get(other_id, []))
             for region in regions:
-                patch = _on_wall(region.get("vertices", []), _DictBoundary(boundary))
-                if patch is None or not patch.is_valid:
+                exterior = frame["project"](region.get("vertices", []))
+                holes = [frame["project"](ring) for ring in region.get("holes", [])]
+                if exterior is None or any(hole is None for hole in holes):
+                    _fail(f"boundary {bid}: relation contains invalid contact geometry")
+                patch = Polygon(
+                    list(exterior.exterior.coords),
+                    [list(hole.exterior.coords) for hole in holes],
+                )
+                if not patch.is_valid or patch.area <= EPS ** 2 or not _axis_aligned(patch):
                     _fail(f"boundary {bid}: relation contains invalid contact geometry")
                 contact_shapes.append(patch)
                 shared_open = open_shape.intersection(patch)
                 for part in _parts(shared_open):
                     # Map the exact overlap through world coordinates before
-                    # checking the counterpart's declared local-wall polygon.
+                    # checking the counterpart's declared local-plane polygon.
                     # A union of separate partial regions can contain an inner
-                    # ring; that hole is real physical wall and must survive.
-                    world, other_part = _map_wall_part(part, origin, direction, other)
+                    # ring; that hole is real physical enclosure and must survive.
+                    world, other_part = _map_boundary_part(part, frame, other)
                     if not other_open.buffer(EPS).covers(other_part):
                         _fail(
                             f"boundary {bid}: open shared region requires matching open declaration on {other_id}"
@@ -216,7 +252,7 @@ def _validate_reciprocal_openings(source: dict, entries_by_boundary: dict[str, l
                     })
         contacts = unary_union(contact_shapes) if contact_shapes else Polygon()
         exterior = open_shape.difference(contacts)
-        for row in _lift_shape(exterior, origin, direction):
+        for row in _lift_shape(exterior, frame):
             connections.append({
                 "boundary_id": bid,
                 "space_ids": [boundary["space_id"]],
@@ -289,7 +325,7 @@ def apply_source_enclosure(base_source: dict, declaration: dict | None) -> dict:
         boundary = boundaries.get(bid)
         if boundary is None:
             _fail(f"{target}: names unknown boundary {bid}")
-        origin, direction, parent = _wall_frame(boundary)
+        frame = _boundary_frame(boundary)
         condition = row.get("condition")
         if condition not in _CONDITIONS:
             _fail(f"boundary {bid}: condition must be open or unknown")
@@ -302,17 +338,17 @@ def apply_source_enclosure(base_source: dict, declaration: dict | None) -> dict:
             if supplied is None:
                 _fail(f"boundary {bid}: partial declaration requires vertices")
             vertices = _vertices(supplied, target=f"boundary {bid}")
-            shape = _shape_from_vertices(vertices, boundary, parent, target=f"boundary {bid}")
-            if parent.symmetric_difference(shape).area <= EPS ** 2:
+            shape = _shape_from_vertices(vertices, frame, target=f"boundary {bid}")
+            if frame["parent"].symmetric_difference(shape).area <= EPS ** 2:
                 _fail(f"boundary {bid}: a full-parent region must use scope whole")
         else:
             if supplied is not None:
                 vertices = _vertices(supplied, target=f"boundary {bid}")
-                shape = _shape_from_vertices(vertices, boundary, parent, target=f"boundary {bid}")
-                if parent.symmetric_difference(shape).area > EPS ** 2:
+                shape = _shape_from_vertices(vertices, frame, target=f"boundary {bid}")
+                if frame["parent"].symmetric_difference(shape).area > EPS ** 2:
                     _fail(f"boundary {bid}: whole declaration vertices must equal its full parent boundary")
             vertices = copy.deepcopy(boundary["vertices"])
-            shape = parent
+            shape = frame["parent"]
         entries_by_boundary[bid].append({"boundary_id": bid, "condition": condition, "scope": scope,
                                          "vertices": vertices, "shape": shape, **evidence})
 
@@ -327,8 +363,8 @@ def apply_source_enclosure(base_source: dict, declaration: dict | None) -> dict:
                 if left["shape"].intersection(right["shape"]).area > EPS ** 2:
                     _fail(f"boundary {bid}: enclosure regions overlap")
         boundary = boundaries[bid]
-        _origin, _direction, parent = _wall_frame(boundary)
-        opening_shapes = _opening_shapes(result, boundary, parent)
+        frame = _boundary_frame(boundary)
+        opening_shapes = _opening_shapes(result, boundary, frame)
         for entry in entries:
             for opening in opening_shapes:
                 if entry["shape"].intersection(opening).area > EPS ** 2:

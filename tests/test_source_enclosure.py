@@ -159,7 +159,7 @@ def test_unknown_is_visible_in_schema_and_preserves_base_severe_findings():
     }
 
 
-def test_rejects_stale_digest_opening_overlap_and_floor_hole():
+def test_rejects_stale_digest_and_opening_overlap():
     source = _source()
     stale = _declaration(source, spaces=[{"space_id": "a", "enclosure": "open", **_evidence()}])
     stale["base_source_model_sha256"] = "0" * 64
@@ -180,13 +180,6 @@ def test_rejects_stale_digest_opening_overlap_and_floor_hole():
         apply_source_enclosure(window_source, _declaration(
             window_source, boundaries=[{"boundary_id": exterior["id"], "condition": "open", "scope": "whole", **_evidence()}],
         ))
-
-    floor = next(b for b in source["boundaries"] if b["geometry_type"] == "floor")
-    with pytest.raises(ValueError, match="floor/ceiling"):
-        apply_source_enclosure(source, _declaration(
-            source, boundaries=[{"boundary_id": floor["id"], "condition": "open", "scope": "whole", **_evidence()}],
-        ))
-
 
 def test_rejects_non_coplanar_outside_and_overlapping_partial_regions():
     source = _source()
