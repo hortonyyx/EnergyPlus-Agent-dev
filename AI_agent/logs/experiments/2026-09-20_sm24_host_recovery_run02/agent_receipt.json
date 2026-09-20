@@ -1,0 +1,83 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1200,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 576.51,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 571658,
+    "duration_api_ms": 568256,
+    "ttft_ms": 4337,
+    "ttft_stream_ms": 4330,
+    "time_to_request_ms": 26,
+    "num_turns": 26,
+    "result": "## Summary\n\n**Selected candidate: `candidate_01`**\n\n### What happened and what I did\n1. **Reproduced the failure**: Submitted the imported pixel-plan declaration unchanged. It failed at `ED1_door` (declared at x=611, y=358–416 on the East wall) with \"no host found.\"\n\n2. **Investigated the East facade**: Direct pixel evidence (`pixel_profile` gray-wall-fill scans at x=600–620, y=151–878) showed the actual gray/gap pattern on the East wall did **not** match the declared opening positions at all. The declared door sat inside what is actually continuous glazed wall, while a real door-swing-arc symbol with 1600mm clear width was located much further south (y≈613–671px), and three separate window bands existed elsewhere.\n\n3. **Corrected via the East elevation**: The East_view.png dimension chain (5700+1600+1540+4800+740+1200+2380+1500+540=20000mm) matches the wall pixel gaps **only** when read **south-to-north** (the previous draft had assumed north-to-south, i.e. corner orientation was inverted). All 8 boundary predictions from this reading matched measured pixel boundaries to within 1px, giving strong convergent evidence:\n   - `ED1_door`: y=613–671 (was wrongly 358–416), 1600mm wide, z=[0,2.4]\n   - `EW1_window`: y=382–557 (was wrongly 472–646), 4800mm wide, z=[1.0,3.4] (head confirmed by \"1100\" lintel label ⇒ 4500-1100=3400mm)\n   - `EW2_window`: y=311–355 (was wrongly 673–717), 1200mm wide, z=[1.0,2.8] (head confirmed by \"1700\" label ⇒ 2800mm)\n   - `EW3_window`: y=170–225 (was wrongly 803–857), 1500mm wide, z=[1.0,2.8]\n\n4. **Preserved everything else unchanged**: footprint, calibration, interior partitions, and North/South/West facade openings were kept exactly as in the imported declaration, per scope. The corrected East openings landed on valid hosts without requiring any change to preserved interior partitions (P5/P6b junctions still fall on solid wall segments) — no conflict arose.\n\n5. **Verified**: Rebuilt successfully (candidate_01, 7 spaces, 20 openings, 0 unbuilt), overlaid against the original plan image (openings align with cyan bands/arc), and checked the East elevation view — shape/order (door, then large window, then two small windows heading north) matches East_view.png exactly. `check_openings` confirms all 4 East openings now classify correctly to the East facade.\n\n### Honest unresolved limitations (carried forward, not fixed this run)\n- **West facade** opening heights are still only assumed equal to the North pattern (sill 1.0/head 3.4m) — not independently re-measured this run (out of scope).\n- **North/South facade** opening positions/partitions and the merged \"corridor + SE open office\" room simplification, plus the omitted wall fragment near x440–560,y698, are all inherited unresolved items from the prior draft, unexamined this run.\n- Calibration (anchors) was caller-supplied and not independently re-derived.\n- No claim of whole-building fidelity — only the East facade was the bounded subject of this recovery.",
+    "stop_reason": "end_turn",
+    "session_id": "0871e628-753c-4f72-a47d-6832b13649db",
+    "total_cost_usd": 1.3155136,
+    "usage": {
+      "input_tokens": 44,
+      "cache_creation_input_tokens": 99005,
+      "cache_read_input_tokens": 1028292,
+      "output_tokens": 27459,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 99005,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1138,
+          "cache_read_input_tokens": 99923,
+          "cache_creation_input_tokens": 10344,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 10344
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 899,
+        "outputTokens": 16,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0009789999999999998,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 44,
+        "outputTokens": 27459,
+        "cacheReadInputTokens": 1028292,
+        "cacheCreationInputTokens": 99005,
+        "webSearchRequests": 0,
+        "costUSD": 1.3145346,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "a6d75c2c-03f5-47b4-973e-1684cf2e9828"
+  }
+}

@@ -1,0 +1,576 @@
+{
+  "schema_version": "saved_plan_recovery_audit_v1",
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_host_recovery_run02",
+  "checks_exclude_gt": true,
+  "provenance": {
+    "input_mode": "saved_plan_recovery",
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/plan_drafts/draft_003/plan.json",
+    "source_exists": true,
+    "frozen_path": "resume_plan.json",
+    "frozen_sha256": "5dbc948e148c55737df9dc894dd81f7ca882cee17892d5b3407227ac382f3f8e",
+    "frozen_matches_manifest_sha": true,
+    "frozen_matches_original_bytes": true,
+    "declaration_matches_frozen": true,
+    "image": "1f_view.png",
+    "image_matches_manifest_sha": true
+  },
+  "first_build": {
+    "available": true,
+    "checks": {
+      "first_draft_plan": "plan_drafts/draft_001/plan.json",
+      "first_draft_structurally_equals_frozen": true,
+      "first_draft_sha_matches_record": true,
+      "saved_result_equals_tool_log": true,
+      "status": "error",
+      "error": "opening ED1_door at pixels [611.0, 358.0] -> [611.0, 416.0] requires one exterior or two interior full-boundary hosts; found []",
+      "original_error": "opening ED1_door at pixels [611.0, 358.0] -> [611.0, 416.0] requires one exterior or two interior full-boundary hosts; found []",
+      "original_host_error_reproduced": true,
+      "mcp_tool_use_id": "toolu_01GhVuy1EjQb7PAVBuFAP89F",
+      "mcp_request_plan_structurally_equals_frozen": true,
+      "mcp_result_linked_by_tool_use_id": true,
+      "mcp_image_count": 2,
+      "mcp_text_error_matches_saved": true,
+      "mcp_inline_host_metadata": true,
+      "host_metadata_equals_sidecar": true,
+      "host_image_sha_matches_record": true,
+      "metadata_plan_and_image_sha_match": true,
+      "full_opening_preserved_in_metadata": true,
+      "clean_panel_is_original_crop_nearest": true,
+      "mcp_local_image_matches_saved_pixels": true,
+      "mcp_local_image_matches_saved_bytes": true
+    }
+  },
+  "final_candidate": {
+    "candidate": "candidate_01",
+    "complete_geometry_check": true,
+    "plan_file": "plan_drafts/draft_002/plan.json",
+    "candidate_plan_sha_matches_report": true,
+    "plan_was_submitted_by_build_plan_bim": true,
+    "fixed_fields_unchanged": {
+      "floor_id": true,
+      "z_floor": true,
+      "ceiling_height": true,
+      "x_anchors": true,
+      "y_anchors": true,
+      "footprint_pixels": true
+    },
+    "interior_partitions": {
+      "added": {},
+      "deleted": {},
+      "modified": {}
+    },
+    "space_seeds": {
+      "added": {},
+      "deleted": {},
+      "modified": {}
+    },
+    "all_openings": {
+      "added": {},
+      "deleted": {},
+      "modified": {
+        "ED1_door": {
+          "p1": {
+            "before": [
+              611,
+              358
+            ],
+            "after": [
+              611,
+              613
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              416
+            ],
+            "after": [
+              611,
+              671
+            ]
+          }
+        },
+        "EW1_window": {
+          "p1": {
+            "before": [
+              611,
+              472
+            ],
+            "after": [
+              611,
+              382
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              646
+            ],
+            "after": [
+              611,
+              557
+            ]
+          }
+        },
+        "EW2_window": {
+          "p1": {
+            "before": [
+              611,
+              673
+            ],
+            "after": [
+              611,
+              311
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              717
+            ],
+            "after": [
+              611,
+              355
+            ]
+          },
+          "z": {
+            "before": [
+              1.0,
+              3.4
+            ],
+            "after": [
+              1.0,
+              2.8
+            ]
+          }
+        },
+        "EW3_window": {
+          "p1": {
+            "before": [
+              611,
+              803
+            ],
+            "after": [
+              611,
+              170
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              857
+            ],
+            "after": [
+              611,
+              225
+            ]
+          },
+          "z": {
+            "before": [
+              1.0,
+              3.4
+            ],
+            "after": [
+              1.0,
+              2.8
+            ]
+          }
+        }
+      }
+    },
+    "east_opening_ids_from_footprint_right_edge": [
+      "ED1_door",
+      "EW1_window",
+      "EW2_window",
+      "EW3_window"
+    ],
+    "east_openings": {
+      "added": {},
+      "deleted": {},
+      "modified": {
+        "ED1_door": {
+          "p1": {
+            "before": [
+              611,
+              358
+            ],
+            "after": [
+              611,
+              613
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              416
+            ],
+            "after": [
+              611,
+              671
+            ]
+          }
+        },
+        "EW1_window": {
+          "p1": {
+            "before": [
+              611,
+              472
+            ],
+            "after": [
+              611,
+              382
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              646
+            ],
+            "after": [
+              611,
+              557
+            ]
+          }
+        },
+        "EW2_window": {
+          "p1": {
+            "before": [
+              611,
+              673
+            ],
+            "after": [
+              611,
+              311
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              717
+            ],
+            "after": [
+              611,
+              355
+            ]
+          },
+          "z": {
+            "before": [
+              1.0,
+              3.4
+            ],
+            "after": [
+              1.0,
+              2.8
+            ]
+          }
+        },
+        "EW3_window": {
+          "p1": {
+            "before": [
+              611,
+              803
+            ],
+            "after": [
+              611,
+              170
+            ]
+          },
+          "p2": {
+            "before": [
+              611,
+              857
+            ],
+            "after": [
+              611,
+              225
+            ]
+          },
+          "z": {
+            "before": [
+              1.0,
+              3.4
+            ],
+            "after": [
+              1.0,
+              2.8
+            ]
+          }
+        }
+      }
+    },
+    "other_openings": {
+      "added": {},
+      "deleted": {},
+      "modified": {}
+    },
+    "retention_pass": true
+  },
+  "tool_action_counts": {
+    "inputs": 1,
+    "build_plan_bim": 2,
+    "view_image": 8,
+    "view_pixel_profile": 1,
+    "pixel_profile": 5,
+    "overlay_candidate": 1,
+    "view_elevation_candidate": 1,
+    "check_openings": 1,
+    "finish_bim": 1
+  },
+  "observed_actions": [
+    {
+      "index": 1,
+      "action": "build_plan_bim",
+      "image": null,
+      "original_box": null,
+      "candidate": null,
+      "status": "error",
+      "error": "opening ED1_door at pixels [611.0, 358.0] -> [611.0, 416.0] requires one exterior or two interior full-boundary hosts; found []"
+    },
+    {
+      "index": 2,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        440,
+        140,
+        650,
+        900
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 3,
+      "action": "view_image",
+      "image": "East_view.png",
+      "original_box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 4,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        560,
+        280,
+        650,
+        430
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 5,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        560,
+        280,
+        660,
+        650
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 6,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        595,
+        290,
+        620,
+        650
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 7,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        540,
+        540,
+        660,
+        750
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 8,
+      "action": "pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        600,
+        540,
+        620,
+        750
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 9,
+      "action": "pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        600,
+        151,
+        620,
+        878
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 10,
+      "action": "pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        600,
+        151,
+        620,
+        878
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 11,
+      "action": "pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        600,
+        650,
+        620,
+        878
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 12,
+      "action": "pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        600,
+        650,
+        620,
+        878
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 13,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        540,
+        650,
+        660,
+        900
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 14,
+      "action": "view_image",
+      "image": "East_view.png",
+      "original_box": [
+        600,
+        100,
+        1400,
+        420
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 15,
+      "action": "view_image",
+      "image": "East_view.png",
+      "original_box": [
+        600,
+        100,
+        2639,
+        420
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 16,
+      "action": "build_plan_bim",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "error": null
+    },
+    {
+      "index": 17,
+      "action": "overlay_candidate",
+      "image": "1f_view.png",
+      "original_box": [
+        400,
+        100,
+        700,
+        900
+      ],
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 18,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 19,
+      "action": "check_openings",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 20,
+      "action": "finish_bim",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    }
+  ]
+}

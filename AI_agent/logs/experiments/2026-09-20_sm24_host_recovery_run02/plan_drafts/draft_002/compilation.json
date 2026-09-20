@@ -1,0 +1,1433 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "1f_view.png",
+  "image_size": [
+    790,
+    1111
+  ],
+  "floor_id": "F1",
+  "basis": "Outer wall faces measured via pixel_profile (gray wall fill threshold): west face x=248, east face x=611 (10.0m span); north face y=151, south face y=878 (20.0m span). Scale ~0.02755 m/px both axes. Internal partitions use measured wall-line pixel centrelines from view_pixel_profile scans. EAST FACADE OPENINGS RE-DERIVED this run from direct gray-wall-fill pixel_profile gap scan at x=600-620 (box [600,151,620,878], rgb[128,128,128]) cross-checked against East_view.png dimension chain (5700/1600/1540/4800/740/1200/2380/1500/540=20000mm) read SOUTH-to-NORTH (south corner y=877 matches first 5700 segment, not north as previously assumed): all 8 boundary pixels matched the elevation-predicted pixel to within 1px.",
+  "space_count": 7,
+  "space_mapping": [
+    {
+      "space_id": "Lobby",
+      "role": "reception/lobby",
+      "pixel_polygon": [
+        [
+          248.0,
+          151.0
+        ],
+        [
+          611.0,
+          151.0
+        ],
+        [
+          611.0,
+          296.0
+        ],
+        [
+          248.0,
+          296.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          -3.988996
+        ],
+        [
+          10.0,
+          -3.988996
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          -3.988996,
+          0.0
+        ]
+      },
+      "partition_ids": [
+        "P1_lobby_south"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)"
+      ],
+      "seed": {
+        "id": "Lobby",
+        "point_pixel": [
+          330.0,
+          220.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "OfficeW2",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          248.0,
+          296.0
+        ],
+        [
+          400.0,
+          296.0
+        ],
+        [
+          400.0,
+          405.0
+        ],
+        [
+          248.0,
+          405.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          -6.98762
+        ],
+        [
+          4.187328,
+          -6.98762
+        ],
+        [
+          4.187328,
+          -3.988996
+        ],
+        [
+          0.0,
+          -3.988996
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.187328
+        ],
+        "y": [
+          -6.98762,
+          -3.988996
+        ]
+      },
+      "partition_ids": [
+        "P1_lobby_south",
+        "P2_corridor_west",
+        "P4_w2_w3"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)",
+        "1f_view.png: vertical wall x=398-402px full length y296-878",
+        "1f_view.png: west-only horizontal wall y=403-407px, x248-398"
+      ],
+      "seed": {
+        "id": "OfficeW2",
+        "point_pixel": [
+          300.0,
+          360.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "CorridorN_SE_open",
+      "role": "corridor_and_open_office",
+      "pixel_polygon": [
+        [
+          400.0,
+          296.0
+        ],
+        [
+          459.0,
+          296.0
+        ],
+        [
+          459.0,
+          585.0
+        ],
+        [
+          611.0,
+          585.0
+        ],
+        [
+          611.0,
+          878.0
+        ],
+        [
+          400.0,
+          878.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.187328,
+          -20.0
+        ],
+        [
+          10.0,
+          -20.0
+        ],
+        [
+          10.0,
+          -11.939477
+        ],
+        [
+          5.812672,
+          -11.939477
+        ],
+        [
+          5.812672,
+          -3.988996
+        ],
+        [
+          4.187328,
+          -3.988996
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.187328,
+          10.0
+        ],
+        "y": [
+          -20.0,
+          -3.988996
+        ]
+      },
+      "partition_ids": [
+        "P1_lobby_south",
+        "P2_corridor_west",
+        "P3_corridor_east",
+        "P6b_e3_se"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)",
+        "1f_view.png: vertical wall x=398-402px full length y296-878",
+        "1f_view.png: vertical wall x=457-462px from y296 to y585",
+        "1f_view.png: horizontal wall y=583-587px east segment x462-610, snapped to corridor wall x459"
+      ],
+      "seed": {
+        "id": "CorridorN_SE_open",
+        "point_pixel": [
+          430.0,
+          450.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "RoomE2",
+      "role": "storage/pantry",
+      "pixel_polygon": [
+        [
+          459.0,
+          296.0
+        ],
+        [
+          611.0,
+          296.0
+        ],
+        [
+          611.0,
+          369.0
+        ],
+        [
+          459.0,
+          369.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.812672,
+          -5.997249
+        ],
+        [
+          10.0,
+          -5.997249
+        ],
+        [
+          10.0,
+          -3.988996
+        ],
+        [
+          5.812672,
+          -3.988996
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.812672,
+          10.0
+        ],
+        "y": [
+          -5.997249,
+          -3.988996
+        ]
+      },
+      "partition_ids": [
+        "P1_lobby_south",
+        "P3_corridor_east",
+        "P5_e2_e3"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)",
+        "1f_view.png: vertical wall x=457-462px from y296 to y585",
+        "1f_view.png: east-only horizontal wall y=367-371px, x462-610"
+      ],
+      "seed": {
+        "id": "RoomE2",
+        "point_pixel": [
+          530.0,
+          340.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "MeetingE3",
+      "role": "meeting_room",
+      "pixel_polygon": [
+        [
+          459.0,
+          369.0
+        ],
+        [
+          611.0,
+          369.0
+        ],
+        [
+          611.0,
+          585.0
+        ],
+        [
+          459.0,
+          585.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.812672,
+          -11.939477
+        ],
+        [
+          10.0,
+          -11.939477
+        ],
+        [
+          10.0,
+          -5.997249
+        ],
+        [
+          5.812672,
+          -5.997249
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.812672,
+          10.0
+        ],
+        "y": [
+          -11.939477,
+          -5.997249
+        ]
+      },
+      "partition_ids": [
+        "P3_corridor_east",
+        "P5_e2_e3",
+        "P6b_e3_se"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: vertical wall x=457-462px from y296 to y585",
+        "1f_view.png: east-only horizontal wall y=367-371px, x462-610",
+        "1f_view.png: horizontal wall y=583-587px east segment x462-610, snapped to corridor wall x459"
+      ],
+      "seed": {
+        "id": "MeetingE3",
+        "point_pixel": [
+          530.0,
+          480.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "OfficeW3",
+      "role": "open_office",
+      "pixel_polygon": [
+        [
+          248.0,
+          405.0
+        ],
+        [
+          400.0,
+          405.0
+        ],
+        [
+          400.0,
+          585.0
+        ],
+        [
+          248.0,
+          585.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          -11.939477
+        ],
+        [
+          4.187328,
+          -11.939477
+        ],
+        [
+          4.187328,
+          -6.98762
+        ],
+        [
+          0.0,
+          -6.98762
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.187328
+        ],
+        "y": [
+          -11.939477,
+          -6.98762
+        ]
+      },
+      "partition_ids": [
+        "P2_corridor_west",
+        "P4_w2_w3",
+        "P6a_w3_w4"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: vertical wall x=398-402px full length y296-878",
+        "1f_view.png: west-only horizontal wall y=403-407px, x248-398",
+        "1f_view.png: horizontal wall y=583-587px west segment x248-398, snapped to corridor wall x400"
+      ],
+      "seed": {
+        "id": "OfficeW3",
+        "point_pixel": [
+          300.0,
+          500.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "Boardroom_W4",
+      "role": "boardroom",
+      "pixel_polygon": [
+        [
+          248.0,
+          585.0
+        ],
+        [
+          400.0,
+          585.0
+        ],
+        [
+          400.0,
+          878.0
+        ],
+        [
+          248.0,
+          878.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          -20.0
+        ],
+        [
+          4.187328,
+          -20.0
+        ],
+        [
+          4.187328,
+          -11.939477
+        ],
+        [
+          0.0,
+          -11.939477
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.187328
+        ],
+        "y": [
+          -20.0,
+          -11.939477
+        ]
+      },
+      "partition_ids": [
+        "P2_corridor_west",
+        "P6a_w3_w4"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: vertical wall x=398-402px full length y296-878",
+        "1f_view.png: horizontal wall y=583-587px west segment x248-398, snapped to corridor wall x400"
+      ],
+      "seed": {
+        "id": "Boardroom_W4",
+        "point_pixel": [
+          300.0,
+          750.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "P1_lobby_south",
+      "pixel_points": [
+        [
+          248.0,
+          296.0
+        ],
+        [
+          611.0,
+          296.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          -3.988996
+        ],
+        [
+          10.0,
+          -3.988996
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)"
+      ]
+    },
+    {
+      "partition_id": "P2_corridor_west",
+      "pixel_points": [
+        [
+          400.0,
+          296.0
+        ],
+        [
+          400.0,
+          878.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.187328,
+          -3.988996
+        ],
+        [
+          4.187328,
+          -20.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical wall x=398-402px full length y296-878"
+      ]
+    },
+    {
+      "partition_id": "P3_corridor_east",
+      "pixel_points": [
+        [
+          459.0,
+          296.0
+        ],
+        [
+          459.0,
+          585.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.812672,
+          -3.988996
+        ],
+        [
+          5.812672,
+          -11.939477
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical wall x=457-462px from y296 to y585"
+      ]
+    },
+    {
+      "partition_id": "P4_w2_w3",
+      "pixel_points": [
+        [
+          248.0,
+          405.0
+        ],
+        [
+          400.0,
+          405.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          -6.98762
+        ],
+        [
+          4.187328,
+          -6.98762
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: west-only horizontal wall y=403-407px, x248-398"
+      ]
+    },
+    {
+      "partition_id": "P5_e2_e3",
+      "pixel_points": [
+        [
+          459.0,
+          369.0
+        ],
+        [
+          611.0,
+          369.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.812672,
+          -5.997249
+        ],
+        [
+          10.0,
+          -5.997249
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: east-only horizontal wall y=367-371px, x462-610"
+      ]
+    },
+    {
+      "partition_id": "P6a_w3_w4",
+      "pixel_points": [
+        [
+          248.0,
+          585.0
+        ],
+        [
+          400.0,
+          585.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          -11.939477
+        ],
+        [
+          4.187328,
+          -11.939477
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: horizontal wall y=583-587px west segment x248-398, snapped to corridor wall x400"
+      ]
+    },
+    {
+      "partition_id": "P6b_e3_se",
+      "pixel_points": [
+        [
+          459.0,
+          585.0
+        ],
+        [
+          611.0,
+          585.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.812672,
+          -11.939477
+        ],
+        [
+          10.0,
+          -11.939477
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: horizontal wall y=583-587px east segment x462-610, snapped to corridor wall x459"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "D_lobby_corr",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open",
+        "Lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        407.0,
+        296.0
+      ],
+      "p2_pixel": [
+        452.0,
+        296.0
+      ],
+      "p1_world_m": [
+        4.380165,
+        -3.988996
+      ],
+      "p2_world_m": [
+        5.619835,
+        -3.988996
+      ],
+      "width_m": 1.23967,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: double-arc door symbol at north wall/corridor junction"
+      ]
+    },
+    {
+      "opening_id": "D_w2_corr",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open",
+        "OfficeW2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        400.0,
+        357.0
+      ],
+      "p2_pixel": [
+        400.0,
+        403.0
+      ],
+      "p1_world_m": [
+        4.187328,
+        -5.667125
+      ],
+      "p2_world_m": [
+        4.187328,
+        -6.9326
+      ],
+      "width_m": 1.265475,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: swing arc gap in P2 near y360-400"
+      ]
+    },
+    {
+      "opening_id": "D_w3_corr",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open",
+        "OfficeW3"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        400.0,
+        416.0
+      ],
+      "p2_pixel": [
+        400.0,
+        453.0
+      ],
+      "p1_world_m": [
+        4.187328,
+        -7.290234
+      ],
+      "p2_world_m": [
+        4.187328,
+        -8.308116
+      ],
+      "width_m": 1.017882,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: swing arc gap in P2 near y416-453"
+      ]
+    },
+    {
+      "opening_id": "D_w4_corr",
+      "kind": "door",
+      "space_ids": [
+        "Boardroom_W4",
+        "CorridorN_SE_open"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        400.0,
+        596.0
+      ],
+      "p2_pixel": [
+        400.0,
+        633.0
+      ],
+      "p1_world_m": [
+        4.187328,
+        -12.242091
+      ],
+      "p2_world_m": [
+        4.187328,
+        -13.259972
+      ],
+      "width_m": 1.017881,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: swing arc gap in P2 near y596-633"
+      ]
+    },
+    {
+      "opening_id": "D_e2_corr",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open",
+        "RoomE2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        459.0,
+        323.0
+      ],
+      "p2_pixel": [
+        459.0,
+        356.0
+      ],
+      "p1_world_m": [
+        5.812672,
+        -4.731774
+      ],
+      "p2_world_m": [
+        5.812672,
+        -5.639615
+      ],
+      "width_m": 0.907841,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: swing arc gap in P3 near y323-356"
+      ]
+    },
+    {
+      "opening_id": "D_e3_corr",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open",
+        "MeetingE3"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        459.0,
+        382.0
+      ],
+      "p2_pixel": [
+        459.0,
+        415.0
+      ],
+      "p1_world_m": [
+        5.812672,
+        -6.354883
+      ],
+      "p2_world_m": [
+        5.812672,
+        -7.262724
+      ],
+      "width_m": 0.907841,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: swing arc gap in P3 near y382-415"
+      ]
+    },
+    {
+      "opening_id": "ND1_entrance",
+      "kind": "door",
+      "space_ids": [
+        "Lobby"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        267.0,
+        151.0
+      ],
+      "p2_pixel": [
+        326.0,
+        151.0
+      ],
+      "p1_world_m": [
+        0.523416,
+        0.0
+      ],
+      "p2_world_m": [
+        2.14876,
+        0.0
+      ],
+      "width_m": 1.625344,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png north wall double-door arc; North_view.png confirms double door on this facade"
+      ]
+    },
+    {
+      "opening_id": "NW1_window",
+      "kind": "window",
+      "space_ids": [
+        "Lobby"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        417.0,
+        151.0
+      ],
+      "p2_pixel": [
+        592.0,
+        151.0
+      ],
+      "p1_world_m": [
+        4.655647,
+        0.0
+      ],
+      "p2_world_m": [
+        9.476584,
+        0.0
+      ],
+      "width_m": 4.820937,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png north wall cyan window band; North_view.png: sill1000 height2400 (label 1100/2400/1000 of 4500 wall)"
+      ]
+    },
+    {
+      "opening_id": "SW1_window",
+      "kind": "window",
+      "space_ids": [
+        "Boardroom_W4"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        267.0,
+        878.0
+      ],
+      "p2_pixel": [
+        322.0,
+        878.0
+      ],
+      "p1_world_m": [
+        0.523416,
+        -20.0
+      ],
+      "p2_world_m": [
+        2.038567,
+        -20.0
+      ],
+      "width_m": 1.515151,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png south wall cyan band x267-322; South_view.png sill1000 height1800 (1700/1800/1000 of 4500)"
+      ]
+    },
+    {
+      "opening_id": "SD1_door",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        413.0,
+        878.0
+      ],
+      "p2_pixel": [
+        445.0,
+        878.0
+      ],
+      "p1_world_m": [
+        4.545455,
+        -20.0
+      ],
+      "p2_world_m": [
+        5.426997,
+        -20.0
+      ],
+      "width_m": 0.881542,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png south wall door arc near x413-445 with 240 label"
+      ]
+    },
+    {
+      "opening_id": "SW2_window",
+      "kind": "window",
+      "space_ids": [
+        "CorridorN_SE_open"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        536.0,
+        878.0
+      ],
+      "p2_pixel": [
+        593.0,
+        878.0
+      ],
+      "p1_world_m": [
+        7.933884,
+        -20.0
+      ],
+      "p2_world_m": [
+        9.504132,
+        -20.0
+      ],
+      "width_m": 1.570248,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png south wall cyan band x536-593"
+      ]
+    },
+    {
+      "opening_id": "WW1_window",
+      "kind": "window",
+      "space_ids": [
+        "Lobby"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        170.0
+      ],
+      "p2_pixel": [
+        248.0,
+        225.0
+      ],
+      "p1_world_m": [
+        0.0,
+        -0.522696
+      ],
+      "p2_world_m": [
+        0.0,
+        -2.035763
+      ],
+      "width_m": 1.513067,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png west wall cyan band; West_view.png window1 matches fine dim chain 540-2040"
+      ]
+    },
+    {
+      "opening_id": "WW2_window",
+      "kind": "window",
+      "space_ids": [
+        "OfficeW2"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        311.0
+      ],
+      "p2_pixel": [
+        248.0,
+        355.0
+      ],
+      "p1_world_m": [
+        0.0,
+        -4.401651
+      ],
+      "p2_world_m": [
+        0.0,
+        -5.612105
+      ],
+      "width_m": 1.210454,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "West_view.png window2, plan dim chain 4420-5620"
+      ]
+    },
+    {
+      "opening_id": "WW3_window",
+      "kind": "window",
+      "space_ids": [
+        "OfficeW3"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        418.0
+      ],
+      "p2_pixel": [
+        248.0,
+        473.0
+      ],
+      "p1_world_m": [
+        0.0,
+        -7.345254
+      ],
+      "p2_world_m": [
+        0.0,
+        -8.858322
+      ],
+      "width_m": 1.513068,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "West_view.png window3, plan dim chain 7360-8860"
+      ]
+    },
+    {
+      "opening_id": "WW4_window",
+      "kind": "window",
+      "space_ids": [
+        "OfficeW3"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        517.0
+      ],
+      "p2_pixel": [
+        248.0,
+        571.0
+      ],
+      "p1_world_m": [
+        0.0,
+        -10.068776
+      ],
+      "p2_world_m": [
+        0.0,
+        -11.554333
+      ],
+      "width_m": 1.485557,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "West_view.png window4, plan dim chain 10080-11580"
+      ]
+    },
+    {
+      "opening_id": "WW5_window",
+      "kind": "window",
+      "space_ids": [
+        "Boardroom_W4"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        683.0
+      ],
+      "p2_pixel": [
+        248.0,
+        857.0
+      ],
+      "p1_world_m": [
+        0.0,
+        -14.635488
+      ],
+      "p2_world_m": [
+        0.0,
+        -19.422283
+      ],
+      "width_m": 4.786795,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "West_view.png large window5, plan dim chain 14660-19460, boardroom"
+      ]
+    },
+    {
+      "opening_id": "ED1_door",
+      "kind": "door",
+      "space_ids": [
+        "CorridorN_SE_open"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        611.0,
+        613.0
+      ],
+      "p2_pixel": [
+        611.0,
+        671.0
+      ],
+      "p1_world_m": [
+        10.0,
+        -12.709766
+      ],
+      "p2_world_m": [
+        10.0,
+        -14.305365
+      ],
+      "width_m": 1.595599,
+      "z_absolute_m": [
+        0.0,
+        2.4
+      ],
+      "source_refs": [
+        "RE-DERIVED: 1f_view.png east wall gray-fill gap at y=613-671px (pixel_profile box[600,540,620,750] rgb[128,128,128]); confirmed by door swing-arc symbol visible in crop [540,540,660,750]; matches East_view.png dimension 5700(from south corner)+1600(door width)=7300, i.e. door centred 5700-7300mm north of the south corner."
+      ]
+    },
+    {
+      "opening_id": "EW1_window",
+      "kind": "window",
+      "space_ids": [
+        "MeetingE3"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        611.0,
+        382.0
+      ],
+      "p2_pixel": [
+        611.0,
+        557.0
+      ],
+      "p1_world_m": [
+        10.0,
+        -6.354883
+      ],
+      "p2_world_m": [
+        10.0,
+        -11.169188
+      ],
+      "width_m": 4.814305,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "RE-DERIVED: 1f_view.png east wall gray-fill gap y=382-557px (large 4800mm cyan window band); East_view.png dim chain 8840-13640mm from south corner; head dimension label '1100' above window = 4500-1100=3400mm head, sill assumed 1000mm consistent with cyan band."
+      ]
+    },
+    {
+      "opening_id": "EW2_window",
+      "kind": "window",
+      "space_ids": [
+        "RoomE2"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        611.0,
+        311.0
+      ],
+      "p2_pixel": [
+        611.0,
+        355.0
+      ],
+      "p1_world_m": [
+        10.0,
+        -4.401651
+      ],
+      "p2_world_m": [
+        10.0,
+        -5.612105
+      ],
+      "width_m": 1.210454,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "RE-DERIVED: 1f_view.png east wall gray-fill gap y=311-355px (1200mm window); East_view.png dim chain 15580-16780mm approx from south corner (2380 gap then 1200 window before reaching north corner segment); right-side elevation label '1700' above small windows = 4500-1700=2800mm head, sill 1000mm."
+      ]
+    },
+    {
+      "opening_id": "EW3_window",
+      "kind": "window",
+      "space_ids": [
+        "Lobby"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        611.0,
+        170.0
+      ],
+      "p2_pixel": [
+        611.0,
+        225.0
+      ],
+      "p1_world_m": [
+        10.0,
+        -0.522696
+      ],
+      "p2_world_m": [
+        10.0,
+        -2.035763
+      ],
+      "width_m": 1.513067,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "RE-DERIVED: 1f_view.png east wall gray-fill gap y=170-225px (1500mm window nearest north corner); East_view.png dim chain 540mm from north corner then 1500mm window; head 2800mm/sill1000mm per '1700' elevation label."
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        248.0,
+        151.0
+      ],
+      [
+        611.0,
+        151.0
+      ],
+      [
+        611.0,
+        878.0
+      ],
+      [
+        248.0,
+        878.0
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        -20.0
+      ],
+      [
+        10.0,
+        -20.0
+      ],
+      [
+        10.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        248.0,
+        0.0
+      ],
+      [
+        611.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        151.0,
+        0.0
+      ],
+      [
+        878.0,
+        -20.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.027548209366391185,
+      "y": -0.027510316368638238
+    },
+    "basis": "Outer wall faces measured via pixel_profile (gray wall fill threshold): west face x=248, east face x=611 (10.0m span); north face y=151, south face y=878 (20.0m span). Scale ~0.02755 m/px both axes. Internal partitions use measured wall-line pixel centrelines from view_pixel_profile scans. EAST FACADE OPENINGS RE-DERIVED this run from direct gray-wall-fill pixel_profile gap scan at x=600-620 (box [600,151,620,878], rgb[128,128,128]) cross-checked against East_view.png dimension chain (5700/1600/1540/4800/740/1200/2380/1500/540=20000mm) read SOUTH-to-NORTH (south corner y=877 matches first 5700 segment, not north as previously assumed): all 8 boundary pixels matched the elevation-predicted pixel to within 1px.",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}

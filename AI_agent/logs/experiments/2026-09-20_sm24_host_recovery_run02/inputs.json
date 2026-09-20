@@ -1,0 +1,780 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "This is a bounded recovery experiment from the imported failed pixel-plan declaration, not a new whole-building reading. First call build_plan_bim with the imported declaration unchanged to reproduce its geometric feedback, including the original/declaration local comparison. Then investigate the exterior facade implicated by that failure. Recheck ALL exterior doors and windows on that facade against the original plan and its corresponding elevation: identity, drawing orientation, full horizontal extent, sill/head or door base/top. Use your own measurements and original-image evidence to correct the declaration; do not shorten apertures merely to satisfy hosts. Keep the existing footprint, calibration, interior partition paths and openings on other facades unchanged in this bounded experiment; preserve and honestly report their unresolved limitations. If repair requires changing those preserved items, report the conflict rather than silently changing them. Save a viewable candidate if possible, inspect its actual source overlay and relevant elevation, and select the result. No complete-building fidelity claim is expected from this local recovery.",
+  "input_mode": "saved_plan_recovery",
+  "exploratory_opus": false,
+  "source_input_mode": "original_images_with_building_declaration",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": true
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    },
+    "saved_pixel_plan": {
+      "included": true,
+      "status": "unverified_not_compiled"
+    }
+  },
+  "deadline_epoch": 1789909929.5912783,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "ed814779982c9363c29ef464a21dda458e73d4e5e0bcc7f6f883d2585e3a0425",
+    "scripts/tool_scripts/bim_agent_guidance.py": "ca4f0a1f524fd76038ebb0fb97e725bb98390154720504e57272d3876322f307",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "8d2c70b9c2cc189f849041bdce8f53641d7d9f5178cca6f218f9bd526460ce57",
+    "src/agent/geometry/proposal_edits.py": "f994e3471315499d3fe2eb674867aa28a1e45e2ce5a054528d6e0b89cbc152ed",
+    "src/agent/geometry/opening_review.py": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, optional building declaration/mesh, and one unverified saved pixel-plan declaration; no old source BIM, report, GT or evaluation",
+  "building_input": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/e2e_tests/sm24_anchor/case_data/testdata_prompt.json",
+    "frozen_path": "building_input.json",
+    "raw_sha256": "f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701",
+    "raw_size_bytes": 688,
+    "declaration": {
+      "TestName": "sm24_anchor",
+      "Building location": "Shenzhen",
+      "Floor area": "200m²",
+      "Building type": "Office",
+      "Number of floors": 1,
+      "Floor plans": [
+        {
+          "floor": 1,
+          "path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "thermal_zones": 8
+        }
+      ],
+      "South view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+      "North view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+      "East view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+      "West view path of the building": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png"
+    },
+    "image_path_associations": [
+      {
+        "json_pointer": "/Floor plans/0/path",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+        "declared_basename": "1f_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "1f_view.png",
+        "authorized_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+      },
+      {
+        "json_pointer": "/South view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+        "declared_basename": "South_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "South_view.png",
+        "authorized_image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+      },
+      {
+        "json_pointer": "/North view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+        "declared_basename": "North_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "North_view.png",
+        "authorized_image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+      },
+      {
+        "json_pointer": "/East view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+        "declared_basename": "East_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "East_view.png",
+        "authorized_image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+      },
+      {
+        "json_pointer": "/West view path of the building",
+        "declared_path": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png",
+        "declared_basename": "West_view.png",
+        "status": "associated_by_exact_basename",
+        "authorized_image": "West_view.png",
+        "authorized_image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+      }
+    ],
+    "image_path_policy": "Declared paths are provenance labels only. They are associated by exact basename with the already authorized PNG inventory and are never opened as file paths.",
+    "field_semantics": {
+      "thermal_zones": "User declaration for downstream simulation zoning; it is not a measured or authoritative count of physical source spaces.",
+      "other_fields": "User-supplied building declarations retain their stated meaning and are not ground truth or independently verified observations."
+    },
+    "conflict_policy": "The agent must compare declarations with supplied drawing evidence, preserve the conflict or uncertainty, and decide its modelling effect explicitly."
+  },
+  "plan_recovery": {
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/plan_drafts/draft_003/plan.json",
+    "frozen_path": "resume_plan.json",
+    "raw_sha256": "5dbc948e148c55737df9dc894dd81f7ca882cee17892d5b3407227ac382f3f8e",
+    "raw_size_bytes": 6836,
+    "declaration": {
+      "floor_id": "F1",
+      "z_floor": 0,
+      "ceiling_height": 4.5,
+      "x_anchors": [
+        [
+          248,
+          0
+        ],
+        [
+          611,
+          10
+        ]
+      ],
+      "y_anchors": [
+        [
+          151,
+          0
+        ],
+        [
+          878,
+          -20
+        ]
+      ],
+      "basis": "Outer wall faces measured via pixel_profile (gray wall fill threshold): west face x=248, east face x=611 (10.0m span); north face y=151, south face y=878 (20.0m span). Scale ~0.02755 m/px both axes. Internal partitions use measured wall-line pixel centrelines from view_pixel_profile scans.",
+      "footprint_pixels": [
+        [
+          248,
+          151
+        ],
+        [
+          611,
+          151
+        ],
+        [
+          611,
+          878
+        ],
+        [
+          248,
+          878
+        ]
+      ],
+      "partitions": [
+        {
+          "id": "P1_lobby_south",
+          "points": [
+            [
+              248,
+              296
+            ],
+            [
+              611,
+              296
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)"
+          ]
+        },
+        {
+          "id": "P2_corridor_west",
+          "points": [
+            [
+              400,
+              296
+            ],
+            [
+              400,
+              878
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: vertical wall x=398-402px full length y296-878"
+          ]
+        },
+        {
+          "id": "P3_corridor_east",
+          "points": [
+            [
+              459,
+              296
+            ],
+            [
+              459,
+              585
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: vertical wall x=457-462px from y296 to y585"
+          ]
+        },
+        {
+          "id": "P4_w2_w3",
+          "points": [
+            [
+              248,
+              405
+            ],
+            [
+              400,
+              405
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: west-only horizontal wall y=403-407px, x248-398"
+          ]
+        },
+        {
+          "id": "P5_e2_e3",
+          "points": [
+            [
+              459,
+              369
+            ],
+            [
+              611,
+              369
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: east-only horizontal wall y=367-371px, x462-610"
+          ]
+        },
+        {
+          "id": "P6a_w3_w4",
+          "points": [
+            [
+              248,
+              585
+            ],
+            [
+              400,
+              585
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: horizontal wall y=583-587px west segment x248-398, snapped to corridor wall x400"
+          ]
+        },
+        {
+          "id": "P6b_e3_se",
+          "points": [
+            [
+              459,
+              585
+            ],
+            [
+              611,
+              585
+            ]
+          ],
+          "source_refs": [
+            "1f_view.png: horizontal wall y=583-587px east segment x462-610, snapped to corridor wall x459"
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "D_lobby_corr",
+          "kind": "door",
+          "p1": [
+            407,
+            296
+          ],
+          "p2": [
+            452,
+            296
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png: double-arc door symbol at north wall/corridor junction"
+          ]
+        },
+        {
+          "id": "D_w2_corr",
+          "kind": "door",
+          "p1": [
+            400,
+            357
+          ],
+          "p2": [
+            400,
+            403
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png: swing arc gap in P2 near y360-400"
+          ]
+        },
+        {
+          "id": "D_w3_corr",
+          "kind": "door",
+          "p1": [
+            400,
+            416
+          ],
+          "p2": [
+            400,
+            453
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png: swing arc gap in P2 near y416-453"
+          ]
+        },
+        {
+          "id": "D_w4_corr",
+          "kind": "door",
+          "p1": [
+            400,
+            596
+          ],
+          "p2": [
+            400,
+            633
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png: swing arc gap in P2 near y596-633"
+          ]
+        },
+        {
+          "id": "D_e2_corr",
+          "kind": "door",
+          "p1": [
+            459,
+            323
+          ],
+          "p2": [
+            459,
+            356
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png: swing arc gap in P3 near y323-356"
+          ]
+        },
+        {
+          "id": "D_e3_corr",
+          "kind": "door",
+          "p1": [
+            459,
+            382
+          ],
+          "p2": [
+            459,
+            415
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png: swing arc gap in P3 near y382-415"
+          ]
+        },
+        {
+          "id": "ND1_entrance",
+          "kind": "door",
+          "p1": [
+            267,
+            151
+          ],
+          "p2": [
+            326,
+            151
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png north wall double-door arc; North_view.png confirms double door on this facade"
+          ]
+        },
+        {
+          "id": "NW1_window",
+          "kind": "window",
+          "p1": [
+            417,
+            151
+          ],
+          "p2": [
+            592,
+            151
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "1f_view.png north wall cyan window band; North_view.png: sill1000 height2400 (label 1100/2400/1000 of 4500 wall)"
+          ]
+        },
+        {
+          "id": "SW1_window",
+          "kind": "window",
+          "p1": [
+            267,
+            878
+          ],
+          "p2": [
+            322,
+            878
+          ],
+          "z": [
+            1.0,
+            2.8
+          ],
+          "source_refs": [
+            "1f_view.png south wall cyan band x267-322; South_view.png sill1000 height1800 (1700/1800/1000 of 4500)"
+          ]
+        },
+        {
+          "id": "SD1_door",
+          "kind": "door",
+          "p1": [
+            413,
+            878
+          ],
+          "p2": [
+            445,
+            878
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "1f_view.png south wall door arc near x413-445 with 240 label"
+          ]
+        },
+        {
+          "id": "SW2_window",
+          "kind": "window",
+          "p1": [
+            536,
+            878
+          ],
+          "p2": [
+            593,
+            878
+          ],
+          "z": [
+            1.0,
+            2.8
+          ],
+          "source_refs": [
+            "1f_view.png south wall cyan band x536-593"
+          ]
+        },
+        {
+          "id": "WW1_window",
+          "kind": "window",
+          "p1": [
+            248,
+            170
+          ],
+          "p2": [
+            248,
+            225
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "1f_view.png west wall cyan band; West_view.png window1 matches fine dim chain 540-2040"
+          ]
+        },
+        {
+          "id": "WW2_window",
+          "kind": "window",
+          "p1": [
+            248,
+            311
+          ],
+          "p2": [
+            248,
+            355
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "West_view.png window2, plan dim chain 4420-5620"
+          ]
+        },
+        {
+          "id": "WW3_window",
+          "kind": "window",
+          "p1": [
+            248,
+            418
+          ],
+          "p2": [
+            248,
+            473
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "West_view.png window3, plan dim chain 7360-8860"
+          ]
+        },
+        {
+          "id": "WW4_window",
+          "kind": "window",
+          "p1": [
+            248,
+            517
+          ],
+          "p2": [
+            248,
+            571
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "West_view.png window4, plan dim chain 10080-11580"
+          ]
+        },
+        {
+          "id": "WW5_window",
+          "kind": "window",
+          "p1": [
+            248,
+            683
+          ],
+          "p2": [
+            248,
+            857
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "West_view.png large window5, plan dim chain 14660-19460, boardroom"
+          ]
+        },
+        {
+          "id": "ED1_door",
+          "kind": "door",
+          "p1": [
+            611,
+            358
+          ],
+          "p2": [
+            611,
+            416
+          ],
+          "z": [
+            0,
+            2.4
+          ],
+          "source_refs": [
+            "East_view.png double-leaf door, dim chain 5700-7300"
+          ]
+        },
+        {
+          "id": "EW1_window",
+          "kind": "window",
+          "p1": [
+            611,
+            472
+          ],
+          "p2": [
+            611,
+            646
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "East_view.png large window, dim chain 8840-13640"
+          ]
+        },
+        {
+          "id": "EW2_window",
+          "kind": "window",
+          "p1": [
+            611,
+            673
+          ],
+          "p2": [
+            611,
+            717
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "East_view.png small window, dim chain 14380-15580"
+          ]
+        },
+        {
+          "id": "EW3_window",
+          "kind": "window",
+          "p1": [
+            611,
+            803
+          ],
+          "p2": [
+            611,
+            857
+          ],
+          "z": [
+            1.0,
+            3.4
+          ],
+          "source_refs": [
+            "East_view.png small window, dim chain 17960-19460"
+          ]
+        }
+      ],
+      "space_seeds": [
+        {
+          "id": "Lobby",
+          "point": [
+            330,
+            220
+          ],
+          "role": "reception/lobby"
+        },
+        {
+          "id": "CorridorN_SE_open",
+          "point": [
+            430,
+            450
+          ],
+          "role": "corridor_and_open_office"
+        },
+        {
+          "id": "OfficeW2",
+          "point": [
+            300,
+            360
+          ],
+          "role": "office"
+        },
+        {
+          "id": "OfficeW3",
+          "point": [
+            300,
+            500
+          ],
+          "role": "open_office"
+        },
+        {
+          "id": "Boardroom_W4",
+          "point": [
+            300,
+            750
+          ],
+          "role": "boardroom"
+        },
+        {
+          "id": "RoomE2",
+          "point": [
+            530,
+            340
+          ],
+          "role": "storage/pantry"
+        },
+        {
+          "id": "MeetingE3",
+          "point": [
+            530,
+            480
+          ],
+          "role": "meeting_room"
+        }
+      ],
+      "assumptions": [
+        "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+        "Window/door heights: North window sill1.0/head3.4m, South windows sill1.0/head2.8m (directly measured from elevations). East/West window heights assumed equal to North pattern (sill1.0/head3.4m) since exact per-opening E/W sill/head was not independently re-derived.",
+        "All doors assumed 2.4m height, base 0 (floor level); a 200mm sub-dimension near doors in elevations is treated as threshold/frame annotation, not a raised sill.",
+        "Building height 4.5m used uniformly as the single floor's wall height per all four elevations.",
+        "The corridor (north-south spine) and the south-east furniture area merge into ONE physical room: pixel evidence shows no full-height wall separating them (only a short non-connecting wall fragment near x440-560,y698 which cannot close a valid separate region and was omitted).",
+        "Room roles (reception, office, boardroom, meeting, pantry, corridor/open office) are inferred from furniture symbols, not labelled in the source."
+      ],
+      "unresolved": [
+        "Fine sub-dimension chain sums did not exactly reconcile with outer brackets (e.g. 4060 vs 540+1500+2380=4420); outer-bracket/pixel-measured boundaries were trusted over the fine labels.",
+        "Exact sill/head heights for East and West facade openings not independently re-measured from elevation pixel dimensions; assumed equal to North window pattern.",
+        "The partial wall fragment near x440-560,y698 (south-east area) and its door are omitted from geometry pending clearer evidence; that zone is modeled as part of the merged corridor/open-office room instead."
+      ]
+    },
+    "image": "1f_view.png",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "status": "unverified_pixel_plan_declaration_not_compiled"
+  }
+}
