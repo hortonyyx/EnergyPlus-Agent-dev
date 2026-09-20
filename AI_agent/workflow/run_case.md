@@ -7,6 +7,8 @@
 
 独立于旧 `flow`，用已登录 Claude 订阅的 Sonnet 自主选择原图查看、量测、局部 Haiku 复核和源 BIM 生成/检查。支持输入目录中的 PNG，以及显式提供的建筑基础声明 JSON；不要把 GT、历史生成图或辅助答案放进图片目录。
 
+09-20新增`get_bim_reference('reconstruction')`按需操作参考：说明尺寸刻度标定、原像素坐标、成对墙带与接头判读、完整空间、平立面开口对应和实际源反馈。无案例答案或预选参数，不改变几何检查或限定固定工具顺序。当前效果与适用边界见[方法迁移记录](../logs/worklog/2026-09-20_reconstruction_method_transfer.md)。
+
 **09-14 新增 `--building-input 文件.json`。** 该文件原字节复制为运行目录的`building_input.json`；`inputs.json`保留原声明、散列与图面关联，模型通过`inputs`取得。用途、位置、面积、层数等按原字段提供；`thermal_zones`明确为后端分区声明，不自动解释成源物理房间数。声明与图证冲突需模型说明取舍，接口本身不判真。
 
 声明中的路径只按文件名关联到本次PNG清单，保留未提供图面的状态，不据路径读取额外文件。省略该参数仍只枚举PNG，不自动读取邻近JSON；`source_input_mode`与`input_contents`记录实际提供内容，`input_mode`继续区分原图起跑和`--resume-candidate`恢复。局部Haiku观察仍只获得父模型选择的图片和问题，不自动继承整案声明。此前run15等仅原图成绩不变，见[收工核对](../logs/worklog/2026-09-14_focused_guidance_session_close.md)。开发可按研究目的限定输入，详见[产品目标](../project/goal.md#建筑基础声明作为输入09-14-用户确认)。
@@ -16,6 +18,8 @@
 每次原始 JSON 保存在 `plan_drafts/draft_*/plan.json`，编译失败也保留输入/错误，成功时另存像素到源空间/开口映射，源文件绑定这些声明与图像散列。导出后自动登记同一标定，返回实际源平面和原图回叠，后续普通修订继续复用。它是按需几何能力，并不判断墙与家具或标定是否正确，也不替代其他楼层；不完整开口/未看立面必须留在 `unresolved`。
 
 编译前还保存`draft_view.png/json`：原始像素墙线/门窗带ID和端点叠回原图，侧车绑定原JSON/图像散列并列出不能画的项目。失败时MCP实际返回这张声明草图与原错误；成功仍返回原有源图，草图仅留档。草图明确`draft_only`、保真未评价，不创建候选/源标定，不补线或裁门。JSON解析失败则保留原文并明确无法画图；不能把草图当成已建房间或修复成功。
+
+09-20开口宿主失败另附`opening_host_failure.png/json`：左干净原图、右完整错误声明的放大局部对照，MCP在整图后实际返回第二张图，并直接携带裁框、面板位置、倍率、坐标公式与原图/方案散列。只按报错开口端点定位，不认定正确宿主，也不裁短开口；其他错误维持原反馈。真实失败重放和未验证效果见[本次记录](../logs/experiments/2026-09-20_opening_failure_feedback/README.md)。
 
 ```bash
 python scripts/tool_scripts/run_bim_agent.py run \
