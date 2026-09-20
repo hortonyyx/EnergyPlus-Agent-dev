@@ -1,0 +1,148 @@
+{
+  "mesh_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/hongkong/single_buildings/B416111881201063A0/input.glb",
+  "mesh_sha256": "0223cabd88f20be215767e449d5d51ecfbd6800f2dbab43605a1e63a8da0a71a",
+  "coordinate_frame": "BIM-local right-handed Z-up metres",
+  "source_coordinate_transform": {
+    "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+    "y_up_to_z_up": "[X, -Z, Y]",
+    "y_up_to_z_up_matrix": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "yaw_degrees_counterclockwise_about_positive_z": 0.0,
+    "yaw_matrix": [
+      [
+        1.0,
+        -0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "vertex_count": 510,
+  "face_count": 116,
+  "scene_instance_count": 1,
+  "selected_vertex_count": 348,
+  "selected_face_count": 116,
+  "bounds": [
+    [
+      -32.25,
+      -32.11199951171875,
+      -15.125
+    ],
+    [
+      32.2265625,
+      -0.10199880599975586,
+      15.125
+    ]
+  ],
+  "selection_bounds": null,
+  "selection_method": "all faces",
+  "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+  "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint.",
+  "camera": {
+    "projection": "orthographic",
+    "eye": [
+      -100.56358673107204,
+      -159.70994899022355,
+      81.7469183002967
+    ],
+    "target": [
+      -0.01171875,
+      -16.106999158859253,
+      0.0
+    ],
+    "eye_target_distance_m": 193.4296875,
+    "forward_from_eye": [
+      0.5198367907256845,
+      0.7424038765061041,
+      -0.42261826174069944
+    ],
+    "screen_right": [
+      0.8191520442889918,
+      -0.573576436351046,
+      0.0
+    ],
+    "screen_up": [
+      0.242403876506104,
+      0.34618861305875415,
+      0.9063077870366499
+    ],
+    "up_reference": "+Z",
+    "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+  },
+  "view_span_m": {
+    "width": 87.04335937500001,
+    "height": 87.04335937500001
+  },
+  "resolution_px": {
+    "width": 760,
+    "height": 760
+  },
+  "pixel_center_mapping": {
+    "formula": "plane_xyz(row,col)=top_left+col*column_step+row*row_step; surface_xyz additionally advances along camera forward to the visible triangle",
+    "top_left_pixel_center_plane_xyz": [
+      -25.07974007252225,
+      23.870050025274622,
+      39.392137156741185
+    ],
+    "column_step_world_xyz": [
+      0.09381808654449031,
+      -0.06569213141886306,
+      0.0
+    ],
+    "row_step_world_xyz": [
+      -0.027762694390281492,
+      -0.039649236655271,
+      -0.10380009790972644
+    ],
+    "pixel_width_m": 0.11453073601973686,
+    "pixel_height_m": 0.11453073601973686,
+    "pixel_coordinates": "zero-based [column, row] with image origin at top-left"
+  },
+  "rasterizer": {
+    "texture_interpolation": "barycentric UV, glTF REPEAT wrap, nearest texture pixel",
+    "texture_v_mapping": "PIL image rows are the vertical inverse of glTF UV",
+    "depth_test": "nearest positive distance along camera forward",
+    "material_display": "unlit, double-sided geometric observation; sRGB base-color texture is decoded to linear RGB, multiplied by baseColorFactor, and encoded back to sRGB; this is not PBR-lighting or backface-culling faithful",
+    "candidate_faces_overlapping_view": 116,
+    "visible_pixel_count": 42825
+  },
+  "artifacts": {
+    "png": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/hongkong/single_buildings/B416111881201063A0/view.png",
+    "metadata_json": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/hongkong/single_buildings/B416111881201063A0/view.json",
+    "pixel_buffer_npz": "/workspaces/EnergyPlus-Agent-dev/case_tests/textured_mass/hongkong/single_buildings/B416111881201063A0/view.npz",
+    "pixel_buffer_layout": "sorted flat pixel indices with compact world XYZ and global face IDs"
+  }
+}

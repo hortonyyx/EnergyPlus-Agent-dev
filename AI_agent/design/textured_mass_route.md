@@ -10,6 +10,8 @@
 
 ## 用户获取输入与现有模拟实践
 
+**09-18 用户确认素材责任划分：当前主要是在开发阶段摸出一条可行的路，产品投入使用后，素材由用户自己去找所需的建筑贴图模型。** 因此开发侧不需要解决「全球任意建筑都能取到」，只需要少数几个能稳定拿到、类型有梯度的样本；但 Agent 侧的读取能力要能兼容用户可能带来的各种来源与格式，不能只认一种。可选来源、获取路线与选样梯度已单独成页，见 [textured_mass/](textured_mass/sources.md)。
+
 用户可以通过开放城市数据、项目既有测绘成果或自行扫描重建的导出文件提供这种输入。例如 [OpenDroneMap 官方输出](https://docs.opendronemap.org/outputs/) 包含带纹理 OBJ 及对应图片。优先入口建议为单栋 GLB 或 OBJ+MTL+贴图包，附可用的单位、方向、位置及建筑用途；资料缺少时进入交互/假设分支。城市瓦片先通过选楼/裁剪形成单体输入，非目标楼体、地面与树木的分离属于输入准备，不生成环境 BIM；完整原件只保留作来源。不同地区的开放覆盖和采集质量有差异，不能承诺任意地址可直接下载。
 
 另有一种更轻的来源是**带图片纹理的规则化建筑外壳**，不必都是密集摄影测量网格。[Helsinki 官方说明](https://www.hel.fi/en/decision-making/information-on-helsinki/maps-and-geospatial-data/helsinki-3d) 同时提供实景 OBJ 和带纹理的 LoD2 城市建筑模型；后者包含建筑对象身份，适合从单体层次组织输入。既有 BIM/CAD 导出的外壳也可进入同一输入类，但可见表面证据与原文件中已有语义应分别利用。
@@ -68,24 +70,21 @@
 
 ## 调研结论
 
+**09-20 接手复核：先验证完整转换和实际可读性。** 香港15例原转换全批丢轴向节点，两例还漏62面；已从原件重新无损打包全部场景，完成离线四视图，当前2例优先复核用途/关键立面。旧单层/高层及高/中/低质量标签未成立，不能按下载量或格式通过验收素材。见[完整素材入口](../../case_tests/textured_mass/hongkong/README.md)和[来源复核](../logs/experiments/2026-09-20_hongkong_material_audit/source_review.md)。
+
+09-18的来源/获取/复杂度/格式调研分别保留在[textured_mass/](textured_mass/sources.md)，其中来源、获取与梯度本轮已纠偏；格式兼容表仍是开发调研，不代表全部格式已有生产实现或整案实测。来源是否带真实贴图、转换是否完整、立面是否可读应分别核实，不能由CityGML/GLB文件名或格式加载通过推定。
+
+现有输入生成能力和未支持边界以[实现说明](implementation.md)及实际代码为准。公开IFC外壳作为合成输入已由用户登记为待议路径，本轮不展开；它可提供一种已知几何对照，但不是唯一评价办法，仍需核对具体资产内容与许可。
+
 **能先拿到案例，并开展有边界的体量到 BIM 实验。** 当前已下载三个真实城市片区，加载几何与纹理、生成纯输入副本及预览；不能据此声称内部推断或 BIM 生成已跑通。当前可复用源 BIM、确定性几何工具和查看机制，新工作主要在体量读取、视图与空间位置对应、外壳语义及内部假设。
 
 已有外部几何会减少外形、比例和视角对齐的推断，但它可能有噪声、缺面、植被与建筑粘连。窗常在图片贴图上比在三角面形状上更清楚；网格可渲染并不意味着是闭合建筑，更不意味着已有楼层、门窗或空间关系。
 
 ## 哪些来源值得用
 
-| 来源 | 已核实内容 | 当前定位 |
-|---|---|---|
-| [SUM / Helsinki](https://3d.bk.tudelft.nl/projects/meshannotation/) | 真实倾斜摄影城市网格，PLY + JPG；三个瓦片已实际下载，且包含评测标签 | 当前实景主样本；去掉标签后作为生产输入，标注留评测侧 |
-| [City of Melbourne Photomesh 2020](https://data.melbourne.vic.gov.au/explore/dataset/city-of-melbourne-3d-textured-mesh-photomesh-2020/information/) | OBJ/MTL/JPG 与城市坐标；查得 570 个区域链接，两包 HEAD 200，约 33.4/30.9 MB | 下一批跨城市补充；尚未下载或检查网格。主目录与 DataVic 镜像的 GSD 文字有差异，不据此报告确定精度 |
-| [SUM Parts](https://tudelft3d.github.io/SUMParts/) | 21 类城市部件，含窗、门、立面、屋面；同时有面和纹理像素标注 | 适合外壳评价；没有室内房间真值。完整数据当前要求 Hugging Face 登录、同意共享联系信息，未代用户申请 |
-| [Objaverse](https://huggingface.co/datasets/allenai/objaverse) / [OpenGameArt](https://opengameart.org/content/pbr-textured-building) | 两个小型带贴图建筑已下载且能加载；从结构看是人工建模资产 | 工具对照，不能当成实景扫描成功证据；单独核实对象许可和尺度 |
-| [Pix4D 示例](https://support.pix4d.com/hc/en-us/articles/360000235126) | 官方 Building 例给原始照片/项目及云端成果入口 | 暂列备选；没有拿到可直接用的完整纹理网格，不把原始照片算成本轮体量输入 |
-| [RWTT](https://texturedmesh.isti.cnr.it/download) | 真实重建的 OBJ/PNG 资源，发布为多 GB 压缩包 | 备选；本轮未下载，不为几栋楼拉整库 |
+**09-18 更新：来源清单已移到 [textured_mass/sources.md](textured_mass/sources.md) 单独维护，本节不再保留旧表。** 该页按「贴图 / 覆盖 / 可定址 / 许可 / 核实程度」逐条记录，并覆盖亚洲城市、商业供应商、自采与地图平台条款。09-10 旧表的下载与检查证据仍保留在 [案例库](../../case_tests/textured_mass/README.md)。
 
-SUM Parts 数据许可以 [实际数据卡](https://huggingface.co/datasets/gwxgrxhyz/SUM-Parts) 的 CC BY-NC 4.0 为准；其 GitHub 总说明写 GPL，不能把仓库代码/网站许可替代数据许可。本次未下载完整 SUM Parts，也未调用账户或联系作者。
-
-Google Earth 继续作为输入形态参照。Google 官方 [Map Tiles 政策](https://developers.google.com/maps/documentation/tile/policies?hl=en) 限制内容存储等用途，[官方 FAQ](https://mapsplatform.google.com/resources/blog/commonly-asked-questions-about-our-recently-launched-photorealistic-3d-tiles/) 也明确讨论机器解读/提取的限制。因此当前获取可离线保留、用于建模分析的实验素材时，优先上述开放城市数据。本轮没有从 Google 提取网格或调用其付费 API。
+**来源归属纠偏（09-20）：** 2021 SUM（现有C6输入）、2025 SUM Parts、论文页面许可必须分开；旧调研混称“三处官方渠道互相矛盾”不成立。新样本优先Helsinki市官方原件；Melbourne 2020作为已验证可下载、尚未检查窗质量的备用路线。Google等平台不是本项目本轮获取渠道。具体官方出处与可确认范围见[来源复核](../logs/experiments/2026-09-20_hongkong_material_audit/source_review.md)，不从二级转述推导普遍许可结论。
 
 ## 首例怎样接现有产品
 

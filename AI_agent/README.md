@@ -11,6 +11,9 @@
 | 已经确定的选择和原因 | [关键决策](project/decisions.md) |
 | 三类建模任务如何共用同一个产品底座 | [系统设计](design/architecture.md) |
 | 部分推理建模首个入口：带贴图体量的案例与调研 | [体量输入调研](design/textured_mass_route.md) |
+| 香港15例的转换修复、四视图与当前可读性 | [素材新旧对照](../case_tests/textured_mass/hongkong/repaired_buildings/index.html) · [本程交接](logs/worklog/2026-09-20_hongkong_material_takeover.md) |
+| 去哪里找带贴图的单体建筑模型、怎么取、先测哪一类 | [来源](design/textured_mass/sources.md) · [获取路线](design/textured_mass/acquisition.md) · [案例梯度](design/textured_mass/case_ladder.md) |
+| 三维模型输入能支持到哪些格式、各自成本 | [输入格式路线图](design/textured_mass/input_formats.md) |
 | 历史好读图如何复用、reading/correction 如何接线 | [读图与校正设计依据](design/reading_correction.md) |
 | 共同模型、单位、坐标和编辑对象 | [轻量建筑模型](design/model.md) |
 | 已有代码、接口和真实能力缺口 | [现有实现](design/implementation.md) |
