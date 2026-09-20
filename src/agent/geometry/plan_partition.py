@@ -42,6 +42,17 @@ _AUTO_CALIBRATION = (
 )
 
 
+class OpeningHostError(ValueError):
+    """A full declared opening has no valid host; keep exact pixel evidence."""
+
+    def __init__(self, message: str, *, opening_id: str,
+                 p1_pixel: tuple[float, float], p2_pixel: tuple[float, float]):
+        super().__init__(message)
+        self.opening_id = opening_id
+        self.p1_pixel = list(p1_pixel)
+        self.p2_pixel = list(p2_pixel)
+
+
 def _number(value: object, *, path: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{path} must be a finite number")
@@ -423,16 +434,18 @@ def compile_plan_partition(
         host_ids = [space_id for space_id, poly in polygons_by_id.items() if poly.boundary.covers(pixel_line)]
         host_ids.sort()
         if len(host_ids) not in {1, 2}:
-            raise ValueError(
+            raise OpeningHostError(
                 f"opening {opening_id} at pixels {list(p1_pixel)} -> {list(p2_pixel)} "
-                f"requires one exterior or two interior full-boundary hosts; found {host_ids}"
+                f"requires one exterior or two interior full-boundary hosts; found {host_ids}",
+                opening_id=opening_id, p1_pixel=p1_pixel, p2_pixel=p2_pixel,
             )
         exterior = len(host_ids) == 1
         if exterior and not footprint.boundary.covers(pixel_line):
-            raise ValueError(
+            raise OpeningHostError(
                 f"opening {opening_id} at pixels {list(p1_pixel)} -> {list(p2_pixel)} has only "
                 "one full space host but is not wholly on the footprint boundary; a T-junction "
-                "or partial host cannot be treated as outdoors"
+                "or partial host cannot be treated as outdoors",
+                opening_id=opening_id, p1_pixel=p1_pixel, p2_pixel=p2_pixel,
             )
         z = item["z"]
         if not isinstance(z, list) or len(z) != 2:

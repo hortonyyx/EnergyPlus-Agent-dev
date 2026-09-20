@@ -506,8 +506,8 @@ class Toolkit:
 
     def build_plan(self, image, plan_json):
         """Preserve a pixel declaration before deterministic compilation or errors."""
-        from src.agent.geometry.plan_partition import compile_plan_partition
-        from src.agent.geometry.plan_draft_view import render_plan_draft
+        from src.agent.geometry.plan_partition import OpeningHostError, compile_plan_partition
+        from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -569,6 +569,32 @@ class Toolkit:
                 proposal, metadata = compile_plan_partition(
                     plan, image_size=original.size, image_name=image)
         except (ValueError, TypeError, KeyError) as error:
+            if isinstance(error, OpeningHostError):
+                try:
+                    with PILImage.open(image_path) as original:
+                        local_view, local_metadata = render_opening_host_failure(
+                            original, plan, opening_id=error.opening_id,
+                            p1_pixel=error.p1_pixel, p2_pixel=error.p2_pixel,
+                            image_name=image, image_sha256=record["image_sha256"],
+                            plan_file=record["plan_file"], plan_sha256=record["plan_sha256"],
+                        )
+                    local_path = draft / "opening_host_failure.png"
+                    local_view.save(local_path)
+                    metadata_path = draft / "opening_host_failure.json"
+                    dump(metadata_path, local_metadata)
+                    record["host_failure_view"] = {
+                        "image_file": str(local_path.relative_to(self.run)),
+                        "image_sha256": digest(local_path),
+                        "metadata_file": str(metadata_path.relative_to(self.run)),
+                        "metadata_sha256": digest(metadata_path),
+                        "opening_id": error.opening_id,
+                        "p1_original_pixels": error.p1_pixel,
+                        "p2_original_pixels": error.p2_pixel,
+                        "metadata": local_metadata,
+                    }
+                except Exception as feedback_error:
+                    record.setdefault("host_failure_view_errors", []).append(str(feedback_error))
+                dump(draft / "input.json", record)
             result = {"status": "error", "error": str(error), "plan_input": record,
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
@@ -1255,6 +1281,16 @@ def serve(run: Path, readonly=False):
             except Exception as error:
                 result.setdefault("plan_input", {}).setdefault("draft_view_errors", []).append({
                     "path": draft_view.get("image_file"),
+                    "reason": f"MCP result packaging failed: {error}",
+                })
+        host_failure_view = result.get("plan_input", {}).get("host_failure_view")
+        if not result.get("source_geometry_ready") and host_failure_view:
+            try:
+                content.append(Image(data=(toolkit.run / host_failure_view["image_file"]).read_bytes(),
+                                     format="png").to_image_content())
+            except Exception as error:
+                result.setdefault("plan_input", {}).setdefault("host_failure_view_errors", []).append({
+                    "path": host_failure_view.get("image_file"),
                     "reason": f"MCP result packaging failed: {error}",
                 })
         for metadata in result.get("source_image_projections", []):

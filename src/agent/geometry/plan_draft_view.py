@@ -228,3 +228,90 @@ def render_plan_draft(
         ),
     }
     return preview, metadata
+
+
+def render_opening_host_failure(
+    image: Image.Image,
+    plan: dict,
+    *,
+    opening_id: str,
+    p1_pixel: list[float],
+    p2_pixel: list[float],
+    image_name: str,
+    image_sha256: str,
+    plan_file: str,
+    plan_sha256: str,
+) -> tuple[Image.Image, dict]:
+    """Place a clean local crop beside the literal declaration that failed hosting."""
+    original = image.convert("RGB")
+    points = [tuple(p1_pixel), tuple(p2_pixel)]
+    if not all(0 <= x < original.width and 0 <= y < original.height for x, y in points):
+        raise ValueError("opening failure endpoints are outside the original image")
+    span = max(abs(points[1][0] - points[0][0]), abs(points[1][1] - points[0][1]))
+    margin = max(60, min(220, round(span * 1.5)))
+    crop_box = [
+        max(0, math.floor(min(point[0] for point in points) - margin)),
+        max(0, math.floor(min(point[1] for point in points) - margin)),
+        min(original.width, math.ceil(max(point[0] for point in points) + margin + 1)),
+        min(original.height, math.ceil(max(point[1] for point in points) + margin + 1)),
+    ]
+    clean = original.crop(tuple(crop_box))
+    marked = original.convert("RGBA")
+    ink = Image.new("RGBA", original.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(ink)
+
+    footprint = plan.get("footprint_pixels", [])
+    if isinstance(footprint, list) and len(footprint) >= 2:
+        draw.line([*map(tuple, footprint), tuple(footprint[0])], fill=_FOOTPRINT, width=2)
+    for partition in plan.get("partitions", []):
+        path = partition.get("points") if isinstance(partition, dict) else None
+        if isinstance(path, list) and len(path) >= 2:
+            draw.line([tuple(point) for point in path], fill=_PARTITION, width=2)
+    draw.line(points, fill=_OPENING, width=3)
+    for x, y in points:
+        draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill=_OPENING)
+    marked = Image.alpha_composite(marked, ink).convert("RGB").crop(tuple(crop_box))
+
+    scale = min(4.0, 780 / clean.width, 1450 / clean.height)
+    panel_size = (max(1, round(clean.width * scale)), max(1, round(clean.height * scale)))
+    clean = clean.resize(panel_size, Image.Resampling.NEAREST)
+    marked = marked.resize(panel_size, Image.Resampling.NEAREST)
+    header, gutter = 24, 12
+    output = Image.new("RGB", (panel_size[0] * 2 + gutter, panel_size[1] + header), "white")
+    output.paste(clean, (0, header))
+    output.paste(marked, (panel_size[0] + gutter, header))
+    title = ImageDraw.Draw(output)
+    title.text((3, 5), "ORIGINAL CROP", fill="black")
+    title.text((panel_size[0] + gutter + 3, 5), f"DECLARED {opening_id}", fill="black")
+    metadata = {
+        "schema_version": "opening_host_failure_view_v1",
+        "mode": "declaration_feedback_only",
+        "image": {"name": image_name, "sha256": image_sha256,
+                  "size": [original.width, original.height]},
+        "plan": {"file": plan_file, "sha256": plan_sha256},
+        "opening": {"id": opening_id, "p1_original_pixels": p1_pixel,
+                    "p2_original_pixels": p2_pixel, "full_declared_segment_preserved": True},
+        "crop_original_pixels": crop_box,
+        "panels": {
+            "clean_original": [0, header, panel_size[0], header + panel_size[1]],
+            "declaration": [panel_size[0] + gutter, header,
+                            panel_size[0] * 2 + gutter, header + panel_size[1]],
+        },
+        "panel_size_pixels": list(panel_size),
+        "display_scale": [panel_size[0] / (crop_box[2] - crop_box[0]),
+                          panel_size[1] / (crop_box[3] - crop_box[1])],
+        "mapping": (
+            "returned-image pixel = panel origin + (original pixel - original crop origin) "
+            "* display_scale; use clean_original or declaration panel origin from panels. "
+            "Both panels show the same original crop."
+        ),
+        "drawing_fidelity": "not_evaluated",
+        "source_geometry_ready": False,
+        "note": (
+            "Left is the clean original drawing; right overlays only caller-declared "
+            "footprint, partitions and the full opening. This does not identify a valid host. "
+            "Recheck the original wall and aperture before changing the declaration; do not "
+            "shorten an observed opening merely to clear a host error."
+        ),
+    }
+    return output, metadata
