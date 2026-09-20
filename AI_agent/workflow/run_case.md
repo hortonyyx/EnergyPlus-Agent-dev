@@ -52,6 +52,8 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 09-20另支持失败墙网声明恢复：`--resume-plan <旧 plan.json> --plan-image <本次PNG文件名>`，与`--resume-candidate`互斥。原JSON字节冻结为`resume_plan.json`，声明、散列及明确关联的原图经`inputs.plan_recovery`提供，运行身份为`saved_plan_recovery`；只要求JSON对象，不预先要求可编译，也不自动生成候选。图名必须属于本次图片清单，旧目录中的源模型/报告/GT不读取。总Agent按目标选择原样重现失败或据图修订；开发指定范围的恢复不算冷启动或自主发现整案问题。
 
+若墙网构建后又经`revise_bim`修订，旧`plan.json`只是祖先基线，不能代表最终候选；继续最新成果应从最终候选目录使用`--resume-candidate`，避免丢失后续修改。范围核验也须沿实际候选修订链检查，不能把祖先墙网当作最终声明。
+
 门窗更新会将新 `source_refs` 写回对象，旧来源保留在 before 审计；`changes.assumptions` 可显式替换对象假设，缺省则保留。独立 `source_model.json` 的 `generation.corrections` 同步保存完整修订历史，包括删掉开口的旧对象，源摘要随之重新计算。
 
 局部隔墙修订可在 `revise_bim` 的操作列表中使用：
