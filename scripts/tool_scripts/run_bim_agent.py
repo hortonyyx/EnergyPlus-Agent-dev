@@ -33,7 +33,7 @@ from mcp.types import CallToolResult, TextContent
 
 
 from scripts.tool_scripts.bim_agent_guidance import GUIDE, REFERENCES
-from scripts.tool_scripts.bim_agent_inputs import freeze_building_input
+from scripts.tool_scripts.bim_agent_inputs import freeze_building_input, freeze_plan_input
 
 
 def dump(path: Path, value):
@@ -1670,6 +1670,22 @@ def serve(run: Path, readonly=False):
 
 
 def run_experiment(args):
+    seed_path = getattr(args, "resume_candidate", None)
+    resume_plan_path = getattr(args, "resume_plan", None)
+    plan_image = getattr(args, "plan_image", None)
+    if seed_path and resume_plan_path:
+        raise ValueError("--resume-plan and --resume-candidate are mutually exclusive")
+    if resume_plan_path:
+        if not args.images or not plan_image:
+            raise ValueError("--resume-plan requires --images and --plan-image")
+        if Path(plan_image).name != plan_image or not plan_image.endswith(".png"):
+            raise ValueError("--plan-image must be an exact admitted PNG filename")
+        if not (args.images / plan_image).is_file():
+            raise ValueError(f"--plan-image {plan_image!r} is not present in --images")
+        if not resume_plan_path.is_file():
+            raise ValueError("--resume-plan must name an existing JSON file")
+    elif plan_image:
+        raise ValueError("--plan-image requires --resume-plan")
     run = args.out.resolve(); run.mkdir(parents=True, exist_ok=False)
     (run/"images").mkdir()
     images = {}
@@ -1685,18 +1701,20 @@ def run_experiment(args):
     if mesh_path is not None:
         from scripts.tool_scripts.bim_agent_mesh import freeze_mesh
         mesh_input = freeze_mesh(mesh_path, run)
-    seed_path = getattr(args, "resume_candidate", None)
     building_input_path = getattr(args, "building_input", None)
     building_input = (freeze_building_input(building_input_path, run, images)
                       if building_input_path is not None else None)
-    generation_mode = "saved_candidate_recovery" if seed_path else "original_images_agent_experiment"
+    plan_recovery = (freeze_plan_input(resume_plan_path, run, images, plan_image)
+                     if resume_plan_path is not None else None)
+    generation_mode = ("saved_plan_recovery" if plan_recovery else
+                       "saved_candidate_recovery" if seed_path else "original_images_agent_experiment")
     source_input_mode = ("original_images_with_building_declaration"
                          if building_input else "original_images_only")
     if mesh_input:
         source_input_mode = 'native_mesh_with_images' if images else 'native_mesh'
         if building_input:
             source_input_mode += '_with_building_declaration'
-        if not seed_path:
+        if not seed_path and not plan_recovery:
             generation_mode = 'native_mesh_agent_experiment'
     manifest = {"images":images,"scope":args.scope,
                              "input_mode": generation_mode,
@@ -1741,12 +1759,25 @@ def run_experiment(args):
                              )}
     if building_input:
         manifest["building_input"] = building_input
+    if plan_recovery:
+        manifest["plan_recovery"] = plan_recovery
+        manifest["input_contents"]["saved_pixel_plan"] = {"included": True,
+                                                         "status": "unverified_not_compiled"}
+        manifest["only_input"] = (
+            "authorized original PNG images, user scope, optional building declaration/mesh, "
+            "and one unverified saved pixel-plan declaration; no old source BIM, report, GT or evaluation"
+        )
     if mesh_input:
         manifest['mesh_input'] = mesh_input
         manifest['input_contents']['original_mesh'] = {'included': True, 'sha256': mesh_input['sha256']}
         manifest['only_input'] = ('Admitted original GLB and optional original PNGs, explicit building '
                                   'declaration, user scope and optional saved proposal. Mesh views are '
                                   'generated on demand internally; no GT/evaluation or preselected camera package.')
+        if plan_recovery:
+            manifest['only_input'] = (
+                "admitted original GLB and PNGs, user scope, optional building declaration, "
+                "and one unverified saved pixel-plan declaration; no old source BIM, report, GT or evaluation"
+            )
     if seed_path:
         raw = (seed_path/"proposal.json").read_bytes()
         # Only the proposal is imported, never a report that might hold evaluation.
@@ -1758,7 +1789,13 @@ def run_experiment(args):
         if not (run/"seed"/"source_model.json").exists():
             raise ValueError(f"seed cannot be materialized: {report.get('error')}")
     dump(run/"inputs.json", manifest)
-    continuation = ("A saved proposal is available as seed. Compare its actual spatial partitions, "
+    continuation = ("The previous pixel-plan declaration is available at inputs.plan_recovery.declaration "
+                    f"and is bound to original image {plan_image}. It is unverified and may fail compilation; "
+                    "importing it does not establish a valid source BIM. Follow this run's scope: you may "
+                    "first submit it unchanged to reproduce the failure and inspect feedback, or revise "
+                    "it using evidence from the supplied original."
+                    if plan_recovery else
+                    "A saved proposal is available as seed. Compare its actual spatial partitions, "
                     "openings and connectivity with the original images. Choose substantive "
                     "discrepancies for local review or revision, while preserving reliable geometry; "
                     "do not redo a full reading." if seed_path else
@@ -1842,7 +1879,12 @@ def main():
                      help="Explicit task-authorized exploratory Opus subscription run; default remains Sonnet")
     run.add_argument("--effort", choices=("low", "medium"), default="medium",
                      help="Sonnet reasoning effort for this run; local Haiku configuration is unchanged")
-    run.add_argument("--resume-candidate",type=Path,help="Recover from a saved proposal directory, not an independent cold start")
+    recovery = run.add_mutually_exclusive_group()
+    recovery.add_argument("--resume-candidate",type=Path,
+                          help="Recover from a saved proposal directory, not an independent cold start")
+    recovery.add_argument("--resume-plan",type=Path,
+                          help="Resume from one unverified pixel-plan JSON; does not auto-build a BIM")
+    run.add_argument("--plan-image", help="Exact supplied PNG filename associated with --resume-plan")
     server=commands.add_parser("serve")
     server.add_argument("run",type=Path)
     server.add_argument("--readonly",action="store_true")
