@@ -1,0 +1,414 @@
+{
+  "input_verification": [
+    {
+      "path": "case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "scripts/tool_scripts/cv_probe.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "skills/intake_pipeline/0_reading/cv_toolbox.md",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "skills/intake_pipeline/0_reading/guide.md",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "skills/intake_pipeline/0_reading/pen_library.md",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "skills/intake_pipeline/0_reading/reading_guide.md",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "skills/intake_pipeline/0_reading/session_kickoff.md",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/__init__.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/cv_toolbox/__init__.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/cv_toolbox/recipes.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/cv_toolbox/sidecar.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/cv_toolbox/tools.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/legacy.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "src/agent/reading/schema.py",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "case_data/1f_view.png",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "case_data/East_view.png",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "case_data/North_view.png",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "case_data/South_view.png",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "case_data/West_view.png",
+      "live_unchanged": true,
+      "archive_matches": true
+    },
+    {
+      "path": "case_data/testdata_prompt.json",
+      "live_unchanged": true,
+      "archive_matches": true
+    }
+  ],
+  "rounds": [
+    {
+      "label": "pilot_01",
+      "session_id": "3a4af130-7683-47cd-951a-46dc9c56c9ab",
+      "models": [
+        "claude-haiku-4-5-20251001"
+      ],
+      "elapsed_seconds": 482.304,
+      "cli_cost_estimate_usd": 0.5979327999999997,
+      "usage": {
+        "input_tokens": 313,
+        "cache_creation_input_tokens": 91433,
+        "cache_read_input_tokens": 2092108,
+        "output_tokens": 40912,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 91433,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 8,
+            "output_tokens": 731,
+            "cache_read_input_tokens": 86160,
+            "cache_creation_input_tokens": 5273,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 5273
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "tool_calls": 46,
+      "tool_names": {
+        "Read": 12,
+        "Bash": 24,
+        "Write": 7,
+        "Edit": 3
+      },
+      "tool_errors": [
+        {
+          "call": {
+            "type": "tool_use",
+            "id": "toolu_016rXVuxLZozDP3Xfi3Gadzt",
+            "name": "Bash",
+            "input": {
+              "command": "python requests/analyze_image.py",
+              "description": "Analyze image to find green, black, cyan pixels and estimate scale"
+            },
+            "caller": {
+              "type": "direct"
+            }
+          },
+          "error": "Exit code 1\nTraceback (most recent call last):\n  File \"/tmp/ep_reading_reproduction_20260916_sm24/requests/analyze_image.py\", line 4, in <module>\n    import cv2\nModuleNotFoundError: No module named 'cv2'"
+        }
+      ],
+      "image_transport": [
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/case_data/1f_view.png",
+          "size": [
+            790,
+            1111
+          ],
+          "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+          "matches_local_pixels": true
+        },
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/case_data/1f_view.png",
+          "size": [
+            790,
+            1111
+          ],
+          "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+          "matches_local_pixels": true
+        }
+      ],
+      "cv_tools_in_snapshot": {
+        "px_m_calibrator": 1,
+        "wall_line_profiler": 2,
+        "window_cc_detector": 1
+      },
+      "views": [
+        {
+          "name": "1f_view.json",
+          "sha256": "c8b51be60909d87ee9b79c958c7888e35c724da716af8a2735f7a3f29ef78900",
+          "pens": {
+            "wall": 31
+          },
+          "dimensions": 7,
+          "scale_origin": null
+        }
+      ]
+    },
+    {
+      "label": "pilot_02",
+      "session_id": "3a4af130-7683-47cd-951a-46dc9c56c9ab",
+      "models": [
+        "claude-haiku-4-5-20251001"
+      ],
+      "elapsed_seconds": 283.539,
+      "cli_cost_estimate_usd": 0.4657625000000001,
+      "usage": {
+        "input_tokens": 185,
+        "cache_creation_input_tokens": 45810,
+        "cache_read_input_tokens": 2507225,
+        "output_tokens": 24647,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 45810,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 8,
+            "output_tokens": 824,
+            "cache_read_input_tokens": 134972,
+            "cache_creation_input_tokens": 2271,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2271
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "tool_calls": 22,
+      "tool_names": {
+        "Read": 6,
+        "Bash": 12,
+        "Write": 4
+      },
+      "tool_errors": [],
+      "image_transport": [
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/0_reading/cv_evidence/1f_view/001_wall_line_profiler_overlay.png",
+          "size": [
+            790,
+            1111
+          ],
+          "sha256": "82dd9f9309d71b2598e8993f8e1a710d2d9b2d49daad0b1393fba5c131aa6937",
+          "matches_local_pixels": true
+        },
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/0_reading/cv_evidence/1f_view/002_wall_line_profiler_overlay.png",
+          "size": [
+            790,
+            1111
+          ],
+          "sha256": "dcca9e7e57ce5c077288c9e760e3851f14d878fcad8e2cb80c57a552e8afb20c",
+          "matches_local_pixels": true
+        },
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/0_reading/cv_evidence/1f_view/001_crop_zoom_crop.png",
+          "size": [
+            1140,
+            210
+          ],
+          "sha256": "173a1c586858fa316c4a6942cc60663a54fb3171aa447c545e850bbf4f650202",
+          "matches_local_pixels": true
+        },
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/0_reading/cv_evidence/1f_view/002_crop_zoom_crop.png",
+          "size": [
+            90,
+            1660
+          ],
+          "sha256": "5394a45904c3c5d614ff5db6939cec76b30cc7ca04c687589ac98cca61321ff6",
+          "matches_local_pixels": true
+        }
+      ],
+      "cv_tools_in_snapshot": {
+        "crop_zoom": 2,
+        "px_m_calibrator": 1,
+        "wall_line_profiler": 2,
+        "window_cc_detector": 1
+      },
+      "views": [
+        {
+          "name": "1f_view.json",
+          "sha256": "3c3d5a4c96968f609d5f77014c674f81f79ac6375515ed2777f89a294929567f",
+          "pens": {
+            "wall": 11,
+            "window": 13
+          },
+          "dimensions": 7,
+          "scale_origin": {
+            "world_x_m": 0.0,
+            "world_y_m": 0.0,
+            "world_z_m": null,
+            "note": "Origin at SW corner of building; x→East, y→North (standard); z=null for plan view. Calibrated from measured dimension tick endpoints: top dimension (10000 mm) at x∈[246, 614] px; left dimension (20000 mm) at y∈[134, 1595] px."
+          }
+        }
+      ]
+    },
+    {
+      "label": "pilot_03",
+      "session_id": "3a4af130-7683-47cd-951a-46dc9c56c9ab",
+      "models": [
+        "claude-haiku-4-5-20251001"
+      ],
+      "elapsed_seconds": 336.363,
+      "cli_cost_estimate_usd": 0.4548616999999999,
+      "usage": {
+        "input_tokens": 161,
+        "cache_creation_input_tokens": 26877,
+        "cache_read_input_tokens": 3000267,
+        "output_tokens": 20184,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 26877,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 8,
+            "output_tokens": 932,
+            "cache_read_input_tokens": 160195,
+            "cache_creation_input_tokens": 3925,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3925
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "tool_calls": 19,
+      "tool_names": {
+        "Bash": 15,
+        "Read": 1,
+        "Write": 2,
+        "Edit": 1
+      },
+      "tool_errors": [
+        {
+          "call": {
+            "type": "tool_use",
+            "id": "toolu_017LkF8XB5YUNCUDhcp321Tj",
+            "name": "Bash",
+            "input": {
+              "command": "python << 'EOF'\nimport json\nfrom src.agent.reading import load_reading_view\n\n# Validate JSON\ntry:\n    with open('0_reading/1f_view.json') as f:\n        data = json.load(f)\n    print(\"✓ JSON syntax valid\")\nexcept Exception as e:\n    print(f\"✗ JSON error: {e}\")\n    exit(1)\n\n# Load with historical reader\ntry:\n    result = load_reading_view('0_reading/1f_view.json')\n    print(\"✓ Historical loader accepts\")\n    print(f\"  Label: {result.image_label}\")\n    print(f\"  Kind: {result.image_kind}\")\n    print(f\"  Strokes: {len(result.strokes)}\")\n    print(f\"  Dimensions: {len(result.dimensions)}\")\n    print(f\"  Scale origin: {result.scale_origin is not None}\")\nexcept Exception as e:\n    print(f\"✗ Loader error: {e}\")\n    import traceback\n    traceback.print_exc()\n    exit(1)\n\n# Check coordinates are sensible\nprint(\"\\n✓ COORDINATE VERIFICATION:\")\norigin_x, origin_y = 246.0, 879.5\npx_per_m_x, px_per_m_y = 36.77, 36.52\n\nfor stroke in result.strokes:\n    if stroke.geometry.kind == 'line':\n        p1, p2 = stroke.geometry.p1, stroke.geometry.p2\n        print(f\"  {stroke.id} ({stroke.pen}): ({p1[0]:.2f}, {p1[1]:.2f}) – ({p2[0]:.2f}, {p2[1]:.2f}) m\")\n\nprint(\"\\n✓ SECOND REWORK COMPLETE\")\nprint(\"  - Calibration corrected with proper crop transforms\")\nprint(\"  - 7 walls measured with honest confidence levels\")\nprint(\"  - 7 dimensions (2 overall + 5 segments)\")\nprint(\"  - Windows/additional walls/doors documented as pending\")\n\nEOF\n",
+              "description": "Validate corrected reading and check with historical loader"
+            },
+            "caller": {
+              "type": "direct"
+            }
+          },
+          "error": "Exit code 1\n✗ JSON error: Expecting ',' delimiter: line 201 column 5 (char 5813)"
+        }
+      ],
+      "image_transport": [
+        {
+          "path": "/tmp/ep_reading_reproduction_20260916_sm24/0_reading/cv_evidence/1f_view/003_crop_zoom_crop.png",
+          "size": [
+            390,
+            750
+          ],
+          "sha256": "6c709d22175d4031bfabcae25f7a14d67f6152888e59843d39a30817fedb7182",
+          "matches_local_pixels": true
+        }
+      ],
+      "cv_tools_in_snapshot": {
+        "crop_zoom": 3,
+        "px_m_calibrator": 2,
+        "wall_line_profiler": 2,
+        "window_cc_detector": 1
+      },
+      "views": [
+        {
+          "name": "1f_view.json",
+          "sha256": "ac54fb3bc6b69e143851dc612c10d470fb1ce92b4365ba9462f791e7fd81e37c",
+          "pens": {
+            "wall": 7
+          },
+          "dimensions": 7,
+          "scale_origin": {
+            "world_x_m": 0.0,
+            "world_y_m": 0.0,
+            "world_z_m": null,
+            "note": "Origin at SW corner (246.0, 879.5) px in source image. Calibrated from measured dimension tick endpoints: top dimension ticks at x∈[246, 614] px for 10000 mm; left dimension ticks at y∈[149, 880] px for 20000 mm. Scales: 36.77 px/m (X), 36.52 px/m (Y). Verification: perimeter corners check to ±0.1 m. RMSE 1.55 px."
+          }
+        }
+      ]
+    }
+  ],
+  "same_session": true,
+  "limitations": [
+    "Pixel identity checks CLI tool-return images, not provider-internal vision preprocessing.",
+    "Bash boundary compliance must also be reviewed in tool_calls.json; no OS sandbox is claimed.",
+    "CV counts are cumulative workspace snapshots, not independent new calls per resumed turn."
+  ]
+}

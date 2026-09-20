@@ -1,0 +1,689 @@
+{
+  "floor_id": "F1",
+  "z_floor": 0,
+  "ceiling_height": 4.5,
+  "x_anchors": [
+    [
+      247.5,
+      0
+    ],
+    [
+      611.5,
+      10
+    ]
+  ],
+  "y_anchors": [
+    [
+      150.5,
+      20
+    ],
+    [
+      877.5,
+      0
+    ]
+  ],
+  "basis": "Original overall dimension ticks establish outer-perimeter datum; exterior source planes use that datum and interior planes use the mid-band between measured wall faces. Wall thickness is not explicitly modeled. No GT used.",
+  "footprint_pixels": [
+    [
+      247.5,
+      150.5
+    ],
+    [
+      611.5,
+      150.5
+    ],
+    [
+      611.5,
+      877.5
+    ],
+    [
+      247.5,
+      877.5
+    ]
+  ],
+  "partitions": [
+    {
+      "id": "north_cross",
+      "points": [
+        [
+          247.5,
+          298.5
+        ],
+        [
+          611.5,
+          298.5
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:north_cross; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "west_spine",
+      "points": [
+        [
+          399.5,
+          298.5
+        ],
+        [
+          399.5,
+          877.5
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:west_spine; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "east_spine",
+      "points": [
+        [
+          459.5,
+          298.5
+        ],
+        [
+          459.5,
+          585.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:east_spine; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "west_upper",
+      "points": [
+        [
+          247.5,
+          405.5
+        ],
+        [
+          399.5,
+          405.5
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:west_upper; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "west_lower",
+      "points": [
+        [
+          247.5,
+          585.0
+        ],
+        [
+          399.5,
+          585.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:west_lower; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "east_upper",
+      "points": [
+        [
+          459.5,
+          369.0
+        ],
+        [
+          611.5,
+          369.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:east_upper; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "east_lower",
+      "points": [
+        [
+          459.5,
+          585.0
+        ],
+        [
+          611.5,
+          585.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:east_lower; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    },
+    {
+      "id": "southeast_return",
+      "points": [
+        [
+          399.5,
+          753.0
+        ],
+        [
+          459.5,
+          753.0
+        ],
+        [
+          459.5,
+          698.5
+        ],
+        [
+          611.5,
+          698.5
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png:southeast_return; measured bands in plan_measurements.json; developer verified physical path/door heals"
+      ]
+    }
+  ],
+  "openings": [
+    {
+      "id": "D_N_external",
+      "kind": "door",
+      "p1": [
+        267,
+        150.5
+      ],
+      "p2": [
+        326,
+        150.5
+      ],
+      "z": [
+        0.2,
+        2.6
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_N_external cyan swing in crop [260, 120, 335, 162]; projected to measured wall plane",
+        "Original corresponding elevation: 200 mm base offset + 2400 mm door opening + 1900 mm upper wall = 4500 mm"
+      ]
+    },
+    {
+      "id": "D_N_internal",
+      "kind": "door",
+      "p1": [
+        407,
+        298.5
+      ],
+      "p2": [
+        452,
+        298.5
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_N_internal cyan swing in crop [396, 270, 459, 307]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_W_upper",
+      "kind": "door",
+      "p1": [
+        399.5,
+        359
+      ],
+      "p2": [
+        399.5,
+        392
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_W_upper cyan swing in crop [358, 350, 405, 402]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_W_middle",
+      "kind": "door",
+      "p1": [
+        399.5,
+        418
+      ],
+      "p2": [
+        399.5,
+        451
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_W_middle cyan swing in crop [358, 411, 405, 460]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_W_lower",
+      "kind": "door",
+      "p1": [
+        399.5,
+        598
+      ],
+      "p2": [
+        399.5,
+        631
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_W_lower cyan swing in crop [358, 590, 405, 640]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_E_upper",
+      "kind": "door",
+      "p1": [
+        459.5,
+        323
+      ],
+      "p2": [
+        459.5,
+        356
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_E_upper cyan swing in crop [453, 312, 496, 370]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_E_middle",
+      "kind": "door",
+      "p1": [
+        459.5,
+        382
+      ],
+      "p2": [
+        459.5,
+        415
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_E_middle cyan swing in crop [453, 375, 496, 427]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_SE_internal",
+      "kind": "door",
+      "p1": [
+        559,
+        698.5
+      ],
+      "p2": [
+        592,
+        698.5
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_SE_internal cyan swing in crop [550, 686, 600, 742]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+      ]
+    },
+    {
+      "id": "D_E_external",
+      "kind": "door",
+      "p1": [
+        611.5,
+        612
+      ],
+      "p2": [
+        611.5,
+        671
+      ],
+      "z": [
+        0.2,
+        2.6
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_E_external cyan swing in crop [596, 600, 644, 680]; projected to measured wall plane",
+        "Original corresponding elevation: 200 mm base offset + 2400 mm door opening + 1900 mm upper wall = 4500 mm"
+      ]
+    },
+    {
+      "id": "D_S_external",
+      "kind": "door",
+      "p1": [
+        413,
+        877.5
+      ],
+      "p2": [
+        445,
+        877.5
+      ],
+      "z": [
+        0.2,
+        2.6
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png:D_S_external cyan swing in crop [406, 841, 453, 885]; projected to measured wall plane",
+        "Original corresponding elevation: 200 mm base offset + 2400 mm door opening + 1900 mm upper wall = 4500 mm"
+      ]
+    },
+    {
+      "id": "W_N_1",
+      "kind": "window",
+      "p1": [
+        417,
+        150.5
+      ],
+      "p2": [
+        592,
+        150.5
+      ],
+      "z": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png:W_N_1 measured cyan window band 417..592",
+        "North_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_S_1",
+      "kind": "window",
+      "p1": [
+        268,
+        877.5
+      ],
+      "p2": [
+        322,
+        877.5
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_S_1 measured cyan window band 268..322",
+        "South_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_S_2",
+      "kind": "window",
+      "p1": [
+        537,
+        877.5
+      ],
+      "p2": [
+        592,
+        877.5
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_S_2 measured cyan window band 537..592",
+        "South_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_W_1",
+      "kind": "window",
+      "p1": [
+        247.5,
+        171
+      ],
+      "p2": [
+        247.5,
+        225
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_W_1 measured cyan window band 171..225",
+        "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_W_2",
+      "kind": "window",
+      "p1": [
+        247.5,
+        312
+      ],
+      "p2": [
+        247.5,
+        355
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_W_2 measured cyan window band 312..355",
+        "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_W_3",
+      "kind": "window",
+      "p1": [
+        247.5,
+        418
+      ],
+      "p2": [
+        247.5,
+        473
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_W_3 measured cyan window band 418..473",
+        "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_W_4",
+      "kind": "window",
+      "p1": [
+        247.5,
+        517
+      ],
+      "p2": [
+        247.5,
+        572
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_W_4 measured cyan window band 517..572",
+        "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_W_5",
+      "kind": "window",
+      "p1": [
+        247.5,
+        684
+      ],
+      "p2": [
+        247.5,
+        858
+      ],
+      "z": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png:W_W_5 measured cyan window band 684..858",
+        "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_E_1",
+      "kind": "window",
+      "p1": [
+        611.5,
+        171
+      ],
+      "p2": [
+        611.5,
+        225
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_E_1 measured cyan window band 171..225",
+        "East_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_E_2",
+      "kind": "window",
+      "p1": [
+        611.5,
+        312
+      ],
+      "p2": [
+        611.5,
+        355
+      ],
+      "z": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png:W_E_2 measured cyan window band 312..355",
+        "East_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    },
+    {
+      "id": "W_E_3",
+      "kind": "window",
+      "p1": [
+        611.5,
+        382
+      ],
+      "p2": [
+        611.5,
+        556
+      ],
+      "z": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png:W_E_3 measured cyan window band 382..556",
+        "East_view.png: literal vertical dimension chain; see elevation_observations.json"
+      ]
+    }
+  ],
+  "space_seeds": [
+    {
+      "id": "north_room",
+      "point": [
+        350,
+        220
+      ],
+      "role": "office"
+    },
+    {
+      "id": "west_upper",
+      "point": [
+        330,
+        335
+      ],
+      "role": "office"
+    },
+    {
+      "id": "west_middle",
+      "point": [
+        330,
+        490
+      ],
+      "role": "office"
+    },
+    {
+      "id": "west_lower",
+      "point": [
+        330,
+        700
+      ],
+      "role": "meeting"
+    },
+    {
+      "id": "east_upper",
+      "point": [
+        535,
+        325
+      ],
+      "role": "office"
+    },
+    {
+      "id": "east_middle",
+      "point": [
+        535,
+        485
+      ],
+      "role": "office"
+    },
+    {
+      "id": "southeast_room",
+      "point": [
+        510,
+        790
+      ],
+      "role": "office"
+    },
+    {
+      "id": "corridor",
+      "point": [
+        430,
+        500
+      ],
+      "role": "corridor"
+    }
+  ],
+  "assumptions": [
+    "Developer-assisted reconstruction from the original drawing, not target-model autonomous generation.",
+    "Room uses inferred from furniture; no textual room names visible.",
+    "Outer-perimeter reference and internal mid-wall references intentionally differ; source is a lightweight representative-plane model.",
+    "Partition endpoint junctions extended only through visible connecting wall bands to the chosen representative plane.",
+    "Interior doors use 2.1m assumed height and unknown operating state.",
+    "Doors/windows use raster-measured extents; about one source pixel (0.028m) localization uncertainty.",
+    "Exterior wall thickness / roof structural depth are not modeled.",
+    "4.5m source height follows the external elevation envelope. Ceiling/slab construction thickness and net clear height are unspecified."
+  ],
+  "unresolved": [
+    "The elevations do not label finished floor level. Source floor z=0 is the lower facade outline; observed exterior door sill z=0.2 is retained without inventing a physical step.",
+    "Interior door heights and operating state are not supplied; 2.1m and unknown are explicit assumptions.",
+    "Window/door widths use the plan's measured pixels with about 0.03m uncertainty; elevation dimensions cross-check category and matching, not hidden endpoint replacement.",
+    "Developer example needs user review and independent working-model transfer; no autonomous or stability claim."
+  ]
+}

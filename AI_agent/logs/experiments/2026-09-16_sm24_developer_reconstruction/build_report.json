@@ -1,0 +1,69 @@
+{
+  "mode": "agent_geometry_proposal",
+  "status": "not_evaluated",
+  "source_geometry_ready": true,
+  "model_calls": 0,
+  "solver_calls": 0,
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "source_geometry_self_consistency": {
+    "status": "pass",
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "findings": []
+  },
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "567b8735cb32c477fae768314ccf29d816d286b30eb1b62e65f6c31c2b79486d",
+  "provenance": {
+    "mode": "developer_assisted_original_drawing_reconstruction",
+    "generator": "Astra developer plan selection + Sol developer elevation measurement + deterministic compilation",
+    "input_plan_sha256": "3882f1695395ada00b06b15c9be939d1b90a9f69a4d1e508d1b0ccb5f861e2a6",
+    "plan_measurements_sha256": "490c7dbaa79f64fae3d219ad4280b1851dbd1c22aae6f93c49e7958320247995",
+    "ground_truth_supplied_to_generation": false,
+    "prior_reading_or_bim_loaded_by_generation_script": false,
+    "important_limit": "Developer knows historical case context; this is not a blind target-model run."
+  },
+  "agent_assumptions": [
+    "Developer-assisted reconstruction from the original drawing, not target-model autonomous generation.",
+    "Room uses inferred from furniture; no textual room names visible.",
+    "Outer-perimeter reference and internal mid-wall references intentionally differ; source is a lightweight representative-plane model.",
+    "Partition endpoint junctions extended only through visible connecting wall bands to the chosen representative plane.",
+    "Interior doors use 2.1m assumed height and unknown operating state.",
+    "Doors/windows use raster-measured extents; about one source pixel (0.028m) localization uncertainty.",
+    "Exterior wall thickness / roof structural depth are not modeled.",
+    "4.5m source height follows the external elevation envelope. Ceiling/slab construction thickness and net clear height are unspecified.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "The elevations do not label finished floor level. Source floor z=0 is the lower facade outline; observed exterior door sill z=0.2 is retained without inventing a physical step.",
+    "Interior door heights and operating state are not supplied; 2.1m and unknown are explicit assumptions.",
+    "Window/door widths use the plan's measured pixels with about 0.03m uncertainty; elevation dimensions cross-check category and matching, not hidden endpoint replacement.",
+    "Developer example needs user review and independent working-model transfer; no autonomous or stability claim.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  },
+  "counts": {
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "source_model_sha256": "f3c09044168b10d1b20aad8c181723dcd8e42a3cabf094d5fabb4c87bc0132ec"
+}

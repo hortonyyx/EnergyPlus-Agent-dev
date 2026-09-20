@@ -1,0 +1,48 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "modelling_task": "reconstruction",
+  "reference_scope": "Post-generation developer-assisted original drawing reconstruction; GT not loaded by generation scripts. Interior door heights assumed.",
+  "interpretation": "还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。",
+  "input_manifest_sha256": "6fdbc29a99014ba377a1aa400af54e1ad5da851e3b5417298b6679db35021e8c",
+  "reference_case": "sm24_anchor",
+  "reference_path": "case_tests/test_baseline/gt/sm24_anchor/gt.json",
+  "reference_sha256": "5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420",
+  "candidates": [
+    {
+      "candidate": "candidate_01",
+      "is_recovery_seed": false,
+      "source_sha256": "f3c09044168b10d1b20aad8c181723dcd8e42a3cabf094d5fabb4c87bc0132ec",
+      "partition_status": "minor",
+      "reference_spaces": 8,
+      "candidate_spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 11
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 11,
+        "built_window_count": 11,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "Reference completeness and original pixel truth require separate evidence.",
+    "Partition comparison does not verify doors, connectivity, or vertical voids.",
+    "Reference-plane differences retain their existing evaluator interpretation.",
+    "No evaluation feedback supplied to the generating model."
+  ]
+}

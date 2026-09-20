@@ -1,0 +1,907 @@
+{
+  "assumptions": [
+    "Developer-assisted reconstruction from the original drawing, not target-model autonomous generation.",
+    "Room uses inferred from furniture; no textual room names visible.",
+    "Outer-perimeter reference and internal mid-wall references intentionally differ; source is a lightweight representative-plane model.",
+    "Partition endpoint junctions extended only through visible connecting wall bands to the chosen representative plane.",
+    "Interior doors use 2.1m assumed height and unknown operating state.",
+    "Doors/windows use raster-measured extents; about one source pixel (0.028m) localization uncertainty.",
+    "Exterior wall thickness / roof structural depth are not modeled.",
+    "4.5m source height follows the external elevation envelope. Ceiling/slab construction thickness and net clear height are unspecified.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "north_room",
+            "polygon": [
+              [
+                0.0,
+                15.928473
+              ],
+              [
+                10.0,
+                15.928473
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                0.0,
+                20.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:north_cross; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              15.928473,
+              20.0
+            ]
+          },
+          {
+            "id": "west_upper",
+            "polygon": [
+              [
+                0.0,
+                12.984869
+              ],
+              [
+                4.175824,
+                12.984869
+              ],
+              [
+                4.175824,
+                15.928473
+              ],
+              [
+                0.0,
+                15.928473
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:north_cross; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:west_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:west_upper; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              0.0,
+              4.175824
+            ],
+            "y": [
+              12.984869,
+              15.928473
+            ]
+          },
+          {
+            "id": "corridor",
+            "polygon": [
+              [
+                4.175824,
+                3.425034
+              ],
+              [
+                5.824176,
+                3.425034
+              ],
+              [
+                5.824176,
+                4.924347
+              ],
+              [
+                10.0,
+                4.924347
+              ],
+              [
+                10.0,
+                8.046768
+              ],
+              [
+                5.824176,
+                8.046768
+              ],
+              [
+                5.824176,
+                15.928473
+              ],
+              [
+                4.175824,
+                15.928473
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:north_cross; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:west_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:east_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:east_lower; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:southeast_return; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              4.175824,
+              10.0
+            ],
+            "y": [
+              3.425034,
+              15.928473
+            ]
+          },
+          {
+            "id": "east_upper",
+            "polygon": [
+              [
+                5.824176,
+                13.988996
+              ],
+              [
+                10.0,
+                13.988996
+              ],
+              [
+                10.0,
+                15.928473
+              ],
+              [
+                5.824176,
+                15.928473
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:north_cross; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:east_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:east_upper; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              5.824176,
+              10.0
+            ],
+            "y": [
+              13.988996,
+              15.928473
+            ]
+          },
+          {
+            "id": "east_middle",
+            "polygon": [
+              [
+                5.824176,
+                8.046768
+              ],
+              [
+                10.0,
+                8.046768
+              ],
+              [
+                10.0,
+                13.988996
+              ],
+              [
+                5.824176,
+                13.988996
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:east_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:east_upper; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:east_lower; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              5.824176,
+              10.0
+            ],
+            "y": [
+              8.046768,
+              13.988996
+            ]
+          },
+          {
+            "id": "west_middle",
+            "polygon": [
+              [
+                0.0,
+                8.046768
+              ],
+              [
+                4.175824,
+                8.046768
+              ],
+              [
+                4.175824,
+                12.984869
+              ],
+              [
+                0.0,
+                12.984869
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:west_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:west_upper; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:west_lower; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              0.0,
+              4.175824
+            ],
+            "y": [
+              8.046768,
+              12.984869
+            ]
+          },
+          {
+            "id": "west_lower",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.175824,
+                0.0
+              ],
+              [
+                4.175824,
+                8.046768
+              ],
+              [
+                0.0,
+                8.046768
+              ]
+            ],
+            "role": "meeting",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:west_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:west_lower; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              0.0,
+              4.175824
+            ],
+            "y": [
+              0.0,
+              8.046768
+            ]
+          },
+          {
+            "id": "southeast_room",
+            "polygon": [
+              [
+                4.175824,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.924347
+              ],
+              [
+                5.824176,
+                4.924347
+              ],
+              [
+                5.824176,
+                3.425034
+              ],
+              [
+                4.175824,
+                3.425034
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png:west_spine; measured bands in plan_measurements.json; developer verified physical path/door heals",
+              "1f_view.png:southeast_return; measured bands in plan_measurements.json; developer verified physical path/door heals"
+            ],
+            "x": [
+              4.175824,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.924347
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_N_external",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.535714,
+          20.0
+        ],
+        "p2": [
+          2.156593,
+          20.0
+        ],
+        "source_refs": [
+          "1f_view.png:D_N_external cyan swing in crop [260, 120, 335, 162]; projected to measured wall plane",
+          "Original corresponding elevation: 200 mm base offset + 2400 mm door opening + 1900 mm upper wall = 4500 mm"
+        ],
+        "space_id": "north_room",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_N_internal",
+        "kind": "door",
+        "other_space_id": "north_room",
+        "p1": [
+          4.381868,
+          15.928473
+        ],
+        "p2": [
+          5.618132,
+          15.928473
+        ],
+        "source_refs": [
+          "1f_view.png:D_N_internal cyan swing in crop [396, 270, 459, 307]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_W_upper",
+        "kind": "door",
+        "other_space_id": "west_upper",
+        "p1": [
+          4.175824,
+          14.264099
+        ],
+        "p2": [
+          4.175824,
+          13.356259
+        ],
+        "source_refs": [
+          "1f_view.png:D_W_upper cyan swing in crop [358, 350, 405, 402]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_W_middle",
+        "kind": "door",
+        "other_space_id": "west_middle",
+        "p1": [
+          4.175824,
+          12.64099
+        ],
+        "p2": [
+          4.175824,
+          11.73315
+        ],
+        "source_refs": [
+          "1f_view.png:D_W_middle cyan swing in crop [358, 411, 405, 460]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_W_lower",
+        "kind": "door",
+        "other_space_id": "west_lower",
+        "p1": [
+          4.175824,
+          7.689133
+        ],
+        "p2": [
+          4.175824,
+          6.781293
+        ],
+        "source_refs": [
+          "1f_view.png:D_W_lower cyan swing in crop [358, 590, 405, 640]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_E_upper",
+        "kind": "door",
+        "other_space_id": "east_upper",
+        "p1": [
+          5.824176,
+          15.25447
+        ],
+        "p2": [
+          5.824176,
+          14.34663
+        ],
+        "source_refs": [
+          "1f_view.png:D_E_upper cyan swing in crop [453, 312, 496, 370]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_E_middle",
+        "kind": "door",
+        "other_space_id": "east_middle",
+        "p1": [
+          5.824176,
+          13.631362
+        ],
+        "p2": [
+          5.824176,
+          12.723521
+        ],
+        "source_refs": [
+          "1f_view.png:D_E_middle cyan swing in crop [453, 375, 496, 427]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_SE_internal",
+        "kind": "door",
+        "other_space_id": "southeast_room",
+        "p1": [
+          8.557692,
+          4.924347
+        ],
+        "p2": [
+          9.464286,
+          4.924347
+        ],
+        "source_refs": [
+          "1f_view.png:D_SE_internal cyan swing in crop [550, 686, 600, 742]; projected to measured wall plane; internal door height 2.1m is an explicit assumption"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_E_external",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.303989
+        ],
+        "p2": [
+          10.0,
+          5.68088
+        ],
+        "source_refs": [
+          "1f_view.png:D_E_external cyan swing in crop [596, 600, 644, 680]; projected to measured wall plane",
+          "Original corresponding elevation: 200 mm base offset + 2400 mm door opening + 1900 mm upper wall = 4500 mm"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_S_external",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.546703,
+          0.0
+        ],
+        "p2": [
+          5.425824,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view.png:D_S_external cyan swing in crop [406, 841, 453, 885]; projected to measured wall plane",
+          "Original corresponding elevation: 200 mm base offset + 2400 mm door opening + 1900 mm upper wall = 4500 mm"
+        ],
+        "space_id": "southeast_room",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_N_1",
+        "kind": "window",
+        "p1": [
+          4.656593,
+          20.0
+        ],
+        "p2": [
+          9.464286,
+          20.0
+        ],
+        "room": "north_room",
+        "source_refs": [
+          "1f_view.png:W_N_1 measured cyan window band 417..592",
+          "North_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          4.656593,
+          9.464286
+        ],
+        "width_m": 4.807693,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S_1",
+        "kind": "window",
+        "p1": [
+          0.563187,
+          0.0
+        ],
+        "p2": [
+          2.046703,
+          0.0
+        ],
+        "room": "west_lower",
+        "source_refs": [
+          "1f_view.png:W_S_1 measured cyan window band 268..322",
+          "South_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          0.563187,
+          2.046703
+        ],
+        "width_m": 1.483516,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S_2",
+        "kind": "window",
+        "p1": [
+          7.953297,
+          0.0
+        ],
+        "p2": [
+          9.464286,
+          0.0
+        ],
+        "room": "southeast_room",
+        "source_refs": [
+          "1f_view.png:W_S_2 measured cyan window band 537..592",
+          "South_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          7.953297,
+          9.464286
+        ],
+        "width_m": 1.510989,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_1",
+        "kind": "window",
+        "p1": [
+          0.0,
+          19.436039
+        ],
+        "p2": [
+          0.0,
+          17.950481
+        ],
+        "room": "north_room",
+        "source_refs": [
+          "1f_view.png:W_W_1 measured cyan window band 171..225",
+          "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          17.950481,
+          19.436039
+        ],
+        "width_m": 1.485558,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_2",
+        "kind": "window",
+        "p1": [
+          0.0,
+          15.557084
+        ],
+        "p2": [
+          0.0,
+          14.37414
+        ],
+        "room": "west_upper",
+        "source_refs": [
+          "1f_view.png:W_W_2 measured cyan window band 312..355",
+          "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          14.37414,
+          15.557084
+        ],
+        "width_m": 1.182944,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_3",
+        "kind": "window",
+        "p1": [
+          0.0,
+          12.64099
+        ],
+        "p2": [
+          0.0,
+          11.127923
+        ],
+        "room": "west_middle",
+        "source_refs": [
+          "1f_view.png:W_W_3 measured cyan window band 418..473",
+          "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          11.127923,
+          12.64099
+        ],
+        "width_m": 1.513067,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_4",
+        "kind": "window",
+        "p1": [
+          0.0,
+          9.917469
+        ],
+        "p2": [
+          0.0,
+          8.404402
+        ],
+        "room": "west_middle",
+        "source_refs": [
+          "1f_view.png:W_W_4 measured cyan window band 517..572",
+          "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          8.404402,
+          9.917469
+        ],
+        "width_m": 1.513067,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W_5",
+        "kind": "window",
+        "p1": [
+          0.0,
+          5.323246
+        ],
+        "p2": [
+          0.0,
+          0.536451
+        ],
+        "room": "west_lower",
+        "source_refs": [
+          "1f_view.png:W_W_5 measured cyan window band 684..858",
+          "West_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          0.536451,
+          5.323246
+        ],
+        "width_m": 4.786795,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_1",
+        "kind": "window",
+        "p1": [
+          10.0,
+          19.436039
+        ],
+        "p2": [
+          10.0,
+          17.950481
+        ],
+        "room": "north_room",
+        "source_refs": [
+          "1f_view.png:W_E_1 measured cyan window band 171..225",
+          "East_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          17.950481,
+          19.436039
+        ],
+        "width_m": 1.485558,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_2",
+        "kind": "window",
+        "p1": [
+          10.0,
+          15.557084
+        ],
+        "p2": [
+          10.0,
+          14.37414
+        ],
+        "room": "east_upper",
+        "source_refs": [
+          "1f_view.png:W_E_2 measured cyan window band 312..355",
+          "East_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          14.37414,
+          15.557084
+        ],
+        "width_m": 1.182944,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E_3",
+        "kind": "window",
+        "p1": [
+          10.0,
+          13.631362
+        ],
+        "p2": [
+          10.0,
+          8.844567
+        ],
+        "room": "east_middle",
+        "source_refs": [
+          "1f_view.png:W_E_3 measured cyan window band 382..556",
+          "East_view.png: literal vertical dimension chain; see elevation_observations.json"
+        ],
+        "span": [
+          8.844567,
+          13.631362
+        ],
+        "width_m": 4.786795,
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "The elevations do not label finished floor level. Source floor z=0 is the lower facade outline; observed exterior door sill z=0.2 is retained without inventing a physical step.",
+    "Interior door heights and operating state are not supplied; 2.1m and unknown are explicit assumptions.",
+    "Window/door widths use the plan's measured pixels with about 0.03m uncertainty; elevation dimensions cross-check category and matching, not hidden endpoint replacement.",
+    "Developer example needs user review and independent working-model transfer; no autonomous or stability claim.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
