@@ -1,0 +1,113 @@
+{
+  "source_model_sha256": "f65545ceca3c057796ec53afa61c5cc9afae292aad68b23613b5f3a0b8ec4ac2",
+  "changed_source_spaces": [
+    "CorridorN_SE_open",
+    "RoomSE_south"
+  ],
+  "local_partition_matches": [
+    {
+      "reference_id": "z4",
+      "candidate_id": "RoomSE_south",
+      "reference_floor_id": "F1",
+      "candidate_floor_id": "F1",
+      "status": "severe",
+      "intersection_area_m2": 26.013541227506003,
+      "reference_coverage_fraction": 0.9894541523082595,
+      "candidate_coverage_fraction": 1.0,
+      "iou": 0.9894541523082596,
+      "symmetric_difference_area_m2": 0.2772587724940099,
+      "boundary_hausdorff_m": 0.06438173853664088,
+      "boundary_within_tolerance": false,
+      "z_floor_delta_m": 0.0,
+      "height_delta_m": 0.0,
+      "z_top_delta_m": 0.0
+    },
+    {
+      "reference_id": "z5",
+      "candidate_id": "CorridorN_SE_open",
+      "reference_floor_id": "F1",
+      "candidate_floor_id": "F1",
+      "status": "severe",
+      "intersection_area_m2": 33.392259192543975,
+      "reference_coverage_fraction": 0.9955475944064692,
+      "candidate_coverage_fraction": 0.9890514900185258,
+      "iou": 0.9846958328037522,
+      "symmetric_difference_area_m2": 0.5189833253259997,
+      "boundary_hausdorff_m": 0.07100400000000562,
+      "boundary_within_tolerance": false,
+      "z_floor_delta_m": 0.0,
+      "height_delta_m": 0.0,
+      "z_top_delta_m": 0.0
+    }
+  ],
+  "changed_door_space_membership": [
+    {
+      "id": "D_SE_divider",
+      "before": null,
+      "after": [
+        "CorridorN_SE_open",
+        "RoomSE_south"
+      ],
+      "vertices": [
+        [
+          8.539945,
+          -15.103164,
+          0.0
+        ],
+        [
+          9.476584,
+          -15.103164,
+          0.0
+        ],
+        [
+          9.476584,
+          -15.103164,
+          2.4
+        ],
+        [
+          8.539945,
+          -15.103164,
+          2.4
+        ]
+      ]
+    },
+    {
+      "id": "SD1_door",
+      "before": [
+        "CorridorN_SE_open"
+      ],
+      "after": [
+        "RoomSE_south"
+      ],
+      "vertices": [
+        [
+          4.545455,
+          -20.0,
+          0.0
+        ],
+        [
+          5.426997,
+          -20.0,
+          0.0
+        ],
+        [
+          5.426997,
+          -20.0,
+          2.4
+        ],
+        [
+          4.545455,
+          -20.0,
+          2.4
+        ]
+      ]
+    }
+  ],
+  "whole_partition_status": "severe",
+  "evaluation_only": true,
+  "limits": [
+    "Reference partition comparison does not verify internal door dimensions.",
+    "This is a developer-scoped saved-plan recovery, not a cold start.",
+    "Whole-building limitations include inherited door heights and West window heads."
+  ]
+}

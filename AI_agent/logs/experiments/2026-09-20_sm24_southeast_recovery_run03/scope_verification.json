@@ -1,0 +1,741 @@
+{
+  "schema_version": "southeast_recovery_scope_audit_v1",
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_southeast_recovery_run03",
+  "checks_exclude_gt": true,
+  "merged_space_id_under_test": "CorridorN_SE_open",
+  "polygon_area_tolerance_m2": 0.0001,
+  "provenance": {
+    "input_mode": "saved_plan_recovery",
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_host_recovery_run02/plan_drafts/draft_002/plan.json",
+    "source_exists": true,
+    "frozen_path": "resume_plan.json",
+    "frozen_exists": true,
+    "frozen_equals_source_bytes": true,
+    "frozen_sha_matches_manifest": true,
+    "declaration_matches_frozen": true,
+    "image": "1f_view.png",
+    "image_sha_matches_manifest": true,
+    "manifest_sha256": "6e15510d0a2fe0135cb42722931356b1f27094b207e99bca56f0a03ca1b748f5",
+    "prior_candidate": "candidate_01",
+    "prior_source_model": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_host_recovery_run02/candidate_01/source_model.json"
+  },
+  "final_candidate": {
+    "candidate": "candidate_01",
+    "complete": true,
+    "plan_file": "plan_drafts/draft_001/plan.json",
+    "report_manifest_sha_matches_actual": true,
+    "plan_sha_matches_report": true,
+    "candidate_linked_by_tool_log": true,
+    "candidate_linked_by_mcp_stream": true,
+    "unchanged_frame_and_calibration": {
+      "floor_id": true,
+      "z_floor": true,
+      "ceiling_height": true,
+      "x_anchors": true,
+      "y_anchors": true,
+      "footprint_pixels": true
+    },
+    "partitions": {
+      "added": {
+        "P7_SE_divider": {
+          "points": [
+            [
+              400,
+              753
+            ],
+            [
+              461,
+              753
+            ],
+            [
+              461,
+              700
+            ],
+            [
+              611,
+              700
+            ]
+          ]
+        }
+      },
+      "deleted": {},
+      "modified": {}
+    },
+    "all_prior_partition_paths_preserved": true,
+    "space_seeds": {
+      "added": {
+        "RoomSE_south": {
+          "point": [
+            420,
+            820
+          ],
+          "role": "small_office_or_store (furniture: narrow cabinet/desk with 2 chairs; role uncertain)"
+        }
+      },
+      "deleted": {},
+      "modified": {}
+    },
+    "unrelated_prior_seeds_preserved": true,
+    "openings": {
+      "added": {
+        "D_SE_divider": {
+          "kind": "door",
+          "p1": [
+            558,
+            700
+          ],
+          "p2": [
+            592,
+            700
+          ],
+          "z": [
+            0,
+            2.4
+          ]
+        }
+      },
+      "deleted": {},
+      "modified": {}
+    },
+    "all_prior_plan_openings_preserved": true,
+    "source_comparison": {
+      "old_floor_geometry": [
+        {
+          "id": "F1",
+          "z_floor": 0.0,
+          "height": 4.5,
+          "footprint": [
+            [
+              0.0,
+              -20.0
+            ],
+            [
+              10.0,
+              -20.0
+            ],
+            [
+              10.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "new_floor_geometry": [
+        {
+          "id": "F1",
+          "z_floor": 0.0,
+          "height": 4.5,
+          "footprint": [
+            [
+              0.0,
+              -20.0
+            ],
+            [
+              10.0,
+              -20.0
+            ],
+            [
+              10.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "floor_geometry_preserved": true,
+      "old_opening_count": 20,
+      "new_opening_count": 21,
+      "old_openings_missing": [],
+      "old_opening_kind_or_vertices_changed": {},
+      "all_old_opening_kind_and_vertices_preserved": true,
+      "new_opening_ids": [
+        "D_SE_divider"
+      ],
+      "unrelated_spaces": {
+        "Boardroom_W4": {
+          "present": true,
+          "polygon_symmetric_difference_m2": 0.0,
+          "role_preserved": true,
+          "preserved": true
+        },
+        "Lobby": {
+          "present": true,
+          "polygon_symmetric_difference_m2": 0.0,
+          "role_preserved": true,
+          "preserved": true
+        },
+        "MeetingE3": {
+          "present": true,
+          "polygon_symmetric_difference_m2": 0.0,
+          "role_preserved": true,
+          "preserved": true
+        },
+        "OfficeW2": {
+          "present": true,
+          "polygon_symmetric_difference_m2": 0.0,
+          "role_preserved": true,
+          "preserved": true
+        },
+        "OfficeW3": {
+          "present": true,
+          "polygon_symmetric_difference_m2": 0.0,
+          "role_preserved": true,
+          "preserved": true
+        },
+        "RoomE2": {
+          "present": true,
+          "polygon_symmetric_difference_m2": 0.0,
+          "role_preserved": true,
+          "preserved": true
+        }
+      },
+      "all_unrelated_spaces_preserved": true,
+      "old_merged_space_coverage": {
+        "old_space_id": "CorridorN_SE_open",
+        "old_space_exists": true,
+        "old_area_m2": 59.775442937920005,
+        "new_spaces_covering_old": [
+          {
+            "id": "CorridorN_SE_open",
+            "role": "corridor_and_open_office",
+            "overlap_m2": 33.761901710413994,
+            "outside_old_merged_m2": 0.0
+          },
+          {
+            "id": "RoomSE_south",
+            "role": "small_office_or_store (furniture: narrow cabinet/desk with 2 chairs; role uncertain)",
+            "overlap_m2": 26.013541227506003,
+            "outside_old_merged_m2": 0.0
+          }
+        ],
+        "uncovered_m2": 0.0,
+        "overlap_sum_minus_union_m2": 0.0,
+        "coverage_preserved": true,
+        "split_into_multiple_spaces": true
+      },
+      "door_connections_before_after": {
+        "D_SE_divider": {
+          "before": null,
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "RoomSE_south"
+            ],
+            "state": "unknown"
+          }
+        },
+        "D_e2_corr": {
+          "before": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "RoomE2"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "RoomE2"
+            ],
+            "state": "unknown"
+          }
+        },
+        "D_e3_corr": {
+          "before": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "MeetingE3"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "MeetingE3"
+            ],
+            "state": "unknown"
+          }
+        },
+        "D_lobby_corr": {
+          "before": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "Lobby"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "Lobby"
+            ],
+            "state": "unknown"
+          }
+        },
+        "D_w2_corr": {
+          "before": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "OfficeW2"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "OfficeW2"
+            ],
+            "state": "unknown"
+          }
+        },
+        "D_w3_corr": {
+          "before": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "OfficeW3"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "OfficeW3"
+            ],
+            "state": "unknown"
+          }
+        },
+        "D_w4_corr": {
+          "before": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "Boardroom_W4",
+              "CorridorN_SE_open"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "Boardroom_W4",
+              "CorridorN_SE_open"
+            ],
+            "state": "unknown"
+          }
+        },
+        "ED1_door": {
+          "before": {
+            "kind": "door",
+            "exterior": true,
+            "space_ids": [
+              "CorridorN_SE_open"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": true,
+            "space_ids": [
+              "CorridorN_SE_open"
+            ],
+            "state": "unknown"
+          }
+        },
+        "ND1_entrance": {
+          "before": {
+            "kind": "door",
+            "exterior": true,
+            "space_ids": [
+              "Lobby"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": true,
+            "space_ids": [
+              "Lobby"
+            ],
+            "state": "unknown"
+          }
+        },
+        "SD1_door": {
+          "before": {
+            "kind": "door",
+            "exterior": true,
+            "space_ids": [
+              "CorridorN_SE_open"
+            ],
+            "state": "unknown"
+          },
+          "after": {
+            "kind": "door",
+            "exterior": true,
+            "space_ids": [
+              "RoomSE_south"
+            ],
+            "state": "unknown"
+          }
+        }
+      },
+      "new_interior_doors": {
+        "D_SE_divider": {
+          "endpoints_xyz": [
+            [
+              8.539945,
+              -15.103164,
+              0.0
+            ],
+            [
+              9.476584,
+              -15.103164,
+              0.0
+            ]
+          ],
+          "vertices": [
+            [
+              8.539945,
+              -15.103164,
+              0.0
+            ],
+            [
+              9.476584,
+              -15.103164,
+              0.0
+            ],
+            [
+              9.476584,
+              -15.103164,
+              2.4
+            ],
+            [
+              8.539945,
+              -15.103164,
+              2.4
+            ]
+          ],
+          "space_ids": [
+            "CorridorN_SE_open",
+            "RoomSE_south"
+          ],
+          "connection": {
+            "kind": "door",
+            "exterior": false,
+            "space_ids": [
+              "CorridorN_SE_open",
+              "RoomSE_south"
+            ],
+            "state": "unknown"
+          }
+        }
+      }
+    }
+  },
+  "tool_action_counts": {
+    "inputs": 1,
+    "view_image": 9,
+    "view_pixel_profile": 7,
+    "get_bim_reference": 1,
+    "build_plan_bim": 1,
+    "overlay_candidate": 1,
+    "check_openings": 1,
+    "finish_bim": 1
+  },
+  "observed_actions": [
+    {
+      "index": 1,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        0,
+        0,
+        790,
+        1111
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 2,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        380,
+        560,
+        611,
+        878
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 3,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        555,
+        620,
+        880
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 4,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        690,
+        620,
+        780
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 5,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        555,
+        620,
+        880
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 6,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        745,
+        620,
+        760
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 7,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        690,
+        620,
+        705
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 8,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        440,
+        685,
+        615,
+        765
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 9,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        395,
+        685,
+        615,
+        785
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 10,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        395,
+        685,
+        615,
+        880
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 11,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        395,
+        748,
+        615,
+        758
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 12,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        395,
+        700,
+        405,
+        760
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 13,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        680,
+        480,
+        770
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 14,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        560,
+        550,
+        660,
+        720
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 15,
+      "action": "view_pixel_profile",
+      "image": "1f_view.png",
+      "original_box": [
+        450,
+        585,
+        470,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 16,
+      "action": "view_image",
+      "image": "1f_view.png",
+      "original_box": [
+        400,
+        580,
+        611,
+        705
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 18,
+      "action": "build_plan_bim",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "error": null
+    },
+    {
+      "index": 19,
+      "action": "overlay_candidate",
+      "image": "1f_view.png",
+      "original_box": [
+        390,
+        560,
+        620,
+        880
+      ],
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 20,
+      "action": "check_openings",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 21,
+      "action": "finish_bim",
+      "image": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": null,
+      "error": null
+    }
+  ]
+}

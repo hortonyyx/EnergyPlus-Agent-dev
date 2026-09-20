@@ -1,0 +1,11 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>sm24 东南空间续修</title><style>body{max-width:1250px;margin:30px auto;padding:0 20px;font:17px/1.6 system-ui;color:#243247;background:#f5f7fa}a{color:#175da4}figure{margin:18px 0;padding:15px;background:white;border-radius:9px}img{max-width:100%;max-height:950px;display:block;margin:auto}table{border-collapse:collapse;background:white}th,td{border:1px solid #ccd4df;padding:8px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}.note{padding:16px;border-left:5px solid #517eac;background:#eaf1fa}@media(max-width:750px){.pair{grid-template-columns:1fr}}</style>
+<h1>东南隔墙、空间与门连通续修</h1><p class="note">东南折角隔墙与内门已恢复，原合并区域被正确分为走廊和东南房间；最终8空间/54面/11窗/10门。旧门窗位置和其他房间保持，整案仍有墙位及门窗高度偏差，未判整体通过。</p>
+<p>从上轮已修东侧开口的墙网恢复，开发侧限定检查区域；原五图与建筑声明保留，生成时无GT或正确坐标。耗时373.23秒。</p>
+<p><a href="candidate_01/viewer.html">旋转查看实际模型</a> · <a href="README.md">范围与验证</a> · <a href="scope_verification.json">改动范围核验</a> · <a href="assessment.json">质量结论</a></p>
+<h2>实际源回叠原图</h2><div class="pair"><figure><figcaption>续修前：东南隔墙与内门缺失</figcaption><img src="../2026-09-20_sm24_host_recovery_run02/image_overlays/overlay_002.png"></figure><figure><figcaption>本轮最终候选</figcaption><img src="image_overlays/overlay_002.png"></figure></div>
+<h2>发生变化的空间：生成后独立对照</h2><p>IoU为面积交并比，越接近1越一致。仅按原图总长声明[0,20,0]平移，没有拟合GT；整案状态仍为severe。</p>
+<table><tr><th>实际空间</th><th>面积交并比</th><th>最大边界偏差</th><th>评价</th></tr><tr><td>RoomSE_south</td><td>0.9895</td><td>0.0644 m</td><td>severe</td></tr><tr><td>CorridorN_SE_open</td><td>0.9847</td><td>0.0710 m</td><td>severe</td></tr></table>
+<h2>门所属空间的变化</h2><p>单个空间表示外门；两个空间表示室内连接。原门顶点保持情况由范围核验单独记录。</p><table><tr><th>门</th><th>原空间</th><th>当前空间</th></tr><tr><td>D_SE_divider</td><td>None</td><td>[&#x27;CorridorN_SE_open&#x27;, &#x27;RoomSE_south&#x27;]</td></tr><tr><td>SD1_door</td><td>[&#x27;CorridorN_SE_open&#x27;]</td><td>[&#x27;RoomSE_south&#x27;]</td></tr></table>
+<figure><figcaption>最终实际源平面</figcaption><img src="candidate_01/plan_F1.png"></figure>
+<p>独立核验仅在生成结束后运行。源自洽与离线可查看不等于整楼保真通过。</p></html>

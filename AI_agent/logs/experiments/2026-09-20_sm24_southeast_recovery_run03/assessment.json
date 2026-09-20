@@ -1,0 +1,23 @@
+{
+  "conclusion_zh": "东南折角隔墙与内门已恢复，原合并区域被正确分为走廊和东南房间；最终8空间/54面/11窗/10门。旧门窗位置和其他房间保持，整案仍有墙位及门窗高度偏差，未判整体通过。",
+  "scope": "developer-scoped saved-plan recovery, not autonomous cold start",
+  "code_commit": "bbbf70b6",
+  "reviewer": "development assistant, after generation",
+  "original_and_source_viewed": [
+    "images/1f_view.png",
+    "image_overlays/overlay_002.png",
+    "candidate_01/plan_F1.png",
+    "viewer_verified.png"
+  ],
+  "physical_result": "complete dogleg divider and its door restored; two adjoining nonrectangular spaces retained without extra splitting",
+  "source_references_corrected": "model explicitly retracts inherited claim that this divider was a nonconnecting fragment",
+  "known_limits": [
+    "New divider uses x=461 and y=700 pixels; reference comparison shows about 0.048m vertical-segment offset and 0.043m horizontal-segment offset; no GT-driven geometry repair applied.",
+    "Existing north divider remains about 0.071m offset.",
+    "Three exterior doors remain about 0.20m low; four West short-window heads remain about 0.60m high.",
+    "New internal door height 2.4m/base0 is an explicit assumption; no per-door interior GT.",
+    "Room use inferred from furniture, not a labelled function."
+  ],
+  "evaluation_policy": "GT loaded only after generation; explicit [0,20,0] translation from original 20000mm total dimension and retained source origin; raw frame retained, no fit.",
+  "adoption": "Use run03 as the continuation point of this saved-plan recovery lineage; retain run12 and developer demonstration separately; not whole-building acceptance."
+}
