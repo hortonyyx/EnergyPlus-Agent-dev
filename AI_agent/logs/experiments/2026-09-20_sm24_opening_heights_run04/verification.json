@@ -1,0 +1,210 @@
+{
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_opening_heights_run04",
+  "candidate": "candidate_02",
+  "input_checks": [
+    {
+      "path": "images/1f_view.png",
+      "expected_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/East_view.png",
+      "expected_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/North_view.png",
+      "expected_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/South_view.png",
+      "expected_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/West_view.png",
+      "expected_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "building_input.json",
+      "expected_sha256": "f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701",
+      "frozen_matches": true,
+      "original_matches": true
+    }
+  ],
+  "replay": {
+    "candidate": "candidate_02",
+    "proposal_hash_matches_report": true,
+    "source_hash_matches_report": true,
+    "input_manifest_matches_provenance": true,
+    "saved_validation": "pass",
+    "saved_counts": {
+      "spaces": 8,
+      "boundaries": 54,
+      "openings": 21,
+      "connections": 10,
+      "unbuilt_openings": 0,
+      "unsupported": 0
+    },
+    "replay_source_ready": true,
+    "source_bytes_identical": true,
+    "display_bytes_identical": true,
+    "report_counts_match_source": true
+  },
+  "image_transport": {
+    "stream_present": true,
+    "tool_calls": 62,
+    "comparisons": [
+      {
+        "tool": "build_plan_bim",
+        "saved": "image_overlays/overlay_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "build_plan_bim",
+        "saved": "candidate_01/plan_F1.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "revise_bim",
+        "saved": "image_overlays/overlay_002.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "revise_bim",
+        "saved": "candidate_02/plan_F1.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_elevation_candidate",
+        "saved": "candidate_02/elevation_North.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_elevation_candidate",
+        "saved": "candidate_02/elevation_South.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_elevation_candidate",
+        "saved": "candidate_02/elevation_East.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_elevation_candidate",
+        "saved": "candidate_02/elevation_West.png",
+        "saved_exists": true,
+        "pixels_match": true
+      }
+    ],
+    "unpaired_image_returns": 50,
+    "note": "Unpaired returns include ordinary view_image crops without a saved rendered counterpart; this is not a transport failure."
+  },
+  "model_usage": {
+    "receipts": [
+      {
+        "receipt": "agent_receipt.json",
+        "requested_model": "sonnet",
+        "actual_model": "claude-sonnet-5",
+        "channel": "Claude subscription; no API/fallback",
+        "elapsed_seconds": 665.27,
+        "returncode": 0,
+        "timed_out": false,
+        "is_error": false,
+        "usage": {
+          "input_tokens": 96,
+          "cache_creation_input_tokens": 189035,
+          "cache_read_input_tokens": 5027504,
+          "output_tokens": 56870,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 189035,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "not_available",
+          "iterations": [
+            {
+              "input_tokens": 2,
+              "output_tokens": 1322,
+              "cache_read_input_tokens": 194790,
+              "cache_creation_input_tokens": 5507,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 5507
+              },
+              "type": "message"
+            }
+          ],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 987,
+            "outputTokens": 17,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.001072,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 96,
+            "outputTokens": 56870,
+            "cacheReadInputTokens": 5027504,
+            "cacheCreationInputTokens": 189035,
+            "webSearchRequests": 0,
+            "costUSD": 3.4957991999999996,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000
+          }
+        },
+        "cli_estimated_cost_usd": 3.4968711999999997
+      }
+    ],
+    "receipt_count_matches_summary": true,
+    "requested_models": {
+      "sonnet": 1
+    },
+    "actual_models": {
+      "claude-sonnet-5": 1
+    },
+    "token_totals": {
+      "input_tokens": 96,
+      "cache_creation_input_tokens": 189035,
+      "cache_read_input_tokens": 5027504,
+      "output_tokens": 56870
+    },
+    "cli_estimated_cost_sum_usd": 3.4968711999999997,
+    "reported_partial_cost_matches_summary": true,
+    "cost_note": "CLI estimate, not a subscription bill; modelUsage can include Claude CLI auxiliary models."
+  },
+  "limits": [
+    "Replay and pixel transport prove saved artifacts are consistent, not faithful to source drawings.",
+    "Visual BIM review, partition quality and user acceptance are separate."
+  ],
+  "pass": true
+}

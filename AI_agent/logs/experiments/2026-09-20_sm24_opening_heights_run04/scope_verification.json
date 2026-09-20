@@ -1,0 +1,3380 @@
+{
+  "schema_version": "opening_height_scope_audit_v1",
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_opening_heights_run04",
+  "checks_exclude_gt": true,
+  "provenance": {
+    "input_mode": "saved_plan_recovery",
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_southeast_recovery_run03/plan_drafts/draft_001/plan.json",
+    "frozen_path": "resume_plan.json",
+    "source_exists": true,
+    "frozen_exists": true,
+    "frozen_equals_source_bytes": true,
+    "frozen_sha_matches_manifest": true,
+    "declaration_matches_frozen": true,
+    "image": "1f_view.png",
+    "image_sha_matches_manifest": true,
+    "manifest_sha256": "a4d3b15dae8f978ce4d8bb5d49ffc9a9d1c26731c5440a8064e44014370e67b2",
+    "prior_candidate": "candidate_01"
+  },
+  "final_candidate": {
+    "candidate": "candidate_02",
+    "complete": true,
+    "candidate_chain": {
+      "complete": true,
+      "steps": [
+        {
+          "candidate": "candidate_02",
+          "manifest_sha_matches": true,
+          "proposal_sha_matches_report": true,
+          "action": "revise_bim",
+          "parent_candidate": "candidate_01",
+          "parent_proposal_sha_matches": true,
+          "operations_file": "candidate_02/operations.json",
+          "operations": [
+            {
+              "op": "update_opening",
+              "id": "ND1_entrance",
+              "changes": {
+                "z": [
+                  0.2,
+                  2.6
+                ]
+              },
+              "reason": "North_view.png door dimension chain (right of double-door symbol) reads 1900/2400/200 top-to-bottom summing to the 4500 wall height. Measured pixel top/bottom edges of the door+transom graphic match these boundaries almost exactly (wall-top and ground located via a separate clean horizontal-line pixel scan; door top/bottom measured directly on the cyan door graphic). This supersedes the inherited unverified base=0 assumption.",
+              "source_refs": [
+                "North_view.png: vertical dimension chain 1900/2400/200 beside the double door, and direct pixel measurement of the door graphic top/bottom edges against wall-top/ground pixel positions"
+              ]
+            },
+            {
+              "op": "update_opening",
+              "id": "SD1_door",
+              "changes": {
+                "z": [
+                  0.2,
+                  2.6
+                ]
+              },
+              "reason": "South_view.png door dimension chain (same double-door symbol, middle of facade) reads 1900/2400/200 top-to-bottom, identical pattern to the North entrance door. Pixel measurement of the door graphic (after correcting an initial x-location error) matches the chain boundaries closely (measured top=603px vs predicted 602px; bottom=970px vs predicted 967px, using wall-top/ground calibrated from the independently-verified SW1 window chain).",
+              "source_refs": [
+                "South_view.png: vertical dimension chain 1900/2400/200 beside the south door; pixel measurement of door graphic top/bottom against wall-top(313px)/ground(997px) derived from the SW1 window chain calibration"
+              ]
+            },
+            {
+              "op": "update_opening",
+              "id": "ED1_door",
+              "changes": {
+                "z": [
+                  0.2,
+                  2.6
+                ]
+              },
+              "reason": "East_view.png double-leaf door graphic (glazed leaves with round handles, matching the North/South entrance-door style) was measured directly: top edge at pixel y=406.7, bottom edge at pixel y=634.2, against an independently measured wall-top=234.7px and ground=656.9px. This matches a 1900/2400/200 top-to-bottom split (predicted top=413.0px, bottom=638.2px) far better than the nearby 1100/2400/1000 label, which instead matches the adjacent EW1 large window's own graphic almost exactly (predicted window top=334.9px vs measured 335px; predicted window sill-level=568.6 vs measured ~560px). No separate explicit dimension label was found directly adjacent to the East door itself; this assignment is by pixel-position match to the same base/head family confirmed for the North and South entrance doors, not an explicit adjacent label, and remains a documented inference rather than a directly labelled certainty.",
+              "source_refs": [
+                "East_view.png: door graphic pixel top/bottom measured at y=406.7/634.2 against wall-top=234.7px/ground=656.9px (thin horizontal-line scans at y~230 and y~656 across the full facade width); comparison to EW1's own 1100/2400/1000 chain which matches EW1's graphic, not the door's"
+              ]
+            },
+            {
+              "op": "update_window",
+              "id": "WW1_window",
+              "changes": {
+                "z": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "reason": "West_view.png's own left-side vertical dimension chain for the small repeated windows reads 1700/1800/1000 (sill 1.0m, head 2.8m), matching the South-facade window family, NOT the North-facade 1.0/3.4 pattern that the inherited draft assumed by copying North heights onto West without independent verification. All four small West windows (WW1-WW4) appear at the same vertical position in the drawing and share this single representative chain.",
+              "source_refs": [
+                "West_view.png: left vertical dimension chain 1700/1800/1000 (sill1.0/head2.8) applying to the small repeated west windows, verified as the ONLY chain present for these openings; the inherited North-window assumption (1.0/3.4) is not supported by this facade's own drawing"
+              ]
+            },
+            {
+              "op": "update_window",
+              "id": "WW2_window",
+              "changes": {
+                "z": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "reason": "Same West_view.png small-window family as WW1 (1700/1800/1000 chain, sill1.0/head2.8); corrects the inherited unverified North-pattern assumption.",
+              "source_refs": [
+                "West_view.png: left vertical dimension chain 1700/1800/1000 shared by all small west windows"
+              ]
+            },
+            {
+              "op": "update_window",
+              "id": "WW3_window",
+              "changes": {
+                "z": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "reason": "Same West_view.png small-window family as WW1 (1700/1800/1000 chain, sill1.0/head2.8); corrects the inherited unverified North-pattern assumption.",
+              "source_refs": [
+                "West_view.png: left vertical dimension chain 1700/1800/1000 shared by all small west windows"
+              ]
+            },
+            {
+              "op": "update_window",
+              "id": "WW4_window",
+              "changes": {
+                "z": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "reason": "Same West_view.png small-window family as WW1 (1700/1800/1000 chain, sill1.0/head2.8); corrects the inherited unverified North-pattern assumption.",
+              "source_refs": [
+                "West_view.png: left vertical dimension chain 1700/1800/1000 shared by all small west windows"
+              ]
+            },
+            {
+              "op": "set_notes",
+              "assumptions": [
+                "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+                "Exterior opening heights this run are re-derived per facade from each elevation's own explicit dimension-chain labels, cross-checked by direct pixel measurement of wall-top/ground datums and the opening graphics themselves, rather than copied across facades.",
+                "North entrance door ND1 and South door SD1: z=[0.2,2.6]m, confirmed by strong pixel-to-label match (1900/2400/200 chain) on each facade independently.",
+                "East door ED1: z=[0.2,2.6]m assigned by close pixel-graphic match to the same door family as North/South (no separate adjacent explicit label found; the nearby 1100/2400/1000 label was determined to belong to the adjacent EW1 window instead, confirmed by a much closer pixel match to EW1's own graphic). This remains a documented inference, flagged in unresolved.",
+                "North window NW1 z=[1.0,3.4]; South windows SW1/SW2 z=[1.0,2.8]; East large window EW1 z=[1.0,3.4] (own 1100/2400/1000 chain, confirmed by close pixel match); East small windows EW2/EW3 z=[1.0,2.8] (EW3 confirmed via its own adjacent 1700/1800/1000 chain; EW2 assumed same small-window family, approximate pixel match).",
+                "West small windows WW1-WW4 z=[1.0,2.8]m: CORRECTED this run from the inherited assumption of matching North (1.0/3.4). West_view.png's own left-side chain (1700/1800/1000) is the only dimension evidence for these repeated openings and matches the South-window family instead.",
+                "West large boardroom window WW5 z=[1.0,3.4]m: unchanged; confirmed via West_view.png's own right-side chain (1100/2400/1000) adjacent to that specific window.",
+                "All interior (non-exterior) doors (D_lobby_corr, D_w2_corr, D_w3_corr, D_w4_corr, D_e2_corr, D_e3_corr, D_SE_divider) retain the prior explicit assumption z=[0,2.4]m: no elevation drawing shows interior partition door heights, so this remains an assumption, not independently re-verified this run (no conflicting evidence found).",
+                "Building height 4.5m used uniformly as the single floor's wall height per all four elevations (unchanged).",
+                "SE divider P7 and RoomSE_south partition/room findings from the prior run are preserved unchanged (out of this run's scope, which is limited to exterior opening z-intervals and supporting evidence/notes)."
+              ],
+              "unresolved": [
+                "ED1_door's z=[0.2,2.6] is inferred from pixel-graphic family matching, not an explicit adjacent dimension label on East_view.png; if a label was missed elsewhere on that facade, this should be re-checked.",
+                "EW2_window's z=[1.0,2.8] is assigned by visual/family similarity to EW3 and the small-window pattern; no explicit dimension chain was found directly adjacent to EW2 itself.",
+                "SW2_window's z=[1.0,2.8] is assumed identical to SW1 by facade symmetry; its own adjacent dimension chain was not independently re-confirmed by pixel measurement this run (South_view crop for SW2 was inconclusive due to a boundary/crop issue).",
+                "Interior door heights remain an unverified explicit assumption (2.4m, base 0); no drawing evidence confirms or contradicts this.",
+                "RoomSE_south's precise use/role remains unlabelled/uncertain (carried over from prior run, out of this run's scope).",
+                "Fine sub-dimension chain reconciliation across all four facades was not exhaustively re-summed beyond the specific opening chains checked this run; outer-bracket/pixel-measured boundaries continue to be trusted where checked."
+              ]
+            }
+          ],
+          "linked_by_tool_log": true,
+          "linked_by_mcp_stream": true
+        },
+        {
+          "candidate": "candidate_01",
+          "manifest_sha_matches": true,
+          "proposal_sha_matches_report": true,
+          "action": "build_plan_bim",
+          "plan_file": "plan_drafts/draft_001/plan.json",
+          "plan_sha_matches_report": true,
+          "linked_by_tool_log": true,
+          "linked_by_mcp_stream": true
+        }
+      ],
+      "all_links_verified": true
+    },
+    "base_plan_changed_fields": [
+      "assumptions"
+    ],
+    "base_plan_structurally_equals_frozen": false,
+    "base_plan_physical_equals_frozen": true,
+    "plan_file": null,
+    "report_manifest_sha_matches_actual": true,
+    "plan_comparison_applicability": "not applicable: final candidate is a revision, not a plan compilation",
+    "inherited_base_plan_file_not_final_declaration": "plan_drafts/draft_001/plan.json",
+    "exterior_opening_sides_from_frozen_plan": {
+      "ND1_entrance": "north",
+      "NW1_window": "north",
+      "SW1_window": "south",
+      "SD1_door": "south",
+      "SW2_window": "south",
+      "WW1_window": "west",
+      "WW2_window": "west",
+      "WW3_window": "west",
+      "WW4_window": "west",
+      "WW5_window": "west",
+      "ED1_door": "east",
+      "EW1_window": "east",
+      "EW2_window": "east",
+      "EW3_window": "east"
+    },
+    "source_checks": {
+      "floor_geometry_unchanged": true,
+      "spaces_unchanged": true,
+      "spaces_before_count": 8,
+      "spaces_after_count": 8,
+      "space_changes": {},
+      "boundaries_unchanged": true,
+      "boundaries_before_count": 54,
+      "boundaries_after_count": 54,
+      "boundary_changed_ids": [],
+      "boundary_relations_unchanged": true,
+      "connections_unchanged": true,
+      "connection_changes": {
+        "added": {},
+        "deleted": {},
+        "modified": {}
+      },
+      "opening_hosts_unchanged": true,
+      "all_old_source_opening_ids_kept": true,
+      "opening_changes": {
+        "ED1_door": {
+          "z_vertices": {
+            "before": [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            "after": [
+              0.2,
+              0.2,
+              2.6,
+              2.6
+            ]
+          }
+        },
+        "ND1_entrance": {
+          "z_vertices": {
+            "before": [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            "after": [
+              0.2,
+              0.2,
+              2.6,
+              2.6
+            ]
+          }
+        },
+        "SD1_door": {
+          "z_vertices": {
+            "before": [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            "after": [
+              0.2,
+              0.2,
+              2.6,
+              2.6
+            ]
+          }
+        },
+        "WW1_window": {
+          "z_vertices": {
+            "before": [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            "after": [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "WW2_window": {
+          "z_vertices": {
+            "before": [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            "after": [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "WW3_window": {
+          "z_vertices": {
+            "before": [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            "after": [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "WW4_window": {
+          "z_vertices": {
+            "before": [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            "after": [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          }
+        }
+      },
+      "opening_inventory": {
+        "D_SE_divider": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                8.539945,
+                -15.103164
+              ],
+              [
+                9.476584,
+                -15.103164
+              ],
+              [
+                9.476584,
+                -15.103164
+              ],
+              [
+                8.539945,
+                -15.103164
+              ]
+            ],
+            [
+              [
+                8.539945,
+                -15.103164
+              ],
+              [
+                9.476584,
+                -15.103164
+              ],
+              [
+                9.476584,
+                -15.103164
+              ],
+              [
+                8.539945,
+                -15.103164
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/2",
+            "space/CorridorN_SE_open/wall/2"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "D_e2_corr": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                5.812672,
+                -4.731774
+              ],
+              [
+                5.812672,
+                -5.639615
+              ],
+              [
+                5.812672,
+                -5.639615
+              ],
+              [
+                5.812672,
+                -4.731774
+              ]
+            ],
+            [
+              [
+                5.812672,
+                -4.731774
+              ],
+              [
+                5.812672,
+                -5.639615
+              ],
+              [
+                5.812672,
+                -5.639615
+              ],
+              [
+                5.812672,
+                -4.731774
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/5",
+            "space/CorridorN_SE_open/wall/5"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "D_e3_corr": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                5.812672,
+                -6.354883
+              ],
+              [
+                5.812672,
+                -7.262724
+              ],
+              [
+                5.812672,
+                -7.262724
+              ],
+              [
+                5.812672,
+                -6.354883
+              ]
+            ],
+            [
+              [
+                5.812672,
+                -6.354883
+              ],
+              [
+                5.812672,
+                -7.262724
+              ],
+              [
+                5.812672,
+                -7.262724
+              ],
+              [
+                5.812672,
+                -6.354883
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/5",
+            "space/CorridorN_SE_open/wall/5"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "D_lobby_corr": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                4.380165,
+                -3.988996
+              ],
+              [
+                5.619835,
+                -3.988996
+              ],
+              [
+                5.619835,
+                -3.988996
+              ],
+              [
+                4.380165,
+                -3.988996
+              ]
+            ],
+            [
+              [
+                4.380165,
+                -3.988996
+              ],
+              [
+                5.619835,
+                -3.988996
+              ],
+              [
+                5.619835,
+                -3.988996
+              ],
+              [
+                4.380165,
+                -3.988996
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/6",
+            "space/CorridorN_SE_open/wall/6"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "D_w2_corr": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                4.187328,
+                -5.667125
+              ],
+              [
+                4.187328,
+                -6.9326
+              ],
+              [
+                4.187328,
+                -6.9326
+              ],
+              [
+                4.187328,
+                -5.667125
+              ]
+            ],
+            [
+              [
+                4.187328,
+                -5.667125
+              ],
+              [
+                4.187328,
+                -6.9326
+              ],
+              [
+                4.187328,
+                -6.9326
+              ],
+              [
+                4.187328,
+                -5.667125
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/7",
+            "space/CorridorN_SE_open/wall/7"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "D_w3_corr": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                4.187328,
+                -7.290234
+              ],
+              [
+                4.187328,
+                -8.308116
+              ],
+              [
+                4.187328,
+                -8.308116
+              ],
+              [
+                4.187328,
+                -7.290234
+              ]
+            ],
+            [
+              [
+                4.187328,
+                -7.290234
+              ],
+              [
+                4.187328,
+                -8.308116
+              ],
+              [
+                4.187328,
+                -8.308116
+              ],
+              [
+                4.187328,
+                -7.290234
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/7",
+            "space/CorridorN_SE_open/wall/7"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "D_w4_corr": {
+          "facade_or_interior": "interior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                4.187328,
+                -12.242091
+              ],
+              [
+                4.187328,
+                -13.259972
+              ],
+              [
+                4.187328,
+                -13.259972
+              ],
+              [
+                4.187328,
+                -12.242091
+              ]
+            ],
+            [
+              [
+                4.187328,
+                -12.242091
+              ],
+              [
+                4.187328,
+                -13.259972
+              ],
+              [
+                4.187328,
+                -13.259972
+              ],
+              [
+                4.187328,
+                -12.242091
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ]
+          ],
+          "host_before_after": [
+            "space/Boardroom_W4/wall/1",
+            "space/Boardroom_W4/wall/1"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "ED1_door": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                10.0,
+                -12.709766
+              ],
+              [
+                10.0,
+                -14.305365
+              ],
+              [
+                10.0,
+                -14.305365
+              ],
+              [
+                10.0,
+                -12.709766
+              ]
+            ],
+            [
+              [
+                10.0,
+                -12.709766
+              ],
+              [
+                10.0,
+                -14.305365
+              ],
+              [
+                10.0,
+                -14.305365
+              ],
+              [
+                10.0,
+                -12.709766
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.2,
+              0.2,
+              2.6,
+              2.6
+            ]
+          ],
+          "host_before_after": [
+            "space/CorridorN_SE_open/wall/3",
+            "space/CorridorN_SE_open/wall/3"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "EW1_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                10.0,
+                -11.169188
+              ],
+              [
+                10.0,
+                -6.354883
+              ],
+              [
+                10.0,
+                -6.354883
+              ],
+              [
+                10.0,
+                -11.169188
+              ]
+            ],
+            [
+              [
+                10.0,
+                -11.169188
+              ],
+              [
+                10.0,
+                -6.354883
+              ],
+              [
+                10.0,
+                -6.354883
+              ],
+              [
+                10.0,
+                -11.169188
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              1.0,
+              1.0,
+              3.4,
+              3.4
+            ],
+            [
+              1.0,
+              1.0,
+              3.4,
+              3.4
+            ]
+          ],
+          "host_before_after": [
+            "space/MeetingE3/wall/1",
+            "space/MeetingE3/wall/1"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "EW2_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                10.0,
+                -5.612105
+              ],
+              [
+                10.0,
+                -4.401651
+              ],
+              [
+                10.0,
+                -4.401651
+              ],
+              [
+                10.0,
+                -5.612105
+              ]
+            ],
+            [
+              [
+                10.0,
+                -5.612105
+              ],
+              [
+                10.0,
+                -4.401651
+              ],
+              [
+                10.0,
+                -4.401651
+              ],
+              [
+                10.0,
+                -5.612105
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ],
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ]
+          ],
+          "host_before_after": [
+            "space/RoomE2/wall/1",
+            "space/RoomE2/wall/1"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "EW3_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                10.0,
+                -2.035763
+              ],
+              [
+                10.0,
+                -0.522696
+              ],
+              [
+                10.0,
+                -0.522696
+              ],
+              [
+                10.0,
+                -2.035763
+              ]
+            ],
+            [
+              [
+                10.0,
+                -2.035763
+              ],
+              [
+                10.0,
+                -0.522696
+              ],
+              [
+                10.0,
+                -0.522696
+              ],
+              [
+                10.0,
+                -2.035763
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ],
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ]
+          ],
+          "host_before_after": [
+            "space/Lobby/wall/1",
+            "space/Lobby/wall/1"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "ND1_entrance": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.523416,
+                0.0
+              ],
+              [
+                2.14876,
+                0.0
+              ],
+              [
+                2.14876,
+                0.0
+              ],
+              [
+                0.523416,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.523416,
+                0.0
+              ],
+              [
+                2.14876,
+                0.0
+              ],
+              [
+                2.14876,
+                0.0
+              ],
+              [
+                0.523416,
+                0.0
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.2,
+              0.2,
+              2.6,
+              2.6
+            ]
+          ],
+          "host_before_after": [
+            "space/Lobby/wall/2",
+            "space/Lobby/wall/2"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "NW1_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                4.655647,
+                0.0
+              ],
+              [
+                9.476584,
+                0.0
+              ],
+              [
+                9.476584,
+                0.0
+              ],
+              [
+                4.655647,
+                0.0
+              ]
+            ],
+            [
+              [
+                4.655647,
+                0.0
+              ],
+              [
+                9.476584,
+                0.0
+              ],
+              [
+                9.476584,
+                0.0
+              ],
+              [
+                4.655647,
+                0.0
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ]
+          ],
+          "host_before_after": [
+            "space/Lobby/wall/2",
+            "space/Lobby/wall/2"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "SD1_door": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "door",
+            "door"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                4.545455,
+                -20.0
+              ],
+              [
+                5.426997,
+                -20.0
+              ],
+              [
+                5.426997,
+                -20.0
+              ],
+              [
+                4.545455,
+                -20.0
+              ]
+            ],
+            [
+              [
+                4.545455,
+                -20.0
+              ],
+              [
+                5.426997,
+                -20.0
+              ],
+              [
+                5.426997,
+                -20.0
+              ],
+              [
+                4.545455,
+                -20.0
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              0.0,
+              0.0,
+              2.4,
+              2.4
+            ],
+            [
+              0.2,
+              0.2,
+              2.6,
+              2.6
+            ]
+          ],
+          "host_before_after": [
+            "space/RoomSE_south/wall/0",
+            "space/RoomSE_south/wall/0"
+          ],
+          "state_before_after": [
+            "unknown",
+            "unknown"
+          ]
+        },
+        "SW1_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.523416,
+                -20.0
+              ],
+              [
+                2.038567,
+                -20.0
+              ],
+              [
+                2.038567,
+                -20.0
+              ],
+              [
+                0.523416,
+                -20.0
+              ]
+            ],
+            [
+              [
+                0.523416,
+                -20.0
+              ],
+              [
+                2.038567,
+                -20.0
+              ],
+              [
+                2.038567,
+                -20.0
+              ],
+              [
+                0.523416,
+                -20.0
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ],
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ]
+          ],
+          "host_before_after": [
+            "space/Boardroom_W4/wall/0",
+            "space/Boardroom_W4/wall/0"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "SW2_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                7.933884,
+                -20.0
+              ],
+              [
+                9.504132,
+                -20.0
+              ],
+              [
+                9.504132,
+                -20.0
+              ],
+              [
+                7.933884,
+                -20.0
+              ]
+            ],
+            [
+              [
+                7.933884,
+                -20.0
+              ],
+              [
+                9.504132,
+                -20.0
+              ],
+              [
+                9.504132,
+                -20.0
+              ],
+              [
+                7.933884,
+                -20.0
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ],
+            [
+              1.0,
+              1.0,
+              2.8,
+              2.8
+            ]
+          ],
+          "host_before_after": [
+            "space/RoomSE_south/wall/0",
+            "space/RoomSE_south/wall/0"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "WW1_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.0,
+                -2.035763
+              ],
+              [
+                0.0,
+                -0.522696
+              ],
+              [
+                0.0,
+                -0.522696
+              ],
+              [
+                0.0,
+                -2.035763
+              ]
+            ],
+            [
+              [
+                0.0,
+                -2.035763
+              ],
+              [
+                0.0,
+                -0.522696
+              ],
+              [
+                0.0,
+                -0.522696
+              ],
+              [
+                0.0,
+                -2.035763
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          ],
+          "host_before_after": [
+            "space/Lobby/wall/3",
+            "space/Lobby/wall/3"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "WW2_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.0,
+                -5.612105
+              ],
+              [
+                0.0,
+                -4.401651
+              ],
+              [
+                0.0,
+                -4.401651
+              ],
+              [
+                0.0,
+                -5.612105
+              ]
+            ],
+            [
+              [
+                0.0,
+                -5.612105
+              ],
+              [
+                0.0,
+                -4.401651
+              ],
+              [
+                0.0,
+                -4.401651
+              ],
+              [
+                0.0,
+                -5.612105
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          ],
+          "host_before_after": [
+            "space/OfficeW2/wall/3",
+            "space/OfficeW2/wall/3"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "WW3_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.0,
+                -8.858322
+              ],
+              [
+                0.0,
+                -7.345254
+              ],
+              [
+                0.0,
+                -7.345254
+              ],
+              [
+                0.0,
+                -8.858322
+              ]
+            ],
+            [
+              [
+                0.0,
+                -8.858322
+              ],
+              [
+                0.0,
+                -7.345254
+              ],
+              [
+                0.0,
+                -7.345254
+              ],
+              [
+                0.0,
+                -8.858322
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          ],
+          "host_before_after": [
+            "space/OfficeW3/wall/3",
+            "space/OfficeW3/wall/3"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "WW4_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.0,
+                -11.554333
+              ],
+              [
+                0.0,
+                -10.068776
+              ],
+              [
+                0.0,
+                -10.068776
+              ],
+              [
+                0.0,
+                -11.554333
+              ]
+            ],
+            [
+              [
+                0.0,
+                -11.554333
+              ],
+              [
+                0.0,
+                -10.068776
+              ],
+              [
+                0.0,
+                -10.068776
+              ],
+              [
+                0.0,
+                -11.554333
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            [
+              2.8,
+              2.8,
+              1.0,
+              1.0
+            ]
+          ],
+          "host_before_after": [
+            "space/OfficeW3/wall/3",
+            "space/OfficeW3/wall/3"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        },
+        "WW5_window": {
+          "facade_or_interior": "exterior",
+          "kind_before_after": [
+            "window",
+            "window"
+          ],
+          "xy_vertices_before_after": [
+            [
+              [
+                0.0,
+                -19.422283
+              ],
+              [
+                0.0,
+                -14.635488
+              ],
+              [
+                0.0,
+                -14.635488
+              ],
+              [
+                0.0,
+                -19.422283
+              ]
+            ],
+            [
+              [
+                0.0,
+                -19.422283
+              ],
+              [
+                0.0,
+                -14.635488
+              ],
+              [
+                0.0,
+                -14.635488
+              ],
+              [
+                0.0,
+                -19.422283
+              ]
+            ]
+          ],
+          "z_vertices_before_after": [
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ],
+            [
+              3.4,
+              3.4,
+              1.0,
+              1.0
+            ]
+          ],
+          "host_before_after": [
+            "space/Boardroom_W4/wall/3",
+            "space/Boardroom_W4/wall/3"
+          ],
+          "state_before_after": [
+            null,
+            null
+          ]
+        }
+      },
+      "disallowed_opening_changes": {},
+      "source_opening_scope_pass": true
+    },
+    "scope_pass": true
+  },
+  "tool_action_counts": {
+    "inputs": 1,
+    "get_bim_reference": 3,
+    "build_plan_bim": 1,
+    "view_image": 50,
+    "revise_bim": 1,
+    "view_elevation_candidate": 4,
+    "check_openings": 1,
+    "finish_bim": 1
+  },
+  "original_elevation_actions": [
+    {
+      "index": 4,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2890,
+        1651
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 5,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2434,
+        1457
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 6,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 7,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2580,
+        993
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 8,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        1900,
+        350,
+        2300,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 9,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        1850,
+        600,
+        2300,
+        1200
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 10,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        900,
+        100,
+        1200,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 11,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        650,
+        100,
+        950,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 12,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        130,
+        1120,
+        670
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 13,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        180,
+        1150,
+        280
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 14,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        600,
+        1150,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 15,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1090,
+        560,
+        1180,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 16,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        380,
+        1120,
+        670
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 17,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        200,
+        2600,
+        260
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 18,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        630,
+        2600,
+        690
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 19,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        390,
+        1120,
+        420
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 20,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        615,
+        1120,
+        645
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 21,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1090,
+        240,
+        1180,
+        340
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 22,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        980,
+        220,
+        1140,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 23,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        2320,
+        380,
+        2420,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 24,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        2400,
+        380,
+        2550,
+        1150
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 25,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1090,
+        210,
+        1200,
+        670
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 26,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        1020,
+        130,
+        1120,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 27,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        130,
+        1060,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 28,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        190,
+        1060,
+        640
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 29,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        580,
+        1060,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 30,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        990,
+        1060,
+        1200
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 31,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        190,
+        2300,
+        230
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 32,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        950,
+        2300,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 33,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        100,
+        400,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 34,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        750,
+        300,
+        950,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 35,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        350,
+        300,
+        550,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 36,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        520,
+        300,
+        820,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 37,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        1100,
+        300,
+        1400,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 38,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        150,
+        400,
+        350,
+        460
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 39,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        2350,
+        400,
+        2550,
+        460
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 40,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        130,
+        2580,
+        450
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 41,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        130,
+        400,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 42,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        2380,
+        130,
+        2580,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 43,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        2150,
+        130,
+        2350,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 44,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        130,
+        250,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 45,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1650,
+        130,
+        1900,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 46,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1400,
+        130,
+        1650,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 47,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        350,
+        130,
+        550,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 48,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1150,
+        130,
+        1850,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 49,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1900,
+        130,
+        2150,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 50,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        2200,
+        130,
+        2450,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 51,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1550,
+        130,
+        1850,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 52,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        1550,
+        130,
+        1800,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 53,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1700,
+        130,
+        1950,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    }
+  ],
+  "source_elevation_actions": [
+    {
+      "index": 56,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "North",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 57,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "South",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 58,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "East",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 59,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "West",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    }
+  ],
+  "observed_actions": [
+    {
+      "index": 3,
+      "action": "build_plan_bim",
+      "image": null,
+      "facade": null,
+      "original_box": null,
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "error": null
+    },
+    {
+      "index": 4,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2890,
+        1651
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 5,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2434,
+        1457
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 6,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 7,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        0,
+        2580,
+        993
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 8,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        1900,
+        350,
+        2300,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 9,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        1850,
+        600,
+        2300,
+        1200
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 10,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        900,
+        100,
+        1200,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 11,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        650,
+        100,
+        950,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 12,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        130,
+        1120,
+        670
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 13,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        180,
+        1150,
+        280
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 14,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        600,
+        1150,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 15,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1090,
+        560,
+        1180,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 16,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        380,
+        1120,
+        670
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 17,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        200,
+        2600,
+        260
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 18,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        630,
+        2600,
+        690
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 19,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        390,
+        1120,
+        420
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 20,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1000,
+        615,
+        1120,
+        645
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 21,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1090,
+        240,
+        1180,
+        340
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 22,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        980,
+        220,
+        1140,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 23,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        2320,
+        380,
+        2420,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 24,
+      "action": "view_image",
+      "image": "North_view.png",
+      "facade": null,
+      "original_box": [
+        2400,
+        380,
+        2550,
+        1150
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 25,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1090,
+        210,
+        1200,
+        670
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 26,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        1020,
+        130,
+        1120,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 27,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        130,
+        1060,
+        660
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 28,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        190,
+        1060,
+        640
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 29,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        580,
+        1060,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 30,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        950,
+        990,
+        1060,
+        1200
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 31,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        190,
+        2300,
+        230
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 32,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        950,
+        2300,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 33,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        100,
+        100,
+        400,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 34,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        750,
+        300,
+        950,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 35,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        350,
+        300,
+        550,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 36,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        520,
+        300,
+        820,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 37,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        1100,
+        300,
+        1400,
+        1000
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 38,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        150,
+        400,
+        350,
+        460
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 39,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        2350,
+        400,
+        2550,
+        460
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 40,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        130,
+        2580,
+        450
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 41,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        130,
+        400,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 42,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        2380,
+        130,
+        2580,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 43,
+      "action": "view_image",
+      "image": "West_view.png",
+      "facade": null,
+      "original_box": [
+        2150,
+        130,
+        2350,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 44,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        0,
+        130,
+        250,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 45,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1650,
+        130,
+        1900,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 46,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1400,
+        130,
+        1650,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 47,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        350,
+        130,
+        550,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 48,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1150,
+        130,
+        1850,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 49,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1900,
+        130,
+        2150,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 50,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        2200,
+        130,
+        2450,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 51,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1550,
+        130,
+        1850,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 52,
+      "action": "view_image",
+      "image": "South_view.png",
+      "facade": null,
+      "original_box": [
+        1550,
+        130,
+        1800,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 53,
+      "action": "view_image",
+      "image": "East_view.png",
+      "facade": null,
+      "original_box": [
+        1700,
+        130,
+        1950,
+        700
+      ],
+      "candidate": null,
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 55,
+      "action": "revise_bim",
+      "image": null,
+      "facade": null,
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": "not_evaluated",
+      "error": null
+    },
+    {
+      "index": 56,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "North",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 57,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "South",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 58,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "East",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 59,
+      "action": "view_elevation_candidate",
+      "image": null,
+      "facade": "West",
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 60,
+      "action": "check_openings",
+      "image": null,
+      "facade": null,
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    },
+    {
+      "index": 61,
+      "action": "finish_bim",
+      "image": null,
+      "facade": null,
+      "original_box": null,
+      "candidate": "candidate_02",
+      "status": null,
+      "error": null
+    }
+  ]
+}

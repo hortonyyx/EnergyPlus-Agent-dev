@@ -1,0 +1,123 @@
+[
+  {
+    "op": "update_opening",
+    "id": "ND1_entrance",
+    "changes": {
+      "z": [
+        0.2,
+        2.6
+      ]
+    },
+    "reason": "North_view.png door dimension chain (right of double-door symbol) reads 1900/2400/200 top-to-bottom summing to the 4500 wall height. Measured pixel top/bottom edges of the door+transom graphic match these boundaries almost exactly (wall-top and ground located via a separate clean horizontal-line pixel scan; door top/bottom measured directly on the cyan door graphic). This supersedes the inherited unverified base=0 assumption.",
+    "source_refs": [
+      "North_view.png: vertical dimension chain 1900/2400/200 beside the double door, and direct pixel measurement of the door graphic top/bottom edges against wall-top/ground pixel positions"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "SD1_door",
+    "changes": {
+      "z": [
+        0.2,
+        2.6
+      ]
+    },
+    "reason": "South_view.png door dimension chain (same double-door symbol, middle of facade) reads 1900/2400/200 top-to-bottom, identical pattern to the North entrance door. Pixel measurement of the door graphic (after correcting an initial x-location error) matches the chain boundaries closely (measured top=603px vs predicted 602px; bottom=970px vs predicted 967px, using wall-top/ground calibrated from the independently-verified SW1 window chain).",
+    "source_refs": [
+      "South_view.png: vertical dimension chain 1900/2400/200 beside the south door; pixel measurement of door graphic top/bottom against wall-top(313px)/ground(997px) derived from the SW1 window chain calibration"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "ED1_door",
+    "changes": {
+      "z": [
+        0.2,
+        2.6
+      ]
+    },
+    "reason": "East_view.png double-leaf door graphic (glazed leaves with round handles, matching the North/South entrance-door style) was measured directly: top edge at pixel y=406.7, bottom edge at pixel y=634.2, against an independently measured wall-top=234.7px and ground=656.9px. This matches a 1900/2400/200 top-to-bottom split (predicted top=413.0px, bottom=638.2px) far better than the nearby 1100/2400/1000 label, which instead matches the adjacent EW1 large window's own graphic almost exactly (predicted window top=334.9px vs measured 335px; predicted window sill-level=568.6 vs measured ~560px). No separate explicit dimension label was found directly adjacent to the East door itself; this assignment is by pixel-position match to the same base/head family confirmed for the North and South entrance doors, not an explicit adjacent label, and remains a documented inference rather than a directly labelled certainty.",
+    "source_refs": [
+      "East_view.png: door graphic pixel top/bottom measured at y=406.7/634.2 against wall-top=234.7px/ground=656.9px (thin horizontal-line scans at y~230 and y~656 across the full facade width); comparison to EW1's own 1100/2400/1000 chain which matches EW1's graphic, not the door's"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "WW1_window",
+    "changes": {
+      "z": [
+        1.0,
+        2.8
+      ]
+    },
+    "reason": "West_view.png's own left-side vertical dimension chain for the small repeated windows reads 1700/1800/1000 (sill 1.0m, head 2.8m), matching the South-facade window family, NOT the North-facade 1.0/3.4 pattern that the inherited draft assumed by copying North heights onto West without independent verification. All four small West windows (WW1-WW4) appear at the same vertical position in the drawing and share this single representative chain.",
+    "source_refs": [
+      "West_view.png: left vertical dimension chain 1700/1800/1000 (sill1.0/head2.8) applying to the small repeated west windows, verified as the ONLY chain present for these openings; the inherited North-window assumption (1.0/3.4) is not supported by this facade's own drawing"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "WW2_window",
+    "changes": {
+      "z": [
+        1.0,
+        2.8
+      ]
+    },
+    "reason": "Same West_view.png small-window family as WW1 (1700/1800/1000 chain, sill1.0/head2.8); corrects the inherited unverified North-pattern assumption.",
+    "source_refs": [
+      "West_view.png: left vertical dimension chain 1700/1800/1000 shared by all small west windows"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "WW3_window",
+    "changes": {
+      "z": [
+        1.0,
+        2.8
+      ]
+    },
+    "reason": "Same West_view.png small-window family as WW1 (1700/1800/1000 chain, sill1.0/head2.8); corrects the inherited unverified North-pattern assumption.",
+    "source_refs": [
+      "West_view.png: left vertical dimension chain 1700/1800/1000 shared by all small west windows"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "WW4_window",
+    "changes": {
+      "z": [
+        1.0,
+        2.8
+      ]
+    },
+    "reason": "Same West_view.png small-window family as WW1 (1700/1800/1000 chain, sill1.0/head2.8); corrects the inherited unverified North-pattern assumption.",
+    "source_refs": [
+      "West_view.png: left vertical dimension chain 1700/1800/1000 shared by all small west windows"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+      "Exterior opening heights this run are re-derived per facade from each elevation's own explicit dimension-chain labels, cross-checked by direct pixel measurement of wall-top/ground datums and the opening graphics themselves, rather than copied across facades.",
+      "North entrance door ND1 and South door SD1: z=[0.2,2.6]m, confirmed by strong pixel-to-label match (1900/2400/200 chain) on each facade independently.",
+      "East door ED1: z=[0.2,2.6]m assigned by close pixel-graphic match to the same door family as North/South (no separate adjacent explicit label found; the nearby 1100/2400/1000 label was determined to belong to the adjacent EW1 window instead, confirmed by a much closer pixel match to EW1's own graphic). This remains a documented inference, flagged in unresolved.",
+      "North window NW1 z=[1.0,3.4]; South windows SW1/SW2 z=[1.0,2.8]; East large window EW1 z=[1.0,3.4] (own 1100/2400/1000 chain, confirmed by close pixel match); East small windows EW2/EW3 z=[1.0,2.8] (EW3 confirmed via its own adjacent 1700/1800/1000 chain; EW2 assumed same small-window family, approximate pixel match).",
+      "West small windows WW1-WW4 z=[1.0,2.8]m: CORRECTED this run from the inherited assumption of matching North (1.0/3.4). West_view.png's own left-side chain (1700/1800/1000) is the only dimension evidence for these repeated openings and matches the South-window family instead.",
+      "West large boardroom window WW5 z=[1.0,3.4]m: unchanged; confirmed via West_view.png's own right-side chain (1100/2400/1000) adjacent to that specific window.",
+      "All interior (non-exterior) doors (D_lobby_corr, D_w2_corr, D_w3_corr, D_w4_corr, D_e2_corr, D_e3_corr, D_SE_divider) retain the prior explicit assumption z=[0,2.4]m: no elevation drawing shows interior partition door heights, so this remains an assumption, not independently re-verified this run (no conflicting evidence found).",
+      "Building height 4.5m used uniformly as the single floor's wall height per all four elevations (unchanged).",
+      "SE divider P7 and RoomSE_south partition/room findings from the prior run are preserved unchanged (out of this run's scope, which is limited to exterior opening z-intervals and supporting evidence/notes)."
+    ],
+    "unresolved": [
+      "ED1_door's z=[0.2,2.6] is inferred from pixel-graphic family matching, not an explicit adjacent dimension label on East_view.png; if a label was missed elsewhere on that facade, this should be re-checked.",
+      "EW2_window's z=[1.0,2.8] is assigned by visual/family similarity to EW3 and the small-window pattern; no explicit dimension chain was found directly adjacent to EW2 itself.",
+      "SW2_window's z=[1.0,2.8] is assumed identical to SW1 by facade symmetry; its own adjacent dimension chain was not independently re-confirmed by pixel measurement this run (South_view crop for SW2 was inconclusive due to a boundary/crop issue).",
+      "Interior door heights remain an unverified explicit assumption (2.4m, base 0); no drawing evidence confirms or contradicts this.",
+      "RoomSE_south's precise use/role remains unlabelled/uncertain (carried over from prior run, out of this run's scope).",
+      "Fine sub-dimension chain reconciliation across all four facades was not exhaustively re-summed beyond the specific opening chains checked this run; outer-bracket/pixel-measured boundaries continue to be trusted where checked."
+    ]
+  }
+]

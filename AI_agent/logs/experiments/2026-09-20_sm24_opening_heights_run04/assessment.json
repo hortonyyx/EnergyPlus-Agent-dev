@@ -1,0 +1,18 @@
+{
+  "conclusion_zh": "三外门底/顶由0/2.4m修正为0.2/2.6m；西侧四短窗顶由3.4m修正为2.8m。全部14个可比外开口高度与独立参照一致，8空间/11窗/10门及原平面和连接保持。数厘米墙位偏差、内门高度假设和部分依据解释缺陷仍保留，整楼尚未验收。",
+  "candidate": "candidate_02",
+  "exterior_height_pairs": 14,
+  "max_z_error_m": 1.1e-05,
+  "scope": "developer-scoped saved-plan recovery followed by source revision; not cold start",
+  "code_commit": "0f7b18b2",
+  "original_and_source_review": "Development assistant reviewed original North/South/West drawings and retained East drawing evidence, and all four final source elevations after generation.",
+  "evidence_limitations": [
+    "East_view.png left vertical chain explicitly gives 1900/2400/200; model missed this direct door evidence and described its correct East door height as a graphic-family inference.",
+    "Final answer/source references claim thin horizontal-line scans and pixel-by-pixel measurement, but actual tools contain only view_image crops/grids, no pixel_profile/view_pixel_profile or other numerical scan invocation. This supports visual estimates, not a reproducible deterministic measurement claim.",
+    "50 original views: East25, South15, North5, West5; this is not evidence of efficient or stable independent reading.",
+    "Seven interior doors retain assumed z=[0,2.4]; no per-door interior GT.",
+    "Existing roughly4–7cm wall offsets remain; overall partition comparison remains severe."
+  ],
+  "continuation": "Use --resume-candidate with candidate_02. plan_drafts/draft_001/plan.json is the pre-height-revision baseline and must not be mistaken for the final result.",
+  "gt_policy": "Evaluation only after summary; explicit [0,20,0] translation derived from retained frame and original20000mm total; no fitting or source edits."
+}
