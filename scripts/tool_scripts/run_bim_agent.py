@@ -1135,7 +1135,8 @@ def serve(run: Path, readonly=False):
 
     @server.tool()
     def get_bim_reference(topic: str) -> dict:
-        """Read geometry, plan_partition, edits, wall_dimensions or opening_review.
+        """Read reconstruction, geometry, plan_partition, edits, wall_dimensions or opening_review.
+        Choose reconstruction for drawing measurements and evidence interpretation.
         Choose geometry for a full proposal or plan_partition for pixel walls.
         These are generic instructions, not case observations or reference answers.
         """

@@ -54,6 +54,9 @@ get_bim_reference('parametric') documents it. Full original images remain the
 visual evidence; no prior generated model is an observation.
 
 Work from the physical partition layout before assigning detailed room uses.
+For drawing reconstruction, read get_bim_reference('reconstruction') for a
+measurement-to-source method, including calibration, wall junctions and opening
+identity across views. It contains no case answers. Choose its applicable parts.
 Trace each space's full extent, including corridor turns and nonrectangular
 parts. Furniture groups, labels, dimension lines and door swings do not create
 partitions. If a proposed split is uncertain, compare its entire extent with
@@ -123,6 +126,7 @@ shown in image metadata/grid; use those, not thumbnail dimensions. Clean crops
 and display_scale magnify thin lines and labels without changing coordinates.
 
 Parameter details are available through get_bim_reference(topic):
+- reconstruction: drawing observation, bounded wall evidence and source comparison.
 - geometry: build_bim JSON schema, nonrectangular rooms and coordinate conventions.
 - plan_partition: optional build_plan_bim from pixel walls/openings, single floor.
 - edits: revise_bim operations, supported scopes and examples.
@@ -141,6 +145,75 @@ reconstruction. Do not ask the user for routine geometry choices.
 """
 
 REFERENCES = {
+    'reconstruction': """A drawing reconstruction method, not a case-specific recipe.
+Use the supplied originals and declarations. Decide which observation resolves
+each uncertainty; the following checks may be interleaved, delegated or revisited.
+
+CALIBRATION. Magnify a clean crop to read a dimension label and identify BOTH
+of its extension endpoints/ticks. Record original-image locations and the stated
+length together; the full extent of colored dimension ink includes text and
+extensions and is not the measured building length. view_pixel_profile can
+measure tick bands in a narrow crop, using colors chosen from the original.
+axis=x reports x positions with y support; axis=y reports y positions with x
+support. Candidate intervals already use ORIGINAL pixels. Use interval centres
+for ticks or paired strokes only after checking what they represent. Crops and
+display_scale do not change the coordinate system; follow the returned transform
+if reading positions off a resized image. Use map_pixels/map_dimension_chain for
+arithmetic. Check another known span on each axis. A discrepancy means recheck
+endpoints, dimensions and reference planes, not fit the image to your candidate.
+
+WALL PATHS. Begin with the observed perimeter and physical dividers, before room
+names. For double-line walls, measure both faces in a bounded crop and choose a
+representative plane explicitly. External outer faces and internal midplanes may
+coexist: explain the choice and project endpoints/openings to the relevant plane.
+Do not add half a wall thickness without identified faces. view_pixel_profile
+gives numbered bands and actual, UNBRIDGED support intervals at their peaks.
+Select crop/color/min_fraction to answer a local question; an empty or filtered
+result is not proof of no wall. Two peaks are not automatically paired wall faces.
+Inspect their shared extent, both ends, intersections and nearby door symbols.
+At a T or bend, look at a clean magnified crop containing the junction AND the
+two adjoining spatial regions. A gap between wall faces can be wall thickness;
+a gap along the wall can be a door, occlusion or a truly open continuation.
+Furniture has edges too: identify the whole path and its connection to enclosure,
+not just one straight stroke. Keep a short record in source_refs: original crop,
+measured faces/representative line, start/end junctions and reason for accepting
+or rejecting the path. Record uncertain paths separately in unresolved.
+
+SPACES. Follow each adjoining space around its full boundary. Ask whether a
+person could continue around a wall end without crossing a door/wall. Preserve
+that continuous space, including bends and narrow parts; do not close a corridor
+because a room-use label or rectangular decomposition suggests it. Conversely,
+do not drop an observed divider because its two sides have similar furniture.
+For the supported footprint, build_plan_bim polygonizes your explicit physical
+paths; a door-bearing divider continues through the door, which is declared as
+an aperture. Seeds name already enclosed faces; neither seeds, downstream zoning
+counts nor a desired number of rooms justify adding/removing walls.
+
+OPENING IDENTITY. Keep stable IDs and a complete observed list for each view.
+For each plan mark, determine door/window/open passage from the symbol and wall
+interruption, then measure its projected wall span. Door swing indicates hinge
+geometry, not operating state; retain unknown state unless stated. A swing arc
+is not automatically the aperture width. Do not bridge or split ink gaps without
+checking annotation occlusion and the actual opening. Match external plan marks
+to the corresponding elevation using facade, order, span and neighbouring marks.
+Check the elevation's left/right orientation rather than copying its display x
+into world x/y. Similar widths do not establish identical sill/head heights.
+Measure each height family against elevation labels/pixels; match doors separately
+from windows, explaining any transom treatment. Keep internal heights or an
+uncertain datum as explicit assumptions when no drawing supplies them. Plan
+positions and elevation heights must describe the same opening ID.
+
+SOURCE FEEDBACK. Once built, inspect the actual source plan and its original
+overlay. Check entire dividers and the spaces on BOTH sides, not merely counts.
+Then inspect source elevations for the opening heights. A plan-only partial
+candidate is useful, but list missing views/apertures in unresolved and complete
+them before claiming the whole input was reconstructed. If geometry rejects an
+opening, revisit its mark, wall junction, representative plane and absolute z;
+do not move a measured wall to accommodate a guessed opening. Revise from the
+evidence and inspect the new actual source. Keep observed, inferred, rejected
+and still unexamined content distinct. Successful geometry and your own opening
+review do not independently certify drawing fidelity.
+""",
     'plan_partition': """build_plan_bim(image, plan_json) compiles the following JSON string.
 This synthetic example is unrelated to the supplied drawing:
 {"floor_id":"F1","z_floor":0,"ceiling_height":3,
@@ -157,7 +230,10 @@ This synthetic example is unrelated to the supplied drawing:
 "assumptions":["Synthetic dimensions/heights only"],"unresolved":[]}
 All plan points use ORIGINAL image pixels. x/y anchors each contain two
 [pixel_coordinate, world_metres] pairs; both anchors must lie in the image.
-Declare the SAME representative plane for calibration, perimeter and dividers.
+Keep calibration and geometry in the SAME coordinate frame. Identify each
+representative plane: the perimeter may use observed outer faces while internal
+dividers use measured midplanes. Document that choice; do not confuse a face
+dimension with a centreline dimension or apply an unobserved half-thickness.
 World z is absolute. basis explains observed dimensions and reference planes.
 Current scope: ONE floor, rectangular outer footprint, orthogonal partitions;
 rooms may be nonrectangular. Unsupported outer shapes explicitly fail.
