@@ -1269,21 +1269,26 @@ def serve(run: Path, readonly=False):
                                    min_pixels: int = 500, max_regions: int = 40,
                                    include_border: bool = False):
         """Locate numbered colour-connected candidates in the full original image.
-        Choose a background colour, then compare the actual labelled overview
-        to the requested space before using a returned ORIGINAL-pixel seed in
-        view_pixel_region. Area/border filters and truncation are reported.
-        A candidate may be furniture, exterior pixels or several connected
-        spaces; numbering does not identify a room, wall or aperture.
+        background_rgb is the target colour: either ink (e.g. a frame) or a
+        clear area's background. Compare the labelled overview to the original,
+        then pass a returned ORIGINAL-pixel seed to view_pixel_region.
+        Small ink strokes may need a lower min_pixels than clear floor regions.
+        Area/border filters and truncation are reported. Candidates can include
+        furniture, dimension marks or connected spaces; IDs are not object labels.
         """
         return toolkit.pixel_region_overview(name, background_rgb, tolerance, min_pixels, max_regions, include_border)
 
     @server.tool()
     def view_pixel_region(name: str, seed_pixel: list[int], background_rgb: list[int],
                           tolerance: float = 60, simplify_pixels: float = 1.5):
-        """Flood a model-selected background pixel and display its connected region.
-        Choose a seed inside the target clear floor, away from ink/furniture.
-        Returns a pixel contour candidate, NOT a room: it may follow door arcs/leaves,
-        furniture, or leak through gaps. Use actual wall jambs when tracing apertures.
+        """Display the complete 4-connected target-colour region at a selected pixel.
+        background_rgb names the target colour, including ink or clear floor.
+        Choose a seed on that colour, preferably an overview candidate's seed.
+        For clear floor choose away from furniture; for frames choose on the ink.
+        Returns a non-semantic contour and half-open bbox, NOT a room/aperture.
+        One physical frame may contain disconnected pieces; touching same-colour
+        marks may merge. simplify_pixels=0 keeps the exact pixel outline.
+        Check the original surrounding wall and jambs before interpreting it.
         All points and seed coordinates refer to the ORIGINAL image.
         """
         return toolkit.pixel_region(name, seed_pixel, background_rgb, tolerance, simplify_pixels)

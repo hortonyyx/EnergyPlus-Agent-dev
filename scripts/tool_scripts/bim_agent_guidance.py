@@ -177,7 +177,24 @@ Numeric slots remain available for explicitly identified visual estimates or oth
 evidence; do not call them profile measurements. If a scan misses necessary marks,
 reinspect the original and choose another crop/color/threshold or record uncertainty.
 Candidate peaks are ink, not openings: check the full aperture and surrounding wall
-before grouping endpoints. Dimension text/extension lines are not automatically
+before grouping endpoints. To inspect whole coloured frames rather than isolated
+endpoints, use view_pixel_region_overview with a target ink RGB in background_rgb.
+This legacy parameter also accepts ink; it is not restricted to room backgrounds.
+Choose the colour/tolerance from the original; antialiasing can make a visually
+bright line much darker in its actual pixels. Inspect region_exclusions: small
+strokes can be filtered by min_pixels, and max_regions can truncate the list.
+Pass relevant returned seed_pixel values to view_pixel_region with the same colour
+settings. Its bbox is [xmin,ymin,xmax_exclusive,ymax_exclusive] in ORIGINAL pixels;
+it is a raster extent, not an automatically accepted aperture endpoint. Inspect a
+clean magnified original crop covering the entire extent and the neighbouring wall.
+Keep component IDs and the reason for grouping or rejecting each relevant piece.
+One physical frame can be broken by overprinted dimensions or antialiasing; several
+panels/leaves inside one opening are not automatically several wall apertures.
+Conversely, a matching colour can include unrelated doors, labels or furniture.
+Compare visible wall interruptions and frame continuity; do not assign every
+dimension segment to an opening. Use profiles to refine chosen geometric endpoints
+after grouping. Tool candidates alone do not decide physical identity.
+Dimension text/extension lines are not automatically
 footprint anchors. Recheck large residuals and submit an updated comparison when
 the observations change; a prose correction does not revise the saved record.
 The tool maps each view independently and compares forward/reversed elevation
