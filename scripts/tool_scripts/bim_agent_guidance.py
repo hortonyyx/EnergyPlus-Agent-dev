@@ -74,6 +74,10 @@ thresholds from the actual image; unsuitable color evidence permits another
 method or an explicitly uncertain observation. Tools are optional, not a fixed
 sequence. map_pixels and map_dimension_chain perform coordinate and dimension
 arithmetic; they do not validate your interpretation or calibration.
+For plan/elevation correspondence, compare_facade_spans tests BOTH directions
+from independently observed complete opening lists. Read facade_correspondence
+for its schema. Check absolute residuals as well as the direction difference;
+the tool cannot establish that your observations or opening types are correct.
 
 Your primary role is coordination and resolving evidence conflicts.
 review_detail asks Haiku a small local visual question using only selected
@@ -145,6 +149,28 @@ reconstruction. Do not ask the user for routine geometry choices.
 """
 
 REFERENCES = {
+    'facade_correspondence': """Observe one facade's full opening list independently
+in the original plan and original elevation. Include doors and windows; retain
+uncertain marks explicitly. Do not copy one view's intervals into the other.
+Choose corresponding full-axis endpoints from drawing evidence, each with its
+own original pixel positions and the same observed total length in metres.
+Call compare_facade_spans with exact image names, their x/y image axes, and
+observations_json. A synthetic format example (not a case answer):
+{"plan":{"axis_anchors":[[10,0],[110,10]],"openings":[
+{"id":"P1","pixels":[20,40],"kind":"unknown","evidence":"original crop"}]},
+"elevation":{"axis_anchors":[[200,0],[400,10]],"openings":[
+{"id":"E1","pixels":[340,380],"kind":"unknown","evidence":"original crop"}]}}
+The tool maps each view independently and compares forward/reversed elevation
+spans paired by centre order. Different counts or a symmetric arrangement leave
+direction unresolved. A smaller error alone does not prove correct observations;
+large absolute residuals require rechecking anchors, completeness and endpoints.
+Count mismatch pairing is partial and is not identification of the missing mark.
+Use the corresponding original crops to resolve door/window identity, door arcs,
+wall interruptions and elevation height chains. Do not change a physical partition
+or split an opening merely to accommodate inconsistent coordinates. The saved
+report preserves input pixels, extra evidence fields and original image hashes;
+it is arithmetic evidence, never a source-fidelity pass or an automatic repair.
+""",
     'reconstruction': """A drawing reconstruction method, not a case-specific recipe.
 Use the supplied originals and declarations. Decide which observation resolves
 each uncertainty; the following checks may be interleaved, delegated or revisited.

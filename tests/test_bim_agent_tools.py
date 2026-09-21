@@ -75,6 +75,40 @@ def _error_text(result) -> str:
     return "\n".join(getattr(row, "text", "") for row in result.content)
 
 
+@pytest.mark.parametrize("readonly", [True, False])
+def test_facade_comparison_stdio_binds_originals_without_building(tmp_path, readonly):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        _add_image(run, "east.png")
+        observations = {
+            "plan": {"axis_anchors": [[0, 0], [8, 8]],
+                     "openings": [{"id": "p", "pixels": [1, 2], "kind": "door"}]},
+            "elevation": {"axis_anchors": [[0, 0], [12, 8]],
+                          "openings": [{"id": "e", "pixels": [9, 10.5]}]},
+        }
+        args = {"plan_image": "plan.png", "elevation_image": "east.png",
+                "observations_json": json.dumps(observations)}
+        async with _server_session(run, readonly=readonly) as session:
+            first = _json_result(await session.call_tool("compare_facade_spans", args))
+            assert first["direction_separation"]["lower_residual_direction"] == "elevation_reverse"
+            assert first["original_images"]["plan"]["sha256"] == digest(run / "images/plan.png")
+            assert first["observations"]["plan"]["openings"][0]["kind"] == "door"
+            assert json.loads((run / first["record"]).read_text()) == first
+            second = _json_result(await session.call_tool("compare_facade_spans", args))
+            assert second["record"] != first["record"]
+            rejected = await session.call_tool("compare_facade_spans", {**args, "plan_image": "../plan.png"})
+            assert "exact image name" in _error_text(rejected)
+            observations["plan"]["axis_anchors"][1][0] = 9
+            rejected = await session.call_tool("compare_facade_spans", {
+                **args, "observations_json": json.dumps(observations)})
+            assert "outside original image bounds" in _error_text(rejected)
+            (run / "images/plan.png").write_bytes(b"changed")
+            assert "input image changed" in _error_text(await session.call_tool("compare_facade_spans", args))
+        assert len(list((run / "facade_comparisons").glob("*.json"))) == 2
+        assert not list(run.glob("candidate*"))
+    asyncio.run(scenario())
+
+
 def _two_room_proposal() -> str:
     return json.dumps({
         "geometry": {

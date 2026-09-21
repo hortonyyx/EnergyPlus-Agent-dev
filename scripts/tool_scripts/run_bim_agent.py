@@ -689,6 +689,42 @@ class Toolkit:
             raise ValueError("input image changed")
         return path
 
+    def compare_facade_spans(self, plan_image, elevation_image, observations_json,
+                             plan_axis="y", elevation_axis="x", ambiguity_tolerance_m=0.05):
+        """Persist caller observations bound to admitted originals; never change BIM."""
+        from src.agent.geometry.facade_span_comparison import compare
+        observations = json.loads(observations_json)
+        result = compare(observations, ambiguity_tolerance_m)
+        sources = {}
+        for label, name, axis in (("plan", plan_image, plan_axis),
+                                  ("elevation", elevation_image, elevation_axis)):
+            if axis not in {"x", "y"}:
+                raise ValueError("image axis must be x or y")
+            path = self.image_path(name)
+            with PILImage.open(path) as pic:
+                size = list(pic.size)
+            bound = size[0 if axis == "x" else 1]
+            if any(not 0 <= anchor[0] <= bound
+                   for anchor in result["normalized_inputs"][label]["axis_anchors"]):
+                raise ValueError(f"{label} axis anchors lie outside original image bounds")
+            sources[label] = {"image": name, "sha256": digest(path),
+                              "size": size, "axis": axis}
+        folder = self.run / "facade_comparisons"
+        folder.mkdir(exist_ok=True)
+        index = 1
+        while (folder / f"comparison_{index:03d}.json").exists():
+            index += 1
+        path = folder / f"comparison_{index:03d}.json"
+        result.update(original_images=sources, observations=observations,
+                      evidence_status="caller_observations_not_independently_verified",
+                      record=str(path.relative_to(self.run)))
+        with path.open("x") as output:
+            json.dump(result, output, ensure_ascii=False, indent=2)
+            output.write("\n")
+        self.log("compare_facade_spans", {"record": result["record"],
+                                         "direction_separation": result["direction_separation"]})
+        return result
+
     def _calibration_records(self):
         """Return immutable explicit calibration records in registration order."""
         folder = self.run / "overlay_calibrations"
@@ -1270,6 +1306,20 @@ def serve(run: Path, readonly=False):
         toolkit.log("map_dimension_chain", {"lengths": lengths, "result": result})
         return result
 
+    @server.tool()
+    def compare_facade_spans(plan_image: str, elevation_image: str, observations_json: str,
+                             plan_axis: str = "y", elevation_axis: str = "x",
+                             ambiguity_tolerance_m: float = 0.05) -> dict:
+        """Compare complete independently observed opening lists in BOTH axis directions.
+        Exact original image names and original pixel coordinates only. JSON has plan
+        and elevation, each with axis_anchors [[pixel,0],[pixel,L_metres]] and openings
+        [{"id":"observed_id","pixels":[start,end]}]. Retain types/evidence as extra fields.
+        Read facade_correspondence for an example and limitations. No automatic OCR,
+        direction acceptance, missing-opening repair or source mutation.
+        """
+        return toolkit.compare_facade_spans(plan_image, elevation_image, observations_json,
+                                             plan_axis, elevation_axis, ambiguity_tolerance_m)
+
     def candidate_result(result) -> CallToolResult:
         """Keep JSON structured output while attaching newly generated feedback views."""
         content = []
@@ -1745,6 +1795,7 @@ def run_experiment(args):
                                  "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
+                                 "src/agent/geometry/facade_span_comparison.py":digest(ROOT/"src/agent/geometry/facade_span_comparison.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
