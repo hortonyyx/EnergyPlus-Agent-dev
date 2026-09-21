@@ -117,6 +117,62 @@ def test_facade_comparison_stdio_binds_originals_without_building(tmp_path, read
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("readonly", [True, False])
+def test_facade_comparison_adopts_actual_profile_candidates(tmp_path, readonly):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        _add_image(run, "east.png")
+        manifest = json.loads((run / "inputs.json").read_text())
+        for name in ("plan.png", "east.png"):
+            path = run / "images" / name
+            pic = Image.open(path).convert("RGB")
+            for x in range(12):
+                for y in range(8):
+                    if name == "plan.png" and y in (0, 7):
+                        pic.putpixel((x, y), (0, 255, 0))
+                    elif ((name == "plan.png" and y in (1, 2)) or
+                          (name == "east.png" and x in (9, 10))):
+                        pic.putpixel((x, y), (0, 255, 255))
+            pic.save(path)
+            manifest["images"][name]["sha256"] = digest(path)
+        (run / "inputs.json").write_text(json.dumps(manifest))
+        async with _server_session(run, readonly=readonly) as session:
+            profiles = []
+            for name, axis, rgb in (("plan.png", "y", [0, 255, 255]),
+                                    ("plan.png", "y", [0, 255, 0]),
+                                    ("east.png", "x", [0, 255, 255])):
+                result = await session.call_tool("view_pixel_profile", {
+                    "name": name, "box": [0, 0, 12, 8], "axis": axis,
+                    "rgb": rgb, "tolerance": 0, "min_fraction": 0.5})
+                assert not result.isError
+                profiles.append(json.loads(result.content[1].text))
+
+            def ref(index, candidate="C01", at="peak"):
+                return {"profile": profiles[index]["profile_id"], "candidate": candidate, "at": at}
+
+            raw = {"plan": {"axis_anchors": [[ref(1), 0], [ref(1, "C02"), 7]],
+                            "openings": [{"id": "p", "pixels": [ref(0, at="start"), ref(0, at="end")]}]},
+                   "elevation": {"axis_anchors": [[0, 0], [12, 7]],
+                                 "openings": [{"id": "e", "pixels": [ref(2, at="start"), ref(2, at="end")]}]}}
+            args = {"plan_image": "plan.png", "elevation_image": "east.png",
+                    "observations_json": json.dumps(raw)}
+            result = _json_result(await session.call_tool("compare_facade_spans", args))
+            assert result["submitted_observations"] == raw
+            assert result["observations"]["plan"]["axis_anchors"] == [[0, 0], [7, 7]]
+            assert result["observations"]["plan"]["openings"][0]["pixels"] == [1, 2]
+            assert result["observations"]["elevation"]["openings"][0]["pixels"] == [9, 10]
+            assert len(result["measurement_bindings"]) == 6
+            assert json.loads((run / result["record"]).read_text()) == result
+            raw["plan"]["openings"][0]["pixels"][0] = ref(2)
+            rejected = await session.call_tool("compare_facade_spans", {**args, "observations_json": json.dumps(raw)})
+            assert rejected.isError
+            raw["plan"]["openings"][0]["pixels"][0] = {**ref(0), "offset": 1}
+            assert (await session.call_tool("compare_facade_spans", {**args, "observations_json": json.dumps(raw)})).isError
+        assert len(list((run / "facade_comparisons").glob("*.json"))) == 1
+        assert not list(run.glob("candidate*"))
+    asyncio.run(scenario())
+
+
 def _two_room_proposal() -> str:
     return json.dumps({
         "geometry": {

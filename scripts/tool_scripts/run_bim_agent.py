@@ -693,11 +693,11 @@ class Toolkit:
                              plan_axis="y", elevation_axis="x", ambiguity_tolerance_m=0.05):
         """Persist caller observations bound to admitted originals; never change BIM."""
         from src.agent.geometry.facade_span_comparison import compare
+        from src.agent.geometry.profile_observation_binding import resolve_observations
         def reject_constant(value):
             raise ValueError(f"observations_json contains non-finite constant {value}")
 
         observations = json.loads(observations_json, parse_constant=reject_constant)
-        result = compare(observations, ambiguity_tolerance_m)
         sources = {}
         for label, name, axis in (("plan", plan_image, plan_axis),
                                   ("elevation", elevation_image, elevation_axis)):
@@ -706,19 +706,34 @@ class Toolkit:
             path = self.image_path(name)
             with PILImage.open(path) as pic:
                 size = list(pic.size)
-            bound = size[0 if axis == "x" else 1]
+            sources[label] = {"image": name, "sha256": digest(path),
+                              "size": size, "axis": axis}
+
+        def load_profile(profile_id):
+            # resolve_observations validates the ID before calling this loader.
+            path = self.run / "pixel_profiles" / f"{profile_id}.json"
+            if not path.is_file() or path.resolve().parent != (self.run / "pixel_profiles"):
+                raise ValueError("choose an existing profile_id returned by view_pixel_profile")
+            raw = path.read_bytes()
+            return {"record": json.loads(raw, parse_constant=reject_constant),
+                    "sha256": hashlib.sha256(raw).hexdigest()}
+
+        resolved, bindings = resolve_observations(observations, load_profile=load_profile,
+                                                   views=sources)
+        result = compare(resolved, ambiguity_tolerance_m)
+        for label, source in sources.items():
+            bound = source["size"][0 if source["axis"] == "x" else 1]
             if any(not 0 <= anchor[0] <= bound
                    for anchor in result["normalized_inputs"][label]["axis_anchors"]):
                 raise ValueError(f"{label} axis anchors lie outside original image bounds")
-            sources[label] = {"image": name, "sha256": digest(path),
-                              "size": size, "axis": axis}
         folder = self.run / "facade_comparisons"
         folder.mkdir(exist_ok=True)
         index = 1
         while (folder / f"comparison_{index:03d}.json").exists():
             index += 1
         path = folder / f"comparison_{index:03d}.json"
-        result.update(original_images=sources, observations=observations,
+        result.update(original_images=sources, observations=resolved,
+                      submitted_observations=observations, measurement_bindings=bindings,
                       evidence_status="caller_observations_not_independently_verified",
                       record=str(path.relative_to(self.run)))
         with path.open("x") as output:
@@ -1079,6 +1094,7 @@ class Toolkit:
         combined.save(image_path)
         result = {
             "name": name,
+            "profile_id": stem,
             "image_sha256": self.manifest["images"][name]["sha256"],
             "axis": axis,
             "box_original_pixels": box,
@@ -1243,6 +1259,8 @@ def serve(run: Path, readonly=False):
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
+        Use profile_id and candidate IDs in compare_facade_spans coordinate slots
+        to adopt measured coordinates without copying numbers.
         """
         return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
 
@@ -1317,6 +1335,9 @@ def serve(run: Path, readonly=False):
         Exact original image names and original pixel coordinates only. JSON has plan
         and elevation, each with axis_anchors [[pixel,0],[pixel,L_metres]] and openings
         [{"id":"observed_id","pixels":[start,end]}]. Retain types/evidence as extra fields.
+        Any pixel slot may instead be {"profile":"profile_001","candidate":"C01",
+        "at":"peak"}; at=peak/start/end, default peak. Uses saved measurement pixels
+        directly, checks image and axis, and preserves the binding. No numeric offset.
         Read facade_correspondence for an example and limitations. No automatic OCR,
         direction acceptance, missing-opening repair or source mutation.
         """
@@ -1799,6 +1820,7 @@ def run_experiment(args):
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
                                  "src/agent/geometry/facade_span_comparison.py":digest(ROOT/"src/agent/geometry/facade_span_comparison.py"),
+                                 "src/agent/geometry/profile_observation_binding.py":digest(ROOT/"src/agent/geometry/profile_observation_binding.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),

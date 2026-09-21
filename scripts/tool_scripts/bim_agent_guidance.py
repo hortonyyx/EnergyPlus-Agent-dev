@@ -79,6 +79,9 @@ from independently observed complete opening lists. Read facade_correspondence
 for its schema. Check absolute residuals as well as the direction difference;
 relative_error_separated is only a relative comparison and absolute_fit_status
 remains not_evaluated. The tool cannot establish that observations or types are correct.
+When using measured endpoints, reference the saved profile_id/candidate in pixel
+slots instead of retyping estimated coordinates. You still decide which peaks
+belong to the same aperture and which dimension endpoints define the scale.
 
 Your primary role is coordination and resolving evidence conflicts.
 review_detail asks Haiku a small local visual question using only selected
@@ -161,6 +164,22 @@ observations_json. A synthetic format example (not a case answer):
 {"id":"P1","pixels":[20,40],"kind":"unknown","evidence":"original crop"}]},
 "elevation":{"axis_anchors":[[200,0],[400,10]],"openings":[
 {"id":"E1","pixels":[340,380],"kind":"unknown","evidence":"original crop"}]}}
+To adopt view_pixel_profile measurements, replace any pixel number (including
+an axis anchor's pixel) with {"profile":"profile_001","candidate":"C01","at":"peak"}.
+Use the actual returned profile_id and candidate ID. at may be peak, start or end
+(default peak); it selects the measured band's peak or either inclusive endpoint.
+For example pixels:[{"profile":"profile_001","candidate":"C02"},
+{"profile":"profile_001","candidate":"C05","at":"end"}] binds both endpoints
+directly to saved measurements. These synthetic IDs do not prescribe actual groups.
+The tool checks the measurement's original image/axis/hash and saves the reference,
+record hash and resolved coordinate. No offsets, automatic grouping or snapping.
+Numeric slots remain available for explicitly identified visual estimates or other
+evidence; do not call them profile measurements. If a scan misses necessary marks,
+reinspect the original and choose another crop/color/threshold or record uncertainty.
+Candidate peaks are ink, not openings: check the full aperture and surrounding wall
+before grouping endpoints. Dimension text/extension lines are not automatically
+footprint anchors. Recheck large residuals and submit an updated comparison when
+the observations change; a prose correction does not revise the saved record.
 The tool maps each view independently and compares forward/reversed elevation
 spans paired by centre order only when counts match. Different counts retain both
 complete lists as unresolved and produce no pairs or residuals; a symmetric
