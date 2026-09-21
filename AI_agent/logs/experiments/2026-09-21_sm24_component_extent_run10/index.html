@@ -1,0 +1,51 @@
+<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>sm24 原图局部开口观察</title><style>
+body{font:16px/1.6 system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#172536}
+table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}
+img{max-width:100%;background:#000}pre{white-space:pre-wrap;background:#f1f5f9;padding:16px}
+.sources{display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start}
+@media(max-width:700px){.sources{grid-template-columns:1fr}}
+</style><h1>sm24 原图局部开口观察</h1>
+<p>工作模型只收到两张原图和东侧观察任务。以下为它提交的观察及双方向计算，
+不能当作独立验收或整案 BIM 成绩；语义核验见 README。</p>
+<p><a href="README.md">结果与限制</a> · <a href="answer.md">模型原答</a> ·
+<a href="verification.json">输入与工具返回核验</a></p>
+<div class="sources"><a href="images/1f_view.png"><img alt="原始平面图" src="images/1f_view.png"></a>
+<a href="images/East_view.png"><img alt="原始东立面" src="images/East_view.png"></a></div>
+<h2>comparison_001</h2><p><a href="facade_comparisons/comparison_001.json">原始记录</a></p>
+<table><tr><th>图</th><th>原图轴标定</th><th>开口 ID</th><th>原图像素区间</th><th>类型（模型判读）</th></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_Win1</td><td>[172, 225]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_Win2</td><td>[313, 355]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_Win3_big</td><td>[383, 556]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_Door</td><td>[612, 670]</td><td>door</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_Door</td><td>[911, 1062]</td><td>door</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_Win_big</td><td>[1207, 1662]</td><td>window</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_Win2</td><td>[1730, 1845]</td><td>window</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_Win3</td><td>[2068, 2211]</td><td>window</td></tr>
+</table>
+<details><summary>查看 6 个量测引用</summary><table><tr><th>坐标槽</th><th>扫描 / 候选</th><th>取值</th><th>原图像素</th></tr>
+<tr><td>plan.axis_anchors[0][0]</td><td>profile_002 / C01</td><td>peak</td><td>151</td></tr>
+<tr><td>plan.axis_anchors[1][0]</td><td>profile_002 / C06</td><td>peak</td><td>878</td></tr>
+<tr><td>elevation.axis_anchors[0][0]</td><td>profile_004 / C03</td><td>peak</td><td>373</td></tr>
+<tr><td>elevation.axis_anchors[1][0]</td><td>profile_004 / C10</td><td>peak</td><td>2261</td></tr>
+<tr><td>elevation.openings[0].pixels[0]</td><td>profile_004 / C04</td><td>peak</td><td>911</td></tr>
+<tr><td>elevation.openings[0].pixels[1]</td><td>profile_004 / C05</td><td>peak</td><td>1062</td></tr>
+</table></details>
+<table><tr><th>方向</th><th>均值误差 m</th><th>最大误差 m</th></tr>
+<tr><td>elevation_forward</td><td>5.714364814771641</td><td>8.042556477746952</td></tr>
+<tr><td>elevation_reverse</td><td>0.027776239712773557</td><td>0.049891590702444866</td></tr>
+</table><pre>{
+  &quot;mean_abs_endpoint_residual_gap_m&quot;: 5.686588575058868,
+  &quot;ambiguity_tolerance_m&quot;: 0.05,
+  &quot;lower_residual_direction&quot;: &quot;elevation_reverse&quot;,
+  &quot;relative_error_separated&quot;: true,
+  &quot;absolute_fit_status&quot;: &quot;not_evaluated&quot;
+}</pre>
+<h2>实际连通范围记录</h2><p>彩色连通块不是自动认定的构件；下列范围来自模型自行选择的颜色/种子。</p><table><tr><th>记录</th><th>原图</th><th>范围 / 保留块</th><th>实际预览</th></tr>
+<tr><td><a href="pixel_region_overviews/overview_001.json">overview_001</a></td><td>1f_view.png</td><td>40 个保留块</td><td><a href="pixel_region_overviews/overview_001.png">查看原图与范围</a></td></tr>
+<tr><td><a href="pixel_region_overviews/overview_002.json">overview_002</a></td><td>1f_view.png</td><td>40 个保留块</td><td><a href="pixel_region_overviews/overview_002.png">查看原图与范围</a></td></tr>
+<tr><td><a href="pixel_region_overviews/overview_003.json">overview_003</a></td><td>East_view.png</td><td>23 个保留块</td><td><a href="pixel_region_overviews/overview_003.png">查看原图与范围</a></td></tr>
+<tr><td><a href="pixel_regions/region_001.json">region_001</a></td><td>1f_view.png</td><td>[605, 172, 607, 225]</td><td><a href="pixel_regions/region_001.png">查看原图与范围</a></td></tr>
+<tr><td><a href="pixel_regions/region_002.json">region_002</a></td><td>1f_view.png</td><td>[605, 383, 607, 514]</td><td><a href="pixel_regions/region_002.png">查看原图与范围</a></td></tr>
+</table>
+</html>

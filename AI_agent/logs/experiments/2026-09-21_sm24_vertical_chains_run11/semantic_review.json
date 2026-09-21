@@ -1,0 +1,45 @@
+{
+  "scope": "post_generation_original_image_review_no_GT",
+  "adopt_vertical_observation": false,
+  "new_BIM": false,
+  "issues": [
+    "Only three opening groups, right two separate windows not identified correctly.",
+    "Total4500 mixed into door chain;200 treated as possible foundation instead of actual lower segment.",
+    "Roof/base and opening pixel ranges inconsistent with original; actual raw profiles returned y223..659 yet answer claims y203..920.",
+    "Central1100/2400/1000 chain values seen but assigned inconsistently to door and windows.",
+    "Right1700/1800/1000 chain omitted; no reliable per-opening bottom/top result."
+  ],
+  "developer_post_review_only": {
+    "roof_to_base_total_mm": 4500,
+    "door_chain_top_down_mm": [
+      1900,
+      2400,
+      200
+    ],
+    "large_window_chain_top_down_mm": [
+      1100,
+      2400,
+      1000
+    ],
+    "small_windows_chain_top_down_mm": [
+      1700,
+      1800,
+      1000
+    ],
+    "bottom_top_m": {
+      "door": [
+        0.2,
+        2.6
+      ],
+      "large_window": [
+        1.0,
+        3.4
+      ],
+      "two_small_windows": [
+        1.0,
+        2.8
+      ]
+    }
+  },
+  "limits": "Developer source-only evaluation not injected into worker, not applied to BIM, not independent Haiku success."
+}

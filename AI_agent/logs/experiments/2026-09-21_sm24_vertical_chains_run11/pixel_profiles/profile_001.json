@@ -1,0 +1,70 @@
+{
+  "name": "East_view.png",
+  "profile_id": "profile_001",
+  "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+  "axis": "x",
+  "box_original_pixels": [
+    50,
+    100,
+    350,
+    900
+  ],
+  "rgb": [
+    0,
+    255,
+    0
+  ],
+  "tolerance": 70,
+  "min_fraction": 0.3,
+  "minimum_count": 240,
+  "support_length": 800,
+  "matching_pixels": 1474,
+  "candidates": [
+    {
+      "id": "C01",
+      "pixels": [
+        122,
+        122
+      ],
+      "peak": 122,
+      "max_count": 431,
+      "max_fraction": 0.53875,
+      "support_intervals_at_peak": [
+        [
+          226,
+          656
+        ]
+      ]
+    }
+  ],
+  "profile_image": "pixel_profiles/profile_001.png",
+  "profile_record": "pixel_profiles/profile_001.json",
+  "profile_image_sha256": "3314be728b709b18b211203769d13e1b543c334d7d45e5553722edacef6135d5",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      300,
+      800
+    ],
+    "mask_panel_combined_pixels": [
+      303,
+      0,
+      603,
+      800
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 538,
+  "returned_size": [
+    603,
+    800
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}

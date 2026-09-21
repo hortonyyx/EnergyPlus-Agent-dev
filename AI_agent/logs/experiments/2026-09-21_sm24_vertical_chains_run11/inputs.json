@@ -1,0 +1,26 @@
+{
+  "images": {
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    }
+  },
+  "scope": "Read the vertical dimension chains for the exterior openings in the\nsupplied original East elevation. This is a narrow original-image transcription\nand height task, not a facade horizontal matching task or a BIM task. You have\nno previous observations or model. Identify the physical opening groups and the\nvertical chains that actually refer to them; panels within a door are not separate\nwall openings. For every inspected chain, give its original-image label boxes,\ntranscribed values and units, dimension-line x position, ordered extension-endpoint\ny pixels, and which opening bbox/group the chain refers to. Use clean magnified\ncrops including the complete chain and the related opening; inspect the top and\nbottom ends, not only the middle label. You may use pixel profiles or colour regions\nto measure anchors and distinguish lines, but a colour component is not a semantic\nopening. Keep the building base/roof, opening head/sill and any other reference\nlevels distinct. If the visible labels determine a sill and head height relative\nto an observed base, compute them explicitly in metres from those labels; do not\nreplace an exact label by a coarser pixel estimate. Use map_dimension_chain for\narithmetic only after correctly transcribing the actual chain. Report each group,\nits bottom/top, the source chain, uncertainties and any unexamined groups. Do not\ninvent labels or infer a shared sill for unrelated groups. Do not create a BIM.\n",
+  "input_mode": "developer_selected_vertical_chain_observation",
+  "only_input": "One original PNG and a vertical-chain task; no seed, historical observations, developer measurements or GT",
+  "deadline_epoch": 1789966421.2859473,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "a2b39040ed3044aa795a1adbf79a735aac80b7c31c8016034f405e27bab78af7",
+    "scripts/tool_scripts/bim_agent_guidance.py": "0601902b692e42e0b0a2fcc7eb03c31e7b12f292b17cc522c5fba5e817aa963c",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "c4e1b3330a9b4dd774daaf65332bcf69666f39426e19684b7ee72318d2c338ba",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4",
+    "src/agent/execution/subscription_json.py": "24a2a2f767a65e81a826ea00e859f4837f6ba4c6af1113c65868d23b50ff4ff5",
+    "AI_agent/logs/experiments/2026-09-21_component_extent_setup/run_vertical_observation.py": "ba3d8080b23b4475a5a724fc28c03be72c302e5da279a1477688951ef9e2ddd9"
+  }
+}

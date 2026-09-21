@@ -1,0 +1,74 @@
+{
+  "candidates": [],
+  "background_rgb": [
+    0,
+    255,
+    255
+  ],
+  "tolerance": 40.0,
+  "min_pixels": 20,
+  "max_regions": 100,
+  "include_border": true,
+  "region_exclusions": {
+    "below_min_pixels": {
+      "count": 69,
+      "reason": "pixel_count is below min_pixels"
+    },
+    "touching_image_border": {
+      "count": 0,
+      "reason": "touches the image border and include_border is false; this is excluded as a possible external image background, not asserted to be exterior space"
+    },
+    "truncated_by_max_regions": {
+      "count": 0,
+      "reason": "qualifying candidates after stable area ordering exceed max_regions"
+    }
+  },
+  "coordinate_map": {
+    "source_coordinate_convention": "pixel centres are integer (x, y)",
+    "bbox_convention": "[x_min, y_min, x_max_exclusive, y_max_exclusive]",
+    "source_size_px": [
+      790,
+      1111
+    ],
+    "preview_size_px": [
+      1588,
+      1111
+    ],
+    "left_clean_panel": {
+      "offset_px": [
+        0,
+        0
+      ],
+      "size_px": [
+        790,
+        1111
+      ]
+    },
+    "right_numbered_panel": {
+      "offset_px": [
+        798,
+        0
+      ],
+      "size_px": [
+        790,
+        1111
+      ]
+    },
+    "source_to_panel": {
+      "formula": "panel_xy = (source_xy + 0.5) * scale_xy + panel_offset_xy",
+      "scale_xy": [
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "warnings": [
+    "Candidates are colour-connected raster regions, not asserted rooms, walls, openings, or exterior space.",
+    "Use a selected seed with render_pixel_region for a separate contour observation."
+  ],
+  "overview_id": "overview_001",
+  "name": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "overview_image": "pixel_region_overviews/overview_001.png",
+  "remaining_seconds": null
+}

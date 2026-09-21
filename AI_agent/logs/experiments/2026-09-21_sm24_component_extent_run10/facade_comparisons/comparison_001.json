@@ -1,0 +1,692 @@
+{
+  "schema_version": "facade_span_direction_probe_v2",
+  "axis_length_m": 20.0,
+  "input_counts": {
+    "plan": 4,
+    "elevation": 4
+  },
+  "normalized_inputs": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151.0,
+          0.0
+        ],
+        [
+          878.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "P_Win1",
+          "pixels": [
+            172.0,
+            225.0
+          ],
+          "metres": [
+            0.5777166437414031,
+            2.0357634112792296
+          ],
+          "centre_m": 1.3067400275103163
+        },
+        {
+          "id": "P_Win2",
+          "pixels": [
+            313.0,
+            355.0
+          ],
+          "metres": [
+            4.456671251719395,
+            5.612104539202201
+          ],
+          "centre_m": 5.034387895460798
+        },
+        {
+          "id": "P_Win3_big",
+          "pixels": [
+            383.0,
+            556.0
+          ],
+          "metres": [
+            6.382393397524072,
+            11.141678129298487
+          ],
+          "centre_m": 8.76203576341128
+        },
+        {
+          "id": "P_Door",
+          "pixels": [
+            612.0,
+            670.0
+          ],
+          "metres": [
+            12.682255845942228,
+            14.277854195323247
+          ],
+          "centre_m": 13.480055020632737
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373.0,
+          0.0
+        ],
+        [
+          2261.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "E_Door",
+          "pixels": [
+            911.0,
+            1062.0
+          ],
+          "metres": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "centre_m": 6.498940677966102
+        },
+        {
+          "id": "E_Win_big",
+          "pixels": [
+            1207.0,
+            1662.0
+          ],
+          "metres": [
+            8.834745762711865,
+            13.654661016949152
+          ],
+          "centre_m": 11.244703389830509
+        },
+        {
+          "id": "E_Win2",
+          "pixels": [
+            1730.0,
+            1845.0
+          ],
+          "metres": [
+            14.375,
+            15.59322033898305
+          ],
+          "centre_m": 14.984110169491526
+        },
+        {
+          "id": "E_Win3",
+          "pixels": [
+            2068.0,
+            2211.0
+          ],
+          "metres": [
+            17.95550847457627,
+            19.470338983050848
+          ],
+          "centre_m": 18.712923728813557
+        }
+      ]
+    }
+  },
+  "directions": {
+    "elevation_forward": {
+      "direction": "elevation_forward",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P_Win1",
+          "elevation_id": "E_Door",
+          "plan_span_m": [
+            0.5777166437414031,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "endpoint_residual_m": [
+            5.1214358986314785,
+            5.262965402280092
+          ],
+          "max_abs_endpoint_residual_m": 5.262965402280092
+        },
+        {
+          "plan_id": "P_Win2",
+          "elevation_id": "E_Win_big",
+          "plan_span_m": [
+            4.456671251719395,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            8.834745762711865,
+            13.654661016949152
+          ],
+          "endpoint_residual_m": [
+            4.37807451099247,
+            8.042556477746952
+          ],
+          "max_abs_endpoint_residual_m": 8.042556477746952
+        },
+        {
+          "plan_id": "P_Win3_big",
+          "elevation_id": "E_Win2",
+          "plan_span_m": [
+            6.382393397524072,
+            11.141678129298487
+          ],
+          "elevation_span_after_direction_m": [
+            14.375,
+            15.59322033898305
+          ],
+          "endpoint_residual_m": [
+            7.992606602475928,
+            4.451542209684563
+          ],
+          "max_abs_endpoint_residual_m": 7.992606602475928
+        },
+        {
+          "plan_id": "P_Door",
+          "elevation_id": "E_Win3",
+          "plan_span_m": [
+            12.682255845942228,
+            14.277854195323247
+          ],
+          "elevation_span_after_direction_m": [
+            17.95550847457627,
+            19.470338983050848
+          ],
+          "endpoint_residual_m": [
+            5.273252628634042,
+            5.192484787727601
+          ],
+          "max_abs_endpoint_residual_m": 5.273252628634042
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 8.042556477746952,
+      "mean_abs_endpoint_residual_m": 5.714364814771641
+    },
+    "elevation_reverse": {
+      "direction": "elevation_reverse",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P_Win1",
+          "elevation_id": "E_Win3",
+          "plan_span_m": [
+            0.5777166437414031,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            0.5296610169491522,
+            2.04449152542373
+          ],
+          "endpoint_residual_m": [
+            -0.04805562679225084,
+            0.008728114144500587
+          ],
+          "max_abs_endpoint_residual_m": 0.04805562679225084
+        },
+        {
+          "plan_id": "P_Win2",
+          "elevation_id": "E_Win2",
+          "plan_span_m": [
+            4.456671251719395,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            4.40677966101695,
+            5.625
+          ],
+          "endpoint_residual_m": [
+            -0.049891590702444866,
+            0.012895460797799352
+          ],
+          "max_abs_endpoint_residual_m": 0.049891590702444866
+        },
+        {
+          "plan_id": "P_Win3_big",
+          "elevation_id": "E_Win_big",
+          "plan_span_m": [
+            6.382393397524072,
+            11.141678129298487
+          ],
+          "elevation_span_after_direction_m": [
+            6.345338983050848,
+            11.165254237288135
+          ],
+          "endpoint_residual_m": [
+            -0.037054414473224107,
+            0.02357610798964771
+          ],
+          "max_abs_endpoint_residual_m": 0.037054414473224107
+        },
+        {
+          "plan_id": "P_Door",
+          "elevation_id": "E_Door",
+          "plan_span_m": [
+            12.682255845942228,
+            14.277854195323247
+          ],
+          "elevation_span_after_direction_m": [
+            12.701271186440678,
+            14.300847457627118
+          ],
+          "endpoint_residual_m": [
+            0.019015340498450328,
+            0.022993262303870665
+          ],
+          "max_abs_endpoint_residual_m": 0.022993262303870665
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 0.049891590702444866,
+      "mean_abs_endpoint_residual_m": 0.027776239712773557
+    }
+  },
+  "direction_separation": {
+    "mean_abs_endpoint_residual_gap_m": 5.686588575058868,
+    "ambiguity_tolerance_m": 0.05,
+    "lower_residual_direction": "elevation_reverse",
+    "relative_error_separated": true,
+    "absolute_fit_status": "not_evaluated"
+  },
+  "limits": [
+    "Pairing is by centre order only; matching IDs or drawing meaning are not inferred.",
+    "A smaller residual supports an axis direction, not whether either drawing was read correctly.",
+    "Absolute fit is not evaluated; inspect both directions' absolute residuals."
+  ],
+  "original_images": {
+    "plan": {
+      "image": "1f_view.png",
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "size": [
+        790,
+        1111
+      ],
+      "axis": "y"
+    },
+    "elevation": {
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "axis": "x"
+    }
+  },
+  "observations": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151,
+          0
+        ],
+        [
+          878,
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "P_Win1",
+          "kind": "window",
+          "pixels": [
+            172,
+            225
+          ],
+          "evidence": "1f_view.png region_001 bbox_px y=172-225 at wall x~605-607; cyan mullioned window band; matches dimension chain 540(wall)+1500(window) from top corner"
+        },
+        {
+          "id": "P_Win2",
+          "kind": "window",
+          "pixels": [
+            313,
+            355
+          ],
+          "evidence": "1f_view.png overview_002 candidates R20/R21 bbox y=313-355 at wall x~605-610; matches cumulative 4420-5620mm (1200mm window) in inner dimension chain"
+        },
+        {
+          "id": "P_Win3_big",
+          "kind": "window",
+          "pixels": [
+            383,
+            556
+          ],
+          "evidence": "1f_view.png region_002 bbox y=383-514 continuing to overview_002 R22/R23 y=516-556; view_image crop [585,370,630,570] shows one continuous glazing band with only a small green dimension-tick overlap near y~500-514, not a real mullion break; matches 4800mm window in chain (6360-11160mm)"
+        },
+        {
+          "id": "P_Door",
+          "kind": "door",
+          "pixels": [
+            612,
+            670
+          ],
+          "evidence": "1f_view.png overview_002 R37 (y612-614) and R39(y670-671) jamb ticks plus swing arc seen in view_image crop [585,590,630,690]; single-leaf door, matches 1600mm door in chain (12700-14300mm)"
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373,
+          0
+        ],
+        [
+          2261,
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "E_Door",
+          "kind": "door",
+          "pixels": [
+            911,
+            1062
+          ],
+          "evidence": "East_view.png double-leaf glazed door with visible round handles/knobs, view_image crop [890,390,1090,650]; jamb ticks at x=911 and x=1062 in profile_004 (bottom dimension chain matches 1600mm segment)"
+        },
+        {
+          "id": "E_Win_big",
+          "kind": "window",
+          "pixels": [
+            1207,
+            1662
+          ],
+          "evidence": "East_view.png overview_003 R03 (x1207-1209 vertical) and R02 (x1208-1662 horizontal) bound the large plain rectangular window; matches 4800mm chain segment"
+        },
+        {
+          "id": "E_Win2",
+          "kind": "window",
+          "pixels": [
+            1730,
+            1845
+          ],
+          "evidence": "East_view.png overview_003 R04(x1730-1732) and R14(x1731-1845) bound small rectangular window; matches 1200mm chain segment"
+        },
+        {
+          "id": "E_Win3",
+          "kind": "window",
+          "pixels": [
+            2068,
+            2211
+          ],
+          "evidence": "East_view.png overview_003 R05(x2068-2070) and R07/R11(x2069-2211) bound small rectangular window; matches 1500mm chain segment"
+        }
+      ]
+    }
+  },
+  "submitted_observations": {
+    "plan": {
+      "axis_anchors": [
+        [
+          {
+            "profile": "profile_002",
+            "candidate": "C01",
+            "at": "peak"
+          },
+          0
+        ],
+        [
+          {
+            "profile": "profile_002",
+            "candidate": "C06",
+            "at": "peak"
+          },
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "P_Win1",
+          "kind": "window",
+          "pixels": [
+            172,
+            225
+          ],
+          "evidence": "1f_view.png region_001 bbox_px y=172-225 at wall x~605-607; cyan mullioned window band; matches dimension chain 540(wall)+1500(window) from top corner"
+        },
+        {
+          "id": "P_Win2",
+          "kind": "window",
+          "pixels": [
+            313,
+            355
+          ],
+          "evidence": "1f_view.png overview_002 candidates R20/R21 bbox y=313-355 at wall x~605-610; matches cumulative 4420-5620mm (1200mm window) in inner dimension chain"
+        },
+        {
+          "id": "P_Win3_big",
+          "kind": "window",
+          "pixels": [
+            383,
+            556
+          ],
+          "evidence": "1f_view.png region_002 bbox y=383-514 continuing to overview_002 R22/R23 y=516-556; view_image crop [585,370,630,570] shows one continuous glazing band with only a small green dimension-tick overlap near y~500-514, not a real mullion break; matches 4800mm window in chain (6360-11160mm)"
+        },
+        {
+          "id": "P_Door",
+          "kind": "door",
+          "pixels": [
+            612,
+            670
+          ],
+          "evidence": "1f_view.png overview_002 R37 (y612-614) and R39(y670-671) jamb ticks plus swing arc seen in view_image crop [585,590,630,690]; single-leaf door, matches 1600mm door in chain (12700-14300mm)"
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          {
+            "profile": "profile_004",
+            "candidate": "C03",
+            "at": "peak"
+          },
+          0
+        ],
+        [
+          {
+            "profile": "profile_004",
+            "candidate": "C10",
+            "at": "peak"
+          },
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "E_Door",
+          "kind": "door",
+          "pixels": [
+            {
+              "profile": "profile_004",
+              "candidate": "C04",
+              "at": "peak"
+            },
+            {
+              "profile": "profile_004",
+              "candidate": "C05",
+              "at": "peak"
+            }
+          ],
+          "evidence": "East_view.png double-leaf glazed door with visible round handles/knobs, view_image crop [890,390,1090,650]; jamb ticks at x=911 and x=1062 in profile_004 (bottom dimension chain matches 1600mm segment)"
+        },
+        {
+          "id": "E_Win_big",
+          "kind": "window",
+          "pixels": [
+            1207,
+            1662
+          ],
+          "evidence": "East_view.png overview_003 R03 (x1207-1209 vertical) and R02 (x1208-1662 horizontal) bound the large plain rectangular window; matches 4800mm chain segment"
+        },
+        {
+          "id": "E_Win2",
+          "kind": "window",
+          "pixels": [
+            1730,
+            1845
+          ],
+          "evidence": "East_view.png overview_003 R04(x1730-1732) and R14(x1731-1845) bound small rectangular window; matches 1200mm chain segment"
+        },
+        {
+          "id": "E_Win3",
+          "kind": "window",
+          "pixels": [
+            2068,
+            2211
+          ],
+          "evidence": "East_view.png overview_003 R05(x2068-2070) and R07/R11(x2069-2211) bound small rectangular window; matches 1500mm chain segment"
+        }
+      ]
+    }
+  },
+  "measurement_bindings": [
+    {
+      "slot": "plan.axis_anchors[0][0]",
+      "reference": {
+        "profile": "profile_002",
+        "candidate": "C01",
+        "at": "peak"
+      },
+      "resolved_pixel": 151,
+      "profile_sha256": "67ab65f7b91084444044610b8f157430aecd53e6b53d9c6ed3ea5e96a6c50bd0",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          151,
+          151
+        ],
+        "peak": 151,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.axis_anchors[1][0]",
+      "reference": {
+        "profile": "profile_002",
+        "candidate": "C06",
+        "at": "peak"
+      },
+      "resolved_pixel": 878,
+      "profile_sha256": "67ab65f7b91084444044610b8f157430aecd53e6b53d9c6ed3ea5e96a6c50bd0",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C06",
+        "pixels": [
+          877,
+          878
+        ],
+        "peak": 878,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.axis_anchors[0][0]",
+      "reference": {
+        "profile": "profile_004",
+        "candidate": "C03",
+        "at": "peak"
+      },
+      "resolved_pixel": 373,
+      "profile_sha256": "51256abb350c0a1cef98c3b862d8a0f1c884788a83075fb2922fbe36df86ec14",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C03",
+        "pixels": [
+          373,
+          373
+        ],
+        "peak": 373,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.axis_anchors[1][0]",
+      "reference": {
+        "profile": "profile_004",
+        "candidate": "C10",
+        "at": "peak"
+      },
+      "resolved_pixel": 2261,
+      "profile_sha256": "51256abb350c0a1cef98c3b862d8a0f1c884788a83075fb2922fbe36df86ec14",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C10",
+        "pixels": [
+          2261,
+          2261
+        ],
+        "peak": 2261,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[0].pixels[0]",
+      "reference": {
+        "profile": "profile_004",
+        "candidate": "C04",
+        "at": "peak"
+      },
+      "resolved_pixel": 911,
+      "profile_sha256": "51256abb350c0a1cef98c3b862d8a0f1c884788a83075fb2922fbe36df86ec14",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C04",
+        "pixels": [
+          911,
+          911
+        ],
+        "peak": 911,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[0].pixels[1]",
+      "reference": {
+        "profile": "profile_004",
+        "candidate": "C05",
+        "at": "peak"
+      },
+      "resolved_pixel": 1062,
+      "profile_sha256": "51256abb350c0a1cef98c3b862d8a0f1c884788a83075fb2922fbe36df86ec14",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C05",
+        "pixels": [
+          1062,
+          1062
+        ],
+        "peak": 1062,
+        "selected_at": "peak"
+      }
+    }
+  ],
+  "evidence_status": "caller_observations_not_independently_verified",
+  "record": "facade_comparisons/comparison_001.json"
+}

@@ -1,0 +1,1178 @@
+{
+  "scope": "developer_selected_local_original_observation",
+  "receipt_completed": true,
+  "inputs": [
+    {
+      "image": "1f_view.png",
+      "frozen_hash_matches": true,
+      "original_hash_matches": true
+    },
+    {
+      "image": "East_view.png",
+      "frozen_hash_matches": true,
+      "original_hash_matches": true
+    }
+  ],
+  "implementations": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "src/agent/geometry/facade_span_comparison.py": true,
+    "src/agent/geometry/profile_observation_binding.py": true,
+    "src/agent/geometry/dimension_chain.py": true,
+    "src/agent/geometry/pixel_region.py": true,
+    "src/agent/geometry/pixel_region_overview.py": true,
+    "src/agent/execution/subscription_json.py": true,
+    "AI_agent/logs/experiments/2026-09-21_component_extent_setup/run_observation.py": true
+  },
+  "no_source_or_seed": true,
+  "tool_counts": {
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "view_image": 20,
+    "view_pixel_profile": 6,
+    "view_pixel_region_overview": 3,
+    "view_pixel_region": 6,
+    "compare_facade_spans": 1
+  },
+  "tool_errors": [
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "inner_chain_right",
+        "box": [
+          640,
+          0,
+          680,
+          900
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "outer_chain_right",
+        "box": [
+          700,
+          0,
+          740,
+          900
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          185
+        ],
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          310
+        ],
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          390
+        ],
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "East_view.png",
+        "seed_pixel": [
+          230,
+          300
+        ],
+        "background_rgb": [
+          190,
+          190,
+          190
+        ],
+        "tolerance": 80
+      },
+      "is_error": true
+    }
+  ],
+  "view_image_replays": [
+    {
+      "input": {
+        "name": "1f_view.png"
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png"
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          560,
+          0,
+          790,
+          900
+        ],
+        "display_scale": 2
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          600,
+          140,
+          700,
+          900
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          610,
+          400,
+          660,
+          460
+        ],
+        "display_scale": 6
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          610,
+          700,
+          660,
+          800
+        ],
+        "display_scale": 6
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          610,
+          460,
+          660,
+          570
+        ],
+        "display_scale": 5
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          140,
+          630,
+          420
+        ],
+        "display_scale": 4
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          370,
+          630,
+          570
+        ],
+        "display_scale": 4
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          590,
+          630,
+          690
+        ],
+        "display_scale": 5
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          190,
+          100,
+          260,
+          420
+        ],
+        "display_scale": 4
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2480,
+          100,
+          2560,
+          420
+        ],
+        "display_scale": 4
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          0,
+          120,
+          400,
+          420
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2300,
+          120,
+          2639,
+          420
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2150,
+          120,
+          2350,
+          420
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          890,
+          390,
+          1090,
+          650
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1190,
+          320,
+          2230,
+          640
+        ],
+        "display_scale": 1.5
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          560,
+          580,
+          630,
+          690
+        ],
+        "display_scale": 5
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1090,
+          0,
+          1300,
+          650
+        ],
+        "display_scale": 2
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1090,
+          600,
+          1300,
+          700
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    }
+  ],
+  "profile_replays": [
+    {
+      "profile_record": "pixel_profiles/profile_001.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_002.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_003.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_004.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    }
+  ],
+  "saved_image_transport": {
+    "stream_present": true,
+    "tool_calls": 38,
+    "comparisons": [
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_002.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_region_overview",
+        "saved": "pixel_region_overviews/overview_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_region",
+        "saved": "pixel_regions/region_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_region",
+        "saved": "pixel_regions/region_002.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_region_overview",
+        "saved": "pixel_region_overviews/overview_002.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_003.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_region_overview",
+        "saved": "pixel_region_overviews/overview_003.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_004.png",
+        "saved_exists": true,
+        "pixels_match": true
+      }
+    ],
+    "unpaired_image_returns": 20,
+    "note": "Unpaired returns include ordinary view_image crops without a saved rendered counterpart; this is not a transport failure."
+  },
+  "comparisons": [
+    {
+      "record": "facade_comparisons/comparison_001.json",
+      "returned_equals_saved": true,
+      "input_equals_saved": true,
+      "calculation_replays": true,
+      "bound_coordinate_count": 6,
+      "original_hashes_match": true
+    }
+  ],
+  "component_replays": [
+    {
+      "tool": "view_pixel_region_overview",
+      "record": "pixel_region_overviews/overview_001.json",
+      "returned_equals_saved": true,
+      "calculation_replays": true,
+      "pixels_replay": true
+    },
+    {
+      "tool": "view_pixel_region",
+      "record": "pixel_regions/region_001.json",
+      "returned_equals_saved": true,
+      "calculation_replays": true,
+      "pixels_replay": true
+    },
+    {
+      "tool": "view_pixel_region",
+      "record": "pixel_regions/region_002.json",
+      "returned_equals_saved": true,
+      "calculation_replays": true,
+      "pixels_replay": true
+    },
+    {
+      "tool": "view_pixel_region_overview",
+      "record": "pixel_region_overviews/overview_002.json",
+      "returned_equals_saved": true,
+      "calculation_replays": true,
+      "pixels_replay": true
+    },
+    {
+      "tool": "view_pixel_region_overview",
+      "record": "pixel_region_overviews/overview_003.json",
+      "returned_equals_saved": true,
+      "calculation_replays": true,
+      "pixels_replay": true
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "inputs",
+      "input": {},
+      "is_error": false
+    },
+    {
+      "name": "get_bim_reference",
+      "input": {
+        "topic": "facade_correspondence"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          560,
+          0,
+          790,
+          900
+        ],
+        "display_scale": 2
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "inner_chain_right",
+        "box": [
+          640,
+          0,
+          680,
+          900
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "outer_chain_right",
+        "box": [
+          700,
+          0,
+          740,
+          900
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          640,
+          0,
+          680,
+          900
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          700,
+          0,
+          740,
+          900
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          600,
+          140,
+          700,
+          900
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          610,
+          400,
+          660,
+          460
+        ],
+        "display_scale": 6
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          610,
+          700,
+          660,
+          800
+        ],
+        "display_scale": 6
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          610,
+          460,
+          660,
+          570
+        ],
+        "display_scale": 5
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_region_overview",
+      "input": {
+        "name": "1f_view.png",
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "min_pixels": 5,
+        "tolerance": 70
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          140,
+          630,
+          420
+        ],
+        "display_scale": 4
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          185
+        ],
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          310
+        ],
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          390
+        ],
+        "background_rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          185
+        ],
+        "background_rgb": [
+          0,
+          130,
+          130
+        ],
+        "tolerance": 60
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "1f_view.png",
+        "seed_pixel": [
+          605,
+          390
+        ],
+        "background_rgb": [
+          0,
+          130,
+          130
+        ],
+        "tolerance": 60
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_region_overview",
+      "input": {
+        "name": "1f_view.png",
+        "background_rgb": [
+          0,
+          130,
+          130
+        ],
+        "min_pixels": 5,
+        "tolerance": 50
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          370,
+          630,
+          570
+        ],
+        "display_scale": 4
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          590,
+          630,
+          690
+        ],
+        "display_scale": 5
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          0,
+          420,
+          2639,
+          460
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_region_overview",
+      "input": {
+        "name": "East_view.png",
+        "background_rgb": [
+          0,
+          130,
+          130
+        ],
+        "min_pixels": 20,
+        "tolerance": 60
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          0,
+          655,
+          2639,
+          700
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          255,
+          0
+        ]
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_region",
+      "input": {
+        "name": "East_view.png",
+        "seed_pixel": [
+          230,
+          300
+        ],
+        "background_rgb": [
+          190,
+          190,
+          190
+        ],
+        "tolerance": 80
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          190,
+          100,
+          260,
+          420
+        ],
+        "display_scale": 4
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2480,
+          100,
+          2560,
+          420
+        ],
+        "display_scale": 4
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          0,
+          120,
+          400,
+          420
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2300,
+          120,
+          2639,
+          420
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2150,
+          120,
+          2350,
+          420
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          890,
+          390,
+          1090,
+          650
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1190,
+          320,
+          2230,
+          640
+        ],
+        "display_scale": 1.5
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          560,
+          580,
+          630,
+          690
+        ],
+        "display_scale": 5
+      },
+      "is_error": false
+    },
+    {
+      "name": "compare_facade_spans",
+      "input": {
+        "plan_image": "1f_view.png",
+        "elevation_image": "East_view.png",
+        "plan_axis": "y",
+        "elevation_axis": "x",
+        "observations_json": "{\n  \"plan\": {\n    \"axis_anchors\": [[{\"profile\":\"profile_002\",\"candidate\":\"C01\",\"at\":\"peak\"}, 0], [{\"profile\":\"profile_002\",\"candidate\":\"C06\",\"at\":\"peak\"}, 20]],\n    \"openings\": [\n      {\"id\":\"P_Win1\",\"kind\":\"window\",\"pixels\":[172,225],\"evidence\":\"1f_view.png region_001 bbox_px y=172-225 at wall x~605-607; cyan mullioned window band; matches dimension chain 540(wall)+1500(window) from top corner\"},\n      {\"id\":\"P_Win2\",\"kind\":\"window\",\"pixels\":[313,355],\"evidence\":\"1f_view.png overview_002 candidates R20/R21 bbox y=313-355 at wall x~605-610; matches cumulative 4420-5620mm (1200mm window) in inner dimension chain\"},\n      {\"id\":\"P_Win3_big\",\"kind\":\"window\",\"pixels\":[383,556],\"evidence\":\"1f_view.png region_002 bbox y=383-514 continuing to overview_002 R22/R23 y=516-556; view_image crop [585,370,630,570] shows one continuous glazing band with only a small green dimension-tick overlap near y~500-514, not a real mullion break; matches 4800mm window in chain (6360-11160mm)\"},\n      {\"id\":\"P_Door\",\"kind\":\"door\",\"pixels\":[612,670],\"evidence\":\"1f_view.png overview_002 R37 (y612-614) and R39(y670-671) jamb ticks plus swing arc seen in view_image crop [585,590,630,690]; single-leaf door, matches 1600mm door in chain (12700-14300mm)\"}\n    ]\n  },\n  \"elevation\": {\n    \"axis_anchors\": [[{\"profile\":\"profile_004\",\"candidate\":\"C03\",\"at\":\"peak\"}, 0], [{\"profile\":\"profile_004\",\"candidate\":\"C10\",\"at\":\"peak\"}, 20]],\n    \"openings\": [\n      {\"id\":\"E_Door\",\"kind\":\"door\",\"pixels\":[{\"profile\":\"profile_004\",\"candidate\":\"C04\",\"at\":\"peak\"},{\"profile\":\"profile_004\",\"candidate\":\"C05\",\"at\":\"peak\"}],\"evidence\":\"East_view.png double-leaf glazed door with visible round handles/knobs, view_image crop [890,390,1090,650]; jamb ticks at x=911 and x=1062 in profile_004 (bottom dimension chain matches 1600mm segment)\"},\n      {\"id\":\"E_Win_big\",\"kind\":\"window\",\"pixels\":[1207,1662],\"evidence\":\"East_view.png overview_003 R03 (x1207-1209 vertical) and R02 (x1208-1662 horizontal) bound the large plain rectangular window; matches 4800mm chain segment\"},\n      {\"id\":\"E_Win2\",\"kind\":\"window\",\"pixels\":[1730,1845],\"evidence\":\"East_view.png overview_003 R04(x1730-1732) and R14(x1731-1845) bound small rectangular window; matches 1200mm chain segment\"},\n      {\"id\":\"E_Win3\",\"kind\":\"window\",\"pixels\":[2068,2211],\"evidence\":\"East_view.png overview_003 R05(x2068-2070) and R07/R11(x2069-2211) bound small rectangular window; matches 1500mm chain segment\"}\n    ]\n  }\n}"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1090,
+          0,
+          1300,
+          650
+        ],
+        "display_scale": 2
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1090,
+          600,
+          1300,
+          700
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    }
+  ],
+  "model_usage": {
+    "receipts": [
+      {
+        "receipt": "agent_receipt.json",
+        "requested_model": "sonnet",
+        "actual_model": "claude-sonnet-5",
+        "channel": "Claude subscription; no API/fallback",
+        "elapsed_seconds": 477.77,
+        "returncode": 0,
+        "timed_out": false,
+        "is_error": false,
+        "usage": {
+          "input_tokens": 49,
+          "cache_creation_input_tokens": 87596,
+          "cache_read_input_tokens": 1042155,
+          "output_tokens": 32484,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 87596,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "not_available",
+          "iterations": [
+            {
+              "input_tokens": 2,
+              "output_tokens": 3809,
+              "cache_read_input_tokens": 86630,
+              "cache_creation_input_tokens": 966,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 966
+              },
+              "type": "message"
+            }
+          ],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 1045,
+            "outputTokens": 19,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.00114,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 49,
+            "outputTokens": 32484,
+            "cacheReadInputTokens": 1042155,
+            "cacheCreationInputTokens": 87596,
+            "webSearchRequests": 0,
+            "costUSD": 1.3256295000000005,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000
+          }
+        },
+        "cli_estimated_cost_usd": 1.3267695000000004
+      }
+    ],
+    "receipt_count_matches_summary": true,
+    "requested_models": {
+      "sonnet": 1
+    },
+    "actual_models": {
+      "claude-sonnet-5": 1
+    },
+    "token_totals": {
+      "input_tokens": 49,
+      "cache_creation_input_tokens": 87596,
+      "cache_read_input_tokens": 1042155,
+      "output_tokens": 32484
+    },
+    "cli_estimated_cost_sum_usd": 1.3267695000000004,
+    "reported_partial_cost_matches_summary": true,
+    "cost_note": "CLI estimate, not a subscription bill; modelUsage can include Claude CLI auxiliary models."
+  },
+  "limits": "Mechanics and evidence transport only; no semantic accuracy or BIM acceptance.",
+  "mechanics_pass": true
+}

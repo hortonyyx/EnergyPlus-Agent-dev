@@ -1,0 +1,174 @@
+"""Audit completed local observations and actual tool returns, without GT."""
+import argparse
+import base64
+from collections import Counter
+import gzip
+import importlib.util
+import io
+import json
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+
+from PIL import Image
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT))
+from scripts.tool_scripts.run_bim_agent import Toolkit, digest, dump
+from src.agent.geometry.facade_span_comparison import compare
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def same_pixels(a, b):
+    with Image.open(io.BytesIO(a)) as first, Image.open(io.BytesIO(b)) as second:
+        return first.size == second.size and first.convert("RGB").tobytes() == second.convert("RGB").tobytes()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--run", type=Path, required=True)
+    parser.add_argument("--review-only", action="store_true",
+                        help="A local discrepancy review need not create a new comparison")
+    parser.add_argument("--vertical-only", action="store_true", help="A declared one-image vertical-chain task does not require a facade comparison")
+    args = parser.parse_args()
+    run = args.run.resolve()
+    summary = read(run / "summary.json")
+    if args.review_only and summary["scope"] != "automatically_selected_discrepancy_review":
+        raise ValueError("review-only requires a declared discrepancy-review run")
+    if args.vertical_only and summary["scope"] != "developer_selected_vertical_chain_observation":
+        raise ValueError("vertical-only requires a declared vertical-chain run")
+    manifest = read(run / "inputs.json")
+    receipt = read(run / "agent_receipt.json")
+    stream = run / "agent_stream.jsonl"
+    if stream.exists():
+        events = [json.loads(line) for line in stream.read_text().splitlines()]
+    else:
+        with gzip.open(str(stream) + ".gz", "rt") as handle:
+            events = [json.loads(line) for line in handle]
+    calls, tool_rows, crops, comparisons, profiles, components = {}, [], [], [], [], []
+    with tempfile.TemporaryDirectory(prefix="facade-observation-replay-") as temp:
+        replay = Path(temp)
+        shutil.copyfile(run / "inputs.json", replay / "inputs.json")
+        shutil.copytree(run / "images", replay / "images")
+        toolkit = Toolkit(replay, readonly=True)
+        for event in events:
+            for part in event.get("message", {}).get("content", []):
+                if not isinstance(part, dict):
+                    continue
+                if part.get("type") == "tool_use":
+                    calls[part["id"]] = part
+                if part.get("type") != "tool_result":
+                    continue
+                call = calls.get(part.get("tool_use_id"), {})
+                name = call.get("name", "").rsplit("__", 1)[-1]
+                tool_rows.append({"name": name, "input": call.get("input"),
+                                  "is_error": bool(part.get("is_error"))})
+                if part.get("is_error"):
+                    continue
+                content = part.get("content", [])
+                if not isinstance(content, list):
+                    content = [{"type": "text", "text": content}]
+                if name == "view_image":
+                    returned = [x for x in content if x.get("type") == "image"]
+                    expected = toolkit.view(**call["input"])[0].to_image_content()
+                    crops.append({"input": call["input"], "returned_count": len(returned),
+                                  "pixels_match": len(returned) == 1 and same_pixels(
+                                      base64.b64decode(returned[0]["source"]["data"]),
+                                      base64.b64decode(expected.data))})
+                if name == "view_pixel_profile":
+                    expected = toolkit.view_profile(**{
+                        "tolerance": 70, "min_fraction": 0.1, **call["input"]})
+                    replayed = json.loads(expected[1])
+                    returned = next(json.loads(x["text"]) for x in content
+                                    if x.get("type") == "text" and "profile_record" in x["text"])
+                    saved = read(run / returned["profile_record"])
+                    profiles.append({"profile_record": returned["profile_record"],
+                                     "returned_equals_saved": returned == saved,
+                                     "measurement_replays": {k: v for k, v in replayed.items() if k != "remaining_seconds"}
+                                     == {k: v for k, v in saved.items() if k != "remaining_seconds"}})
+                    # Keep the original receipt bytes for the later binding's
+                    # file digest; measurements above were independently replayed.
+                    shutil.copyfile(run / returned["profile_record"], replay / returned["profile_record"])
+                if name in {"view_pixel_region", "view_pixel_region_overview"}:
+                    if name == "view_pixel_region":
+                        expected = toolkit.pixel_region(**{"tolerance": 60, "simplify_pixels": 1.5, **call["input"]})
+                        image_key = "region_image"
+                    else:
+                        expected = toolkit.pixel_region_overview(**{"tolerance": 60, "min_pixels": 500,
+                            "max_regions": 40, "include_border": False, **call["input"]})
+                        image_key = "overview_image"
+                    replayed = json.loads(expected[1])
+                    returned = next(json.loads(x["text"]) for x in content
+                                    if x.get("type") == "text" and image_key in x["text"])
+                    record_path = str(Path(returned[image_key]).with_suffix(".json"))
+                    saved = read(run / record_path)
+                    strip_time = lambda value: {k: v for k, v in value.items() if k != "remaining_seconds"}
+                    images = [x for x in content if x.get("type") == "image"]
+                    expected_image = expected[0].to_image_content()
+                    components.append({"tool": name, "record": record_path,
+                        "returned_equals_saved": returned == saved,
+                        "calculation_replays": strip_time(replayed) == strip_time(saved),
+                        "pixels_replay": len(images) == 1 and same_pixels(
+                            base64.b64decode(images[0]["source"]["data"]),
+                            base64.b64decode(expected_image.data))})
+                if name == "compare_facade_spans":
+                    payloads = []
+                    for item in content:
+                        if item.get("type") == "text":
+                            try:
+                                payloads.append(json.loads(item["text"]))
+                            except (ValueError, TypeError):
+                                pass
+                    returned = next((x for x in payloads if isinstance(x, dict) and "record" in x), {})
+                    saved = read(run / returned["record"]) if returned.get("record") else None
+                    args_ = call["input"]
+                    calculated = toolkit.compare_facade_spans(**args_)
+                    comparisons.append({"record": returned.get("record"),
+                                        "returned_equals_saved": returned == saved,
+                                        "input_equals_saved": saved is not None and saved["submitted_observations"] == json.loads(args_["observations_json"]),
+                                        "calculation_replays": saved == calculated,
+                                        "bound_coordinate_count": len(calculated["measurement_bindings"]),
+                                        "original_hashes_match": saved is not None and all(
+                                            x["sha256"] == manifest["images"][x["image"]]["sha256"]
+                                            for x in saved["original_images"].values())})
+    helper_path = ROOT / "AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/verify_run.py"
+    spec = importlib.util.spec_from_file_location("old_verify", helper_path)
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    transport = helper.image_transport(run)
+    inputs = [{"image": name, "frozen_hash_matches": digest(run / "images" / name) == info["sha256"],
+               "original_hash_matches": digest(ROOT / "case_tests/e2e_tests/sm24_anchor/case_data" / name) == info["sha256"]}
+              for name, info in manifest["images"].items()]
+    implementations = {name: digest(ROOT / name) == sha for name, sha in manifest["implementation_sha256"].items()}
+    report = {"scope": summary["scope"], "receipt_completed": receipt.get("returncode") == 0 and
+              not receipt.get("timed_out") and not receipt.get("result", {}).get("is_error", True),
+              "inputs": inputs, "implementations": implementations,
+              "no_source_or_seed": not any(run.glob("candidate*")) and not (run / "seed").exists(),
+              "tool_counts": dict(Counter(x["name"] for x in tool_rows)),
+              "tool_errors": [x for x in tool_rows if x["is_error"]],
+              "view_image_replays": crops, "profile_replays": profiles, "saved_image_transport": transport,
+              "comparisons": comparisons, "component_replays": components, "tool_calls": tool_rows,
+              "model_usage": helper.model_usage(run, {**summary, "subscription_invocations": 1}),
+              "limits": "Mechanics and evidence transport only; no semantic accuracy or BIM acceptance."}
+    report["mechanics_pass"] = (report["receipt_completed"] and report["no_source_or_seed"] and
+        all(x["frozen_hash_matches"] and x["original_hash_matches"] for x in inputs) and
+        all(implementations.values()) and bool(crops) and all(x["pixels_match"] for x in crops) and
+        all(x["returned_equals_saved"] and x["measurement_replays"] for x in profiles) and
+        all(x["returned_equals_saved"] and x["calculation_replays"] and x["pixels_replay"] for x in components) and
+        all(x["pixels_match"] for x in transport["comparisons"]) and (bool(comparisons) or args.review_only or args.vertical_only) and
+        all(all(x[k] for k in ("returned_equals_saved", "input_equals_saved", "calculation_replays", "original_hashes_match")) for x in comparisons))
+    with (run / "verification.json").open("x") as handle:
+        json.dump(report, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    with (run / "answer.md").open("x") as handle:
+        handle.write(receipt.get("result", {}).get("result", "No final answer.") + "\n")
+    print(json.dumps({"mechanics_pass": report["mechanics_pass"], "tool_counts": report["tool_counts"],
+                      "comparison_count": len(comparisons), "view_image_count": len(crops)}))
+
+
+if __name__ == "__main__":
+    main()

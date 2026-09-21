@@ -1,0 +1,46 @@
+{
+  "scope": "post_generation_original_image_review_no_GT",
+  "horizontal_opening_observation": "pass",
+  "complete_vertical_observation": "incomplete",
+  "new_BIM": false,
+  "axis_anchors_correct": true,
+  "physical_openings": {
+    "plan": {
+      "windows": 3,
+      "doors": 1
+    },
+    "elevation": {
+      "windows": 3,
+      "doors": 1
+    }
+  },
+  "correspondences_correct": 4,
+  "previous_false_wall_window_resolved": true,
+  "previous_missing_large_window_resolved": true,
+  "large_window_fragment_grouping": "Explicitly groups disconnected cyan pieces based on clean original crop and frame continuity; no physical split at overprinted dimension mark.",
+  "door_panels_not_counted_as_separate_openings": true,
+  "door_leaf_detail": "Plan single-leaf arc versus elevation double-leaf depiction retained as uncertain detail, not additional opening.",
+  "horizontal_residuals_m": {
+    "elevation_forward": {
+      "mean_abs_endpoint_residual_m": 5.714364814771641,
+      "max_abs_endpoint_residual_m": 8.042556477746952
+    },
+    "elevation_reverse": {
+      "mean_abs_endpoint_residual_m": 0.027776239712773557,
+      "max_abs_endpoint_residual_m": 0.049891590702444866
+    }
+  },
+  "coordinate_sources": {
+    "profile_bound_slots": 6,
+    "numeric_slots_selected_from_component_bounds": 14,
+    "note": "Component bbox values are raster measurements selected and transcribed by model, not formal profile bindings or exact jamb geometry."
+  },
+  "heights": {
+    "large_window": "Observed1100/2400/1000chain; approximate sill0.94..1.0/head3.3..3.4 reported; labels support1.0/3.4 but pixel anchors are coarse.",
+    "two_small_windows": "explicitly unexamined",
+    "door": "explicitly unexamined"
+  },
+  "incorrect_acceptance_claim": "Model treats0.05m direction-separation tolerance as absolute acceptance tolerance. Tool absolute_fit_status remains not_evaluated.",
+  "acceptance_basis": "Independent review of supplied original images for horizontal objects, grouping and correspondence; no GT and no automatic tolerance pass.",
+  "limits": "One developer-selected local task; not stable, whole-building or cross-case success."
+}

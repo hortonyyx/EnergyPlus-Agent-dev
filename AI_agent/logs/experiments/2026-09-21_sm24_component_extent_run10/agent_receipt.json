@@ -1,0 +1,83 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": true,
+  "timeout_seconds": 1200,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 477.77,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 474799,
+    "duration_api_ms": 467065,
+    "ttft_ms": 2460,
+    "ttft_stream_ms": 1804,
+    "time_to_request_ms": 30,
+    "num_turns": 39,
+    "result": "## Summary of East‑facade opening observation\n\n**Saved comparison record:** `facade_comparisons/comparison_001.json` (produced by `compare_facade_spans`, plan `1f_view.png` y‑axis vs elevation `East_view.png` x‑axis).\n\n### Method / axis anchors\n- **Plan (1f_view.png), y‑axis:** anchored with `profile_002` (green outer dimension chain on the east wall) candidates C01 (pixel 151 → 0 m) and C06 (pixel 878 → 20 m). This chain's five segments (4060/1940/5940/3120/4940 mm) sum exactly to 20 000 mm, matching the drawing's overall \"20000\" label, so the anchor is a bound dimension‑chain measurement, not a guess.\n- **Elevation (East_view.png), x‑axis:** anchored with `profile_004` candidates C03 (pixel 373 → 0 m, left wall corner) and C10 (pixel 2261 → 20 m, right wall corner); the intervening ticks (911,1062,1207,1661,1730,1844,2069,2210) reproduce the printed chain 5700/1600/1540/4800/740/1200/2380/1500/540 mm almost exactly, confirming the pixel↔mm scale (≈10.59 mm/px).\n\n### Plan openings (independent list, original pixels, y‑axis)\n| id | pixel y‑interval | metres | evidence |\n|---|---|---|---|\n| P_Win1 | 172–225 | 0.58–2.04 m | `region_001` cyan mullion band on east wall; matches 540(wall)+1500(window) |\n| P_Win2 | 313–355 | 4.46–5.61 m | overview_002 R20/R21; matches 1200 mm window |\n| P_Win3_big | 383–556 | 6.38–11.14 m | region_002 + R22/R23; visually one continuous glazing band (the 383‑514/516‑556 split was only a dimension‑tick overlap, confirmed in a magnified crop, not a real mullion); matches 4800 mm opening |\n| P_Door | 612–670 | 12.68–14.28 m | overview_002 R37/R39 jamb ticks + swing arc seen in crop; single‑leaf door, matches 1600 mm |\n\nNo other teal/cyan marks were found on this wall column between y=151 and y=878; the mark near y≈700–730 (arc) sits on an **interior** partition, not the exterior wall, and was excluded.\n\n### Elevation openings (independent list, original pixels, x‑axis)\n| id | pixel x‑interval | metres | evidence |\n|---|---|---|---|\n| E_Door | 911–1062 (profile_004 C04/C05, actual measurements) | 5.70–7.30 m | Double‑leaf glazed door with visible round handles (crop [890,390,1090,650]); overall width 1600 mm |\n| E_Win_big | 1207–1662 | 8.83–13.65 m | plain rectangular window, overview_003 R02/R03; width ≈4800 mm |\n| E_Win2 | 1730–1845 | 14.38–15.59 m | plain rectangular window, R04/R14; width ≈1200 mm |\n| E_Win3 | 2068–2211 | 17.96–19.47 m | plain rectangular window, R05/R07/R11; width ≈1500 mm |\n\n### Correspondence result\n`compare_facade_spans` tested both directions:\n- **elevation_forward:** mean residual 5.71 m, max 8.04 m → rejected.\n- **elevation_reverse:** mean residual **0.028 m**, max **0.050 m** (within the 0.05 m tolerance) → accepted pairing:\n - P_Win1 ↔ E_Win3 (small window, farthest from door)\n - P_Win2 ↔ E_Win2 (small window)\n - P_Win3_big ↔ E_Win_big (large 4.8 m window)\n - P_Door ↔ E_Door\n\nSo plan north‑to‑south (y=0→20 m) corresponds to elevation right‑to‑left (x=2261→373 px), i.e. the elevation is mirrored relative to the plan's y order — consistent with viewing the same wall from the exterior (east) side.\n\n### Distinguishing evidence types\n- **Actual tool measurements (profile/region):** all plan axis anchors, elevation axis anchors, E_Door pixels (profile_004), all region bboxes (region_001/002, overview_002/003).\n- **Explicit visual estimate:** none used for opening pixel positions (all bound to region/profile evidence); the \"big window is one band, not two\" call is an explicit visual judgment on a magnified crop, kept distinct in the evidence field.\n- **Assumption:** none required beyond standard axis correspondence (both totals = 20 000 mm, independently confirmed from each drawing's own dimension chains).\n\n### Uncertainty / open items\n1. **Door leaf count mismatch:** plan shows a single‑leaf swing (no second leaf drawn), elevation shows a double‑leaf glazed door of the same total 1600 mm width. Positions/widths match to <5 cm, but representation style differs — flagged as uncertain identity detail, not a count conflict.\n2. **Height/vertical chain:** only checked for the large window (E_Win_big): dimension chain \"1100/2400/1000\" (mm) with roofline pixel ≈220 and ground‑line pixel ≈650 (scale ≈10.47 mm/px) gives an approximate sill height ≈0.94–1.0 m and head height ≈3.3–3.4 m above ground — bound to a directly inspected chain, but with ~5–8 cm pixel‑rounding uncertainty. Heights for E_Win2, E_Win3, and E_Door were **not examined** (unexamined item; separate vertical chains near those openings were seen but not measured) — flagged as unresolved rather than inferred.\n3. No additional uncertain ink marks (furniture, labels) were found overlapping the east wall column in either view beyond what is listed.",
+    "stop_reason": "end_turn",
+    "session_id": "976b5d5c-0930-4921-be5c-066c6cbf2664",
+    "total_cost_usd": 1.3267695000000004,
+    "usage": {
+      "input_tokens": 49,
+      "cache_creation_input_tokens": 87596,
+      "cache_read_input_tokens": 1042155,
+      "output_tokens": 32484,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 87596,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 3809,
+          "cache_read_input_tokens": 86630,
+          "cache_creation_input_tokens": 966,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 966
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 1045,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00114,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 49,
+        "outputTokens": 32484,
+        "cacheReadInputTokens": 1042155,
+        "cacheCreationInputTokens": 87596,
+        "webSearchRequests": 0,
+        "costUSD": 1.3256295000000005,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "7eb6db14-0ba0-4094-b7df-4f019a988bd8"
+  }
+}
