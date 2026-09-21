@@ -1,0 +1,72 @@
+[
+  {
+    "candidate_id": "perimeter_walls",
+    "evidence": "Crop [250,40,1200,250] shows 15000mm top dimension line; crop [40,40,300,1100] shows 8000mm left dimension line",
+    "reason": "Gray rectangle outline at building perimeter; dimensions verified by green tick marks at (275,60)px and (1175,1076)px = 15m x 8m",
+    "status": "accepted",
+    "type": "wall"
+  },
+  {
+    "candidate_id": "windows_south",
+    "evidence": "Full view and crops clearly show three cyan window openings aligned on bottom wall",
+    "reason": "Three cyan rectangles on south perimeter wall; visible in full plan and northern crop",
+    "status": "accepted",
+    "type": "window"
+  },
+  {
+    "candidate_id": "windows_north",
+    "evidence": "Crop [250,210,1180,420] shows three cyan window openings aligned on top wall",
+    "reason": "Three cyan rectangles on north perimeter wall; visible in top wall crop",
+    "status": "accepted",
+    "type": "window"
+  },
+  {
+    "candidate_id": "windows_east_west",
+    "evidence": "Crop [1100,210,1200,1100] shows east wall windows; crop [250,210,350,1100] shows west wall windows",
+    "reason": "Cyan window openings visible on east and west interior walls; visible in side wall crops",
+    "status": "accepted",
+    "type": "window"
+  },
+  {
+    "candidate_id": "interior_vertical_partitions",
+    "evidence": "Full plan view shows white partition lines; positions align with horizontal dimension chain tick spacing",
+    "reason": "Four white vertical lines at interior grid positions (x~1.24, 3.64, 7.24, 11.24m); aligned with dimension ticks",
+    "status": "accepted",
+    "type": "wall"
+  },
+  {
+    "candidate_id": "interior_horizontal_partition",
+    "evidence": "Visible in full plan and middle-section crops [270,400,1180,720]",
+    "reason": "White horizontal line spanning full width at y~3.2m; three cyan door arcs crossing indicate healed doors",
+    "status": "accepted",
+    "type": "wall"
+  },
+  {
+    "candidate_id": "door_openings",
+    "evidence": "Crop [270,400,1180,720] shows three prominent cyan door arcs at interior partition",
+    "reason": "Three cyan semicircular door swing arcs on interior horizontal partition; healed into continuous wall per EP rules",
+    "status": "accepted",
+    "type": "door"
+  },
+  {
+    "candidate_id": "dimension_chains_horizontal",
+    "evidence": "Top chain: 1240+2400+1300+1240+2400+1240+1300+2400+1240=14760mm; bottom chain: 540+900+2000+1200+360+1300+2400+1300+1360+2400+1240=15000mm",
+    "reason": "Two separate horizontal dimension chains visible: top chain sums 14.76m (incomplete); bottom chain sums 15.0m (complete); different reference levels unclear",
+    "status": "uncertain",
+    "type": "dimension_chain"
+  },
+  {
+    "candidate_id": "dimension_chains_vertical",
+    "evidence": "Crop [40,40,300,1100] shows: 3000+250+1500+250+3000=8000mm verified",
+    "reason": "Left dimension chain transcribed completely; sum equals 8000mm overall",
+    "status": "accepted",
+    "type": "dimension_chain"
+  },
+  {
+    "candidate_id": "furniture_symbols",
+    "evidence": "Visible throughout plan as small rectangular outlines; concentrated in office areas",
+    "reason": "White outline desk/chair symbols; clearly non-structural; per reading discipline, ignored and logged",
+    "status": "rejected",
+    "type": "furniture"
+  }
+]

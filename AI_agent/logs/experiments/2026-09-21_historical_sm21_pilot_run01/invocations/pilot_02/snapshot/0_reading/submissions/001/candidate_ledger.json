@@ -1,0 +1,44 @@
+[
+  {
+    "candidate_id": "perimeter_walls",
+    "evidence": "wall_line_profiler detected strong perimeter peaks; visible in all crop views",
+    "reason": "Clearly visible gray outline; dimension anchors confirm extent",
+    "status": "accepted",
+    "type": "wall"
+  },
+  {
+    "candidate_id": "interior_partitions",
+    "evidence": "Cropped regions [270,400,1180,720] show three vertical white partitions",
+    "reason": "White lines dividing interior spaces visible in cropped regions",
+    "status": "accepted",
+    "type": "wall"
+  },
+  {
+    "candidate_id": "door_openings",
+    "evidence": "Three prominent cyan door arcs visible; noted in stroke notes with healing markers",
+    "reason": "Cyan curved arc symbols indicating door swings; healed into continuous walls per EP rules",
+    "status": "accepted",
+    "type": "door"
+  },
+  {
+    "candidate_id": "windows_south",
+    "evidence": "window_cc_detector found merged component; visible in cropped region [270,180,1180,450]",
+    "reason": "Three cyan rectangular openings on south wall",
+    "status": "accepted",
+    "type": "window"
+  },
+  {
+    "candidate_id": "furniture",
+    "evidence": "Visible in crops as small rectangles; noted in uncaptured list",
+    "reason": "White outline symbols; non-structural; excluded per reading rules",
+    "status": "rejected",
+    "type": "furniture"
+  },
+  {
+    "candidate_id": "dimensions",
+    "evidence": "Cropped regions show clear numeric labels with green ticks",
+    "reason": "All visible green text transcribed with parsed values",
+    "status": "accepted",
+    "type": "dimension_chain"
+  }
+]

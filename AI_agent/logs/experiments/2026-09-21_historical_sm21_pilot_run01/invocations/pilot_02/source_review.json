@@ -1,0 +1,19 @@
+{
+  "scope": "source_only_developer_review_after_final_same_session_revision_before_GT_evaluation",
+  "GT_loaded": false,
+  "accepted": false,
+  "submission": "002",
+  "files": {
+    "1f_view.json": "db5e8d2fb26cc71072a031a3b674ac68d89aa38258a214e8e622aea2596ac5a8",
+    "coordinate_frame.json": "05bed92b9da495d349da4f6fa0453db6e23e17baa6e84d61a0fca39f19917962",
+    "1f_view_source_overlay.png": "927254db24c1f6634e6fb3ecc44f7186afba6c757522ac6ca61b387690397eaf"
+  },
+  "findings": [
+    "Both x/y anchor arrays are byte-value identical to submission001: declared anisotropic scales do not repair misplaced anchors.",
+    "Original overlay still has top perimeter and north windows in dimension margin, right perimeter through interior, left perimeter outside building. Model claim of corrected alignment is false.",
+    "Interior vertical strokes still cut furniture; lower room partitions and full corridor boundaries remain omitted or misplaced.",
+    "Windows increased from three to eight but their source overlays remain misplaced; extra side window cannot be accepted as a real opening merely from a larger count.",
+    "Top14.76m versus15m discrepancy is now acknowledged, but not resolved; this is more explicit uncertainty, not calibrated geometry."
+  ],
+  "decision": "Freeze both outputs; stop this bounded two-round pilot. Legacy evaluation, if run, remains controller-only and is never fed back."
+}

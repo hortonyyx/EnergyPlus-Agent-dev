@@ -1,0 +1,53 @@
+{
+  "revision": "723b0f98ed37285b66cb3d1d30caa8e42eb01a74",
+  "scope": "controller_only_after_final_source_review",
+  "GT_fed_to_reader": false,
+  "sources": {
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/check_legacy.py": "1467adc74b074761b04f5c39bc0883ecf85ea56960478f358b126b9c95dca094",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/__init__.py": "85039c630ae2d5f2d6cff884c0d2d408cf09dc97dc2999754d06d10ca2ad2968",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/agent/roles.py": "d3c34c93aa45b3710091efe0ef50c88ce2d41e87cfd0e6ec0a6c78b98cd2aacc",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/agent/__init__.py": "70ff87c8dc81ba9804ecf5c0758a373c1303cba391fe60279e09d9d77e2d07a1",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/validator/__init__.py": "475a5264396651b1e424f7e046d362d84d857226308a510724cf025e7f29e049",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/agent/reading/legacy.py": "3a8150cba669f968e96ed7e35e4c7a0029f44fb7e214cf349077d5c76f44097d",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/agent/reading/schema.py": "071ede4ea3b14afd7b05bd55c3f5b78ac5cdeff337803e02e6eb710d71f44287",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/agent/reading/__init__.py": "4491f31940976e27ce316598577d40a6d537a6106b9bad2ca77e7125889ed732",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/validator/checks/reading.py": "abb5f1585f187895661e208254cc5759a1e928b94394bbdbc918c86b9895fd61",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/validator/checks/schema.py": "0049066d552fbd0c58d25d4d28fbed5537eda0a41085e69e7fb34140b0be3a8a",
+    "AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/src/validator/checks/__init__.py": "dbb2284b79228ea0730ce5cd6f0218c05f44f9b3adb021b6e9687fff0dfae7b8",
+    "git:723b0f98ed37285b66cb3d1d30caa8e42eb01a74:src/agent/judge/gt.py": "b6c52ff9c8c2b45719e707e8c4f2be64b0453b04a67ce2f32efadd5ecd1b816c",
+    "git:723b0f98ed37285b66cb3d1d30caa8e42eb01a74:src/agent/judge/reading_score.py": "73310b16be6434f3578e6b086c1dc82270d571cab436eddd5452a830f192a91d",
+    "git:723b0f98ed37285b66cb3d1d30caa8e42eb01a74:case_tests/test_baseline/gt/sm21_anchor/gt.json": "d78a24604afe29328d65809390daf49c75971b363e5aa63c99663652a2866d22"
+  },
+  "inputs": {
+    "pilot_01": {
+      "path": "AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/invocations/pilot_01/snapshot/0_reading/submissions/001/1f_view.json",
+      "sha256": "69c482cfa66cf40319b89df9c50017429fcb79b2f72dd65e84978cee5b3c28fd"
+    },
+    "pilot_02": {
+      "path": "AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/invocations/pilot_02/snapshot/0_reading/submissions/002/1f_view.json",
+      "sha256": "db5e8d2fb26cc71072a031a3b674ac68d89aa38258a214e8e622aea2596ac5a8"
+    }
+  },
+  "gate_command": [
+    "/opt/venv/bin/python",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_reading_method_reproduction/controller_legacy_gate/check_legacy.py",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/invocations/pilot_01/snapshot/0_reading/submissions/001/1f_view.json",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/invocations/pilot_02/snapshot/0_reading/submissions/002/1f_view.json",
+    "--dimensioned",
+    "true",
+    "--pretty"
+  ],
+  "gate_compatibility_markers": [
+    "src/__init__.py",
+    "src/agent/__init__.py",
+    "src/validator/__init__.py",
+    "src/validator/checks/__init__.py"
+  ],
+  "gate_returncode": 0,
+  "limits": "One-floor old wall/window scorer only; no whole-case 100-point score, doors, source overlay registration or BIM verdict.",
+  "result_sha256": {
+    "legacy_gate.json": "94aa9f50a9100838304ea1096d4ebdb4ba992e30ad0764aeda38a83cf5a98c66",
+    "legacy_gate_stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "legacy_scores.json": "71cd8ff6a3bc4b9f2267772d377cd262c88f125976335f378cde27fee09b2a99"
+  }
+}

@@ -1,6 +1,6 @@
 # 路线与当前任务
 
-**09-21 接续施工：** 完整同色框范围方法已在Sonnet/run10取得东侧一门三窗水平识读通过，477.77秒、最大残差约5cm；竖向只核大窗。Haiku/run11单图竖链任务278.28秒仍错，不采纳。旧规则/CV的sm21一层独立pilot已通过白名单MCP启动，结果待核；无新BIM。见[本程记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
+**09-21 完整框与旧方法对照节点完成：** Sonnet/run10东侧一门三窗水平识读通过，477.77秒、最大残差约5cm；Haiku/run11竖链仍错。旧规则/CV的sm21一层独立试跑及一次原图返工均失败，错误标定未改；实际CLI大图发生缩放，不能称完整历史环境重放或排除运输影响。无新BIM，全部模型调用结束。下一项优先Sonnet完整高度链与源修订，历史路线先核宿主坐标及工具能力差异。见[本程记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
 
 **09-21 量测引用与局部复查节点完成：** Sonnet/run08在421.26秒实际采用17个量测引用，两图标定及两短窗/外门水平对应改善；仍将740mm实墙认窗、漏掉4800mm大窗并读错门高，完整观察未通过。自动选最大残差的Haiku/run09在360.17秒复查后仍错，并误认门内分格，不采纳。61项离线检查、真实量测/图像重放通过，没有新BIM。历史必读格式例与sm21成功输出的完整一层墙网重合，旧质量有效，但独立性口径已更正；不能据此解释sm24全部失败。下一项复用完整同色连通范围核窗框，另保留旧工具独立输入pilot，按结果取舍。见[本程结果与下一入口](../logs/worklog/2026-09-21_reconstruction_measured_binding.md)。所有模型调用已结束。
 
@@ -90,7 +90,7 @@
 
 ## 当前交接
 
-**当前交接：[09-21 完整框范围与旧方法独立试跑](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。** run10水平识读局部通过，run11竖链失败；本程旧sm21一层pilot正在运行，待原图复核。源BIM采用基点不变，两路线按实测取舍，不能把局部通过当三个case完成。前一节点的量测引用和历史输入更正见[上一交接](../logs/worklog/2026-09-21_reconstruction_measured_binding.md)。
+**当前交接：[09-21 完整框范围与旧方法独立试跑](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。** run10水平识读局部通过，run11竖链失败；旧sm21一层pilot两轮均结束未通过，实际CLI大图缩放差异已留证。下一项补Sonnet完整高度链，旧路线先核宿主坐标和工具能力差异。源BIM采用基点不变，两路线按实测取舍，不能把局部通过当三个case完成。前一节点的量测引用和历史输入更正见[上一交接](../logs/worklog/2026-09-21_reconstruction_measured_binding.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 

@@ -1,0 +1,76 @@
+{
+  "actual_models": [
+    "claude-haiku-4-5-20251001"
+  ],
+  "channel": "Claude subscription OAuth; no API provider or fallback",
+  "cli_version": "2.1.198 (Claude Code)",
+  "elapsed_seconds": 310.725,
+  "model_requested": "claude-haiku-4-5-20251001",
+  "result": {
+    "api_error_status": null,
+    "duration_api_ms": 293651,
+    "duration_ms": 306732,
+    "fast_mode_state": "off",
+    "is_error": false,
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "cacheCreationInputTokens": 109207,
+        "cacheReadInputTokens": 678352,
+        "contextWindow": 200000,
+        "costUSD": 0.3763622,
+        "inputTokens": 73,
+        "maxOutputTokens": 32000,
+        "outputTokens": 18008,
+        "webSearchRequests": 0
+      }
+    },
+    "num_turns": 11,
+    "permission_denials": [],
+    "result": "Perfect! The revised submission shows **much better alignment**:\n\n**Render (A0042)**: Clean building footprint (15m × 8m) with:\n- Perimeter walls (black outline) at correct extent\n- Windows on all four sides (blue rectangles): 3 north, 3 south, plus east/west\n- Interior vertical partitions (4 black lines) \n- Horizontal partition with healed door openings\n\n**Source Overlay (A0043)**: Red traced geometry now **properly aligned**:\n- ✅ Red perimeter fits within building gray outline (not in dimension area)\n- ✅ Windows align with cyan rectangles on all four walls\n- ✅ Interior partitions follow actual white wall lines  \n- ✅ Horizontal partition aligns with interior wall\n- ✅ No geometry cutting through furniture or dimension annotations\n\n## Revised Reading Summary\n\n**Submission 002** — Corrected 1F reading with proper calibration and complete geometry inventory:\n\n**Key Corrections:**\n1. **Calibration**: Separate X (60 px/m) and Y (127 px/m) scales from dimension ticks (275,60)→(1175,1076) px\n2. **Windows**: All four perimeters (6 total) + east/west interior windows = 8 windows\n3. **Interior walls**: 4 vertical partitions at x=1.24,3.64,7.24,11.24m + 1 horizontal partition\n4. **Door healing**: 3 cyan swings healed into continuous horizontal wall (S9)\n5. **Dimensions**: 27 dimension entries including two separate horizontal chains (14.76m top vs 15.0m bottom)\n\n**Honest Uncertainties Noted:**\n- Calibration non-uniform (image aspect ratio mismatch)\n- Top dimension chain incomplete (missing 0.24m to reach 15.0m); two chains at different reference levels\n- Interior partition y-position estimated from grid alignment (y≈3.2m)\n- East/west window positions inferred from crop inspection\n\n**Candidate Ledger**: 10 classifications with evidence citations (walls, windows on all sides, partitions, door arcs, dimension chains, furniture rejected)\n\n**Overlay alignment verified**: Red geometry now correctly positioned within building perimeter, not in dimension margins. All major structural elements visible and accounted for.\n\n---\n\n**Reading workflow complete.** Submission 002 ready for external source-only review. No corrections required - overlay alignment confirmed mechanically sound.",
+    "session_id": "0de60a39-1c6e-4cbc-8e24-6d85616582d1",
+    "stop_reason": "end_turn",
+    "subtype": "success",
+    "terminal_reason": "completed",
+    "time_to_request_ms": 31,
+    "total_cost_usd": 0.3763622,
+    "ttft_ms": 12091,
+    "ttft_stream_ms": 7816,
+    "type": "result",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 109207,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 109207,
+      "cache_read_input_tokens": 678352,
+      "inference_geo": "not_available",
+      "input_tokens": 73,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 2670,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 2670,
+          "cache_read_input_tokens": 106537,
+          "input_tokens": 8,
+          "output_tokens": 1045,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 18008,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "uuid": "00934a33-6673-4a20-927d-1456065011d4"
+  },
+  "resume": true,
+  "returncode": 0,
+  "session_id": "0de60a39-1c6e-4cbc-8e24-6d85616582d1",
+  "timed_out": false,
+  "timeout_seconds": 1200
+}

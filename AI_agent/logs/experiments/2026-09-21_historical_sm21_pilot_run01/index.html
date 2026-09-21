@@ -1,0 +1,34 @@
+<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>sm21 旧方法独立试跑</title><style>
+body{max-width:1350px;margin:24px auto;padding:0 20px;font:17px/1.6 sans-serif;background:#f5f6f8;color:#17202a}
+img{width:100%;height:auto;background:#111;border:1px solid #bbb}figure{margin:20px 0}
+table{border-collapse:collapse}td,th{padding:8px 18px;border:1px solid #bbb}a{color:#1454a0}
+</style><h1>sm21 旧规则/CV：一层独立试跑</h1>
+<p>两轮均未通过原图核查，没有新 BIM。第二轮收到原图问题反馈后，标定锚点仍完全不变。
+旧规则/六 CV 工具来自 723；宿主改成白名单 MCP，排除同墙网示例，无任意脚本能力，因此不是完整历史环境重放。</p>
+<p>红线为提交墙，蓝框为提交窗；原图的青色线不是本次提交。
+下方旧评分在两轮冻结后才由评测侧读取 GT，不回灌模型，也不折算整案百分制。</p>
+<p><a href="README.md">完整说明</a> · <a href="controller_evaluation/legacy_scores.json">旧坐标评分</a> ·
+<a href="controller_evaluation/legacy_gate.json">旧结构检查</a></p>
+<figure><figcaption>原始一层图</figcaption><img src="workspace/case_data/1f_view.png" alt="原始一层平面"></figure>
+<h2>pilot_01：未通过</h2>
+<p>320.588 秒；8 墙线、3 窗框、16 条尺寸。
+旧一层评分墙命中 0/4，窗命中 0/3。
+外围数字边界 4/4 不检查原图配准，不能抵消下图错位。</p>
+<p><a href="invocations/pilot_01/answer.md">模型原结论（包含错误自检）</a> ·
+<a href="invocations/pilot_01/source_review.json">开发原图核查</a> ·
+<a href="invocations/pilot_01/verification.json">传输与证据核验</a> ·
+<a href="invocations/pilot_01/snapshot/0_reading/submissions/001/1f_view.json">可编辑 reading</a></p>
+<figure><figcaption>pilot_01 原图回叠</figcaption><img src="invocations/pilot_01/snapshot/0_reading/submissions/001/1f_view_source_overlay.png" alt="pilot_01 原图回叠"></figure>
+<figure><figcaption>pilot_01 旧工具独立绘图</figcaption><img src="invocations/pilot_01/snapshot/0_reading/submissions/001/1f_view_render.png" alt="pilot_01 独立绘图"></figure>
+<h2>pilot_02：未通过</h2>
+<p>310.725 秒；9 墙线、8 窗框、27 条尺寸。
+旧一层评分墙命中 1/4，窗命中 0/3。
+外围数字边界 4/4 不检查原图配准，不能抵消下图错位。</p>
+<p><a href="invocations/pilot_02/answer.md">模型原结论（包含错误自检）</a> ·
+<a href="invocations/pilot_02/source_review.json">开发原图核查</a> ·
+<a href="invocations/pilot_02/verification.json">传输与证据核验</a> ·
+<a href="invocations/pilot_02/snapshot/0_reading/submissions/002/1f_view.json">可编辑 reading</a></p>
+<figure><figcaption>pilot_02 原图回叠</figcaption><img src="invocations/pilot_02/snapshot/0_reading/submissions/002/1f_view_source_overlay.png" alt="pilot_02 原图回叠"></figure>
+<figure><figcaption>pilot_02 旧工具独立绘图</figcaption><img src="invocations/pilot_02/snapshot/0_reading/submissions/002/1f_view_render.png" alt="pilot_02 独立绘图"></figure>
+</html>
