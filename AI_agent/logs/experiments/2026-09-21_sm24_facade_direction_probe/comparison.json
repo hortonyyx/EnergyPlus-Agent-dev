@@ -1,0 +1,306 @@
+{
+  "schema_version": "facade_span_direction_probe_v1",
+  "axis_length_m": 20.0,
+  "input_counts": {
+    "plan": 4,
+    "elevation": 4
+  },
+  "normalized_inputs": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151.0,
+          0.0
+        ],
+        [
+          878.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "P_north_small",
+          "pixels": [
+            170.0,
+            225.0
+          ],
+          "metres": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "centre_m": 1.279229711141678
+        },
+        {
+          "id": "P_middle_small",
+          "pixels": [
+            311.0,
+            355.0
+          ],
+          "metres": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "centre_m": 5.006877579092159
+        },
+        {
+          "id": "P_large",
+          "pixels": [
+            382.0,
+            556.0
+          ],
+          "metres": [
+            6.3548830811554335,
+            11.141678129298487
+          ],
+          "centre_m": 8.74828060522696
+        },
+        {
+          "id": "P_south_door",
+          "pixels": [
+            613.0,
+            671.0
+          ],
+          "metres": [
+            12.709766162310867,
+            14.305364511691884
+          ],
+          "centre_m": 13.507565337001376
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373.0,
+          0.0
+        ],
+        [
+          2261.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "E_left_door",
+          "pixels": [
+            911.0,
+            1062.0
+          ],
+          "metres": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "centre_m": 6.498940677966102
+        },
+        {
+          "id": "E_large",
+          "pixels": [
+            1208.0,
+            1661.0
+          ],
+          "metres": [
+            8.845338983050848,
+            13.64406779661017
+          ],
+          "centre_m": 11.244703389830509
+        },
+        {
+          "id": "E_middle_small",
+          "pixels": [
+            1731.0,
+            1844.0
+          ],
+          "metres": [
+            14.385593220338983,
+            15.582627118644067
+          ],
+          "centre_m": 14.984110169491526
+        },
+        {
+          "id": "E_right_small",
+          "pixels": [
+            2068.0,
+            2210.0
+          ],
+          "metres": [
+            17.95550847457627,
+            19.459745762711865
+          ],
+          "centre_m": 18.70762711864407
+        }
+      ]
+    }
+  },
+  "directions": {
+    "elevation_forward": {
+      "direction": "elevation_forward",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P_north_small",
+          "elevation_id": "E_left_door",
+          "plan_span_m": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "endpoint_residual_m": [
+            5.176456531368755,
+            5.262965402280092
+          ],
+          "max_abs_endpoint_residual_m": 5.262965402280092
+        },
+        {
+          "plan_id": "P_middle_small",
+          "elevation_id": "E_large",
+          "plan_span_m": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            8.845338983050848,
+            13.64406779661017
+          ],
+          "endpoint_residual_m": [
+            4.44368836406873,
+            8.03196325740797
+          ],
+          "max_abs_endpoint_residual_m": 8.03196325740797
+        },
+        {
+          "plan_id": "P_large",
+          "elevation_id": "E_middle_small",
+          "plan_span_m": [
+            6.3548830811554335,
+            11.141678129298487
+          ],
+          "elevation_span_after_direction_m": [
+            14.385593220338983,
+            15.582627118644067
+          ],
+          "endpoint_residual_m": [
+            8.03071013918355,
+            4.44094898934558
+          ],
+          "max_abs_endpoint_residual_m": 8.03071013918355
+        },
+        {
+          "plan_id": "P_south_door",
+          "elevation_id": "E_right_small",
+          "plan_span_m": [
+            12.709766162310867,
+            14.305364511691884
+          ],
+          "elevation_span_after_direction_m": [
+            17.95550847457627,
+            19.459745762711865
+          ],
+          "endpoint_residual_m": [
+            5.245742312265403,
+            5.154381251019981
+          ],
+          "max_abs_endpoint_residual_m": 5.245742312265403
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 8.03196325740797,
+      "mean_abs_endpoint_residual_m": 5.723357030867508
+    },
+    "elevation_reverse": {
+      "direction": "elevation_reverse",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P_north_small",
+          "elevation_id": "E_right_small",
+          "plan_span_m": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            0.5402542372881349,
+            2.04449152542373
+          ],
+          "endpoint_residual_m": [
+            0.017558226284008382,
+            0.008728114144500587
+          ],
+          "max_abs_endpoint_residual_m": 0.017558226284008382
+        },
+        {
+          "plan_id": "P_middle_small",
+          "elevation_id": "E_middle_small",
+          "plan_span_m": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            4.4173728813559325,
+            5.614406779661017
+          ],
+          "endpoint_residual_m": [
+            0.015722262373814466,
+            0.0023022404588166623
+          ],
+          "max_abs_endpoint_residual_m": 0.015722262373814466
+        },
+        {
+          "plan_id": "P_large",
+          "elevation_id": "E_large",
+          "plan_span_m": [
+            6.3548830811554335,
+            11.141678129298487
+          ],
+          "elevation_span_after_direction_m": [
+            6.3559322033898304,
+            11.154661016949152
+          ],
+          "endpoint_residual_m": [
+            0.0010491222343969042,
+            0.01298288765066502
+          ],
+          "max_abs_endpoint_residual_m": 0.01298288765066502
+        },
+        {
+          "plan_id": "P_south_door",
+          "elevation_id": "E_left_door",
+          "plan_span_m": [
+            12.709766162310867,
+            14.305364511691884
+          ],
+          "elevation_span_after_direction_m": [
+            12.701271186440678,
+            14.300847457627118
+          ],
+          "endpoint_residual_m": [
+            -0.008494975870188881,
+            -0.004517054064766768
+          ],
+          "max_abs_endpoint_residual_m": 0.008494975870188881
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 0.017558226284008382,
+      "mean_abs_endpoint_residual_m": 0.008919360385144709
+    }
+  },
+  "direction_separation": {
+    "mean_abs_endpoint_residual_gap_m": 5.714437670482363,
+    "ambiguity_tolerance_m": 0.05,
+    "lower_residual_direction": "elevation_reverse",
+    "direction_distinguishable": true
+  },
+  "limits": [
+    "Pairing is by centre order only; matching IDs or drawing meaning are not inferred.",
+    "A smaller residual supports an axis direction, not whether either drawing was read correctly."
+  ]
+}

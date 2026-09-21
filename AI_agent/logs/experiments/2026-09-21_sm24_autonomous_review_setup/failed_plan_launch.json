@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/opt/venv/bin/python",
+    "/workspaces/EnergyPlus-Agent-dev/scripts/tool_scripts/run_bim_agent.py",
+    "run",
+    "--images",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/images",
+    "--building-input",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/building_input.json",
+    "--resume-plan",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/plan_drafts/draft_003/plan.json",
+    "--plan-image",
+    "1f_view.png",
+    "--out",
+    "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-21_sm24_autonomous_recovery_run06",
+    "--scope",
+    "Review the entire saved draft against all supplied original drawings and the building declaration. Independently choose what needs checking and which substantive discrepancies, if any, need revision. Use the existing tools to deliver the most faithful lightweight source BIM you can, retaining reliable information. Distinguish what you verified in this run from inherited claims, assumptions and unexamined items. Tie conclusions and any changes to evidence actually inspected or measured. Do not treat successful geometry validation as proof of drawing fidelity. Save and select the final candidate and state remaining limitations.",
+    "--timeout",
+    "1800",
+    "--effort",
+    "medium"
+  ],
+  "scope": "Review the entire saved draft against all supplied original drawings and the building declaration. Independently choose what needs checking and which substantive discrepancies, if any, need revision. Use the existing tools to deliver the most faithful lightweight source BIM you can, retaining reliable information. Distinguish what you verified in this run from inherited claims, assumptions and unexamined items. Tie conclusions and any changes to evidence actually inspected or measured. Do not treat successful geometry validation as proof of drawing fidelity. Save and select the final candidate and state remaining limitations.",
+  "code_commit": "a82fa0aae66db3a9f0a1f2bac008cc0aa492544c",
+  "input_mode": "saved_failed_plan_recovery; not cold start",
+  "developer_intervention": "historical failure selected as diagnostic input; no selected error locations or target values in prompt",
+  "channel": "existing Claude subscription only; Sonnet; no API or fallback",
+  "evaluation": "only after generation ends; never given to model",
+  "comparison_limit": "different starting artifact from run05; not a causal tool ablation"
+}

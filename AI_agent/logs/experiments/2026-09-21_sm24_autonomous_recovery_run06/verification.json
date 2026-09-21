@@ -1,0 +1,458 @@
+{
+  "schema_version": "completed_bim_run_verification_v1",
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-21_sm24_autonomous_recovery_run06",
+  "candidate": "candidate_01",
+  "pass": true,
+  "checks": {
+    "candidate_delivered": true,
+    "all_frozen_inputs_match": true,
+    "seed_import_lineage_valid": true,
+    "saved_plan_lineage_valid": true,
+    "implementation_matches_run_snapshot": true,
+    "delivered_candidate_origin_valid": true,
+    "deterministic_replay_valid": true,
+    "saved_image_transport_valid": true,
+    "receipt_count_matches_summary": true,
+    "reported_partial_cost_matches_summary": true
+  },
+  "input_checks": [
+    {
+      "path": "images/1f_view.png",
+      "expected_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/East_view.png",
+      "expected_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/North_view.png",
+      "expected_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/South_view.png",
+      "expected_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "images/West_view.png",
+      "expected_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "frozen_matches": true,
+      "size_matches": true,
+      "original_matches": true
+    },
+    {
+      "path": "building_input.json",
+      "expected_sha256": "f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701",
+      "frozen_matches": true,
+      "original_matches": true
+    }
+  ],
+  "seed_provenance": {
+    "applicable": false,
+    "pass": true
+  },
+  "plan_provenance": {
+    "applicable": true,
+    "pass": true,
+    "source_path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_method_transfer_run01/plan_drafts/draft_003/plan.json",
+    "frozen_path": "resume_plan.json",
+    "image": "1f_view.png",
+    "checks": {
+      "input_mode_is_saved_plan_recovery": true,
+      "source_plan_present": true,
+      "frozen_plan_present": true,
+      "source_and_frozen_plan_bytes_identical": true,
+      "source_plan_hash_matches_manifest": true,
+      "frozen_plan_hash_matches_manifest": true,
+      "source_plan_size_matches_manifest": true,
+      "frozen_plan_size_matches_manifest": true,
+      "bound_image_admitted": true,
+      "bound_image_hash_matches_inventory": true,
+      "frozen_bound_image_matches_manifest": true,
+      "original_bound_image_matches_manifest": true,
+      "frozen_declaration_matches_manifest": true
+    }
+  },
+  "implementation": {
+    "recorded_count": 22,
+    "pass": true,
+    "files": [
+      {
+        "file": "scripts/tool_scripts/bim_agent_guidance.py",
+        "expected_sha256": "ca4f0a1f524fd76038ebb0fb97e725bb98390154720504e57272d3876322f307",
+        "actual_sha256": "ca4f0a1f524fd76038ebb0fb97e725bb98390154720504e57272d3876322f307",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "scripts/tool_scripts/bim_agent_inputs.py",
+        "expected_sha256": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+        "actual_sha256": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "scripts/tool_scripts/bim_agent_mesh.py",
+        "expected_sha256": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+        "actual_sha256": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "scripts/tool_scripts/run_bim_agent.py",
+        "expected_sha256": "ed814779982c9363c29ef464a21dda458e73d4e5e0bcc7f6f883d2585e3a0425",
+        "actual_sha256": "ed814779982c9363c29ef464a21dda458e73d4e5e0bcc7f6f883d2585e3a0425",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/execution/source_proposal.py",
+        "expected_sha256": "8d2c70b9c2cc189f849041bdce8f53641d7d9f5178cca6f218f9bd526460ce57",
+        "actual_sha256": "8d2c70b9c2cc189f849041bdce8f53641d7d9f5178cca6f218f9bd526460ce57",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/bim_delivery.py",
+        "expected_sha256": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+        "actual_sha256": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/dimension_chain.py",
+        "expected_sha256": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+        "actual_sha256": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/mesh_bim_frame.py",
+        "expected_sha256": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+        "actual_sha256": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/mesh_observation.py",
+        "expected_sha256": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+        "actual_sha256": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/opening_review.py",
+        "expected_sha256": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+        "actual_sha256": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/parametric_proposal.py",
+        "expected_sha256": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+        "actual_sha256": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/pixel_region.py",
+        "expected_sha256": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+        "actual_sha256": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/pixel_region_overview.py",
+        "expected_sha256": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4",
+        "actual_sha256": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/plan_draft_view.py",
+        "expected_sha256": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+        "actual_sha256": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/plan_partition.py",
+        "expected_sha256": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+        "actual_sha256": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/proposal_edits.py",
+        "expected_sha256": "f994e3471315499d3fe2eb674867aa28a1e45e2ce5a054528d6e0b89cbc152ed",
+        "actual_sha256": "f994e3471315499d3fe2eb674867aa28a1e45e2ce5a054528d6e0b89cbc152ed",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/source_bim.py",
+        "expected_sha256": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+        "actual_sha256": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/source_elevation_view.py",
+        "expected_sha256": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+        "actual_sha256": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/source_image_overlay.py",
+        "expected_sha256": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+        "actual_sha256": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/source_plan_view.py",
+        "expected_sha256": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+        "actual_sha256": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/space_trace.py",
+        "expected_sha256": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+        "actual_sha256": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+        "exists": true,
+        "matches_current_file": true
+      },
+      {
+        "file": "src/agent/geometry/wall_reference.py",
+        "expected_sha256": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+        "actual_sha256": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+        "exists": true,
+        "matches_current_file": true
+      }
+    ],
+    "note": "A mismatch means this run used another code snapshot; replay against current code must be interpreted accordingly."
+  },
+  "candidate_provenance": {
+    "mode": "candidate_generation",
+    "pass": true,
+    "checks": {
+      "report_provenance_present": true,
+      "source_provenance_matches_report": true,
+      "run_manifest_hash_matches_provenance": true,
+      "plan_present": true,
+      "plan_hash_matches_provenance": true
+    }
+  },
+  "replay": {
+    "candidate": "candidate_01",
+    "proposal_hash_matches_report": true,
+    "source_hash_matches_report": true,
+    "input_manifest_matches_provenance": true,
+    "saved_validation": "pass",
+    "saved_counts": {
+      "spaces": 7,
+      "boundaries": 44,
+      "openings": 22,
+      "connections": 8,
+      "unbuilt_openings": 0,
+      "unsupported": 0
+    },
+    "replay_source_ready": true,
+    "source_bytes_identical": true,
+    "display_bytes_identical": true,
+    "report_counts_match_source": true
+  },
+  "image_transport": {
+    "stream_present": true,
+    "tool_calls": 51,
+    "comparisons": [
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_002.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "build_plan_bim",
+        "saved": "plan_drafts/draft_001/draft_view.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_003.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_004.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_005.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_006.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_007.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "build_plan_bim",
+        "saved": "plan_drafts/draft_002/draft_view.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "build_plan_bim",
+        "saved": "plan_drafts/draft_003/draft_view.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "build_plan_bim",
+        "saved": "image_overlays/overlay_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "build_plan_bim",
+        "saved": "candidate_01/plan_F1.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_elevation_candidate",
+        "saved": "candidate_01/elevation_East.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_elevation_candidate",
+        "saved": "candidate_01/elevation_West.png",
+        "saved_exists": true,
+        "pixels_match": true
+      }
+    ],
+    "unpaired_image_returns": 33,
+    "note": "Unpaired returns include ordinary view_image crops without a saved rendered counterpart; this is not a transport failure."
+  },
+  "model_usage": {
+    "receipts": [
+      {
+        "receipt": "agent_receipt.json",
+        "requested_model": "sonnet",
+        "actual_model": "claude-sonnet-5",
+        "channel": "Claude subscription; no API/fallback",
+        "elapsed_seconds": 1096.95,
+        "returncode": 0,
+        "timed_out": false,
+        "is_error": false,
+        "usage": {
+          "input_tokens": 78,
+          "cache_creation_input_tokens": 192180,
+          "cache_read_input_tokens": 3532736,
+          "output_tokens": 82377,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 192180,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "not_available",
+          "iterations": [
+            {
+              "input_tokens": 2,
+              "output_tokens": 1034,
+              "cache_read_input_tokens": 193354,
+              "cache_creation_input_tokens": 10088,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 10088
+              },
+              "type": "message"
+            }
+          ],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 800,
+            "outputTokens": 17,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000885,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 78,
+            "outputTokens": 82377,
+            "cacheReadInputTokens": 3532736,
+            "cacheCreationInputTokens": 192180,
+            "webSearchRequests": 0,
+            "costUSD": 3.4487898,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000
+          }
+        },
+        "cli_estimated_cost_usd": 3.4496748000000004
+      }
+    ],
+    "receipt_count_matches_summary": true,
+    "requested_models": {
+      "sonnet": 1
+    },
+    "actual_models": {
+      "claude-sonnet-5": 1
+    },
+    "token_totals": {
+      "input_tokens": 78,
+      "cache_creation_input_tokens": 192180,
+      "cache_read_input_tokens": 3532736,
+      "output_tokens": 82377
+    },
+    "cli_estimated_cost_sum_usd": 3.4496748000000004,
+    "reported_partial_cost_matches_summary": true,
+    "cost_note": "CLI estimate, not a subscription bill; modelUsage can include Claude CLI auxiliary models."
+  },
+  "limits": [
+    "This proves saved inputs, source/display replay and selected returned-image transport, not drawing fidelity.",
+    "Ordinary view_image crops without a saved rendered counterpart are counted as unpaired, not pixel-verified.",
+    "A seed import is a recovery run; its source hash changes with provenance even when geometric content is identical."
+  ]
+}

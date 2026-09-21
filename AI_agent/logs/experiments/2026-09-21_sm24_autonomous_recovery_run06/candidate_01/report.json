@@ -1,0 +1,87 @@
+{
+  "agent_assumptions": [
+    "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+    "Window/door heights: North and East windows sill1.0/head3.4m (directly measured from North_view.png and East_view.png in this review). South and West windows sill1.0/head2.8m (directly measured from South_view.png and West_view.png in this review; West value corrects an inherited unverified assumption that had copied the North pattern).",
+    "All doors assumed 2.4m height, base 0 (floor level); sub-dimensions near doors in elevations were not fully reconciled and remain an assumption.",
+    "Building height 4.5m used uniformly as the single floor's wall height, confirmed identical (4500mm) on all four elevations in this review.",
+    "The corridor (north-south spine) and the south-east furniture area merge into ONE physical room: re-verified in this review by a zoomed crop at [440,580,615,890] -- the partial wall/door near x458-611,y698 does not reach the west corridor edge as a full-height partition, so it cannot enclose a separate room; modeled as open.",
+    "The full-width north strip (Lobby, x248-611,y151-296) re-checked in this review at [380,145,430,300]: no vertical wall exists between x=400 and the north wall above y=296, confirming Lobby is one open room across the full width.",
+    "The former ED1_door was reclassified as windows EW0a/EW0b based on its measured 1000mm sill height in the East elevation; this is a substantive correction to the inherited draft, made in this review.",
+    "EW0a/EW0b (at P5_e2_e3) and EW1a/EW1b (at P6b_e3_se) were each split into two adjacent window openings purely to satisfy the compiler's single-host-per-opening rule where a measured elevation window's world-coordinate span crosses an interior partition's meeting point with the exterior wall; in both cases the East elevation showed one continuous glazed rectangle with no visible mullion at the split point, so whether the real fenestration is one wide unit or two abutting units is NOT confirmed.",
+    "Room roles (reception, office, boardroom, meeting, pantry, corridor/open office) are inferred from furniture symbols, not labelled in the source.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 44,
+    "connections": 8,
+    "openings": 22,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "907183cc75403cb708d66d4632b5d6e93839a318db85fde73895f138979ca776",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "cf88f3ac9b3a4a0183c68337114c08bf70b0bec402e10103d7047003b39ca18b",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_004/compilation.json",
+      "compilation_sha256": "1478368d740dd0cfe8c3cc53d368da6ccd7e7feebf6a6fd3ebdff0e2e4d5c2dc",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_004/draft_view.png",
+        "image_sha256": "b340a5764224ea4fdff5b3c4bce7712b402786c1f21dc5fbda03264da05a821c",
+        "metadata_file": "plan_drafts/draft_004/draft_view.json",
+        "metadata_sha256": "b053c6510cea8e195f3d070482a85f89ee837728e3bce856aad059674ea88715",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_004/plan.json",
+      "plan_sha256": "0ebce0cc2d044339dcd34c7ca5d0e9cb74ded638385e07139ebec0ebd8e7e09a"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "d547b6f92c3a3b813f3cc0dc26206272cc36687343ff2258650c9d85fa5d47c2",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Fine sub-dimension chain sums did not exactly reconcile with outer brackets (e.g. 4060 vs 540+1500+2380=4420); outer-bracket/pixel-measured boundaries were trusted over the fine labels.",
+    "Door height (2.4m) and a secondary ~200mm sub-dimension near the South door were not fully reconciled against the South elevation door dimension chain; 2.4m retained as a standard assumption.",
+    "The partial wall fragment near x440-560,y698 (south-east area) and its door remain omitted from the partition/opening list; that zone is modeled as part of the merged corridor/open-office room.",
+    "Declared thermal_zones=8 in the building declaration is a downstream simulation-zoning input, not a verified physical room count; this source model retains 7 distinct physical spaces as observed from partition evidence, and no attempt was made to force 8 zones onto the physical geometry.",
+    "EW0a/EW0b and EW1a/EW1b splits are a compiler-driven simplification of a plan/elevation conflict (see assumptions); the true opening pattern at those two locations on the East facade is unresolved between one continuous window and two adjacent windows.",
+    "No exterior door was identified on the East facade in this review (the previously assumed ED1_door was reclassified as windows); the SE open area's access relies on the interior corridor door D_w4_corr, the omitted partial-wall door, plus the ND1 entrance and SD1 south door.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

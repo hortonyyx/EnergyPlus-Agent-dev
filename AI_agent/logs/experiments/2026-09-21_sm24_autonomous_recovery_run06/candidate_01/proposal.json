@@ -1,0 +1,874 @@
+{
+  "assumptions": [
+    "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+    "Window/door heights: North and East windows sill1.0/head3.4m (directly measured from North_view.png and East_view.png in this review). South and West windows sill1.0/head2.8m (directly measured from South_view.png and West_view.png in this review; West value corrects an inherited unverified assumption that had copied the North pattern).",
+    "All doors assumed 2.4m height, base 0 (floor level); sub-dimensions near doors in elevations were not fully reconciled and remain an assumption.",
+    "Building height 4.5m used uniformly as the single floor's wall height, confirmed identical (4500mm) on all four elevations in this review.",
+    "The corridor (north-south spine) and the south-east furniture area merge into ONE physical room: re-verified in this review by a zoomed crop at [440,580,615,890] -- the partial wall/door near x458-611,y698 does not reach the west corridor edge as a full-height partition, so it cannot enclose a separate room; modeled as open.",
+    "The full-width north strip (Lobby, x248-611,y151-296) re-checked in this review at [380,145,430,300]: no vertical wall exists between x=400 and the north wall above y=296, confirming Lobby is one open room across the full width.",
+    "The former ED1_door was reclassified as windows EW0a/EW0b based on its measured 1000mm sill height in the East elevation; this is a substantive correction to the inherited draft, made in this review.",
+    "EW0a/EW0b (at P5_e2_e3) and EW1a/EW1b (at P6b_e3_se) were each split into two adjacent window openings purely to satisfy the compiler's single-host-per-opening rule where a measured elevation window's world-coordinate span crosses an interior partition's meeting point with the exterior wall; in both cases the East elevation showed one continuous glazed rectangle with no visible mullion at the split point, so whether the real fenestration is one wide unit or two abutting units is NOT confirmed.",
+    "Room roles (reception, office, boardroom, meeting, pantry, corridor/open office) are inferred from furniture symbols, not labelled in the source.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "Lobby",
+            "polygon": [
+              [
+                0.0,
+                -3.988996
+              ],
+              [
+                10.0,
+                -3.988996
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            "role": "reception/lobby",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px, re-verified via view_pixel_profile (candidate C04, fraction 0.88, gap only at door x407-452)."
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              -3.988996,
+              0.0
+            ]
+          },
+          {
+            "id": "OfficeW2",
+            "polygon": [
+              [
+                0.0,
+                -6.98762
+              ],
+              [
+                4.187328,
+                -6.98762
+              ],
+              [
+                4.187328,
+                -3.988996
+              ],
+              [
+                0.0,
+                -3.988996
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px, re-verified via view_pixel_profile (candidate C04, fraction 0.88, gap only at door x407-452).",
+              "1f_view.png: vertical wall x=398-402px y296-878; re-verified via view_pixel_profile x=402 candidate showing wall segments separated by 3 door gaps. Confirmed via [380,145,430,300] crop that NO wall exists between y151-296 (Lobby is one open room across full width, not split at x=400).",
+              "1f_view.png: west-only horizontal wall y=403-407px; re-verified via view_pixel_profile y=403/407 candidates (fraction 0.42, support 248-397)."
+            ],
+            "x": [
+              0.0,
+              4.187328
+            ],
+            "y": [
+              -6.98762,
+              -3.988996
+            ]
+          },
+          {
+            "id": "CorridorN_SE_open",
+            "polygon": [
+              [
+                4.187328,
+                -20.0
+              ],
+              [
+                10.0,
+                -20.0
+              ],
+              [
+                10.0,
+                -11.939477
+              ],
+              [
+                5.812672,
+                -11.939477
+              ],
+              [
+                5.812672,
+                -3.988996
+              ],
+              [
+                4.187328,
+                -3.988996
+              ]
+            ],
+            "role": "corridor_and_open_office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px, re-verified via view_pixel_profile (candidate C04, fraction 0.88, gap only at door x407-452).",
+              "1f_view.png: vertical wall x=398-402px y296-878; re-verified via view_pixel_profile x=402 candidate showing wall segments separated by 3 door gaps. Confirmed via [380,145,430,300] crop that NO wall exists between y151-296 (Lobby is one open room across full width, not split at x=400).",
+              "1f_view.png: vertical wall x=457-462px y296-585; re-verified via view_pixel_profile x=457 candidate showing wall segments separated by 2 door gaps, ending at y=587 (no continuation below).",
+              "1f_view.png: horizontal wall y=583-587px east segment; re-verified via view_pixel_profile y=583/587 candidates (fraction 0.83)."
+            ],
+            "x": [
+              4.187328,
+              10.0
+            ],
+            "y": [
+              -20.0,
+              -3.988996
+            ]
+          },
+          {
+            "id": "RoomE2",
+            "polygon": [
+              [
+                5.812672,
+                -5.997249
+              ],
+              [
+                10.0,
+                -5.997249
+              ],
+              [
+                10.0,
+                -3.988996
+              ],
+              [
+                5.812672,
+                -3.988996
+              ]
+            ],
+            "role": "storage/pantry",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px, re-verified via view_pixel_profile (candidate C04, fraction 0.88, gap only at door x407-452).",
+              "1f_view.png: vertical wall x=457-462px y296-585; re-verified via view_pixel_profile x=457 candidate showing wall segments separated by 2 door gaps, ending at y=587 (no continuation below).",
+              "1f_view.png: east-only horizontal wall y=367-371px, visually traced at [440,340,615,425] as a thin double-line partition reaching the exterior wall at x=611."
+            ],
+            "x": [
+              5.812672,
+              10.0
+            ],
+            "y": [
+              -5.997249,
+              -3.988996
+            ]
+          },
+          {
+            "id": "MeetingE3",
+            "polygon": [
+              [
+                5.812672,
+                -11.939477
+              ],
+              [
+                10.0,
+                -11.939477
+              ],
+              [
+                10.0,
+                -5.997249
+              ],
+              [
+                5.812672,
+                -5.997249
+              ]
+            ],
+            "role": "meeting_room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=457-462px y296-585; re-verified via view_pixel_profile x=457 candidate showing wall segments separated by 2 door gaps, ending at y=587 (no continuation below).",
+              "1f_view.png: east-only horizontal wall y=367-371px, visually traced at [440,340,615,425] as a thin double-line partition reaching the exterior wall at x=611.",
+              "1f_view.png: horizontal wall y=583-587px east segment; re-verified via view_pixel_profile y=583/587 candidates (fraction 0.83)."
+            ],
+            "x": [
+              5.812672,
+              10.0
+            ],
+            "y": [
+              -11.939477,
+              -5.997249
+            ]
+          },
+          {
+            "id": "OfficeW3",
+            "polygon": [
+              [
+                0.0,
+                -11.939477
+              ],
+              [
+                4.187328,
+                -11.939477
+              ],
+              [
+                4.187328,
+                -6.98762
+              ],
+              [
+                0.0,
+                -6.98762
+              ]
+            ],
+            "role": "open_office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=398-402px y296-878; re-verified via view_pixel_profile x=402 candidate showing wall segments separated by 3 door gaps. Confirmed via [380,145,430,300] crop that NO wall exists between y151-296 (Lobby is one open room across full width, not split at x=400).",
+              "1f_view.png: west-only horizontal wall y=403-407px; re-verified via view_pixel_profile y=403/407 candidates (fraction 0.42, support 248-397).",
+              "1f_view.png: horizontal wall y=583-587px west segment; re-verified via view_pixel_profile y=583/587 candidates (fraction 0.83)."
+            ],
+            "x": [
+              0.0,
+              4.187328
+            ],
+            "y": [
+              -11.939477,
+              -6.98762
+            ]
+          },
+          {
+            "id": "Boardroom_W4",
+            "polygon": [
+              [
+                0.0,
+                -20.0
+              ],
+              [
+                4.187328,
+                -20.0
+              ],
+              [
+                4.187328,
+                -11.939477
+              ],
+              [
+                0.0,
+                -11.939477
+              ]
+            ],
+            "role": "boardroom",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=398-402px y296-878; re-verified via view_pixel_profile x=402 candidate showing wall segments separated by 3 door gaps. Confirmed via [380,145,430,300] crop that NO wall exists between y151-296 (Lobby is one open room across full width, not split at x=400).",
+              "1f_view.png: horizontal wall y=583-587px west segment; re-verified via view_pixel_profile y=583/587 candidates (fraction 0.83)."
+            ],
+            "x": [
+              0.0,
+              4.187328
+            ],
+            "y": [
+              -20.0,
+              -11.939477
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      -20.0,
+      0.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_lobby_corr",
+        "kind": "door",
+        "other_space_id": "Lobby",
+        "p1": [
+          4.380165,
+          -3.988996
+        ],
+        "p2": [
+          5.619835,
+          -3.988996
+        ],
+        "source_refs": [
+          "1f_view.png: double-arc door symbol at north wall/corridor junction; re-verified in this review with a 6x zoomed crop at [370,250,480,330], jambs measured at x=408 and x=452, matching declared span exactly."
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_w2_corr",
+        "kind": "door",
+        "other_space_id": "OfficeW2",
+        "p1": [
+          4.187328,
+          -5.667125
+        ],
+        "p2": [
+          4.187328,
+          -6.9326
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P2 near y360-400; gap re-confirmed via view_pixel_profile x=402 candidate."
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_w3_corr",
+        "kind": "door",
+        "other_space_id": "OfficeW3",
+        "p1": [
+          4.187328,
+          -7.290234
+        ],
+        "p2": [
+          4.187328,
+          -8.308116
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P2 near y416-453; gap re-confirmed via view_pixel_profile x=402 candidate."
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_w4_corr",
+        "kind": "door",
+        "other_space_id": "CorridorN_SE_open",
+        "p1": [
+          4.187328,
+          -12.242091
+        ],
+        "p2": [
+          4.187328,
+          -13.259972
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P2 near y596-633; gap re-confirmed via view_pixel_profile x=402 candidate."
+        ],
+        "space_id": "Boardroom_W4",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_e2_corr",
+        "kind": "door",
+        "other_space_id": "RoomE2",
+        "p1": [
+          5.812672,
+          -4.731774
+        ],
+        "p2": [
+          5.812672,
+          -5.639615
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P3 near y323-356; gap re-confirmed via view_pixel_profile x=457 candidate; also directly visible as an arc symbol in the [440,340,615,425] crop."
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_e3_corr",
+        "kind": "door",
+        "other_space_id": "MeetingE3",
+        "p1": [
+          5.812672,
+          -6.354883
+        ],
+        "p2": [
+          5.812672,
+          -7.262724
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P3 near y382-415; gap re-confirmed via view_pixel_profile x=457 candidate; also directly visible as an arc symbol in the [440,340,615,425] crop."
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "ND1_entrance",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.523416,
+          0.0
+        ],
+        "p2": [
+          2.14876,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view.png north wall double-door arc; North_view.png confirms double door on this facade at dim-chain span 540-2140mm, matching plan span 523-2149mm re-derived from anchors in this review."
+        ],
+        "space_id": "Lobby",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "SD1_door",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.545455,
+          -20.0
+        ],
+        "p2": [
+          5.426997,
+          -20.0
+        ],
+        "source_refs": [
+          "1f_view.png south wall door arc near x413-445 with 900mm label per South elevation chain 4540-5440mm; plan span 4547-5427mm matches closely."
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "NW1_window",
+        "kind": "window",
+        "p1": [
+          4.655647,
+          0.0
+        ],
+        "p2": [
+          9.476584,
+          0.0
+        ],
+        "room": "Lobby",
+        "source_refs": [
+          "1f_view.png north wall cyan window band; North_view.png sill1000/height2400 (chain 1100/2400/1000 of 4500), re-verified in this review by direct crop reading of North_view.png; plan span 4656-9477mm matches elevation chain span 4660-9460mm."
+        ],
+        "span": [
+          4.655647,
+          9.476584
+        ],
+        "width_m": 4.820937,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "SW1_window",
+        "kind": "window",
+        "p1": [
+          0.523416,
+          -20.0
+        ],
+        "p2": [
+          2.038567,
+          -20.0
+        ],
+        "room": "Boardroom_W4",
+        "source_refs": [
+          "1f_view.png south wall cyan band; South_view.png sill1000/height1800 (chain 1700/1800/1000 of 4500) re-verified in this review; plan span 523-2039mm matches elevation chain span 540-2040mm."
+        ],
+        "span": [
+          0.523416,
+          2.038567
+        ],
+        "width_m": 1.515151,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "SW2_window",
+        "kind": "window",
+        "p1": [
+          7.933884,
+          -20.0
+        ],
+        "p2": [
+          9.504132,
+          -20.0
+        ],
+        "room": "CorridorN_SE_open",
+        "source_refs": [
+          "1f_view.png south wall cyan band x536-593; South_view.png window2 re-identified in this review at elevation chain span 7960-9460mm; plan span 7936-9507mm matches; same sill/head as SW1 (single facade-wide height datum observed)."
+        ],
+        "span": [
+          7.933884,
+          9.504132
+        ],
+        "width_m": 1.570248,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW1_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -0.522696
+        ],
+        "p2": [
+          0.0,
+          -2.035763
+        ],
+        "room": "Lobby",
+        "source_refs": [
+          "1f_view.png west wall cyan band; West_view.png window1 dim chain 540-2040mm. CORRECTED in this review: direct crop reading of West_view.png at box [0,150,350,650] shows the facade-wide height chain 1700(top gap)+1800(window height)+1000(sill)=4500mm, i.e. sill=1.0m, head=2.8m -- NOT 3.4m as inherited from the unverified draft. All 5 West windows share this single visible height datum line."
+        ],
+        "span": [
+          -2.035763,
+          -0.522696
+        ],
+        "width_m": 1.513067,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW2_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -4.401651
+        ],
+        "p2": [
+          0.0,
+          -5.612105
+        ],
+        "room": "OfficeW2",
+        "source_refs": [
+          "West_view.png window2, plan dim chain 4420-5620mm. Height corrected to sill1.0/head2.8m in this review, see WW1_window note."
+        ],
+        "span": [
+          -5.612105,
+          -4.401651
+        ],
+        "width_m": 1.210454,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW3_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -7.345254
+        ],
+        "p2": [
+          0.0,
+          -8.858322
+        ],
+        "room": "OfficeW3",
+        "source_refs": [
+          "West_view.png window3, plan dim chain 7360-8860mm. Height corrected to sill1.0/head2.8m in this review, see WW1_window note."
+        ],
+        "span": [
+          -8.858322,
+          -7.345254
+        ],
+        "width_m": 1.513068,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW4_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -10.068776
+        ],
+        "p2": [
+          0.0,
+          -11.554333
+        ],
+        "room": "OfficeW3",
+        "source_refs": [
+          "West_view.png window4, plan dim chain 10080-11580mm. Height corrected to sill1.0/head2.8m in this review, see WW1_window note."
+        ],
+        "span": [
+          -11.554333,
+          -10.068776
+        ],
+        "width_m": 1.485557,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW5_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -14.635488
+        ],
+        "p2": [
+          0.0,
+          -19.422283
+        ],
+        "room": "Boardroom_W4",
+        "source_refs": [
+          "West_view.png large window5, plan dim chain 14660-19460mm, boardroom. Height corrected to sill1.0/head2.8m in this review, see WW1_window note."
+        ],
+        "span": [
+          -19.422283,
+          -14.635488
+        ],
+        "width_m": 4.786795,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW0a_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -5.694635
+        ],
+        "p2": [
+          10.0,
+          -5.997249
+        ],
+        "room": "RoomE2",
+        "source_refs": [
+          "CORRECTED in this review: previously misclassified as a door (ED1_door). East_view.png shows a glazed double-leaf element at dim chain 5700-7300mm with height chain 1100/2400/1000 of 4500mm -- a 1000mm sill rules out a floor-level door; reclassified as window(s), sill1.0/head3.4m matching other East windows. This half (RoomE2 side, world 5.70-6.00m) is split from EW0b at the P5_e2_e3 partition location because the compiler cannot host one opening across two rooms/hosts; the true single-vs-double-unit nature of this element is UNRESOLVED (see notes)."
+        ],
+        "span": [
+          -5.997249,
+          -5.694635
+        ],
+        "width_m": 0.302614,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW0b_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -5.997249
+        ],
+        "p2": [
+          10.0,
+          -7.290234
+        ],
+        "room": "MeetingE3",
+        "source_refs": [
+          "Other half of the same measured East 5700-7300mm glazed element (MeetingE3 side, world 6.00-7.29m). See EW0a_window note for the split rationale and unresolved single/double-unit uncertainty."
+        ],
+        "span": [
+          -7.290234,
+          -5.997249
+        ],
+        "width_m": 1.292985,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW1a_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -8.830812
+        ],
+        "p2": [
+          10.0,
+          -11.939477
+        ],
+        "room": "MeetingE3",
+        "source_refs": [
+          "East_view.png large window, precisely measured in this review via elevation tick-mark calibration (anchors px373=0mm, px2261=20000mm): window rectangle spans px1208-1661 = world 8840-13640mm, matching plan span y=472-646 (world 8.833-13.617m) almost exactly. Height chain 1100/2400/1000 confirms sill1.0/head3.4m. SPLIT in this review at the P6b_e3_se partition (y=585) for the same single-host reason as EW0a/EW0b: this half (MeetingE3 side, world 8.833-11.99m) is one host segment."
+        ],
+        "span": [
+          -11.939477,
+          -8.830812
+        ],
+        "width_m": 3.108665,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW1b_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -11.939477
+        ],
+        "p2": [
+          10.0,
+          -13.617607
+        ],
+        "room": "CorridorN_SE_open",
+        "source_refs": [
+          "Other half of the same measured East 8840-13640mm window (merged corridor/open-office side, world 11.99-13.617m). See EW1a_window note for the split rationale; the elevation showed one continuous rectangle with no visible mullion at this split point, so the single-vs-double-unit nature here is also unresolved."
+        ],
+        "span": [
+          -13.617607,
+          -11.939477
+        ],
+        "width_m": 1.67813,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW2_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -14.360385
+        ],
+        "p2": [
+          10.0,
+          -15.570839
+        ],
+        "room": "CorridorN_SE_open",
+        "source_refs": [
+          "East_view.png small window, precisely measured in this review: rectangle spans px~1746-1848 vs dimension segment 14380-15580mm (px1731-1844), matching within drafting tolerance; plan span y=673-717 (world 14.36-15.57m) matches, does not cross any partition. Same East-wide height datum as EW1_window."
+        ],
+        "span": [
+          -15.570839,
+          -14.360385
+        ],
+        "width_m": 1.210454,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW3_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -17.936726
+        ],
+        "p2": [
+          10.0,
+          -19.422283
+        ],
+        "room": "CorridorN_SE_open",
+        "source_refs": [
+          "East_view.png small window, precisely measured in this review: rectangle spans px~2062-2214 vs dimension segment 17960-19460mm (px2068-2210), matching closely; plan span y=803-857 (world 17.94-19.43m) matches, does not cross any partition. Same East-wide height datum as EW1_window."
+        ],
+        "span": [
+          -19.422283,
+          -17.936726
+        ],
+        "width_m": 1.485557,
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Fine sub-dimension chain sums did not exactly reconcile with outer brackets (e.g. 4060 vs 540+1500+2380=4420); outer-bracket/pixel-measured boundaries were trusted over the fine labels.",
+    "Door height (2.4m) and a secondary ~200mm sub-dimension near the South door were not fully reconciled against the South elevation door dimension chain; 2.4m retained as a standard assumption.",
+    "The partial wall fragment near x440-560,y698 (south-east area) and its door remain omitted from the partition/opening list; that zone is modeled as part of the merged corridor/open-office room.",
+    "Declared thermal_zones=8 in the building declaration is a downstream simulation-zoning input, not a verified physical room count; this source model retains 7 distinct physical spaces as observed from partition evidence, and no attempt was made to force 8 zones onto the physical geometry.",
+    "EW0a/EW0b and EW1a/EW1b splits are a compiler-driven simplification of a plan/elevation conflict (see assumptions); the true opening pattern at those two locations on the East facade is unresolved between one continuous window and two adjacent windows.",
+    "No exterior door was identified on the East facade in this review (the previously assumed ED1_door was reclassified as windows); the SE open area's access relies on the interior corridor door D_w4_corr, the omitted partial-wall door, plus the ND1 entrance and SD1 south door.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

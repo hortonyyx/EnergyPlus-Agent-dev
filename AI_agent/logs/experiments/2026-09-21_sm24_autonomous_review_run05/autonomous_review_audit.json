@@ -1,0 +1,856 @@
+{
+  "schema_version": "autonomous_review_audit_v1",
+  "run": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-21_sm24_autonomous_review_run05",
+  "input_mode": "saved_candidate_recovery",
+  "delivered_candidate": "seed",
+  "baseline": "seed",
+  "delivery_absent": false,
+  "candidate_chain": {
+    "steps_final_to_ancestor": [
+      {
+        "candidate": "seed",
+        "mode": "previous_generated_proposal_recovery",
+        "parent_candidate": null,
+        "plan_input": null,
+        "parent_proposal_hash_matches": null,
+        "plan_hash_matches": null,
+        "proposal_hash_matches_report": true,
+        "source_geometry_ready": true,
+        "source_model_sha256": "06367c46ba31ef56738740f9d0a65d4218e2f1b12a2328655b3c3c3d5aea5921",
+        "operations_file": null,
+        "operations": null,
+        "matching_tool_event_ids": [],
+        "matching_tool_result_present": false,
+        "matching_tool_event_successful": null,
+        "revision_request_matches_saved_operations": null
+      }
+    ],
+    "cycle_detected": false,
+    "complete_to_seed_or_build": true
+  },
+  "finish_event_successful": true,
+  "selection_file_matches_final_source": true,
+  "delivery_file_matches_final_source": true,
+  "finish_selected_delivery": true,
+  "tool_review": {
+    "stream_tool_count": 26,
+    "stream_tool_counts": {
+      "inputs": 1,
+      "inspect_candidate": 1,
+      "view_image": 11,
+      "view_candidate": 1,
+      "overlay_candidate": 4,
+      "view_pixel_profile": 4,
+      "view_elevation_candidate": 2,
+      "check_openings": 1,
+      "finish_bim": 1
+    },
+    "logged_tool_count": 24,
+    "logged_tool_counts": {
+      "inputs": 1,
+      "inspect_candidate": 1,
+      "view_image": 9,
+      "view_candidate": 1,
+      "overlay_candidate": 4,
+      "view_pixel_profile": 4,
+      "view_elevation_candidate": 2,
+      "check_openings": 1,
+      "finish_bim": 1
+    },
+    "unlinked_tool_results": [],
+    "errored_tool_results": [
+      {
+        "tool_use_id": "toolu_019TG4eZxjsMU3waDSUv4EcA",
+        "action": "view_image",
+        "error_text": "Error executing tool view_image: choose an exact image name from input inventory"
+      },
+      {
+        "tool_use_id": "toolu_019gZW1z9SRTv7ykjCgKPEME",
+        "action": "view_image",
+        "error_text": "Error executing tool view_image: choose an exact image name from input inventory"
+      }
+    ],
+    "images_declared": [
+      "1f_view.png",
+      "East_view.png",
+      "North_view.png",
+      "South_view.png",
+      "West_view.png"
+    ],
+    "original_image_actions_by_file": {
+      "1f_view.png": {
+        "view_image_requested": 4,
+        "view_image_successful": 4,
+        "view_pixel_profile_requested": 4,
+        "view_pixel_profile_successful": 4
+      },
+      "East_view.png": {
+        "view_image_requested": 2,
+        "view_image_successful": 2
+      },
+      "North_view.png": {
+        "view_image_requested": 1,
+        "view_image_successful": 1
+      },
+      "South_view.png": {
+        "view_image_requested": 1,
+        "view_image_successful": 1
+      },
+      "West_view.png": {
+        "view_image_requested": 1,
+        "view_image_successful": 1
+      },
+      "image_overlays/overlay_002.png": {
+        "view_image_requested": 2
+      }
+    },
+    "images_with_no_successful_original_view_or_measurement": [],
+    "views_and_measurements": [
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01FBGV223S2edpDk5hcy3x6G",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          790,
+          1111
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_candidate",
+        "tool_use_id": "toolu_01PWEgRe3dpAnaZeaj4QPrA4",
+        "image": null,
+        "candidate": "seed",
+        "request_name": null,
+        "facade": null,
+        "floor_id": "F1",
+        "box_requested": null,
+        "box_original_pixels": null,
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01XrV8ATccSEXHxoVwAJTkTi",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          240,
+          60,
+          620,
+          450
+        ],
+        "box_original_pixels": [
+          240,
+          60,
+          620,
+          450
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_019UUj4imJsuq4xkMsYVSiCD",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          240,
+          380,
+          620,
+          900
+        ],
+        "box_original_pixels": [
+          240,
+          380,
+          620,
+          900
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "overlay_candidate",
+        "tool_use_id": "toolu_01VL5qvgpVkyXCrKnct513we",
+        "image": "1f_view.png",
+        "candidate": "seed",
+        "request_name": null,
+        "facade": null,
+        "floor_id": "F1",
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          790,
+          1111
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_pixel_profile",
+        "tool_use_id": "toolu_01QXjcc8oTeNYhbh4Qypvegd",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          230,
+          100,
+          630,
+          200
+        ],
+        "box_original_pixels": [
+          230,
+          100,
+          630,
+          200
+        ],
+        "axis": "y",
+        "at": null,
+        "input": {
+          "name": "1f_view.png",
+          "box": [
+            230,
+            100,
+            630,
+            200
+          ],
+          "axis": "y",
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "tolerance": 40
+        },
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_pixel_profile",
+        "tool_use_id": "toolu_01ERsUcumFUWRvKq6rNuakoE",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          230,
+          820,
+          630,
+          900
+        ],
+        "box_original_pixels": [
+          230,
+          820,
+          630,
+          900
+        ],
+        "axis": "y",
+        "at": null,
+        "input": {
+          "name": "1f_view.png",
+          "box": [
+            230,
+            820,
+            630,
+            900
+          ],
+          "axis": "y",
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "tolerance": 40
+        },
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_pixel_profile",
+        "tool_use_id": "toolu_01BGsWY4rxHeJQwyrV1oFoKx",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          220,
+          100,
+          280,
+          850
+        ],
+        "box_original_pixels": [
+          220,
+          100,
+          280,
+          850
+        ],
+        "axis": "x",
+        "at": null,
+        "input": {
+          "name": "1f_view.png",
+          "box": [
+            220,
+            100,
+            280,
+            850
+          ],
+          "axis": "x",
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "tolerance": 40
+        },
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_pixel_profile",
+        "tool_use_id": "toolu_01CUdrNnXQiwDYKhx38wbN5P",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          580,
+          100,
+          630,
+          850
+        ],
+        "box_original_pixels": [
+          580,
+          100,
+          630,
+          850
+        ],
+        "axis": "x",
+        "at": null,
+        "input": {
+          "name": "1f_view.png",
+          "box": [
+            580,
+            100,
+            630,
+            850
+          ],
+          "axis": "x",
+          "rgb": [
+            128,
+            128,
+            128
+          ],
+          "tolerance": 40
+        },
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "overlay_candidate",
+        "tool_use_id": "toolu_01Nsd1F5AVfFvb1umS73TuBi",
+        "image": "1f_view.png",
+        "candidate": "seed",
+        "request_name": null,
+        "facade": null,
+        "floor_id": "F1",
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          790,
+          1111
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_019TG4eZxjsMU3waDSUv4EcA",
+        "image": "image_overlays/overlay_002.png",
+        "candidate": null,
+        "request_name": "image_overlays/overlay_002.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          240,
+          260,
+          620,
+          620
+        ],
+        "box_original_pixels": null,
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": true,
+        "error_text": "Error executing tool view_image: choose an exact image name from input inventory",
+        "successful_return": false,
+        "returned_images": 0
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_019gZW1z9SRTv7ykjCgKPEME",
+        "image": "image_overlays/overlay_002.png",
+        "candidate": null,
+        "request_name": "image_overlays/overlay_002.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          240,
+          580,
+          620,
+          890
+        ],
+        "box_original_pixels": null,
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": true,
+        "error_text": "Error executing tool view_image: choose an exact image name from input inventory",
+        "successful_return": false,
+        "returned_images": 0
+      },
+      {
+        "action": "overlay_candidate",
+        "tool_use_id": "toolu_01PCJpzpHr8HodGeyTB43xJv",
+        "image": "1f_view.png",
+        "candidate": "seed",
+        "request_name": null,
+        "facade": null,
+        "floor_id": "F1",
+        "box_requested": [
+          240,
+          260,
+          620,
+          620
+        ],
+        "box_original_pixels": [
+          240,
+          260,
+          620,
+          620
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "overlay_candidate",
+        "tool_use_id": "toolu_01PTuLwBHG5K1GukcA1c9oVZ",
+        "image": "1f_view.png",
+        "candidate": "seed",
+        "request_name": null,
+        "facade": null,
+        "floor_id": "F1",
+        "box_requested": [
+          240,
+          580,
+          620,
+          890
+        ],
+        "box_original_pixels": [
+          240,
+          580,
+          620,
+          890
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01RudGCTUketvStk6VSosb3e",
+        "image": "1f_view.png",
+        "candidate": null,
+        "request_name": "1f_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          380,
+          560,
+          620,
+          780
+        ],
+        "box_original_pixels": [
+          380,
+          560,
+          620,
+          780
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01G3QE7fTmy4Tzjmv84iWeFj",
+        "image": "East_view.png",
+        "candidate": null,
+        "request_name": "East_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          2639,
+          931
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01UsKAuDiNcRZvozZbPw34hx",
+        "image": "South_view.png",
+        "candidate": null,
+        "request_name": "South_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          2434,
+          1457
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01PLHDF8UkMRbyAQXJ2DmANV",
+        "image": "East_view.png",
+        "candidate": null,
+        "request_name": "East_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": [
+          900,
+          0,
+          2260,
+          500
+        ],
+        "box_original_pixels": [
+          900,
+          0,
+          2260,
+          500
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_018EKUDFUi3zxbXoR2hFDfMa",
+        "image": "North_view.png",
+        "candidate": null,
+        "request_name": "North_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          2890,
+          1651
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_image",
+        "tool_use_id": "toolu_01VkRevLJf1Lz5kCXf7HA1tk",
+        "image": "West_view.png",
+        "candidate": null,
+        "request_name": "West_view.png",
+        "facade": null,
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": [
+          0,
+          0,
+          2580,
+          993
+        ],
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_elevation_candidate",
+        "tool_use_id": "toolu_01FSjkz3RiUTeveMq1HT76iD",
+        "image": null,
+        "candidate": "seed",
+        "request_name": null,
+        "facade": "North",
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": null,
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      },
+      {
+        "action": "view_elevation_candidate",
+        "tool_use_id": "toolu_01Bz2BUYHB3hQNaNSCbicCKk",
+        "image": null,
+        "candidate": "seed",
+        "request_name": null,
+        "facade": "East",
+        "floor_id": null,
+        "box_requested": null,
+        "box_original_pixels": null,
+        "axis": null,
+        "at": null,
+        "input": null,
+        "result_linked": true,
+        "result_is_error": false,
+        "error_text": null,
+        "successful_return": true,
+        "returned_images": 1
+      }
+    ],
+    "build_revision_finish_events": [
+      {
+        "action": "finish_bim",
+        "tool_use_id": "toolu_01CpJiTBJ4wjs15tmXVDC1C3",
+        "result_linked": true,
+        "requested_candidate": "seed",
+        "produced_candidate": "seed",
+        "source_geometry_ready": null,
+        "status": null,
+        "result_is_error": false,
+        "error_text": null,
+        "plan_image": null,
+        "operations": null,
+        "plan_json_sha256": null
+      }
+    ],
+    "note": "Image calls and boxes describe exposure, not correct reading. Some tools return generated images."
+  },
+  "changes": {
+    "baseline": "seed",
+    "proposal": {
+      "geometry_header": {},
+      "objects": {
+        "floors": {
+          "before_count": 1,
+          "after_count": 1,
+          "added": {},
+          "removed": {},
+          "changed": {}
+        },
+        "cells": {
+          "before_count": 8,
+          "after_count": 8,
+          "added": {},
+          "removed": {},
+          "changed": {}
+        },
+        "windows": {
+          "before_count": 11,
+          "after_count": 11,
+          "added": {},
+          "removed": {},
+          "changed": {}
+        },
+        "openings": {
+          "before_count": 10,
+          "after_count": 10,
+          "added": {},
+          "removed": {},
+          "changed": {}
+        }
+      },
+      "explanation": {},
+      "correction_count": [
+        8,
+        8
+      ]
+    },
+    "source": {
+      "spaces": {
+        "before_count": 8,
+        "after_count": 8,
+        "added": {},
+        "removed": {},
+        "changed": {}
+      },
+      "boundaries": {
+        "before_count": 54,
+        "after_count": 54,
+        "added": {},
+        "removed": {},
+        "changed": {}
+      },
+      "openings": {
+        "before_count": 21,
+        "after_count": 21,
+        "added": {},
+        "removed": {},
+        "changed": {}
+      },
+      "connections": {
+        "before_count": 10,
+        "after_count": 10,
+        "added": {},
+        "removed": {},
+        "changed": {}
+      },
+      "floors": {
+        "before_count": 1,
+        "after_count": 1,
+        "added": {},
+        "removed": {},
+        "changed": {}
+      },
+      "source_geometry_sha256": [
+        "401959645d1631a949b1164995589693576f645325408f8f91cd73e2f1f064b8",
+        "401959645d1631a949b1164995589693576f645325408f8f91cd73e2f1f064b8"
+      ],
+      "source_model_sha256": [
+        "06367c46ba31ef56738740f9d0a65d4218e2f1b12a2328655b3c3c3d5aea5921",
+        "06367c46ba31ef56738740f9d0a65d4218e2f1b12a2328655b3c3c3d5aea5921"
+      ]
+    }
+  },
+  "final_counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "unverified_by_this_audit": [
+    "Whether images were interpreted correctly",
+    "Whether claimed evidence or measurements really support each explanation",
+    "Drawing fidelity, missing rooms or openings, and user acceptance",
+    "GT comparison, which must remain post-generation and independent"
+  ],
+  "evidence_limits": [
+    "Tool calls show requested/returned content, not the model's attention.",
+    "A preserved object may still be wrong; a changed object may be right or wrong.",
+    "No GT or historical quality report is read by this audit."
+  ]
+}

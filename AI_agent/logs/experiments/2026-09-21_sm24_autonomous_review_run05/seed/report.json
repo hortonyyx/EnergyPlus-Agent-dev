@@ -1,0 +1,68 @@
+{
+  "agent_assumptions": [
+    "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+    "Exterior opening heights this run are re-derived per facade from each elevation's own explicit dimension-chain labels, cross-checked by direct pixel measurement of wall-top/ground datums and the opening graphics themselves, rather than copied across facades.",
+    "North entrance door ND1 and South door SD1: z=[0.2,2.6]m, confirmed by strong pixel-to-label match (1900/2400/200 chain) on each facade independently.",
+    "East door ED1: z=[0.2,2.6]m assigned by close pixel-graphic match to the same door family as North/South (no separate adjacent explicit label found; the nearby 1100/2400/1000 label was determined to belong to the adjacent EW1 window instead, confirmed by a much closer pixel match to EW1's own graphic). This remains a documented inference, flagged in unresolved.",
+    "North window NW1 z=[1.0,3.4]; South windows SW1/SW2 z=[1.0,2.8]; East large window EW1 z=[1.0,3.4] (own 1100/2400/1000 chain, confirmed by close pixel match); East small windows EW2/EW3 z=[1.0,2.8] (EW3 confirmed via its own adjacent 1700/1800/1000 chain; EW2 assumed same small-window family, approximate pixel match).",
+    "West small windows WW1-WW4 z=[1.0,2.8]m: CORRECTED this run from the inherited assumption of matching North (1.0/3.4). West_view.png's own left-side chain (1700/1800/1000) is the only dimension evidence for these repeated openings and matches the South-window family instead.",
+    "West large boardroom window WW5 z=[1.0,3.4]m: unchanged; confirmed via West_view.png's own right-side chain (1100/2400/1000) adjacent to that specific window.",
+    "All interior (non-exterior) doors (D_lobby_corr, D_w2_corr, D_w3_corr, D_w4_corr, D_e2_corr, D_e3_corr, D_SE_divider) retain the prior explicit assumption z=[0,2.4]m: no elevation drawing shows interior partition door heights, so this remains an assumption, not independently re-verified this run (no conflicting evidence found).",
+    "Building height 4.5m used uniformly as the single floor's wall height per all four elevations (unchanged).",
+    "SE divider P7 and RoomSE_south partition/room findings from the prior run are preserved unchanged (out of this run's scope, which is limited to exterior opening z-intervals and supporting evidence/notes)."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "30e68ed7be9ada5285146a3eca6e5552ba8593965bef22e2e0b402ed76b62163",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "30e68ed7be9ada5285146a3eca6e5552ba8593965bef22e2e0b402ed76b62163",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-20_sm24_opening_heights_run04/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "06367c46ba31ef56738740f9d0a65d4218e2f1b12a2328655b3c3c3d5aea5921",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "ED1_door's z=[0.2,2.6] is inferred from pixel-graphic family matching, not an explicit adjacent dimension label on East_view.png; if a label was missed elsewhere on that facade, this should be re-checked.",
+    "EW2_window's z=[1.0,2.8] is assigned by visual/family similarity to EW3 and the small-window pattern; no explicit dimension chain was found directly adjacent to EW2 itself.",
+    "SW2_window's z=[1.0,2.8] is assumed identical to SW1 by facade symmetry; its own adjacent dimension chain was not independently re-confirmed by pixel measurement this run (South_view crop for SW2 was inconclusive due to a boundary/crop issue).",
+    "Interior door heights remain an unverified explicit assumption (2.4m, base 0); no drawing evidence confirms or contradicts this.",
+    "RoomSE_south's precise use/role remains unlabelled/uncertain (carried over from prior run, out of this run's scope).",
+    "Fine sub-dimension chain reconciliation across all four facades was not exhaustively re-summed beyond the specific opening chains checked this run; outer-bracket/pixel-measured boundaries continue to be trusted where checked."
+  ]
+}
