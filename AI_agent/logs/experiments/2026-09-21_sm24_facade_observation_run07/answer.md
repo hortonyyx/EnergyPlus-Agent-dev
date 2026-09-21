@@ -1,0 +1,58 @@
+## East Facade Opening Observation — Summary
+
+**Saved comparison record:** `facade_comparisons/comparison_001.json` (tool: `compare_facade_spans`, plan `1f_view.png` axis=y, elevation `East_view.png` axis=x, both spans bound to a 20.0 m total — confirmed independently: plan's right‑side dimension chain 540+1500+2380+1200+740+4800+1540+1600+5700=20000 mm, and elevation's bottom chain 5700+1600+1540+4800+740+1200+2380+1500+540=20000 mm).
+
+### 1. Plan observations (1f_view.png), independent list
+Axis anchors used (actual measurement, outer wall corners): `[147px,0m]`,`[879px,20m]` (top‑right and bottom‑right building corners, pixel‑verified by zoomed crops).
+
+| id | pixels (y) | metres | type | evidence |
+|---|---|---|---|---|
+| P1 | 165–225 | 0.49–2.13 | window | cyan double‑frame band, crop[600,145,625,290] |
+| P2 | 306–340 | 4.34–5.27 | window | cyan band, crop[600,290,625,430] |
+| P3 | 367–388 | 6.01–6.59 | **uncertain** | narrow cyan band; a gray block with a protruding white line (possible furniture/fixture, not necessarily a wall pier) sits at 349–400 in a closer recheck crop[598,330,622,420] — could be a mullion inside one large window rather than a separate opening |
+| P4 | 407–508 | 7.10–9.86 | window | long cyan band, crop[600,400,625,620] |
+| P5 | 615–676 | 12.79–14.45 | door | swing arc + sill marks, crop[600,600,625,700] |
+
+Below y=676 to the bottom corner (879) the wall is solid gray with no further cyan marks (checked crop[590,660,650,890]) — no additional east-wall openings there.
+
+### 2. Elevation observations (East_view.png), independent list
+Axis anchors used (actual measurement, outer wall corners top plate line intersections): `[250px,0m]`,`[2381px,20m]`.
+
+| id | pixels (x) | metres | type | evidence |
+|---|---|---|---|---|
+| E1 | 910–1063 | 6.19–7.63 | door‑or‑window, glazed, 2‑leaf w/ cross mullions | crop[850,190,1400,420] |
+| E2 | 1207–1662 | 8.98–13.25 | window (large, single clean rectangle, no internal mullion confirmed on recheck crop[1190,200,1680,410]) | crop[850,190,2350,420] |
+| E3 | 1737–1845 | 13.96–14.97 | window | crop[1650,190,2350,420] |
+| E4 | 2070–2210 | 17.08–18.40 | window | crop[1650,190,2350,420] |
+
+No 5th shape found beyond x=2350 up to the right corner (2381) — checked crop[2300,100,2639,500] (only a height‑dimension chain there, no opening).
+
+### 3. compare_facade_spans results
+- **Counts differ:** plan=5, elevation=4 (mismatch explicitly reported by tool; pairing by centre‑order is therefore partial per the tool's own caveat).
+- **Direction test:**
+  - `elevation_forward`: mean |residual| = 7.33 m (poor)
+  - `elevation_reverse`: mean |residual| = 2.22 m (much better), but `direction_distinguishable=false` because the count mismatch prevents a clean gap threshold.
+- Under reverse direction, rank‑based pairing gave: P1↔E4 (resid ≤1.11m), P2↔E3 (resid ≤0.77m), P3↔E2 (resid ≤4.43m), P4↔E1 (resid ≤5.27m), **P5 left unpaired** (rigid rank pairing, not nearest-centre).
+
+### 4. Recheck of the consequential conflict
+Rank pairing forced P4 (a window, plan) against E1 (a door‑like glazed leaf shape) with a large residual, and left P5 (the only plan door) unpaired — physically implausible. I rechecked geometry directly:
+- Reversed centre of **P5 (door, plan 12.79–14.45m)** is only ~0.4–0.6 m from reversed **E1 (6.19–7.63m → 12.37–13.81m)** — a much better match, and E1's cross‑mullion glazed double‑leaf shape is consistent with a plan door swing.
+- Reversed centre of **P3+P4 combined (6.01–9.86m)** aligns much better with **E2 (large single rectangle, reversed 6.75–11.02m)** than either alone — consistent with P3 being a mullion/artifact inside one big window rather than an independent opening.
+
+**My best-supported (but not tool-forced) correspondence, stated with uncertainty:**
+- P1 (window) ↔ E4 (window) — moderate confidence (~0.8–1.1 m residual)
+- P2 (window) ↔ E3 (window) — moderate confidence (~0.7–0.8 m residual)
+- P3+P4 (window, possibly one opening with an internal mullion or furniture artifact at P3) ↔ E2 (large window) — moderate confidence, residual driven mainly by uncertain P3/P4 boundary
+- P5 (door) ↔ E1 (glazed door, cross‑mullion double leaf) — moderate confidence (~0.4–0.6 m residual)
+
+This is a visual/arithmetic inference from the tool's per-pair residuals, **not** a value the compare tool itself asserts (it only reports rank-order pairs and flags the count mismatch as unresolved).
+
+### 5. Heights (bound to inspected dimension chains only)
+- Overall wall height (eave/roof line to ground), both corners: **4500 mm** (left chain 1900+2400+200=4500; right chain 1700+800+…=4500) — actual measurement, directly read labels.
+- **E2 (large window) head height:** dimension label **1100 mm** measured from the roof line down to the window's top edge (tick matches pixel y≈333, consistent with E2's top). Bottom/sill height of E2 and heights for E1/E3/E4 were **not** found bound to a legible dimension chain in the crops inspected — reporting as **unknown/unexamined**, not inferred.
+
+### 6. Explicit classification of evidence
+- **Actual measurements:** all pixel intervals above (from color‑profile/zoomed crops), the 20 m axis totals, the 4500 mm height chain, the 1100 mm head-height label.
+- **Visual estimates:** exact jamb/mullion pixel edges (±1–2 px reading uncertainty), P3's identity.
+- **Assumptions:** that plan y=0 (top-right corner) and elevation reverse-direction x=20m both represent the same physical corner (supported by the residual comparison, not proven).
+- **Unexamined:** sill/head heights for E1, E3, E4, D1(P5); any openings beyond x=2350 in elevation and y=676–879 in plan were checked and found empty, but ground-line/floor datum was not independently verified against the 4500 mm chain's zero point.

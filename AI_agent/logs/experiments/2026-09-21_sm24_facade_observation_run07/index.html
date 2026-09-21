@@ -1,0 +1,35 @@
+<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>sm24 原图局部开口观察</title><style>
+body{font:16px/1.6 system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#172536}
+table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}
+img{max-width:100%;background:#000}pre{white-space:pre-wrap;background:#f1f5f9;padding:16px}
+.sources{display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start}
+@media(max-width:700px){.sources{grid-template-columns:1fr}}
+</style><h1>sm24 原图局部开口观察</h1>
+<p>工作模型只收到两张原图和东侧观察任务。以下为它提交的观察及双方向计算，
+不能当作独立验收或整案 BIM 成绩；语义核验见 README。</p>
+<p><a href="README.md">结果与限制</a> · <a href="answer.md">模型原答</a> ·
+<a href="verification.json">输入与工具返回核验</a></p>
+<div class="sources"><a href="images/1f_view.png"><img alt="原始平面图" src="images/1f_view.png"></a>
+<a href="images/East_view.png"><img alt="原始东立面" src="images/East_view.png"></a></div>
+<h2>comparison_001</h2><p><a href="facade_comparisons/comparison_001.json">原始记录</a></p>
+<table><tr><th>图</th><th>原图轴标定</th><th>开口 ID</th><th>原图像素区间</th><th>类型（模型判读）</th></tr>
+<tr><td>plan</td><td>[[147, 0], [879, 20]]</td><td>P1</td><td>[165, 225]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[147, 0], [879, 20]]</td><td>P2</td><td>[306, 340]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[147, 0], [879, 20]]</td><td>P3</td><td>[367, 388]</td><td>uncertain-window-or-mullion</td></tr>
+<tr><td>plan</td><td>[[147, 0], [879, 20]]</td><td>P4</td><td>[407, 508]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[147, 0], [879, 20]]</td><td>P5</td><td>[615, 676]</td><td>door</td></tr>
+<tr><td>elevation</td><td>[[250, 0], [2381, 20]]</td><td>E1</td><td>[910, 1063]</td><td>door-or-window(glazed,cross-mullion,2-leaf)</td></tr>
+<tr><td>elevation</td><td>[[250, 0], [2381, 20]]</td><td>E2</td><td>[1207, 1662]</td><td>window(large)</td></tr>
+<tr><td>elevation</td><td>[[250, 0], [2381, 20]]</td><td>E3</td><td>[1737, 1845]</td><td>window</td></tr>
+<tr><td>elevation</td><td>[[250, 0], [2381, 20]]</td><td>E4</td><td>[2070, 2210]</td><td>window</td></tr>
+</table><table><tr><th>方向</th><th>均值误差 m</th><th>最大误差 m</th></tr>
+<tr><td>elevation_forward</td><td>7.332074912878584</td><td>9.977357406794829</td></tr>
+<tr><td>elevation_reverse</td><td>2.2171054149902685</td><td>5.265954309657335</td></tr>
+</table><pre>{
+  &quot;mean_abs_endpoint_residual_gap_m&quot;: 5.114969497888316,
+  &quot;ambiguity_tolerance_m&quot;: 0.05,
+  &quot;lower_residual_direction&quot;: null,
+  &quot;direction_distinguishable&quot;: false
+}</pre>
+</html>

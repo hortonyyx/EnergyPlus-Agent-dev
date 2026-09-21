@@ -21,6 +21,18 @@ def finite_number(value: object, label: str) -> float:
     return float(value)
 
 
+def reject_nonfinite(value: object, label: str = "input") -> None:
+    """Keep preserved observation metadata valid in strict JSON."""
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError(f"{label} must contain only finite numbers")
+    if isinstance(value, dict):
+        for key, item in value.items():
+            reject_nonfinite(item, f"{label}.{key}")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            reject_nonfinite(item, f"{label}[{index}]")
+
+
 def parse_view(raw: object, label: str) -> dict:
     if not isinstance(raw, dict):
         raise ValueError(f"{label} must be an object")
@@ -76,10 +88,13 @@ def compare_direction(plan: list[dict], elevation: list[dict], length: float,
         transformed.append({**opening, "compared_metres": interval,
                             "compared_centre_m": sum(interval) / 2})
     transformed.sort(key=lambda item: (item["compared_centre_m"], item["id"]))
-    pair_count = min(len(plan), len(transformed))
+    complete = len(plan) == len(transformed)
+    # Rank pairing cannot identify a missing mark. With unequal counts, retain
+    # every observation as unresolved instead of emitting misleading pairs.
+    pair_count = len(plan) if complete else 0
     pairs = []
     absolute_residuals = []
-    for first, second in zip(plan[:pair_count], transformed[:pair_count]):
+    for first, second in zip(plan, transformed) if complete else ():
         residuals = [second["compared_metres"][i] - first["metres"][i] for i in (0, 1)]
         absolute_residuals.extend(abs(value) for value in residuals)
         pairs.append({"plan_id": first["id"], "elevation_id": second["id"],
@@ -88,13 +103,13 @@ def compare_direction(plan: list[dict], elevation: list[dict], length: float,
                       "endpoint_residual_m": residuals,
                       "max_abs_endpoint_residual_m": max(map(abs, residuals))})
     return {"direction": "elevation_reverse" if reverse else "elevation_forward",
-            "complete_correspondence": len(plan) == len(transformed),
+            "complete_correspondence": complete,
             "paired_count": pair_count,
             "pairs_by_centre": pairs,
-            "unpaired_plan": [{"id": item["id"], "metres": item["metres"]}
-                              for item in plan[pair_count:]],
-            "unpaired_elevation": [{"id": item["id"], "metres_after_direction": item["compared_metres"]}
-                                   for item in transformed[pair_count:]],
+            "unpaired_plan": ([{"id": item["id"], "metres": item["metres"]}
+                               for item in plan] if not complete else []),
+            "unpaired_elevation": ([{"id": item["id"], "metres_after_direction": item["compared_metres"]}
+                                    for item in transformed] if not complete else []),
             "max_abs_endpoint_residual_m": max(absolute_residuals) if absolute_residuals else None,
             "mean_abs_endpoint_residual_m": (sum(absolute_residuals) / len(absolute_residuals)
                                              if absolute_residuals else None)}
@@ -103,6 +118,7 @@ def compare_direction(plan: list[dict], elevation: list[dict], length: float,
 def compare(raw: object, ambiguity_tolerance_m: float = 0.05) -> dict:
     if not isinstance(raw, dict):
         raise ValueError("input must be a JSON object")
+    reject_nonfinite(raw)
     ambiguity_tolerance_m = finite_number(ambiguity_tolerance_m, "ambiguity tolerance")
     if ambiguity_tolerance_m < 0:
         raise ValueError("ambiguity tolerance must be finite and nonnegative")
@@ -120,14 +136,15 @@ def compare(raw: object, ambiguity_tolerance_m: float = 0.05) -> dict:
     if complete and gap is not None and gap > ambiguity_tolerance_m:
         lower = "elevation_forward" if means[0] < means[1] else "elevation_reverse"
     limits = ["Pairing is by centre order only; matching IDs or drawing meaning are not inferred.",
-              "A smaller residual supports an axis direction, not whether either drawing was read correctly."]
+              "A smaller residual supports an axis direction, not whether either drawing was read correctly.",
+              "Absolute fit is not evaluated; inspect both directions' absolute residuals."]
     if not complete:
-        limits.append("Opening counts differ: all input records are retained, but paired residuals are partial and cannot establish direction.")
+        limits.append("Opening counts differ: all input records are retained as unresolved; no pairs, residuals or direction are reported.")
     if gap is None:
         limits.append("No paired openings are available to distinguish direction.")
     elif gap <= ambiguity_tolerance_m:
         limits.append("Forward and reverse residuals are tied within the declared tolerance; a symmetric or nearly symmetric layout cannot orient the views.")
-    return {"schema_version": "facade_span_direction_probe_v1",
+    return {"schema_version": "facade_span_direction_probe_v2",
             "axis_length_m": length,
             "input_counts": {"plan": len(plan["openings"]), "elevation": len(elevation["openings"])},
             "normalized_inputs": {"plan": plan, "elevation": elevation},
@@ -135,6 +152,6 @@ def compare(raw: object, ambiguity_tolerance_m: float = 0.05) -> dict:
             "direction_separation": {"mean_abs_endpoint_residual_gap_m": gap,
                                      "ambiguity_tolerance_m": ambiguity_tolerance_m,
                                      "lower_residual_direction": lower if complete else None,
-                                     "direction_distinguishable": bool(complete and lower)},
+                                     "relative_error_separated": bool(complete and lower),
+                                     "absolute_fit_status": "not_evaluated"},
             "limits": limits}
-

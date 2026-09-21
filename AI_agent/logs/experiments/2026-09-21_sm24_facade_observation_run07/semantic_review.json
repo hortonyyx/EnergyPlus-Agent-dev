@@ -1,0 +1,139 @@
+{
+  "scope": "post_generation_developer_original_image_review_no_GT",
+  "model_finished_before_review": true,
+  "reference": "AI_agent/logs/experiments/2026-09-21_sm24_facade_direction_probe/observations.json",
+  "reference_sha256": "b6bc36fc6edf4333c42220672a6956538c1bb052f66fe0c4cb50695f73aeaa1d",
+  "reference_not_in_model_inventory": true,
+  "observed_failure": "Correct profile endpoint candidates were returned, but submitted intervals diverged; original elevation dimension markers were misidentified as footprint anchors.",
+  "profile_001_correct_endpoint_candidates": [
+    170,
+    225,
+    311,
+    355,
+    382,
+    556
+  ],
+  "submitted_plan_intervals": {
+    "P1": [
+      165,
+      225
+    ],
+    "P2": [
+      306,
+      340
+    ],
+    "P3": [
+      367,
+      388
+    ],
+    "P4": [
+      407,
+      508
+    ],
+    "P5": [
+      615,
+      676
+    ]
+  },
+  "plan_window_endpoint_check": [
+    {
+      "model_id": "P1",
+      "model_pixels": [
+        165,
+        225
+      ],
+      "profile_candidates_pixels": [
+        170,
+        225
+      ],
+      "signed_difference_px": [
+        -5,
+        0
+      ]
+    },
+    {
+      "model_id": "P2",
+      "model_pixels": [
+        306,
+        340
+      ],
+      "profile_candidates_pixels": [
+        311,
+        355
+      ],
+      "signed_difference_px": [
+        -5,
+        -15
+      ]
+    },
+    {
+      "model_id": "P3+P4_combined_extent",
+      "model_pixels": [
+        367,
+        508
+      ],
+      "profile_candidates_pixels": [
+        382,
+        556
+      ],
+      "signed_difference_px": [
+        -15,
+        -48
+      ]
+    }
+  ],
+  "axis_checks": {
+    "plan": {
+      "model": [
+        [
+          147,
+          0
+        ],
+        [
+          879,
+          20
+        ]
+      ],
+      "developer_observed_dimension_anchors": [
+        [
+          151,
+          0
+        ],
+        [
+          878,
+          20
+        ]
+      ]
+    },
+    "elevation": {
+      "model": [
+        [
+          250,
+          0
+        ],
+        [
+          2381,
+          20
+        ]
+      ],
+      "developer_observed_dimension_anchors": [
+        [
+          373,
+          0
+        ],
+        [
+          2261,
+          20
+        ]
+      ]
+    }
+  },
+  "model_best_correspondence_prose": "Reverse direction with P1-E4, P2-E3, P3+P4-E2, P5-E1; broad order/type inference partly correct, numeric geometry and saved inventory not repaired.",
+  "heights": "Door 1900/2400/200 chain and other opening chains exist on originals; model repeats the door chain but still leaves door heights unknown. Right chain is transcribed 1700+800+... instead of 1700/1800/1000. Large-window roof-to-head 1100 is seen, not a complete opening height observation.",
+  "adopted": false,
+  "limitations": [
+    "Reference pixels are developer-selected evaluation evidence, not automated ground truth or model input.",
+    "Candidate ink peaks need semantic grouping; numerical binding alone will not prove door/window identity.",
+    "No source BIM generated or revised; no claim about whole-case performance."
+  ]
+}

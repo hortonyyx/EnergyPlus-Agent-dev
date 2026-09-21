@@ -94,8 +94,16 @@ def test_facade_comparison_stdio_binds_originals_without_building(tmp_path, read
             assert first["original_images"]["plan"]["sha256"] == digest(run / "images/plan.png")
             assert first["observations"]["plan"]["openings"][0]["kind"] == "door"
             assert json.loads((run / first["record"]).read_text()) == first
+            assert first["schema_version"] == "facade_span_direction_probe_v2"
+            assert first["direction_separation"]["absolute_fit_status"] == "not_evaluated"
             second = _json_result(await session.call_tool("compare_facade_spans", args))
             assert second["record"] != first["record"]
+            for literal in ("NaN", "Infinity", "-Infinity", "1e999"):
+                invalid = json.dumps(observations).replace(
+                    '"kind": "door"', f'"kind": "door", "confidence": {literal}')
+                rejected = await session.call_tool(
+                    "compare_facade_spans", {**args, "observations_json": invalid})
+                assert "finite" in _error_text(rejected)
             rejected = await session.call_tool("compare_facade_spans", {**args, "plan_image": "../plan.png"})
             assert "exact image name" in _error_text(rejected)
             observations["plan"]["axis_anchors"][1][0] = 9

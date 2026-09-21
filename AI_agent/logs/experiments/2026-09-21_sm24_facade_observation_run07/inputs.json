@@ -1,0 +1,30 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    }
+  },
+  "scope": "Inspect the entire east facade's openings independently in the supplied\noriginal floor plan and East elevation. Produce a complete local observation of\ntheir positions and correspondence, separating windows, doors and uncertain marks.\nYou have no previous model or measurements. Read the facade_correspondence reference\nfor a generic measurement/comparison method. Choose your own original-image crops,\ndimension anchors and measurements. Retain the original pixel intervals and evidence\nfor EVERY observed opening in each view separately; do not derive one list from the\nother. Bind your axis length to observed original dimension labels/endpoints.\nUse compare_facade_spans to compare both axis directions, inspect the absolute\nerrors and any count mismatch, and recheck consequential conflicts against originals.\nReport each correspondence with observed type and uncertainty. For elevation opening\nbottom/top heights, report only what you can bind to a directly inspected dimension\nchain or explicit inference; keep different chains and opening groups separate.\nYour final answer must cite the saved comparison record and distinguish actual\nmeasurements, visual estimates, assumptions and unexamined items. This is a local\nobservation task, not a whole-building BIM task. Do not create or request a BIM.\n",
+  "input_mode": "developer_selected_local_original_observation",
+  "only_input": "Two original PNGs and a local task; no seed, historical observations, developer measurements or GT",
+  "deadline_epoch": 1789962242.9347873,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "6bbd2909d0a83c56c624a2f21118c099f089b6447de9d926a2d7eae92e7d981f",
+    "scripts/tool_scripts/bim_agent_guidance.py": "ca2e6d2baec4e058a2060d0dc29a8127ae6da15b7fd9fe7db871990ca8cbd183",
+    "src/agent/geometry/facade_span_comparison.py": "650ae2a7c5c74682cb31908330cd57e06fc8d574f4f32cd77cc0641a23cc235a",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/execution/subscription_json.py": "24a2a2f767a65e81a826ea00e859f4837f6ba4c6af1113c65868d23b50ff4ff5",
+    "AI_agent/logs/experiments/2026-09-21_sm24_facade_observation_setup/run_observation.py": "c70b9b420b2911615d05be9ce761a30eea6042b7a77afa8f9c9b7109df5f8aa0"
+  }
+}

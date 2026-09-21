@@ -77,7 +77,8 @@ arithmetic; they do not validate your interpretation or calibration.
 For plan/elevation correspondence, compare_facade_spans tests BOTH directions
 from independently observed complete opening lists. Read facade_correspondence
 for its schema. Check absolute residuals as well as the direction difference;
-the tool cannot establish that your observations or opening types are correct.
+relative_error_separated is only a relative comparison and absolute_fit_status
+remains not_evaluated. The tool cannot establish that observations or types are correct.
 
 Your primary role is coordination and resolving evidence conflicts.
 review_detail asks Haiku a small local visual question using only selected
@@ -161,10 +162,13 @@ observations_json. A synthetic format example (not a case answer):
 "elevation":{"axis_anchors":[[200,0],[400,10]],"openings":[
 {"id":"E1","pixels":[340,380],"kind":"unknown","evidence":"original crop"}]}}
 The tool maps each view independently and compares forward/reversed elevation
-spans paired by centre order. Different counts or a symmetric arrangement leave
-direction unresolved. A smaller error alone does not prove correct observations;
-large absolute residuals require rechecking anchors, completeness and endpoints.
-Count mismatch pairing is partial and is not identification of the missing mark.
+spans paired by centre order only when counts match. Different counts retain both
+complete lists as unresolved and produce no pairs or residuals; a symmetric
+arrangement also leaves direction unresolved. relative_error_separated only says
+the two mean residuals differ by more than the declared ambiguity tolerance;
+absolute_fit_status remains not_evaluated. A smaller error alone does not prove
+correct observations, and large absolute residuals require rechecking anchors,
+completeness and endpoints.
 Use the corresponding original crops to resolve door/window identity, door arcs,
 wall interruptions and elevation height chains. Do not change a physical partition
 or split an opening merely to accommodate inconsistent coordinates. The saved

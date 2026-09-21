@@ -693,7 +693,10 @@ class Toolkit:
                              plan_axis="y", elevation_axis="x", ambiguity_tolerance_m=0.05):
         """Persist caller observations bound to admitted originals; never change BIM."""
         from src.agent.geometry.facade_span_comparison import compare
-        observations = json.loads(observations_json)
+        def reject_constant(value):
+            raise ValueError(f"observations_json contains non-finite constant {value}")
+
+        observations = json.loads(observations_json, parse_constant=reject_constant)
         result = compare(observations, ambiguity_tolerance_m)
         sources = {}
         for label, name, axis in (("plan", plan_image, plan_axis),
@@ -719,7 +722,7 @@ class Toolkit:
                       evidence_status="caller_observations_not_independently_verified",
                       record=str(path.relative_to(self.run)))
         with path.open("x") as output:
-            json.dump(result, output, ensure_ascii=False, indent=2)
+            json.dump(result, output, ensure_ascii=False, indent=2, allow_nan=False)
             output.write("\n")
         self.log("compare_facade_spans", {"record": result["record"],
                                          "direction_separation": result["direction_separation"]})
