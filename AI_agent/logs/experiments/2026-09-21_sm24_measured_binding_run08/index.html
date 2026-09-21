@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>sm24 原图局部开口观察</title><style>
+body{font:16px/1.6 system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#172536}
+table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}
+img{max-width:100%;background:#000}pre{white-space:pre-wrap;background:#f1f5f9;padding:16px}
+.sources{display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start}
+@media(max-width:700px){.sources{grid-template-columns:1fr}}
+</style><h1>sm24 原图局部开口观察</h1>
+<p>工作模型只收到两张原图和东侧观察任务。以下为它提交的观察及双方向计算，
+不能当作独立验收或整案 BIM 成绩；语义核验见 README。</p>
+<p><a href="README.md">结果与限制</a> · <a href="answer.md">模型原答</a> ·
+<a href="verification.json">输入与工具返回核验</a></p>
+<div class="sources"><a href="images/1f_view.png"><img alt="原始平面图" src="images/1f_view.png"></a>
+<a href="images/East_view.png"><img alt="原始东立面" src="images/East_view.png"></a></div>
+<h2>comparison_001</h2><p><a href="facade_comparisons/comparison_001.json">原始记录</a></p>
+<table><tr><th>图</th><th>原图轴标定</th><th>开口 ID</th><th>原图像素区间</th><th>类型（模型判读）</th></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_W1_1500</td><td>[170, 225]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_W2_1200</td><td>[311, 355]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_W3_740</td><td>[355, 382]</td><td>window</td></tr>
+<tr><td>plan</td><td>[[151, 0], [878, 20]]</td><td>P_D1_1600</td><td>[614, 669]</td><td>door</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_D1_1600</td><td>[911, 1062]</td><td>door</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_W_big_4800</td><td>[1208, 1661]</td><td>window</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_W_med1_1200</td><td>[1730, 1844]</td><td>window</td></tr>
+<tr><td>elevation</td><td>[[373, 0], [2261, 20]]</td><td>E_W_med2_1500</td><td>[2070, 2210]</td><td>window</td></tr>
+</table>
+<details><summary>查看 17 个量测引用</summary><table><tr><th>坐标槽</th><th>扫描 / 候选</th><th>取值</th><th>原图像素</th></tr>
+<tr><td>plan.axis_anchors[0][0]</td><td>profile_002 / C01</td><td>peak</td><td>151</td></tr>
+<tr><td>plan.axis_anchors[1][0]</td><td>profile_002 / C08</td><td>peak</td><td>878</td></tr>
+<tr><td>plan.openings[0].pixels[0]</td><td>profile_008 / C01</td><td>peak</td><td>170</td></tr>
+<tr><td>plan.openings[0].pixels[1]</td><td>profile_008 / C02</td><td>peak</td><td>225</td></tr>
+<tr><td>plan.openings[1].pixels[0]</td><td>profile_006 / C01</td><td>peak</td><td>311</td></tr>
+<tr><td>plan.openings[1].pixels[1]</td><td>profile_006 / C02</td><td>peak</td><td>355</td></tr>
+<tr><td>plan.openings[2].pixels[0]</td><td>profile_004 / C01</td><td>peak</td><td>355</td></tr>
+<tr><td>plan.openings[2].pixels[1]</td><td>profile_004 / C02</td><td>peak</td><td>382</td></tr>
+<tr><td>plan.openings[3].pixels[0]</td><td>profile_007 / C01</td><td>peak</td><td>614</td></tr>
+<tr><td>plan.openings[3].pixels[1]</td><td>profile_007 / C03</td><td>peak</td><td>669</td></tr>
+<tr><td>elevation.axis_anchors[0][0]</td><td>profile_009 / C01</td><td>peak</td><td>373</td></tr>
+<tr><td>elevation.axis_anchors[1][0]</td><td>profile_009 / C02</td><td>peak</td><td>2261</td></tr>
+<tr><td>elevation.openings[0].pixels[0]</td><td>profile_011 / C01</td><td>peak</td><td>911</td></tr>
+<tr><td>elevation.openings[0].pixels[1]</td><td>profile_011 / C06</td><td>peak</td><td>1062</td></tr>
+<tr><td>elevation.openings[1].pixels[1]</td><td>profile_011 / C07</td><td>peak</td><td>1661</td></tr>
+<tr><td>elevation.openings[2].pixels[1]</td><td>profile_013 / C02</td><td>peak</td><td>1844</td></tr>
+<tr><td>elevation.openings[3].pixels[1]</td><td>profile_013 / C03</td><td>peak</td><td>2210</td></tr>
+</table></details>
+<table><tr><th>方向</th><th>均值误差 m</th><th>最大误差 m</th></tr>
+<tr><td>elevation_forward</td><td>6.419316671717997</td><td>9.227744037488634</td></tr>
+<tr><td>elevation_reverse</td><td>0.7110935933602219</td><td>4.799777935793719</td></tr>
+</table><pre>{
+  &quot;mean_abs_endpoint_residual_gap_m&quot;: 5.708223078357775,
+  &quot;ambiguity_tolerance_m&quot;: 0.05,
+  &quot;lower_residual_direction&quot;: &quot;elevation_reverse&quot;,
+  &quot;relative_error_separated&quot;: true,
+  &quot;absolute_fit_status&quot;: &quot;not_evaluated&quot;
+}</pre>
+</html>

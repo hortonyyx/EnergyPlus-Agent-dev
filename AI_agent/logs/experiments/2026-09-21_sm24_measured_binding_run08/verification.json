@@ -1,0 +1,1132 @@
+{
+  "scope": "developer_selected_local_original_observation",
+  "receipt_completed": true,
+  "inputs": [
+    {
+      "image": "1f_view.png",
+      "frozen_hash_matches": true,
+      "original_hash_matches": true
+    },
+    {
+      "image": "East_view.png",
+      "frozen_hash_matches": true,
+      "original_hash_matches": true
+    }
+  ],
+  "implementations": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "src/agent/geometry/facade_span_comparison.py": true,
+    "src/agent/geometry/profile_observation_binding.py": true,
+    "src/agent/geometry/dimension_chain.py": true,
+    "src/agent/execution/subscription_json.py": true,
+    "AI_agent/logs/experiments/2026-09-21_sm24_measured_binding_setup/run_observation.py": true
+  },
+  "no_source_or_seed": true,
+  "tool_counts": {
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "view_image": 16,
+    "view_pixel_profile": 16,
+    "compare_facade_spans": 2
+  },
+  "tool_errors": [
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "plan_east_wall_cyan",
+        "box": [
+          590,
+          80,
+          615,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "plan_east_dim_ticks",
+        "box": [
+          615,
+          80,
+          800,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ],
+        "tolerance": 60
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          615,
+          80,
+          800,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ],
+        "tolerance": 60
+      },
+      "is_error": true
+    },
+    {
+      "name": "compare_facade_spans",
+      "input": {
+        "plan_image": "1f_view.png",
+        "elevation_image": "East_view.png",
+        "plan_axis": "y",
+        "elevation_axis": "x",
+        "observations_json": "{\n \"plan\": {\n   \"axis_anchors\": [\n     {\"profile\":\"profile_002\",\"candidate\":\"C01\",\"at\":\"peak\"},\n     {\"profile\":\"profile_002\",\"candidate\":\"C08\",\"at\":\"peak\"}\n   ],\n   \"axis_anchors_world_m\": [0, 20],\n   \"openings\": [\n     {\"id\":\"P_W1_1500\", \"pixels\":[{\"profile\":\"profile_008\",\"candidate\":\"C01\"}, {\"profile\":\"profile_008\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan double-line band in east wall, pixel x~592-611, plan crop [588,140,618,260]; matches dimension label 1500 (cumulative 540-2040mm)\"},\n     {\"id\":\"P_W2_1200\", \"pixels\":[{\"profile\":\"profile_006\",\"candidate\":\"C01\"}, {\"profile\":\"profile_006\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan band, matches dimension label 1200 (cumulative 4420-5620mm), crop [585,300,700,650]\"},\n     {\"id\":\"P_W3_740\", \"pixels\":[{\"profile\":\"profile_004\",\"candidate\":\"C01\"}, {\"profile\":\"profile_004\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan band immediately below P_W2, matches dimension label 740 (cumulative 5620-6360mm), same crop; separated from P_W2 by a thin gray pier\"},\n     {\"id\":\"P_D1_1600\", \"pixels\":[{\"profile\":\"profile_007\",\"candidate\":\"C01\"}, {\"profile\":\"profile_007\",\"candidate\":\"C03\"}], \"kind\":\"door\", \"evidence\":\"cyan jambs plus quarter-circle door swing arc visible in crop [585,300,700,650] and [560,0,790,900]; matches dimension label 1600 (cumulative 12700-14300mm); wall has an outward jog/bump-out here\"}\n   ]\n },\n \"elevation\": {\n   \"axis_anchors\": [\n     {\"profile\":\"profile_009\",\"candidate\":\"C01\",\"at\":\"peak\"},\n     {\"profile\":\"profile_009\",\"candidate\":\"C02\",\"at\":\"peak\"}\n   ],\n   \"axis_anchors_world_m\": [0, 20],\n   \"openings\": [\n     {\"id\":\"E_D1_1600\", \"pixels\":[{\"profile\":\"profile_011\",\"candidate\":\"C01\"}, {\"profile\":\"profile_011\",\"candidate\":\"C06\"}], \"kind\":\"door\", \"evidence\":\"double-leaf door with round handles/knobs and transom, crop [520,130,1400,700]; width ~1601mm matches plan door 1600\"},\n     {\"id\":\"E_W_big_4800\", \"pixels\":[1208, {\"profile\":\"profile_011\",\"candidate\":\"C07\"}], \"kind\":\"window\", \"evidence\":\"large single-pane rectangle, left edge visual estimate from crop [1150,320,1300,480] (~x=1208), right edge measured; width ~4820mm; no matching plan opening found (plan shows solid 4800mm wall segment at this position)\"},\n     {\"id\":\"E_W_med1_1200\", \"pixels\":[1730, {\"profile\":\"profile_013\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"medium rectangle, left edge visual estimate from crop [1700,340,1900,400] (~x=1730), right edge measured; width ~1208mm\"},\n     {\"id\":\"E_W_med2_1500\", \"pixels\":[2070, {\"profile\":\"profile_013\",\"candidate\":\"C03\"}], \"kind\":\"window\", \"evidence\":\"medium rectangle, left edge visual estimate from crop [2030,340,2230,400] (~x=2070), right edge measured; width ~1484mm\"}\n   ]\n }\n}"
+      },
+      "is_error": true
+    }
+  ],
+  "view_image_replays": [
+    {
+      "input": {
+        "name": "1f_view.png"
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png"
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          560,
+          0,
+          790,
+          900
+        ],
+        "display_scale": 2
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          200,
+          0,
+          1400,
+          480
+        ],
+        "display_scale": 1.3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1300,
+          0,
+          2639,
+          480
+        ],
+        "display_scale": 1.3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          520,
+          130,
+          1400,
+          420
+        ],
+        "display_scale": 2
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          520,
+          130,
+          1400,
+          700
+        ],
+        "display_scale": 1.5
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1200,
+          130,
+          2270,
+          700
+        ],
+        "display_scale": 1.3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          580,
+          320,
+          700,
+          620
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          580,
+          250,
+          700,
+          400
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          588,
+          300,
+          618,
+          400
+        ],
+        "display_scale": 6
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          588,
+          300,
+          618,
+          470
+        ],
+        "display_scale": 4
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          300,
+          700,
+          650
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1150,
+          320,
+          1300,
+          480
+        ],
+        "display_scale": 4
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1700,
+          340,
+          1900,
+          400
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    },
+    {
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2030,
+          340,
+          2230,
+          400
+        ],
+        "display_scale": 3
+      },
+      "returned_count": 1,
+      "pixels_match": true
+    }
+  ],
+  "profile_replays": [
+    {
+      "profile_record": "pixel_profiles/profile_001.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_002.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_003.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_004.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_005.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_006.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_007.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_008.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_009.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_010.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_011.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_012.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    },
+    {
+      "profile_record": "pixel_profiles/profile_013.json",
+      "returned_equals_saved": true,
+      "measurement_replays": true
+    }
+  ],
+  "saved_image_transport": {
+    "stream_present": true,
+    "tool_calls": 36,
+    "comparisons": [
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_001.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_002.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_003.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_004.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_005.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_006.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_007.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_008.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_009.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_010.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_011.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_012.png",
+        "saved_exists": true,
+        "pixels_match": true
+      },
+      {
+        "tool": "view_pixel_profile",
+        "saved": "pixel_profiles/profile_013.png",
+        "saved_exists": true,
+        "pixels_match": true
+      }
+    ],
+    "unpaired_image_returns": 16,
+    "note": "Unpaired returns include ordinary view_image crops without a saved rendered counterpart; this is not a transport failure."
+  },
+  "comparisons": [
+    {
+      "record": "facade_comparisons/comparison_001.json",
+      "returned_equals_saved": true,
+      "input_equals_saved": true,
+      "calculation_replays": true,
+      "bound_coordinate_count": 17,
+      "original_hashes_match": true
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "inputs",
+      "input": {},
+      "is_error": false
+    },
+    {
+      "name": "get_bim_reference",
+      "input": {
+        "topic": "facade_correspondence"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png"
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          560,
+          0,
+          790,
+          900
+        ],
+        "display_scale": 2
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "plan_east_wall_cyan",
+        "box": [
+          590,
+          80,
+          615,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "plan_east_dim_ticks",
+        "box": [
+          615,
+          80,
+          800,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ],
+        "tolerance": 60
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          590,
+          80,
+          615,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          615,
+          80,
+          800,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ],
+        "tolerance": 60
+      },
+      "is_error": true
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          615,
+          80,
+          789,
+          880
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          0
+        ],
+        "tolerance": 60
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          200,
+          0,
+          1400,
+          480
+        ],
+        "display_scale": 1.3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1300,
+          0,
+          2639,
+          480
+        ],
+        "display_scale": 1.3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          220,
+          140,
+          2270,
+          400
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          200,
+          200
+        ],
+        "tolerance": 80
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          520,
+          130,
+          1400,
+          420
+        ],
+        "display_scale": 2
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          520,
+          130,
+          1400,
+          700
+        ],
+        "display_scale": 1.5
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1200,
+          130,
+          2270,
+          700
+        ],
+        "display_scale": 1.3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          580,
+          320,
+          700,
+          620
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          580,
+          250,
+          700,
+          400
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          590,
+          295,
+          615,
+          400
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          590,
+          270,
+          615,
+          400
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 70
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          588,
+          300,
+          618,
+          400
+        ],
+        "display_scale": 6
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          588,
+          300,
+          618,
+          470
+        ],
+        "display_scale": 4
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          585,
+          300,
+          700,
+          650
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          590,
+          295,
+          615,
+          360
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 90
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          590,
+          595,
+          615,
+          680
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 90
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "1f_view.png",
+        "box": [
+          590,
+          140,
+          615,
+          250
+        ],
+        "axis": "y",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 90
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          200,
+          130,
+          2270,
+          160
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          255,
+          0
+        ],
+        "tolerance": 60
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          200,
+          270,
+          2270,
+          330
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          200,
+          200
+        ],
+        "tolerance": 90
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          200,
+          340,
+          2270,
+          480
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 90
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1150,
+          340,
+          1300,
+          480
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 90
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1150,
+          320,
+          1300,
+          480
+        ],
+        "display_scale": 4
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_pixel_profile",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1650,
+          340,
+          2270,
+          480
+        ],
+        "axis": "x",
+        "rgb": [
+          0,
+          255,
+          255
+        ],
+        "tolerance": 100
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          1700,
+          340,
+          1900,
+          400
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "view_image",
+      "input": {
+        "name": "East_view.png",
+        "box": [
+          2030,
+          340,
+          2230,
+          400
+        ],
+        "display_scale": 3
+      },
+      "is_error": false
+    },
+    {
+      "name": "compare_facade_spans",
+      "input": {
+        "plan_image": "1f_view.png",
+        "elevation_image": "East_view.png",
+        "plan_axis": "y",
+        "elevation_axis": "x",
+        "observations_json": "{\n \"plan\": {\n   \"axis_anchors\": [\n     {\"profile\":\"profile_002\",\"candidate\":\"C01\",\"at\":\"peak\"},\n     {\"profile\":\"profile_002\",\"candidate\":\"C08\",\"at\":\"peak\"}\n   ],\n   \"axis_anchors_world_m\": [0, 20],\n   \"openings\": [\n     {\"id\":\"P_W1_1500\", \"pixels\":[{\"profile\":\"profile_008\",\"candidate\":\"C01\"}, {\"profile\":\"profile_008\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan double-line band in east wall, pixel x~592-611, plan crop [588,140,618,260]; matches dimension label 1500 (cumulative 540-2040mm)\"},\n     {\"id\":\"P_W2_1200\", \"pixels\":[{\"profile\":\"profile_006\",\"candidate\":\"C01\"}, {\"profile\":\"profile_006\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan band, matches dimension label 1200 (cumulative 4420-5620mm), crop [585,300,700,650]\"},\n     {\"id\":\"P_W3_740\", \"pixels\":[{\"profile\":\"profile_004\",\"candidate\":\"C01\"}, {\"profile\":\"profile_004\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan band immediately below P_W2, matches dimension label 740 (cumulative 5620-6360mm), same crop; separated from P_W2 by a thin gray pier\"},\n     {\"id\":\"P_D1_1600\", \"pixels\":[{\"profile\":\"profile_007\",\"candidate\":\"C01\"}, {\"profile\":\"profile_007\",\"candidate\":\"C03\"}], \"kind\":\"door\", \"evidence\":\"cyan jambs plus quarter-circle door swing arc visible in crop [585,300,700,650] and [560,0,790,900]; matches dimension label 1600 (cumulative 12700-14300mm); wall has an outward jog/bump-out here\"}\n   ]\n },\n \"elevation\": {\n   \"axis_anchors\": [\n     {\"profile\":\"profile_009\",\"candidate\":\"C01\",\"at\":\"peak\"},\n     {\"profile\":\"profile_009\",\"candidate\":\"C02\",\"at\":\"peak\"}\n   ],\n   \"axis_anchors_world_m\": [0, 20],\n   \"openings\": [\n     {\"id\":\"E_D1_1600\", \"pixels\":[{\"profile\":\"profile_011\",\"candidate\":\"C01\"}, {\"profile\":\"profile_011\",\"candidate\":\"C06\"}], \"kind\":\"door\", \"evidence\":\"double-leaf door with round handles/knobs and transom, crop [520,130,1400,700]; width ~1601mm matches plan door 1600\"},\n     {\"id\":\"E_W_big_4800\", \"pixels\":[1208, {\"profile\":\"profile_011\",\"candidate\":\"C07\"}], \"kind\":\"window\", \"evidence\":\"large single-pane rectangle, left edge visual estimate from crop [1150,320,1300,480] (~x=1208), right edge measured; width ~4820mm; no matching plan opening found (plan shows solid 4800mm wall segment at this position)\"},\n     {\"id\":\"E_W_med1_1200\", \"pixels\":[1730, {\"profile\":\"profile_013\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"medium rectangle, left edge visual estimate from crop [1700,340,1900,400] (~x=1730), right edge measured; width ~1208mm\"},\n     {\"id\":\"E_W_med2_1500\", \"pixels\":[2070, {\"profile\":\"profile_013\",\"candidate\":\"C03\"}], \"kind\":\"window\", \"evidence\":\"medium rectangle, left edge visual estimate from crop [2030,340,2230,400] (~x=2070), right edge measured; width ~1484mm\"}\n   ]\n }\n}"
+      },
+      "is_error": true
+    },
+    {
+      "name": "compare_facade_spans",
+      "input": {
+        "plan_image": "1f_view.png",
+        "elevation_image": "East_view.png",
+        "plan_axis": "y",
+        "elevation_axis": "x",
+        "observations_json": "{\n \"plan\": {\n   \"axis_anchors\": [\n     [{\"profile\":\"profile_002\",\"candidate\":\"C01\",\"at\":\"peak\"}, 0],\n     [{\"profile\":\"profile_002\",\"candidate\":\"C08\",\"at\":\"peak\"}, 20]\n   ],\n   \"openings\": [\n     {\"id\":\"P_W1_1500\", \"pixels\":[{\"profile\":\"profile_008\",\"candidate\":\"C01\"}, {\"profile\":\"profile_008\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan double-line band in east wall, pixel x~592-611, plan crop [588,140,618,260]; matches dimension label 1500 (cumulative 540-2040mm)\"},\n     {\"id\":\"P_W2_1200\", \"pixels\":[{\"profile\":\"profile_006\",\"candidate\":\"C01\"}, {\"profile\":\"profile_006\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan band, matches dimension label 1200 (cumulative 4420-5620mm), crop [585,300,700,650]\"},\n     {\"id\":\"P_W3_740\", \"pixels\":[{\"profile\":\"profile_004\",\"candidate\":\"C01\"}, {\"profile\":\"profile_004\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"cyan band immediately below P_W2, matches dimension label 740 (cumulative 5620-6360mm), same crop; separated from P_W2 by a thin gray pier\"},\n     {\"id\":\"P_D1_1600\", \"pixels\":[{\"profile\":\"profile_007\",\"candidate\":\"C01\"}, {\"profile\":\"profile_007\",\"candidate\":\"C03\"}], \"kind\":\"door\", \"evidence\":\"cyan jambs plus quarter-circle door swing arc visible in crop [585,300,700,650] and [560,0,790,900]; matches dimension label 1600 (cumulative 12700-14300mm); wall has an outward jog/bump-out here\"}\n   ]\n },\n \"elevation\": {\n   \"axis_anchors\": [\n     [{\"profile\":\"profile_009\",\"candidate\":\"C01\",\"at\":\"peak\"}, 0],\n     [{\"profile\":\"profile_009\",\"candidate\":\"C02\",\"at\":\"peak\"}, 20]\n   ],\n   \"openings\": [\n     {\"id\":\"E_D1_1600\", \"pixels\":[{\"profile\":\"profile_011\",\"candidate\":\"C01\"}, {\"profile\":\"profile_011\",\"candidate\":\"C06\"}], \"kind\":\"door\", \"evidence\":\"double-leaf door with round handles/knobs and transom, crop [520,130,1400,700]; width ~1601mm matches plan door 1600\"},\n     {\"id\":\"E_W_big_4800\", \"pixels\":[1208, {\"profile\":\"profile_011\",\"candidate\":\"C07\"}], \"kind\":\"window\", \"evidence\":\"large single-pane rectangle, left edge visual estimate from crop [1150,320,1300,480] (~x=1208), right edge measured; width ~4820mm; no matching plan opening found (plan shows solid 4800mm wall segment at this position)\"},\n     {\"id\":\"E_W_med1_1200\", \"pixels\":[1730, {\"profile\":\"profile_013\",\"candidate\":\"C02\"}], \"kind\":\"window\", \"evidence\":\"medium rectangle, left edge visual estimate from crop [1700,340,1900,400] (~x=1730), right edge measured; width ~1208mm\"},\n     {\"id\":\"E_W_med2_1500\", \"pixels\":[2070, {\"profile\":\"profile_013\",\"candidate\":\"C03\"}], \"kind\":\"window\", \"evidence\":\"medium rectangle, left edge visual estimate from crop [2030,340,2230,400] (~x=2070), right edge measured; width ~1484mm\"}\n   ]\n }\n}"
+      },
+      "is_error": false
+    }
+  ],
+  "model_usage": {
+    "receipts": [
+      {
+        "receipt": "agent_receipt.json",
+        "requested_model": "sonnet",
+        "actual_model": "claude-sonnet-5",
+        "channel": "Claude subscription; no API/fallback",
+        "elapsed_seconds": 421.26,
+        "returncode": 0,
+        "timed_out": false,
+        "is_error": false,
+        "usage": {
+          "input_tokens": 59,
+          "cache_creation_input_tokens": 82941,
+          "cache_read_input_tokens": 1247886,
+          "output_tokens": 33328,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 82941,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "not_available",
+          "iterations": [
+            {
+              "input_tokens": 2,
+              "output_tokens": 2437,
+              "cache_read_input_tokens": 71041,
+              "cache_creation_input_tokens": 11900,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 11900
+              },
+              "type": "message"
+            }
+          ],
+          "speed": "standard"
+        },
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 894,
+            "outputTokens": 16,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000974,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 59,
+            "outputTokens": 33328,
+            "cacheReadInputTokens": 1247886,
+            "cacheCreationInputTokens": 82941,
+            "webSearchRequests": 0,
+            "costUSD": 1.3721088,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000
+          }
+        },
+        "cli_estimated_cost_usd": 1.3730828
+      }
+    ],
+    "receipt_count_matches_summary": true,
+    "requested_models": {
+      "sonnet": 1
+    },
+    "actual_models": {
+      "claude-sonnet-5": 1
+    },
+    "token_totals": {
+      "input_tokens": 59,
+      "cache_creation_input_tokens": 82941,
+      "cache_read_input_tokens": 1247886,
+      "output_tokens": 33328
+    },
+    "cli_estimated_cost_sum_usd": 1.3730828,
+    "reported_partial_cost_matches_summary": true,
+    "cost_note": "CLI estimate, not a subscription bill; modelUsage can include Claude CLI auxiliary models."
+  },
+  "limits": "Mechanics and evidence transport only; no semantic accuracy or BIM acceptance.",
+  "mechanics_pass": true
+}

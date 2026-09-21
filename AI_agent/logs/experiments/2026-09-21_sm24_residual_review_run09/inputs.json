@@ -1,0 +1,34 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    }
+  },
+  "scope": "Independently review the local cross-view discrepancy selected below.\nThe prior worker's spans, types and prose are UNVERIFIED CLAIMS, not drawing facts.\nThe direction transform is a hypothesis used to choose the area, not a correct answer.\nView both supplied ORIGINAL images, starting with the suggested crops; enlarge or\nchange crops as needed. For the plan, inspect the complete selected wall stretch,\nincluding both its claimed aperture and the area projected from the elevation.\nDistinguish continuous wall strips from window frames, internal furniture and\ndimension lines. For each actual aperture or solid-wall interval in this stretch,\ngive original pixel endpoints, the visible evidence, and any useful dimension label.\nUse measurements when they resolve the issue, retaining the actual profile/candidate\nreferences. Inspect enough of the perpendicular direction to establish where the\nphysical wall is, rather than treating an unrelated interior line as the facade.\nState whether the apparent conflict is supported by the drawings or by the prior\nworker's reading. Do not assume either view or either prior claim is correct.\nDo not build a BIM or review the entire building. Report explicit unresolved details.\nLocal review selection:\n{\n  \"selection\": \"largest absolute endpoint residual under the lower-error direction hypothesis\",\n  \"direction_is_hypothesis_not_acceptance\": \"elevation_reverse\",\n  \"pair\": {\n    \"plan_id\": \"P_W3_740\",\n    \"elevation_id\": \"E_W_big_4800\",\n    \"plan_span_m\": [\n      5.612104539202201,\n      6.3548830811554335\n    ],\n    \"elevation_span_after_direction_m\": [\n      6.3559322033898304,\n      11.154661016949152\n    ],\n    \"endpoint_residual_m\": [\n      0.7438276641876298,\n      4.799777935793719\n    ],\n    \"max_abs_endpoint_residual_m\": 4.799777935793719\n  },\n  \"unverified_claims\": {\n    \"plan\": {\n      \"id\": \"P_W3_740\",\n      \"pixels\": [\n        355,\n        382\n      ],\n      \"kind\": \"window\",\n      \"evidence\": \"cyan band immediately below P_W2, matches dimension label 740 (cumulative 5620-6360mm), same crop; separated from P_W2 by a thin gray pier\"\n    },\n    \"elevation\": {\n      \"id\": \"E_W_big_4800\",\n      \"pixels\": [\n        1208,\n        1661\n      ],\n      \"kind\": \"window\",\n      \"evidence\": \"large single-pane rectangle, left edge visual estimate from crop [1150,320,1300,480] (~x=1208), right edge measured; width ~4820mm; no matching plan opening found (plan shows solid 4800mm wall segment at this position)\"\n    }\n  },\n  \"suggested_crops\": {\n    \"plan\": {\n      \"image\": \"1f_view.png\",\n      \"box_original_pixels\": [\n        0,\n        315,\n        790,\n        597\n      ]\n    },\n    \"elevation\": {\n      \"image\": \"East_view.png\",\n      \"box_original_pixels\": [\n        1168,\n        0,\n        1701,\n        931\n      ]\n    }\n  },\n  \"limits\": \"Projected coordinates select a review area only, not a prescribed opening or correct geometry.\"\n}",
+  "input_mode": "automatically_selected_discrepancy_review",
+  "only_input": "Original PNGs and explicitly unverified worker comparison claims; no developer correction, GT or BIM",
+  "deadline_epoch": 1789964128.12761,
+  "parent_comparison": {
+    "path": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-21_sm24_measured_binding_run08/facade_comparisons/comparison_001.json",
+    "sha256": "8c230287d170c627787370247c082d008d55a77babf9b45ac3c8815db3b54401"
+  },
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "7ba99e2ef8675c04ed412d2e286239abdbce6130eee0b2ec1fb29f50c901e2ad",
+    "scripts/tool_scripts/bim_agent_guidance.py": "963391562f831a4a24cba8bad92d1ddad64710e62ec9d8f49f535a079e95c545",
+    "src/agent/geometry/profile_observation_binding.py": "c4e1b3330a9b4dd774daaf65332bcf69666f39426e19684b7ee72318d2c338ba",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/execution/subscription_json.py": "24a2a2f767a65e81a826ea00e859f4837f6ba4c6af1113c65868d23b50ff4ff5",
+    "AI_agent/logs/experiments/2026-09-21_sm24_measured_binding_setup/review_largest_residual.py": "0d9489fd4801dcc915f5b284b86a7259c0634b31e9adf0cb08c324849b3a4df0"
+  }
+}

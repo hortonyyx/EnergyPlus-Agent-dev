@@ -1,0 +1,952 @@
+{
+  "schema_version": "facade_span_direction_probe_v2",
+  "axis_length_m": 20.0,
+  "input_counts": {
+    "plan": 4,
+    "elevation": 4
+  },
+  "normalized_inputs": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151.0,
+          0.0
+        ],
+        [
+          878.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "P_W1_1500",
+          "pixels": [
+            170.0,
+            225.0
+          ],
+          "metres": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "centre_m": 1.279229711141678
+        },
+        {
+          "id": "P_W2_1200",
+          "pixels": [
+            311.0,
+            355.0
+          ],
+          "metres": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "centre_m": 5.006877579092159
+        },
+        {
+          "id": "P_W3_740",
+          "pixels": [
+            355.0,
+            382.0
+          ],
+          "metres": [
+            5.612104539202201,
+            6.3548830811554335
+          ],
+          "centre_m": 5.9834938101788175
+        },
+        {
+          "id": "P_D1_1600",
+          "pixels": [
+            614.0,
+            669.0
+          ],
+          "metres": [
+            12.737276478679505,
+            14.250343878954608
+          ],
+          "centre_m": 13.493810178817057
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373.0,
+          0.0
+        ],
+        [
+          2261.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "E_D1_1600",
+          "pixels": [
+            911.0,
+            1062.0
+          ],
+          "metres": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "centre_m": 6.498940677966102
+        },
+        {
+          "id": "E_W_big_4800",
+          "pixels": [
+            1208.0,
+            1661.0
+          ],
+          "metres": [
+            8.845338983050848,
+            13.64406779661017
+          ],
+          "centre_m": 11.244703389830509
+        },
+        {
+          "id": "E_W_med1_1200",
+          "pixels": [
+            1730.0,
+            1844.0
+          ],
+          "metres": [
+            14.375,
+            15.582627118644067
+          ],
+          "centre_m": 14.978813559322035
+        },
+        {
+          "id": "E_W_med2_1500",
+          "pixels": [
+            2070.0,
+            2210.0
+          ],
+          "metres": [
+            17.97669491525424,
+            19.459745762711865
+          ],
+          "centre_m": 18.718220338983052
+        }
+      ]
+    }
+  },
+  "directions": {
+    "elevation_forward": {
+      "direction": "elevation_forward",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P_W1_1500",
+          "elevation_id": "E_D1_1600",
+          "plan_span_m": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "endpoint_residual_m": [
+            5.176456531368755,
+            5.262965402280092
+          ],
+          "max_abs_endpoint_residual_m": 5.262965402280092
+        },
+        {
+          "plan_id": "P_W2_1200",
+          "elevation_id": "E_W_big_4800",
+          "plan_span_m": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            8.845338983050848,
+            13.64406779661017
+          ],
+          "endpoint_residual_m": [
+            4.44368836406873,
+            8.03196325740797
+          ],
+          "max_abs_endpoint_residual_m": 8.03196325740797
+        },
+        {
+          "plan_id": "P_W3_740",
+          "elevation_id": "E_W_med1_1200",
+          "plan_span_m": [
+            5.612104539202201,
+            6.3548830811554335
+          ],
+          "elevation_span_after_direction_m": [
+            14.375,
+            15.582627118644067
+          ],
+          "endpoint_residual_m": [
+            8.7628954607978,
+            9.227744037488634
+          ],
+          "max_abs_endpoint_residual_m": 9.227744037488634
+        },
+        {
+          "plan_id": "P_D1_1600",
+          "elevation_id": "E_W_med2_1500",
+          "plan_span_m": [
+            12.737276478679505,
+            14.250343878954608
+          ],
+          "elevation_span_after_direction_m": [
+            17.97669491525424,
+            19.459745762711865
+          ],
+          "endpoint_residual_m": [
+            5.239418436574734,
+            5.209401883757257
+          ],
+          "max_abs_endpoint_residual_m": 5.239418436574734
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 9.227744037488634,
+      "mean_abs_endpoint_residual_m": 6.419316671717997
+    },
+    "elevation_reverse": {
+      "direction": "elevation_reverse",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P_W1_1500",
+          "elevation_id": "E_W_med2_1500",
+          "plan_span_m": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            0.5402542372881349,
+            2.023305084745761
+          ],
+          "endpoint_residual_m": [
+            0.017558226284008382,
+            -0.012458326533468345
+          ],
+          "max_abs_endpoint_residual_m": 0.017558226284008382
+        },
+        {
+          "plan_id": "P_W2_1200",
+          "elevation_id": "E_W_med1_1200",
+          "plan_span_m": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            4.4173728813559325,
+            5.625
+          ],
+          "endpoint_residual_m": [
+            0.015722262373814466,
+            0.012895460797799352
+          ],
+          "max_abs_endpoint_residual_m": 0.015722262373814466
+        },
+        {
+          "plan_id": "P_W3_740",
+          "elevation_id": "E_W_big_4800",
+          "plan_span_m": [
+            5.612104539202201,
+            6.3548830811554335
+          ],
+          "elevation_span_after_direction_m": [
+            6.3559322033898304,
+            11.154661016949152
+          ],
+          "endpoint_residual_m": [
+            0.7438276641876298,
+            4.799777935793719
+          ],
+          "max_abs_endpoint_residual_m": 4.799777935793719
+        },
+        {
+          "plan_id": "P_D1_1600",
+          "elevation_id": "E_D1_1600",
+          "plan_span_m": [
+            12.737276478679505,
+            14.250343878954608
+          ],
+          "elevation_span_after_direction_m": [
+            12.701271186440678,
+            14.300847457627118
+          ],
+          "endpoint_residual_m": [
+            -0.036005292238826314,
+            0.050503578672509875
+          ],
+          "max_abs_endpoint_residual_m": 0.050503578672509875
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 4.799777935793719,
+      "mean_abs_endpoint_residual_m": 0.7110935933602219
+    }
+  },
+  "direction_separation": {
+    "mean_abs_endpoint_residual_gap_m": 5.708223078357775,
+    "ambiguity_tolerance_m": 0.05,
+    "lower_residual_direction": "elevation_reverse",
+    "relative_error_separated": true,
+    "absolute_fit_status": "not_evaluated"
+  },
+  "limits": [
+    "Pairing is by centre order only; matching IDs or drawing meaning are not inferred.",
+    "A smaller residual supports an axis direction, not whether either drawing was read correctly.",
+    "Absolute fit is not evaluated; inspect both directions' absolute residuals."
+  ],
+  "original_images": {
+    "plan": {
+      "image": "1f_view.png",
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "size": [
+        790,
+        1111
+      ],
+      "axis": "y"
+    },
+    "elevation": {
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "axis": "x"
+    }
+  },
+  "observations": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151,
+          0
+        ],
+        [
+          878,
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "P_W1_1500",
+          "pixels": [
+            170,
+            225
+          ],
+          "kind": "window",
+          "evidence": "cyan double-line band in east wall, pixel x~592-611, plan crop [588,140,618,260]; matches dimension label 1500 (cumulative 540-2040mm)"
+        },
+        {
+          "id": "P_W2_1200",
+          "pixels": [
+            311,
+            355
+          ],
+          "kind": "window",
+          "evidence": "cyan band, matches dimension label 1200 (cumulative 4420-5620mm), crop [585,300,700,650]"
+        },
+        {
+          "id": "P_W3_740",
+          "pixels": [
+            355,
+            382
+          ],
+          "kind": "window",
+          "evidence": "cyan band immediately below P_W2, matches dimension label 740 (cumulative 5620-6360mm), same crop; separated from P_W2 by a thin gray pier"
+        },
+        {
+          "id": "P_D1_1600",
+          "pixels": [
+            614,
+            669
+          ],
+          "kind": "door",
+          "evidence": "cyan jambs plus quarter-circle door swing arc visible in crop [585,300,700,650] and [560,0,790,900]; matches dimension label 1600 (cumulative 12700-14300mm); wall has an outward jog/bump-out here"
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373,
+          0
+        ],
+        [
+          2261,
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "E_D1_1600",
+          "pixels": [
+            911,
+            1062
+          ],
+          "kind": "door",
+          "evidence": "double-leaf door with round handles/knobs and transom, crop [520,130,1400,700]; width ~1601mm matches plan door 1600"
+        },
+        {
+          "id": "E_W_big_4800",
+          "pixels": [
+            1208,
+            1661
+          ],
+          "kind": "window",
+          "evidence": "large single-pane rectangle, left edge visual estimate from crop [1150,320,1300,480] (~x=1208), right edge measured; width ~4820mm; no matching plan opening found (plan shows solid 4800mm wall segment at this position)"
+        },
+        {
+          "id": "E_W_med1_1200",
+          "pixels": [
+            1730,
+            1844
+          ],
+          "kind": "window",
+          "evidence": "medium rectangle, left edge visual estimate from crop [1700,340,1900,400] (~x=1730), right edge measured; width ~1208mm"
+        },
+        {
+          "id": "E_W_med2_1500",
+          "pixels": [
+            2070,
+            2210
+          ],
+          "kind": "window",
+          "evidence": "medium rectangle, left edge visual estimate from crop [2030,340,2230,400] (~x=2070), right edge measured; width ~1484mm"
+        }
+      ]
+    }
+  },
+  "submitted_observations": {
+    "plan": {
+      "axis_anchors": [
+        [
+          {
+            "profile": "profile_002",
+            "candidate": "C01",
+            "at": "peak"
+          },
+          0
+        ],
+        [
+          {
+            "profile": "profile_002",
+            "candidate": "C08",
+            "at": "peak"
+          },
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "P_W1_1500",
+          "pixels": [
+            {
+              "profile": "profile_008",
+              "candidate": "C01"
+            },
+            {
+              "profile": "profile_008",
+              "candidate": "C02"
+            }
+          ],
+          "kind": "window",
+          "evidence": "cyan double-line band in east wall, pixel x~592-611, plan crop [588,140,618,260]; matches dimension label 1500 (cumulative 540-2040mm)"
+        },
+        {
+          "id": "P_W2_1200",
+          "pixels": [
+            {
+              "profile": "profile_006",
+              "candidate": "C01"
+            },
+            {
+              "profile": "profile_006",
+              "candidate": "C02"
+            }
+          ],
+          "kind": "window",
+          "evidence": "cyan band, matches dimension label 1200 (cumulative 4420-5620mm), crop [585,300,700,650]"
+        },
+        {
+          "id": "P_W3_740",
+          "pixels": [
+            {
+              "profile": "profile_004",
+              "candidate": "C01"
+            },
+            {
+              "profile": "profile_004",
+              "candidate": "C02"
+            }
+          ],
+          "kind": "window",
+          "evidence": "cyan band immediately below P_W2, matches dimension label 740 (cumulative 5620-6360mm), same crop; separated from P_W2 by a thin gray pier"
+        },
+        {
+          "id": "P_D1_1600",
+          "pixels": [
+            {
+              "profile": "profile_007",
+              "candidate": "C01"
+            },
+            {
+              "profile": "profile_007",
+              "candidate": "C03"
+            }
+          ],
+          "kind": "door",
+          "evidence": "cyan jambs plus quarter-circle door swing arc visible in crop [585,300,700,650] and [560,0,790,900]; matches dimension label 1600 (cumulative 12700-14300mm); wall has an outward jog/bump-out here"
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          {
+            "profile": "profile_009",
+            "candidate": "C01",
+            "at": "peak"
+          },
+          0
+        ],
+        [
+          {
+            "profile": "profile_009",
+            "candidate": "C02",
+            "at": "peak"
+          },
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "E_D1_1600",
+          "pixels": [
+            {
+              "profile": "profile_011",
+              "candidate": "C01"
+            },
+            {
+              "profile": "profile_011",
+              "candidate": "C06"
+            }
+          ],
+          "kind": "door",
+          "evidence": "double-leaf door with round handles/knobs and transom, crop [520,130,1400,700]; width ~1601mm matches plan door 1600"
+        },
+        {
+          "id": "E_W_big_4800",
+          "pixels": [
+            1208,
+            {
+              "profile": "profile_011",
+              "candidate": "C07"
+            }
+          ],
+          "kind": "window",
+          "evidence": "large single-pane rectangle, left edge visual estimate from crop [1150,320,1300,480] (~x=1208), right edge measured; width ~4820mm; no matching plan opening found (plan shows solid 4800mm wall segment at this position)"
+        },
+        {
+          "id": "E_W_med1_1200",
+          "pixels": [
+            1730,
+            {
+              "profile": "profile_013",
+              "candidate": "C02"
+            }
+          ],
+          "kind": "window",
+          "evidence": "medium rectangle, left edge visual estimate from crop [1700,340,1900,400] (~x=1730), right edge measured; width ~1208mm"
+        },
+        {
+          "id": "E_W_med2_1500",
+          "pixels": [
+            2070,
+            {
+              "profile": "profile_013",
+              "candidate": "C03"
+            }
+          ],
+          "kind": "window",
+          "evidence": "medium rectangle, left edge visual estimate from crop [2030,340,2230,400] (~x=2070), right edge measured; width ~1484mm"
+        }
+      ]
+    }
+  },
+  "measurement_bindings": [
+    {
+      "slot": "plan.axis_anchors[0][0]",
+      "reference": {
+        "profile": "profile_002",
+        "candidate": "C01",
+        "at": "peak"
+      },
+      "resolved_pixel": 151,
+      "profile_sha256": "30cd3d66150b7d23a967164e93da9da6a6db3c2e18c6a55bd4c6466a2e7a2bd8",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          151,
+          151
+        ],
+        "peak": 151,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.axis_anchors[1][0]",
+      "reference": {
+        "profile": "profile_002",
+        "candidate": "C08",
+        "at": "peak"
+      },
+      "resolved_pixel": 878,
+      "profile_sha256": "30cd3d66150b7d23a967164e93da9da6a6db3c2e18c6a55bd4c6466a2e7a2bd8",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C08",
+        "pixels": [
+          878,
+          878
+        ],
+        "peak": 878,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[0].pixels[0]",
+      "reference": {
+        "profile": "profile_008",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 170,
+      "profile_sha256": "f7674c0ec4e6327328bdf670916379563b8f5afbe82308960c2d0671b52c19bf",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          170,
+          170
+        ],
+        "peak": 170,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[0].pixels[1]",
+      "reference": {
+        "profile": "profile_008",
+        "candidate": "C02"
+      },
+      "resolved_pixel": 225,
+      "profile_sha256": "f7674c0ec4e6327328bdf670916379563b8f5afbe82308960c2d0671b52c19bf",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          225,
+          225
+        ],
+        "peak": 225,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[1].pixels[0]",
+      "reference": {
+        "profile": "profile_006",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 311,
+      "profile_sha256": "182f4dee6ed30e00012301cfac153e4bed635f6d5a58a1784d31ebc1a3b7c471",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          311,
+          312
+        ],
+        "peak": 311,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[1].pixels[1]",
+      "reference": {
+        "profile": "profile_006",
+        "candidate": "C02"
+      },
+      "resolved_pixel": 355,
+      "profile_sha256": "182f4dee6ed30e00012301cfac153e4bed635f6d5a58a1784d31ebc1a3b7c471",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          355,
+          355
+        ],
+        "peak": 355,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[2].pixels[0]",
+      "reference": {
+        "profile": "profile_004",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 355,
+      "profile_sha256": "2afe39bda95146d1b7d529b3ada0645a99d600bb3de1269eeba329abc68a0a04",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          355,
+          355
+        ],
+        "peak": 355,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[2].pixels[1]",
+      "reference": {
+        "profile": "profile_004",
+        "candidate": "C02"
+      },
+      "resolved_pixel": 382,
+      "profile_sha256": "2afe39bda95146d1b7d529b3ada0645a99d600bb3de1269eeba329abc68a0a04",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          382,
+          382
+        ],
+        "peak": 382,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[3].pixels[0]",
+      "reference": {
+        "profile": "profile_007",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 614,
+      "profile_sha256": "cde732f3edc138e80c303d81e5ef3447b4a651d0fcb60305bc65bad886bf8fdd",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          614,
+          614
+        ],
+        "peak": 614,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[3].pixels[1]",
+      "reference": {
+        "profile": "profile_007",
+        "candidate": "C03"
+      },
+      "resolved_pixel": 669,
+      "profile_sha256": "cde732f3edc138e80c303d81e5ef3447b4a651d0fcb60305bc65bad886bf8fdd",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C03",
+        "pixels": [
+          669,
+          669
+        ],
+        "peak": 669,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.axis_anchors[0][0]",
+      "reference": {
+        "profile": "profile_009",
+        "candidate": "C01",
+        "at": "peak"
+      },
+      "resolved_pixel": 373,
+      "profile_sha256": "12fea4eddc50bf086ae87bc8fda323399ac82a152b9cc52e6002b9e8bc476760",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          373,
+          373
+        ],
+        "peak": 373,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.axis_anchors[1][0]",
+      "reference": {
+        "profile": "profile_009",
+        "candidate": "C02",
+        "at": "peak"
+      },
+      "resolved_pixel": 2261,
+      "profile_sha256": "12fea4eddc50bf086ae87bc8fda323399ac82a152b9cc52e6002b9e8bc476760",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          2261,
+          2261
+        ],
+        "peak": 2261,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[0].pixels[0]",
+      "reference": {
+        "profile": "profile_011",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 911,
+      "profile_sha256": "3eae0b0b32740bc666880598123ff9fa55f89eb74d3e7366de99c79c7c03ad89",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          911,
+          911
+        ],
+        "peak": 911,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[0].pixels[1]",
+      "reference": {
+        "profile": "profile_011",
+        "candidate": "C06"
+      },
+      "resolved_pixel": 1062,
+      "profile_sha256": "3eae0b0b32740bc666880598123ff9fa55f89eb74d3e7366de99c79c7c03ad89",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C06",
+        "pixels": [
+          1062,
+          1062
+        ],
+        "peak": 1062,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[1].pixels[1]",
+      "reference": {
+        "profile": "profile_011",
+        "candidate": "C07"
+      },
+      "resolved_pixel": 1661,
+      "profile_sha256": "3eae0b0b32740bc666880598123ff9fa55f89eb74d3e7366de99c79c7c03ad89",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C07",
+        "pixels": [
+          1661,
+          1661
+        ],
+        "peak": 1661,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[2].pixels[1]",
+      "reference": {
+        "profile": "profile_013",
+        "candidate": "C02"
+      },
+      "resolved_pixel": 1844,
+      "profile_sha256": "9b18f2ff0c183f891d0ff50a9d48c347c482646548774d2600e682908d98109d",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          1844,
+          1844
+        ],
+        "peak": 1844,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[3].pixels[1]",
+      "reference": {
+        "profile": "profile_013",
+        "candidate": "C03"
+      },
+      "resolved_pixel": 2210,
+      "profile_sha256": "9b18f2ff0c183f891d0ff50a9d48c347c482646548774d2600e682908d98109d",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C03",
+        "pixels": [
+          2210,
+          2210
+        ],
+        "peak": 2210,
+        "selected_at": "peak"
+      }
+    }
+  ],
+  "evidence_status": "caller_observations_not_independently_verified",
+  "record": "facade_comparisons/comparison_001.json"
+}

@@ -1,0 +1,37 @@
+{
+  "scope": "post_generation_original_image_review_no_GT",
+  "adopt_complete_observation": false,
+  "bound_coordinate_count": 17,
+  "coordinate_slot_count": 20,
+  "explicit_visual_estimate_count": 3,
+  "correct_axis_anchors": true,
+  "matching_openings": {
+    "north_small_window": true,
+    "middle_small_window": true,
+    "door_horizontal": true
+  },
+  "false_plan_opening": {
+    "pixels": [
+      355,
+      382
+    ],
+    "declared_kind": "window",
+    "original_evidence": "Solid gray wall between actual windows; 740mm dimension denotes intervening wall."
+  },
+  "missing_plan_opening": {
+    "pixels": [
+      382,
+      556
+    ],
+    "original_evidence": "Continuous cyan window frame over the 4800mm segment; endpoint556 already exists in worker profile_001."
+  },
+  "door_endpoint_residuals_m": [
+    -0.036005292238826314,
+    0.050503578672509875
+  ],
+  "height_error": "Worker applies large-window 1100/2400/1000 chain to door; actual door chain is1900/2400/200, still not identified.",
+  "no_original_view_after_successful_comparison": true,
+  "interpretation": "Numerical binding and anchors improve, semantic wall/window grouping and dimension-chain identity remain incorrect. Matched counts do not establish matched objects.",
+  "comparison_with_run07": "Different prompt plus binding and comparison-v2 changes; not a single-variable or repeatability study.",
+  "evaluation_reference": "Original plan and East image independently re-inspected by developer; existing developer probe used only after completion, no GT input or scoring."
+}

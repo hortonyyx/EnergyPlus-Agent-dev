@@ -1,0 +1,31 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    }
+  },
+  "scope": "Inspect the entire east facade's openings independently in the supplied\noriginal floor plan and East elevation. Produce a complete local observation of\ntheir positions and correspondence, separating windows, doors and uncertain marks.\nYou have no previous model or measurements. Read the facade_correspondence reference\nfor a generic measurement/comparison method. Choose your own original-image crops,\ndimension anchors and measurements. Retain the original pixel intervals and evidence\nfor EVERY observed opening in each view separately; do not derive one list from the\nother. Bind your axis length to observed original dimension labels/endpoints.\nFor endpoints measured with view_pixel_profile, submit saved profile_id/candidate\nreferences in compare_facade_spans pixel slots (including measured axis anchors),\nso the tool adopts the actual measurements. Do not retype visual estimates of\nthose measured coordinates. You choose the profiles and which candidate edges\nbelong to each opening; the reference format is in facade_correspondence. Plain\nnumeric coordinates remain valid for explicitly identified visual estimates when\nno suitable measurement is available. Keep those estimates distinct from measured\nreferences. If you revise your interpretation, submit a new comparison record.\nUse compare_facade_spans to compare both axis directions, inspect the absolute\nerrors and any count mismatch, and recheck consequential conflicts against originals.\nReport each correspondence with observed type and uncertainty. For elevation opening\nbottom/top heights, report only what you can bind to a directly inspected dimension\nchain or explicit inference; keep different chains and opening groups separate.\nYour final answer must cite the saved comparison record and distinguish actual\nmeasurements, visual estimates, assumptions and unexamined items. This is a local\nobservation task, not a whole-building BIM task. Do not create or request a BIM.\n",
+  "input_mode": "developer_selected_local_original_observation",
+  "only_input": "Two original PNGs and a local task; no seed, historical observations, developer measurements or GT",
+  "deadline_epoch": 1789964063.3793957,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "7ba99e2ef8675c04ed412d2e286239abdbce6130eee0b2ec1fb29f50c901e2ad",
+    "scripts/tool_scripts/bim_agent_guidance.py": "963391562f831a4a24cba8bad92d1ddad64710e62ec9d8f49f535a079e95c545",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "c4e1b3330a9b4dd774daaf65332bcf69666f39426e19684b7ee72318d2c338ba",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/execution/subscription_json.py": "24a2a2f767a65e81a826ea00e859f4837f6ba4c6af1113c65868d23b50ff4ff5",
+    "AI_agent/logs/experiments/2026-09-21_sm24_measured_binding_setup/run_observation.py": "3f28f47f441c47d0c76869fc036a1f1007c500d846237e9065fa5547ce6d162e"
+  }
+}

@@ -1,0 +1,984 @@
+{
+  "schema_version": "facade_span_direction_probe_v2",
+  "axis_length_m": 20.0,
+  "input_counts": {
+    "plan": 4,
+    "elevation": 4
+  },
+  "normalized_inputs": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151.0,
+          0.0
+        ],
+        [
+          878.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "P1",
+          "pixels": [
+            170.0,
+            225.0
+          ],
+          "metres": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "centre_m": 1.279229711141678
+        },
+        {
+          "id": "P2",
+          "pixels": [
+            311.0,
+            355.0
+          ],
+          "metres": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "centre_m": 5.006877579092159
+        },
+        {
+          "id": "P3",
+          "pixels": [
+            382.0,
+            556.0
+          ],
+          "metres": [
+            6.3548830811554335,
+            11.141678129298487
+          ],
+          "centre_m": 8.74828060522696
+        },
+        {
+          "id": "P4",
+          "pixels": [
+            614.0,
+            671.0
+          ],
+          "metres": [
+            12.737276478679505,
+            14.305364511691884
+          ],
+          "centre_m": 13.521320495185694
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373.0,
+          0.0
+        ],
+        [
+          2261.0,
+          20.0
+        ]
+      ],
+      "length_m": 20.0,
+      "openings": [
+        {
+          "id": "E1",
+          "pixels": [
+            911.0,
+            1062.0
+          ],
+          "metres": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "centre_m": 6.498940677966102
+        },
+        {
+          "id": "E2",
+          "pixels": [
+            1208.0,
+            1661.0
+          ],
+          "metres": [
+            8.845338983050848,
+            13.64406779661017
+          ],
+          "centre_m": 11.244703389830509
+        },
+        {
+          "id": "E3",
+          "pixels": [
+            1731.0,
+            1844.0
+          ],
+          "metres": [
+            14.385593220338983,
+            15.582627118644067
+          ],
+          "centre_m": 14.984110169491526
+        },
+        {
+          "id": "E4",
+          "pixels": [
+            2068.0,
+            2210.0
+          ],
+          "metres": [
+            17.95550847457627,
+            19.459745762711865
+          ],
+          "centre_m": 18.70762711864407
+        }
+      ]
+    }
+  },
+  "directions": {
+    "elevation_forward": {
+      "direction": "elevation_forward",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P1",
+          "elevation_id": "E1",
+          "plan_span_m": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            5.6991525423728815,
+            7.298728813559322
+          ],
+          "endpoint_residual_m": [
+            5.176456531368755,
+            5.262965402280092
+          ],
+          "max_abs_endpoint_residual_m": 5.262965402280092
+        },
+        {
+          "plan_id": "P2",
+          "elevation_id": "E2",
+          "plan_span_m": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            8.845338983050848,
+            13.64406779661017
+          ],
+          "endpoint_residual_m": [
+            4.44368836406873,
+            8.03196325740797
+          ],
+          "max_abs_endpoint_residual_m": 8.03196325740797
+        },
+        {
+          "plan_id": "P3",
+          "elevation_id": "E3",
+          "plan_span_m": [
+            6.3548830811554335,
+            11.141678129298487
+          ],
+          "elevation_span_after_direction_m": [
+            14.385593220338983,
+            15.582627118644067
+          ],
+          "endpoint_residual_m": [
+            8.03071013918355,
+            4.44094898934558
+          ],
+          "max_abs_endpoint_residual_m": 8.03071013918355
+        },
+        {
+          "plan_id": "P4",
+          "elevation_id": "E4",
+          "plan_span_m": [
+            12.737276478679505,
+            14.305364511691884
+          ],
+          "elevation_span_after_direction_m": [
+            17.95550847457627,
+            19.459745762711865
+          ],
+          "endpoint_residual_m": [
+            5.218231995896765,
+            5.154381251019981
+          ],
+          "max_abs_endpoint_residual_m": 5.218231995896765
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 8.03196325740797,
+      "mean_abs_endpoint_residual_m": 5.719918241321428
+    },
+    "elevation_reverse": {
+      "direction": "elevation_reverse",
+      "complete_correspondence": true,
+      "paired_count": 4,
+      "pairs_by_centre": [
+        {
+          "plan_id": "P1",
+          "elevation_id": "E4",
+          "plan_span_m": [
+            0.5226960110041265,
+            2.0357634112792296
+          ],
+          "elevation_span_after_direction_m": [
+            0.5402542372881349,
+            2.04449152542373
+          ],
+          "endpoint_residual_m": [
+            0.017558226284008382,
+            0.008728114144500587
+          ],
+          "max_abs_endpoint_residual_m": 0.017558226284008382
+        },
+        {
+          "plan_id": "P2",
+          "elevation_id": "E3",
+          "plan_span_m": [
+            4.401650618982118,
+            5.612104539202201
+          ],
+          "elevation_span_after_direction_m": [
+            4.4173728813559325,
+            5.614406779661017
+          ],
+          "endpoint_residual_m": [
+            0.015722262373814466,
+            0.0023022404588166623
+          ],
+          "max_abs_endpoint_residual_m": 0.015722262373814466
+        },
+        {
+          "plan_id": "P3",
+          "elevation_id": "E2",
+          "plan_span_m": [
+            6.3548830811554335,
+            11.141678129298487
+          ],
+          "elevation_span_after_direction_m": [
+            6.3559322033898304,
+            11.154661016949152
+          ],
+          "endpoint_residual_m": [
+            0.0010491222343969042,
+            0.01298288765066502
+          ],
+          "max_abs_endpoint_residual_m": 0.01298288765066502
+        },
+        {
+          "plan_id": "P4",
+          "elevation_id": "E1",
+          "plan_span_m": [
+            12.737276478679505,
+            14.305364511691884
+          ],
+          "elevation_span_after_direction_m": [
+            12.701271186440678,
+            14.300847457627118
+          ],
+          "endpoint_residual_m": [
+            -0.036005292238826314,
+            -0.004517054064766768
+          ],
+          "max_abs_endpoint_residual_m": 0.036005292238826314
+        }
+      ],
+      "unpaired_plan": [],
+      "unpaired_elevation": [],
+      "max_abs_endpoint_residual_m": 0.036005292238826314,
+      "mean_abs_endpoint_residual_m": 0.012358149931224388
+    }
+  },
+  "direction_separation": {
+    "mean_abs_endpoint_residual_gap_m": 5.707560091390203,
+    "ambiguity_tolerance_m": 0.05,
+    "lower_residual_direction": "elevation_reverse",
+    "relative_error_separated": true,
+    "absolute_fit_status": "not_evaluated"
+  },
+  "limits": [
+    "Pairing is by centre order only; matching IDs or drawing meaning are not inferred.",
+    "A smaller residual supports an axis direction, not whether either drawing was read correctly.",
+    "Absolute fit is not evaluated; inspect both directions' absolute residuals."
+  ],
+  "original_images": {
+    "plan": {
+      "image": "1f_view.png",
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "size": [
+        790,
+        1111
+      ],
+      "axis": "y"
+    },
+    "elevation": {
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "axis": "x"
+    }
+  },
+  "observations": {
+    "plan": {
+      "axis_anchors": [
+        [
+          151,
+          0
+        ],
+        [
+          878,
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "P1",
+          "pixels": [
+            170,
+            225
+          ]
+        },
+        {
+          "id": "P2",
+          "pixels": [
+            311,
+            355
+          ]
+        },
+        {
+          "id": "P3",
+          "pixels": [
+            382,
+            556
+          ]
+        },
+        {
+          "id": "P4",
+          "pixels": [
+            614,
+            671
+          ]
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          373,
+          0
+        ],
+        [
+          2261,
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "E1",
+          "pixels": [
+            911,
+            1062
+          ]
+        },
+        {
+          "id": "E2",
+          "pixels": [
+            1208,
+            1661
+          ]
+        },
+        {
+          "id": "E3",
+          "pixels": [
+            1731,
+            1844
+          ]
+        },
+        {
+          "id": "E4",
+          "pixels": [
+            2068,
+            2210
+          ]
+        }
+      ]
+    }
+  },
+  "submitted_observations": {
+    "plan": {
+      "axis_anchors": [
+        [
+          {
+            "profile": "profile_002",
+            "candidate": "C01"
+          },
+          0
+        ],
+        [
+          {
+            "profile": "profile_002",
+            "candidate": "C08"
+          },
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "P1",
+          "pixels": [
+            {
+              "profile": "profile_001",
+              "candidate": "C01"
+            },
+            {
+              "profile": "profile_001",
+              "candidate": "C02"
+            }
+          ]
+        },
+        {
+          "id": "P2",
+          "pixels": [
+            {
+              "profile": "profile_001",
+              "candidate": "C03"
+            },
+            {
+              "profile": "profile_001",
+              "candidate": "C04"
+            }
+          ]
+        },
+        {
+          "id": "P3",
+          "pixels": [
+            {
+              "profile": "profile_001",
+              "candidate": "C05"
+            },
+            {
+              "profile": "profile_001",
+              "candidate": "C06"
+            }
+          ]
+        },
+        {
+          "id": "P4",
+          "pixels": [
+            {
+              "profile": "profile_001",
+              "candidate": "C07"
+            },
+            {
+              "profile": "profile_001",
+              "candidate": "C10"
+            }
+          ]
+        }
+      ]
+    },
+    "elevation": {
+      "axis_anchors": [
+        [
+          {
+            "profile": "profile_005",
+            "candidate": "C01"
+          },
+          0
+        ],
+        [
+          {
+            "profile": "profile_005",
+            "candidate": "C10"
+          },
+          20
+        ]
+      ],
+      "openings": [
+        {
+          "id": "E1",
+          "pixels": [
+            {
+              "profile": "profile_005",
+              "candidate": "C02"
+            },
+            {
+              "profile": "profile_005",
+              "candidate": "C03"
+            }
+          ]
+        },
+        {
+          "id": "E2",
+          "pixels": [
+            {
+              "profile": "profile_005",
+              "candidate": "C04"
+            },
+            {
+              "profile": "profile_005",
+              "candidate": "C05"
+            }
+          ]
+        },
+        {
+          "id": "E3",
+          "pixels": [
+            {
+              "profile": "profile_005",
+              "candidate": "C06"
+            },
+            {
+              "profile": "profile_005",
+              "candidate": "C07"
+            }
+          ]
+        },
+        {
+          "id": "E4",
+          "pixels": [
+            {
+              "profile": "profile_005",
+              "candidate": "C08"
+            },
+            {
+              "profile": "profile_005",
+              "candidate": "C09"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "measurement_bindings": [
+    {
+      "slot": "plan.axis_anchors[0][0]",
+      "reference": {
+        "profile": "profile_002",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 151,
+      "profile_sha256": "39f185b69dddb9bfb93f7a1004ff62a7189d36c2a2d1a5c335f4de524a028661",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          151,
+          151
+        ],
+        "peak": 151,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.axis_anchors[1][0]",
+      "reference": {
+        "profile": "profile_002",
+        "candidate": "C08"
+      },
+      "resolved_pixel": 878,
+      "profile_sha256": "39f185b69dddb9bfb93f7a1004ff62a7189d36c2a2d1a5c335f4de524a028661",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C08",
+        "pixels": [
+          878,
+          878
+        ],
+        "peak": 878,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[0].pixels[0]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 170,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          170,
+          170
+        ],
+        "peak": 170,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[0].pixels[1]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C02"
+      },
+      "resolved_pixel": 225,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          225,
+          225
+        ],
+        "peak": 225,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[1].pixels[0]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C03"
+      },
+      "resolved_pixel": 311,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C03",
+        "pixels": [
+          311,
+          311
+        ],
+        "peak": 311,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[1].pixels[1]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C04"
+      },
+      "resolved_pixel": 355,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C04",
+        "pixels": [
+          355,
+          355
+        ],
+        "peak": 355,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[2].pixels[0]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C05"
+      },
+      "resolved_pixel": 382,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C05",
+        "pixels": [
+          382,
+          382
+        ],
+        "peak": 382,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[2].pixels[1]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C06"
+      },
+      "resolved_pixel": 556,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C06",
+        "pixels": [
+          556,
+          556
+        ],
+        "peak": 556,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[3].pixels[0]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C07"
+      },
+      "resolved_pixel": 614,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C07",
+        "pixels": [
+          614,
+          614
+        ],
+        "peak": 614,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "plan.openings[3].pixels[1]",
+      "reference": {
+        "profile": "profile_001",
+        "candidate": "C10"
+      },
+      "resolved_pixel": 671,
+      "profile_sha256": "426a4cf9e631854c14c411b1db38b983e916b62f1c4a070f192e7def93df1d5c",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "image": "1f_view.png",
+      "axis": "y",
+      "candidate": {
+        "id": "C10",
+        "pixels": [
+          671,
+          671
+        ],
+        "peak": 671,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.axis_anchors[0][0]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C01"
+      },
+      "resolved_pixel": 373,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C01",
+        "pixels": [
+          373,
+          373
+        ],
+        "peak": 373,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.axis_anchors[1][0]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C10"
+      },
+      "resolved_pixel": 2261,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C10",
+        "pixels": [
+          2261,
+          2261
+        ],
+        "peak": 2261,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[0].pixels[0]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C02"
+      },
+      "resolved_pixel": 911,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C02",
+        "pixels": [
+          911,
+          911
+        ],
+        "peak": 911,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[0].pixels[1]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C03"
+      },
+      "resolved_pixel": 1062,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C03",
+        "pixels": [
+          1062,
+          1062
+        ],
+        "peak": 1062,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[1].pixels[0]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C04"
+      },
+      "resolved_pixel": 1208,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C04",
+        "pixels": [
+          1208,
+          1208
+        ],
+        "peak": 1208,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[1].pixels[1]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C05"
+      },
+      "resolved_pixel": 1661,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C05",
+        "pixels": [
+          1661,
+          1661
+        ],
+        "peak": 1661,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[2].pixels[0]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C06"
+      },
+      "resolved_pixel": 1731,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C06",
+        "pixels": [
+          1731,
+          1731
+        ],
+        "peak": 1731,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[2].pixels[1]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C07"
+      },
+      "resolved_pixel": 1844,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C07",
+        "pixels": [
+          1844,
+          1844
+        ],
+        "peak": 1844,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[3].pixels[0]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C08"
+      },
+      "resolved_pixel": 2068,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C08",
+        "pixels": [
+          2068,
+          2069
+        ],
+        "peak": 2068,
+        "selected_at": "peak"
+      }
+    },
+    {
+      "slot": "elevation.openings[3].pixels[1]",
+      "reference": {
+        "profile": "profile_005",
+        "candidate": "C09"
+      },
+      "resolved_pixel": 2210,
+      "profile_sha256": "bc0bde0b8b0172d182655dbaf89e6fcbd90805c859b0a126bac59af7f2c48613",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image": "East_view.png",
+      "axis": "x",
+      "candidate": {
+        "id": "C09",
+        "pixels": [
+          2210,
+          2210
+        ],
+        "peak": 2210,
+        "selected_at": "peak"
+      }
+    }
+  ],
+  "evidence_status": "caller_observations_not_independently_verified",
+  "record": "facade_comparisons/comparison_001.json"
+}
