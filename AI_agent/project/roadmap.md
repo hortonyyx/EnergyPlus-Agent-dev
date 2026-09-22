@@ -1,5 +1,7 @@
 # 路线与当前任务
 
+**09-22 Agent 主线重定位：** 用户明确旧 07-07 reading 的价值在于低级模型配合 CV 工具完成高精度图像到结构化数据转译，开发模型先探路再教工作模型是另一条互补路线；两者都不要求原样恢复旧 pipeline，也不接受继续以 Sonnet/GLM 直接整案出 BIM 作为主开发方式。当前主线改为尽快搭建模型驱动的总 Agent：保留 reading/correction 的职责拆分和中间产物，取消其唯一固定顺序；由 Agent 动态调用观察、量测、校正、建模和回叠能力，Sonnet 级负责规划/冲突裁定，低级模型负责可拆分观察，确定性代码负责几何。具体重定位与下一步见[Agent 重定位记录](../logs/worklog/2026-09-22_reconstruction_agent_reframing.md)。
+
 **09-22 会话收工：** 本轮切换到 GLM 后完成 sm24 局部恢复、sm21 独立换例及两轮边界复核。sm21 GLM 候选达到 14/15 窗匹配，F1 走廊复核改善了边界；F2 两条约 5cm 隔断因原图证据不足保持不改。sm24 新候选仍为 8 空间/11窗/10门且分区 `severe`。没有新候选达到替换现有工作模型的整案标准；sm24 `run04/candidate_02`、sm21 `run22` 继续作为采用基点，sm25 尚未推进。完整收工见[09-22 总体交接](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
 
 **09-22 GLM 还原推进节点：** Claude 本轮额度在竖链首请求即返回 429，按用户安排改用 GLM 图像模型 `glm-5.3-flash`。sm24 完成 East 三条竖向链、五图独立生成、右侧空间恢复和西南边界有限复核；最后候选仍为 8 空间/11窗/10门，自动分区诊断仍 severe。随后转 sm21 做独立换例：GLM 合并两层得到 14 空间/15窗/14门，生成后独立诊断为 14/15 窗匹配且窗高无 z 漂移；有界复核把 F1 走廊边界改到原图 y≈3.0/5.0，最后 F2 两条约 5cm 隔断窄复核因图证不足保持 seed。完整证据见 [sm24 竖链](../logs/experiments/2026-09-22_sm24_vertical_chains_glm_run13/README.md)、[sm24 独立整案](../logs/experiments/2026-09-22_sm24_glm_independent_generation_run14/README.md)、[sm24 西南边界](../logs/experiments/2026-09-22_sm24_glm_boundary_recovery_run18/README.md)、[sm21 独立整案](../logs/experiments/2026-09-22_sm21_glm_independent_generation_run23/README.md)、[sm21 走廊复核](../logs/experiments/2026-09-22_sm21_glm_boundary_recovery_run24/README.md)、[sm21 F2 窄复核](../logs/experiments/2026-09-22_sm21_glm_f2_partition_recovery_run25/README.md) 与本程工作记录。当前仍不把窗匹配、空间计数或源自洽当成整案保真通过。
@@ -96,7 +98,7 @@
 
 ## 当前交接
 
-**当前交接：[09-22 还原建模 GLM 会话收工与总体交接](../logs/worklog/2026-09-22_reconstruction_session_close.md)。** 本程已完成 sm24 复核、sm21 GLM 独立生成及两轮边界复核；新候选仍未达到替换整案标准，sm24 `run04/candidate_02` 与 sm21 `run22` 继续保留。下一次从本收工记录开始，选择转 sm25 换例或暂停生成、先整理分区差异。上一程完整框与历史对照仍见[记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
+**当前交接：[09-22 还原/部分推理统一 Agent 重定位](../logs/worklog/2026-09-22_reconstruction_agent_reframing.md)。** 当前不再以新的 Sonnet/GLM 整案直出作为主入口，下一步先给现有 `run_bim_agent` 加入最小状态、观察账本和动作契约，吸收旧 reading/CV 与开发探路经验，再用三案例验证 Agent 闭环。上一轮 GLM 实验与采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 
