@@ -1,6 +1,6 @@
 # 路线与当前任务
 
-**09-22 GLM 还原推进节点：** Claude 本轮额度在竖链首请求即返回 429，按用户安排改用 GLM 图像模型 `glm-5.3-flash`。GLM 独立核对 sm24 East 三条竖向链成功：门组 0.2–2.6m、大窗 1.0–3.4m、两短窗 1.0–2.8m，原图端点与三条链闭合均有工具记录。随后五图+建筑声明独立生成得到 9 空间候选，生成后独立 GT 诊断为 severe；从该候选恢复、只回看原图右侧不确定项后，模型确认 D_R2 为独立门、保留 R3/R4 实墙，并把无墙段并入走廊，生成 8 空间/11窗/10门/10连接的新候选。新候选仍有会议区、走廊和右侧边界差异，GT 诊断仍 severe，暂不替换既有采用基点。完整证据见 [GLM 竖链](../logs/experiments/2026-09-22_sm24_vertical_chains_glm_run13/README.md)、[独立整案](../logs/experiments/2026-09-22_sm24_glm_independent_generation_run14/README.md)、[右侧恢复](../logs/experiments/2026-09-22_sm24_glm_uncertain_right_recovery_run15/README.md) 与本程工作记录。下一步先整理这次 GLM 的可迁移判读/失败边界，再决定是否以新候选做有限复核或转 sm21 换例；不把 8 空间和源自洽当成保真通过。
+**09-22 GLM 还原推进节点：** Claude 本轮额度在竖链首请求即返回 429，按用户安排改用 GLM 图像模型 `glm-5.3-flash`。sm24 完成 East 三条竖向链、五图独立生成、右侧空间恢复和西南边界有限复核；最后候选仍为 8 空间/11窗/10门，自动分区诊断仍 severe。随后转 sm21 做独立换例：GLM 合并两层得到 14 空间/15窗/14门，生成后独立诊断为 14/15 窗匹配且窗高无 z 漂移；有界复核把 F1 走廊边界改到原图 y≈3.0/5.0，最后 F2 两条约 5cm 隔断窄复核因图证不足保持 seed。完整证据见 [sm24 竖链](../logs/experiments/2026-09-22_sm24_vertical_chains_glm_run13/README.md)、[sm24 独立整案](../logs/experiments/2026-09-22_sm24_glm_independent_generation_run14/README.md)、[sm24 西南边界](../logs/experiments/2026-09-22_sm24_glm_boundary_recovery_run18/README.md)、[sm21 独立整案](../logs/experiments/2026-09-22_sm21_glm_independent_generation_run23/README.md)、[sm21 走廊复核](../logs/experiments/2026-09-22_sm21_glm_boundary_recovery_run24/README.md)、[sm21 F2 窄复核](../logs/experiments/2026-09-22_sm21_glm_f2_partition_recovery_run25/README.md) 与本程工作记录。当前仍不把窗匹配、空间计数或源自洽当成整案保真通过。
 
 **09-21 全会话收工：** 自主复核、跨图方向比较、量测引用、完整框识别和历史复现对照均已留证。sm24东侧一门三窗水平识读通过，高度及整案自主能力未通过；旧sm21试跑两轮失败并发现CLI大图缩放，历史满分仍有效、根因未唯一隔离。无新采用BIM，三例基线保持，全部调用结束。本次不再实验；下一项先补Sonnet完整高度链，历史路线先核宿主坐标及工具能力差异。见[全会话收工与下一入口](../logs/worklog/2026-09-21_reconstruction_final_close.md)。
 
@@ -94,7 +94,7 @@
 
 ## 当前交接
 
-**当前交接：[09-22 GLM 还原推进工作记录](../logs/worklog/2026-09-22_reconstruction_glm_progress.md)。** 本程已完成 East 竖链、GLM 独立整案和一次右侧原图恢复；新候选仍未通过独立分区诊断，既有 run04/candidate_02 继续作为采用基点。下一次先核对本程可迁移的开敞段判读与剩余边界差异，再决定有限复核或 sm21 换例。上一程完整框与历史对照仍见[记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
+**当前交接：[09-22 GLM 还原推进工作记录](../logs/worklog/2026-09-22_reconstruction_glm_progress.md)。** 本程已完成 sm24 复核、sm21 GLM 独立生成及两轮边界复核；sm21 run24 候选仍为 severe，run25 对 F2 两条隔断保持 seed。sm24 `run04/candidate_02` 与既有 sm21 采用基点继续保留，下一步先提交本轮证据，再决定是否转 sm25 或暂停还原实验。上一程完整框与历史对照仍见[记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 

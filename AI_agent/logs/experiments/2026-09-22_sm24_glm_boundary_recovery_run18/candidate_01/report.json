@@ -1,0 +1,68 @@
+{
+  "agent_assumptions": [
+    "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+    "Entrance/east/south doors have transom lights above 2.6m not modelled as separate openings",
+    "Interior door leaf heights assumed 2.4m",
+    "Wall faces: perimeter outer faces, interior midlines; 540 chain vs ~240 drawn core unresolved",
+    "Top of plan = north",
+    "Revision from seed: room_R3 open area merged into corridor as one continuous open space (no wall px y588-696 at x~457-464); room_R3 removed as separate cell; retained object IDs unchanged",
+    "Recovery revision: SW entry nook (px x403-457, y756-874) reassigned from conference_W to room_R4; R4 west wall px x455-462 terminates at corridor south end wall y~749-756 (L-bend); D_south rehosted to room_R4; no other geometry changed"
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "857a98702eb1cd8ae0b34107398bb7671f71dae22396bcd14349ce7811f6ef87",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "fc4c991312aa79c3a9c5f091f7498e0005af49303c1c9c3c2d067532b5229331",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "5011587431efc01dc2148970c8e0088a7faf665c552c1ae9a3a95b09e75e99f6"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "6f618048752becf2b5566cefb870cc9a5d7fedc86cbbdb095b532451afe33365",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Door leaf swing directions not modelled; D_east leaf/arc appears drawn mostly outside the east wall but crop evidence partial",
+    "D_R34 swing observed into room_R4; swing not represented in aperture model",
+    "Transom panes above D_main/D_south/D_east merged into door height",
+    "Exterior wall thickness conflict 540 vs ~240 unresolved",
+    "Pixel-to-world calibration from caller, not independently verified",
+    "Interior door widths approximate +/-15px from swing arcs",
+    "Open passage width between corridor and merged lobby equals full y px 588-696 stretch; jamb returns not modelled as geometry",
+    "SW nook connection to room_R4 is a cased opening with no drawn door leaf; modelled as open, door state unknown"
+  ]
+}

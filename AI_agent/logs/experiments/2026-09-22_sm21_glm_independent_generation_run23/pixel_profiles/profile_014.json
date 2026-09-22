@@ -1,0 +1,118 @@
+{
+  "name": "2f_view.png",
+  "profile_id": "profile_014",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "axis": "x",
+  "box_original_pixels": [
+    430,
+    602,
+    1800,
+    617
+  ],
+  "rgb": [
+    128,
+    128,
+    128
+  ],
+  "tolerance": 100.0,
+  "min_fraction": 0.1,
+  "minimum_count": 2,
+  "support_length": 15,
+  "matching_pixels": 2721,
+  "candidates": [
+    {
+      "id": "C01",
+      "pixels": [
+        430,
+        1003
+      ],
+      "peak": 430,
+      "max_count": 15,
+      "max_fraction": 1.0,
+      "support_intervals_at_peak": [
+        [
+          602,
+          616
+        ]
+      ]
+    },
+    {
+      "id": "C02",
+      "pixels": [
+        1086,
+        1114
+      ],
+      "peak": 1086,
+      "max_count": 5,
+      "max_fraction": 0.333333,
+      "support_intervals_at_peak": [
+        [
+          610,
+          614
+        ]
+      ]
+    },
+    {
+      "id": "C03",
+      "pixels": [
+        1125,
+        1153
+      ],
+      "peak": 1153,
+      "max_count": 5,
+      "max_fraction": 0.333333,
+      "support_intervals_at_peak": [
+        [
+          610,
+          614
+        ]
+      ]
+    },
+    {
+      "id": "C04",
+      "pixels": [
+        1236,
+        1799
+      ],
+      "peak": 1798,
+      "max_count": 15,
+      "max_fraction": 1.0,
+      "support_intervals_at_peak": [
+        [
+          602,
+          616
+        ]
+      ]
+    }
+  ],
+  "profile_image": "pixel_profiles/profile_014.png",
+  "profile_record": "pixel_profiles/profile_014.json",
+  "profile_image_sha256": "19d0391505393694d11b5a699e13b21c00156cc9ed7ec635b1911205b8c5fabe",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      1370,
+      15
+    ],
+    "mask_panel_combined_pixels": [
+      1373,
+      0,
+      2743,
+      15
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 901,
+  "returned_size": [
+    1600,
+    9
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.714375,
+    1.6666666666666667
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}

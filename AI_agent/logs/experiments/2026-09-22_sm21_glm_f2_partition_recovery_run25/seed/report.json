@@ -1,0 +1,65 @@
+{
+  "agent_assumptions": [
+    "Walls modeled as representative midplanes: exterior 240mm at outer faces x 0-15, y 0-8; 1F and 2F corridor walls ~120mm at centerlines y=3.0/5.0 per drawn double-line walls (clear corridor 1.88-1.89m both floors); interior partitions ~120-130mm: 1F at x=5.0/10.0 centerlines; 2F north partition x=7.5 centerline; 2F south partitions drawn faces 3.685-3.804 and 11.201-11.314 (cells use drawn east faces 3.804/11.315)",
+    "Floors: F1 z0-3.0, F2 z3.0-6.6 per elevations (6600 total)",
+    "Window z: F1 sill 1.0 h1.6; F2 sill 0.8 (abs 3.8) h1.8, per dimensioned elevations",
+    "Door heights 2.1m (exterior doors ~2.0-2.2m measured on South/West elevations; interior assumed); door/window heights unchanged from prior proposal",
+    "Room uses: offices/meeting rooms per furniture; 7 physical spaces per floor, 14 total, all preserved with stable IDs"
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "85a2cd0ae5d0a967e6d950c300c6e63211a210050c7616c8fdf117ac013fb9fc",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "85a2cd0ae5d0a967e6d950c300c6e63211a210050c7616c8fdf117ac013fb9fc",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-22_sm21_glm_boundary_recovery_run24/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9589ddbabad75395f56432a14ba207f0dbd449c72053fa56084822bb2fb9bed5",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "1F vertical chains conflict with drawing: left chain 3000/250/1500/250/3000 and right chain 2940/340/1200/340/2940 vs drawn corridor walls ~120mm at y=3.0/5.0 with clear 1.89m; drawing followed (self-consistent: sums to exactly 8.000m, identical to 2F drawn corridor, and 1F bottom chain confirms partitions at 5.0/10.0)",
+    "2F vertical chains (3000/400/1200/400/3000 and 2940/340/1200/340/2940) conflict with drawn corridor walls ~120mm/clear 1.88m; drawing followed, corridor centerline y=4.0 agrees with chains",
+    "1F top chain sums 14760 not 15000; north windows kept at drawn pixels; North_view chain suggests W_N3 at 11.30-13.70 vs drawn 11.37-13.75 (~0.05-0.07 difference kept as drawn)",
+    "2F north window W2_N2 drawn ~0.14m east of top chain (9330-12930); drawn pixels kept",
+    "East_view chain dimensions F1 east corridor window 1000+1800+200 (z 1.0-2.8) while North/South chains give F1 windows 1000+1600 (z 1.0-2.6); W_E1 kept at z 1.0-2.6 per no-height-change instruction; conflict recorded",
+    "West elevation horizontal chain labels 1F opening 1200 but plan shows ~1500 entrance door; plan followed",
+    "No staircase on either plan: vertical circulation unrepresented",
+    "Unexamined: furniture-level detail, door swing states, exact wall hatch fills between double lines"
+  ]
+}

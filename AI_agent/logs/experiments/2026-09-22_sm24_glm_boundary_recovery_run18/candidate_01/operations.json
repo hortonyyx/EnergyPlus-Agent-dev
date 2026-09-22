@@ -1,0 +1,97 @@
+[
+  {
+    "op": "reshape_spaces",
+    "spaces": [
+      {
+        "id": "conference_W",
+        "polygon": [
+          [
+            0,
+            0
+          ],
+          [
+            4.297521,
+            0
+          ],
+          [
+            4.297521,
+            8.016529
+          ],
+          [
+            0,
+            8.016529
+          ]
+        ]
+      },
+      {
+        "id": "room_R4",
+        "polygon": [
+          [
+            4.297521,
+            0
+          ],
+          [
+            10.0,
+            0
+          ],
+          [
+            10.0,
+            4.848485
+          ],
+          [
+            5.785124,
+            4.848485
+          ],
+          [
+            5.785124,
+            3.38843
+          ],
+          [
+            4.297521,
+            3.38843
+          ]
+        ]
+      }
+    ],
+    "reason": "SW entry nook reassigned from conference_W to room_R4. 4x zoom box [390,730,480,890] of 1f_view.png shows the R4 west wall px x455-462 runs from the R3/R4 divider down to the corridor south end wall y~749-756 and stops there (L-bend); pixel slices y798-812 and y826-840 show the only ink at x=402 (west wall), none at x455-462, so the nook is open to room_R4 and separated from conference_W by wall px x400-403. The earlier source_ref claiming 'R4 west wall continues to south wall' is retracted: that zoom (y555-765) ended just below the bend. Corridor polygon unchanged - its south end wall y=3.38843 and east wall x=5.785124 already match the observed L.",
+    "source_refs": [
+      "1f_view.png px x403-462 y730-756: corridor south end wall bends north at x~455-462 up to R3/R4 divider y~697-702",
+      "1f_view.png px x455-462 y756-874: no wall; slices y798-812 and y826-840 report single run x=402 only",
+      "1f_view.png px x400-403 y756-874: west wall continuous to south wall, separating conference_W from nook",
+      "1f_view.png px x414-446 y866-874: D_south aperture in nook south wall; no aperture in corridor south end wall x404-462"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_south",
+    "changes": {
+      "space_id": "room_R4"
+    },
+    "reason": "D_south aperture px 414-446 lies in the south wall of the entry nook, which now belongs to room_R4. Position, width and height unchanged.",
+    "source_refs": [
+      "1f_view.png cyan arc px x412-447 y841-874; aperture in south wall y~866-874 within nook x403-457"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+      "Entrance/east/south doors have transom lights above 2.6m not modelled as separate openings",
+      "Interior door leaf heights assumed 2.4m",
+      "Wall faces: perimeter outer faces, interior midlines; 540 chain vs ~240 drawn core unresolved",
+      "Top of plan = north",
+      "Revision from seed: room_R3 open area merged into corridor as one continuous open space (no wall px y588-696 at x~457-464); room_R3 removed as separate cell; retained object IDs unchanged",
+      "Recovery revision: SW entry nook (px x403-457, y756-874) reassigned from conference_W to room_R4; R4 west wall px x455-462 terminates at corridor south end wall y~749-756 (L-bend); D_south rehosted to room_R4; no other geometry changed"
+    ],
+    "unresolved": [
+      "Door leaf swing directions not modelled; D_east leaf/arc appears drawn mostly outside the east wall but crop evidence partial",
+      "D_R34 swing observed into room_R4; swing not represented in aperture model",
+      "Transom panes above D_main/D_south/D_east merged into door height",
+      "Exterior wall thickness conflict 540 vs ~240 unresolved",
+      "Pixel-to-world calibration from caller, not independently verified",
+      "Interior door widths approximate +/-15px from swing arcs",
+      "Open passage width between corridor and merged lobby equals full y px 588-696 stretch; jamb returns not modelled as geometry",
+      "SW nook connection to room_R4 is a cased opening with no drawn door leaf; modelled as open, door state unknown"
+    ]
+  }
+]

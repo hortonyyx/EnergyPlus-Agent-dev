@@ -1,0 +1,101 @@
+{
+  "agent_assumptions": [
+    "Interior door heights 2.1m assumed; window z absolute 3.8-5.6 (sill 800 + F2 floor z 3.0, height 1800 per all four elevations)",
+    "2F corridor walls modeled 120mm at drawn midplanes (y5.0/3.0), overriding conflicting 340/400 chain values",
+    "2F floor-to-floor 3.6m per elevations (total 6.6m, 1F 3.0m)",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0116939a249dfee9b6a5f521e65854a5ce17b0eb1573c9c54fb504076f406bab",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "0ed94a3fe4d5b8b0fe0911a458fe75391d0e1faab7969966ec4211d975c55c37",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_002/compilation.json",
+      "compilation_sha256": "cd162f44e4d96249901297c912c8198f5d3b4bf27ed791fe06322900962da716",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_002/draft_view.png",
+        "image_sha256": "e07500f84fc1f06a8f2ee14c0a0986f85b3e6daed225405534f4664090dbf113",
+        "metadata_file": "plan_drafts/draft_002/draft_view.json",
+        "metadata_sha256": "a99dcc978709487799defa655cc0e78f6796237f47bc451e94fe4aba3b0aedf7",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_002/plan.json",
+      "plan_sha256": "6139c5deb96bb16ce5bca6ee5663ba7e5815a72cd7699db58eb5444a7760aa2a"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "area_m2": 2.16,
+        "boundary_id": "space/F2_CORRIDOR/wall/3",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "W2_W",
+          "W2_W_extra"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "e74b6601bac44da0c14e7788f5d88b9e10c84c73b25c820797b49d6edc8a2728",
+  "source_validation": {
+    "findings": [
+      {
+        "area_m2": 2.16,
+        "boundary_id": "space/F2_CORRIDOR/wall/3",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "W2_W",
+          "W2_W_extra"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "2F corridor wall thickness: drawing 120mm vs both dimension chains 340-400mm; drawing followed, corridor clear 1880 vs chain 1200",
+    "No staircase on either plan; vertical circulation unrepresented",
+    "North window W2_N2 drawn ~140mm east of top-chain position; drawn kept",
+    "South partitions drawn at 3.80/11.31m vs chain 3.75/11.25m; drawn kept",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "modelling_task": "reconstruction",
+  "reference_scope": "本轮只给原始 sm21 图和 candidate_01；模型完成 F2 南侧隔断复核后保持 seed，GT 在生成结束后才读取。",
+  "interpretation": "还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。",
+  "input_manifest_sha256": "cd3478a2ac25bf4bcc86889ba35bbece884760517986341dd94a678038569459",
+  "reference_case": "sm21_anchor",
+  "reference_path": "case_tests/test_baseline/gt/sm21_anchor/gt.json",
+  "reference_sha256": "a9be379b1735163528396c36d96653cdf71a67ffe54dde6f942c7c86f53f3f8a",
+  "candidates": [
+    {
+      "candidate": "seed",
+      "is_recovery_seed": true,
+      "source_sha256": "9589ddbabad75395f56432a14ba207f0dbd449c72053fa56084822bb2fb9bed5",
+      "partition_status": "severe",
+      "reference_spaces": 14,
+      "candidate_spaces": 14,
+      "openings": {
+        "door": 14,
+        "window": 15
+      },
+      "built_window_comparison": {
+        "gt_total": 15,
+        "matched_total": 14,
+        "complete_total": 5,
+        "within_tol_total": 9,
+        "placed_hit_total": 5,
+        "z_drift_total": 0,
+        "miss_total": 1,
+        "extra_total": 1,
+        "no_data_floor_facades": 0
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "Floor 2",
+          "missing_length_m": 5.919999996,
+          "extra_length_m": 5.919999996,
+          "missing_wkt": "MULTILINESTRING ((3.75 0.020000001, 3.75 2.979999999), (11.25 0.020000001, 11.25 2.979999999))",
+          "extra_wkt": "MULTILINESTRING ((3.804191 0.020000001, 3.804191 2.979999999), (11.315029 0.020000001, 11.315029 2.979999999))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "Floor 1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        },
+        {
+          "floor_id": "Floor 2",
+          "missing_length_m": 5.919999996,
+          "extra_length_m": 5.919999996,
+          "missing_wkt": "MULTILINESTRING ((3.75 0.020000001, 3.75 2.979999999), (11.25 0.020000001, 11.25 2.979999999))",
+          "extra_wkt": "MULTILINESTRING ((3.804191 0.020000001, 3.804191 2.979999999), (11.315029 0.020000001, 11.315029 2.979999999))"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "Reference completeness and original pixel truth require separate evidence.",
+    "Partition comparison does not verify doors, connectivity, or vertical voids.",
+    "Reference-plane differences retain their existing evaluator interpretation.",
+    "No evaluation feedback supplied to the generating model."
+  ]
+}

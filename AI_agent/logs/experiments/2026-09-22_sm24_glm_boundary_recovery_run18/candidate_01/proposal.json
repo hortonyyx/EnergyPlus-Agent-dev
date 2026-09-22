@@ -1,0 +1,917 @@
+{
+  "assumptions": [
+    "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+    "Entrance/east/south doors have transom lights above 2.6m not modelled as separate openings",
+    "Interior door leaf heights assumed 2.4m",
+    "Wall faces: perimeter outer faces, interior midlines; 540 chain vs ~240 drawn core unresolved",
+    "Top of plan = north",
+    "Revision from seed: room_R3 open area merged into corridor as one continuous open space (no wall px y588-696 at x~457-464); room_R3 removed as separate cell; retained object IDs unchanged",
+    "Recovery revision: SW entry nook (px x403-457, y756-874) reassigned from conference_W to room_R4; R4 west wall px x455-462 terminates at corridor south end wall y~749-756 (L-bend); D_south rehosted to room_R4; no other geometry changed"
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "cells": {
+            "conference_W": {
+              "id": "conference_W",
+              "polygon": [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  4.297521,
+                  0.0
+                ],
+                [
+                  4.297521,
+                  8.016529
+                ],
+                [
+                  0.0,
+                  8.016529
+                ]
+              ],
+              "role": "conference",
+              "source_refs": [
+                "1f_view.png: left divider y~583-588; corridor south end wall y~751-756; corridor west wall x~402-407; R4 west wall x~457-462 continues to south wall (zoom 430-570/555-765)"
+              ],
+              "x": [
+                0.0,
+                4.297521
+              ],
+              "y": [
+                0.0,
+                8.016529
+              ]
+            },
+            "room_R4": {
+              "id": "room_R4",
+              "polygon": [
+                [
+                  4.297521,
+                  0.0
+                ],
+                [
+                  10.0,
+                  0.0
+                ],
+                [
+                  10.0,
+                  4.848485
+                ],
+                [
+                  5.785124,
+                  4.848485
+                ],
+                [
+                  5.785124,
+                  3.38843
+                ],
+                [
+                  4.297521,
+                  3.38843
+                ]
+              ],
+              "role": "office",
+              "source_refs": [
+                "R3/R4 divider y~696-700 complete: profile r3r4_divider wall runs x459-559 and x592-603 with aperture x560-591, closing to east wall; zoom 440-650/650-770"
+              ],
+              "x": [
+                4.297521,
+                10.0
+              ],
+              "y": [
+                0.0,
+                4.848485
+              ]
+            }
+          }
+        },
+        "before": {
+          "cells": {
+            "conference_W": {
+              "id": "conference_W",
+              "polygon": [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  5.785124,
+                  0.0
+                ],
+                [
+                  5.785124,
+                  3.38843
+                ],
+                [
+                  4.297521,
+                  3.38843
+                ],
+                [
+                  4.297521,
+                  8.016529
+                ],
+                [
+                  0.0,
+                  8.016529
+                ]
+              ],
+              "role": "conference",
+              "source_refs": [
+                "1f_view.png: left divider y~583-588; corridor south end wall y~751-756; corridor west wall x~402-407; R4 west wall x~457-462 continues to south wall (zoom 430-570/555-765)"
+              ],
+              "x": [
+                0,
+                5.785124
+              ],
+              "y": [
+                0,
+                8.016529
+              ]
+            },
+            "room_R4": {
+              "id": "room_R4",
+              "role": "office",
+              "source_refs": [
+                "R3/R4 divider y~696-700 complete: profile r3r4_divider wall runs x459-559 and x592-603 with aperture x560-591, closing to east wall; zoom 440-650/650-770"
+              ],
+              "x": [
+                5.785124,
+                10.0
+              ],
+              "y": [
+                0,
+                4.848485
+              ]
+            }
+          }
+        },
+        "opening_policy": "openings and windows are unchanged; use explicit update_opening for an opening edit",
+        "operation": "reshape_spaces",
+        "reason": "SW entry nook reassigned from conference_W to room_R4. 4x zoom box [390,730,480,890] of 1f_view.png shows the R4 west wall px x455-462 runs from the R3/R4 divider down to the corridor south end wall y~749-756 and stops there (L-bend); pixel slices y798-812 and y826-840 show the only ink at x=402 (west wall), none at x455-462, so the nook is open to room_R4 and separated from conference_W by wall px x400-403. The earlier source_ref claiming 'R4 west wall continues to south wall' is retracted: that zoom (y555-765) ended just below the bend. Corridor polygon unchanged - its south end wall y=3.38843 and east wall x=5.785124 already match the observed L.",
+        "source_refs": [
+          "1f_view.png px x403-462 y730-756: corridor south end wall bends north at x~455-462 up to R3/R4 divider y~697-702",
+          "1f_view.png px x455-462 y756-874: no wall; slices y798-812 and y826-840 report single run x=402 only",
+          "1f_view.png px x400-403 y756-874: west wall continuous to south wall, separating conference_W from nook",
+          "1f_view.png px x414-446 y866-874: D_south aperture in nook south wall; no aperture in corridor south end wall x404-462"
+        ],
+        "space_ids": [
+          "conference_W",
+          "room_R4"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "id": "D_south",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            4.545455,
+            0.0
+          ],
+          "p2": [
+            5.426997,
+            0.0
+          ],
+          "source_refs": [
+            "1f_view.png cyan arc px x412-447 y841-874; aperture in south wall y~866-874 within nook x403-457"
+          ],
+          "space_id": "room_R4",
+          "state": "unknown",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "D_south",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            4.545455,
+            0.0
+          ],
+          "p2": [
+            5.426997,
+            0.0
+          ],
+          "source_refs": [
+            "South_view 900 door x4540-5440 sill200 h2400; plan cyan arc px412-445"
+          ],
+          "space_id": "conference_W",
+          "state": "unknown",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "id": "D_south",
+        "operation": "update_opening",
+        "reason": "D_south aperture px 414-446 lies in the south wall of the entry nook, which now belongs to room_R4. Position, width and height unchanged.",
+        "source_refs": [
+          "1f_view.png cyan arc px x412-447 y841-874; aperture in south wall y~866-874 within nook x403-457"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [
+            "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+            "Entrance/east/south doors have transom lights above 2.6m not modelled as separate openings",
+            "Interior door leaf heights assumed 2.4m",
+            "Wall faces: perimeter outer faces, interior midlines; 540 chain vs ~240 drawn core unresolved",
+            "Top of plan = north",
+            "Revision from seed: room_R3 open area merged into corridor as one continuous open space (no wall px y588-696 at x~457-464); room_R3 removed as separate cell; retained object IDs unchanged",
+            "Recovery revision: SW entry nook (px x403-457, y756-874) reassigned from conference_W to room_R4; R4 west wall px x455-462 terminates at corridor south end wall y~749-756 (L-bend); D_south rehosted to room_R4; no other geometry changed"
+          ],
+          "unresolved": [
+            "Door leaf swing directions not modelled; D_east leaf/arc appears drawn mostly outside the east wall but crop evidence partial",
+            "D_R34 swing observed into room_R4; swing not represented in aperture model",
+            "Transom panes above D_main/D_south/D_east merged into door height",
+            "Exterior wall thickness conflict 540 vs ~240 unresolved",
+            "Pixel-to-world calibration from caller, not independently verified",
+            "Interior door widths approximate +/-15px from swing arcs",
+            "Open passage width between corridor and merged lobby equals full y px 588-696 stretch; jamb returns not modelled as geometry",
+            "SW nook connection to room_R4 is a cased opening with no drawn door leaf; modelled as open, door state unknown"
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+            "Entrance/east/south doors have transom lights above 2.6m not modelled as separate openings",
+            "Interior door leaf heights assumed 2.4m",
+            "Wall faces: perimeter outer faces, interior midlines; 540 chain vs ~240 drawn core unresolved",
+            "Top of plan = north",
+            "Revision from seed: room_R3 open area merged into corridor as one continuous open space (no wall px y588-696 at x~457-464); room_R3 removed as separate cell; retained object IDs unchanged"
+          ],
+          "unresolved": [
+            "Door leaf swing directions not modelled; D_east leaf/arc appears drawn mostly outside the east wall but crop evidence partial",
+            "D_R34 swing observed into room_R4; swing not represented in aperture model",
+            "Transom panes above D_main/D_south/D_east merged into door height",
+            "Exterior wall thickness conflict 540 vs ~240 unresolved",
+            "Pixel-to-world calibration from caller, not independently verified",
+            "Interior door widths approximate +/-15px from swing arcs",
+            "Open passage width between corridor and merged lobby equals full y px 588-696 stretch; jamb returns not modelled as geometry"
+          ]
+        },
+        "operation": "set_notes"
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "entrance_open_office",
+            "role": "open_office_entrance",
+            "source_refs": [
+              "1f_view.png: divider y~296-301 both sides of corridor; corridor north end wall with double arc px405-452"
+            ],
+            "x": [
+              0,
+              10
+            ],
+            "y": [
+              15.950413,
+              20.0
+            ]
+          },
+          {
+            "id": "office_L1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: divider y~296-301; left divider y~403-408; corridor west wall x~402-407"
+            ],
+            "x": [
+              0,
+              4.297521
+            ],
+            "y": [
+              12.975207,
+              15.950413
+            ]
+          },
+          {
+            "id": "corridor",
+            "polygon": [
+              [
+                4.297521,
+                3.38843
+              ],
+              [
+                5.785124,
+                3.38843
+              ],
+              [
+                5.785124,
+                4.848485
+              ],
+              [
+                10.0,
+                4.848485
+              ],
+              [
+                10.0,
+                8.016529
+              ],
+              [
+                5.785124,
+                8.016529
+              ],
+              [
+                5.785124,
+                15.950413
+              ],
+              [
+                4.297521,
+                15.950413
+              ]
+            ],
+            "role": "corridor_with_open_east_lobby",
+            "source_refs": [
+              "zoom 4x 430-570/555-765: no wall at x~457-464 between y px 588-696; corridor open to former room_R3 area between R2/R3 divider y~580-587 and R3/R4 divider y~696-700; only jamb returns at divider west ends",
+              "pixel profiles r2r3_divider solid x459-603; corridor east band ink only y560-587 and y696-751 with gap y588-695",
+              "seed recovery revision: former room_R3 open area merged into corridor; follows image evidence only"
+            ],
+            "x": [
+              4.297521,
+              10.0
+            ],
+            "y": [
+              3.38843,
+              15.950413
+            ]
+          },
+          {
+            "id": "room_R1",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: dividers y296 and y~367-372; corridor east wall x~457-462 confirmed in zoom 440-570/295-480"
+            ],
+            "x": [
+              5.785124,
+              10.0
+            ],
+            "y": [
+              13.966942,
+              15.950413
+            ]
+          },
+          {
+            "id": "room_R2",
+            "role": "meeting_room",
+            "source_refs": [
+              "1f_view.png: divider y~367-372; R2/R3 divider y~580-587 solid x459-603 (profile r2r3_divider, no gap); corridor east wall with D_R1/D_R2"
+            ],
+            "x": [
+              5.785124,
+              10.0
+            ],
+            "y": [
+              8.016529,
+              13.966942
+            ]
+          },
+          {
+            "id": "office_L2",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: left dividers y~403-408 and y~583-588; corridor west wall x~402-407"
+            ],
+            "x": [
+              0,
+              4.297521
+            ],
+            "y": [
+              8.016529,
+              12.975207
+            ]
+          },
+          {
+            "id": "conference_W",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.297521,
+                0.0
+              ],
+              [
+                4.297521,
+                8.016529
+              ],
+              [
+                0.0,
+                8.016529
+              ]
+            ],
+            "role": "conference",
+            "source_refs": [
+              "1f_view.png: left divider y~583-588; corridor south end wall y~751-756; corridor west wall x~402-407; R4 west wall x~457-462 continues to south wall (zoom 430-570/555-765)"
+            ],
+            "x": [
+              0.0,
+              4.297521
+            ],
+            "y": [
+              0.0,
+              8.016529
+            ]
+          },
+          {
+            "id": "room_R4",
+            "polygon": [
+              [
+                4.297521,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.848485
+              ],
+              [
+                5.785124,
+                4.848485
+              ],
+              [
+                5.785124,
+                3.38843
+              ],
+              [
+                4.297521,
+                3.38843
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "R3/R4 divider y~696-700 complete: profile r3r4_divider wall runs x459-559 and x592-603 with aperture x560-591, closing to east wall; zoom 440-650/650-770"
+            ],
+            "x": [
+              4.297521,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.848485
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      10
+    ],
+    "footprint_y": [
+      0,
+      20
+    ],
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_main",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.550964,
+          20.0
+        ],
+        "p2": [
+          2.14876,
+          20.0
+        ],
+        "source_refs": [
+          "plan cyan double-arc x267-326; North_view 1600 door sill200 h2400, transom not modelled"
+        ],
+        "space_id": "entrance_open_office",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_south",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.545455,
+          0.0
+        ],
+        "p2": [
+          5.426997,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view.png cyan arc px x412-447 y841-874; aperture in south wall y~866-874 within nook x403-457"
+        ],
+        "space_id": "room_R4",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_east",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.300275
+        ],
+        "p2": [
+          10.0,
+          5.702479
+        ],
+        "source_refs": [
+          "East_view chain: 1600 double door 5700-7300 from south, sill200 h2400; plan aperture px y612-669 on east wall",
+          "host updated: room_R3 area merged into corridor, no corridor wall px y588-696"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_corrn",
+        "kind": "door",
+        "other_space_id": "entrance_open_office",
+        "p1": [
+          4.407713,
+          15.950413
+        ],
+        "p2": [
+          5.674931,
+          15.950413
+        ],
+        "source_refs": [
+          "plan cyan double-arc at corridor top px405-452; leaf height assumed"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_L1",
+        "kind": "door",
+        "other_space_id": "office_L1",
+        "p1": [
+          4.297521,
+          14.187328
+        ],
+        "p2": [
+          4.297521,
+          13.360882
+        ],
+        "source_refs": [
+          "plan cyan swing arc orig(367-402,360-400); height assumed"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_L2",
+        "kind": "door",
+        "other_space_id": "office_L2",
+        "p1": [
+          4.297521,
+          12.589532
+        ],
+        "p2": [
+          4.297521,
+          11.763085
+        ],
+        "source_refs": [
+          "plan cyan swing arc orig(367-390,420-450); height assumed"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_meet",
+        "kind": "door",
+        "other_space_id": "corridor",
+        "p1": [
+          4.297521,
+          7.630854
+        ],
+        "p2": [
+          4.297521,
+          6.804408
+        ],
+        "source_refs": [
+          "plan cyan swing arc orig(367-400,597-627); height assumed; corridor west strip continues after merge"
+        ],
+        "space_id": "conference_W",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_R1",
+        "kind": "door",
+        "other_space_id": "room_R1",
+        "p1": [
+          5.785124,
+          15.206612
+        ],
+        "p2": [
+          5.785124,
+          14.242424
+        ],
+        "source_refs": [
+          "plan cyan swing arc orig(457-492,320-365), aperture px y~325-355 confirmed zoom 4x; height assumed"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_R2",
+        "kind": "door",
+        "other_space_id": "room_R2",
+        "p1": [
+          5.785124,
+          13.636364
+        ],
+        "p2": [
+          5.785124,
+          12.727273
+        ],
+        "source_refs": [
+          "CONFIRMED zoom 4x crop 440-570/295-480: distinct second stacked door below D_R1, aperture px y~382-414, leaf at y~382, arc into room_R2; R1/R2 divider stub y~356-382 separates the two doors; not a double leaf of D_R1",
+          "height assumed"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_R34",
+        "kind": "door",
+        "other_space_id": "room_R4",
+        "p1": [
+          8.62259,
+          4.848485
+        ],
+        "p2": [
+          9.504132,
+          4.848485
+        ],
+        "source_refs": [
+          "zoom 4x crop 440-650/650-770: aperture x560-591 in R3/R4 divider y~696-700, cyan leaf px x560-562 y700-730 hangs into room_R4; profile r3r4_divider gap x560-591",
+          "host updated: room_R3 side merged into corridor"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.4
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_N1",
+        "room": "entrance_open_office",
+        "source_refs": [
+          "North_view chain 4800 window x4660-9460, sill1000 h2400"
+        ],
+        "span": [
+          4.655647,
+          9.449036
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S1",
+        "room": "conference_W",
+        "source_refs": [
+          "South_view 1500 window x540-2040 sill1000 h1800"
+        ],
+        "span": [
+          0.550964,
+          2.038567
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S2",
+        "room": "room_R4",
+        "source_refs": [
+          "South_view 1500 window x7960-9460 sill1000 h1800; plan cyan mark px~550-595"
+        ],
+        "span": [
+          7.961433,
+          9.449036
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W1",
+        "room": "entrance_open_office",
+        "source_refs": [
+          "West_view 1500 y540-2040 sill1000 h1800"
+        ],
+        "span": [
+          17.961433,
+          19.449036
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W2",
+        "room": "office_L1",
+        "source_refs": [
+          "West_view 1200 y4420-5620 sill1000 h1800"
+        ],
+        "span": [
+          14.380165,
+          15.592287
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W3",
+        "room": "office_L2",
+        "source_refs": [
+          "West_view 1500 y7360-8860 sill1000 h1800"
+        ],
+        "span": [
+          11.157025,
+          12.644628
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W4",
+        "room": "office_L2",
+        "source_refs": [
+          "West_view 1500 y10080-11580 sill1000 h1800"
+        ],
+        "span": [
+          8.429752,
+          9.917355
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W5",
+        "room": "conference_W",
+        "source_refs": [
+          "West_view 4800 y14660-19460 sill1000 h2400"
+        ],
+        "span": [
+          0.523416,
+          5.344353
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E1",
+        "room": "entrance_open_office",
+        "source_refs": [
+          "East_view chain 1500 window y17960-19460 from south sill1000 h1800"
+        ],
+        "span": [
+          17.961433,
+          19.449036
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E2",
+        "room": "room_R1",
+        "source_refs": [
+          "East_view chain 1200 window y14380-15580 sill1000 h1800"
+        ],
+        "span": [
+          14.380165,
+          15.592287
+        ],
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E3",
+        "room": "room_R2",
+        "source_refs": [
+          "East_view chain 4800 window y8840-13640 sill1000 h2400; plan cyan band px~369-555 east wall"
+        ],
+        "span": [
+          8.842975,
+          13.636364
+        ],
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Door leaf swing directions not modelled; D_east leaf/arc appears drawn mostly outside the east wall but crop evidence partial",
+    "D_R34 swing observed into room_R4; swing not represented in aperture model",
+    "Transom panes above D_main/D_south/D_east merged into door height",
+    "Exterior wall thickness conflict 540 vs ~240 unresolved",
+    "Pixel-to-world calibration from caller, not independently verified",
+    "Interior door widths approximate +/-15px from swing arcs",
+    "Open passage width between corridor and merged lobby equals full y px 588-696 stretch; jamb returns not modelled as geometry",
+    "SW nook connection to room_R4 is a cased opening with no drawn door leaf; modelled as open, door state unknown"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "agent_assumptions": [
+    "Interior door heights 2.1m assumed (not dimensioned in plan); exterior doors ~2.1m per elevations",
+    "Window z from elevation chains: F1 sill 1000, height 1600 (North/South/East views)",
+    "Interior partition thickness drawn ~130mm modeled at midplane lines; corridor walls 250mm per left chain and drawing",
+    "South-right room labeled meeting_room from round-table furniture; downstream thermal zoning (7 zones) matches 7 physical spaces per floor",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 16,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "68466c25f4673381e568cbc78c21dfa63c244dc418af4ebb1a653324b12d3419",
+  "provenance": {
+    "generator": "Claude subscription tool loop",
+    "input_manifest_sha256": "0ed94a3fe4d5b8b0fe0911a458fe75391d0e1faab7969966ec4211d975c55c37",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "6b8e6664fc5af9a83edfc8ce1c0e6c0726e3bdbd5595815f5a56946eef16ee11",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "b0b72cf028a68b7af75b026c337c5dcaef314723890af5a4429b1665c27ba393",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "58d0122e5cb0ec037900c4924ba3c7d57f7129ffa53c19253e668b83d68afc86",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "d5eb2020185ae161e01c18622d37a21631a6b11964c3d944651221cd1d1306e5"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "area_m2": 3.8503600000000002,
+        "boundary_id": "space/N_OFFICE_1/wall/2",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "W_N1",
+          "W_Nx"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "d1c6f98cd4ffe612d0a00cc1f95c5ad18f6696a6b15bd26c02bcc57e6cbdc372",
+  "source_validation": {
+    "findings": [
+      {
+        "area_m2": 3.8503600000000002,
+        "boundary_id": "space/N_OFFICE_1/wall/2",
+        "code": "source.opening_overlap",
+        "opening_ids": [
+          "W_N1",
+          "W_Nx"
+        ],
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Right-side vertical chain (2940/340/1200/340/2940) conflicts with drawn corridor clear ~1470mm; left chain (250/1500) matches drawing and was used",
+    "Top dimension chain sums to 14760 (not 15000); window W_N3 kept at drawn pixels x1480-1700",
+    "No staircase shown on either plan; floor-to-floor connectivity not representable from evidence",
+    "West elevation horizontal chain labels the 1F opening 1200 but drawn/plan width is ~1500; plan followed",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

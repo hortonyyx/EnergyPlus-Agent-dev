@@ -1,0 +1,65 @@
+{
+  "agent_assumptions": [
+    "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+    "Entrance/east/south doors have transom lights above 2.6m not modelled as separate openings",
+    "Interior door leaf heights assumed 2.4m",
+    "Wall faces: perimeter outer faces, interior midlines; 540 chain vs ~240 drawn core unresolved",
+    "Top of plan = north",
+    "Revision from seed: room_R3 open area merged into corridor as one continuous open space (no wall px y588-696 at x~457-464); room_R3 removed as separate cell; retained object IDs unchanged"
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5011587431efc01dc2148970c8e0088a7faf665c552c1ae9a3a95b09e75e99f6",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "5011587431efc01dc2148970c8e0088a7faf665c552c1ae9a3a95b09e75e99f6",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-22_sm24_glm_uncertain_right_recovery_run15/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9f981c6b6442ad4a89fe6aa737c090e8d2df137f1f2cfeae631e7efdc5111306",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Door leaf swing directions not modelled; D_east leaf/arc appears drawn mostly outside the east wall but crop evidence partial",
+    "D_R34 swing observed into room_R4; swing not represented in aperture model",
+    "Transom panes above D_main/D_south/D_east merged into door height",
+    "Exterior wall thickness conflict 540 vs ~240 unresolved",
+    "Pixel-to-world calibration from caller, not independently verified",
+    "Interior door widths approximate +/-15px from swing arcs",
+    "Open passage width between corridor and merged lobby equals full y px 588-696 stretch; jamb returns not modelled as geometry"
+  ]
+}

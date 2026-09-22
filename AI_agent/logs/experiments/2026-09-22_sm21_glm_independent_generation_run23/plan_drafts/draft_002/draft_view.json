@@ -1,0 +1,868 @@
+{
+  "schema_version": "plan_draft_view_v1",
+  "mode": "draft_only",
+  "draft_only": true,
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_ready": false,
+  "source_bim": false,
+  "room_status": "not_inferred_or_claimed",
+  "image": {
+    "name": "2f_view.png",
+    "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "size": [
+      2182,
+      1319
+    ]
+  },
+  "plan": {
+    "file": "plan_drafts/draft_002/plan.json",
+    "sha256": "6139c5deb96bb16ce5bca6ee5663ba7e5815a72cd7699db58eb5444a7760aa2a"
+  },
+  "declaration": {
+    "floor_id": "F2",
+    "z_floor": 3.0,
+    "ceiling_height": 3.6,
+    "x_anchors": [
+      [
+        428,
+        0
+      ],
+      [
+        1812,
+        15
+      ]
+    ],
+    "y_anchors": [
+      [
+        1071,
+        0
+      ],
+      [
+        331,
+        8
+      ]
+    ],
+    "basis": "2f_view.png original pixels. Anchors at outer faces of 240 exterior walls: x px428=0m, px1812=15m; y px1071=0m, px331=8m. Representative planes: 2F corridor walls drawn as thin double lines y603-614 and y788-799 (~120mm) modeled at midplanes y608/y793 (world y=5.0/3.0, corridor clear ~1.88m). CONFLICT: 2F left chain (3000/400/1200/400/3000) and right chain (2940/340/1200/340/2940) both state corridor walls 340-400 thick and clear 1200; drawn geometry shows 120 walls with 1880 clear. Drawing followed; the corridor centerline y=4.0m agrees with both (corridor east/west windows 3.4-4.6). Interior partitions: meeting-room divider x1114-1126 (chain 120 thick, centerline 7.5m), south office partitions drawn x779/x1472 (chain positions 3750/11250 midpoints of 360+360 gaps); modeled at drawn midplanes.",
+    "footprint_pixels": [
+      [
+        428,
+        331
+      ],
+      [
+        1812,
+        331
+      ],
+      [
+        1812,
+        1071
+      ],
+      [
+        428,
+        1071
+      ]
+    ],
+    "partitions": [
+      {
+        "id": "corr-north",
+        "points": [
+          [
+            428,
+            608
+          ],
+          [
+            1812,
+            608
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: corridor north wall thin double lines y603-614, midplane 608; doors D_M1/D_M2 in it; drawn ~120mm vs chain 400 - conflict recorded"
+        ]
+      },
+      {
+        "id": "corr-south",
+        "points": [
+          [
+            428,
+            793
+          ],
+          [
+            1812,
+            793
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: corridor south wall lines y788-799, midplane 793"
+        ]
+      },
+      {
+        "id": "part-M",
+        "points": [
+          [
+            1120,
+            331
+          ],
+          [
+            1120,
+            608
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: double-line partition x1114-1126 between meeting rooms, no door, centerline 7.5m per top chain 1889+120+1891"
+        ]
+      },
+      {
+        "id": "part-S-1",
+        "points": [
+          [
+            779,
+            793
+          ],
+          [
+            779,
+            1071
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: full-height partition line x779 between offices 1|2; bottom chain midpoint of 360+360 gap at 3750 (drawn 3802)"
+        ]
+      },
+      {
+        "id": "part-S-2",
+        "points": [
+          [
+            1120,
+            793
+          ],
+          [
+            1120,
+            1071
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: partition x1114-1126 between offices 2|3, centerline 7.5m"
+        ]
+      },
+      {
+        "id": "part-S-3",
+        "points": [
+          [
+            1472,
+            793
+          ],
+          [
+            1472,
+            1071
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: full-height partition line x1472 between offices 3|4; chain midpoint 11250 (drawn 11306)"
+        ]
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_M1",
+        "kind": "door",
+        "p1": [
+          1003,
+          608
+        ],
+        "p2": [
+          1086,
+          608
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: gap in corridor north wall x1003-1086 (~900mm), leaf R12 at x1086, arc into left meeting room"
+        ]
+      },
+      {
+        "id": "D_M2",
+        "kind": "door",
+        "p1": [
+          1153,
+          608
+        ],
+        "p2": [
+          1236,
+          608
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: gap x1153-1236, leaf+arc into right meeting room"
+        ]
+      },
+      {
+        "id": "D_O1",
+        "kind": "door",
+        "p1": [
+          657,
+          793
+        ],
+        "p2": [
+          740,
+          793
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: gap in corridor south wall x657-740 (~900mm) into office 1"
+        ]
+      },
+      {
+        "id": "D_O2",
+        "kind": "door",
+        "p1": [
+          807,
+          793
+        ],
+        "p2": [
+          890,
+          793
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: gap x807-890, leaf R13 x807, into office 2"
+        ]
+      },
+      {
+        "id": "D_O3",
+        "kind": "door",
+        "p1": [
+          1350,
+          793
+        ],
+        "p2": [
+          1433,
+          793
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: gap x1350-1433 into office 3"
+        ]
+      },
+      {
+        "id": "D_O4",
+        "kind": "door",
+        "p1": [
+          1500,
+          793
+        ],
+        "p2": [
+          1583,
+          793
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: gap x1500-1583, leaf R14 x1500, into office 4"
+        ]
+      },
+      {
+        "id": "W2_N1",
+        "kind": "window",
+        "p1": [
+          607,
+          331
+        ],
+        "p2": [
+          941,
+          331
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: window x607-941 (~3600mm, top chain 1950-5550 matches px608-940); North_view.png: sill 800 h1800"
+        ]
+      },
+      {
+        "id": "W2_N2",
+        "kind": "window",
+        "p1": [
+          1302,
+          331
+        ],
+        "p2": [
+          1632,
+          331
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: window x1302-1632 (~3570mm); top chain gives 9330-12930 (px1289-1622), drawn ~140mm east of chain - drawn kept"
+        ]
+      },
+      {
+        "id": "W2_S1",
+        "kind": "window",
+        "p1": [
+          630,
+          1071
+        ],
+        "p2": [
+          739,
+          1071
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: window x630-739 (~1200mm, bottom chain 2190-3390)"
+        ]
+      },
+      {
+        "id": "W2_S2",
+        "kind": "window",
+        "p1": [
+          809,
+          1071
+        ],
+        "p2": [
+          917,
+          1071
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: window x809-917 (~1200mm, chain 4110-5310)"
+        ]
+      },
+      {
+        "id": "W2_S3",
+        "kind": "window",
+        "p1": [
+          1323,
+          1071
+        ],
+        "p2": [
+          1434,
+          1071
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: window x1323-1434 (~1200mm, chain 9690-10890)"
+        ]
+      },
+      {
+        "id": "W2_S4",
+        "kind": "window",
+        "p1": [
+          1500,
+          1071
+        ],
+        "p2": [
+          1610,
+          1071
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: window x1500-1610 (~1200mm, chain 11610-12810)"
+        ]
+      },
+      {
+        "id": "W2_W",
+        "kind": "window",
+        "p1": [
+          428,
+          757
+        ],
+        "p2": [
+          428,
+          646
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: corridor west window y646-757 (~1200mm centered on corridor y4.0); West_view.png sill 1000 h1800"
+        ]
+      },
+      {
+        "id": "W2_E",
+        "kind": "window",
+        "p1": [
+          1812,
+          757
+        ],
+        "p2": [
+          1812,
+          646
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "2f_view.png: corridor east window y646-757; East_view.png sill 1000 h1800"
+        ]
+      },
+      {
+        "id": "W2_W_extra",
+        "kind": "window",
+        "p1": [
+          428,
+          757
+        ],
+        "p2": [
+          428,
+          646
+        ],
+        "z": [
+          3.8,
+          5.6
+        ],
+        "source_refs": [
+          "REMOVE-duplicate guard"
+        ]
+      }
+    ],
+    "space_seeds": [
+      {
+        "id": "F2_MEETING_1",
+        "point": [
+          700,
+          470
+        ],
+        "role": "meeting_room"
+      },
+      {
+        "id": "F2_MEETING_2",
+        "point": [
+          1500,
+          470
+        ],
+        "role": "meeting_room"
+      },
+      {
+        "id": "F2_CORRIDOR",
+        "point": [
+          900,
+          700
+        ],
+        "role": "corridor"
+      },
+      {
+        "id": "F2_OFFICE_1",
+        "point": [
+          600,
+          930
+        ],
+        "role": "office"
+      },
+      {
+        "id": "F2_OFFICE_2",
+        "point": [
+          1000,
+          930
+        ],
+        "role": "office"
+      },
+      {
+        "id": "F2_OFFICE_3",
+        "point": [
+          1300,
+          930
+        ],
+        "role": "office"
+      },
+      {
+        "id": "F2_OFFICE_4",
+        "point": [
+          1700,
+          930
+        ],
+        "role": "office"
+      }
+    ],
+    "assumptions": [
+      "Interior door heights 2.1m assumed; window z absolute 3.8-5.6 (sill 800 + F2 floor z 3.0, height 1800 per all four elevations)",
+      "2F corridor walls modeled 120mm at drawn midplanes (y5.0/3.0), overriding conflicting 340/400 chain values",
+      "2F floor-to-floor 3.6m per elevations (total 6.6m, 1F 3.0m)"
+    ],
+    "unresolved": [
+      "2F corridor wall thickness: drawing 120mm vs both dimension chains 340-400mm; drawing followed, corridor clear 1880 vs chain 1200",
+      "No staircase on either plan; vertical circulation unrepresented",
+      "North window W2_N2 drawn ~140mm east of top-chain position; drawn kept",
+      "South partitions drawn at 3.80/11.31m vs chain 3.75/11.25m; drawn kept"
+    ]
+  },
+  "rendered": {
+    "footprint": [
+      {
+        "id": "footprint",
+        "declared_pixel_points": [
+          [
+            428,
+            331
+          ],
+          [
+            1812,
+            331
+          ],
+          [
+            1812,
+            1071
+          ],
+          [
+            428,
+            1071
+          ]
+        ],
+        "drawn_segment_count": 4,
+        "closure_semantics": "closed only as declared footprint-ring semantics"
+      }
+    ],
+    "partitions": [
+      {
+        "id": "corr-north",
+        "declared_pixel_points": [
+          [
+            428,
+            608
+          ],
+          [
+            1812,
+            608
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "corr-south",
+        "declared_pixel_points": [
+          [
+            428,
+            793
+          ],
+          [
+            1812,
+            793
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "part-M",
+        "declared_pixel_points": [
+          [
+            1120,
+            331
+          ],
+          [
+            1120,
+            608
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "part-S-1",
+        "declared_pixel_points": [
+          [
+            779,
+            793
+          ],
+          [
+            779,
+            1071
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "part-S-2",
+        "declared_pixel_points": [
+          [
+            1120,
+            793
+          ],
+          [
+            1120,
+            1071
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "part-S-3",
+        "declared_pixel_points": [
+          [
+            1472,
+            793
+          ],
+          [
+            1472,
+            1071
+          ]
+        ],
+        "drawn_segment_count": 1
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_M1",
+        "kind": "door",
+        "declared_p1": [
+          1003,
+          608
+        ],
+        "declared_p2": [
+          1086,
+          608
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_M2",
+        "kind": "door",
+        "declared_p1": [
+          1153,
+          608
+        ],
+        "declared_p2": [
+          1236,
+          608
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_O1",
+        "kind": "door",
+        "declared_p1": [
+          657,
+          793
+        ],
+        "declared_p2": [
+          740,
+          793
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_O2",
+        "kind": "door",
+        "declared_p1": [
+          807,
+          793
+        ],
+        "declared_p2": [
+          890,
+          793
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_O3",
+        "kind": "door",
+        "declared_p1": [
+          1350,
+          793
+        ],
+        "declared_p2": [
+          1433,
+          793
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_O4",
+        "kind": "door",
+        "declared_p1": [
+          1500,
+          793
+        ],
+        "declared_p2": [
+          1583,
+          793
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_N1",
+        "kind": "window",
+        "declared_p1": [
+          607,
+          331
+        ],
+        "declared_p2": [
+          941,
+          331
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_N2",
+        "kind": "window",
+        "declared_p1": [
+          1302,
+          331
+        ],
+        "declared_p2": [
+          1632,
+          331
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_S1",
+        "kind": "window",
+        "declared_p1": [
+          630,
+          1071
+        ],
+        "declared_p2": [
+          739,
+          1071
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_S2",
+        "kind": "window",
+        "declared_p1": [
+          809,
+          1071
+        ],
+        "declared_p2": [
+          917,
+          1071
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_S3",
+        "kind": "window",
+        "declared_p1": [
+          1323,
+          1071
+        ],
+        "declared_p2": [
+          1434,
+          1071
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_S4",
+        "kind": "window",
+        "declared_p1": [
+          1500,
+          1071
+        ],
+        "declared_p2": [
+          1610,
+          1071
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_W",
+        "kind": "window",
+        "declared_p1": [
+          428,
+          757
+        ],
+        "declared_p2": [
+          428,
+          646
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_E",
+        "kind": "window",
+        "declared_p1": [
+          1812,
+          757
+        ],
+        "declared_p2": [
+          1812,
+          646
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W2_W_extra",
+        "kind": "window",
+        "declared_p1": [
+          428,
+          757
+        ],
+        "declared_p2": [
+          428,
+          646
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      }
+    ]
+  },
+  "unrenderable": [],
+  "method": {
+    "coordinate_frame": "identity_original_image_pixels",
+    "original_image_box_in_preview": [
+      0,
+      0,
+      2182,
+      1319
+    ],
+    "preview_output_size": [
+      2182,
+      1343
+    ],
+    "endpoints_modified": false,
+    "endpoint_markers_centered_at_declared_points": true,
+    "partitions_extended_or_snapped": false,
+    "openings_clipped_or_hosted": false,
+    "spaces_or_rooms_derived": false
+  },
+  "scope": "Literal caller-declared pixel linework over the original image. This is neither a source BIM nor evidence that walls, openings, rooms, or drawing fidelity are valid.",
+  "preview": {
+    "image_file": "plan_drafts/draft_002/draft_view.png",
+    "image_sha256": "e07500f84fc1f06a8f2ee14c0a0986f85b3e6daed225405534f4664090dbf113"
+  }
+}

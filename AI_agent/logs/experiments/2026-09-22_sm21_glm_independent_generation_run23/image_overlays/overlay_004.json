@@ -1,0 +1,555 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "25b7049b48d64505c37bc2d8b052b198b5692bfcf1891fb82ddef1f625c340c9",
+  "floor_id": "F2",
+  "basis": "2f_view.png original pixels. Anchors at outer faces of 240 exterior walls: x px428=0m, px1812=15m; y px1071=0m, px331=8m. Representative planes: 2F corridor walls drawn as thin double lines y603-614 and y788-799 (~120mm) modeled at midplanes y608/y793 (world y=5.0/3.0, corridor clear ~1.88m). CONFLICT: 2F left chain (3000/400/1200/400/3000) and right chain (2940/340/1200/340/2940) both state corridor walls 340-400 thick and clear 1200; drawn geometry shows 120 walls with 1880 clear. Drawing followed; the corridor centerline y=4.0m agrees with both (corridor east/west windows 3.4-4.6). Interior partitions: meeting-room divider x1114-1126 (chain 120 thick, centerline 7.5m), south office partitions drawn x779/x1472 (chain positions 3750/11250 midpoints of 360+360 gaps); modeled at drawn midplanes.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        428.0,
+        0.0
+      ],
+      [
+        1812.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        1071.0,
+        0.0
+      ],
+      [
+        331.0,
+        8.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.01083815028901734,
+      "y": -0.010810810810810811
+    },
+    "pixels_per_world_metre": {
+      "x": 92.26666666666667,
+      "y": -92.5
+    },
+    "axis_px_per_m": {
+      "x": 92.26666666666667,
+      "y": 92.5
+    },
+    "warnings": []
+  },
+  "projected_spaces": [
+    {
+      "id": "F2_CORRIDOR",
+      "pixel_polygon": [
+        [
+          428.0,
+          793.000037
+        ],
+        [
+          1812.0,
+          793.000037
+        ],
+        [
+          1812.0,
+          608.000037
+        ],
+        [
+          428.0,
+          608.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_MEETING_1",
+      "pixel_polygon": [
+        [
+          428.0,
+          608.000037
+        ],
+        [
+          1120.0,
+          608.000037
+        ],
+        [
+          1120.0,
+          331.0
+        ],
+        [
+          428.0,
+          331.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_MEETING_2",
+      "pixel_polygon": [
+        [
+          1120.0,
+          608.000037
+        ],
+        [
+          1812.0,
+          608.000037
+        ],
+        [
+          1812.0,
+          331.0
+        ],
+        [
+          1120.0,
+          331.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_OFFICE_1",
+      "pixel_polygon": [
+        [
+          428.0,
+          1071.0
+        ],
+        [
+          779.000023,
+          1071.0
+        ],
+        [
+          779.000023,
+          793.000037
+        ],
+        [
+          428.0,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_OFFICE_2",
+      "pixel_polygon": [
+        [
+          779.000023,
+          1071.0
+        ],
+        [
+          1120.0,
+          1071.0
+        ],
+        [
+          1120.0,
+          793.000037
+        ],
+        [
+          779.000023,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_OFFICE_3",
+      "pixel_polygon": [
+        [
+          1120.0,
+          1071.0
+        ],
+        [
+          1472.000009,
+          1071.0
+        ],
+        [
+          1472.000009,
+          793.000037
+        ],
+        [
+          1120.0,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F2_OFFICE_4",
+      "pixel_polygon": [
+        [
+          1472.000009,
+          1071.0
+        ],
+        [
+          1812.0,
+          1071.0
+        ],
+        [
+          1812.0,
+          793.000037
+        ],
+        [
+          1472.000009,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_M1",
+      "kind": "door",
+      "space_ids": [
+        "F2_CORRIDOR",
+        "F2_MEETING_1"
+      ],
+      "pixel_endpoints": [
+        [
+          1002.999962,
+          608.000037
+        ],
+        [
+          1086.00001,
+          608.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_M2",
+      "kind": "door",
+      "space_ids": [
+        "F2_CORRIDOR",
+        "F2_MEETING_2"
+      ],
+      "pixel_endpoints": [
+        [
+          1153.000004,
+          608.000037
+        ],
+        [
+          1235.99996,
+          608.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O1",
+      "kind": "door",
+      "space_ids": [
+        "F2_CORRIDOR",
+        "F2_OFFICE_1"
+      ],
+      "pixel_endpoints": [
+        [
+          656.999962,
+          793.000037
+        ],
+        [
+          740.00001,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O2",
+      "kind": "door",
+      "space_ids": [
+        "F2_CORRIDOR",
+        "F2_OFFICE_2"
+      ],
+      "pixel_endpoints": [
+        [
+          807.000004,
+          793.000037
+        ],
+        [
+          889.99996,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O3",
+      "kind": "door",
+      "space_ids": [
+        "F2_CORRIDOR",
+        "F2_OFFICE_3"
+      ],
+      "pixel_endpoints": [
+        [
+          1350.00004,
+          793.000037
+        ],
+        [
+          1432.999996,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O4",
+      "kind": "door",
+      "space_ids": [
+        "F2_CORRIDOR",
+        "F2_OFFICE_4"
+      ],
+      "pixel_endpoints": [
+        [
+          1499.99999,
+          793.000037
+        ],
+        [
+          1583.000038,
+          793.000037
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_E",
+      "kind": "window",
+      "space_ids": [
+        "F2_CORRIDOR"
+      ],
+      "pixel_endpoints": [
+        [
+          1812.0,
+          756.999963
+        ],
+        [
+          1812.0,
+          645.999962
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_N1",
+      "kind": "window",
+      "space_ids": [
+        "F2_MEETING_1"
+      ],
+      "pixel_endpoints": [
+        [
+          607.000009,
+          331.0
+        ],
+        [
+          940.999991,
+          331.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_N2",
+      "kind": "window",
+      "space_ids": [
+        "F2_MEETING_2"
+      ],
+      "pixel_endpoints": [
+        [
+          1301.999967,
+          331.0
+        ],
+        [
+          1632.000005,
+          331.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_S1",
+      "kind": "window",
+      "space_ids": [
+        "F2_OFFICE_1"
+      ],
+      "pixel_endpoints": [
+        [
+          629.999967,
+          1071.0
+        ],
+        [
+          739.000024,
+          1071.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_S2",
+      "kind": "window",
+      "space_ids": [
+        "F2_OFFICE_2"
+      ],
+      "pixel_endpoints": [
+        [
+          808.999976,
+          1071.0
+        ],
+        [
+          916.999955,
+          1071.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_S3",
+      "kind": "window",
+      "space_ids": [
+        "F2_OFFICE_3"
+      ],
+      "pixel_endpoints": [
+        [
+          1323.000045,
+          1071.0
+        ],
+        [
+          1433.999982,
+          1071.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_S4",
+      "kind": "window",
+      "space_ids": [
+        "F2_OFFICE_4"
+      ],
+      "pixel_endpoints": [
+        [
+          1499.99999,
+          1071.0
+        ],
+        [
+          1610.000033,
+          1071.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W2_W",
+      "kind": "window",
+      "space_ids": [
+        "F2_CORRIDOR"
+      ],
+      "pixel_endpoints": [
+        [
+          428.0,
+          756.999963
+        ],
+        [
+          428.0,
+          645.999962
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "2f_view.png",
+      "floor_id": "F2",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "candidate_03",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "trigger_action": "build_bim",
+  "automatic_projection": true,
+  "reused_calibration": {
+    "calibration_id": "calibration_002",
+    "calibration_file": "overlay_calibrations/calibration_002.json",
+    "registered_by_candidate": "candidate_02",
+    "registered_source_model_sha256": "e74b6601bac44da0c14e7788f5d88b9e10c84c73b25c820797b49d6edc8a2728",
+    "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "x_anchors": [
+      [
+        428,
+        0
+      ],
+      [
+        1812,
+        15
+      ]
+    ],
+    "y_anchors": [
+      [
+        1071,
+        0
+      ],
+      [
+        331,
+        8
+      ]
+    ],
+    "basis": "2f_view.png original pixels. Anchors at outer faces of 240 exterior walls: x px428=0m, px1812=15m; y px1071=0m, px331=8m. Representative planes: 2F corridor walls drawn as thin double lines y603-614 and y788-799 (~120mm) modeled at midplanes y608/y793 (world y=5.0/3.0, corridor clear ~1.88m). CONFLICT: 2F left chain (3000/400/1200/400/3000) and right chain (2940/340/1200/340/2940) both state corridor walls 340-400 thick and clear 1200; drawn geometry shows 120 walls with 1880 clear. Drawing followed; the corridor centerline y=4.0m agrees with both (corridor east/west windows 3.4-4.6). Interior partitions: meeting-room divider x1114-1126 (chain 120 thick, centerline 7.5m), south office partitions drawn x779/x1472 (chain positions 3750/11250 midpoints of 360+360 gaps); modeled at drawn midplanes."
+  },
+  "overlay_image": "image_overlays/overlay_004.png",
+  "original_size": [
+    2182,
+    1319
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2182,
+    1319
+  ],
+  "returned_size": [
+    1600,
+    967
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.36375,
+    1.3640124095139607
+  ],
+  "remaining_seconds": 428
+}
