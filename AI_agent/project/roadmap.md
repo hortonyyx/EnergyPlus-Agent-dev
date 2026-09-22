@@ -1,5 +1,7 @@
 # 路线与当前任务
 
+**09-22 GLM 还原推进节点：** Claude 本轮额度在竖链首请求即返回 429，按用户安排改用 GLM 图像模型 `glm-5.3-flash`。GLM 独立核对 sm24 East 三条竖向链成功：门组 0.2–2.6m、大窗 1.0–3.4m、两短窗 1.0–2.8m，原图端点与三条链闭合均有工具记录。随后五图+建筑声明独立生成得到 9 空间候选，生成后独立 GT 诊断为 severe；从该候选恢复、只回看原图右侧不确定项后，模型确认 D_R2 为独立门、保留 R3/R4 实墙，并把无墙段并入走廊，生成 8 空间/11窗/10门/10连接的新候选。新候选仍有会议区、走廊和右侧边界差异，GT 诊断仍 severe，暂不替换既有采用基点。完整证据见 [GLM 竖链](../logs/experiments/2026-09-22_sm24_vertical_chains_glm_run13/README.md)、[独立整案](../logs/experiments/2026-09-22_sm24_glm_independent_generation_run14/README.md)、[右侧恢复](../logs/experiments/2026-09-22_sm24_glm_uncertain_right_recovery_run15/README.md) 与本程工作记录。下一步先整理这次 GLM 的可迁移判读/失败边界，再决定是否以新候选做有限复核或转 sm21 换例；不把 8 空间和源自洽当成保真通过。
+
 **09-21 全会话收工：** 自主复核、跨图方向比较、量测引用、完整框识别和历史复现对照均已留证。sm24东侧一门三窗水平识读通过，高度及整案自主能力未通过；旧sm21试跑两轮失败并发现CLI大图缩放，历史满分仍有效、根因未唯一隔离。无新采用BIM，三例基线保持，全部调用结束。本次不再实验；下一项先补Sonnet完整高度链，历史路线先核宿主坐标及工具能力差异。见[全会话收工与下一入口](../logs/worklog/2026-09-21_reconstruction_final_close.md)。
 
 **09-21 完整框与旧方法对照节点完成：** Sonnet/run10东侧一门三窗水平识读通过，477.77秒、最大残差约5cm；Haiku/run11竖链仍错。旧规则/CV的sm21一层独立试跑及一次原图返工均失败，错误标定未改；实际CLI大图发生缩放，不能称完整历史环境重放或排除运输影响。无新BIM，全部模型调用结束。下一项优先Sonnet完整高度链与源修订，历史路线先核宿主坐标及工具能力差异。见[本程记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
@@ -92,7 +94,7 @@
 
 ## 当前交接
 
-**当前交接：[09-21 还原建模全会话收工](../logs/worklog/2026-09-21_reconstruction_final_close.md)。** 包含从三例核对、自主复核到方法迁移与历史试跑的全部结果、验证限制和采用基点；本次全部停止。下一次先补Sonnet完整高度链，历史路线先核宿主缩放及工具能力差异。最近实验详见[完整框与历史对照](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
+**当前交接：[09-22 GLM 还原推进工作记录](../logs/worklog/2026-09-22_reconstruction_glm_progress.md)。** 本程已完成 East 竖链、GLM 独立整案和一次右侧原图恢复；新候选仍未通过独立分区诊断，既有 run04/candidate_02 继续作为采用基点。下一次先核对本程可迁移的开敞段判读与剩余边界差异，再决定有限复核或 sm21 换例。上一程完整框与历史对照仍见[记录](../logs/worklog/2026-09-21_reconstruction_component_extent_and_historical_pilot.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 

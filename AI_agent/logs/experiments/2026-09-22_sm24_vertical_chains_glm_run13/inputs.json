@@ -1,0 +1,58 @@
+{
+  "images": {
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    }
+  },
+  "scope": "独立核对 sm24 East_view.png 的全部外墙开口竖向尺寸链。仅做原图观察，不建 BIM、不读取旧候选。必须分别检查左侧、中央和右侧每一条竖向标注链，先用完整原图和带完整链条的放大裁图确认标注框、尺寸线及上下延伸端点，再用 pixel_profile 或像素区域量测原始坐标；不要凭常见图纸比例猜坐标。把建筑总高/屋顶/基底参考与每组开口的门底、门顶、窗台、窗顶分开。对每组开口报告原始像素 bbox、所引用的链、逐段数值和单位、端点 y、对应关系及不确定项；面板不算独立开口。可用 map_dimension_chain 做算术，但不能用闭合代替读图。最终明确区分实测、视觉估计、假设和未检查内容，并引用保存的证据记录。",
+  "input_mode": "original_images_agent_experiment",
+  "exploratory_opus": false,
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 1
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1790060156.1397173,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "a2b39040ed3044aa795a1adbf79a735aac80b7c31c8016034f405e27bab78af7",
+    "scripts/tool_scripts/bim_agent_guidance.py": "0601902b692e42e0b0a2fcc7eb03c31e7b12f292b17cc522c5fba5e817aa963c",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "8d2c70b9c2cc189f849041bdce8f53641d7d9f5178cca6f218f9bd526460ce57",
+    "src/agent/geometry/proposal_edits.py": "f994e3471315499d3fe2eb674867aa28a1e45e2ce5a054528d6e0b89cbc152ed",
+    "src/agent/geometry/opening_review.py": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "c4e1b3330a9b4dd774daaf65332bcf69666f39426e19684b7ee72318d2c338ba",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, and optional saved generated proposal; no building declaration and no GT/evaluation"
+}

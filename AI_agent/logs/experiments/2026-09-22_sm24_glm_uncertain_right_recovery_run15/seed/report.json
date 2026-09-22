@@ -1,0 +1,64 @@
+{
+  "agent_assumptions": [
+    "Storey height 4.5m from elevations; ceiling at 4.5, no slab thickness info",
+    "Entrance doors/east door/south door have transom lights above 2.6m not modelled as separate openings",
+    "Interior door leaf heights assumed 2.4m (no interior elevation supplied)",
+    "Wall faces: perimeter outer faces, interior midlines; 540 chain value vs ~240 drawn core unresolved",
+    "Top of plan = north (elevation chain correspondence)",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 56,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 9,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "66d8ab815b1161872f71ce149664ede85574c9a8a3e3de17c4c0b9dfb41bfe18",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "66d8ab815b1161872f71ce149664ede85574c9a8a3e3de17c4c0b9dfb41bfe18",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-22_sm24_glm_independent_generation_run14/candidate_01"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f7fde556d96fa9022999c0b458ed200502c9f541fe045891a7fd8aac29373cc8",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "D_R2 (corridor to room_R2) based on a second stacked arc; may be part of a double door for R1",
+    "room_R3/R4 suite appears entered only via east double door and D_R34; no corridor door found",
+    "Interior door aperture widths approximate (+/-15px) from swing arcs",
+    "Exterior wall thickness conflict: chains 540 vs drawn gray core ~240",
+    "Transom panes above three doors observed in elevations but merged into door height",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

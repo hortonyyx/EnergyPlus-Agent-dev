@@ -1,0 +1,61 @@
+{
+  "requested_model": "sonnet",
+  "channel": "Claude subscription; no API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1200,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 384.56,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "api_error_status": null,
+    "duration_ms": 382436,
+    "duration_api_ms": 385062,
+    "ttft_ms": 4914,
+    "ttft_stream_ms": 4575,
+    "time_to_request_ms": 21,
+    "num_turns": 36,
+    "result": "核对完成。以下为 sm24 East_view.png（2639×931 px, sha256 a0df722e…840f）全部三条竖向尺寸链的独立观察报告。**未建 BIM、未读取任何候选。**\n\n## 标定（实测）\n\n- 屋顶/檐口白线 y=229，室外地面白线 y=654（`pixel_profile` East_view.png, 白色, 竖向切片 x≈1500–1515）。\n- 425 px ↔ 4500 mm ⇒ **1 px = 10.588 mm**。建筑左缘 x≈373，右缘 x=2261，宽 1888 px ↔ 19985 mm ≈ 20000（与横向总注一致，横向链非本次主对象）。\n\n## 链一：左侧（链线 x≈252，总高 4500 线 x≈122）\n\n标注框/尺寸线/斜 tick 已在 scale=2 裁图（box [60,180,500,830]）确认；tick y 实测：228.5 / 407.5 / 635 / 653.5。\n\n| 段 | 数值(mm) | 像素段 | 折算 | 端点 y | 标高（地=0） |\n|---|---|---|---|---|---|\n| 屋顶→ | 1900 | 229→408 | 1895 | 408 | 2600 |\n| → | 2400 | 408→635 | 2403 | 635 | 200 |\n| →地面 | 200 | 635→654 | 201 | 654 | 0 |\n\n链闭合 1900+2400+200=4500（`map_dimension_chain` closure_error 0.0）。引用开口：**门组**（含上亮横梃的双扇门，外框为开口边界，门扇面板不算独立开口）。\n\n## 链二：中央（链线 x≈1145）\n\nscale=2 裁图（box [960,180,1250,830]）确认；tick y：228.5 / 332.5 / 559 / 653.5。\n\n| 段 | 数值(mm) | 像素段 | 折算 | 端点 y | 标高 |\n|---|---|---|---|---|---|\n| 屋顶→ | 1100 | 229→333 | 1101 | 333 | 3400 |\n| → | 2400 | 333→559 | 2393 | 559 | 1000（窗台）|\n| →地面 | 1000 | 559→654 | 1006 | 654 | 0 |\n\n闭合 4500（closure 0.0）。引用开口：**大窗**（唯一横向贯通的大窗）。\n\n## 链三：右侧（链线 x≈2382，总高 4500 线 x≈2515）\n\nscale=2 裁图（box [2230,180,2639,830]）确认；tick y：228.5 / 390 / 560 / 653.5。\n\n| 段 | 数值(mm) | 像素段 | 折算 | 端点 y | 标高 |\n|---|---|---|---|---|---|\n| 屋顶→ | 1700 | 229→390 | 1705 | 390 | 2800 |\n| → | 1800 | 390→559 | 1789 | 559 | 1000（窗台）|\n| →地面 | 1000 | 559→654 | 1006 | 654 | 0 |\n\n闭合 4500（closure 0.0）。引用开口：右窗；中部小窗顶/台 y 实测完全相同（389/559），标高一并适用。\n\n## 开口实测 bbox（原始像素，青色墨迹 `pixel_profile`）\n\n| 开口 | x 范围 | y 范围 | 宽×高 折算 mm | 链 | 门底/台 | 门顶/顶 |\n|---|---|---|---|---|---|---|\n| 门组 | 911–1062 | 408–635 | 1599×2403 ≈1600×2400 | 左链 | 200 | 2600 |\n| 大窗 | 1208–1661 | 333–559 | 4796×2393 ≈4800×2400 | 中链 | 1000 | 3400 |\n| 中窗 | 1731–1844 | 389–559 | 1196×1789 ≈1200×1800 | （与右窗同水平，无独立链）| 1000 | 2800 |\n| 右窗 | 2069–2210 | 389–560 | 1493×1808 ≈1500×1800 | 右链 | 1000 | 2800 |\n\n横向位置亦与横向链 5700/1600/1540/4800/740/1200/2380/1500/540（Σ=20000）逐段吻合（残差 ≤10 mm）。\n\n## 不确定项与证据分级\n\n- **实测**：上表全部像素 bbox、链 tick y、屋顶/地面线；所有折算残差 ≤10 mm，无冲突。\n- **视觉估计**：门组上亮（横梃）底边 y≈446 ⇒ 亮子高≈400 mm、门扇高≈2000 mm（scale=3 裁图 [850,380,1120,680] 读出，未单独 profile；非标注值）。\n- **假设/解释**：右链引用右窗（延伸线自链向左 x2290–2389）；中窗无专属链，其 2800/1000 标高系与右窗像素级同高推得。\n- **已查证的局限**：三条链的延伸线均为截断式（如左链 y≈408 延伸线止于 x≈345，未连到门框 x911；中链止于 x1179 vs 窗边 1208），开口对应关系靠端点 y 的像素级重合（≤1 px）确立，而非连续延伸线——这是 CAD 短延伸线画法，数值吻合度高，但严格说对应是推断+量测组合。\n- **未检查**：剖面/内部、门扇开启方向与五金、右侧 4500 总高线与链三之间的其他注记（crop 内无额外竖向链）、图纸单位假设 mm（由 20000 总长与 4500 总高的自洽支持）。\n\n证据记录：`view_image` 全图 1 次 + 放大裁图 4 次；`pixel_profile` 共 14 条（door_left_stile_v、win_big_left_v、win_mid_left_v、win_right_left_v、door/win 横向 5 条、白色轮廓 2 条、绿色延伸线 4 条、链线 5 条）；`map_dimension_chain` 3 条（均 closure_error=0.0）。",
+    "stop_reason": "end_turn",
+    "session_id": "da2aba2b-1d7e-46d7-aa9b-8749578fe4cc",
+    "total_cost_usd": 0.6427160000000001,
+    "usage": {
+      "input_tokens": 34422,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 229952,
+      "output_tokens": 13992,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 35013,
+        "outputTokens": 14107,
+        "cacheReadInputTokens": 229952,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.6427160000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "84815b3b-18af-4236-b116-1109e8484121"
+  }
+}
