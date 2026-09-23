@@ -23,6 +23,7 @@
 | 怎样启动和检查一个 case | [运行 case](workflow/run_case.md) |
 | 课题汇报可嵌入的展示资产 | [showcase 入口](../showcase/index.html) · [本轮范围与证据](logs/worklog/2026-09-10_research_showcase_assets.md) |
 | 怎样让每次会话加载同一上下文 | [会话设置](workflow/session_setup.md) |
+| 怎样清理 Docker 缓存并回收 Windows 磁盘空间 | [磁盘清理](workflow/disk_cleanup.md) |
 
 `project/` 管目标和推进，`design/` 管系统与实现，`workflow/` 管操作方法。
 [logs/](logs/README.md) 保存工作交接、实验和实际运行证据；[archive/](archive/README.md) 集中保存历史原稿、记忆和旧资产。历史资料不参与当前排期。
