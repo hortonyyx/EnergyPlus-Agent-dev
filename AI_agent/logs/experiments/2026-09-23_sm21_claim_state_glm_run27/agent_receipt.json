@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1500,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 928.48,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 918396,
+    "stop_reason": "end_turn",
+    "session_id": "d8129950-06ec-4659-9bd8-21ad8c3e1509",
+    "total_cost_usd": 1.8972824000000001,
+    "usage": {
+      "input_tokens": 152029,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2592832,
+      "output_tokens": 38530,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 152029,
+        "outputTokens": 38530,
+        "cacheReadInputTokens": 2592832,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.8972824000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 50,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Done. **Selected candidate: `candidate_02`** (seed → candidate_01 → candidate_02), finished with source validation pass, 14 spaces / 29 openings / 14 connections, no unbuilt or unsupported openings.\n\n## What was checked (bounded, evidence-driven)\n- **Both plans**: corridor walls, partitions, all doors/windows vs drawn pixels via color profiles and overlays.\n- **All four elevations**: opening counts, widths, sills/heads, floor heights (F1 3.0 m, F2 3.6 m) vs dimension chains.\n\n## Corrections applied (claims recorded and adopted)\n1. **1F corridor walls (claim_0001, substantive)** — drawn double lines measured at rows 618/629 and 804/815 px = **120 mm walls at midplanes y=5.009/2.990, clear ≈1.89 m**. The seed's 250 mm walls at y=4.904/3.129 (clear 1.53 m) were wrong; *neither* plan chain matches the drawing. All 7 F1 spaces reshaped and the six hosted interior doors moved with the walls; jamb x-positions preserved (verified against cyan jambs).\n2. **W_E1 height (claim_0002, claim-applied)** — East elevation chain 1000/1800/200 gives the F1 east corridor window **z 1.0–2.8 m**, not the seed's uniform F1 1.0–2.6 m.\n3. **2F south partitions (claim_0003/0004)** — drawn midplanes measured at **x=3.75/11.26** (faces 768/779 and 1461/1472 px); the inherited 3.804/11.315 sat on the partitions' east *face* lines (~5.5 cm offset). No openings host on these partitions.\n\n## Verified unchanged (preserved)\nAll 15 F1 + 14 F2 openings match the drawings (window spans match N/S/E/W chains to ~1–2 cm); room x-partitions on 1F (4.99/10.0) and 2F north (7.5) verified; 2F corridor confirmed at drawn midplanes 5.000/3.000, 120 mm; entry door 1.5×2.1 m and south door confirmed on West/South elevations. Both floor overlays register cleanly on the original drawings.\n\n## Honest limitations\n- **Claim ledger**: claim_0001/0003/0004 are adopted but flagged `pending_application` because their space-shape parameters were applied as literal edits (recorded with claim `source_refs` in application_0001/0002) and no claim-referenced op slot exists for polygon spaces; claim_0002 is fully claim-applied. The overlay images are the direct verification of the applied geometry.\n- **Unexamined/unresolved**: no staircase on either plan (vertical circulation unrepresented); 1F top chain sums 14760 vs 15000 and W2_N2 sits ~140 mm off its chain — drawn pixels kept; West elevation's \"1200\" chain conflicts with the drawn ~1.5 m entrance door; interior door heights assumed 2.1 m; ~1 px (≈0.011 m) calibration noise on all pixel measurements; full opening_review and formal facade spans not run (elevation/plan correspondence done manually). Drawing fidelity remains `not_evaluated` — the checks prove consistency with the originals I inspected, not as-built truth.",
+    "ttft_ms": 7182,
+    "type": "result",
+    "duration_ms": 924678,
+    "uuid": "1b08a6ab-7bd6-4842-b4b7-7e45f1f1c9ce",
+    "ttft_stream_ms": 7164,
+    "time_to_request_ms": 62,
+    "first_content_frame_ms": 7164,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

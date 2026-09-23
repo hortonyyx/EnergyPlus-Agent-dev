@@ -1,0 +1,73 @@
+{
+  "agent_assumptions": [
+    "Walls modeled as representative midplanes: exterior 240mm at outer faces 0-15 x 0-8; corridor walls 120mm on both floors measured on the drawn double lines (1F midplanes y=5.009/2.990 per profile_003/claim_0001; 2F drawn midplanes 5.000/3.000, kept at 5.0054/3.0054 within ~1px), clear ~1.88m; interior partitions ~120-130mm at drawn midplanes x=5.0/10.0 (1F), x=7.5 (2F north), x=3.75/7.5/11.26 (2F south per profile_011/claim_0003)",
+    "Floors: F1 z0-3.0, F2 z3.0-6.6 per elevations (6600 total)",
+    "Window z: F1 north and south sill 1.0 h1.6; F1 east corridor window sill 1.0 h1.8 (East_view chain 1000/1800/200); F2 sill 0.8 (abs 3.8) h1.8",
+    "Door heights 2.1m (exterior doors ~2.0-2.2m measured on South/West elevations; interior assumed)",
+    "Room uses: offices/meeting rooms per furniture; 7 physical spaces per floor match declaration thermal_zones=7 per floor (declaration field is simulation zoning, not authoritative room count)"
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0002.json",
+      "parent_candidate": "candidate_01",
+      "parent_proposal_sha256": "89bf7f80d4c001e440b79ed4360485b72079c0e1be7f9c84f99234625a1ab4cc"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "280def0b0d3491cf79334b8bb7e02abfc9ef34d9696abb5b2902747a89e1d2b3",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "89bf7f80d4c001e440b79ed4360485b72079c0e1be7f9c84f99234625a1ab4cc"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "df60fcf1777e9faa2f7577dcd515ab6bfc2654c7f6c567f2ef9b888218023999",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "1F corridor resolved by pixel measurement (profile_003, claim_0001): drawn walls 120mm at midplanes y=5.009/2.990, clear ~1.89m; neither the left chain (3000/250/1500/250/3000) nor the right chain (2940/340/1200/340/2940) matches the drawn walls, so the drawn geometry was followed",
+    "2F corridor wall thickness verified by pixel profiles (profile_005/007/008): drawn faces rows 603/614 and 788/799 px give 120mm walls at midplanes y=5.000/3.000, clear 1.88m; the 2F dimension chains conflict and were not followed",
+    "1F top chain sums 14760 (not 15000); window W_N3 kept at drawn pixels",
+    "2F north window W2_N2 drawn ~140mm east of top chain; kept at drawn pixels",
+    "2F south partitions re-measured at drawn midplanes x=3.75/11.26 (profile_011, claim_0003) and applied; the earlier 3.804/11.315 were the east face lines",
+    "No staircase on either plan: vertical circulation unrepresented",
+    "West elevation horizontal chain labels 1F opening 1200 but plan/drawing show ~1500 entrance door; plan followed",
+    "Original prior candidates candidate_01 (F1 only) and candidate_02 (F2 only) are superseded by this combined two-floor proposal"
+  ]
+}

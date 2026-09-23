@@ -1,0 +1,103 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Continue reconstructing this saved two-storey building from the supplied original drawings. Choose a bounded set of meaningful checks yourself after inspecting inputs and the saved candidate. Prioritize actual room partitions, opening identity and connectivity over tiny dimensional refinements; inspect elevations when height is material. Use the available observation, measurement and local review tools as useful. Preserve reliable objects. For supported numerical corrections, record located claims and adopt them before referencing values in revise_bim. If a checked value is already correct, use confirm_claims before making other revisions. Record uncertainty rather than manufacturing changes. Explicitly replace any inherited assumption or unresolved statement that your new observations supersede, while retaining unexamined limitations. Check the resulting source views and claim_status for your selected candidate, then finish the best saved BIM with honest unexamined scope. No facade, room or target correction is prescribed for this run.",
+  "provider": "glm",
+  "input_mode": "saved_candidate_recovery",
+  "exploratory_opus": false,
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 6
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1790158949.5948613,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "8909638e17a42d05ebdf4f739884965a61cffa46b151833e3def11b04fe4b429",
+    "scripts/tool_scripts/bim_agent_guidance.py": "20c01af4c5fbff4df8bdbb41a898731f4ca7e7da7727c242f56ae27f09a1acf5",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "src/agent/execution/bim_claims.py": "ce66c9f8a926f0df2b964a09199abc643bada799834cdd7d6ded4eee49cd2f85",
+    "src/agent/execution/bim_claim_state.py": "f83cd0f0eced9e34fbc5d6f52e40dbc8245701df2928b4f2f8200096e21f9142",
+    "src/agent/geometry/component_attributes.py": "c6084c54e07c7eb17d1a8c86442276d70fcbf11c61d872ee21823f4643468be6",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "1438214451cd077c8cfb696a0c40fc4866cabcdba4db3571ea715123eac3631d",
+    "src/agent/geometry/proposal_edits.py": "024ee470e2c14fe3bc93594d0c38cfc4dad245c71a62a8b483f4b15f73be5c7b",
+    "src/agent/geometry/opening_review.py": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "320242868487701b7260e2c57306e613b3f7661ab762c56aa3ebd0dbb9a90f8b",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, and optional saved generated proposal; no building declaration and no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "01e5bb24028d98e446b883ca7cea5e4790c4d940eb9b6df5b7f656248fbbb9ca",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-22_sm21_glm_independent_generation_run23/candidate_03",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

@@ -383,6 +383,14 @@ class Toolkit:
         self.log("decide_claim", result)
         return result
 
+    def confirm_claims(self, candidate, operations_json):
+        if self.readonly:
+            raise ValueError("only the coordinator may confirm candidate claims")
+        from src.agent.execution.bim_claim_state import confirm
+        result = confirm(self.claims(), candidate, json.loads(operations_json))
+        self.log("confirm_claims", result)
+        return result
+
     def revise(self, candidate, operations_json):
         """Resolve evidence values, use the existing edits, then record actual outcome."""
         import copy
@@ -441,7 +449,7 @@ class Toolkit:
                     expected.add((name.removeprefix("update_"), operation["id"]))
                 elif name == "move_shared_wall":
                     expected.update(("space", identity) for identity in operation["space_ids"])
-                elif name != "set_component_thickness":
+                elif name not in {"set_component_thickness", "replace_note", "set_notes"}:
                     supported = False
             for audit in updated["geometry"].get("corrections", [])[len(parent["geometry"].get("corrections", [])):]:
                 expected.update(("opening", row["id"]) for row in audit.get("moved_openings", []))
@@ -506,12 +514,15 @@ class Toolkit:
                   **summarize_delivery(source, reviews)}
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
         claim_state = self.claims().status()
+        from src.agent.execution.bim_claim_state import project
+        current_claims = project(self.claims(), candidate)
+        result["current_claim_state"] = current_claims
         # Keep full claims in their files; summarize unresolved execution in handoff.
         result["claim_applications"] = [{key: row.get(key) for key in
             ("id", "parent_candidate", "candidate", "claim_ids", "status", "error", "parameters_without_claims")}
             for row in claim_state["applications"]]
-        result["adopted_unapplied_claims"] = [row["id"] for row in claim_state["claims"]
-            if (row["decision"] or {}).get("disposition") == "adopted" and not row["applied_anywhere"]]
+        result["adopted_unapplied_claims"] = [row["id"] for row in current_claims["claims"]
+            if row["state"] in {"pending_application", "partially_satisfied", "changed_since_check"}]
         dump(self.run / "delivery.json", result)
         # A separate handoff preserves the immutable candidate's original report.
         statuses = {"not_reviewed":"未回查", "partial":"仅有局部回查",
@@ -536,6 +547,19 @@ class Toolkit:
             '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr>'
             f'{facade_rows}</table></details>' if facade_rows else '')
         notes = "".join(f'<li>{html.escape(s)}</li>' for s in result["generation"]["unresolved"])
+        notes += "".join(f'<li>{html.escape(row["id"])}：{html.escape(note)}</li>'
+                         for row in current_claims["claims"] if row["state"] != "retracted"
+                         for note in row["unresolved"])
+        notes += "".join(f'<li>继承观察（尚未复核）：{html.escape(note)}</li>'
+                         for row in current_claims["inherited_observations"] for note in row["unresolved"])
+        claim_labels = {"applied_current": "已应用，当前仍保留", "confirmed_unchanged": "已核对，无需修改",
+            "pending_application": "已采纳，尚未关联执行或确认", "partially_satisfied": "仅部分值已落实",
+            "changed_since_check": "检查后对象已改变，需复核", "deferred": "暂缓",
+            "retracted": "已撤回", "undecided": "待判断"}
+        claim_rows = "".join(f'<tr><td>{html.escape(row["id"])}</td><td>{claim_labels[row["state"]]}</td>'
+                             f'<td>{html.escape(row["reason"])}</td></tr>' for row in current_claims["claims"])
+        superseded = "".join(f'<li>{html.escape(row["before"])} → {html.escape("；".join(row["after"]) or "已撤销")}；'
+                             f'{html.escape(row["reason"])}</li>' for row in current_claims["superseded_notes"])
         assumptions = "".join(f'<li>{html.escape(s)}</li>' for s in result["assumptions"])
         counts = result["counts"]
         geometry_status = {"pass":"通过", "warning":"有警告", "severe":"有严重问题"}.get(
@@ -631,6 +655,9 @@ class Toolkit:
             f'{facade_table}'
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
+            '<h2>当前候选的观察结论</h2><p>以下核对实际参数和宿主是否仍保留，不代表原图判断已经验证。</p>'
+            f'<table><tr><th>观察</th><th>当前状态</th><th>依据</th></tr>{claim_rows}</table>'
+            f'<details><summary>已替代的说明</summary><ul>{superseded or "<li>无显式替代记录。</li>"}</ul></details>'
             '<details><summary>观察与实际应用</summary><p>采纳、执行成功与原图正确分别判断；'
             '历史应用成功不代表当前候选保留该结果。完整记录见检查记录。</p><pre>'
             + html.escape(json.dumps({"adopted_unapplied": result["adopted_unapplied_claims"],
@@ -1574,11 +1601,23 @@ def serve(run: Path, readonly=False):
 
         @server.tool()
         def claim_status(candidate: str | None = None) -> dict:
-            """Read persisted claims, decisions and actual application results.
-            Optional candidate filters observations made against that parent; applications
-            remain run-wide. Success on another candidate is not current applicability.
+            """With candidate, project checks onto its actual ancestry and geometry.
+            Without candidate, read complete run history. Historical application alone
+            is not current applicability or drawing truth.
             """
-            return toolkit.claims().status(candidate)
+            if candidate is not None:
+                from src.agent.execution.bim_claim_state import project
+                return project(toolkit.claims(), candidate)
+            return toolkit.claims().status()
+
+        @server.tool()
+        def confirm_claims(candidate: str, operations_json: str) -> dict:
+            """Check adopted claim references against unchanged saved parameters.
+            Use the same update_window/update_opening/move_shared_wall operations as
+            revise_bim. Every parameter must be a claim reference. Rejects any actual
+            geometric change; saves a confirmation without generating a new candidate.
+            """
+            return toolkit.confirm_claims(candidate, operations_json)
 
         @server.tool()
         def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "",
@@ -1969,6 +2008,7 @@ def run_experiment(args):
                                  "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
                                  "src/agent/execution/bim_claims.py":digest(ROOT/"src/agent/execution/bim_claims.py"),
+                                 "src/agent/execution/bim_claim_state.py":digest(ROOT/"src/agent/execution/bim_claim_state.py"),
                                  "src/agent/geometry/component_attributes.py":digest(ROOT/"src/agent/geometry/component_attributes.py"),
                                  "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
                                  "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),

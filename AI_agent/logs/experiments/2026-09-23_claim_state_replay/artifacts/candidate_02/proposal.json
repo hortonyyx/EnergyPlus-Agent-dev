@@ -1,0 +1,1185 @@
+{
+  "assumptions": [
+    "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+    "North window sill1.0/head3.4m, South windows sill1.0/head2.8m (directly measured from elevations). East facade openings re-measured directly; large east window head3.4m, two small east windows head2.8m, all sill 1.0m.",
+    "West facade opening heights assumed equal to North sill1.0/head3.4m; not independently re-measured (inherited unresolved limitation).",
+    "ED1_door bottom/head are 0.2/2.6m from the East elevation; other doors retain the inherited 0/2.4m assumption and were not checked in this bounded run.",
+    "Building height 4.5m used uniformly as the single floor's wall height per all four elevations.",
+    "CORRECTED THIS RUN: the SE area previously merged as one open room ('CorridorN_SE_open' spanning the whole SE zone) is now split by a newly identified physical divider P7 (stepped wall x400,y753 -> x461,y753 -> x461,y700 -> x611,y700) with its own door (D_SE_divider, x558-592,y700). Direct pixel_profile evidence shows this wall IS connected at both ends (to the corridor wall at x400,y753 and to the exterior east wall at x611,y700), contradicting the inherited draft's unverified claim that it was a non-connecting fragment. The corridor/open-office region (CorridorN_SE_open) now occupies the area north of P7 (including the P6b-bounded pocket x462-610,y585-700 and the small notch x400-461,y700-753, both open to the corridor spine with no wall between them). A new room 'RoomSE_south' occupies the area south of P7 (x400-611,y753-878 plus the sliver x461-611,y700-753), containing a narrow cabinet/desk and 2 chairs, the south-wall door SD1 and window SW2, connected to the corridor pocket via D_SE_divider.",
+    "Room roles (reception, office, boardroom, meeting, pantry, corridor/open office) are inferred from furniture symbols, not labelled in the source.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "assumptions": [],
+          "id": "ED1_door",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            10.0,
+            -12.709766
+          ],
+          "p2": [
+            10.0,
+            -14.305365
+          ],
+          "source_refs": [
+            "claim:claim_0001:27082def324afbce32f85681ac35fc2e94a1dd123f3336308264438c24d15220"
+          ],
+          "space_id": "CorridorN_SE_open",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "ED1_door",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            10.0,
+            -12.709766
+          ],
+          "p2": [
+            10.0,
+            -14.305365
+          ],
+          "source_refs": [
+            "1f_view.png east wall gray-fill gap y=613-671px; crop [560,550,660,720] display5 shows a double door (two leaves) with dimension label 1600; host remains the North/corridor pocket since y613-671 is north of the new P7 divider (which meets the east wall at y700)"
+          ],
+          "space_id": "CorridorN_SE_open",
+          "z": [
+            0.0,
+            2.4
+          ]
+        },
+        "id": "ED1_door",
+        "operation": "update_opening",
+        "reason": "East elevation external double door drawn on a 200 mm plinth: chain 1900/2400/200 of the 4500 wall and measured frame pixels give head z=2.6 m, bottom z=0.2 m, replacing the seed's assumed 0-2.4 m. xy position and width unchanged.",
+        "source_refs": [
+          "claim:claim_0001:27082def324afbce32f85681ac35fc2e94a1dd123f3336308264438c24d15220"
+        ]
+      },
+      {
+        "application_id": "application_0001",
+        "bindings": [
+          {
+            "claim_id": "claim_0001",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.6,
+                    "index": 0,
+                    "length_m": 1.9,
+                    "span_m": [
+                      2.6,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 0.2,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      0.2,
+                      2.6
+                    ],
+                    "start_m": 2.6
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.2
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              0.2,
+              2.6
+            ],
+            "value_field": "z"
+          }
+        ],
+        "claims": {
+          "claim_0001": {
+            "decision": {
+              "claim_id": "claim_0001",
+              "disposition": "adopted",
+              "id": "decision_0001",
+              "reason": "East elevation chain (1900/2400/200 of 4500) and measured door-frame pixels (y408-635 → z 2.60/0.20 m) both place ED1 at z=[0.2,2.6]; the seed's [0.0,2.4] conflicts with both the labels and the drawn frame position. Correction justified."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "seed",
+                "objects": [
+                  {
+                    "id": "ED1_door",
+                    "kind": "opening"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "East elevation external double door ED1. Green dimension chain attached to the door head/bottom extension lines reads 1900 above / 2400 door / 200 below within the 4500 total wall height. Measured calibration: building top line profile_004 C01 at y=229, ground line profile_004 C02 at y=654 (425 px = 4500 mm). Measured cyan door outer frame profile_001 C01/C13 at y=408..635 gives z=2605..201 mm, confirming the chain: head z=2600, bottom z=200, height 2400. The 200 mm is the drawn plinth/step below the door frame; the door frame is genuinely drawn above the ground line. World z is absolute height above floor level 0.",
+                "sources": [
+                  {
+                    "box": [
+                      180.0,
+                      150.0,
+                      1250.0,
+                      720.0
+                    ],
+                    "image": "East_view.png"
+                  },
+                  {
+                    "box": [
+                      890.0,
+                      200.0,
+                      1090.0,
+                      700.0
+                    ],
+                    "image": "East_view.png"
+                  },
+                  {
+                    "box": [
+                      300.0,
+                      150.0,
+                      700.0,
+                      720.0
+                    ],
+                    "image": "East_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "The drawing does not label what the 200 mm zone below the door frame is (plinth or step); the chain and drawn frame position both place the door bottom at z=0.2 m."
+                ],
+                "values": {
+                  "z": {
+                    "direction": -1,
+                    "lengths": [
+                      1900.0,
+                      2400.0,
+                      200.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "z": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.6,
+                        "index": 0,
+                        "length_m": 1.9,
+                        "span_m": [
+                          2.6,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 0.2,
+                        "index": 1,
+                        "length_m": 2.4,
+                        "span_m": [
+                          0.2,
+                          2.6
+                        ],
+                        "start_m": 2.6
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 0.2,
+                        "span_m": [
+                          0.0,
+                          0.2
+                        ],
+                        "start_m": 0.2
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0001",
+              "parent_proposal_sha256": "9c6a8adc1812c5a7bb4744fb38a6a12b1c44d6e49008383eb7d90ed4a0cc5bc9",
+              "resolved_values": {
+                "z": [
+                  0.2,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    180.0,
+                    150.0,
+                    1250.0,
+                    720.0
+                  ],
+                  "image": "East_view.png",
+                  "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                  "size": [
+                    2639,
+                    931
+                  ]
+                },
+                {
+                  "box": [
+                    890.0,
+                    200.0,
+                    1090.0,
+                    700.0
+                  ],
+                  "image": "East_view.png",
+                  "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                  "size": [
+                    2639,
+                    931
+                  ]
+                },
+                {
+                  "box": [
+                    300.0,
+                    150.0,
+                    700.0,
+                    720.0
+                  ],
+                  "image": "East_view.png",
+                  "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                  "size": [
+                    2639,
+                    931
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "operation": "claim_application",
+        "parent_candidate": "seed",
+        "parent_proposal_sha256": "9c6a8adc1812c5a7bb4744fb38a6a12b1c44d6e49008383eb7d90ed4a0cc5bc9"
+      },
+      {
+        "after": [
+          "ED1_door bottom/head are 0.2/2.6m from the East elevation; other doors retain the inherited 0/2.4m assumption and were not checked in this bounded run."
+        ],
+        "before": "All doors assumed 2.4m height, base 0 (floor level).",
+        "field": "assumptions",
+        "operation": "replace_note",
+        "reason": "Saved applied East-door observation supersedes the all-doors base-zero statement only for ED1.",
+        "source_refs": [
+          "claim_0001"
+        ]
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "Lobby",
+            "polygon": [
+              [
+                0.0,
+                -3.988996
+              ],
+              [
+                10.0,
+                -3.988996
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            "role": "reception/lobby",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              -3.988996,
+              0.0
+            ]
+          },
+          {
+            "id": "OfficeW2",
+            "polygon": [
+              [
+                0.0,
+                -6.98762
+              ],
+              [
+                4.187328,
+                -6.98762
+              ],
+              [
+                4.187328,
+                -3.988996
+              ],
+              [
+                0.0,
+                -3.988996
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)",
+              "1f_view.png: vertical wall x=398-402px full length y296-878",
+              "1f_view.png: west-only horizontal wall y=403-407px, x248-398"
+            ],
+            "x": [
+              0.0,
+              4.187328
+            ],
+            "y": [
+              -6.98762,
+              -3.988996
+            ]
+          },
+          {
+            "id": "CorridorN_SE_open",
+            "polygon": [
+              [
+                4.187328,
+                -16.56121
+              ],
+              [
+                5.867769,
+                -16.56121
+              ],
+              [
+                5.867769,
+                -15.103164
+              ],
+              [
+                10.0,
+                -15.103164
+              ],
+              [
+                10.0,
+                -11.939477
+              ],
+              [
+                5.812672,
+                -11.939477
+              ],
+              [
+                5.812672,
+                -3.988996
+              ],
+              [
+                4.187328,
+                -3.988996
+              ]
+            ],
+            "role": "corridor_and_open_office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)",
+              "1f_view.png: vertical wall x=398-402px full length y296-878",
+              "1f_view.png: vertical wall x=457-462px from y296 to y585",
+              "1f_view.png: horizontal wall y=583-587px east segment x462-610, snapped to corridor wall x459",
+              "1f_view.png: view_pixel_profile axis=x box[395,748,615,758] shows wall at x397-398(corridor wall, continuous) and x461-462 (support y748-755) and x602-612 (east wall); axis=y box[395,700,405,760] shows corridor wall x397-404 continuous y700-759 (confirms H2 meets corridor wall, not a gap); zoomed crop [390,680,480,770] display_scale6 shows the horizontal segment at y753 visually touching the x400 corridor wall face; crop [440,685,615,765] display_scale5 shows the y700 segment reaching the east wall with a door swing arc near x558-592; axis=x box[390,690,620,780] and box[390,690,620,705] confirm the y700 wall spans x457-610 continuously (candidate C03 x457-559, C04 x592-602, merging into east wall candidates x602-612)."
+            ],
+            "x": [
+              4.187328,
+              10.0
+            ],
+            "y": [
+              -16.56121,
+              -3.988996
+            ]
+          },
+          {
+            "id": "RoomE2",
+            "polygon": [
+              [
+                5.812672,
+                -5.997249
+              ],
+              [
+                10.0,
+                -5.997249
+              ],
+              [
+                10.0,
+                -3.988996
+              ],
+              [
+                5.812672,
+                -3.988996
+              ]
+            ],
+            "role": "storage/pantry",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width horizontal wall at y=296px (world y=-4.06m)",
+              "1f_view.png: vertical wall x=457-462px from y296 to y585",
+              "1f_view.png: east-only horizontal wall y=367-371px, x462-610"
+            ],
+            "x": [
+              5.812672,
+              10.0
+            ],
+            "y": [
+              -5.997249,
+              -3.988996
+            ]
+          },
+          {
+            "id": "MeetingE3",
+            "polygon": [
+              [
+                5.812672,
+                -11.939477
+              ],
+              [
+                10.0,
+                -11.939477
+              ],
+              [
+                10.0,
+                -5.997249
+              ],
+              [
+                5.812672,
+                -5.997249
+              ]
+            ],
+            "role": "meeting_room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=457-462px from y296 to y585",
+              "1f_view.png: east-only horizontal wall y=367-371px, x462-610",
+              "1f_view.png: horizontal wall y=583-587px east segment x462-610, snapped to corridor wall x459"
+            ],
+            "x": [
+              5.812672,
+              10.0
+            ],
+            "y": [
+              -11.939477,
+              -5.997249
+            ]
+          },
+          {
+            "id": "OfficeW3",
+            "polygon": [
+              [
+                0.0,
+                -11.939477
+              ],
+              [
+                4.187328,
+                -11.939477
+              ],
+              [
+                4.187328,
+                -6.98762
+              ],
+              [
+                0.0,
+                -6.98762
+              ]
+            ],
+            "role": "open_office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=398-402px full length y296-878",
+              "1f_view.png: west-only horizontal wall y=403-407px, x248-398",
+              "1f_view.png: horizontal wall y=583-587px west segment x248-398, snapped to corridor wall x400"
+            ],
+            "x": [
+              0.0,
+              4.187328
+            ],
+            "y": [
+              -11.939477,
+              -6.98762
+            ]
+          },
+          {
+            "id": "Boardroom_W4",
+            "polygon": [
+              [
+                0.0,
+                -20.0
+              ],
+              [
+                4.187328,
+                -20.0
+              ],
+              [
+                4.187328,
+                -11.939477
+              ],
+              [
+                0.0,
+                -11.939477
+              ]
+            ],
+            "role": "boardroom",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=398-402px full length y296-878",
+              "1f_view.png: horizontal wall y=583-587px west segment x248-398, snapped to corridor wall x400"
+            ],
+            "x": [
+              0.0,
+              4.187328
+            ],
+            "y": [
+              -20.0,
+              -11.939477
+            ]
+          },
+          {
+            "id": "RoomSE_south",
+            "polygon": [
+              [
+                4.187328,
+                -20.0
+              ],
+              [
+                10.0,
+                -20.0
+              ],
+              [
+                10.0,
+                -15.103164
+              ],
+              [
+                5.867769,
+                -15.103164
+              ],
+              [
+                5.867769,
+                -16.56121
+              ],
+              [
+                4.187328,
+                -16.56121
+              ]
+            ],
+            "role": "small_office_or_store (furniture: narrow cabinet/desk with 2 chairs; role uncertain)",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical wall x=398-402px full length y296-878",
+              "1f_view.png: view_pixel_profile axis=x box[395,748,615,758] shows wall at x397-398(corridor wall, continuous) and x461-462 (support y748-755) and x602-612 (east wall); axis=y box[395,700,405,760] shows corridor wall x397-404 continuous y700-759 (confirms H2 meets corridor wall, not a gap); zoomed crop [390,680,480,770] display_scale6 shows the horizontal segment at y753 visually touching the x400 corridor wall face; crop [440,685,615,765] display_scale5 shows the y700 segment reaching the east wall with a door swing arc near x558-592; axis=x box[390,690,620,780] and box[390,690,620,705] confirm the y700 wall spans x457-610 continuously (candidate C03 x457-559, C04 x592-602, merging into east wall candidates x602-612)."
+            ],
+            "x": [
+              4.187328,
+              10.0
+            ],
+            "y": [
+              -20.0,
+              -15.103164
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      -20.0,
+      0.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_lobby_corr",
+        "kind": "door",
+        "other_space_id": "Lobby",
+        "p1": [
+          4.380165,
+          -3.988996
+        ],
+        "p2": [
+          5.619835,
+          -3.988996
+        ],
+        "source_refs": [
+          "1f_view.png: double-arc door symbol at north wall/corridor junction"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_w2_corr",
+        "kind": "door",
+        "other_space_id": "OfficeW2",
+        "p1": [
+          4.187328,
+          -5.667125
+        ],
+        "p2": [
+          4.187328,
+          -6.9326
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P2 near y360-400"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_w3_corr",
+        "kind": "door",
+        "other_space_id": "OfficeW3",
+        "p1": [
+          4.187328,
+          -7.290234
+        ],
+        "p2": [
+          4.187328,
+          -8.308116
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P2 near y416-453"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_w4_corr",
+        "kind": "door",
+        "other_space_id": "CorridorN_SE_open",
+        "p1": [
+          4.187328,
+          -12.242091
+        ],
+        "p2": [
+          4.187328,
+          -13.259972
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P2 near y596-633; host on the east side is now the North/corridor pocket bounded by new P7 divider, since y596-633 lies between y585 and y753 (north of P7's west connection point at y753)"
+        ],
+        "space_id": "Boardroom_W4",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_e2_corr",
+        "kind": "door",
+        "other_space_id": "RoomE2",
+        "p1": [
+          5.812672,
+          -4.731774
+        ],
+        "p2": [
+          5.812672,
+          -5.639615
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P3 near y323-356"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_e3_corr",
+        "kind": "door",
+        "other_space_id": "MeetingE3",
+        "p1": [
+          5.812672,
+          -6.354883
+        ],
+        "p2": [
+          5.812672,
+          -7.262724
+        ],
+        "source_refs": [
+          "1f_view.png: swing arc gap in P3 near y382-415"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "ND1_entrance",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.523416,
+          0.0
+        ],
+        "p2": [
+          2.14876,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view.png north wall double-door arc; North_view.png confirms double door on this facade"
+        ],
+        "space_id": "Lobby",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "SD1_door",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.545455,
+          -20.0
+        ],
+        "p2": [
+          5.426997,
+          -20.0
+        ],
+        "source_refs": [
+          "1f_view.png south wall door arc near x413-445 with 240 label; host is now the new South room (RoomSE_south) since it lies south of P7 divider"
+        ],
+        "space_id": "RoomSE_south",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "ED1_door",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          -12.709766
+        ],
+        "p2": [
+          10.0,
+          -14.305365
+        ],
+        "source_refs": [
+          "claim:claim_0001:27082def324afbce32f85681ac35fc2e94a1dd123f3336308264438c24d15220"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_SE_divider",
+        "kind": "door",
+        "other_space_id": "RoomSE_south",
+        "p1": [
+          8.539945,
+          -15.103164
+        ],
+        "p2": [
+          9.476584,
+          -15.103164
+        ],
+        "source_refs": [
+          "1f_view.png: crop [440,685,615,765] display_scale5 shows a cyan door swing arc and leaf between x558 and x592 at y700, in the new P7 divider wall; connects North/corridor pocket to new South room"
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "NW1_window",
+        "kind": "window",
+        "p1": [
+          4.655647,
+          0.0
+        ],
+        "p2": [
+          9.476584,
+          0.0
+        ],
+        "room": "Lobby",
+        "source_refs": [
+          "1f_view.png north wall cyan window band; North_view.png: sill1000 height2400 (label 1100/2400/1000 of 4500 wall)"
+        ],
+        "span": [
+          4.655647,
+          9.476584
+        ],
+        "width_m": 4.820937,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "SW1_window",
+        "kind": "window",
+        "p1": [
+          0.523416,
+          -20.0
+        ],
+        "p2": [
+          2.038567,
+          -20.0
+        ],
+        "room": "Boardroom_W4",
+        "source_refs": [
+          "1f_view.png south wall cyan band x267-322; South_view.png sill1000 height1800 (1700/1800/1000 of 4500)"
+        ],
+        "span": [
+          0.523416,
+          2.038567
+        ],
+        "width_m": 1.515151,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "SW2_window",
+        "kind": "window",
+        "p1": [
+          7.933884,
+          -20.0
+        ],
+        "p2": [
+          9.504132,
+          -20.0
+        ],
+        "room": "RoomSE_south",
+        "source_refs": [
+          "1f_view.png south wall cyan band x536-593; host is now the new South room (RoomSE_south)"
+        ],
+        "span": [
+          7.933884,
+          9.504132
+        ],
+        "width_m": 1.570248,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW1_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -0.522696
+        ],
+        "p2": [
+          0.0,
+          -2.035763
+        ],
+        "room": "Lobby",
+        "source_refs": [
+          "1f_view.png west wall cyan band; West_view.png window1 matches fine dim chain 540-2040"
+        ],
+        "span": [
+          -2.035763,
+          -0.522696
+        ],
+        "width_m": 1.513067,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW2_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -4.401651
+        ],
+        "p2": [
+          0.0,
+          -5.612105
+        ],
+        "room": "OfficeW2",
+        "source_refs": [
+          "West_view.png window2, plan dim chain 4420-5620"
+        ],
+        "span": [
+          -5.612105,
+          -4.401651
+        ],
+        "width_m": 1.210454,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW3_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -7.345254
+        ],
+        "p2": [
+          0.0,
+          -8.858322
+        ],
+        "room": "OfficeW3",
+        "source_refs": [
+          "West_view.png window3, plan dim chain 7360-8860"
+        ],
+        "span": [
+          -8.858322,
+          -7.345254
+        ],
+        "width_m": 1.513068,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW4_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -10.068776
+        ],
+        "p2": [
+          0.0,
+          -11.554333
+        ],
+        "room": "OfficeW3",
+        "source_refs": [
+          "West_view.png window4, plan dim chain 10080-11580"
+        ],
+        "span": [
+          -11.554333,
+          -10.068776
+        ],
+        "width_m": 1.485557,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW5_window",
+        "kind": "window",
+        "p1": [
+          0.0,
+          -14.635488
+        ],
+        "p2": [
+          0.0,
+          -19.422283
+        ],
+        "room": "Boardroom_W4",
+        "source_refs": [
+          "West_view.png large window5, plan dim chain 14660-19460, boardroom"
+        ],
+        "span": [
+          -19.422283,
+          -14.635488
+        ],
+        "width_m": 4.786795,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW1_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -6.354883
+        ],
+        "p2": [
+          10.0,
+          -11.169188
+        ],
+        "room": "MeetingE3",
+        "source_refs": [
+          "1f_view.png east wall gray-fill gap y=382-557px (large 4800mm cyan window band); East_view.png dim chain 8840-13640mm from south corner"
+        ],
+        "span": [
+          -11.169188,
+          -6.354883
+        ],
+        "width_m": 4.814305,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW2_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -4.401651
+        ],
+        "p2": [
+          10.0,
+          -5.612105
+        ],
+        "room": "RoomE2",
+        "source_refs": [
+          "1f_view.png east wall gray-fill gap y=311-355px (1200mm window)"
+        ],
+        "span": [
+          -5.612105,
+          -4.401651
+        ],
+        "width_m": 1.210454,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "EW3_window",
+        "kind": "window",
+        "p1": [
+          10.0,
+          -0.522696
+        ],
+        "p2": [
+          10.0,
+          -2.035763
+        ],
+        "room": "Lobby",
+        "source_refs": [
+          "1f_view.png east wall gray-fill gap y=170-225px (1500mm window nearest north corner)"
+        ],
+        "span": [
+          -2.035763,
+          -0.522696
+        ],
+        "width_m": 1.513067,
+        "z": [
+          1.0,
+          2.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Fine sub-dimension chain sums did not exactly reconcile with outer brackets in earlier drafts on other facades; outer-bracket/pixel-measured boundaries were trusted over the fine labels there. Not re-examined this run.",
+    "West facade opening sill/head heights not independently re-measured from elevation pixel dimensions this run; still assumed equal to the North window pattern (sill1.0/head3.4m), inherited unresolved limitation.",
+    "RoomSE_south's precise use/role is not labelled in the source; inferred only from furniture symbols (narrow cabinet/desk + 2 chairs).",
+    "North/South/West facade opening pixel positions and most interior partitions were preserved unchanged from the prior (unverified) draft per this run's bounded scope; only the SE divider (P7) and its door were newly investigated and corrected this run using direct pixel evidence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

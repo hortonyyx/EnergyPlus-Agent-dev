@@ -1,0 +1,330 @@
+[
+  {
+    "op": "reshape_spaces",
+    "spaces": [
+      {
+        "id": "CORRIDOR",
+        "polygon": [
+          [
+            0,
+            2.99
+          ],
+          [
+            15,
+            2.99
+          ],
+          [
+            15,
+            5.009
+          ],
+          [
+            0,
+            5.009
+          ]
+        ]
+      },
+      {
+        "id": "N_OFFICE_1",
+        "polygon": [
+          [
+            0,
+            5.009
+          ],
+          [
+            4.996403,
+            5.009
+          ],
+          [
+            4.996403,
+            8
+          ],
+          [
+            0,
+            8
+          ]
+        ]
+      },
+      {
+        "id": "N_OFFICE_2",
+        "polygon": [
+          [
+            4.996403,
+            5.009
+          ],
+          [
+            9.992806,
+            5.009
+          ],
+          [
+            9.992806,
+            8
+          ],
+          [
+            4.996403,
+            8
+          ]
+        ]
+      },
+      {
+        "id": "N_OFFICE_3",
+        "polygon": [
+          [
+            9.992806,
+            5.009
+          ],
+          [
+            15,
+            5.009
+          ],
+          [
+            15,
+            8
+          ],
+          [
+            9.992806,
+            8
+          ]
+        ]
+      },
+      {
+        "id": "S_ROOM_1",
+        "polygon": [
+          [
+            0,
+            0
+          ],
+          [
+            4.996403,
+            0
+          ],
+          [
+            4.996403,
+            2.99
+          ],
+          [
+            0,
+            2.99
+          ]
+        ]
+      },
+      {
+        "id": "S_ROOM_2",
+        "polygon": [
+          [
+            4.996403,
+            0
+          ],
+          [
+            9.992806,
+            0
+          ],
+          [
+            9.992806,
+            2.99
+          ],
+          [
+            4.996403,
+            2.99
+          ]
+        ]
+      },
+      {
+        "id": "S_ROOM_3",
+        "polygon": [
+          [
+            9.992806,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            2.99
+          ],
+          [
+            9.992806,
+            2.99
+          ]
+        ]
+      }
+    ],
+    "reason": "1F corridor walls repositioned to the drawn double lines measured on 1f_view.png (profile_003): 120mm walls at midplanes y=5.009/2.990, clear ~1.89m, replacing the seed's 250mm walls at 4.904/3.129. Room x-partitions unchanged.",
+    "source_refs": [
+      "claim_0001",
+      "profile_003"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_NA",
+    "changes": {
+      "p1": [
+        3.723022,
+        5.009
+      ],
+      "p2": [
+        4.640288,
+        5.009
+      ]
+    },
+    "reason": "Corridor north wall midplane moved with the wall; jamb x positions unchanged (verified against drawn cyan jambs x771/856).",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_NB",
+    "changes": {
+      "p1": [
+        5.341727,
+        5.009
+      ],
+      "p2": [
+        6.248201,
+        5.009
+      ]
+    },
+    "reason": "Corridor north wall midplane moved with the wall; jambs unchanged (x921/1005).",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_NC",
+    "changes": {
+      "p1": [
+        10.348921,
+        5.009
+      ],
+      "p2": [
+        11.266187,
+        5.009
+      ]
+    },
+    "reason": "Corridor north wall midplane moved with the wall; jambs unchanged (x1385/1470).",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_SA",
+    "changes": {
+      "p1": [
+        3.723022,
+        2.99
+      ],
+      "p2": [
+        4.640288,
+        2.99
+      ]
+    },
+    "reason": "Corridor south wall midplane moved with the wall; jambs unchanged.",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_SB",
+    "changes": {
+      "p1": [
+        5.341727,
+        2.99
+      ],
+      "p2": [
+        6.248201,
+        2.99
+      ]
+    },
+    "reason": "Corridor south wall midplane moved with the wall; jambs unchanged.",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "D_SC",
+    "changes": {
+      "p1": [
+        10.348921,
+        2.99
+      ],
+      "p2": [
+        11.266187,
+        2.99
+      ]
+    },
+    "reason": "Corridor south wall midplane moved with the wall; jambs unchanged.",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W_E1",
+    "changes": {
+      "z": [
+        1.0,
+        2.8
+      ]
+    },
+    "reason": "East_view.png dimensions the F1 east corridor window 1000 sill / 1800 high (z 1.0-2.8); seed's uniform F1 h=1.6 applied only to north/south windows.",
+    "source_refs": [
+      "claim_0002",
+      "claim:claim_0002:9da75a18e5697f81e0c95cce061ec84447ba38324dd426952b49e952e5196f75"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Walls modeled as representative midplanes: exterior 240mm at outer faces 0-15 x 0-8; 1F corridor walls 250mm (midplanes y=4.9039/3.1286, clear 1.50m per left chain 3000/250/1500/250/3000 and drawing); 2F corridor walls 120mm (midplanes y=5.0054/3.0054, clear 1.88m per drawing); interior partitions ~120-130mm at drawn midplanes x=5.0/10.0 (1F), x=7.5 (2F north), x=3.804/7.5/11.315 (2F south)",
+    "replacement": [
+      "Walls modeled as representative midplanes: exterior 240mm at outer faces 0-15 x 0-8; corridor walls 120mm on both floors measured on the drawn double lines (1F midplanes y=5.009/2.990 per profile_003/claim_0001; 2F drawn midplanes 5.000/3.000, kept at 5.0054/3.0054 within ~1px), clear ~1.88m; interior partitions ~120-130mm at drawn midplanes x=5.0/10.0 (1F), x=7.5 (2F north), x=3.804/7.5/11.315 (2F south)"
+    ],
+    "reason": "Pixel measurement of both plans superseded the 250mm/1.50m 1F corridor assumption",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Window z: F1 sill 1.0 h1.6; F2 sill 0.8 (abs 3.8) h1.8, per all four dimensioned elevations",
+    "replacement": [
+      "Window z: F1 north and south sill 1.0 h1.6; F1 east corridor window sill 1.0 h1.8 (East_view chain 1000/1800/200); F2 sill 0.8 (abs 3.8) h1.8"
+    ],
+    "reason": "East_view chain shows the F1 east window 1800 high, not 1600",
+    "source_refs": [
+      "claim_0002"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "unresolved",
+    "old": "1F right chain (2940/340/1200/340/2940) conflicts with drawn 1F corridor (clear ~1470, walls 250); left chain + drawing used",
+    "replacement": [
+      "1F corridor resolved by pixel measurement (profile_003, claim_0001): drawn walls 120mm at midplanes y=5.009/2.990, clear ~1.89m; neither the left chain (3000/250/1500/250/3000) nor the right chain (2940/340/1200/340/2940) matches the drawn walls, so the drawn geometry was followed"
+    ],
+    "reason": "Superseded by direct measurement of the drawn corridor wall lines",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "unresolved",
+    "old": "2F corridor wall thickness: drawing 120mm/clear 1880 vs both 2F chains 340-400mm/clear 1200; drawing followed, centerline y=4.0 agrees with chains' corridor-center and windows",
+    "replacement": [
+      "2F corridor wall thickness verified by pixel profiles (profile_005/007/008): drawn faces rows 603/614 and 788/799 px give 120mm walls at midplanes y=5.000/3.000, clear 1.88m; the 2F dimension chains conflict and were not followed"
+    ],
+    "reason": "Confirmed by direct measurement rather than left as an open conflict",
+    "source_refs": [
+      "claim_0001"
+    ]
+  }
+]

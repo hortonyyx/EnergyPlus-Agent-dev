@@ -1,0 +1,121 @@
+[
+  {
+    "op": "reshape_spaces",
+    "reason": "2F south partitions moved to drawn midplanes x=3.75 and x=11.26 (profile_011/claim_0003); center partition kept at 7.5 (drawn 7.49); corridor wall and exterior bounds unchanged; no openings host on these partitions.",
+    "source_refs": [
+      "claim_0003",
+      "profile_011"
+    ],
+    "spaces": [
+      {
+        "id": "F2_OFFICE_1",
+        "polygon": [
+          [
+            0,
+            0
+          ],
+          [
+            3.75,
+            0
+          ],
+          [
+            3.75,
+            3.005405
+          ],
+          [
+            0,
+            3.005405
+          ]
+        ]
+      },
+      {
+        "id": "F2_OFFICE_2",
+        "polygon": [
+          [
+            3.75,
+            0
+          ],
+          [
+            7.5,
+            0
+          ],
+          [
+            7.5,
+            3.005405
+          ],
+          [
+            3.75,
+            3.005405
+          ]
+        ]
+      },
+      {
+        "id": "F2_OFFICE_3",
+        "polygon": [
+          [
+            7.5,
+            0
+          ],
+          [
+            11.26,
+            0
+          ],
+          [
+            11.26,
+            3.005405
+          ],
+          [
+            7.5,
+            3.005405
+          ]
+        ]
+      },
+      {
+        "id": "F2_OFFICE_4",
+        "polygon": [
+          [
+            11.26,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            3.005405
+          ],
+          [
+            11.26,
+            3.005405
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "unresolved",
+    "old": "2F north window W2_N2 drawn ~140mm east of top chain; south partitions drawn 3.80/11.31 vs chain 3.75/11.25",
+    "reason": "South partitions re-measured on the drawn face lines and applied; W2_N2 remains at drawn pixels",
+    "replacement": [
+      "2F north window W2_N2 drawn ~140mm east of top chain; kept at drawn pixels",
+      "2F south partitions re-measured at drawn midplanes x=3.75/11.26 (profile_011, claim_0003) and applied; the earlier 3.804/11.315 were the east face lines"
+    ],
+    "source_refs": [
+      "claim_0003"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Walls modeled as representative midplanes: exterior 240mm at outer faces 0-15 x 0-8; corridor walls 120mm on both floors measured on the drawn double lines (1F midplanes y=5.009/2.990 per profile_003/claim_0001; 2F drawn midplanes 5.000/3.000, kept at 5.0054/3.0054 within ~1px), clear ~1.88m; interior partitions ~120-130mm at drawn midplanes x=5.0/10.0 (1F), x=7.5 (2F north), x=3.804/7.5/11.315 (2F south)",
+    "reason": "2F south partition positions corrected to the drawn midplanes per claim_0003",
+    "replacement": [
+      "Walls modeled as representative midplanes: exterior 240mm at outer faces 0-15 x 0-8; corridor walls 120mm on both floors measured on the drawn double lines (1F midplanes y=5.009/2.990 per profile_003/claim_0001; 2F drawn midplanes 5.000/3.000, kept at 5.0054/3.0054 within ~1px), clear ~1.88m; interior partitions ~120-130mm at drawn midplanes x=5.0/10.0 (1F), x=7.5 (2F north), x=3.75/7.5/11.26 (2F south per profile_011/claim_0003)"
+    ],
+    "source_refs": [
+      "claim_0003"
+    ]
+  }
+]

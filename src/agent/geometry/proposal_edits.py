@@ -512,6 +512,23 @@ def _set_notes(proposal: dict, operation: dict) -> dict:
             "after": {"assumptions": copy.deepcopy(assumptions), "unresolved": copy.deepcopy(unresolved)}}
 
 
+def _replace_note(proposal: dict, operation: dict) -> dict:
+    _require_fields(operation, {"op", "field", "old", "replacement", "reason", "source_refs"}, operation="replace_note")
+    field = operation.get("field")
+    if field not in {"assumptions", "unresolved"}:
+        raise ValueError("replace_note: field must be assumptions or unresolved")
+    old = _nonblank_string(operation.get("old"), field="old", operation="replace_note")
+    replacement = _notes(operation.get("replacement"), field="replacement")
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation="replace_note")
+    refs = _source_refs(operation.get("source_refs"), operation="replace_note")
+    if proposal[field].count(old) != 1:
+        raise ValueError("replace_note: old must exactly match one current note")
+    index = proposal[field].index(old)
+    proposal[field][index:index+1] = replacement
+    return {"operation": "replace_note", "field": field, "before": old,
+            "after": replacement, "reason": reason, "source_refs": refs}
+
+
 def _update_wall_evidence(proposal: dict, operation: dict) -> dict:
     """Patch one raw evidence record; keep other records and endpoint fields intact."""
     name = operation["op"]
@@ -588,6 +605,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _replace_space_region(result, geometry, operation)
         elif name == "set_notes":
             audit = _set_notes(result, operation)
+        elif name == "replace_note":
+            audit = _replace_note(result, operation)
         elif name in {"update_wall_dimension", "update_wall_reference"}:
             audit = _update_wall_evidence(result, operation)
         elif name == "set_wall_references":

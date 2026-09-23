@@ -1,0 +1,73 @@
+{
+  "agent_assumptions": [
+    "Wall representative plane = measured pixel line centrelines/outer faces from pixel_profile scans, not nominal 240mm offsets.",
+    "North window sill1.0/head3.4m, South windows sill1.0/head2.8m (directly measured from elevations). East facade openings re-measured directly; large east window head3.4m, two small east windows head2.8m, all sill 1.0m.",
+    "West facade opening heights assumed equal to North sill1.0/head3.4m; not independently re-measured (inherited unresolved limitation).",
+    "ED1_door bottom/head are 0.2/2.6m from the East elevation; other doors retain the inherited 0/2.4m assumption and were not checked in this bounded run.",
+    "Building height 4.5m used uniformly as the single floor's wall height per all four elevations.",
+    "CORRECTED THIS RUN: the SE area previously merged as one open room ('CorridorN_SE_open' spanning the whole SE zone) is now split by a newly identified physical divider P7 (stepped wall x400,y753 -> x461,y753 -> x461,y700 -> x611,y700) with its own door (D_SE_divider, x558-592,y700). Direct pixel_profile evidence shows this wall IS connected at both ends (to the corridor wall at x400,y753 and to the exterior east wall at x611,y700), contradicting the inherited draft's unverified claim that it was a non-connecting fragment. The corridor/open-office region (CorridorN_SE_open) now occupies the area north of P7 (including the P6b-bounded pocket x462-610,y585-700 and the small notch x400-461,y700-753, both open to the corridor spine with no wall between them). A new room 'RoomSE_south' occupies the area south of P7 (x400-611,y753-878 plus the sliver x461-611,y700-753), containing a narrow cabinet/desk and 2 chairs, the south-wall door SD1 and window SW2, connected to the corridor pocket via D_SE_divider.",
+    "Room roles (reception, office, boardroom, meeting, pantry, corridor/open office) are inferred from furniture symbols, not labelled in the source.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "bb076e35c05dcacdebc92772d3c04d14a113be4eb66d151b0755b6d24f0d8e68",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0002.json",
+      "parent_candidate": "candidate_01",
+      "parent_proposal_sha256": "75112c8bbbd141f05750a4c39a94826ff19bdbae74b66fc3d20d9461df43baf3"
+    },
+    "generator": "offline_no_model subscription tool loop",
+    "input_manifest_sha256": "1d6f89742f384f7f2964beacb05b0daabc3d77d15b4aee37afb0b438b221815e",
+    "mode": "developer_state_replay",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "75112c8bbbd141f05750a4c39a94826ff19bdbae74b66fc3d20d9461df43baf3"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "98d8551939946d533072aad9d3f7003999f4cb6581d80d26a4086f8ba7c6059f",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Fine sub-dimension chain sums did not exactly reconcile with outer brackets in earlier drafts on other facades; outer-bracket/pixel-measured boundaries were trusted over the fine labels there. Not re-examined this run.",
+    "West facade opening sill/head heights not independently re-measured from elevation pixel dimensions this run; still assumed equal to the North window pattern (sill1.0/head3.4m), inherited unresolved limitation.",
+    "RoomSE_south's precise use/role is not labelled in the source; inferred only from furniture symbols (narrow cabinet/desk + 2 chairs).",
+    "North/South/West facade opening pixel positions and most interior partitions were preserved unchanged from the prior (unverified) draft per this run's bounded scope; only the SE divider (P7) and its door were newly investigated and corrected this run using direct pixel evidence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

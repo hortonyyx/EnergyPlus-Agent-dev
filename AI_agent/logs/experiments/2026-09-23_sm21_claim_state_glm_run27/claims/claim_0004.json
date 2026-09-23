@@ -1,0 +1,85 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_02",
+    "objects": [
+      {
+        "id": "F2_OFFICE_1",
+        "kind": "space"
+      },
+      {
+        "id": "F2_OFFICE_2",
+        "kind": "space"
+      },
+      {
+        "id": "F2_OFFICE_3",
+        "kind": "space"
+      },
+      {
+        "id": "F2_OFFICE_4",
+        "kind": "space"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Same measurement as claim_0003, re-recorded against the revised proposal it now matches: 2f_view.png south-office partition faces (profile_011, band y805-845) at columns 768/779 and 1461/1472 px; anchors west outer 427=x0, east outer 1813=x15. Drawn midplanes x=3.75 and 11.26; candidate_02 already applies these values (application_0002), so confirmation should change no geometry.",
+    "sources": [
+      {
+        "box": [
+          380.0,
+          805.0,
+          1900.0,
+          845.0
+        ],
+        "image": "2f_view.png"
+      }
+    ],
+    "unresolved": [
+      "Anchor/face noise ~1px = 0.011m; drawn midplanes agree with the plan chains 3.75/11.25 within ~0.01m"
+    ],
+    "values": {
+      "partition1_midplane_x": {
+        "type": "literal",
+        "unit": "m",
+        "value": 3.75
+      },
+      "partition3_midplane_x": {
+        "type": "literal",
+        "unit": "m",
+        "value": 11.26
+      }
+    }
+  },
+  "computations": {
+    "partition1_midplane_x": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    },
+    "partition3_midplane_x": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0004",
+  "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+  "resolved_values": {
+    "partition1_midplane_x": 3.75,
+    "partition3_midplane_x": 11.26
+  },
+  "sources": [
+    {
+      "box": [
+        380.0,
+        805.0,
+        1900.0,
+        845.0
+      ],
+      "image": "2f_view.png",
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "size": [
+        2182,
+        1319
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

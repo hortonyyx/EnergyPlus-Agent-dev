@@ -1,0 +1,141 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "EW2_window",
+        "kind": "window"
+      },
+      {
+        "id": "EW3_window",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East elevation two small windows (EW2 1200 mm and EW3 1500 mm wide). The shared right-hand green vertical chain reads 1700 / 1800 / 1000 of the 4500 wall: head z=2800, sill z=1000, height 1800. Pixel check: cyan frame profile_003 C01/C02 at y=389..559 with calibration profile_004 (y=229/654) gives z=2806..1006 mm, agreeing within ~1 px. This matches the saved seed EW2/EW3 z=[1.0,2.8]; no correction needed.",
+    "sources": [
+      {
+        "box": [
+          2040.0,
+          250.0,
+          2230.0,
+          680.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          300.0,
+          150.0,
+          700.0,
+          720.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [],
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          1700.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.8,
+            "index": 0,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 2.8
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "9c6a8adc1812c5a7bb4744fb38a6a12b1c44d6e49008383eb7d90ed4a0cc5bc9",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        2040.0,
+        250.0,
+        2230.0,
+        680.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    },
+    {
+      "box": [
+        300.0,
+        150.0,
+        700.0,
+        720.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

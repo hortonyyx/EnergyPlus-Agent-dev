@@ -42,6 +42,10 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 局部修订可读取 `get_bim_reference('claims')`，按原图框和目标对象 `record_claim`，再明确 `decide_claim`。`revise_bim` 的参数可传 `{"claim":"claim_0001","value":"height"}`，由代码取值、换算并调用现有几何操作。`claim_status` 区分采纳、应用与未评价保真；每次应用保留 `claims/application_*.json`，失败也保存。`set_component_thickness` 在同一修订入口只写墙/板属性，正厚度必须有依据，不改变几何。接口及当前限制见[架构实现范围](../design/architecture.md#09-23-opus-55-设计讨论后的实施收敛)。
 
+已观察且原值正确时，在修改其他对象之前调用 `confirm_claims(candidate, operations_json)`：格式与带 claim 引用的门窗/共享墙修改相同，每个参数都须引用已采纳观察；只要会改变几何便拒绝。确认保存到 `claims/confirmation_*.json`，无需新建候选。`claim_status(candidate)` 现在返回当前候选及父链的状态投影；省略 candidate 仍返回运行历史。对象或宿主后续改变会使旧检查待复核，另一分支不继承应用成功。
+
+更新过时说明可在同一 `revise_bim` 加 `{"op":"replace_note","field":"assumptions","old":"原文","replacement":["新文"],"reason":"替代理由","source_refs":["claim_0001"]}`；field 也可为 unresolved。原文须精确且唯一匹配，空 replacement 表示有理由地撤销该条；代码不判断新文的语义真伪。替代后的说明进入新源，旧文保留在审计。交付显示当前观察状态、未决项和替代历史，不能仅在模型最终回答中说明源假设已过时。
+
 09-13 已把实际局部截止时间写入子清单后再计算摘要：取240秒上限与父任务剩余时间（预留45秒收尾）中较短者，拷图耗时也计入。子任务的 `inputs` / `view_image` 现在可显示递减剩余时间；只读提示提醒及时交付并标明未核范围。此前局部观察即使有外层超时，工具仍显示 null，见[真实反例与修复](../logs/worklog/2026-09-13_reconstruction_partition_and_reading.md)。随后两墙局部返工已实际收到剩时并在215.94秒结束，但修正观察仍不可用；这不证明时间反馈使识读可靠，见[后续实跑](../logs/worklog/2026-09-13_reconstruction_annotation_recovery.md)。
 
 09-13 细节查看已支持 `view_image(..., display_scale=4)`：默认1保持原呈现，显式1–8倍按最近邻显示，长边最多1600。`box_original_pixels` 仍是原图框，实际倍率及 `original_pixels_per_returned_pixel` 按最终尺寸返回；`coordinate_grid=false` 可去掉辅助网格。显示缩放不修改原图、不改变 `pixel_profile` 量测输入，也不作为识读正确证明。Sonnet（含只读局部观察）默认medium，可按订阅helper的`effort`参数选low；Haiku保持不传effort，原始实验回执中的旧设置不回写。

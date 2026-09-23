@@ -118,6 +118,11 @@ the same coordinates in prose. This is currently an existing-candidate revision
 capability, not a required representation for all first builds. Literal metric
 estimates/inferences remain allowed when explicitly labelled. claim_status shows
 adopted versus actually applied/failed; none of these proves drawing truth.
+If observed values already match, use confirm_claims with the same claim-referenced
+operations instead of creating a no-op candidate. Before finish_bim, inspect
+claim_status(candidate) and update obsolete assumption/unresolved text with
+replace_note in revise_bim; explaining a correction only in your final answer
+does not update the saved BIM. Keep unaffected assumptions and uncertainties.
 A successful build/revision returns source plan images. Inspect them; for
 positional comparisons use overlay_candidate with original pixel/metre anchors
 supported by the same observed reference plane. Registered anchors are reused
@@ -597,6 +602,26 @@ Claims bind the exact parent proposal. After a geometry/notes revision, record
 against the new candidate before further application; no silent stale reuse.
 Multiple objects/values may share one observation and be applied in one revision.
 
+For values already present, confirm_claims(candidate, operations_json) takes the
+SAME claim-referenced update_window/update_opening/move_shared_wall intents as
+revise_bim, verifies they change no geometry, and saves a confirmation without
+building a candidate. Confirm against the observation's exact parent BEFORE
+making other edits. Confirmations follow that candidate's descendants while the
+checked object/host remains unchanged; a different branch does not inherit them.
+This checks numerical consistency, not image interpretation. Confirm every object
+and value covered by your claim; partial coverage remains explicit.
+
+To supersede obsolete text, include a local note replacement in revise_bim:
+{"op":"replace_note", "field":"assumptions", "old":"Exact existing note",
+ "replacement":["Updated statement limited to the inspected objects; others remain assumptions"],
+ "reason":"What observation superseded this statement", "source_refs":["claim_0001"]}.
+field can be assumptions or unresolved; replacement=[] explicitly withdraws that
+one note with a reason. Old text must match exactly once. Unrelated notes survive,
+the replacement enters source BIM and the old statement remains in audit history.
+Use this in the SAME revision as the geometry correction when possible. Do not
+leave a known false all-objects assumption in the saved source. Text associations
+are model judgments, not automatic semantic verification of the replacement.
+
 Thickness only: inspect source wall/floor/ceiling boundary IDs via
 check_wall_dimensions/include_inventory for walls, or existing source inventories.
 revise_bim also accepts:
@@ -610,11 +635,21 @@ Shared full coincident sides receive ONE property record. Partial contacts and
 open/unknown enclosure are not supported. Host identity is bound; later changing
 that boundary requires explicit rebinding rather than silently reusing thickness.
 
-claim_status() returns persisted claims/decisions and execution results. A failed
+claim_status(candidate) projects that candidate's ancestry: confirmed_unchanged,
+applied_current, pending_application, partially_satisfied, changed_since_check,
+deferred/retracted/undecided. It also includes claim unresolved items and explicitly
+superseded notes. Other branches are separate. Imported prior-run applications
+are marked inherited/not rechecked; run-local confirmation files are not imported
+by proposal-only recovery. claim_status() returns full run history. A failed
 edit retains its record and parent; source validation may also retain a failed
 candidate for inspection. Applications show exact resolved operations, actual
 source changes, legitimate hosted-opening movement and any unsupported scope.
 Missing claim references mean 'not tracked by this interface', not automatically
 wrong geometry. Applied on one candidate does NOT mean current on all descendants.
 finish_bim keeps failures and adopted-but-unapplied claims visible in delivery.
+pending_application means no linked execution/confirmation was verified, not
+proof that geometry was never changed. reshape_spaces and other unsupported
+parameter slots may already have changed geometry using literal values; report
+that gap explicitly. Do not record a duplicate adopted claim just to make its
+parent match; that alone supplies neither an application nor a confirmation.
 """
