@@ -1,0 +1,838 @@
+{
+  "assumptions": [
+    "No elevation/section supplied: z_floor=0, ceiling 3.0m, door height 2.1m, window sill 0.9m and head 2.4m are EXPLICIT ASSUMPTIONS, not observations.",
+    "Exterior wall thickness taken as the annotated 240mm; the drawn grey band is ~11px (~300mm) including finish; openings are placed on the outer-face plane.",
+    "Interior partitions drawn ~5px double lines; nominal 120mm assumed for thickness reporting only (BIM paths are midplanes).",
+    "Room roles inferred from furniture symbols (desks, meeting tables, conference oval, lounge counter), not from labels.",
+    "Door operating states unknown; swing directions read from leaf+arc symbols.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "lounge_top",
+            "polygon": [
+              [
+                0.027473,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.057772
+              ],
+              [
+                0.027473,
+                4.057772
+              ]
+            ],
+            "role": "lounge",
+            "source_refs": [
+              "image:1f_view.png",
+              "profile_010: solid 249-398 and 461-612, double door mouth 398-461"
+            ],
+            "x": [
+              0.027473,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.057772
+            ]
+          },
+          {
+            "id": "office_nw",
+            "polygon": [
+              [
+                0.027473,
+                4.057772
+              ],
+              [
+                4.175824,
+                4.057772
+              ],
+              [
+                4.175824,
+                6.946355
+              ],
+              [
+                0.027473,
+                6.946355
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "profile_010: solid 249-398 and 461-612, double door mouth 398-461",
+              "profiles_012/027 + zoom crops: door openings y360-391, y419-450, y601-630 declared below; solid elsewhere to south wall",
+              "profile_021: solid grey 249-398 at y396-410, no opening"
+            ],
+            "x": [
+              0.027473,
+              4.175824
+            ],
+            "y": [
+              4.057772,
+              6.946355
+            ]
+          },
+          {
+            "id": "corridor_hall",
+            "polygon": [
+              [
+                4.175824,
+                4.057772
+              ],
+              [
+                5.81044,
+                4.057772
+              ],
+              [
+                5.81044,
+                11.939477
+              ],
+              [
+                10.0,
+                11.939477
+              ],
+              [
+                10.0,
+                15.116919
+              ],
+              [
+                5.81044,
+                15.116919
+              ],
+              [
+                5.81044,
+                20.0
+              ],
+              [
+                4.175824,
+                20.0
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "profile_010: solid 249-398 and 461-612, double door mouth 398-461",
+              "profiles_012/027 + zoom crops: door openings y360-391, y419-450, y601-630 declared below; solid elsewhere to south wall",
+              "profile_013 + zoom: wall segments y298-326, 356-383, 415-583; south end meets HW3-east at (459.5,585)",
+              "scale-5 crop origin 450,568: double line x462-603 at y583-587 joining corridor east wall to east exterior wall, no opening; separates meeting room from east hall",
+              "bottom-right zoom: horizontal wall x456-604 with door opening 560-592, stub to east wall",
+              "bottom crops: vertical wall y697-868 separating SE workroom from corridor tail"
+            ],
+            "x": [
+              4.175824,
+              10.0
+            ],
+            "y": [
+              4.057772,
+              20.0
+            ]
+          },
+          {
+            "id": "meeting_east",
+            "polygon": [
+              [
+                5.81044,
+                4.057772
+              ],
+              [
+                10.0,
+                4.057772
+              ],
+              [
+                10.0,
+                11.939477
+              ],
+              [
+                5.81044,
+                11.939477
+              ]
+            ],
+            "role": "meeting",
+            "source_refs": [
+              "image:1f_view.png",
+              "profile_010: solid 249-398 and 461-612, double door mouth 398-461",
+              "profile_013 + zoom: wall segments y298-326, 356-383, 415-583; south end meets HW3-east at (459.5,585)",
+              "scale-5 crop origin 450,568: double line x462-603 at y583-587 joining corridor east wall to east exterior wall, no opening; separates meeting room from east hall"
+            ],
+            "x": [
+              5.81044,
+              10.0
+            ],
+            "y": [
+              4.057772,
+              11.939477
+            ]
+          },
+          {
+            "id": "office_sw",
+            "polygon": [
+              [
+                0.027473,
+                6.946355
+              ],
+              [
+                4.175824,
+                6.946355
+              ],
+              [
+                4.175824,
+                11.939477
+              ],
+              [
+                0.027473,
+                11.939477
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "profiles_012/027 + zoom crops: door openings y360-391, y419-450, y601-630 declared below; solid elsewhere to south wall",
+              "profile_021: solid grey 249-398 at y396-410, no opening",
+              "scale-5 crop: double line x251-398 at y582-588, no opening"
+            ],
+            "x": [
+              0.027473,
+              4.175824
+            ],
+            "y": [
+              6.946355,
+              11.939477
+            ]
+          },
+          {
+            "id": "conference_sw",
+            "polygon": [
+              [
+                0.027473,
+                11.939477
+              ],
+              [
+                4.175824,
+                11.939477
+              ],
+              [
+                4.175824,
+                20.0
+              ],
+              [
+                0.027473,
+                20.0
+              ]
+            ],
+            "role": "conference",
+            "source_refs": [
+              "image:1f_view.png",
+              "profiles_012/027 + zoom crops: door openings y360-391, y419-450, y601-630 declared below; solid elsewhere to south wall",
+              "scale-5 crop: double line x251-398 at y582-588, no opening"
+            ],
+            "x": [
+              0.027473,
+              4.175824
+            ],
+            "y": [
+              11.939477,
+              20.0
+            ]
+          },
+          {
+            "id": "workroom_se",
+            "polygon": [
+              [
+                5.81044,
+                15.116919
+              ],
+              [
+                10.0,
+                15.116919
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                5.81044,
+                20.0
+              ]
+            ],
+            "role": "workshop",
+            "source_refs": [
+              "image:1f_view.png",
+              "bottom-right zoom: horizontal wall x456-604 with door opening 560-592, stub to east wall",
+              "bottom crops: vertical wall y697-868 separating SE workroom from corridor tail"
+            ],
+            "x": [
+              5.81044,
+              10.0
+            ],
+            "y": [
+              15.116919,
+              20.0
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.027473,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_N1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.549451,
+          0.0
+        ],
+        "p2": [
+          2.115385,
+          0.0
+        ],
+        "source_refs": [
+          "north wall grey gap 268-325 (profile_005); swing arcs outside, chain label 1600; height assumed"
+        ],
+        "space_id": "lounge_top",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_E1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          12.737276
+        ],
+        "p2": [
+          10.0,
+          14.250344
+        ],
+        "source_refs": [
+          "east wall grey gap 614-669 (profile_009); double-leaf symbol leaves point outward east (scale-8 crop); height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_S1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.505495,
+          20.0
+        ],
+        "p2": [
+          5.412088,
+          20.0
+        ],
+        "source_refs": [
+          "south wall grey gap 412-445, chain 900, swing arc opens north into corridor tail; height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_top",
+        "kind": "door",
+        "other_space_id": "lounge_top",
+        "p1": [
+          4.175824,
+          4.057772
+        ],
+        "p2": [
+          5.81044,
+          4.057772
+        ],
+        "source_refs": [
+          "double door in top-room south wall; observed leaf symbol spans 398-461 but the structural aperture is the corridor mouth between the corridor wall junctions x400-459.5 (profile_010); twin leaves swing north; height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D1",
+        "kind": "door",
+        "other_space_id": "office_nw",
+        "p1": [
+          4.175824,
+          5.749656
+        ],
+        "p2": [
+          4.175824,
+          6.602476
+        ],
+        "source_refs": [
+          "corridor west wall, opening y360-391, leaf+arc swing west into NW office, hinge south jamb (scale-6 crop); height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D2",
+        "kind": "door",
+        "other_space_id": "office_sw",
+        "p1": [
+          4.175824,
+          7.372765
+        ],
+        "p2": [
+          4.175824,
+          8.225585
+        ],
+        "source_refs": [
+          "corridor west wall, opening y419-450, swing west into SW office, hinge north jamb; height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D3",
+        "kind": "door",
+        "other_space_id": "corridor_hall",
+        "p1": [
+          4.175824,
+          12.379642
+        ],
+        "p2": [
+          4.175824,
+          13.177442
+        ],
+        "source_refs": [
+          "corridor west wall, opening y601-630, swing west into conference room, hinge north jamb (scale-6 crop); height assumed"
+        ],
+        "space_id": "conference_sw",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "DA",
+        "kind": "door",
+        "other_space_id": "meeting_east",
+        "p1": [
+          5.81044,
+          4.814305
+        ],
+        "p2": [
+          5.81044,
+          5.639615
+        ],
+        "source_refs": [
+          "corridor east wall, opening y326-356, swing east into meeting room, hinge south jamb (scale-6 crop); height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "DB",
+        "kind": "door",
+        "other_space_id": "meeting_east",
+        "p1": [
+          5.81044,
+          6.382393
+        ],
+        "p2": [
+          5.81044,
+          7.262724
+        ],
+        "source_refs": [
+          "corridor east wall, opening y383-415, swing east into meeting room, hinge north jamb; height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D4",
+        "kind": "door",
+        "other_space_id": "workroom_se",
+        "p1": [
+          8.571429,
+          15.116919
+        ],
+        "p2": [
+          9.450549,
+          15.116919
+        ],
+        "source_refs": [
+          "y700 wall, opening x560-592, swing south into SE workroom, hinge east jamb (scale-4 crop); height assumed"
+        ],
+        "space_id": "corridor_hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_N1",
+        "kind": "window",
+        "p1": [
+          4.642857,
+          0.0
+        ],
+        "p2": [
+          9.450549,
+          0.0
+        ],
+        "room": "lounge_top",
+        "source_refs": [
+          "north wall grey gap 417-592, chain 4800; heights assumed"
+        ],
+        "span": [
+          4.642857,
+          9.450549
+        ],
+        "width_m": 4.807692,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W1",
+        "kind": "window",
+        "p1": [
+          0.027473,
+          0.522696
+        ],
+        "p2": [
+          0.027473,
+          2.035763
+        ],
+        "room": "lounge_top",
+        "source_refs": [
+          "west wall grey gap 170-225 (profile_008), chain 1500; heights assumed"
+        ],
+        "span": [
+          0.522696,
+          2.035763
+        ],
+        "width_m": 1.513067,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W2",
+        "kind": "window",
+        "p1": [
+          0.027473,
+          4.401651
+        ],
+        "p2": [
+          0.027473,
+          5.612105
+        ],
+        "room": "office_nw",
+        "source_refs": [
+          "west wall grey gap 311-355, chain 1200; heights assumed"
+        ],
+        "span": [
+          4.401651,
+          5.612105
+        ],
+        "width_m": 1.210454,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W3",
+        "kind": "window",
+        "p1": [
+          0.027473,
+          7.345254
+        ],
+        "p2": [
+          0.027473,
+          8.858322
+        ],
+        "room": "office_sw",
+        "source_refs": [
+          "west wall grey gap 418-473, chain 1500; heights assumed"
+        ],
+        "span": [
+          7.345254,
+          8.858322
+        ],
+        "width_m": 1.513068,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W4",
+        "kind": "window",
+        "p1": [
+          0.027473,
+          10.068776
+        ],
+        "p2": [
+          0.027473,
+          11.581843
+        ],
+        "room": "office_sw",
+        "source_refs": [
+          "west wall grey gap 517-572, chain 1500; heights assumed"
+        ],
+        "span": [
+          10.068776,
+          11.581843
+        ],
+        "width_m": 1.513067,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_W5",
+        "kind": "window",
+        "p1": [
+          0.027473,
+          14.662999
+        ],
+        "p2": [
+          0.027473,
+          19.477304
+        ],
+        "room": "conference_sw",
+        "source_refs": [
+          "west wall grey gap 684-859, chain 4800, conference room; heights assumed"
+        ],
+        "span": [
+          14.662999,
+          19.477304
+        ],
+        "width_m": 4.814305,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E1",
+        "kind": "window",
+        "p1": [
+          10.0,
+          0.522696
+        ],
+        "p2": [
+          10.0,
+          2.035763
+        ],
+        "room": "lounge_top",
+        "source_refs": [
+          "east wall grey gap 170-225 (profile_009), chain 1500; heights assumed"
+        ],
+        "span": [
+          0.522696,
+          2.035763
+        ],
+        "width_m": 1.513067,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E2",
+        "kind": "window",
+        "p1": [
+          10.0,
+          4.401651
+        ],
+        "p2": [
+          10.0,
+          5.612105
+        ],
+        "room": "meeting_east",
+        "source_refs": [
+          "east wall grey gap 311-355, chain 1200; heights assumed"
+        ],
+        "span": [
+          4.401651,
+          5.612105
+        ],
+        "width_m": 1.210454,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E3",
+        "kind": "window",
+        "p1": [
+          10.0,
+          6.354883
+        ],
+        "p2": [
+          10.0,
+          11.169188
+        ],
+        "room": "meeting_east",
+        "source_refs": [
+          "east wall grey gap 382-557, chain 4800, meeting room; heights assumed"
+        ],
+        "span": [
+          6.354883,
+          11.169188
+        ],
+        "width_m": 4.814305,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_S1",
+        "kind": "window",
+        "p1": [
+          0.494505,
+          20.0
+        ],
+        "p2": [
+          2.06044,
+          20.0
+        ],
+        "room": "conference_sw",
+        "source_refs": [
+          "south wall grey gap 266-323 (profile_015), chain 1500; heights assumed"
+        ],
+        "span": [
+          0.494505,
+          2.06044
+        ],
+        "width_m": 1.565935,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_S2",
+        "kind": "window",
+        "p1": [
+          7.912088,
+          20.0
+        ],
+        "p2": [
+          9.478022,
+          20.0
+        ],
+        "room": "workroom_se",
+        "source_refs": [
+          "south wall grey gap 536-593, chain 1500; heights assumed"
+        ],
+        "span": [
+          7.912088,
+          9.478022
+        ],
+        "width_m": 1.565934,
+        "z": [
+          0.9,
+          2.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "All opening heights and the ceiling height are unverified against any drawing (no elevation supplied).",
+    "Outer left chain read as 4060+2940+4940+8080=20020 vs total 20000 (one label likely misread); inner chains used for calibration instead.",
+    "Measured east double door 614-669 (~1510mm) vs chain label 1600; measured pixel gap retained.",
+    "Corridor tail and east hall verified mutually open along x=459.5, y585-700 (no wall found); if the original intends a screen there it is unobserved.",
+    "Furniture, text and dimension annotations not modelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

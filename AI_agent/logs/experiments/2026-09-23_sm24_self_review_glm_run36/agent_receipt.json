@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 936.22,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 928056,
+    "stop_reason": "end_turn",
+    "session_id": "c7675a00-b3a1-474a-80fc-ea66ad1be4c8",
+    "total_cost_usd": 1.6251879999999999,
+    "usage": {
+      "input_tokens": 134355,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1192640,
+      "output_tokens": 42462,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 134355,
+        "outputTokens": 42462,
+        "cacheReadInputTokens": 1192640,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.6251879999999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 35,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Delivery complete. **Selected candidate: `candidate_02`** (viewer: `candidate_02/viewer.html`), built from the recovered pixel declaration of `1f_view.png`.\n\n## What I did\n\nI first submitted the inherited declaration unchanged: it **compiled fine** (candidate_01, 7 spaces) — its \"unverified\" status was simply \"never checked\", so the recovery work was fidelity review, not failure repair. I then measured every partition and facade wall with grey-ink pixel profiles and scale-6/8 zooms, found four consequential discrepancies plus two midplane errors, rebuilt as candidate_02, and verified both changed regions with registered original-image overlays.\n\n## Discrepancies found and fixed (all evidence-bound)\n\n1. **Missing partition at y≈367, x459.5→612** (profile_007: continuous double line, no opening, T-junction into the corridor east wall and the east façade). The old plan merged two real rooms into one \"meeting_east\". Added `wall_east_y367` → new **office_east** (y298.5–367); door **DA** now hosts corridor↔office_east (was meeting), **W_E2** now lights office_east. DB/W_E3 stay with the meeting room. Rooms: 7 → **8**.\n2. **D_top aperture overstated**: the old plan declared the full corridor mouth x400–459.5 as one opening. Profiles 003/005 show wall material continuing to both corridor junctions; the grey gap is only **x408–452** (~1200 mm double door). Corrected; wall_top_south is otherwise solid full-width (no other opening).\n3. **Corridor south end and SE workroom shape**: a **new wall at y≈751.5 (x400–462)** closes the corridor (profile_009 + zoom, no opening); the return wall **x459.5 stops at y≈751.5**, not y878 (profile_006; profile_016 shows no ink below y754). The area x400–459.5, y751.5–878 — containing south door **D_S1** — is continuous with the SE workroom, which is now correctly **L-shaped**, and **D_S1's host changed from corridor to workroom (exterior door)**.\n4. **Midplane corrections from line-pair evidence**: HW2 **403.5→405.5** (lines y≈403.7/407.1, zoom); SE wall **700.5→698.5** (lines y696/700-701, profile_008). D4 endpoints moved with that wall.\n\n## Verified and preserved (matched the original)\n\nCalibration anchors, footprint, top-room south wall (y298.5), corridor west wall x400 with doors D1/D2/D3 (solid y632–867 — no further doors), corridor east wall x459.5 with DA/DB and measured-open stretch y586–696 to the east hall, HW3 west/east at y585 (line pair confirmed), all 11 window spans on all four façades, D_N1/D_E1 positions, and all 21 opening IDs — none deleted or moved beyond the documented corrections.\n\n## Left unresolved (recorded in the saved BIM)\n\n- **All heights are assumptions** (z=0, ceiling 3.0 m, doors 2.1 m, windows 0.9–2.4 m): height_coverage reports all 21 openings `unchecked`, no image-linked height evidence exists.\n- Calibration is caller-supplied and not independently verified; the outer left chain sums to 20020 vs 20000.\n- Interior door jamb spans are 2–3 px (≈55 mm) narrower than measured grey gaps; D_E1 measured gap 612–672 (~1650 mm) vs declared 614–669 vs chain 1600 — declared values retained.\n- Room roles are inferred from furniture, not labels; furniture/text/dimension annotations unmodelled; door states unknown; no elevation/section or upper context was supplied.\n\nCompilation pass and overlay agreement are internal consistency only — drawing fidelity remains not evaluated, and no GT was available.",
+    "ttft_ms": 4441,
+    "type": "result",
+    "duration_ms": 932889,
+    "uuid": "038ace7b-c840-4825-a5fb-f1a560e64020",
+    "ttft_stream_ms": 4278,
+    "time_to_request_ms": 57,
+    "first_content_frame_ms": 4278,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

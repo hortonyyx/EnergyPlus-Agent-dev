@@ -1,0 +1,42 @@
+{
+  "production_hashes_match_run35": {
+    "scripts/tool_scripts/run_bim_agent.py": true,
+    "scripts/tool_scripts/bim_agent_guidance.py": true,
+    "src/agent/geometry/parametric_proposal.py": true,
+    "scripts/tool_scripts/bim_agent_inputs.py": true,
+    "src/agent/execution/bim_claims.py": true,
+    "src/agent/execution/bim_claim_state.py": true,
+    "src/agent/execution/bim_height_coverage.py": true,
+    "src/agent/geometry/component_attributes.py": true,
+    "scripts/tool_scripts/bim_agent_mesh.py": true,
+    "src/agent/geometry/mesh_observation.py": true,
+    "src/agent/geometry/mesh_bim_frame.py": true,
+    "src/agent/execution/source_proposal.py": true,
+    "src/agent/geometry/proposal_edits.py": true,
+    "src/agent/geometry/opening_review.py": true,
+    "src/agent/geometry/bim_delivery.py": true,
+    "src/agent/geometry/source_image_overlay.py": true,
+    "src/agent/geometry/source_elevation_view.py": true,
+    "src/agent/geometry/source_plan_view.py": true,
+    "src/agent/geometry/source_bim.py": true,
+    "src/agent/geometry/wall_reference.py": true,
+    "src/agent/geometry/dimension_chain.py": true,
+    "src/agent/geometry/facade_span_comparison.py": true,
+    "src/agent/geometry/profile_observation_binding.py": true,
+    "src/agent/geometry/space_trace.py": true,
+    "src/agent/geometry/plan_partition.py": true,
+    "src/agent/geometry/plan_draft_view.py": true,
+    "src/agent/geometry/pixel_region.py": true,
+    "src/agent/geometry/pixel_region_overview.py": true
+  },
+  "plan_sha256": "2fe65af8b64ee243ac45c2e433f003e7d0e9782cb501ead76077b5bcf413edc9",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "provider": "glm",
+  "scope": "Review and recover the supplied unverified pixel plan against the\noriginal drawing for this single floor. Choose the consequential discrepancies\nand observation targets yourself across the complete physical partition layout,\nplan apertures and actual door connections. No discrepancy locations, expected\nroom counts or correct geometry are provided. Treat the old declaration's\ninterpretations as unverified. Follow full wall paths through their ends and\njunctions, trace complete spaces on both sides, and check aperture identity and\nhosts against the original. Preserve real continuous spaces and all reliable\nobjects. Use original-image crops and suitable measurements to resolve your\nchosen uncertainties, and let deterministic code perform geometry arithmetic\nand room/host construction. A valid compilation or agreement with your own\nannotations is not proof of drawing fidelity. Keep the inherited declared\ncoordinate frame, outer footprint and unobserved heights for this bounded\nplan-layout review; these are not certified by being retained. Heights remain\nexplicit assumptions. Update your pixel declaration or use evidence-bound local\nedits as appropriate. Inspect the actual source plan and original-image overlay\nafter revision. Deliver the best viewable candidate and a truthful account of\nwhat you checked, changed, preserved and left unresolved. This is saved-plan\nrecovery, not a cold start. No successful old candidate, prior local review,\nreference answer or evaluation/GT is supplied.",
+  "timeout_seconds": 1800,
+  "differences": [
+    "No developer-selected discrepancy locations; whole-floor review targets chosen by model.",
+    "Budget raised from 1500 to 1800 seconds for broader review; not a one-variable ablation."
+  ],
+  "no_previous_success_or_local_review_supplied": true
+}

@@ -1,0 +1,83 @@
+{
+  "agent_assumptions": [
+    "No elevation/section supplied: z_floor=0, ceiling 3.0m, door height 2.1m, window sill 0.9m and head 2.4m are EXPLICIT ASSUMPTIONS, not observations.",
+    "Exterior wall thickness taken as the annotated 240mm; the drawn grey band is ~11px (~300mm) including finish; openings are placed on the outer-face plane.",
+    "Interior partitions drawn as thin double lines; nominal 120mm assumed for thickness reporting only (BIM paths are midplanes; single-mask-row walls resolved to line-pair centres via zooms where visible).",
+    "Room roles inferred from furniture symbols (desks, meeting tables, conference oval, lounge counter, workroom bench), not from labels.",
+    "Door operating states unknown; swing directions read from leaf+arc symbols.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "9d70cb174e1d9c7c0b46b8cedc7cded40aecfa9284fc047b848ed1bfbbaa389b",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "7781d33fba5e25957813e84074c8ffe5dcafb2be7d5f960507392241881b570e",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "2bf513162788317733dd4af0a89aed5eb15b19c6552a32dd9d202a579ed31362",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "0db2126b9e86628eedcbf8f63d3ddb31943788d22c3d113c7ce9ad6f441b32a3",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "d13041e744a6ea73fa300207b886d45128d954506e8cd523bc84a29fc5a0d22b",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "de427a57429fa9e7359b143ecee1a6feebc73da2e2168dd648af08d0c3509bfd"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "bd96c1846da5855d6b486e1cf12a8b04f74c4debb5f7426f882819837944cfa9",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "All opening heights and the ceiling height are unverified against any drawing (no elevation supplied).",
+    "Outer left chain read as 4060+2940+4940+8080=20020 vs total 20000 (one label likely misread); inner chains used for calibration; calibration itself remains caller-supplied.",
+    "Measured east double door D_E1 grey gap 612-672 (~1650mm) vs declared jamb span 614-669 (~1510mm) vs chain label 1600; declared jamb span retained, jamb tick reading unverified at scale.",
+    "Declared interior door jamb spans (D1/D2/D3/DA/DB) are 2-3px narrower than the measured grey fill gaps; grey-gap versus jamb-tick convention not resolved beyond ~55mm.",
+    "East hall / corridor are mutually open along x=459.5 y586-698.5 (measured, no wall); any screen or glazing there would be unobserved.",
+    "Furniture, text and dimension annotations not modelled; room roles are inferred, not labelled on the drawing.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
