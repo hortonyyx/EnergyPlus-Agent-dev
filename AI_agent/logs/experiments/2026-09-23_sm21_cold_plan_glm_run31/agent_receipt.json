@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 827.95,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 819973,
+    "stop_reason": "end_turn",
+    "session_id": "85bd1369-7a1b-469d-a445-cc323186a4d5",
+    "total_cost_usd": 1.0895616000000001,
+    "usage": {
+      "input_tokens": 85326,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 853888,
+      "output_tokens": 28874,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 85326,
+        "outputTokens": 28874,
+        "cacheReadInputTokens": 853888,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.0895616000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 33,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Delivered: **candidate_01** (viewer: `candidate_01/viewer.html`). Single-floor, 7 spaces, 15 openings, geometry pass, two complete opening reviews consistent.\n\n## What was reconstructed\n\n**Building:** rectangular single-storey block, 15.000 × 8.000 m outer faces (from the drawing's own dimension chains: top chain ticks px 428→1818 = 15000 mm; left chain px 346→1087 = 8000 mm; cross-checked against the right chain, which decodes as 2940+120+340+1200+340+120+2940 = 8000). Scale 0.01079 m/px.\n\n**Partition layout (7 spaces):** three north rooms (~5.0 × 3.0 m each, dividers at x≈5.0/10.0 m), one continuous open corridor the full 15 m width (y = 3.0–5.0 m), three south rooms. Verified by profiles that the four interior partitions are continuous double-line walls (~120 mm drawn, centreline representation), that they abut the corridor walls with no gap, and that the corridor is unbroken end to end.\n\n**Openings (15), all measured from ink/jamb profiles and cross-checked to the dimension chains:**\n- 6 interior doors ~0.90 m: corridor↔each room, jambs at x = 772–855, 922–1005, 1385–1469 px on both corridor walls (identical on both sides).\n- West main entrance: double leaf, 1.45–1.5 m opening (y 649–783 px), swings outward.\n- SW exterior exit door 0.9 m in the south wall (x 478–561 px), outward swing.\n- 7 windows: north 3×2.4 m; south 1.2 + 2.4 + 2.4 m; east 1.2 m (into the corridor zone).\n\n**Connectivity:** every room connects only via its corridor door; corridor connects outdoors via the west entrance; room-s1 additionally has the SW exit. Door states left unknown (swing direction observed, operating state not).\n\n## Assumptions (unobserved — no elevation or other floor supplied)\n- z_floor = 0, ceiling 3.0 m; doors 0–2.1 m; windows 0.9–2.1 m sill/head. All 15 openings are height-**unchecked** (confirmed by the delivery's height coverage: `no_image_evidence_linked` everywhere).\n- Room roles (office/meeting/circulation) inferred from furniture only; no text labels exist on the plan.\n- Interior walls represented at measured centrelines (~120 mm drawn thickness); exterior walls referenced to observed outer faces.\n\n## Unresolved / not verified\n- Exact nominal thickness of the interior corridor walls (drawn ~120 mm; the adjacent 250/340 chain labels are door margins, not thickness).\n- Calibration is my own two-anchor derivation from the chains; it is internally consistent across three independent chains to ~1 px but is recorded as caller-supplied/not independently verified. Overlay (`image_overlays/overlay_001.png`) visually confirms boundaries and openings sit on the drawn walls.\n- Drawing fidelity is **not evaluated**: geometry validity and agreement with my own annotations do not establish that the reconstruction matches reality. Door leaf swing geometry was not modeled as geometry (openings only).",
+    "ttft_ms": 5851,
+    "type": "result",
+    "duration_ms": 824734,
+    "uuid": "8db03f5f-87a9-4196-b804-83aece77219c",
+    "ttft_stream_ms": 5546,
+    "time_to_request_ms": 63,
+    "first_content_frame_ms": 5546,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
