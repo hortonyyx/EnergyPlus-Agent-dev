@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 503.26,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 495149,
+    "stop_reason": "end_turn",
+    "session_id": "e0c3c611-ecb0-4dbb-a5be-6ac206f81f34",
+    "total_cost_usd": 1.1842656000000003,
+    "usage": {
+      "input_tokens": 130543,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1016768,
+      "output_tokens": 22937,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 130543,
+        "outputTokens": 22937,
+        "cacheReadInputTokens": 1016768,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.1842656000000003,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 47,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Bounded height review complete. **Selected candidate: `candidate_01`** (revision of seed; plan layout, partition topology, opening count, horizontal spans and connectivity untouched).\n\n## What was done\nRead all four elevations' vertical chains at zoom (ticks + drawn window pixels cross-checked), recorded 10 located claims, **confirmed the 5 already-correct scopes** against the seed via `confirm_claims` (status: confirmed_unchanged), then applied **claim-referenced corrections** in one `revise_bim` (application_0001, applied) and superseded the two obsolete assumption notes in the saved source.\n\n## Corrections applied (evidence-backed discrepancies)\n1. **All 8 F2 windows** (W2_N1/N2, W2_S1–S4, W2_E, W2_W): 3.8–5.6 → **4.0–5.8 m**. Every facade chain reads top-down 800/1800/1000 from the 6.6 m roofline: 800 is parapet-to-head; the sill is 1000 above the F2 floor. The seed had read 800 as the sill.\n2. **W_S1** (small 1200-wide south window, plan span 3.45–4.62 m): 1.0–2.6 → **1.5–2.1 m**, per the South left chain 900/600/1500 (a separate chain from the wide-window chain).\n\n## Exterior height coverage (final, from check_openings)\n| Floor/Facade | Openings | Coverage |\n|---|---|---|\n| F1 North | W_N1–N3 (1.0–2.6) | **all image-linked** (confirmed, claim_0001) |\n| F1 South | W_S1 (1.5–2.1, applied), W_S2/S3 (1.0–2.6, confirmed), D_SOUTHW (0–2.1, pixel-linked) | **all image-linked** |\n| F1 East | W_E1 (1.0–2.8) | **all image-linked** (confirmed, chain 200/1800/1000) |\n| F1 West | D_ENTRY_W (0–2.1) | **image-linked** — but pixel-only: no labeled chain on West; drawn head ≈2.0–2.1 m, 2.1 retained within reading error (claim_0010 unresolved retained) |\n| F2 North/South/East/West | all 8 windows (4.0–5.8) | **all image-linked** (applied, claims_0005–0008) |\n\n**17 of 29 openings now have current image-linked heights; no exterior facade scope remains unchecked.**\n\n## Explicitly out of scope / unchecked\n- **Interior door heights (12)**: F1 D_NA/NB/NC/SA/SB/SC and F2 D_M1/M2/O1–O4 remain **unchecked assumptions at 2.1 m** (no elevation evidence; interior heights were declared out of scope). This is stated in the saved assumptions note.\n- D_ENTRY_W's exact head (2.0 vs 2.1 m) is unresolved — retained at 2.1 within reading error, recorded in the claim and delivery.\n- Prior plan-level unresolved items (1F/2F dimension-chain conflicts vs drawn walls, no staircase, West horizontal chain vs drawn door width, W_N3/W2_N2 drawn-vs-chain offsets) are unchanged and remain in the saved unresolved list.\n\n## Limitations\nSource geometry self-consistency passes; **drawing fidelity is not evaluated**, and coverage means an adopted, image-bound z observation — not certified drawing truth. Resulting source elevations (all four facades) were rendered and visually compared against the original chains; they match. Viewer: `candidate_01/viewer.html`.",
+    "ttft_ms": 5378,
+    "type": "result",
+    "duration_ms": 500003,
+    "uuid": "2233e653-aaf0-465c-8418-fb1d1faf022a",
+    "ttft_stream_ms": 5110,
+    "time_to_request_ms": 88,
+    "first_content_frame_ms": 5110,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

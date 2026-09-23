@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from src.agent.execution.bim_claims import geometry_state, objects, sha
+from src.agent.execution.bim_claims import geometry_state, objects, sha, value_targets, parameter_slots
 from src.agent.geometry.source_model import _digest
 
 
@@ -14,12 +14,29 @@ def targets(operation):
         return [('space', identity) for identity in operation['space_ids']]
     if name == 'set_component_thickness':
         return [('boundary', operation['boundary_id'])]
+    if name == 'reshape_spaces':
+        return [('space', row['id']) for row in operation['spaces']]
     return []
 
 
 def parameter_present(proposal, operation, parameter):
     """A successful batch may subsequently overwrite one of its own bindings."""
     name = operation['op']
+    if name == 'reshape_spaces':
+        _, space_index, _, vertex, axis = parameter.split('.')
+        intended = operation['spaces'][int(space_index)]
+        row = next((c for f in proposal['geometry']['floors'] for c in f['cells']
+                    if c['id'] == intended['id']), None)
+        if row is None:
+            return False
+        ring = row.get('polygon')
+        if ring is None:
+            x, y = row['x'], row['y']
+            ring = [[x[0], y[0]], [x[1], y[0]], [x[1], y[1]], [x[0], y[1]]]
+        try:
+            return ring[int(vertex)][int(axis)] == intended['polygon'][int(vertex)][int(axis)]
+        except IndexError:
+            return False
     if name in {'update_window', 'update_opening'}:
         rows = proposal['geometry'].get(name.removeprefix('update_') + 's', [])
         row = next((r for r in rows if r['id'] == operation['id']), None)
@@ -98,19 +115,25 @@ def project(store, candidate):
                 if binding['claim_id'] != row['id']:
                     continue
                 operation = application['resolved_operations'][binding['operation_index']]
-                refs = targets(operation)
+                refs = binding.get('targets', targets(operation))
                 item = {'record': application['id'], 'kind': application.get('kind', 'application'),
                         'value': binding['value_field'], 'targets': refs, 'parameter': binding['parameter']}
                 matches = (parameter_present(current, operation, binding['parameter']) and
                            context(saved, saved_source, refs) == context(current, source, refs))
                 (retained if matches else stale).append(item)
-        expected = {(value, ref['kind'], ref['id']) for value in row['resolved_values'] for ref in row['claim']['objects']}
-        covered = {(b['value'], kind, identity) for b in retained for kind, identity in b['targets']}
+        expected = {(value, ref['kind'], ref['id']) for value in row['resolved_values']
+                    for ref in value_targets(row['claim'], value)}
+        # A repeated scalar can drive several vertices of the SAME space. One
+        # surviving vertex cannot stand in for another overwritten in that batch.
+        failed_groups = {(b['record'], b['value'], kind, identity)
+                         for b in stale for kind, identity in b['targets']}
+        covered = {(b['value'], kind, identity) for b in retained for kind, identity in b['targets']
+                   if (b['record'], b['value'], kind, identity) not in failed_groups}
         if disposition != 'adopted':
             state = disposition
         elif expected <= covered:
             state = 'applied_current' if any(b['kind'] == 'application' for b in retained) else 'confirmed_unchanged'
-        elif retained:
+        elif covered:
             state = 'partially_satisfied'
         elif stale:
             state = 'changed_since_check'
@@ -145,11 +168,10 @@ def confirm(store, candidate, operations):
     from src.agent.geometry.proposal_edits import apply_proposal_edits
     proposal, source = store.candidate(candidate)
     resolved, evidence = store.resolve_operations(candidate, operations)
-    if any(o['op'] not in {'update_window', 'update_opening', 'move_shared_wall'} for o in resolved):
+    if any(o['op'] not in {'update_window', 'update_opening', 'move_shared_wall', 'reshape_spaces'} for o in resolved):
         raise ValueError('confirmation supports window/opening parameters and shared walls')
     bound = {(b['operation_index'], b['parameter']) for b in evidence['bindings']}
-    required = {(i, key) for i, o in enumerate(resolved)
-                for key in (o['changes'] if 'changes' in o else ['coordinate_m'])}
+    required = {(i, path) for i, o in enumerate(resolved) for _, _, path, _, _ in parameter_slots(o)}
     if not bound or bound != required:
         raise ValueError('every confirmed parameter must reference an adopted claim')
     checked = apply_proposal_edits(proposal, resolved)

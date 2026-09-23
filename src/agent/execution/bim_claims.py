@@ -54,6 +54,7 @@ class AxisValue(StrictModel):
     axis: Literal["x", "y"]
     pixels: list[float | dict] = Field(min_length=1, max_length=2)
     anchors: list[list] = Field(min_length=2, max_length=2)
+    reduction: Literal["midpoint"] | None = None
 
 
 class ChainValue(StrictModel):
@@ -72,6 +73,9 @@ class Claim(StrictModel):
     reason: str = Field(min_length=1)
     sources: list[ImageRef]
     values: dict[str, LiteralValue | AxisValue | ChainValue]
+    # Omitted preserves the legacy all-values/all-objects contract. An explicit
+    # empty list marks supporting evidence, never an applicable parameter.
+    value_targets: dict[str, list[ObjectRef]] | None = None
     observation_mode: Literal["direct", "candidate_review"] = "direct"
     unresolved: list[str] = Field(default_factory=list)
 
@@ -98,6 +102,30 @@ def objects(proposal, source):
                        for row in floor["cells"]})
     result.update({("boundary", row["id"]): row for row in source["boundaries"]})
     return result
+
+
+def value_targets(claim, field):
+    mapping = claim.get("value_targets")
+    return claim["objects"] if mapping is None else mapping[field]
+
+
+def parameter_slots(operation):
+    """Only supported numerical slots; paths are audit labels, not JSON pointers."""
+    name = operation.get("op")
+    if name in {"update_window", "update_opening"}:
+        targets = [(name.removeprefix("update_"), operation.get("id"))]
+        for field in operation.get("changes", {}):
+            yield operation["changes"], field, field, targets, field in {"z", "span", "p1", "p2"}
+    elif name in {"move_shared_wall", "set_component_thickness"}:
+        field = "coordinate_m" if name == "move_shared_wall" else "thickness_m"
+        targets = ([("space", identity) for identity in operation.get("space_ids", [])]
+                   if name == "move_shared_wall" else [("boundary", operation.get("boundary_id"))])
+        yield operation, field, field, targets, True
+    elif name == "reshape_spaces":
+        for i, row in enumerate(operation.get("spaces", [])):
+            for j, point in enumerate(row.get("polygon", [])):
+                for axis in range(len(point)):
+                    yield point, axis, f"spaces.{i}.polygon.{j}.{axis}", [("space", row.get("id"))], True
 
 
 class ClaimStore:
@@ -177,9 +205,15 @@ class ClaimStore:
                 scale = (world[1]-world[0]) / (pixels[1]-pixels[0])
                 values = [round(world[0] + (point-pixels[0])*scale, 9) for point in pixels[2:]]
                 resolved[field] = values[0] if len(values) == 1 else sorted(values)
+                if spec.get("reduction") == "midpoint":
+                    if len(values) != 2:
+                        raise ValueError("midpoint requires two measured faces")
+                    resolved[field] = round(sum(values) / 2, 9)
                 computations[field] = {"method": "image_axis", "axis": spec["axis"],
                     "pixels": pixels, "metre_anchors": world, "metres_per_pixel": scale,
                     "measurement_bindings": bindings, "calibration": "caller_interpreted_not_verified"}
+                if spec.get("reduction"):
+                    computations[field]["reduction"] = spec["reduction"]
         json_bytes(resolved)
         return resolved, computations
 
@@ -193,6 +227,16 @@ class ClaimStore:
         for ref in claim["objects"]:
             if (ref["kind"], ref["id"]) not in inventory:
                 raise ValueError("claim object does not exist in candidate")
+        mapping = claim["value_targets"]
+        if mapping is not None:
+            if set(mapping) != set(claim["values"]):
+                raise ValueError("value_targets must map every value, including supporting values with []")
+            declared = {(ref["kind"], ref["id"]) for ref in claim["objects"]}
+            for refs in mapping.values():
+                if any((ref["kind"], ref["id"]) not in declared for ref in refs):
+                    raise ValueError("value_targets must refer to declared claim objects")
+            if not any(mapping.values()):
+                raise ValueError("claim requires at least one application value target")
         sources = self._sources(claim)
         values, computations = self._resolve_values(claim, sources)
         return self._write("claim", {"claim": claim, "parent_proposal_sha256": sha(proposal),
@@ -227,22 +271,12 @@ class ClaimStore:
         for index, operation in enumerate(resolved):
             if not isinstance(operation, dict):
                 raise ValueError("operation must be an object")
-            name = operation.get("op")
-            if name in {"update_window", "update_opening"}:
-                targets = {(name.removeprefix("update_"), operation.get("id"))}
-                slots = [(operation.get("changes", {}), field) for field in ("z", "span", "p1", "p2")]
-            elif name == "move_shared_wall":
-                targets = {("space", identity) for identity in operation.get("space_ids", [])}
-                slots = [(operation, "coordinate_m")]
-            elif name == "set_component_thickness":
-                targets = {("boundary", operation.get("boundary_id"))}
-                slots = [(operation, "thickness_m")]
-            else:
-                targets, slots = set(), []
-            for container, field in slots:
-                value = container.get(field) if isinstance(container, dict) else None
+            for container, field, path, targets, supported in parameter_slots(operation):
+                value = container[field]
                 if not isinstance(value, dict) or "claim" not in value:
                     continue
+                if not supported:
+                    raise ValueError("unsupported claim parameter")
                 if set(value) != {"claim", "value"}:
                     raise ValueError("parameter reference requires only claim and value")
                 row = self.read(value["claim"])
@@ -251,8 +285,10 @@ class ClaimStore:
                     raise ValueError("claim must be explicitly adopted before application")
                 if row["parent_proposal_sha256"] != sha(proposal):
                     raise ValueError("claim is stale for this parent proposal; record a new claim")
-                claimed = {(r["kind"], r["id"]) for r in row["claim"]["objects"]}
-                if not targets or not targets <= claimed:
+                if value["value"] not in row["resolved_values"]:
+                    raise ValueError("unknown claim value")
+                claimed = {(r["kind"], r["id"]) for r in value_targets(row["claim"], value["value"])}
+                if not targets or not set(targets) <= claimed:
                     raise ValueError("claim does not refer to the operation targets")
                 sources = self._sources(row["claim"])
                 values, computations = self._resolve_values(row["claim"], sources)
@@ -263,15 +299,17 @@ class ClaimStore:
                 parameter = values[value["value"]]
                 if field in {"p1", "p2"} and row["claim"]["values"][value["value"]]["type"] != "literal":
                     raise ValueError("point coordinates require an explicit literal [x, y]; axis intervals are not points")
-                if field in {"coordinate_m", "thickness_m"}:
+                if field in {"coordinate_m", "thickness_m"} or operation["op"] == "reshape_spaces":
                     if isinstance(parameter, list):
                         raise ValueError("parameter requires a scalar value")
                 elif not isinstance(parameter, list) or len(parameter) != 2:
                     raise ValueError("parameter requires two coordinates")
                 container[field] = copy.deepcopy(parameter)
-                operation.setdefault("source_refs", []).append(f"claim:{row['id']}:{sha(row)}")
+                reference = f"claim:{row['id']}:{sha(row)}"
+                if reference not in operation.setdefault("source_refs", []):
+                    operation["source_refs"].append(reference)
                 snapshots[row["id"]] = {"record": row, "decision": decision}
-                bindings.append({"operation_index": index, "parameter": field,
+                bindings.append({"operation_index": index, "parameter": path, "targets": [list(target) for target in targets],
                     "claim_id": row["id"], "value_field": value["value"],
                     "resolved_value": parameter, "computation": computations[value["value"]]})
         return resolved, {"parent_candidate": candidate, "parent_proposal_sha256": sha(proposal),

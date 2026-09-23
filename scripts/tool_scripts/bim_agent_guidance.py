@@ -129,7 +129,11 @@ supported by the same observed reference plane. Registered anchors are reused
 after revisions, never fitted automatically to new walls. A rendered view is
 not an independent observation and an image returned is not a completed review.
 Use view_elevation_candidate for real source window/door heights; plan views
-cannot reveal height errors. Examine the supplied views relevant to unresolved
+cannot reveal height errors. check_openings(candidate, heights_only=true) returns height_coverage
+by floor/facade from current z claim bindings. Check each floor's own dimension
+origin; viewing a facade alone covers no opening heights. Confirm matching
+heights before revising others; report any heights still unlinked to image
+observations. Examine the supplied views relevant to unresolved
 geometry, and record any views or regions left unexamined.
 
 If an opening fails to attach, check the original wall path, adjoining spaces,
@@ -581,6 +585,8 @@ boundary (exact source boundary ID). Values have named fields and three types:
   "anchors":[[10,3.0],[210,0.0]], "pixels":[40,180]}.
   Image pixel axis can map to a chosen world x/y/z coordinate; explain that mapping
   in reason. One pixel returns a scalar, two return an ORDERED metric interval.
+  Optional "reduction":"midpoint" with TWO pixels computes their representative
+  midpoint in metres, retaining the measured faces and calibration in the audit.
   For p1/p2 use an explicit two-coordinate literal; an image_axis interval is not
   a 2D point transformation. Each pixel, including anchor pixels, can instead be
   {"profile":"profile_001","candidate":"C01","at":"start"} (peak/end also
@@ -597,6 +603,23 @@ Adoption is YOUR decision, not application and not an independent fidelity pass.
 Code resolves the parameter; do not duplicate the numeric value. source_refs are
 added automatically for bound parameters. Supported slots: update_window.z/span;
 update_opening.z/p1/p2; move_shared_wall.coordinate_m (claim must name both spaces).
+reshape_spaces also accepts a scalar reference at ANY polygon coordinate, e.g.
+{"op":"reshape_spaces", "spaces":[{"id":"room_A",
+ "polygon":[[0,0],[{"claim":"claim_0001","value":"wall_x"},0],
+ [{"claim":"claim_0001","value":"wall_x"},5],[0,5]]}],
+ "reason":"Use measured representative wall position"}.
+Keep unchanged coordinates literal. Reference every occurrence of a changed
+coordinate and explicitly update affected hosted openings as usual. This reuses
+the same polygon edit, preserving the complete closed-space contract.
+
+For multiple values/objects, record optional value_targets mapping EVERY value
+name to the subset of declared objects it supplies. For example:
+"value_targets":{"wall_x":[{"kind":"space","id":"room_A"}], "face_interval":[]}.
+[] marks supporting measurements, which cannot be applied as parameters and do
+not count as missing applications. Without this mapping the legacy contract is
+all values applied to all listed objects. Do not conflate different walls or
+floors merely because they share one image. Code validates each reference against
+its mapped object, so no need to duplicate a claim just to express these subsets.
 Other operations still use the edits contract and are reported as unbound.
 Claims bind the exact parent proposal. After a geometry/notes revision, record
 against the new candidate before further application; no silent stale reuse.
@@ -608,8 +631,22 @@ revise_bim, verifies they change no geometry, and saves a confirmation without
 building a candidate. Confirm against the observation's exact parent BEFORE
 making other edits. Confirmations follow that candidate's descendants while the
 checked object/host remains unchanged; a different branch does not inherit them.
-This checks numerical consistency, not image interpretation. Confirm every object
-and value covered by your claim; partial coverage remains explicit.
+This checks numerical consistency, not image interpretation. Confirm every application value and its mapped objects; supporting measurements
+need no application. Partial coverage remains explicit. For reshapes, confirmation
+requires ALL polygon coordinates bound; prefer window/opening confirmation for
+height review and avoid manufacturing claims for unrelated constant coordinates.
+
+Height review: check_openings(candidate, heights_only=true) and finish_bim expose height_coverage
+from actual openings, grouped by floor and facade. A retained adopted z binding
+with located image evidence counts as linked image observation, not certified
+image truth. A rendered/viewed elevation or a span-only review covers no heights.
+Use absolute z with each floor origin explained in a dimension_chain; do not
+reuse ground-floor heights upstairs. Confirm matching windows BEFORE revising
+others against the same candidate. Then apply different heights with references.
+Read every scoped floor separately; report unlinked/deferred/internal heights
+as unchecked, and inference/declared heights separately. Empty facade scopes do
+not prove the drawing has no opening. Do not claim the whole building verified
+when only some openings have corresponding height observations.
 
 To supersede obsolete text, include a local note replacement in revise_bim:
 {"op":"replace_note", "field":"assumptions", "old":"Exact existing note",
@@ -648,8 +685,8 @@ Missing claim references mean 'not tracked by this interface', not automatically
 wrong geometry. Applied on one candidate does NOT mean current on all descendants.
 finish_bim keeps failures and adopted-but-unapplied claims visible in delivery.
 pending_application means no linked execution/confirmation was verified, not
-proof that geometry was never changed. reshape_spaces and other unsupported
-parameter slots may already have changed geometry using literal values; report
+proof that geometry was never changed. Literal reshape coordinates and unsupported
+parameter slots may already have changed geometry without references; report
 that gap explicitly. Do not record a duplicate adopted claim just to make its
 parent match; that alone supplies neither an application nor a confirmation.
 """

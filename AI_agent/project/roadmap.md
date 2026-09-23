@@ -1,10 +1,12 @@
 # 路线与当前任务
 
+**09-23 联合改形与逐层高度节点完成：** 多房间顶点引用、值/对象对应、支撑量测及逐层立面高度依据已接通，86项相关测试和七房间16坐标真实回放通过。GLM/run28 在503.26秒先确认8外开口、再修9窗高度，全部平面/连接保持；生成后窗评价达15/15完整，分区minor，17外开口图像高度依据已关联、12内门仍未核查。工作模型仍为GLM，全部调用已结束。该例是限定范围续修，不是整案自主验收；下一项转sm25多层/门连接，联合改形模型使用仍待换例实证。见[本节点交接](../logs/worklog/2026-09-23_shape_bindings_and_height_coverage.md)。
+
 **09-23 当前状态与 sm21 换例完成：** 当前候选投影、确认保持、未决项交付、显式假设替换及同批覆盖后重新核值已实现，74项相关测试通过。GLM/run27 自选首层走廊与东窗问题，并规整二层两隔墙；14空间/29开口/14连接保持，独立分区 severe→minor，但窗仍14/15，二层东窗仍低0.2m。只有东窗修改完整引用观察参数，联合改形尚未接通；确认保持只在离线/真实回放通过，未在本次模型实跑使用。采用基点不变，下一项接联合改形参数/支撑量测的对应及逐层立面高度检查。见[本节点交接](../logs/worklog/2026-09-23_claim_state_and_sm21.md)。
 
 **09-23 首个应用节点完成：** 结构化观察、采纳决定、尺寸链/profile 换算到现有门窗/共享墙修改参数及真实执行记录已接通；厚度作为不改几何的墙/板属性保存。102 项离线检查与真实历史产物回放通过。GLM/run26 在 237.09 秒独立读东立面三链，实际只把东门从 0–2.4m 改到 0.2–2.6m，其他几何保持。定点恢复有效，不是整案自主验收；采用基点不变。下一步处理确认保持、过时假设及当前候选未决项的交付，再换例和自主选题。见[本节点记录](../logs/worklog/2026-09-23_claim_application_implementation.md)。
 
-**本轮工作模型：用户明确继续 GLM。** 已显式接入 `--provider glm`，原图及局部图像模型均走 `glm-5.3-flash`。run26、run27各1次主调用，实际型号均核对，无局部调用和回退；所有调用结束。
+**本轮工作模型：用户明确继续 GLM。** 已显式接入 `--provider glm`，原图及局部图像模型均走 `glm-5.3-flash`。run26、run27、run28各1次主调用，实际型号均核对，无局部调用和回退；所有调用结束。
 
 **09-23 Opus 5.5 总 Agent 讨论完成：** 用户指定的两轮开发审阅已完成，实际模型与输入/回答均留证。下一增量从“先做通用账本”收敛为结构化观察直接参与现有建模/修订，记录采纳与真实应用的区别、参数引用和受影响对象；厚度作小型属性增量。先历史产物核接口，再有界原图验证实际判断与修订，之后自主选题/冷启动及换例。详见[讨论结论、修正与限制](../logs/experiments/2026-09-23_opus55_agent_design/README.md)。本次无新BIM或生产实现。
 
@@ -112,7 +114,7 @@
 
 ## 当前交接
 
-**当前交接：[09-23 当前状态与 sm21 自选复核](../logs/worklog/2026-09-23_claim_state_and_sm21.md)。** 状态与说明替换已实现并取得自主局部修订进展；下一项接多房间改形的引用参数及每层立面高度核查，不能把计数和minor当成整案通过。此前[观察应用/厚度节点](../logs/worklog/2026-09-23_claim_application_implementation.md)、[输出范围](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)、[Opus 5.5讨论](../logs/experiments/2026-09-23_opus55_agent_design/README.md)保留。主线重定位见[09-22交接](../logs/worklog/2026-09-22_reconstruction_agent_reframing_close.md)，采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
+**当前交接：[09-23 联合改形参数与逐层高度依据](../logs/worklog/2026-09-23_shape_bindings_and_height_coverage.md)。** 参数引用回放与GLM高度续审已通过，run28/candidate_01为sm21最新局部续修入口；下一项sm25多层/门连接换例，仍不把15/15窗和minor当成整案自主通过。此前[当前状态与自选复核](../logs/worklog/2026-09-23_claim_state_and_sm21.md)保留。此前[观察应用/厚度节点](../logs/worklog/2026-09-23_claim_application_implementation.md)、[输出范围](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)、[Opus 5.5讨论](../logs/experiments/2026-09-23_opus55_agent_design/README.md)保留。主线重定位见[09-22交接](../logs/worklog/2026-09-22_reconstruction_agent_reframing_close.md)，采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 

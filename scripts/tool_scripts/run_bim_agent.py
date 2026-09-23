@@ -343,6 +343,9 @@ def cost_receipt_summary(run: Path):
 def delivery_tool_reply(result: dict) -> dict:
     """Keep full reports on disk; avoid losing a large handoff to CLI truncation."""
     reply = {k:v for k,v in result.items() if k != 'opening_inventory'}
+    if 'height_coverage' in reply:
+        from src.agent.execution.bim_height_coverage import compact_height_coverage
+        reply['height_coverage'] = compact_height_coverage(reply['height_coverage'])
     if len(json.dumps(reply, ensure_ascii=False)) <= 20000:
         return reply
     from collections import Counter
@@ -394,7 +397,7 @@ class Toolkit:
     def revise(self, candidate, operations_json):
         """Resolve evidence values, use the existing edits, then record actual outcome."""
         import copy
-        from src.agent.execution.bim_claims import geometry_state, objects, sha
+        from src.agent.execution.bim_claims import geometry_state, objects, sha, parameter_slots
         from src.agent.geometry.component_attributes import thickness_record
         from src.agent.geometry.proposal_edits import apply_proposal_edits
         if self.readonly:
@@ -449,6 +452,8 @@ class Toolkit:
                     expected.add((name.removeprefix("update_"), operation["id"]))
                 elif name == "move_shared_wall":
                     expected.update(("space", identity) for identity in operation["space_ids"])
+                elif name == "reshape_spaces":
+                    expected.update(("space", row["id"]) for row in operation["spaces"])
                 elif name not in {"set_component_thickness", "replace_note", "set_notes"}:
                     supported = False
             for audit in updated["geometry"].get("corrections", [])[len(parent["geometry"].get("corrections", [])):]:
@@ -461,9 +466,7 @@ class Toolkit:
             application["parameters_without_claims"] = [
                 {"operation_index": index, "parameter": field}
                 for index, operation in enumerate(operations)
-                for field in (operation.get("changes", {}).keys() if operation["op"] in {"update_window", "update_opening"}
-                              else ["coordinate_m"] if operation["op"] == "move_shared_wall"
-                              else ["thickness_m"] if operation["op"] == "set_component_thickness" else [])
+                for _, _, field, _, _ in parameter_slots(operation)
                 if (index, field) not in bound_slots]
             result = self.build(updated, action="revise_bim", parent=candidate, operations=operations,
                                 claim_application={"file": str(application_path.relative_to(self.run)), **evidence})
@@ -517,6 +520,8 @@ class Toolkit:
         from src.agent.execution.bim_claim_state import project
         current_claims = project(self.claims(), candidate)
         result["current_claim_state"] = current_claims
+        from src.agent.execution.bim_height_coverage import height_coverage
+        result["height_coverage"] = height_coverage(self.claims(), candidate, current_claims)
         # Keep full claims in their files; summarize unresolved execution in handoff.
         result["claim_applications"] = [{key: row.get(key) for key in
             ("id", "parent_candidate", "candidate", "claim_ids", "status", "error", "parameters_without_claims")}
@@ -546,6 +551,19 @@ class Toolkit:
             '与所报观察一致仍不代表原图保真。</p><table>'
             '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr>'
             f'{facade_rows}</table></details>' if facade_rows else '')
+        height_rows = ''.join(
+            f'<tr><td>{html.escape(floor["floor_id"])}</td>'
+            f'<td>{html.escape(facades.get(scope.get("facade"), "内部/未确定方向"))}</td>'
+            f'<td>{len(scope["actual_opening_ids"])}</td>'
+            f'<td>{len(scope["image_evidence_linked_opening_ids"])}</td>'
+            f'<td>{html.escape(", ".join(scope["unchecked_height_opening_ids"]) or "—")}</td></tr>'
+            for floor in result['height_coverage']['floors']
+            for scope in [*floor['facades'], floor['non_facade']])
+        height_table = ('<h2>开口高度观察范围</h2><p>按实际开口的当前高度引用统计；'
+            '图像依据已关联不代表图意已独立验证。推断/声明仍列入未关联图像范围；'
+            '零个已建开口不证明图纸没有开口。</p><table>'
+            '<tr><th>楼层</th><th>立面</th><th>已建</th><th>高度图像依据已关联</th>'
+            f'<th>高度尚未关联图像依据</th></tr>{height_rows}</table>')
         notes = "".join(f'<li>{html.escape(s)}</li>' for s in result["generation"]["unresolved"])
         notes += "".join(f'<li>{html.escape(row["id"])}：{html.escape(note)}</li>'
                          for row in current_claims["claims"] if row["state"] != "retracted"
@@ -652,7 +670,7 @@ class Toolkit:
             '<a href="delivery.json">检查记录</a></p>'
             '<table><tr><th>楼层</th><th>类别</th><th>已建数量</th><th>原图观察回查</th></tr>'
             f'{rows}</table><p>{len(result["stale_reviews"])} 份旧源回查未用于当前候选。</p>'
-            f'{facade_table}'
+            f'{facade_table}{height_table}'
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
             '<h2>当前候选的观察结论</h2><p>以下核对实际参数和宿主是否仍保留，不代表原图判断已经验证。</p>'
@@ -1747,15 +1765,22 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
-        def check_openings(candidate: str, review_json: str = "") -> dict:
+        def check_openings(candidate: str, review_json: str = "", heights_only: bool = False) -> dict:
             """List actual openings, or check original-image marks against them.
+            Use heights_only=true for actual z and current height-observation coverage.
             See get_bim_reference("opening_review") for review_json. Saves a source-hash-bound
             review independently; never modifies the BIM or certifies image truth.
             """
             from src.agent.geometry.opening_review import facade_inventory, opening_inventory, review_openings
             path = toolkit.candidate_path(candidate)
             source = json.loads((path / "source_model.json").read_text())
-            if not review_json:
+            if heights_only:
+                if review_json:
+                    raise ValueError('heights_only cannot submit an opening review')
+                from src.agent.execution.bim_height_coverage import height_coverage, compact_height_coverage
+                result = {"candidate": candidate, "height_coverage": compact_height_coverage(
+                    height_coverage(toolkit.claims(), candidate))}
+            elif not review_json:
                 result = {"candidate": candidate, "inventory": opening_inventory(source),
                           "facade_inventory": facade_inventory(source),
                           "drawing_fidelity": "not_evaluated"}
@@ -2009,6 +2034,7 @@ def run_experiment(args):
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
                                  "src/agent/execution/bim_claims.py":digest(ROOT/"src/agent/execution/bim_claims.py"),
                                  "src/agent/execution/bim_claim_state.py":digest(ROOT/"src/agent/execution/bim_claim_state.py"),
+                                 "src/agent/execution/bim_height_coverage.py":digest(ROOT/"src/agent/execution/bim_height_coverage.py"),
                                  "src/agent/geometry/component_attributes.py":digest(ROOT/"src/agent/geometry/component_attributes.py"),
                                  "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
                                  "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),

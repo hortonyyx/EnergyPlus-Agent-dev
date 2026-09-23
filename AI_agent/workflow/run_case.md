@@ -42,7 +42,7 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 局部修订可读取 `get_bim_reference('claims')`，按原图框和目标对象 `record_claim`，再明确 `decide_claim`。`revise_bim` 的参数可传 `{"claim":"claim_0001","value":"height"}`，由代码取值、换算并调用现有几何操作。`claim_status` 区分采纳、应用与未评价保真；每次应用保留 `claims/application_*.json`，失败也保存。`set_component_thickness` 在同一修订入口只写墙/板属性，正厚度必须有依据，不改变几何。接口及当前限制见[架构实现范围](../design/architecture.md#09-23-opus-55-设计讨论后的实施收敛)。
 
-已观察且原值正确时，在修改其他对象之前调用 `confirm_claims(candidate, operations_json)`：格式与带 claim 引用的门窗/共享墙修改相同，每个参数都须引用已采纳观察；只要会改变几何便拒绝。确认保存到 `claims/confirmation_*.json`，无需新建候选。`claim_status(candidate)` 现在返回当前候选及父链的状态投影；省略 candidate 仍返回运行历史。对象或宿主后续改变会使旧检查待复核，另一分支不继承应用成功。
+已观察且原值正确时，在修改其他对象之前调用 `confirm_claims(candidate, operations_json)`：格式与带 claim 引用的门窗/共享墙修改相同，每个参数都须引用已采纳观察；只要会改变几何便拒绝。确认保存到 `claims/confirmation_*.json`，无需新建候选。 联合改形可在 `reshape_spaces.spaces[].polygon[][]` 用 `{"claim":"claim_0001","value":"wall_x"}` 引用标量观察，旧的固定坐标保持数值；每个变化坐标重复出现时都须引用。观察的 `value_targets` 须包含全部 value 字段，只列该值实际对应的对象，辅助量测用空列表；未传则沿用每值对应全部对象。`claim_status(candidate)` 现在返回当前候选及父链的状态投影；省略 candidate 仍返回运行历史。对象或宿主后续改变会使旧检查待复核，另一分支不继承应用成功。`check_openings(candidate, heights_only=true)` 和交付的 `height_coverage` 按楼层/立面显示实际开口高度依据；图像 `z` 绑定与推断/声明分开，未覆盖范围保留。检查计数/平面对应或生成立面图不算高度已核。
 
 更新过时说明可在同一 `revise_bim` 加 `{"op":"replace_note","field":"assumptions","old":"原文","replacement":["新文"],"reason":"替代理由","source_refs":["claim_0001"]}`；field 也可为 unresolved。原文须精确且唯一匹配，空 replacement 表示有理由地撤销该条；代码不判断新文的语义真伪。替代后的说明进入新源，旧文保留在审计。交付显示当前观察状态、未决项和替代历史，不能仅在模型最终回答中说明源假设已过时。
 

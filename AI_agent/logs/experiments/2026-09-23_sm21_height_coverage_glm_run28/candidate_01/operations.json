@@ -1,0 +1,154 @@
+[
+  {
+    "op": "update_window",
+    "id": "W_S1",
+    "changes": {
+      "z": [
+        1.5,
+        2.1
+      ]
+    },
+    "reason": "South elevation left chain 900/600/1500 gives the small 1200 south window extent 1.5-2.1, not 1.0-2.6",
+    "source_refs": [
+      "claim:claim_0003:b6897c1025cf0857990bc76685017279282a799fb9e4377b5d91ac819c3b8460"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_N1",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 north chain order: 800 is parapet-to-head; sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0005:2c0e85ca1a88f7ab4bd3fa8a747584113b5a0a4a9659b4c9403f5147b6aef312"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_N2",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 north chain order: 800 is parapet-to-head; sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0005:2c0e85ca1a88f7ab4bd3fa8a747584113b5a0a4a9659b4c9403f5147b6aef312"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_S1",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_S2",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_S3",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_S4",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_E",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 east chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0007:3d7a2e185929122111de2569ad93b8d56d150522758d78c3c1542af26134f090"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "W2_W",
+    "changes": {
+      "z": [
+        4.0,
+        5.8
+      ]
+    },
+    "reason": "F2 west chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+    "source_refs": [
+      "claim:claim_0008:7f5c8950515280b88e2a33d5d41b8ab64c3af2760beac16ef1a6d5a981d41240"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Window z: F1 north and south sill 1.0 h1.6; F1 east corridor window sill 1.0 h1.8 (East_view chain 1000/1800/200); F2 sill 0.8 (abs 3.8) h1.8",
+    "replacement": [
+      "Window z per adopted elevation chains: F1 north W_N1-N3 (claim_0001) and wide south W_S2/W_S3 (claim_0002) sill 1.0 h1.6; small south W_S1 extent 1.5-2.1 (claim_0003, chain 900/600/1500); W_E1 sill 1.0 h1.8 (claim_0004, chain 200/1800/1000); all eight F2 windows sill 1.0 above F2 floor, abs 4.0-5.8 (claims_0005-0008, chains 800/1800/1000 read top-down: 800 is parapet-to-head, not the sill)"
+    ],
+    "reason": "Elevation chain review corrected W_S1 and all F2 window heights",
+    "source_refs": [
+      "claim_0003",
+      "claim_0005"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Door heights 2.1m (exterior doors ~2.0-2.2m measured on South/West elevations; interior assumed)",
+    "replacement": [
+      "Exterior doors pixel-linked: D_SOUTHW 0-2.1 (claim_0009, head ~2.09 drawn); D_ENTRY_W 0-2.1 retained, drawn ~2.0-2.1 with no labeled chain (claim_0010); all interior doors remain assumed 2.1"
+    ],
+    "reason": "Exterior door heights are now image-linked claims; interior doors remain assumptions",
+    "source_refs": [
+      "claim_0009",
+      "claim_0010"
+    ]
+  }
+]

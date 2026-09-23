@@ -1,0 +1,123 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "W_N3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North elevation left vertical chain, read top-down 400/1600/1000 with ticks: 1600 is the window extent, 1000 is the sill above F1 floor (z=0), 400 above head to F2 floor level 3.0. Chain origin_m=3.0, direction=-1, segment 1 = ordered opening z span. Drawn window pixels y432-519 match sill ~1.0/head ~2.6.",
+    "sources": [
+      {
+        "box": [
+          150.0,
+          170.0,
+          310.0,
+          590.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        150.0,
+        170.0,
+        310.0,
+        590.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

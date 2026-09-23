@@ -1,0 +1,1819 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "seed",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W_S1",
+      "changes": {
+        "z": {
+          "claim": "claim_0003",
+          "value": "height"
+        }
+      },
+      "reason": "South elevation left chain 900/600/1500 gives the small 1200 south window extent 1.5-2.1, not 1.0-2.6"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_N1",
+      "changes": {
+        "z": {
+          "claim": "claim_0005",
+          "value": "height"
+        }
+      },
+      "reason": "F2 north chain order: 800 is parapet-to-head; sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_N2",
+      "changes": {
+        "z": {
+          "claim": "claim_0005",
+          "value": "height"
+        }
+      },
+      "reason": "F2 north chain order: 800 is parapet-to-head; sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S1",
+      "changes": {
+        "z": {
+          "claim": "claim_0006",
+          "value": "height"
+        }
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S2",
+      "changes": {
+        "z": {
+          "claim": "claim_0006",
+          "value": "height"
+        }
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S3",
+      "changes": {
+        "z": {
+          "claim": "claim_0006",
+          "value": "height"
+        }
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S4",
+      "changes": {
+        "z": {
+          "claim": "claim_0006",
+          "value": "height"
+        }
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_E",
+      "changes": {
+        "z": {
+          "claim": "claim_0007",
+          "value": "height"
+        }
+      },
+      "reason": "F2 east chain order: sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "update_window",
+      "id": "W2_W",
+      "changes": {
+        "z": {
+          "claim": "claim_0008",
+          "value": "height"
+        }
+      },
+      "reason": "F2 west chain order: sill 1000 above F2 floor -> abs 4.0-5.8"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Window z: F1 north and south sill 1.0 h1.6; F1 east corridor window sill 1.0 h1.8 (East_view chain 1000/1800/200); F2 sill 0.8 (abs 3.8) h1.8",
+      "replacement": [
+        "Window z per adopted elevation chains: F1 north W_N1-N3 (claim_0001) and wide south W_S2/W_S3 (claim_0002) sill 1.0 h1.6; small south W_S1 extent 1.5-2.1 (claim_0003, chain 900/600/1500); W_E1 sill 1.0 h1.8 (claim_0004, chain 200/1800/1000); all eight F2 windows sill 1.0 above F2 floor, abs 4.0-5.8 (claims_0005-0008, chains 800/1800/1000 read top-down: 800 is parapet-to-head, not the sill)"
+      ],
+      "reason": "Elevation chain review corrected W_S1 and all F2 window heights",
+      "source_refs": [
+        "claim_0003",
+        "claim_0005"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Door heights 2.1m (exterior doors ~2.0-2.2m measured on South/West elevations; interior assumed)",
+      "replacement": [
+        "Exterior doors pixel-linked: D_SOUTHW 0-2.1 (claim_0009, head ~2.09 drawn); D_ENTRY_W 0-2.1 retained, drawn ~2.0-2.1 with no labeled chain (claim_0010); all interior doors remain assumed 2.1"
+      ],
+      "reason": "Exterior door heights are now image-linked claims; interior doors remain assumptions",
+      "source_refs": [
+        "claim_0009",
+        "claim_0010"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0003",
+    "claim_0005",
+    "claim_0006",
+    "claim_0007",
+    "claim_0008"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W_S1"
+          ]
+        ],
+        "claim_id": "claim_0003",
+        "value_field": "height",
+        "resolved_value": [
+          1.5,
+          2.1
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 3.0,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.9,
+                "start_m": 3.0,
+                "end_m": 2.1,
+                "span_m": [
+                  2.1,
+                  3.0
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 0.6,
+                "start_m": 2.1,
+                "end_m": 1.5,
+                "span_m": [
+                  1.5,
+                  2.1
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.5,
+                "start_m": 1.5,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.5
+                ]
+              }
+            ],
+            "total_m": 3.0,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 1,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_N1"
+          ]
+        ],
+        "claim_id": "claim_0005",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 2,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_N2"
+          ]
+        ],
+        "claim_id": "claim_0005",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 3,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_S1"
+          ]
+        ],
+        "claim_id": "claim_0006",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 4,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_S2"
+          ]
+        ],
+        "claim_id": "claim_0006",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 5,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_S3"
+          ]
+        ],
+        "claim_id": "claim_0006",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 6,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_S4"
+          ]
+        ],
+        "claim_id": "claim_0006",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 7,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_E"
+          ]
+        ],
+        "claim_id": "claim_0007",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 8,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W2_W"
+          ]
+        ],
+        "claim_id": "claim_0008",
+        "value_field": "height",
+        "resolved_value": [
+          4.0,
+          5.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 6.6,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.8,
+                "start_m": 6.6,
+                "end_m": 5.8,
+                "span_m": [
+                  5.8,
+                  6.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 5.8,
+                "end_m": 4.0,
+                "span_m": [
+                  4.0,
+                  5.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 4.0,
+                "end_m": 3.0,
+                "span_m": [
+                  3.0,
+                  4.0
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0003": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "W_S1",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "South elevation left vertical chain 900/600/1500 applies to the small 1200-wide south window (W_S1, plan span 3.45-4.62 m = chain 3440-4640 from SW corner): 600 is the window extent between ticks at z=1.5 and z=2.1, 900 above head to 3.0, 1500 sill to ground. origin_m=3.0, direction=-1, segment 1. Drawn window y448-482 gives sill ~1.5/head ~2.1.",
+            "sources": [
+              {
+                "box": [
+                  60.0,
+                  170.0,
+                  330.0,
+                  590.0
+                ],
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  900.0,
+                  600.0,
+                  1500.0
+                ],
+                "origin_m": 3.0,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 3.0,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.1,
+                    "index": 0,
+                    "length_m": 0.9,
+                    "span_m": [
+                      2.1,
+                      3.0
+                    ],
+                    "start_m": 3.0
+                  },
+                  {
+                    "end_m": 1.5,
+                    "index": 1,
+                    "length_m": 0.6,
+                    "span_m": [
+                      1.5,
+                      2.1
+                    ],
+                    "start_m": 2.1
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.5,
+                    "span_m": [
+                      0.0,
+                      1.5
+                    ],
+                    "start_m": 1.5
+                  }
+                ],
+                "total_m": 3.0
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0003",
+          "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+          "resolved_values": {
+            "height": [
+              1.5,
+              2.1
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                60.0,
+                170.0,
+                330.0,
+                590.0
+              ],
+              "image": "South_view.png",
+              "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "size": [
+                1423,
+                794
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0003",
+          "disposition": "adopted",
+          "id": "decision_0003",
+          "reason": "South left chain unambiguously gives 1.5-2.1 for the 1200-wide south window; differs from seed and will be applied."
+        }
+      },
+      "claim_0005": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "W2_N1",
+                "kind": "window"
+              },
+              {
+                "id": "W2_N2",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "North elevation left vertical chain, F2 portion read top-down 800/1800/1000 relative to F2 floor level z=3.0: 800 from roofline (6.6) down to window head, 1800 window extent, 1000 from sill down to F2 floor. origin_m=6.6, direction=-1, segment 1 gives abs z span [4.0, 5.8]. Tick pixels y235(head)/y337(sill) vs floor line y397 match: sill ~1.0 above F2 floor, head ~2.8 above.",
+            "sources": [
+              {
+                "box": [
+                  150.0,
+                  170.0,
+                  310.0,
+                  590.0
+                ],
+                "image": "North_view.png"
+              }
+            ],
+            "unresolved": [
+              "Seed geometry currently has F2 windows at 3.8-5.6 (sill read as 800); the chain order shows 800 is the parapet-to-head segment, so a correction to 4.0-5.8 is proposed."
+            ],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  800.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 6.6,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 3.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 6.6,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 5.8,
+                    "index": 0,
+                    "length_m": 0.8,
+                    "span_m": [
+                      5.8,
+                      6.6
+                    ],
+                    "start_m": 6.6
+                  },
+                  {
+                    "end_m": 4.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      4.0,
+                      5.8
+                    ],
+                    "start_m": 5.8
+                  },
+                  {
+                    "end_m": 3.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      3.0,
+                      4.0
+                    ],
+                    "start_m": 4.0
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0005",
+          "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+          "resolved_values": {
+            "height": [
+              4.0,
+              5.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                150.0,
+                170.0,
+                310.0,
+                590.0
+              ],
+              "image": "North_view.png",
+              "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+              "size": [
+                1354,
+                812
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0005",
+          "disposition": "adopted",
+          "id": "decision_0005",
+          "reason": "North F2 chain order verified by ticks; sill is 1000, not 800. Correction to 4.0-5.8 to be applied."
+        }
+      },
+      "claim_0006": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "W2_S1",
+                "kind": "window"
+              },
+              {
+                "id": "W2_S2",
+                "kind": "window"
+              },
+              {
+                "id": "W2_S3",
+                "kind": "window"
+              },
+              {
+                "id": "W2_S4",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "South elevation right vertical chain, F2 portion read top-down 800/1800/1000: 800 from roofline 6.6 to head, 1800 window extent, 1000 sill to F2 floor 3.0. origin_m=6.6, direction=-1, segment 1 = [4.0, 5.8]. Tick pixels y235/y337 vs F2 floor line y397 and drawn window edges match.",
+            "sources": [
+              {
+                "box": [
+                  1160.0,
+                  170.0,
+                  1423.0,
+                  590.0
+                ],
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [
+              "Seed has F2 windows at 3.8-5.6; correction to 4.0-5.8 proposed per chain order."
+            ],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  800.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 6.6,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 3.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 6.6,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 5.8,
+                    "index": 0,
+                    "length_m": 0.8,
+                    "span_m": [
+                      5.8,
+                      6.6
+                    ],
+                    "start_m": 6.6
+                  },
+                  {
+                    "end_m": 4.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      4.0,
+                      5.8
+                    ],
+                    "start_m": 5.8
+                  },
+                  {
+                    "end_m": 3.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      3.0,
+                      4.0
+                    ],
+                    "start_m": 4.0
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0006",
+          "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+          "resolved_values": {
+            "height": [
+              4.0,
+              5.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                1160.0,
+                170.0,
+                1423.0,
+                590.0
+              ],
+              "image": "South_view.png",
+              "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "size": [
+                1423,
+                794
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0006",
+          "disposition": "adopted",
+          "id": "decision_0006",
+          "reason": "South F2 chain order verified by ticks; correction to 4.0-5.8 to be applied."
+        }
+      },
+      "claim_0007": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "W2_E",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "East elevation left vertical chain, F2 portion read top-down 800/1800/1000: head 800 below roofline 6.6, window 1800, sill 1000 above F2 floor 3.0. origin_m=6.6, direction=-1, segment 1 = [4.0, 5.8]. Drawn F2 window y222-322 vs floor line y383 gives sill ~1.0/head ~2.8 above F2 floor.",
+            "sources": [
+              {
+                "box": [
+                  110.0,
+                  150.0,
+                  280.0,
+                  570.0
+                ],
+                "image": "East_view.png"
+              }
+            ],
+            "unresolved": [
+              "Seed has 3.8-5.6; correction to 4.0-5.8 proposed."
+            ],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  800.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 6.6,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 3.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 6.6,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 5.8,
+                    "index": 0,
+                    "length_m": 0.8,
+                    "span_m": [
+                      5.8,
+                      6.6
+                    ],
+                    "start_m": 6.6
+                  },
+                  {
+                    "end_m": 4.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      4.0,
+                      5.8
+                    ],
+                    "start_m": 5.8
+                  },
+                  {
+                    "end_m": 3.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      3.0,
+                      4.0
+                    ],
+                    "start_m": 4.0
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0007",
+          "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+          "resolved_values": {
+            "height": [
+              4.0,
+              5.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                110.0,
+                150.0,
+                280.0,
+                570.0
+              ],
+              "image": "East_view.png",
+              "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+              "size": [
+                945,
+                741
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0007",
+          "disposition": "adopted",
+          "id": "decision_0007",
+          "reason": "East F2 chain order verified by ticks and drawn pixels; correction to 4.0-5.8 to be applied."
+        }
+      },
+      "claim_0008": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "W2_W",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "West elevation left vertical chain, F2 portion read top-down 800/1800/1000: head 800 below roofline 6.6, window 1800, sill 1000 above F2 floor 3.0. origin_m=6.6, direction=-1, segment 1 = [4.0, 5.8]. Drawn F2 window y228-330 vs floor line y383 gives sill ~0.93-1.0/head ~2.7-2.8 above F2 floor.",
+            "sources": [
+              {
+                "box": [
+                  180.0,
+                  160.0,
+                  370.0,
+                  580.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [
+              "Seed has 3.8-5.6; correction to 4.0-5.8 proposed."
+            ],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  800.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 6.6,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 3.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 6.6,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 5.8,
+                    "index": 0,
+                    "length_m": 0.8,
+                    "span_m": [
+                      5.8,
+                      6.6
+                    ],
+                    "start_m": 6.6
+                  },
+                  {
+                    "end_m": 4.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      4.0,
+                      5.8
+                    ],
+                    "start_m": 5.8
+                  },
+                  {
+                    "end_m": 3.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      3.0,
+                      4.0
+                    ],
+                    "start_m": 4.0
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0008",
+          "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+          "resolved_values": {
+            "height": [
+              4.0,
+              5.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                180.0,
+                160.0,
+                370.0,
+                580.0
+              ],
+              "image": "West_view.png",
+              "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "size": [
+                1077,
+                773
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0008",
+          "disposition": "adopted",
+          "id": "decision_0008",
+          "reason": "West F2 chain order verified; correction to 4.0-5.8 to be applied."
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W_S1",
+      "changes": {
+        "z": [
+          1.5,
+          2.1
+        ]
+      },
+      "reason": "South elevation left chain 900/600/1500 gives the small 1200 south window extent 1.5-2.1, not 1.0-2.6",
+      "source_refs": [
+        "claim:claim_0003:b6897c1025cf0857990bc76685017279282a799fb9e4377b5d91ac819c3b8460"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_N1",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 north chain order: 800 is parapet-to-head; sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0005:2c0e85ca1a88f7ab4bd3fa8a747584113b5a0a4a9659b4c9403f5147b6aef312"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_N2",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 north chain order: 800 is parapet-to-head; sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0005:2c0e85ca1a88f7ab4bd3fa8a747584113b5a0a4a9659b4c9403f5147b6aef312"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S1",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S2",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S3",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_S4",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 south chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0006:8ed0ef9a4730e7a77988eedb78fc84be6709cd868bc9a7a0865250baa0a37db5"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_E",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 east chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0007:3d7a2e185929122111de2569ad93b8d56d150522758d78c3c1542af26134f090"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "W2_W",
+      "changes": {
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      "reason": "F2 west chain order: sill 1000 above F2 floor -> abs 4.0-5.8",
+      "source_refs": [
+        "claim:claim_0008:7f5c8950515280b88e2a33d5d41b8ab64c3af2760beac16ef1a6d5a981d41240"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Window z: F1 north and south sill 1.0 h1.6; F1 east corridor window sill 1.0 h1.8 (East_view chain 1000/1800/200); F2 sill 0.8 (abs 3.8) h1.8",
+      "replacement": [
+        "Window z per adopted elevation chains: F1 north W_N1-N3 (claim_0001) and wide south W_S2/W_S3 (claim_0002) sill 1.0 h1.6; small south W_S1 extent 1.5-2.1 (claim_0003, chain 900/600/1500); W_E1 sill 1.0 h1.8 (claim_0004, chain 200/1800/1000); all eight F2 windows sill 1.0 above F2 floor, abs 4.0-5.8 (claims_0005-0008, chains 800/1800/1000 read top-down: 800 is parapet-to-head, not the sill)"
+      ],
+      "reason": "Elevation chain review corrected W_S1 and all F2 window heights",
+      "source_refs": [
+        "claim_0003",
+        "claim_0005"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Door heights 2.1m (exterior doors ~2.0-2.2m measured on South/West elevations; interior assumed)",
+      "replacement": [
+        "Exterior doors pixel-linked: D_SOUTHW 0-2.1 (claim_0009, head ~2.09 drawn); D_ENTRY_W 0-2.1 retained, drawn ~2.0-2.1 with no labeled chain (claim_0010); all interior doors remain assumed 2.1"
+      ],
+      "reason": "Exterior door heights are now image-linked claims; interior doors remain assumptions",
+      "source_refs": [
+        "claim_0009",
+        "claim_0010"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "76942e16e3b3e4dcf91010e1b0e833902832a401427b37c7ff03d6b4aa8f49d5",
+  "geometry_after_sha256": "7bab47b9b475db87a5b7d94ee79bf8b850c3b19db09dbe880a9a4858a36080b3",
+  "changes": [
+    {
+      "kind": "window",
+      "id": "W2_E",
+      "before": {
+        "facade": "East",
+        "floor": "F2",
+        "id": "W2_E",
+        "room": "F2_CORRIDOR",
+        "span": [
+          3.394595,
+          4.594595
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "East",
+        "floor": "F2",
+        "id": "W2_E",
+        "room": "F2_CORRIDOR",
+        "span": [
+          3.394595,
+          4.594595
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_N1",
+      "before": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W2_N1",
+        "room": "F2_MEETING_1",
+        "span": [
+          1.940029,
+          5.559971
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W2_N1",
+        "room": "F2_MEETING_1",
+        "span": [
+          1.940029,
+          5.559971
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_N2",
+      "before": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W2_N2",
+        "room": "F2_MEETING_2",
+        "span": [
+          9.472543,
+          13.049133
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "W2_N2",
+        "room": "F2_MEETING_2",
+        "span": [
+          9.472543,
+          13.049133
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_S1",
+      "before": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S1",
+        "room": "F2_OFFICE_1",
+        "span": [
+          2.189306,
+          3.370665
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S1",
+        "room": "F2_OFFICE_1",
+        "span": [
+          2.189306,
+          3.370665
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_S2",
+      "before": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S2",
+        "room": "F2_OFFICE_2",
+        "span": [
+          4.129335,
+          5.299855
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S2",
+        "room": "F2_OFFICE_2",
+        "span": [
+          4.129335,
+          5.299855
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_S3",
+      "before": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S3",
+        "room": "F2_OFFICE_3",
+        "span": [
+          9.700145,
+          10.903179
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S3",
+        "room": "F2_OFFICE_3",
+        "span": [
+          9.700145,
+          10.903179
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_S4",
+      "before": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S4",
+        "room": "F2_OFFICE_4",
+        "span": [
+          11.618497,
+          12.810694
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "South",
+        "floor": "F2",
+        "id": "W2_S4",
+        "room": "F2_OFFICE_4",
+        "span": [
+          11.618497,
+          12.810694
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W2_W",
+      "before": {
+        "facade": "West",
+        "floor": "F2",
+        "id": "W2_W",
+        "room": "F2_CORRIDOR",
+        "span": [
+          3.394595,
+          4.594595
+        ],
+        "z": [
+          3.8,
+          5.6
+        ]
+      },
+      "after": {
+        "facade": "West",
+        "floor": "F2",
+        "id": "W2_W",
+        "room": "F2_CORRIDOR",
+        "span": [
+          3.394595,
+          4.594595
+        ],
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "W_S1",
+      "before": {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S1",
+        "room": "S_ROOM_1",
+        "span": [
+          3.453237,
+          4.618705
+        ],
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      "after": {
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_S1",
+        "room": "S_ROOM_1",
+        "span": [
+          3.453237,
+          4.618705
+        ],
+        "z": [
+          1.5,
+          2.1
+        ]
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_01",
+  "source_model_sha256": "deaed5c09e01b658512f751db8406344f4d37605e8f49a178eb2020fd916cd15",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

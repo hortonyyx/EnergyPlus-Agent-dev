@@ -1,0 +1,121 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "W2_N1",
+        "kind": "window"
+      },
+      {
+        "id": "W2_N2",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North elevation left vertical chain, F2 portion read top-down 800/1800/1000 relative to F2 floor level z=3.0: 800 from roofline (6.6) down to window head, 1800 window extent, 1000 from sill down to F2 floor. origin_m=6.6, direction=-1, segment 1 gives abs z span [4.0, 5.8]. Tick pixels y235(head)/y337(sill) vs floor line y397 match: sill ~1.0 above F2 floor, head ~2.8 above.",
+    "sources": [
+      {
+        "box": [
+          150.0,
+          170.0,
+          310.0,
+          590.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [
+      "Seed geometry currently has F2 windows at 3.8-5.6 (sill read as 800); the chain order shows 800 is the parapet-to-head segment, so a correction to 4.0-5.8 is proposed."
+    ],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          800.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 6.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 6.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 5.8,
+            "index": 0,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 6.6
+          },
+          {
+            "end_m": 4.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 5.8
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 4.0
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        150.0,
+        170.0,
+        310.0,
+        590.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

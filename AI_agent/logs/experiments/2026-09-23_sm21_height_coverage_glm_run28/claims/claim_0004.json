@@ -1,0 +1,115 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "W_E1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East elevation left vertical chain, F1 portion read top-down 200/1800/1000: window extent 1800, sill 1000 above F1 floor, 200 above head to 3.0. origin_m=3.0, direction=-1, segment 1. Drawn window y390-497 matches sill ~1.0/head ~2.8.",
+    "sources": [
+      {
+        "box": [
+          110.0,
+          150.0,
+          280.0,
+          570.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          200.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.8,
+            "index": 0,
+            "length_m": 0.2,
+            "span_m": [
+              2.8,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 2.8
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0004",
+  "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        110.0,
+        150.0,
+        280.0,
+        570.0
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

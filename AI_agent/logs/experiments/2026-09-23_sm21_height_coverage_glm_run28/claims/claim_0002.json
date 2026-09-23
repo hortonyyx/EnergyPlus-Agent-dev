@@ -1,0 +1,119 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "W_S3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South elevation right vertical chain applies to the two wide (2400) south windows; read top-down 400/1600/1000: window extent 1600, sill 1000 above F1 floor, 400 above head to 3.0. origin_m=3.0, direction=-1, segment 1. Drawn wide windows y420-513 match sill ~1.0/head ~2.6.",
+    "sources": [
+      {
+        "box": [
+          1160.0,
+          170.0,
+          1423.0,
+          590.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        1160.0,
+        170.0,
+        1423.0,
+        590.0
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

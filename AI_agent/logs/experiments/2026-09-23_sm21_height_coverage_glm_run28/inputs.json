@@ -1,0 +1,104 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        2133,
+        1345
+      ],
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+    },
+    "2f_view.png": {
+      "size": [
+        2182,
+        1319
+      ],
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+    },
+    "East_view.png": {
+      "size": [
+        945,
+        741
+      ],
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+    },
+    "North_view.png": {
+      "size": [
+        1354,
+        812
+      ],
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0"
+    },
+    "South_view.png": {
+      "size": [
+        1423,
+        794
+      ],
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+    },
+    "West_view.png": {
+      "size": [
+        1077,
+        773
+      ],
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+    }
+  },
+  "scope": "Continue reconstruction from the saved proposal and the six original drawings. This is a bounded review of exterior opening heights, separately for every floor and facade. Keep the existing plan layout, physical partition topology, opening count, horizontal spans and room connections unless direct source evidence exposes a necessary discrepancy; do not spend this run on small wall-position refinements. Read the claims reference and use check_openings(candidate, heights_only=true) to inspect actual absolute z and remaining height coverage. Independently read the original elevations at suitable crops, transcribe each applicable vertical chain with its own floor origin and opening targets, and distinguish opening extent from frame subdivisions. Record/adopt located observations. Confirm values already correct using confirm_claims before revising other values against the same candidate; use claim references for actual corrections. Different floors/objects need explicit value_targets or separate claims. Resolve or retain uncertainty honestly, update superseded assumptions in the saved source, inspect the resulting source elevations, and call finish_bim on the selected candidate. Your final report must identify exactly which exterior scopes have current image-linked heights and which remain unchecked; interior heights may remain out of scope. A rendered/viewed drawing or an unbound prose assertion is not height coverage. Use the images and saved proposal only; no reference answers or external evaluation are supplied. This is not a request for EP simulation or detailed physical wall geometry.",
+  "provider": "glm",
+  "input_mode": "saved_candidate_recovery",
+  "exploratory_opus": false,
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 6
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1790163972.2807133,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "a3a6f68965e32fa6c5dd534f01d0f79a4c07fc5793250d158a74d7b38bd1937a",
+    "scripts/tool_scripts/bim_agent_guidance.py": "6b13824ca3a07ac2de5d65d59512a19fa7e2b30f50c17df020b72b10b364e94e",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "src/agent/execution/bim_claims.py": "3d48e66c817f402798e9dfc7dff9f3a95853ae723671be34d7d7097922e910bc",
+    "src/agent/execution/bim_claim_state.py": "16fe53eae3581c71df9ee19d2c4d94c76b16be7d466fbe9ba7c9239133ba2f8e",
+    "src/agent/execution/bim_height_coverage.py": "c14164ddc2ef92443a0f6eeb795eb9d9608bea8a15cfb95c270e2aaa7b830095",
+    "src/agent/geometry/component_attributes.py": "c6084c54e07c7eb17d1a8c86442276d70fcbf11c61d872ee21823f4643468be6",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "1438214451cd077c8cfb696a0c40fc4866cabcdba4db3571ea715123eac3631d",
+    "src/agent/geometry/proposal_edits.py": "024ee470e2c14fe3bc93594d0c38cfc4dad245c71a62a8b483f4b15f73be5c7b",
+    "src/agent/geometry/opening_review.py": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "320242868487701b7260e2c57306e613b3f7661ab762c56aa3ebd0dbb9a90f8b",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, and optional saved generated proposal; no building declaration and no GT/evaluation",
+  "seed": {
+    "candidate": "seed",
+    "proposal_sha256": "4755a859e47d8bc574eb4bda0ee661a158916cebf0ace38cdbf0e75ceef00644",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-23_sm21_claim_state_glm_run27/candidate_02",
+    "mode": "previous_generated_proposal_recovery"
+  }
+}

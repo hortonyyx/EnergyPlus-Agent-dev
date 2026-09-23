@@ -1,0 +1,348 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "CORRIDOR",
+        "kind": "space"
+      },
+      {
+        "id": "N_OFFICE_1",
+        "kind": "space"
+      },
+      {
+        "id": "N_OFFICE_2",
+        "kind": "space"
+      },
+      {
+        "id": "N_OFFICE_3",
+        "kind": "space"
+      },
+      {
+        "id": "S_ROOM_1",
+        "kind": "space"
+      },
+      {
+        "id": "S_ROOM_2",
+        "kind": "space"
+      },
+      {
+        "id": "S_ROOM_3",
+        "kind": "space"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "1f_view.png 1F corridor wall faces measured with gray-ink y-profiles (profile_003): north wall face rows 618/629 px, south wall face rows 804/815 px. y anchors: outer north face px347=8.0m, outer south face px1086=0.0m (scale 92.375 px/m). Drawn wall thickness 11px=0.119m (120mm), clear corridor 1.89m, midplanes y=5.009/2.990. This supersedes the seed's 250mm walls at midplanes 4.904/3.129 (clear 1.53m): neither the left chain (3000/250/1500/250/3000) nor the right chain (2940/340/1200/340/2940) matches the drawn walls; the drawn double lines are followed.",
+    "sources": [
+      {
+        "box": [
+          1100.0,
+          560.0,
+          1160.0,
+          900.0
+        ],
+        "image": "1f_view.png"
+      },
+      {
+        "box": [
+          450.0,
+          300.0,
+          510.0,
+          1120.0
+        ],
+        "image": "1f_view.png"
+      }
+    ],
+    "unresolved": [
+      "Line-centre vs face ambiguity ~1px = 0.011m; 2F drawn corridor midplanes 5.000/3.000 agree within ~1px, so both floors treated as the same 120mm corridor walls on centreline y=4.0."
+    ],
+    "value_targets": {
+      "north_midplane_y": [
+        {
+          "id": "CORRIDOR",
+          "kind": "space"
+        },
+        {
+          "id": "N_OFFICE_1",
+          "kind": "space"
+        },
+        {
+          "id": "N_OFFICE_2",
+          "kind": "space"
+        },
+        {
+          "id": "N_OFFICE_3",
+          "kind": "space"
+        }
+      ],
+      "north_wall_faces": [],
+      "south_midplane_y": [
+        {
+          "id": "CORRIDOR",
+          "kind": "space"
+        },
+        {
+          "id": "S_ROOM_1",
+          "kind": "space"
+        },
+        {
+          "id": "S_ROOM_2",
+          "kind": "space"
+        },
+        {
+          "id": "S_ROOM_3",
+          "kind": "space"
+        }
+      ],
+      "south_wall_faces": []
+    },
+    "values": {
+      "north_midplane_y": {
+        "type": "literal",
+        "unit": "m",
+        "value": 5.009
+      },
+      "north_wall_faces": {
+        "anchors": [
+          [
+            347,
+            8.0
+          ],
+          [
+            1086,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "1f_view.png",
+        "pixels": [
+          {
+            "at": "peak",
+            "candidate": "C02",
+            "profile": "profile_003"
+          },
+          {
+            "at": "peak",
+            "candidate": "C03",
+            "profile": "profile_003"
+          }
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      },
+      "south_midplane_y": {
+        "type": "literal",
+        "unit": "m",
+        "value": 2.99
+      },
+      "south_wall_faces": {
+        "anchors": [
+          [
+            347,
+            8.0
+          ],
+          [
+            1086,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "1f_view.png",
+        "pixels": [
+          {
+            "at": "peak",
+            "candidate": "C04",
+            "profile": "profile_003"
+          },
+          {
+            "at": "peak",
+            "candidate": "C05",
+            "profile": "profile_003"
+          }
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "north_midplane_y": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    },
+    "north_wall_faces": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [
+        {
+          "axis": "y",
+          "candidate": {
+            "id": "C02",
+            "peak": 618,
+            "pixels": [
+              618,
+              618
+            ],
+            "selected_at": "peak"
+          },
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "profile_sha256": "115a0b580edb766034e35dc780743c03a919100e995d8c6e0d01bcb9d8c79a02",
+          "reference": {
+            "at": "peak",
+            "candidate": "C02",
+            "profile": "profile_003"
+          },
+          "resolved_pixel": 618,
+          "slot": "pixels[2]"
+        },
+        {
+          "axis": "y",
+          "candidate": {
+            "id": "C03",
+            "peak": 629,
+            "pixels": [
+              629,
+              629
+            ],
+            "selected_at": "peak"
+          },
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "profile_sha256": "115a0b580edb766034e35dc780743c03a919100e995d8c6e0d01bcb9d8c79a02",
+          "reference": {
+            "at": "peak",
+            "candidate": "C03",
+            "profile": "profile_003"
+          },
+          "resolved_pixel": 629,
+          "slot": "pixels[3]"
+        }
+      ],
+      "method": "image_axis",
+      "metre_anchors": [
+        8.0,
+        0.0
+      ],
+      "metres_per_pixel": -0.010825439783491205,
+      "pixels": [
+        347,
+        1086,
+        618,
+        629
+      ]
+    },
+    "south_midplane_y": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    },
+    "south_wall_faces": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [
+        {
+          "axis": "y",
+          "candidate": {
+            "id": "C04",
+            "peak": 804,
+            "pixels": [
+              804,
+              804
+            ],
+            "selected_at": "peak"
+          },
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "profile_sha256": "115a0b580edb766034e35dc780743c03a919100e995d8c6e0d01bcb9d8c79a02",
+          "reference": {
+            "at": "peak",
+            "candidate": "C04",
+            "profile": "profile_003"
+          },
+          "resolved_pixel": 804,
+          "slot": "pixels[2]"
+        },
+        {
+          "axis": "y",
+          "candidate": {
+            "id": "C05",
+            "peak": 815,
+            "pixels": [
+              815,
+              815
+            ],
+            "selected_at": "peak"
+          },
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "profile_sha256": "115a0b580edb766034e35dc780743c03a919100e995d8c6e0d01bcb9d8c79a02",
+          "reference": {
+            "at": "peak",
+            "candidate": "C05",
+            "profile": "profile_003"
+          },
+          "resolved_pixel": 815,
+          "slot": "pixels[3]"
+        }
+      ],
+      "method": "image_axis",
+      "metre_anchors": [
+        8.0,
+        0.0
+      ],
+      "metres_per_pixel": -0.010825439783491205,
+      "pixels": [
+        347,
+        1086,
+        804,
+        815
+      ]
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "01e5bb24028d98e446b883ca7cea5e4790c4d940eb9b6df5b7f656248fbbb9ca",
+  "resolved_values": {
+    "north_midplane_y": 5.009,
+    "north_wall_faces": [
+      4.947225981,
+      5.066305819
+    ],
+    "south_midplane_y": 2.99,
+    "south_wall_faces": [
+      2.933694181,
+      3.052774019
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        1100.0,
+        560.0,
+        1160.0,
+        900.0
+      ],
+      "image": "1f_view.png",
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "size": [
+        2133,
+        1345
+      ]
+    },
+    {
+      "box": [
+        450.0,
+        300.0,
+        510.0,
+        1120.0
+      ],
+      "image": "1f_view.png",
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "size": [
+        2133,
+        1345
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

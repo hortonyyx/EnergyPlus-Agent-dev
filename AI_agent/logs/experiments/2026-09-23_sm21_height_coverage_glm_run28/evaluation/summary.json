@@ -1,0 +1,99 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "modelling_task": "reconstruction",
+  "reference_scope": "Independent post-generation diagnostic only; GLM run28 received original drawings and run27 candidate_02, no GT or evaluation feedback. This run scoped exterior heights; plan topology/horizontal positions must remain unchanged.",
+  "interpretation": "还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。",
+  "input_manifest_sha256": "7ff6154070fbe46cfbb8b48920f27943f384c1b10b47adee5dd849ba1598ffe0",
+  "reference_case": "sm21_anchor",
+  "reference_path": "case_tests/test_baseline/gt/sm21_anchor/gt.json",
+  "reference_sha256": "a9be379b1735163528396c36d96653cdf71a67ffe54dde6f942c7c86f53f3f8a",
+  "candidates": [
+    {
+      "candidate": "seed",
+      "is_recovery_seed": true,
+      "source_sha256": "25295a1d6cbb38756a1883c8432d30ddffe13639dfce8f708b1851163a06c254",
+      "partition_status": "minor",
+      "reference_spaces": 14,
+      "candidate_spaces": 14,
+      "openings": {
+        "door": 14,
+        "window": 15
+      },
+      "built_window_comparison": {
+        "gt_total": 15,
+        "matched_total": 14,
+        "complete_total": 6,
+        "within_tol_total": 8,
+        "placed_hit_total": 6,
+        "z_drift_total": 0,
+        "miss_total": 1,
+        "extra_total": 1,
+        "no_data_floor_facades": 0
+      },
+      "topology_findings": [],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "Floor 1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        },
+        {
+          "floor_id": "Floor 2",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_01",
+      "is_recovery_seed": false,
+      "source_sha256": "deaed5c09e01b658512f751db8406344f4d37605e8f49a178eb2020fd916cd15",
+      "partition_status": "minor",
+      "reference_spaces": 14,
+      "candidate_spaces": 14,
+      "openings": {
+        "door": 14,
+        "window": 15
+      },
+      "built_window_comparison": {
+        "gt_total": 15,
+        "matched_total": 15,
+        "complete_total": 15,
+        "within_tol_total": 0,
+        "placed_hit_total": 15,
+        "z_drift_total": 0,
+        "miss_total": 0,
+        "extra_total": 0,
+        "no_data_floor_facades": 0
+      },
+      "topology_findings": [],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "Floor 1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        },
+        {
+          "floor_id": "Floor 2",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "Reference completeness and original pixel truth require separate evidence.",
+    "Partition comparison does not verify doors, connectivity, or vertical voids.",
+    "Reference-plane differences retain their existing evaluator interpretation.",
+    "No evaluation feedback supplied to the generating model."
+  ]
+}
