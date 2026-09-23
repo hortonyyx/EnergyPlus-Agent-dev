@@ -1,0 +1,118 @@
+"""Persistent drawing observations, separate from decisions and built geometry.
+
+The coordinator owns this ledger. Workers retain their isolated workspaces;
+their prose is never automatically promoted to an accepted observation.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, JsonValue
+
+
+def encoded(value: object) -> bytes:
+    return (json.dumps(value, ensure_ascii=False, sort_keys=True,
+                       indent=2, allow_nan=False) + "\n").encode()
+
+
+class ImageEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    image: str = Field(min_length=1)
+    box: list[float] = Field(min_length=4, max_length=4)
+
+
+class Observation(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    topic: Literal["partition", "opening", "space", "connection", "dimension", "attribute"]
+    statement: str = Field(min_length=1)
+    evidence_kind: Literal["annotation_and_pixels", "pixels", "inference", "unknown"]
+    confidence: Literal["low", "medium", "high", "unknown"]
+    basis: str = Field(min_length=1)
+    sources: list[ImageEvidence]
+    object_refs: list[str] = Field(default_factory=list)
+    value: JsonValue = None
+    unresolved: list[str] = Field(default_factory=list)
+
+
+class ObservationLedger:
+    """Append immutable events; derive current decisions without rewriting evidence."""
+
+    def __init__(self, run: Path, manifest: dict, image_path):
+        self.run = run
+        self.manifest = manifest
+        self.image_path = image_path
+        self.folder = run / "observations"
+
+    def events(self) -> list[dict]:
+        return [json.loads(path.read_text()) for path in sorted(self.folder.glob("event_*.json"))]
+
+    def _append(self, event: dict) -> dict:
+        # The coordinator is the sole writer. Exclusive creation also rejects
+        # accidental concurrent writes rather than silently overwriting history.
+        self.folder.mkdir(exist_ok=True)
+        index = len(self.events()) + 1
+        event = {"event_id": f"event_{index:06d}", **event}
+        with (self.folder / f"event_{index:06d}.json").open("xb") as stream:
+            stream.write(encoded(event))
+        return event
+
+    def record(self, data: dict) -> dict:
+        observation = Observation.model_validate(data).model_dump()
+        # JsonValue can contain overflowing floats nested inside a value.
+        encoded(observation)
+        for field in ("statement", "basis"):
+            if not observation[field].strip():
+                raise ValueError(f"{field} must be non-empty")
+        if observation["evidence_kind"] in {"annotation_and_pixels", "pixels"} and not observation["sources"]:
+            raise ValueError("pixel observations require an original image location")
+        for source in observation["sources"]:
+            path = self.image_path(source["image"])
+            from PIL import Image
+            with Image.open(path) as picture:
+                width, height = picture.size
+            left, top, right, bottom = source["box"]
+            if not (0 <= left < right <= width and 0 <= top < bottom <= height):
+                raise ValueError("box must be inside the original image bounds")
+            source.update(sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                          coordinate_frame="original_image_pixels")
+        event = self._append({"kind": "observation", "observation": observation})
+        return {"observation_id": event["event_id"], "status": "proposed",
+                "verification": "not_independently_verified", **observation}
+
+    def decide(self, observation_id: str, disposition: str, reason: str) -> dict:
+        if disposition not in {"adopted", "deferred", "rejected"}:
+            raise ValueError("disposition must be adopted, deferred or rejected")
+        if not reason.strip():
+            raise ValueError("a decision requires a non-empty reason")
+        if observation_id not in {row["event_id"] for row in self.events() if row["kind"] == "observation"}:
+            raise ValueError("unknown observation_id")
+        return self._append({"kind": "decision", "observation_id": observation_id,
+                             "disposition": disposition, "reason": reason})
+
+    def snapshot(self) -> dict:
+        events = self.events()
+        rows = {}
+        for event in events:
+            if event["kind"] == "observation":
+                rows[event["event_id"]] = {"observation_id": event["event_id"],
+                    **event["observation"], "status": "proposed", "decision": None}
+            else:
+                rows[event["observation_id"]].update(status=event["disposition"], decision=event)
+        for row in rows.values():
+            for source in row["sources"]:
+                # Fail visibly if admitted source bytes change; neither a saved
+                # observation nor an adopted decision makes stale evidence valid.
+                path = self.image_path(source["image"])
+                if hashlib.sha256(path.read_bytes()).hexdigest() != source["sha256"]:
+                    raise ValueError("observation source image changed")
+        return {"schema_version": "bim_observation_ledger_v1",
+                "input_manifest_sha256": hashlib.sha256((self.run / "inputs.json").read_bytes()).hexdigest(),
+                "event_count": len(events),
+                "events_sha256": hashlib.sha256(encoded(events)).hexdigest(),
+                "observations": list(rows.values()),
+                "verification": "not_independently_verified",
+                "geometry_application": "not_checked",
+                "note": "Adoption is a coordinator decision, not proof of fidelity or application to geometry."}

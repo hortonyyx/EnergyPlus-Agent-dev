@@ -1,0 +1,77 @@
+{
+  "invocations": [
+    {
+      "name": "round1",
+      "actual_model": "claude-opus-5-5",
+      "assistant_models": [
+        "<synthetic>"
+      ],
+      "elapsed_seconds": 3.35,
+      "returncode": 1,
+      "is_error": true,
+      "estimated_cost_usd": 0,
+      "modelUsage": {}
+    },
+    {
+      "name": "round1_retry",
+      "actual_model": "claude-opus-5-5",
+      "assistant_models": [
+        "claude-opus-5-5"
+      ],
+      "elapsed_seconds": 112.66,
+      "returncode": 0,
+      "is_error": false,
+      "estimated_cost_usd": 0.507332,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 9925,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 38603,
+          "webSearchRequests": 0,
+          "costUSD": 0.507332,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 5912,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      }
+    },
+    {
+      "name": "round2",
+      "actual_model": "claude-opus-5-5",
+      "assistant_models": [
+        "claude-opus-5-5"
+      ],
+      "elapsed_seconds": 100.23,
+      "returncode": 0,
+      "is_error": false,
+      "estimated_cost_usd": 0.58828,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 8664,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 51874,
+          "webSearchRequests": 0,
+          "costUSD": 0.58828,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 5639,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      }
+    }
+  ],
+  "valid_reviews": 2,
+  "elapsed_seconds": 216.24,
+  "estimated_cost_usd": 1.095612,
+  "cost_note": "CLI list-price estimates, not subscription bills",
+  "model_calls_for_building_generation": 0,
+  "new_bim_candidates": 0,
+  "production_code_changes": false
+}

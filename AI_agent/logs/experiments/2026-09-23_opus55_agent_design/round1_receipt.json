@@ -1,0 +1,76 @@
+{
+  "requested_model": "claude-opus-5-5",
+  "effort": "high",
+  "channel": "existing Claude subscription; isolated environment; no API/fallback",
+  "started_at": "2026-09-23T09:02:18.762143+00:00",
+  "prompt_sha256": "96c1322e56c8afe86f03b0da153364d1b454cb3cfd341d540e28a184f48dfdaf",
+  "timeout_seconds": 1200,
+  "command": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-opus-5-5",
+    "--effort",
+    "high",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--permission-mode",
+    "dontAsk",
+    "--setting-sources",
+    "",
+    "--settings",
+    "{\"disableAllHooks\":true}",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--system-prompt",
+    "你是受用户邀请参与项目设计讨论的开发审阅者。只根据所给资料进行独立批评和方案推理。没有工具，不执行代码，不调用其他模型。区分事实、推断与建议，不声称运行过实验。用中文给出可操作的结论。"
+  ],
+  "returncode": 1,
+  "elapsed_seconds": 3.35,
+  "actual_model": "claude-opus-5-5",
+  "assistant_models": [
+    "<synthetic>"
+  ],
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": true,
+    "api_error_status": 400,
+    "duration_ms": 1533,
+    "duration_api_ms": 0,
+    "num_turns": 1,
+    "result": "API Error: 400 Claude Code 2.1.198 does not support this model; version 2.1.280 or newer is required. Run 'claude update', or update the Claude desktop app, then try again.",
+    "stop_reason": "stop_sequence",
+    "session_id": "93254cf8-b2b8-49e4-b73d-8ba8adbd4234",
+    "total_cost_usd": 0,
+    "usage": {
+      "input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 0,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {},
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "uuid": "2d1726ab-a51a-499b-91ed-b2b33637c0cd"
+  }
+}
