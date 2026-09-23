@@ -86,6 +86,12 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 局部变换仅支持当前 legacy v1/v2 方案；含显式围护声明、独立楼层 footprint 或额外方向元数据的整体反射会拒绝，避免漏改关联几何。它不是持久编辑界面，也不迁移完整源边界历史。
 
+### 局部补门与历史未建观测
+
+`get_bim_reference("edits")` 现含 `add_opening`，用 `opening` 声明新 ID、door/open、两侧空间、p1/p2、绝对 z、状态及假设；`reason/source_refs` 在操作层必填（参数引用可自动补来源）。不重写其他对象，正常源宿主、重叠、高度检查保留。观察引用放在 opening.p1/p2/z，claim 对象为已有宿主空间；内门须包含两侧。分别记录平面图证和推断门高，避免把平面依据当高度实测。
+
+历史 `geometry.unsupported` 可用 `read_candidate_items(candidate, collection="unsupported", floor_id=...)` 分页读取。补建或找到确实对应的门后，`resolve_unbuilt_observation` 传 `input_id`、原样 `observation_ids`、非空 `opening_ids`、理由及来源；只处理精确匹配的一条同层观测，旧记录进入 corrections。可在同批引用补门并处理两面重复观测；不得用旧观测条数决定物理门数。没有确认的记录继续保留，此操作不代替图意核验。
+
 ### BIM Agent 的开口回查
 
 候选建成后，Agent 可先调用 `check_openings(candidate)` 取得当前源模型的实际开口清单，再在查看原始图片后以 `check_openings(candidate, review_json)` 提交回查。清单按楼层给出完整门、窗、空通道对象，按空间给出实际 ID 和计数；它不识别像素，也不从备注或自由文字推断门数。未建开口和不支持观察会单列提示，不能当作已建清单的一部分。

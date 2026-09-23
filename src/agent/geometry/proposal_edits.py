@@ -11,7 +11,7 @@ from shapely.ops import unary_union
 
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.correction.cell_geometry import cell_polygon
-from src.agent.correction.schema import Window
+from src.agent.correction.schema import Window, WallOpening
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
@@ -188,6 +188,48 @@ def _remove_opening(geometry: dict, operation: dict) -> dict:
     geometry["openings"].remove(row)
     return {"operation": name, "id": identity, "reason": reason, "source_refs": refs,
             "before": before, "after": None}
+
+
+def _add_opening(geometry: dict, operation: dict) -> dict:
+    name = "add_opening"
+    _require_fields(operation, {"op", "opening", "reason", "source_refs"}, operation=name)
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    refs = _source_refs(operation.get("source_refs"), operation=name)
+    row = copy.deepcopy(operation.get("opening"))
+    if not isinstance(row, dict):
+        raise ValueError("add_opening: opening must be an object")
+    row["source_refs"] = refs
+    row = WallOpening.model_validate(row).model_dump(mode="json")
+    if any(o["id"] == row["id"] for field in ("windows", "openings") for o in geometry.get(field, [])):
+        raise ValueError("add_opening: opening id already exists")
+    geometry.setdefault("openings", []).append(row)
+    # Exact host, overlap and world-Z validation remain in the source builder.
+    return {"operation": name, "id": row["id"], "reason": reason,
+            "source_refs": refs, "before": None, "after": copy.deepcopy(row)}
+
+
+def _resolve_unbuilt_observation(geometry: dict, operation: dict) -> dict:
+    name = "resolve_unbuilt_observation"
+    _require_fields(operation, {"op", "input_id", "observation_ids", "opening_ids", "reason", "source_refs"}, operation=name)
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    refs = _source_refs(operation.get("source_refs"), operation=name)
+    observations = _source_refs(operation.get("observation_ids"), operation=name)
+    replacements = _source_refs(operation.get("opening_ids"), operation=name)
+    matches = [r for r in geometry.get("unsupported", [])
+               if r.get("kind") == "as_drawn_opening_unbuilt" and r.get("input_id") == operation.get("input_id")
+               and r.get("observation_ids") == observations]
+    if len(matches) != 1:
+        raise ValueError("resolve_unbuilt_observation: expected one exact unbuilt observation record")
+    before = copy.deepcopy(matches[0])
+    for identity in replacements:
+        opening = _find(geometry.get("openings", []), identity, operation=name)
+        floor = next((f for f in geometry["floors"] if any(c["id"] == opening["space_id"] for c in f["cells"])), None)
+        if floor is None or (floor.get("id") or floor["name"]) != before["floor_id"]:
+            raise ValueError("resolve_unbuilt_observation: replacement must be on the observation floor")
+    geometry["unsupported"].remove(matches[0])
+    return {"operation": name, "reason": reason, "source_refs": refs,
+            "before": before, "opening_ids": replacements,
+            "drawing_fidelity": "not_evaluated"}
 
 
 def _finite_coordinate(value: object, *, operation: str) -> float:
@@ -595,6 +637,10 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _update(geometry, operation, target="window")
         elif name == "update_opening":
             audit = _update(geometry, operation, target="opening")
+        elif name == "add_opening":
+            audit = _add_opening(geometry, operation)
+        elif name == "resolve_unbuilt_observation":
+            audit = _resolve_unbuilt_observation(geometry, operation)
         elif name == "remove_opening":
             audit = _remove_opening(geometry, operation)
         elif name == "move_shared_wall":

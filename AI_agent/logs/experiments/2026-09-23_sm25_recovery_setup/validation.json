@@ -1,0 +1,59 @@
+{
+  "offline_only": true,
+  "different_relevant_checks_passed": 85,
+  "scope_files": [
+    "tests/test_bim_add_opening.py",
+    "tests/test_bim_claims.py",
+    "tests/test_bim_claim_state.py",
+    "tests/test_bim_height_coverage.py",
+    "tests/test_proposal_edits.py",
+    "tests/test_bim_agent_tools.py",
+    "tests/test_bim_agent_glm_route.py"
+  ],
+  "batches": [
+    {
+      "files": [
+        "test_bim_add_opening.py",
+        "test_bim_claims.py",
+        "test_bim_claim_state.py",
+        "test_bim_height_coverage.py",
+        "test_proposal_edits.py"
+      ],
+      "passed": 50,
+      "failed": 1,
+      "failure": "New test incorrectly used historical claim filter instead of current project(). Test corrected; production unchanged for failure."
+    },
+    {
+      "files": [
+        "test_bim_add_opening.py",
+        "test_bim_agent_tools.py",
+        "test_bim_agent_glm_route.py"
+      ],
+      "passed": 40,
+      "failed": 0
+    },
+    {
+      "files": [
+        "test_bim_add_opening.py",
+        "test_bim_claim_state.py",
+        "test_bim_height_coverage.py"
+      ],
+      "passed": 20,
+      "failed": 0,
+      "note": "Includes new paginated unsupported-record stdio regression."
+    },
+    {
+      "test": "test_added_door_plan_points_use_both_host_claims_without_claiming_height",
+      "passed": 1,
+      "failed": 0,
+      "note": "Initial test summary-field typos corrected to existing image_linked_count; reference/host checks passed from first execution."
+    }
+  ],
+  "counting_note": "Scopes overlap; counts are not summed. Collection of prior seven-file union found 84 tests; one subsequent test added and passed.",
+  "real_replays": "adapter_audit.json, run29/postrun_audit.json, run30/postrun_audit.json and independent_endpoint_audit.json all completed",
+  "not_evaluated": [
+    "whole suite",
+    "cold start",
+    "EnergyPlus"
+  ]
+}

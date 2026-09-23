@@ -1,0 +1,65 @@
+{
+  "agent_assumptions": [
+    "Historical assisted correction imported as an editable proposal; not cold start. Existing representative wall planes and 2.1 m assumed door heights are retained."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 29,
+    "openings": 60,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 2
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9",
+  "provenance": {
+    "input": "AI_agent/logs/experiments/2026-09-09_m0_wall_gap_review_run01/1_correction/attempts/001/output.json",
+    "mode": "historical_assisted_correction_import"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.unresolved_observations",
+        "count": 2,
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "83057a8eecede653010ba88c686e8f9efb66b6a9aef65d321a4112331e0d629c",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.unresolved_observations",
+        "count": 2,
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "Two historical positive opening observations near the second-floor northern corridor junction remain unbuilt; their number does not establish the number of physical doors. See geometry.unsupported for exact records.",
+    "Whole-building drawing fidelity, door heights/states and room roles remain unverified."
+  ]
+}

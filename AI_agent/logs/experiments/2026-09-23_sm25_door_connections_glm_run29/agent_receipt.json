@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1035.96,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 1024656,
+    "stop_reason": "end_turn",
+    "session_id": "3f7b8320-da56-4290-a5da-f6b15dda3271",
+    "total_cost_usd": 1.9239768000000004,
+    "usage": {
+      "input_tokens": 165131,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2452864,
+      "output_tokens": 38644,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 165131,
+        "outputTokens": 38644,
+        "cacheReadInputTokens": 2452864,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.9239768000000004,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 51,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Done. Delivered candidate: **candidate_02** (viewer: `candidate_02/viewer.html`, source model + plan views saved; finish recorded with source validation **pass**, 29 spaces, 61 openings, 0 unbuilt/unsupported).\n\n## What was resolved\n\nThe seed carried two historical \"as-drawn opening unbuilt\" records on the 2f northern corridor junction (L029g3 span 9.904–10.929 m, L030g2 span 10.122–11.125 m along wall `wall_bc264d…`, reason `opening_crosses_room_boundaries`).\n\n**Original-image evidence (2f_view.png):**\n- Zoomed inspection + pixel profiles of the complete junction showed **exactly one door symbol**: a gap in the corridor north wall ink from the c002/c006 party-wall line (x≈699 px) to resumed ink (x=741 px, `profile_002`), one cyan leaf hinged west with a single quarter-circle arc swinging **north into room 2f-c006**.\n- The party wall is continuously drawn (x=699–700, y 352–504, `profile_008`) → **no** c002↔c006 door; the c006-south/c011-north wall stretch east of the junction has no second symbol.\n- Conclusion: the two old records describe **one physical door**; L030g2 was a shifted duplicate whose east end overshot the wall end (11.245 > 11.060) into the c011 corner — that is what broke compilation.\n\n**Measured and applied (by claims, not literals):** jamb ink peaks bound to `profile_002` C01/C02, converted via `map_pixels` with anchors taken from the drawing's own observed wall planes (party-wall centreline 699.5 px↔9.9405 m; corridor wall line 525 px↔16.0646 m; c011 south line 614 px↔13.9982 m; and after the first overlay flagged a 5.8 % cross-axis scale disagreement, a third anchor: c006 east-wall inner face 918 px↔14.8784 m, `profile_010`). Final: **door `2f-door-c000-c006-junction`, 2f-c000 ↔ 2f-c006, host plane y=16.0646, jambs x 9.9518–10.8784 m** (claim_0004, adopted and applied; overlay confirms it projects onto the drawn jamb gap). The obsolete \"unbuilt observations\" unresolved note was replaced twice explicitly, ending with the refined span; both unbuilt records were resolved to the new door via `resolve_unbuilt_observation`. A **partial** opening review (`review_001`, 2f/doors) matches the corrected connection; all other 2f/1f doors remain explicitly unreviewed.\n\n## Assumed\n- Door height z=[3.6, 5.7] (2.1 m leaf) — **declared, not measured**; the plan has no height labels (claim_0002). All other openings' heights remain unlinked to image observations.\n- Door swing state: unknown (open/closed not shown as state).\n\n## Unresolved / unexamined\n- Residual 2.7 % cross-axis scale disagreement (x 44.25 vs y 43.07 px/m) — drawing/calibration residual; east jamb ±~0.05 m. First calibration (10.9614 m) and refined one (10.8784 m) both recorded in audit history.\n- 1f layout of this junction was not examined (recorded in claim_0001).\n- Whole-building drawing fidelity, partition completeness, unobserved openings, room roles, voids, and door/window heights remain not evaluated; this scoped recovery is not whole-building acceptance.",
+    "ttft_ms": 5346,
+    "type": "result",
+    "duration_ms": 1032559,
+    "uuid": "b13be342-5e33-42a2-b6d7-459abb15cf53",
+    "ttft_stream_ms": 4936,
+    "time_to_request_ms": 82,
+    "first_content_frame_ms": 4936,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

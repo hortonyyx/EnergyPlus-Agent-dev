@@ -1,0 +1,6306 @@
+{
+  "assumptions": [
+    "Historical assisted correction imported as an editable proposal; not cold start. Existing representative wall planes and 2.1 m assumed door heights are retained."
+  ],
+  "geometry": {
+    "conflicts": [],
+    "corrections": [
+      {
+        "kind": "wall_gap_continuity_review",
+        "reviews": [
+          {
+            "action": "continuous_space",
+            "axis": "x",
+            "compilation_sha256": "8ac8c670ba9b59691b5f23af7c78022877f747c32722c889b49b6f0a2c5ca329",
+            "face_observation_ids": [
+              "L043",
+              "L044"
+            ],
+            "gap_index": 0,
+            "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+            "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+            "input_id": "1f_view",
+            "opening_classifications": [
+              {
+                "id": "L043g0",
+                "type": "ambiguous"
+              },
+              {
+                "id": "L044g0",
+                "type": "not_opening"
+              }
+            ],
+            "pos_m": 5.8786000000000005,
+            "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+            "review_mode": "developer_assisted",
+            "source_bytes_sha256": "2a5631494479b65d27328f5891e8016df632e0b5783fbae1acc86f4ce9936c57",
+            "span_m": [
+              9.0265,
+              10.9951
+            ],
+            "wall_id": "wall_0d66d97f207575accbac07685e42f628c7580d9c15c947256e84598b664a9c4d"
+          },
+          {
+            "action": "continuous_space",
+            "axis": "x",
+            "compilation_sha256": "8ac8c670ba9b59691b5f23af7c78022877f747c32722c889b49b6f0a2c5ca329",
+            "face_observation_ids": [
+              "L039",
+              "L040"
+            ],
+            "gap_index": 0,
+            "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+            "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+            "input_id": "1f_view",
+            "opening_classifications": [
+              {
+                "id": "L039g0",
+                "type": "ambiguous"
+              },
+              {
+                "id": "L040g0",
+                "type": "not_opening"
+              }
+            ],
+            "pos_m": 9.999500000000001,
+            "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+            "review_mode": "developer_assisted",
+            "source_bytes_sha256": "2a5631494479b65d27328f5891e8016df632e0b5783fbae1acc86f4ce9936c57",
+            "span_m": [
+              8.9183,
+              11.1033
+            ],
+            "wall_id": "wall_defa8acce3d251e56f7119ef5dde7fd361bb3bf4a0452edbb3ce30050c3a2c30"
+          },
+          {
+            "action": "continuous_space",
+            "axis": "x",
+            "compilation_sha256": "f9bceede3325eb2d276a5338270a06038c4ac049a940ff2fb5a043836631fbf1",
+            "face_observation_ids": [
+              "L041",
+              "L042"
+            ],
+            "gap_index": 0,
+            "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+            "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+            "input_id": "2f_view",
+            "opening_classifications": [
+              {
+                "id": "L041g0",
+                "type": "not_opening"
+              },
+              {
+                "id": "L042g0",
+                "type": "passage"
+              }
+            ],
+            "pos_m": 5.88335,
+            "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+            "review_mode": "developer_assisted",
+            "source_bytes_sha256": "bdf9a6fbd0e6ac6694575b748ca3c34f124ac7b4f11551e2ea816340e774d9e2",
+            "span_m": [
+              9.0317,
+              10.994
+            ],
+            "wall_id": "wall_db4a3d1687a12225c6808f211947eff5aa661479dcee45eb754b685b678b383d"
+          }
+        ]
+      },
+      {
+        "input_id": "2f_view",
+        "kind": "wall_gap_opening_reclassification",
+        "observation_ids": [
+          "L042g0"
+        ],
+        "reason": "reviewed_continuous_source_space",
+        "review": {
+          "action": "continuous_space",
+          "axis": "x",
+          "compilation_sha256": "f9bceede3325eb2d276a5338270a06038c4ac049a940ff2fb5a043836631fbf1",
+          "face_observation_ids": [
+            "L041",
+            "L042"
+          ],
+          "gap_index": 0,
+          "image_path": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+          "input_id": "2f_view",
+          "opening_classifications": [
+            {
+              "id": "L041g0",
+              "type": "not_opening"
+            },
+            {
+              "id": "L042g0",
+              "type": "passage"
+            }
+          ],
+          "pos_m": 5.88335,
+          "reason": "原始平面图中该缺口位于纵向连续走廊，左右墙段分别止于走廊侧边；此处没有横穿走廊的隔墙或门扇。两面旧开口分类冲突，按连续源空间修正，不以 GT 坐标或房间数量决定。",
+          "review_mode": "developer_assisted",
+          "source_bytes_sha256": "bdf9a6fbd0e6ac6694575b748ca3c34f124ac7b4f11551e2ea816340e774d9e2",
+          "span_m": [
+            9.0317,
+            10.994
+          ],
+          "wall_id": "wall_db4a3d1687a12225c6808f211947eff5aa661479dcee45eb754b685b678b383d"
+        }
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c004",
+        "original_span": {
+          "hi": 9.647,
+          "lo": 7.819000000000001
+        },
+        "resolution_sha256": "801cf9fcddd11122c3c6eaaf310a8d27a26c2da95eb18850739edc10ccc7119a",
+        "resolved_facade_segment_id": "1f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "resolved_room_id": "1f-c004",
+        "resolved_span": {
+          "hi": 9.647,
+          "lo": 7.819000000000001
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:951a1045d59a7d52d17d3b75b4f92b95cbabe0160d0d32183c0bdc9fb5b5e8bd",
+          "src:f75ce4536ac797b5f458d5bb02c50712a3b46d50e06b4cbc927e64f86e1e7fe1"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-West_view-O04"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c005",
+        "original_span": {
+          "hi": 12.165600000000001,
+          "lo": 10.3376
+        },
+        "resolution_sha256": "dcdd5153fee738970ff9d40bb394d4cd23eee44770b5b1d76ff8528f117633f4",
+        "resolved_facade_segment_id": "1f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "resolved_room_id": "1f-c005",
+        "resolved_span": {
+          "hi": 12.165600000000001,
+          "lo": 10.3376
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:33c048f2db28c628bf2c634b3ebd4fdd594b292b5e65cc7b1f5bf599e9e37257",
+          "src:7e2da3cbf28a5909d063c79c6858d249d4f52c91d7d68135668cc62dd2714c95"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-West_view-O03"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c000",
+        "original_span": {
+          "hi": 23.3136,
+          "lo": 15.2746
+        },
+        "resolution_sha256": "33f9314d002682ce16ca06880f7f71f06a4456ee4ad331edd3057bb722a8e1fd",
+        "resolved_facade_segment_id": "1f:facade:5faac39e2814e3dc9c76942a36364a13ef71705c255c31d08d8031357896a78d",
+        "resolved_room_id": "1f-c000",
+        "resolved_span": {
+          "hi": 23.3136,
+          "lo": 15.2746
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:0d8178a93eba1da5a23ad5d87f75901d702ed6c8111e72b270931b65c48ecce8",
+          "src:f2b6081588c7de27d1e34c95146a9eab302601fde32e842fd5611a68d4b54163"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-North_view-O02"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c006",
+        "original_span": {
+          "hi": 7.6586,
+          "lo": 6.7226
+        },
+        "resolution_sha256": "a90165126295038a7556e166e4a9c3d2d6a84916f7e206500f5f80c410534e2e",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c006",
+        "resolved_span": {
+          "hi": 7.6586,
+          "lo": 6.7226
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:761257a7769fd5d1dfe0ff5bae0ec93f684835d3a97f0decd71c61eda765dfc8",
+          "src:ebdd1a33d9683abbcfcc61e376de798c2fc9327a0f9076769cb7414147d0c3ef"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O02"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c007",
+        "original_span": {
+          "hi": 9.6527,
+          "lo": 8.7302
+        },
+        "resolution_sha256": "e6a2b6efb96c6dc3d5adc76402d27615d79a748e00bd24ec78b7bb1e22ae3ee4",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c007",
+        "resolved_span": {
+          "hi": 9.6527,
+          "lo": 8.7302
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:7130453ab89a49d4fb31214ab9b2be8432fb1821875032b8ab25df7deafab970",
+          "src:f015944da4ed8a3bf7434e2e20b596a09244506f58935c09dacc71053fbc2ded"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O05"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c008",
+        "original_span": {
+          "hi": 11.2805,
+          "lo": 10.3581
+        },
+        "resolution_sha256": "e3b4106c06b76727d3a9033236fcc062fc4f7e37121960ff2b8b5904fd6fa3bf",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c008",
+        "resolved_span": {
+          "hi": 11.2805,
+          "lo": 10.3581
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:92e143207bf6f5eedc438e36e500d6c40ae54ffb0b5656478113588f5d8d4b9c",
+          "src:b7675825497f7e57c6ac1433553bb0ec3c181f855233183979644d3517220355"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O07"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c009",
+        "original_span": {
+          "hi": 13.6681,
+          "lo": 12.732
+        },
+        "resolution_sha256": "da1c20abdfde0ff7103e0e88f4d37771b9274ded464371746842a6888bb43dfe",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c009",
+        "resolved_span": {
+          "hi": 13.6681,
+          "lo": 12.732
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:43515b391160546a4e156395214148fee2cdd917f893be8fb20998799efae944",
+          "src:8e78b420d6de6338cdca33dadd4fa8c18d222905f2e1c705ffc91549a9b10124"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O09"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c010",
+        "original_span": {
+          "hi": 15.2823,
+          "lo": 14.3463
+        },
+        "resolution_sha256": "30e1d53758641a41fdf99dcaafd479d8234d0afc60ad2d2edf305a4f18807a73",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c010",
+        "resolved_span": {
+          "hi": 15.2823,
+          "lo": 14.3463
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:1252e74264d834b531c5fea24bf8debc42f25dbd23663cbf01b5f1a0cc8ff449",
+          "src:558e613d11e368e964a9e8a4263c2ab1da624689f2c9d01df59174f4bdce50cc"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O10"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c011",
+        "original_span": {
+          "hi": 17.6563,
+          "lo": 16.7338
+        },
+        "resolution_sha256": "7ec3257f68d1659cf150604743263b313fed2b6d1a89663d1bdd49578ce4867f",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c011",
+        "resolved_span": {
+          "hi": 17.6563,
+          "lo": 16.7338
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:90d93fd79045359c011b61edb3553afa1216a27573ef132120087ac0ca50541b",
+          "src:9251687cb2c8c8c690ff6051ea9ade68b97ddbfd03bf0d9fed42fc3e09f34d87"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O12"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c012",
+        "original_span": {
+          "hi": 19.2841,
+          "lo": 18.3481
+        },
+        "resolution_sha256": "642de90bffe3fee130a655e428d3f82fb145bcb6b30d2e827e94d9e1d3c958e7",
+        "resolved_facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "1f-c012",
+        "resolved_span": {
+          "hi": 19.2841,
+          "lo": 18.3481
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:b8d522304613594eb39fb47c834267200a680f04cfc91326671a3a7f0c375847",
+          "src:db67f8f0d584b3a8bb6ba06fd302fd021040f9affbb626ac59e003b16b459138"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-East_view-O13"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c001",
+        "original_span": {
+          "hi": 4.6463,
+          "lo": 2.2196999999999996
+        },
+        "resolution_sha256": "07b5ae5a18338d3069e5b250e8e18c0b500ec6602252479a487d698f077ec2fb",
+        "resolved_facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "resolved_room_id": "1f-c001",
+        "resolved_span": {
+          "hi": 4.6463,
+          "lo": 2.2196999999999996
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:4b6f0a01ed8bb2d8927f0fb827ec41f2050f33291a535981dd5a173fb140e2ed",
+          "src:b7232c2337fbc85bedfc4bd7f5f89897399f8e26365e8239cf55545e9539f4a1"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-North_view-O08"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c002",
+        "original_span": {
+          "hi": 7.764299999999999,
+          "lo": 5.337700000000002
+        },
+        "resolution_sha256": "4e1ba01ba38c2d721b35e6aa201a4e35311cc934086bd124d98fd4e86f76e7e5",
+        "resolved_facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "resolved_room_id": "1f-c002",
+        "resolved_span": {
+          "hi": 7.764299999999999,
+          "lo": 5.337700000000002
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:59492332dbb5f96052d44f3c6dab0708b864f7733970a74808696d16570e9eb9",
+          "src:8afaa67f797f469129740f6ac0f90cf2c418299705602e8bfd0d4676ab7a7f04"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-North_view-O06"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c000",
+        "original_span": {
+          "hi": 10.9094,
+          "lo": 10.2858
+        },
+        "resolution_sha256": "28b73e88d67c6c861336c1a0c233037e150afabd624264daaa57a91957885132",
+        "resolved_facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "resolved_room_id": "1f-c000",
+        "resolved_span": {
+          "hi": 10.9094,
+          "lo": 10.2858
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:3874beb5b303ddbf03d762c8ee7b5188d7280938bf448e3a0939badaa1c2a729",
+          "src:d28596f500f6b041b89d03048a170078574f04229914ddf750c6b7b04c8c1106"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-North_view-O04"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c003",
+        "original_span": {
+          "hi": 12.6537,
+          "lo": 8.6292
+        },
+        "resolution_sha256": "45cae17ebdab0e80904ca94072e4b7e692278af06589c37834cb27422a4276ac",
+        "resolved_facade_segment_id": "1f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "1f-c003",
+        "resolved_span": {
+          "hi": 12.6537,
+          "lo": 8.6292
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:756416e5428c1aca058b330b1cecbbb388d8752ef388736399f330d90f0091e1",
+          "src:dbfd4dcd8bdfe6a43554e693c13c158093ebb35b3c680d3ab5198cad6b962ff1"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-South_view-O02"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "1f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "1f-c013",
+        "original_span": {
+          "hi": 17.3827,
+          "lo": 13.3583
+        },
+        "resolution_sha256": "b9fcb4ddeb8fae83b9ebe12c74932054c6ffa07a3e11b58555d9f316cdc09e04",
+        "resolved_facade_segment_id": "1f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "1f-c013",
+        "resolved_span": {
+          "hi": 17.3827,
+          "lo": 13.3583
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:666ef2ec00d963942e4a03365186f2ae8e75f23a89190d9aff5fbb8da5cd1110",
+          "src:9eb415c466758d7813d09d6ec192a44e5148dfb0d641482c20a7d9f73eb0628c"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "1f-win-South_view-O04"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c000",
+        "original_span": {
+          "hi": 5.462899999999999,
+          "lo": 4.244199999999999
+        },
+        "resolution_sha256": "11617d2c820a5f4701b827c4d86e9343a888a7485c2e9e3934a85a952a5e2a90",
+        "resolved_facade_segment_id": "2f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "resolved_room_id": "2f-c000",
+        "resolved_span": {
+          "hi": 5.462899999999999,
+          "lo": 4.244199999999999
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:94d48d378dd9325646f6445b45a8f8016c9c3beeb6ca0cb5bf8936ebc3b17f79",
+          "src:e36df8737239d0018c19b9132637530faf2d17c4e1d497b4dff8fd248bef7081"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-West_view-O05"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c004",
+        "original_span": {
+          "hi": 12.165600000000001,
+          "lo": 7.819000000000001
+        },
+        "resolution_sha256": "2ebbee4fa616031d6c2b19121ecd6b2745ae8d21b38092b8df0cf2874f352f93",
+        "resolved_facade_segment_id": "2f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "resolved_room_id": "2f-c004",
+        "resolved_span": {
+          "hi": 12.165600000000001,
+          "lo": 7.819000000000001
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:d58ef575832dcf292b093ea7b1d1ba23015f7bc1185abd5fc5d8c30e05177cb8",
+          "src:e2e3516308a74ff89b8e98b11a4d14356e8c300cf743e9948d0541393d0df646"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-West_view-O02"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c000",
+        "original_span": {
+          "hi": 23.3136,
+          "lo": 15.2746
+        },
+        "resolution_sha256": "a4a6548bf8e6bde831f194e15a6f9b0ad0d5678c44153a1468607400783b407f",
+        "resolved_facade_segment_id": "2f:facade:5faac39e2814e3dc9c76942a36364a13ef71705c255c31d08d8031357896a78d",
+        "resolved_room_id": "2f-c000",
+        "resolved_span": {
+          "hi": 23.3136,
+          "lo": 15.2746
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:c6ed7c953834d588c76def401415e970c56e7075e3033db5b745359d34a80b04",
+          "src:fdb7cd91adb0f043f3510e5ffd0ddd25f12334d408243461db9d01e5405d2f65"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-North_view-O01"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c007",
+        "original_span": {
+          "hi": 7.6586,
+          "lo": 6.7361
+        },
+        "resolution_sha256": "a2cf4ecb36c3d053e144d705cbb2ae6455f022a572cda8c81ed58664a586f3f7",
+        "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "2f-c007",
+        "resolved_span": {
+          "hi": 7.6586,
+          "lo": 6.7361
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:9b9fedd74bc1d88ce1d51101bb97879e6e0592eb76c8607a9bd9af0864f3cc20",
+          "src:c3eccb883edb71dcabef27329965cd64d038b74c24e84d55c19eca697aa39b00"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-East_view-O03"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c008",
+        "original_span": {
+          "hi": 9.6527,
+          "lo": 8.7302
+        },
+        "resolution_sha256": "007be58991abff58a58979f51f34a348148f6edccd37bc0f4c4cf003256574f6",
+        "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "2f-c008",
+        "resolved_span": {
+          "hi": 9.6527,
+          "lo": 8.7302
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:24fa93bb3daf8d016d9f8988e6668afd4649dc07eadbafc1d17a88c000368997",
+          "src:fa36a3651a8bcea4eb0a64066060e49417b6405f9980f58b1721f248684d51b1"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-East_view-O04"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c009",
+        "original_span": {
+          "hi": 11.2805,
+          "lo": 10.3581
+        },
+        "resolution_sha256": "013344ba75b4fe7a9503b5fe31f196529c6c16ed657a3ce619d8057ce930b841",
+        "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "2f-c009",
+        "resolved_span": {
+          "hi": 11.2805,
+          "lo": 10.3581
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:b87942be09d387693ed1c8ab1b5b42d3d20f101e315c6851391997e996025a3b",
+          "src:c51e6e7d1759626280dcdec54a0e541e639f443d32aaf5c58cf4323bacd8ddc5"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-East_view-O06"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c010",
+        "original_span": {
+          "hi": 13.6545,
+          "lo": 12.732
+        },
+        "resolution_sha256": "da3fd9add447edc564e8af12d5ab7358b49a377207e46c787985fb808d925c6f",
+        "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "2f-c010",
+        "resolved_span": {
+          "hi": 13.6545,
+          "lo": 12.732
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:cf5963712b745bbacc45b991cf6fdf4a3b21447dbdb10af54852c34929ff7878",
+          "src:d711d3e7d1eeea0def8649189254204b381b8a36a713c8b841e3e1497c9b9a7e"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-East_view-O08"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c011",
+        "original_span": {
+          "hi": 15.2823,
+          "lo": 14.3599
+        },
+        "resolution_sha256": "a6b4e9956f1b6644a3514a2534ea2131d63a6e9ac50e227ed6f68335bba2dc90",
+        "resolved_facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "resolved_room_id": "2f-c011",
+        "resolved_span": {
+          "hi": 15.2823,
+          "lo": 14.3599
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:7bd5491335af6f644f5da309e3f20f44e24c3b4bbae6acc0f23c14d38534d83f",
+          "src:cc03d1fd23f65b469cc6347b48a99767a61134088ce6f08d2e8e23c05ea3a299"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-East_view-O11"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c001",
+        "original_span": {
+          "hi": 4.6463,
+          "lo": 2.2196999999999996
+        },
+        "resolution_sha256": "cad5ea7a3454a36688ad3376dfd1fc5e7ca6a0986a2d30f51c08b03310c39b4b",
+        "resolved_facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "resolved_room_id": "2f-c001",
+        "resolved_span": {
+          "hi": 4.6463,
+          "lo": 2.2196999999999996
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:8017e6e1bcc2bb5926efff87d3c47a7d532e88261fdd1cd54a9ee1716017a599",
+          "src:8f4437fc7d142855d984519ce2ac4767459c8aac33834115dbda2cb131ba7f79"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-North_view-O07"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c002",
+        "original_span": {
+          "hi": 7.764299999999999,
+          "lo": 5.337700000000002
+        },
+        "resolution_sha256": "fe18bb0e5751ba751e874f3d4a62ba087438fcc5e0ab7dec07844362c7640629",
+        "resolved_facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "resolved_room_id": "2f-c002",
+        "resolved_span": {
+          "hi": 7.764299999999999,
+          "lo": 5.337700000000002
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:4ba1c1258e7fa7e841046aee87ff3f89b146c48e960e85629e2d09496e4645d2",
+          "src:f1f9a604affe2179a145badb7e2fa6c87af73d9dffbbc9f599e968febf12a40b"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-North_view-O05"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c006",
+        "original_span": {
+          "hi": 10.9094,
+          "lo": 10.2858
+        },
+        "resolution_sha256": "414b5d411dcb729a1d4be6aa9c129180333a2a98f53d532d7c395489b8c28b44",
+        "resolved_facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "resolved_room_id": "2f-c006",
+        "resolved_span": {
+          "hi": 10.9094,
+          "lo": 10.2858
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:190a55baa96fddc62d7d7429ec17fa04ba7c726d605b91ddf9dcf863992681d9",
+          "src:202ea8031b369e1f4d207076c88d1ac75d33fefd65762eb69f603f9d3119125c"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-North_view-O03"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c003",
+        "original_span": {
+          "hi": 8.7512,
+          "lo": 6.9219
+        },
+        "resolution_sha256": "ad1cc6809da38c1c8728bee9c2d09ec1119abd951eefa904095dea34ae876d25",
+        "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "2f-c003",
+        "resolved_span": {
+          "hi": 8.7512,
+          "lo": 6.9219
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:1830604f1a1e374ced1c4aba18e725981872eec413db4e8520d4e03e141c4de5",
+          "src:a74eacb5dfcc8fa2aa847403ce0b92b74df22b6b1b2572de6143473d00c09557"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-South_view-O01"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c005",
+        "original_span": {
+          "hi": 11.2715,
+          "lo": 9.4422
+        },
+        "resolution_sha256": "f3b346f6c7a9cb1da36c1af721be5ae4c821c30f46dd33a1c11a3d9999bf7636",
+        "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "2f-c005",
+        "resolved_span": {
+          "hi": 11.2715,
+          "lo": 9.4422
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:ae3cdec0ac50ec55a84279b2813d728c11c921e184a46d6b5f8b82c2296e0962",
+          "src:c531157ea4d08dbc7d952171995988392c09740a947c621d1ae1eea7d2feac4b"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-South_view-O03"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c012",
+        "original_span": {
+          "hi": 16.5697,
+          "lo": 14.7404
+        },
+        "resolution_sha256": "7737b263045b26510464201c1f66e7254453e11219bcc6daa9da93b65519f233",
+        "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "2f-c012",
+        "resolved_span": {
+          "hi": 16.5697,
+          "lo": 14.7404
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:a91bbfbe1f9dff1cf8d580b3f47d75775edefef00fabd71cc61c65d69f5f1f6b",
+          "src:d81c9eff69eb1bae5cc96a5a3b8e7899b2bff616a2563c276653bae9d9681439"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-South_view-O05"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c013",
+        "original_span": {
+          "hi": 19.09,
+          "lo": 17.2607
+        },
+        "resolution_sha256": "b1271d02ae19016d9c472f4cf672209b00deaf8e490e2a0f36e6d3df8d9fd392",
+        "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "2f-c013",
+        "resolved_span": {
+          "hi": 19.09,
+          "lo": 17.2607
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:ed32d5ea3c8b4dfd4e82b9c30c372c008f4fdbb33487c5e73a1ab31e58b9518a",
+          "src:fdc4341892492f9109e9fb4d6527184ce52b2d589e7d13d5652b3fcb6c22d093"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-South_view-O06"
+      },
+      {
+        "branch": "plan",
+        "changes_topology": true,
+        "claim_type": "topology_identity",
+        "floor_id": "2f",
+        "kind": "window_host_resolution",
+        "original_facade_segment_id": null,
+        "original_room_id": "2f-c014",
+        "original_span": {
+          "hi": 23.1144,
+          "lo": 21.2987
+        },
+        "resolution_sha256": "8657033b3a7081c0eb88d7a5cf6c73eede18a8e8e069664f575e05af13d8705b",
+        "resolved_facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "resolved_room_id": "2f-c014",
+        "resolved_span": {
+          "hi": 23.1144,
+          "lo": 21.2987
+        },
+        "rule_id": "deterministic_core.window_host_resolver_v1",
+        "source_ids": [
+          "src:70ebe274421cd116222516022a3ba5c14b8f22e07d6538dfd7e8e75217628e64",
+          "src:d2e4539c529cc58eeeeebfe105448010e35e2daa728be22a0a5626e64012fc1e"
+        ],
+        "stage": "core",
+        "tolerance_names": [
+          "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+          "WINDOW_HOST_SPAN_EPSILON",
+          "WINDOW_HOST_PLANE_EPSILON"
+        ],
+        "window_id": "2f-win-South_view-O07"
+      },
+      {
+        "after": {
+          "assumptions": [
+            "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+          ],
+          "id": "2f-door-c000-c006-junction",
+          "kind": "door",
+          "other_space_id": "2f-c006",
+          "p1": [
+            9.9528,
+            16.0646
+          ],
+          "p2": [
+            10.9614,
+            16.0646
+          ],
+          "source_refs": [
+            "claim_0001",
+            "claim:claim_0001:9df44df4d0442007f6590319f6621a5de24ae43b642526b05a6c024f61ee713e",
+            "claim:claim_0002:e5e4164e4743d9c22807a36ed40cdf6301ec6544544ef862563e1a9581deb7d9"
+          ],
+          "space_id": "2f-c000",
+          "state": "unknown",
+          "z": [
+            3.6,
+            5.7
+          ]
+        },
+        "before": null,
+        "id": "2f-door-c000-c006-junction",
+        "operation": "add_opening",
+        "reason": "Original 2f_view shows exactly one door symbol at this junction: opening gap in the corridor north wall ink between the c002/c006 party wall line (x699) and resumed ink (x741), cyan leaf hinged west with a single quarter-circle arc swinging north into c006. Connects corridor 2f-c000 with room 2f-c006.",
+        "source_refs": [
+          "claim_0001",
+          "claim:claim_0001:9df44df4d0442007f6590319f6621a5de24ae43b642526b05a6c024f61ee713e",
+          "claim:claim_0002:e5e4164e4743d9c22807a36ed40cdf6301ec6544544ef862563e1a9581deb7d9"
+        ]
+      },
+      {
+        "before": {
+          "anchor_observation_id": "L029g3",
+          "candidate_space_ids": [
+            "2f-c000",
+            "2f-c002",
+            "2f-c006"
+          ],
+          "compiled_half_thickness_m": 0.06,
+          "floor_id": "2f",
+          "input_id": "2f_view",
+          "kind": "as_drawn_opening_unbuilt",
+          "observation_ids": [
+            "L029g3"
+          ],
+          "reason": "opening_crosses_room_boundaries",
+          "span_m": [
+            9.9038,
+            10.9286
+          ],
+          "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3"
+        },
+        "drawing_fidelity": "not_evaluated",
+        "opening_ids": [
+          "2f-door-c000-c006-junction"
+        ],
+        "operation": "resolve_unbuilt_observation",
+        "reason": "This record's along-wall span [9.9038,10.9286] (abs x 10.02-11.05) matches the measured drawn jambs (abs x 9.953-10.961) within ~0.08 m. Drawing shows one leaf+arc symbol at this junction.",
+        "source_refs": [
+          "claim_0001"
+        ]
+      },
+      {
+        "before": {
+          "anchor_observation_id": "L030g2",
+          "candidate_space_ids": [
+            "2f-c000",
+            "2f-c006",
+            "2f-c011"
+          ],
+          "compiled_half_thickness_m": 0.06,
+          "floor_id": "2f",
+          "input_id": "2f_view",
+          "kind": "as_drawn_opening_unbuilt",
+          "observation_ids": [
+            "L030g2"
+          ],
+          "reason": "opening_crosses_room_boundaries",
+          "span_m": [
+            10.1219,
+            11.1248
+          ],
+          "wall_id": "wall_bc264d4793d621fdbf8a5cd5c7c02f78c7f30bdfc1b5dc6ad855ca258a920cc3"
+        },
+        "drawing_fidelity": "not_evaluated",
+        "opening_ids": [
+          "2f-door-c000-c006-junction"
+        ],
+        "operation": "resolve_unbuilt_observation",
+        "reason": "Same physical door as L029g3: spans overlap ([10.1219,11.1248] vs [9.9038,10.9286]); this is a shifted duplicate observation whose east end (abs 11.245) overshot the wall segment end (11.0598) into the c011 corner, causing opening_crosses_room_boundaries. Only one leaf+arc symbol exists in the drawing.",
+        "source_refs": [
+          "claim_0001"
+        ]
+      },
+      {
+        "after": [
+          "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, x 9.9528-10.9614, height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified."
+        ],
+        "before": "Two historical positive opening observations near the second-floor northern corridor junction remain unbuilt; their number does not establish the number of physical doors. See geometry.unsupported for exact records.",
+        "field": "unresolved",
+        "operation": "replace_note",
+        "reason": "Original-image review of 2f_view resolved the two overlapping unbuilt observations to a single drawn door, now built as 2f-door-c000-c006-junction on the corridor north wall (host plane y=16.0646, jamb span x 9.9528-10.9614) connecting corridor 2f-c000 with room 2f-c006.",
+        "source_refs": [
+          "claim_0001"
+        ]
+      },
+      {
+        "application_id": "application_0003",
+        "bindings": [
+          {
+            "claim_id": "claim_0001",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "p1",
+            "resolved_value": [
+              9.9528,
+              16.0646
+            ],
+            "targets": [
+              [
+                "space",
+                "2f-c000"
+              ],
+              [
+                "space",
+                "2f-c006"
+              ]
+            ],
+            "value_field": "p1"
+          },
+          {
+            "claim_id": "claim_0001",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "p2",
+            "resolved_value": [
+              10.9614,
+              16.0646
+            ],
+            "targets": [
+              [
+                "space",
+                "2f-c000"
+              ],
+              [
+                "space",
+                "2f-c006"
+              ]
+            ],
+            "value_field": "p2"
+          },
+          {
+            "claim_id": "claim_0002",
+            "computation": {
+              "basis": "declared",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              3.6,
+              5.7
+            ],
+            "targets": [
+              [
+                "space",
+                "2f-c000"
+              ],
+              [
+                "space",
+                "2f-c006"
+              ]
+            ],
+            "value_field": "z"
+          }
+        ],
+        "claims": {
+          "claim_0001": {
+            "decision": {
+              "claim_id": "claim_0001",
+              "disposition": "adopted",
+              "id": "decision_0001",
+              "reason": "Junction fully inspected in the original drawing: one door symbol (single leaf + arc), party wall continuous, jamb ink peaks measured with pixel profiles and converted with anchors from adjacent observed wall planes of the same drawing."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "seed",
+                "objects": [
+                  {
+                    "id": "2f-c000",
+                    "kind": "space"
+                  },
+                  {
+                    "id": "2f-c006",
+                    "kind": "space"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "One drawn door symbol at the 2f corridor north wall / c006 south wall junction (2f_view.png): cyan door leaf at x~704-707px hinged at the west jamb with a single quarter-circle arc swinging north into c006; opening gap in the wall ink runs from the c002/c006 party wall line (x~699.5px, profile_002 C01, continuous y352-504, so no c002-c006 door) to the resumed wall ink at x=741px (profile_002 C02). Jamb pixels converted with map_pixels anchors taken from adjacent observed wall planes of the same drawing: x 699.5px=9.9405 m (party wall plane, profile_003) and x 745px=11.0598 m (c011 west wall line, profile_006); y 525px=16.0646 m (corridor north wall host plane, profile_007) and y 614px=13.9982 m (c011 south wall line, profile_005). Result: jamb x 9.9528 m and 10.9614 m on host plane y=16.0646; both jambs lie inside the c000/c006 shared segment (9.9405-11.0598 m).",
+                "sources": [
+                  {
+                    "box": [
+                      660.0,
+                      430.0,
+                      810.0,
+                      570.0
+                    ],
+                    "image": "2f_view.png"
+                  },
+                  {
+                    "box": [
+                      670.0,
+                      517.0,
+                      780.0,
+                      527.0
+                    ],
+                    "image": "2f_view.png"
+                  },
+                  {
+                    "box": [
+                      740.0,
+                      440.0,
+                      940.0,
+                      545.0
+                    ],
+                    "image": "2f_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "Jamb pixel readings carry about +-2 px (~0.05 m) uncertainty; the west jamb coincides with the drawn party wall line, i.e. the door begins at the c002/c006 party wall as drawn.",
+                  "No 1f door position is implied; 1f layout of this junction was not examined."
+                ],
+                "value_targets": {
+                  "jamb_span": [],
+                  "p1": [
+                    {
+                      "id": "2f-c000",
+                      "kind": "space"
+                    },
+                    {
+                      "id": "2f-c006",
+                      "kind": "space"
+                    }
+                  ],
+                  "p2": [
+                    {
+                      "id": "2f-c000",
+                      "kind": "space"
+                    },
+                    {
+                      "id": "2f-c006",
+                      "kind": "space"
+                    }
+                  ]
+                },
+                "values": {
+                  "jamb_span": {
+                    "anchors": [
+                      [
+                        699.5,
+                        9.9405
+                      ],
+                      [
+                        745,
+                        11.0598
+                      ]
+                    ],
+                    "axis": "x",
+                    "image": "2f_view.png",
+                    "pixels": [
+                      {
+                        "candidate": "C01",
+                        "profile": "profile_002"
+                      },
+                      {
+                        "candidate": "C02",
+                        "profile": "profile_002"
+                      }
+                    ],
+                    "reduction": null,
+                    "type": "image_axis"
+                  },
+                  "p1": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      9.9528,
+                      16.0646
+                    ]
+                  },
+                  "p2": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      10.9614,
+                      16.0646
+                    ]
+                  }
+                }
+              },
+              "computations": {
+                "jamb_span": {
+                  "axis": "x",
+                  "calibration": "caller_interpreted_not_verified",
+                  "measurement_bindings": [
+                    {
+                      "axis": "x",
+                      "candidate": {
+                        "id": "C01",
+                        "peak": 699,
+                        "pixels": [
+                          699,
+                          699
+                        ],
+                        "selected_at": "peak"
+                      },
+                      "image": "2f_view.png",
+                      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                      "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+                      "reference": {
+                        "candidate": "C01",
+                        "profile": "profile_002"
+                      },
+                      "resolved_pixel": 699,
+                      "slot": "pixels[2]"
+                    },
+                    {
+                      "axis": "x",
+                      "candidate": {
+                        "id": "C02",
+                        "peak": 741,
+                        "pixels": [
+                          741,
+                          741
+                        ],
+                        "selected_at": "peak"
+                      },
+                      "image": "2f_view.png",
+                      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                      "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+                      "reference": {
+                        "candidate": "C02",
+                        "profile": "profile_002"
+                      },
+                      "resolved_pixel": 741,
+                      "slot": "pixels[3]"
+                    }
+                  ],
+                  "method": "image_axis",
+                  "metre_anchors": [
+                    9.9405,
+                    11.0598
+                  ],
+                  "metres_per_pixel": 0.02459999999999998,
+                  "pixels": [
+                    699.5,
+                    745,
+                    699,
+                    741
+                  ]
+                },
+                "p1": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                },
+                "p2": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                }
+              },
+              "id": "claim_0001",
+              "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9",
+              "resolved_values": {
+                "jamb_span": [
+                  9.9282,
+                  10.9614
+                ],
+                "p1": [
+                  9.9528,
+                  16.0646
+                ],
+                "p2": [
+                  10.9614,
+                  16.0646
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    660.0,
+                    430.0,
+                    810.0,
+                    570.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                },
+                {
+                  "box": [
+                    670.0,
+                    517.0,
+                    780.0,
+                    527.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                },
+                {
+                  "box": [
+                    740.0,
+                    440.0,
+                    940.0,
+                    545.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          },
+          "claim_0002": {
+            "decision": {
+              "claim_id": "claim_0002",
+              "disposition": "adopted",
+              "id": "decision_0002",
+              "reason": "Explicit inherited assumption restated separately from the plan measurement; the drawing carries no height information, so the assumed 2.1 m leaf is retained knowingly."
+            },
+            "record": {
+              "claim": {
+                "basis": "declared",
+                "candidate": "seed",
+                "objects": [
+                  {
+                    "id": "2f-c000",
+                    "kind": "space"
+                  },
+                  {
+                    "id": "2f-c006",
+                    "kind": "space"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "The plan drawing shows no height dimension for any door. Height is an inherited assumption of the imported proposal, restated here separately from the plan-endpoint measurement: 2.1 m door leaf above the second-floor slab at z=3.6, giving absolute z=[3.6,5.7]. The referenced plan image contains no height label; it is cited only as the examined drawing that lacks height evidence.",
+                "sources": [
+                  {
+                    "box": [
+                      660.0,
+                      430.0,
+                      810.0,
+                      570.0
+                    ],
+                    "image": "2f_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "Door height is assumed, not measured; all other door/window heights in the building remain unlinked to image observations."
+                ],
+                "value_targets": {
+                  "z": [
+                    {
+                      "id": "2f-c000",
+                      "kind": "space"
+                    },
+                    {
+                      "id": "2f-c006",
+                      "kind": "space"
+                    }
+                  ]
+                },
+                "values": {
+                  "z": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      3.6,
+                      5.7
+                    ]
+                  }
+                }
+              },
+              "computations": {
+                "z": {
+                  "basis": "declared",
+                  "method": "explicit_metric_value"
+                }
+              },
+              "id": "claim_0002",
+              "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9",
+              "resolved_values": {
+                "z": [
+                  3.6,
+                  5.7
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    660.0,
+                    430.0,
+                    810.0,
+                    570.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "operation": "claim_application",
+        "parent_candidate": "seed",
+        "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9"
+      },
+      {
+        "after": {
+          "assumptions": [
+            "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+          ],
+          "id": "2f-door-c000-c006-junction",
+          "kind": "door",
+          "other_space_id": "2f-c006",
+          "p1": [
+            9.9518,
+            16.0646
+          ],
+          "p2": [
+            10.8784,
+            16.0646
+          ],
+          "source_refs": [
+            "claim_0004",
+            "claim:claim_0004:9ad1a552323c1a60d8f14ee72f45d009d4bba2b37d6ff479d308695834c900c2"
+          ],
+          "space_id": "2f-c000",
+          "state": "unknown",
+          "z": [
+            3.6,
+            5.7
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+          ],
+          "id": "2f-door-c000-c006-junction",
+          "kind": "door",
+          "other_space_id": "2f-c006",
+          "p1": [
+            9.9528,
+            16.0646
+          ],
+          "p2": [
+            10.9614,
+            16.0646
+          ],
+          "source_refs": [
+            "claim_0001",
+            "claim:claim_0001:9df44df4d0442007f6590319f6621a5de24ae43b642526b05a6c024f61ee713e",
+            "claim:claim_0002:e5e4164e4743d9c22807a36ed40cdf6301ec6544544ef862563e1a9581deb7d9"
+          ],
+          "space_id": "2f-c000",
+          "state": "unknown",
+          "z": [
+            3.6,
+            5.7
+          ]
+        },
+        "id": "2f-door-c000-c006-junction",
+        "operation": "update_opening",
+        "reason": "Refined jamb positions with a third x anchor (c006 east exterior wall inner face, x=918px, profile_010) after the first overlay flagged a 5.8% cross-axis scale disagreement. Drawn span ~0.93 m; east jamb moves from 10.9614 to 10.8784 m, west jamb essentially unchanged. Same drawn door symbol and host; no connectivity change.",
+        "source_refs": [
+          "claim_0004",
+          "claim:claim_0004:9ad1a552323c1a60d8f14ee72f45d009d4bba2b37d6ff479d308695834c900c2"
+        ]
+      },
+      {
+        "after": [
+          "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, measured jamb span x 9.9518-10.8784, about +-0.05 m; height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified."
+        ],
+        "before": "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, x 9.9528-10.9614, height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified.",
+        "field": "unresolved",
+        "operation": "replace_note",
+        "reason": "Three-anchor recalibration of the same drawn jamb ink refined the east jamb from 10.9614 m to 10.8784 m (drawn span about 0.93 m); the resolution of the two historical records to one physical door is unchanged.",
+        "source_refs": [
+          "claim_0004"
+        ]
+      },
+      {
+        "application_id": "application_0005",
+        "bindings": [
+          {
+            "claim_id": "claim_0004",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "p1",
+            "resolved_value": [
+              9.9518,
+              16.0646
+            ],
+            "targets": [
+              [
+                "opening",
+                "2f-door-c000-c006-junction"
+              ]
+            ],
+            "value_field": "p1"
+          },
+          {
+            "claim_id": "claim_0004",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "p2",
+            "resolved_value": [
+              10.8784,
+              16.0646
+            ],
+            "targets": [
+              [
+                "opening",
+                "2f-door-c000-c006-junction"
+              ]
+            ],
+            "value_field": "p2"
+          }
+        ],
+        "claims": {
+          "claim_0004": {
+            "decision": {
+              "claim_id": "claim_0004",
+              "disposition": "adopted",
+              "id": "decision_0004",
+              "reason": "Three-anchor calibration (party-wall centreline and c006 east exterior-wall inner face, both visible in the same drawing) reduces the cross-axis scale disagreement to 2.7%; jamb pixels remain profile-bound."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "2f-door-c000-c006-junction",
+                    "kind": "opening"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "Refined x calibration for the drawn door jambs of 2f-door-c000-c006-junction after the first overlay flagged a 5.8% cross-axis scale disagreement. Third x anchor added: c006/c011 east exterior wall inner-face line at x=918px (profile_010 C01, continuous y380-469; world plane 14.8784 m), type-consistent with the party-wall centreline anchor 699.5px=9.9405 m (profile_003). New x scale 44.25 px/m, consistent with the y scale 43.07 px/m within 2.7%. Jamb ink peaks unchanged: profile_002 C01 (x=699, wall resumes east of it) and C02 (x=741, wall ink resumes). map_pixels with anchors [[699.5,9.9405],[918,14.8784]] and [[525,16.0646],[614,13.9982]] gives west jamb 9.9518 m, east jamb 10.8784 m on host plane y=16.0646; drawn span ~0.93 m.",
+                "sources": [
+                  {
+                    "box": [
+                      670.0,
+                      517.0,
+                      780.0,
+                      527.0
+                    ],
+                    "image": "2f_view.png"
+                  },
+                  {
+                    "box": [
+                      905.0,
+                      380.0,
+                      935.0,
+                      470.0
+                    ],
+                    "image": "2f_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "Remaining 2.7% cross-axis scale disagreement (x 44.25 vs y 43.07 px/m) is drawing/calibration residual; east jamb value carries about +-0.05 m uncertainty.",
+                  "The first, coarser calibration gave east jamb 10.9614 m; both readings bracket the drawn east jamb; the three-anchor value is preferred."
+                ],
+                "value_targets": {
+                  "jamb_span_check": [],
+                  "p1": [
+                    {
+                      "id": "2f-door-c000-c006-junction",
+                      "kind": "opening"
+                    }
+                  ],
+                  "p2": [
+                    {
+                      "id": "2f-door-c000-c006-junction",
+                      "kind": "opening"
+                    }
+                  ]
+                },
+                "values": {
+                  "jamb_span_check": {
+                    "anchors": [
+                      [
+                        699.5,
+                        9.9405
+                      ],
+                      [
+                        918,
+                        14.8784
+                      ]
+                    ],
+                    "axis": "x",
+                    "image": "2f_view.png",
+                    "pixels": [
+                      {
+                        "candidate": "C01",
+                        "profile": "profile_002"
+                      },
+                      {
+                        "candidate": "C02",
+                        "profile": "profile_002"
+                      }
+                    ],
+                    "reduction": null,
+                    "type": "image_axis"
+                  },
+                  "p1": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      9.9518,
+                      16.0646
+                    ]
+                  },
+                  "p2": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      10.8784,
+                      16.0646
+                    ]
+                  }
+                }
+              },
+              "computations": {
+                "jamb_span_check": {
+                  "axis": "x",
+                  "calibration": "caller_interpreted_not_verified",
+                  "measurement_bindings": [
+                    {
+                      "axis": "x",
+                      "candidate": {
+                        "id": "C01",
+                        "peak": 699,
+                        "pixels": [
+                          699,
+                          699
+                        ],
+                        "selected_at": "peak"
+                      },
+                      "image": "2f_view.png",
+                      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                      "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+                      "reference": {
+                        "candidate": "C01",
+                        "profile": "profile_002"
+                      },
+                      "resolved_pixel": 699,
+                      "slot": "pixels[2]"
+                    },
+                    {
+                      "axis": "x",
+                      "candidate": {
+                        "id": "C02",
+                        "peak": 741,
+                        "pixels": [
+                          741,
+                          741
+                        ],
+                        "selected_at": "peak"
+                      },
+                      "image": "2f_view.png",
+                      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                      "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+                      "reference": {
+                        "candidate": "C02",
+                        "profile": "profile_002"
+                      },
+                      "resolved_pixel": 741,
+                      "slot": "pixels[3]"
+                    }
+                  ],
+                  "method": "image_axis",
+                  "metre_anchors": [
+                    9.9405,
+                    14.8784
+                  ],
+                  "metres_per_pixel": 0.022599084668192215,
+                  "pixels": [
+                    699.5,
+                    918,
+                    699,
+                    741
+                  ]
+                },
+                "p1": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                },
+                "p2": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                }
+              },
+              "id": "claim_0004",
+              "parent_proposal_sha256": "29fc16d19394bfdc1f1ead0331795f42a52f70292a10949f3af7996b054d9d7a",
+              "resolved_values": {
+                "jamb_span_check": [
+                  9.929200458,
+                  10.878362014
+                ],
+                "p1": [
+                  9.9518,
+                  16.0646
+                ],
+                "p2": [
+                  10.8784,
+                  16.0646
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    670.0,
+                    517.0,
+                    780.0,
+                    527.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                },
+                {
+                  "box": [
+                    905.0,
+                    380.0,
+                    935.0,
+                    470.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "operation": "claim_application",
+        "parent_candidate": "candidate_01",
+        "parent_proposal_sha256": "29fc16d19394bfdc1f1ead0331795f42a52f70292a10949f3af7996b054d9d7a"
+      },
+      {
+        "after": {
+          "assumptions": [
+            "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+          ],
+          "id": "2f-door-c000-c006-junction",
+          "kind": "door",
+          "other_space_id": "2f-c006",
+          "p1": [
+            10.1157,
+            16.0646
+          ],
+          "p2": [
+            10.9173,
+            16.0646
+          ],
+          "source_refs": [
+            "claim:claim_0001:ff25911dbe7cd1d427b8133e2d62a0c1cd3490a01171d9cdd53bd10573dad3a7"
+          ],
+          "space_id": "2f-c000",
+          "state": "unknown",
+          "z": [
+            3.6,
+            5.7
+          ]
+        },
+        "before": {
+          "assumptions": [
+            "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+          ],
+          "id": "2f-door-c000-c006-junction",
+          "kind": "door",
+          "other_space_id": "2f-c006",
+          "p1": [
+            9.9518,
+            16.0646
+          ],
+          "p2": [
+            10.8784,
+            16.0646
+          ],
+          "source_refs": [
+            "claim_0004",
+            "claim:claim_0004:9ad1a552323c1a60d8f14ee72f45d009d4bba2b37d6ff479d308695834c900c2"
+          ],
+          "space_id": "2f-c000",
+          "state": "unknown",
+          "z": [
+            3.6,
+            5.7
+          ]
+        },
+        "id": "2f-door-c000-c006-junction",
+        "operation": "update_opening",
+        "reason": "Apply jamb endpoints re-measured on the original 2f plan with an independent labeled-dimension calibration; identity, kind, both hosts (2f-c000 <-> 2f-c006) and assumed z unchanged.",
+        "source_refs": [
+          "claim:claim_0001:ff25911dbe7cd1d427b8133e2d62a0c1cd3490a01171d9cdd53bd10573dad3a7"
+        ]
+      },
+      {
+        "after": [
+          "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646 retained). Jamb span re-measured on the original 2f plan with an independent labeled-dimension calibration (claim_0001): x 10.116-10.917 m (+-0.033 m per endpoint), clear width about 0.80 m, measured on the door leaf/arc ink, not on the longer wall-face ink gap (which runs from the c002/c006 party wall at px ~694 to the south-face resume at px ~750). Host plane checked against the labeled-chain y calibration (wall band px 518-524 -> y 16.05-16.07 m) and retained; no wall moved. Height still assumed 2.1 m; swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified."
+        ],
+        "before": "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, measured jamb span x 9.9518-10.8784, about +-0.05 m; height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified.",
+        "field": "unresolved",
+        "operation": "replace_note",
+        "reason": "The previous jamb span came from a calibration against saved candidate wall coordinates (44.25/43.07 px/m), which is not independent. The true plan scale from labeled extension lines is ~45.8 px/m; the actual hinge jamb sits ~0.16 m east of the party-wall line previously used as the west jamb.",
+        "source_refs": [
+          "claim_0001"
+        ]
+      },
+      {
+        "application_id": "application_0002",
+        "bindings": [
+          {
+            "claim_id": "claim_0001",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "p1",
+            "resolved_value": [
+              10.1157,
+              16.0646
+            ],
+            "targets": [
+              [
+                "opening",
+                "2f-door-c000-c006-junction"
+              ]
+            ],
+            "value_field": "door_p1"
+          },
+          {
+            "claim_id": "claim_0001",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "p2",
+            "resolved_value": [
+              10.9173,
+              16.0646
+            ],
+            "targets": [
+              [
+                "opening",
+                "2f-door-c000-c006-junction"
+              ]
+            ],
+            "value_field": "door_p2"
+          }
+        ],
+        "claims": {
+          "claim_0001": {
+            "decision": {
+              "claim_id": "claim_0001",
+              "disposition": "adopted",
+              "id": "decision_0001",
+              "reason": "Jamb endpoints come from the original 2f plan with an independent labeled-dimension calibration (top 25000 chain and left 20000 chain extension lines), measured on the door leaf/arc ink rather than the wall-face ink gap; consistent with map_pixels conversion and a plausible 0.80 m clear width."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "seed",
+                "objects": [
+                  {
+                    "id": "2f-door-c000-c006-junction",
+                    "kind": "opening"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "Original 2f plan jamb re-measurement with an independent labeled-dimension calibration, replacing the previous calibration that reused saved candidate wall coordinates. X scale: the row-2 top dimension chain extension lines (labeled 5000|4940|1120|3940|10000, total 25000) were located by green-ink profile profile_001: px 241=0.000, 470=5.000, 697=9.940, 748=11.060, 929=15.000, 1387=25.000 m (whole-chain 45.84 px/m; local 1120 segment 697->748 px = 45.54 px/m used for the conversion). Y scale: left chain extension lines (profile_002): px 341 = building top edge 20.000 m and px 522 = the 3940 chain line 16.060 m (= 20000-3940), 45.85 px/m; the host wall band spans px 518-524, centerline consistent with the retained host plane y=16.0646. Door evidence: cyan door-leaf/arc ink (profile_004/008 and 8x crop): west jamb = hinge side of the drawn leaf at px x=705 (+-1.5 px); east jamb = where the swing arc returns to the wall next to the wall-return stub at px x=741.5 (+-1.5 px). This clear opening is deliberately distinguished from the longer wall-face ink gap: the north wall-face ink run ends at the c002/c006 party wall (px 693-699) west of the hinge, and the south-face run resumes at px ~750 east of the arc return. Values p1/p2 keep the existing host plane y=16.0646; only x is updated.",
+                "sources": [
+                  {
+                    "box": [
+                      685.0,
+                      480.0,
+                      775.0,
+                      535.0
+                    ],
+                    "image": "2f_view.png"
+                  },
+                  {
+                    "box": [
+                      150.0,
+                      60.0,
+                      1420.0,
+                      330.0
+                    ],
+                    "image": "2f_view.png"
+                  },
+                  {
+                    "box": [
+                      90.0,
+                      320.0,
+                      280.0,
+                      1260.0
+                    ],
+                    "image": "2f_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "Jamb pixel readings carry about +-1.5 px (~0.033 m) uncertainty per endpoint; the door leaf ink band is 704-706 px and the arc return 740-742 px.",
+                  "Local conversion uses the labeled 1120 mm chain segment (45.54 px/m); the whole 25000 mm chain gives 45.84 px/m, which moves the endpoints by <=5 mm and is included in the stated uncertainty.",
+                  "Door height remains assumed 2.1 m above the 2f floor (no height dimension on the plan); swing state unknown.",
+                  "Wall-face ink-run gap (party wall px ~694 to south-face resume px ~750) is NOT the door span; it was explicitly not used as the jamb span."
+                ],
+                "value_targets": {
+                  "door_p1": [
+                    {
+                      "id": "2f-door-c000-c006-junction",
+                      "kind": "opening"
+                    }
+                  ],
+                  "door_p2": [
+                    {
+                      "id": "2f-door-c000-c006-junction",
+                      "kind": "opening"
+                    }
+                  ],
+                  "jamb_interval_x": []
+                },
+                "values": {
+                  "door_p1": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      10.1157,
+                      16.0646
+                    ]
+                  },
+                  "door_p2": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      10.9173,
+                      16.0646
+                    ]
+                  },
+                  "jamb_interval_x": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      10.1157,
+                      10.9173
+                    ]
+                  }
+                }
+              },
+              "computations": {
+                "door_p1": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                },
+                "door_p2": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                },
+                "jamb_interval_x": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                }
+              },
+              "id": "claim_0001",
+              "parent_proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6",
+              "resolved_values": {
+                "door_p1": [
+                  10.1157,
+                  16.0646
+                ],
+                "door_p2": [
+                  10.9173,
+                  16.0646
+                ],
+                "jamb_interval_x": [
+                  10.1157,
+                  10.9173
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    685.0,
+                    480.0,
+                    775.0,
+                    535.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                },
+                {
+                  "box": [
+                    150.0,
+                    60.0,
+                    1420.0,
+                    330.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                },
+                {
+                  "box": [
+                    90.0,
+                    320.0,
+                    280.0,
+                    1260.0
+                  ],
+                  "image": "2f_view.png",
+                  "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                  "size": [
+                    1661,
+                    1561
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "operation": "claim_application",
+        "parent_candidate": "seed",
+        "parent_proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6"
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "id": "1f-c000",
+            "polygon": [
+              [
+                8.9345,
+                14.1226
+              ],
+              [
+                8.9345,
+                5.8786000000000005
+              ],
+              [
+                5.12155,
+                5.8786000000000005
+              ],
+              [
+                5.12155,
+                3.9365
+              ],
+              [
+                20.9413,
+                3.9365
+              ],
+              [
+                20.9413,
+                0.12
+              ],
+              [
+                24.88,
+                0.12
+              ],
+              [
+                24.88,
+                5.8786000000000005
+              ],
+              [
+                11.0598,
+                5.8786000000000005
+              ],
+              [
+                11.0598,
+                19.88
+              ],
+              [
+                9.9405,
+                19.88
+              ],
+              [
+                9.9405,
+                16.0646
+              ],
+              [
+                0.12,
+                16.0646
+              ],
+              [
+                0.12,
+                14.1226
+              ]
+            ],
+            "role": "office",
+            "x": [
+              0.12,
+              24.88
+            ],
+            "y": [
+              0.12,
+              19.88
+            ]
+          },
+          {
+            "id": "1f-c001",
+            "polygon": [
+              [
+                4.9971,
+                16.0646
+              ],
+              [
+                4.9971,
+                19.88
+              ],
+              [
+                0.12,
+                19.88
+              ],
+              [
+                0.12,
+                16.0646
+              ]
+            ],
+            "role": "office",
+            "x": [
+              0.12,
+              4.9971
+            ],
+            "y": [
+              16.0646,
+              19.88
+            ]
+          },
+          {
+            "id": "1f-c002",
+            "polygon": [
+              [
+                4.9971,
+                19.88
+              ],
+              [
+                4.9971,
+                16.0646
+              ],
+              [
+                9.9405,
+                16.0646
+              ],
+              [
+                9.9405,
+                19.88
+              ]
+            ],
+            "role": "office",
+            "x": [
+              4.9971,
+              9.9405
+            ],
+            "y": [
+              16.0646,
+              19.88
+            ]
+          },
+          {
+            "id": "1f-c003",
+            "polygon": [
+              [
+                5.12155,
+                0.12
+              ],
+              [
+                13.0017,
+                0.12
+              ],
+              [
+                13.0017,
+                3.9365
+              ],
+              [
+                5.12155,
+                3.9365
+              ]
+            ],
+            "role": "office",
+            "x": [
+              5.12155,
+              13.0017
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          },
+          {
+            "id": "1f-c004",
+            "polygon": [
+              [
+                8.9345,
+                9.999500000000001
+              ],
+              [
+                5.12155,
+                9.999500000000001
+              ],
+              [
+                5.12155,
+                5.8786000000000005
+              ],
+              [
+                8.9345,
+                5.8786000000000005
+              ]
+            ],
+            "role": "office",
+            "x": [
+              5.12155,
+              8.9345
+            ],
+            "y": [
+              5.8786000000000005,
+              9.999500000000001
+            ]
+          },
+          {
+            "id": "1f-c005",
+            "polygon": [
+              [
+                5.12155,
+                9.999500000000001
+              ],
+              [
+                8.9345,
+                9.999500000000001
+              ],
+              [
+                8.9345,
+                14.1226
+              ],
+              [
+                5.12155,
+                14.1226
+              ]
+            ],
+            "role": "office",
+            "x": [
+              5.12155,
+              8.9345
+            ],
+            "y": [
+              9.999500000000001,
+              14.1226
+            ]
+          },
+          {
+            "id": "1f-c006",
+            "polygon": [
+              [
+                14.8784,
+                5.8786000000000005
+              ],
+              [
+                14.8784,
+                7.9937000000000005
+              ],
+              [
+                11.0598,
+                7.9937000000000005
+              ],
+              [
+                11.0598,
+                5.8786000000000005
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              5.8786000000000005,
+              7.9937000000000005
+            ]
+          },
+          {
+            "id": "1f-c007",
+            "polygon": [
+              [
+                14.8784,
+                7.9937000000000005
+              ],
+              [
+                14.8784,
+                9.999500000000001
+              ],
+              [
+                11.0598,
+                9.999500000000001
+              ],
+              [
+                11.0598,
+                7.9937000000000005
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              7.9937000000000005,
+              9.999500000000001
+            ]
+          },
+          {
+            "id": "1f-c008",
+            "polygon": [
+              [
+                11.0598,
+                9.999500000000001
+              ],
+              [
+                14.8784,
+                9.999500000000001
+              ],
+              [
+                14.8784,
+                11.9967
+              ],
+              [
+                11.0598,
+                11.9967
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              9.999500000000001,
+              11.9967
+            ]
+          },
+          {
+            "id": "1f-c009",
+            "polygon": [
+              [
+                14.8784,
+                13.9982
+              ],
+              [
+                11.0598,
+                13.9982
+              ],
+              [
+                11.0598,
+                11.9967
+              ],
+              [
+                14.8784,
+                11.9967
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              11.9967,
+              13.9982
+            ]
+          },
+          {
+            "id": "1f-c010",
+            "polygon": [
+              [
+                14.8784,
+                13.9982
+              ],
+              [
+                14.8784,
+                15.999649999999999
+              ],
+              [
+                11.0598,
+                15.999649999999999
+              ],
+              [
+                11.0598,
+                13.9982
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              13.9982,
+              15.999649999999999
+            ]
+          },
+          {
+            "id": "1f-c011",
+            "polygon": [
+              [
+                14.8784,
+                15.999649999999999
+              ],
+              [
+                14.8784,
+                18.001150000000003
+              ],
+              [
+                11.0598,
+                18.001150000000003
+              ],
+              [
+                11.0598,
+                15.999649999999999
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              15.999649999999999,
+              18.001150000000003
+            ]
+          },
+          {
+            "id": "1f-c012",
+            "polygon": [
+              [
+                14.8784,
+                18.001150000000003
+              ],
+              [
+                14.8784,
+                19.88
+              ],
+              [
+                11.0598,
+                19.88
+              ],
+              [
+                11.0598,
+                18.001150000000003
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              18.001150000000003,
+              19.88
+            ]
+          },
+          {
+            "id": "1f-c013",
+            "polygon": [
+              [
+                13.0017,
+                0.12
+              ],
+              [
+                20.9413,
+                0.12
+              ],
+              [
+                20.9413,
+                3.9365
+              ],
+              [
+                13.0017,
+                3.9365
+              ]
+            ],
+            "role": "office",
+            "x": [
+              13.0017,
+              20.9413
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              24.88,
+              0.12
+            ],
+            [
+              24.88,
+              5.8786000000000005
+            ],
+            [
+              14.8784,
+              5.8786000000000005
+            ],
+            [
+              14.8784,
+              19.88
+            ],
+            [
+              0.12,
+              19.88
+            ],
+            [
+              0.12,
+              14.1226
+            ],
+            [
+              5.12155,
+              14.1226
+            ],
+            [
+              5.12155,
+              0.12
+            ]
+          ]
+        },
+        "id": "1f",
+        "name": "1f",
+        "z_floor": 0.0
+      },
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "id": "2f-c000",
+            "polygon": [
+              [
+                24.88,
+                5.8786000000000005
+              ],
+              [
+                11.0598,
+                5.8786000000000005
+              ],
+              [
+                11.0598,
+                16.0646
+              ],
+              [
+                0.12,
+                16.0646
+              ],
+              [
+                0.12,
+                14.1226
+              ],
+              [
+                8.9345,
+                14.1226
+              ],
+              [
+                8.9345,
+                5.8786000000000005
+              ],
+              [
+                5.12155,
+                5.8786000000000005
+              ],
+              [
+                5.12155,
+                3.9365
+              ],
+              [
+                24.88,
+                3.9365
+              ]
+            ],
+            "role": "office",
+            "x": [
+              0.12,
+              24.88
+            ],
+            "y": [
+              3.9365,
+              16.0646
+            ]
+          },
+          {
+            "id": "2f-c001",
+            "polygon": [
+              [
+                0.12,
+                16.0646
+              ],
+              [
+                4.9971,
+                16.0646
+              ],
+              [
+                4.9971,
+                19.88
+              ],
+              [
+                0.12,
+                19.88
+              ]
+            ],
+            "role": "office",
+            "x": [
+              0.12,
+              4.9971
+            ],
+            "y": [
+              16.0646,
+              19.88
+            ]
+          },
+          {
+            "id": "2f-c002",
+            "polygon": [
+              [
+                4.9971,
+                19.88
+              ],
+              [
+                4.9971,
+                16.0646
+              ],
+              [
+                9.9405,
+                16.0646
+              ],
+              [
+                9.9405,
+                19.88
+              ]
+            ],
+            "role": "office",
+            "x": [
+              4.9971,
+              9.9405
+            ],
+            "y": [
+              16.0646,
+              19.88
+            ]
+          },
+          {
+            "id": "2f-c003",
+            "polygon": [
+              [
+                9.0916,
+                0.12
+              ],
+              [
+                9.0916,
+                3.9365
+              ],
+              [
+                5.12155,
+                3.9365
+              ],
+              [
+                5.12155,
+                0.12
+              ]
+            ],
+            "role": "office",
+            "x": [
+              5.12155,
+              9.0916
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          },
+          {
+            "id": "2f-c004",
+            "polygon": [
+              [
+                5.12155,
+                5.8786000000000005
+              ],
+              [
+                8.9345,
+                5.8786000000000005
+              ],
+              [
+                8.9345,
+                14.1226
+              ],
+              [
+                5.12155,
+                14.1226
+              ]
+            ],
+            "role": "office",
+            "x": [
+              5.12155,
+              8.9345
+            ],
+            "y": [
+              5.8786000000000005,
+              14.1226
+            ]
+          },
+          {
+            "id": "2f-c005",
+            "polygon": [
+              [
+                9.0916,
+                0.12
+              ],
+              [
+                13.0017,
+                0.12
+              ],
+              [
+                13.0017,
+                3.9365
+              ],
+              [
+                9.0916,
+                3.9365
+              ]
+            ],
+            "role": "office",
+            "x": [
+              9.0916,
+              13.0017
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          },
+          {
+            "id": "2f-c006",
+            "polygon": [
+              [
+                14.8784,
+                16.0646
+              ],
+              [
+                14.8784,
+                19.88
+              ],
+              [
+                9.9405,
+                19.88
+              ],
+              [
+                9.9405,
+                16.0646
+              ]
+            ],
+            "role": "office",
+            "x": [
+              9.9405,
+              14.8784
+            ],
+            "y": [
+              16.0646,
+              19.88
+            ]
+          },
+          {
+            "id": "2f-c007",
+            "polygon": [
+              [
+                11.0598,
+                5.8786000000000005
+              ],
+              [
+                14.8784,
+                5.8786000000000005
+              ],
+              [
+                14.8784,
+                7.9937000000000005
+              ],
+              [
+                11.0598,
+                7.9937000000000005
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              5.8786000000000005,
+              7.9937000000000005
+            ]
+          },
+          {
+            "id": "2f-c008",
+            "polygon": [
+              [
+                14.8784,
+                9.999500000000001
+              ],
+              [
+                11.0598,
+                9.999500000000001
+              ],
+              [
+                11.0598,
+                7.9937000000000005
+              ],
+              [
+                14.8784,
+                7.9937000000000005
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              7.9937000000000005,
+              9.999500000000001
+            ]
+          },
+          {
+            "id": "2f-c009",
+            "polygon": [
+              [
+                11.0598,
+                9.999500000000001
+              ],
+              [
+                14.8784,
+                9.999500000000001
+              ],
+              [
+                14.8784,
+                11.9967
+              ],
+              [
+                11.0598,
+                11.9967
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              9.999500000000001,
+              11.9967
+            ]
+          },
+          {
+            "id": "2f-c010",
+            "polygon": [
+              [
+                11.0598,
+                11.9967
+              ],
+              [
+                14.8784,
+                11.9967
+              ],
+              [
+                14.8784,
+                13.9982
+              ],
+              [
+                11.0598,
+                13.9982
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              11.9967,
+              13.9982
+            ]
+          },
+          {
+            "id": "2f-c011",
+            "polygon": [
+              [
+                14.8784,
+                16.0646
+              ],
+              [
+                11.0598,
+                16.0646
+              ],
+              [
+                11.0598,
+                13.9982
+              ],
+              [
+                14.8784,
+                13.9982
+              ]
+            ],
+            "role": "office",
+            "x": [
+              11.0598,
+              14.8784
+            ],
+            "y": [
+              13.9982,
+              16.0646
+            ]
+          },
+          {
+            "id": "2f-c012",
+            "polygon": [
+              [
+                13.0017,
+                0.12
+              ],
+              [
+                16.90795,
+                0.12
+              ],
+              [
+                16.90795,
+                3.9365
+              ],
+              [
+                13.0017,
+                3.9365
+              ]
+            ],
+            "role": "office",
+            "x": [
+              13.0017,
+              16.90795
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          },
+          {
+            "id": "2f-c013",
+            "polygon": [
+              [
+                16.90795,
+                0.12
+              ],
+              [
+                20.9413,
+                0.12
+              ],
+              [
+                20.9413,
+                3.9365
+              ],
+              [
+                16.90795,
+                3.9365
+              ]
+            ],
+            "role": "office",
+            "x": [
+              16.90795,
+              20.9413
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          },
+          {
+            "id": "2f-c014",
+            "polygon": [
+              [
+                24.88,
+                3.9365
+              ],
+              [
+                20.9413,
+                3.9365
+              ],
+              [
+                20.9413,
+                0.12
+              ],
+              [
+                24.88,
+                0.12
+              ]
+            ],
+            "role": "office",
+            "x": [
+              20.9413,
+              24.88
+            ],
+            "y": [
+              0.12,
+              3.9365
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              5.12155,
+              0.12
+            ],
+            [
+              24.88,
+              0.12
+            ],
+            [
+              24.88,
+              5.8786000000000005
+            ],
+            [
+              14.8784,
+              5.8786000000000005
+            ],
+            [
+              14.8784,
+              19.88
+            ],
+            [
+              0.12,
+              19.88
+            ],
+            [
+              0.12,
+              14.1226
+            ],
+            [
+              5.12155,
+              14.1226
+            ]
+          ]
+        },
+        "id": "2f",
+        "name": "2f",
+        "z_floor": 3.6
+      }
+    ],
+    "footprint_x": [
+      0.12,
+      24.88
+    ],
+    "footprint_y": [
+      0.12,
+      19.88
+    ],
+    "north_axis": null,
+    "notes": null,
+    "openings": [
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=0.1137 to 0.12 m; bounded by compiled half-thickness 0.12 m; along-span unchanged."
+        ],
+        "id": "plan_opening:9f7c7cca928adc8802d4bb9d",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.12,
+          14.5553
+        ],
+        "p2": [
+          0.12,
+          15.3127
+        ],
+        "source_refs": [
+          "src:16245851532b0f4a16bcca9fd52d180543582624c48a0b9a4ebb74d9f067f1ff",
+          "src:6f7c901f3ee20b45c2e9dc987d69db3d1f89e614633342f07d2625e16241cef8"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:40455a73812844c967c966dc",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          5.12155,
+          4.299
+        ],
+        "p2": [
+          5.12155,
+          5.078
+        ],
+        "source_refs": [
+          "src:034e74d9b88e2111de20e96decf7f5bc7412f7511bcfcbb0d0d311fbda546fdc",
+          "src:63ab41d3fcc8d070f1caf7a7821859bc17b022f1a9e9dd283da405058bd95965"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:682f064fa78e70b890c7d944",
+        "kind": "door",
+        "other_space_id": "1f-c005",
+        "p1": [
+          8.9345,
+          10.336
+        ],
+        "p2": [
+          8.9345,
+          11.1582
+        ],
+        "source_refs": [
+          "src:9a846aba6475e3927e3b1e9fb2390c5bbaeeed59a815fbf8f92bacbfdde5f7ec",
+          "src:ad3ee59d6152b1ba383a1c5e20e669ae9a2f77d7dd45aacf56c19c22b3414a4f"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:1433b3c70c4c93551eb48f96",
+        "kind": "door",
+        "other_space_id": "1f-c004",
+        "p1": [
+          8.9345,
+          8.8213
+        ],
+        "p2": [
+          8.9345,
+          9.6436
+        ],
+        "source_refs": [
+          "src:00067e773d29a143447c014da50f43b53bdb6ebb0cee59fcfce8017e1ccbb715",
+          "src:339c47dabdf0204067efabe96e88e3f1485c7e34dad87b4fa86e89b03dc951fd"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:f55240cff87959a7bd34a736",
+        "kind": "door",
+        "other_space_id": "1f-c012",
+        "p1": [
+          11.0598,
+          18.3636
+        ],
+        "p2": [
+          11.0598,
+          19.1425
+        ],
+        "source_refs": [
+          "src:f74c8063661472c19b4e5f90afda25ce81bff7d5fd85af48557906544fbd2ac3",
+          "src:4f1f3ef052d164d96347c32099598311e6ddc23e83d1e38c1ff3eaca5f5e5457"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:09115f8e980a0a6fee6cc57b",
+        "kind": "door",
+        "other_space_id": "1f-c011",
+        "p1": [
+          11.0598,
+          16.8489
+        ],
+        "p2": [
+          11.0598,
+          17.6063
+        ],
+        "source_refs": [
+          "src:e870dd0c01c75a6ca0f8459abcf3b1178e177ac66a30de449edf424c977eb3d3",
+          "src:dffb6a708419153510444db979c4a18d4176688d5d39b5b73c8e4de1cb6966a1"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:7981332c65389d76f08f2a07",
+        "kind": "door",
+        "other_space_id": "1f-c010",
+        "p1": [
+          11.0598,
+          14.3606
+        ],
+        "p2": [
+          11.0598,
+          15.1396
+        ],
+        "source_refs": [
+          "src:3134a5f23a5d42835f33c58796741105d0e0b73254a9429614ca4b085b58091e",
+          "src:ad7f7442e813f503a6448f6f5d3020210fa033f28fc4064e7c6740766d0d0985"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:836b36f74905c5ea8917462a",
+        "kind": "door",
+        "other_space_id": "1f-c009",
+        "p1": [
+          11.0598,
+          12.8459
+        ],
+        "p2": [
+          11.0598,
+          13.6033
+        ],
+        "source_refs": [
+          "src:325123ac88cd1e54d70b88216c03afbf5a00632f1219b42dd23b675f23d462a4",
+          "src:3ae2e26ff6ddf60e740c50a08015e487f11d1b02869533e0b050e4d646b940c7"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:832bb610ddab26306200c090",
+        "kind": "door",
+        "other_space_id": "1f-c008",
+        "p1": [
+          11.0598,
+          10.3576
+        ],
+        "p2": [
+          11.0598,
+          11.1366
+        ],
+        "source_refs": [
+          "src:c8de18dc6bd018a8e5726b4609cd588c16d07cc6d46c4bcc87fa5c9cb0c52ae6",
+          "src:4c9623d7e3f4051b5771302870e4b52ec17ff171d2e4113768b867991a36975e"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:cd08f7ee86fc5cd81eff2636",
+        "kind": "door",
+        "other_space_id": "1f-c007",
+        "p1": [
+          11.0598,
+          8.843
+        ],
+        "p2": [
+          11.0598,
+          9.6219
+        ],
+        "source_refs": [
+          "src:368e72b00fc57be35a518ec956fe6fcbe74949a5e47361eca5a7aa76c481667b",
+          "src:566e4d5e5892da9f4c77fdab95f6796b3ca3875ac1a1f4ed0bd08f8ba0008c94"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:53b3a3da4ebb6c82b4fc48b9",
+        "kind": "door",
+        "other_space_id": "1f-c006",
+        "p1": [
+          11.0598,
+          6.8523
+        ],
+        "p2": [
+          11.0598,
+          7.6096
+        ],
+        "source_refs": [
+          "src:0ca655f9cd1ed5938843e18faafec97e543f1583f99681ae762a1005556ff3d9",
+          "src:bcaa89ac42db83b2cdd782600da9aaecbb0312449392beea2f78ef4709055db4"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=24.8841 to 24.88 m; bounded by compiled half-thickness 0.12 m; along-span unchanged."
+        ],
+        "id": "plan_opening:c6306e84a78d2c67644c7fbc",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          24.88,
+          0.5124
+        ],
+        "p2": [
+          24.88,
+          2.1353
+        ],
+        "source_refs": [
+          "src:f96eb381ba6b99d23a5431fb3c026573a4d0969214ed5dd275256f0d1d888f89",
+          "src:330326e8d1083a96c1a391c03650d3d4551d6ffb43442da8232b65be1aca4572"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:2ee12fdd2e0c515a326e1945",
+        "kind": "door",
+        "other_space_id": "1f-c001",
+        "p1": [
+          3.8343,
+          16.0646
+        ],
+        "p2": [
+          4.6564,
+          16.0646
+        ],
+        "source_refs": [
+          "src:88675b248dccf9fdc044858286caa25511a4a64b4552a271f72321a5956056b1",
+          "src:dd0840634f5c9a801d0737c5390bc9f02b0a393f6e4a1950de664fc0e5b6af86"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:b2d0e90267d40a0a82f14a1a",
+        "kind": "door",
+        "other_space_id": "1f-c002",
+        "p1": [
+          5.3487,
+          16.0646
+        ],
+        "p2": [
+          6.1924,
+          16.0646
+        ],
+        "source_refs": [
+          "src:c36a910cd7d435a9a926b3d624c1abea62d9b100357e4bed85fdd2bb91dac45a",
+          "src:c1b31d20e091aa4f424b5fb01b3e3452e16ddd3141a2fb0d95734e95e04455bc"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:092f098609989c531df46769",
+        "kind": "door",
+        "other_space_id": "1f-c003",
+        "p1": [
+          11.06,
+          3.9365
+        ],
+        "p2": [
+          12.6177,
+          3.9365
+        ],
+        "source_refs": [
+          "src:67e56729d548e0eaa36ca9e42afbd8305d76bbdb8aa00b03dcc458d3d9b1372a",
+          "src:2252500558c9c6a90fbbe554101d348783b62caaed21ee71d0758b6124ae595d"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel."
+        ],
+        "id": "plan_opening:ed162f03b8c92f158fbfa100",
+        "kind": "door",
+        "other_space_id": "1f-c013",
+        "p1": [
+          13.3965,
+          3.9365
+        ],
+        "p2": [
+          14.9542,
+          3.9365
+        ],
+        "source_refs": [
+          "src:4fbd45407ce902d73bff74aa0a25ba4b5960490e71f8ebb70a52816b7de85cc8",
+          "src:2ea9a8bac7cdb808c59052ef8600d923f9b40be536d189f2f48013ac616f1d62"
+        ],
+        "space_id": "1f-c000",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=8.94245 to 8.9345 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:2447dabbbeaef05dbaeafba8",
+        "kind": "door",
+        "other_space_id": "2f-c004",
+        "p1": [
+          8.9345,
+          12.0677
+        ],
+        "p2": [
+          8.9345,
+          13.7037
+        ],
+        "source_refs": [
+          "src:d416a8880300013db4ac430447ec0b66033ab20b0359635ff10d873d5ba3a661",
+          "src:45e73dddc86c2af48131e00340513960f2d34de14723c1d9a47f4e4714ac5f1f"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:74d8094b4902c77cc08b59eb",
+        "kind": "door",
+        "other_space_id": "2f-c011",
+        "p1": [
+          11.0598,
+          14.3581
+        ],
+        "p2": [
+          11.0598,
+          15.1434
+        ],
+        "source_refs": [
+          "src:41103e18b713fe9c0c12116f8f026ac3e13689a8fd725c02899ebc12ec15ef6d",
+          "src:b923bd81c3b439a38c80ac2c350ab0e61f194c8dcddf6d083e885876fc60a0be"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:1be0d58a8f61e0193d1cf25e",
+        "kind": "door",
+        "other_space_id": "2f-c010",
+        "p1": [
+          11.0598,
+          12.853
+        ],
+        "p2": [
+          11.0598,
+          13.6165
+        ],
+        "source_refs": [
+          "src:33fa586a6ca10a00a66fa592941f55b1521ff5f517e5fcc7fc49df5f5578962f",
+          "src:17dea5594e37102ed7fac2c850c7f7981849e886c813f531395b7e52c9e1d398"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:180b75c1d514dbe68f58fa7a",
+        "kind": "door",
+        "other_space_id": "2f-c009",
+        "p1": [
+          11.0598,
+          10.3662
+        ],
+        "p2": [
+          11.0598,
+          11.1297
+        ],
+        "source_refs": [
+          "src:5a665ccf4608c61b7370ba94718d5bed92a44554751e0c2fe3bb5cd674070ed6",
+          "src:e0a7d0344ad8346321745695cc40e1daba70a47fd2cf558f1429882a58f5af62"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:9fa1078da157f2b2debbaf52",
+        "kind": "door",
+        "other_space_id": "2f-c008",
+        "p1": [
+          11.0598,
+          8.8392
+        ],
+        "p2": [
+          11.0598,
+          9.6027
+        ],
+        "source_refs": [
+          "src:af22ab0818a0c39fd0ff8b149e36091d65b1def5da20e56813fd5afde00e03a7",
+          "src:ddbe878d65310c7647fe52e4884ce3a3854df60cbdb0bdf1506570b2f6233b40"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: x=11.0648 to 11.0598 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:6465a3c0e2f6b1d8c44ffbfd",
+        "kind": "door",
+        "other_space_id": "2f-c007",
+        "p1": [
+          11.0598,
+          6.8541
+        ],
+        "p2": [
+          11.0598,
+          7.6176
+        ],
+        "source_refs": [
+          "src:4094d1b5089b9f54d04d830114011b2d968a5581ff6a4aa8b4b2f656bd1e08fd",
+          "src:c778cfe2c01d6398a1262384f20741fdb8285000ff41dc6dbd6e4fc1dd0c9f9e"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=16.0651 to 16.0646 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:2b3051c152107ffa0b4399ad",
+        "kind": "door",
+        "other_space_id": "2f-c001",
+        "p1": [
+          3.8427,
+          16.0646
+        ],
+        "p2": [
+          4.6712,
+          16.0646
+        ],
+        "source_refs": [
+          "src:924bb2a0b171bd975c17ed3b00a3ed8c3b429dbb936b17f7ef1fc57d012ae7c6",
+          "src:a58b8e64416390f58ae6e79ca8930c8c92482d2c285948e8d540c1aee79612f3"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=16.0651 to 16.0646 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:e674b7082ad8b9df272da4f6",
+        "kind": "door",
+        "other_space_id": "2f-c002",
+        "p1": [
+          5.3689,
+          16.0646
+        ],
+        "p2": [
+          6.1974,
+          16.0646
+        ],
+        "source_refs": [
+          "src:6d38e435616165b306f8b322ee49bccc238ca9fba680080e47d2cd424b4a26ef",
+          "src:8a11d67b89485e3ac4172c525b18bc8063dcb543fea45989e01653ca54072f47"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:ecf412e03e7abb9859a8809d",
+        "kind": "door",
+        "other_space_id": "2f-c003",
+        "p1": [
+          7.9634,
+          3.9365
+        ],
+        "p2": [
+          8.7265,
+          3.9365
+        ],
+        "source_refs": [
+          "src:2f19bb3d1048f95143b75e9ba0dadb18a2f5048ed5c4139a4d7a5c2215817b3a",
+          "src:88878898aa19264266e5c56db125d37d83c55aac33154b32d38504c28ba80c2b"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:dd34d8f08a163946314e8523",
+        "kind": "door",
+        "other_space_id": "2f-c005",
+        "p1": [
+          9.4896,
+          3.9365
+        ],
+        "p2": [
+          10.2527,
+          3.9365
+        ],
+        "source_refs": [
+          "src:a4807c7c306dd8b510737e04652aa255181df55cd539032a29a8c4dfcb1abff8",
+          "src:e5248c4c1d0dbd5ce90e1ee75458f093736e147d1c6b5e6b44ef9bbcf689b3e4"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:03dfe48fe131f10e734b3849",
+        "kind": "door",
+        "other_space_id": "2f-c012",
+        "p1": [
+          15.7688,
+          3.9365
+        ],
+        "p2": [
+          16.5319,
+          3.9365
+        ],
+        "source_refs": [
+          "src:81be0ec2a047bb021371dd3badf0a87a1277875b1367a9c4ed7510271e56795a",
+          "src:48005b549436af25fa905f8cc51eac0ea75af1e6d9663c05c5c9a0a43b8ca83a"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:66cc3460e0115eef7739ca27",
+        "kind": "door",
+        "other_space_id": "2f-c013",
+        "p1": [
+          17.295,
+          3.9365
+        ],
+        "p2": [
+          18.0581,
+          3.9365
+        ],
+        "source_refs": [
+          "src:fa92cbae436ca09841374c5e27f28198b0e5f615cb69158da01b80bb00692960",
+          "src:b4adf3eebd4d64e7d342e9b09c581b34138937d595649b2c9fe7dd6996c0a3d0"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height assumed 2.1 m above floor; no measured door/opening height in the plan opening channel.",
+          "Wall position follows final room boundary: y=3.94205 to 3.9365 m; bounded by compiled half-thickness 0.06 m; along-span unchanged."
+        ],
+        "id": "plan_opening:86d010c2b9dc7171d83e6710",
+        "kind": "door",
+        "other_space_id": "2f-c014",
+        "p1": [
+          21.3285,
+          3.9365
+        ],
+        "p2": [
+          22.0916,
+          3.9365
+        ],
+        "source_refs": [
+          "src:4f62fa611a500545f7e6866499a4bbf3f2bc1408755eb55a848edcdd76c15b9a",
+          "src:757c43ab8395ff4778f3108ac3757f6aac61397063c2fe03bb21e977503cb27f"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      },
+      {
+        "assumptions": [
+          "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+        ],
+        "id": "2f-door-c000-c006-junction",
+        "kind": "door",
+        "other_space_id": "2f-c006",
+        "p1": [
+          10.1157,
+          16.0646
+        ],
+        "p2": [
+          10.9173,
+          16.0646
+        ],
+        "source_refs": [
+          "claim:claim_0001:ff25911dbe7cd1d427b8133e2d62a0c1cd3490a01171d9cdd53bd10573dad3a7"
+        ],
+        "space_id": "2f-c000",
+        "state": "unknown",
+        "z": [
+          3.6,
+          5.7
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "unsupported": [],
+    "windows": [
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O02",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O02",
+              "1f_view/L016g6"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O02",
+              "1f_view/L016g6"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O02"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g6"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O02"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O02",
+              "1f_view/L016g6"
+            ]
+          }
+        },
+        "room": "1f-c006",
+        "span": [
+          6.7226,
+          7.6586
+        ],
+        "z": [
+          0.9815,
+          2.6096
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-East_view-O03",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O03",
+              "2f_view/L019g9"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O03",
+              "2f_view/L019g9"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O03"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L019g9"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O03"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O03",
+              "2f_view/L019g9"
+            ]
+          }
+        },
+        "room": "2f-c007",
+        "span": [
+          6.7361,
+          7.6586
+        ],
+        "z": [
+          4.5768,
+          6.2049
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-East_view-O04",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O04",
+              "2f_view/L019g7"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O04",
+              "2f_view/L019g7"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O04"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L019g7"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O04"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O04",
+              "2f_view/L019g7"
+            ]
+          }
+        },
+        "room": "2f-c008",
+        "span": [
+          8.7302,
+          9.6527
+        ],
+        "z": [
+          4.5768,
+          6.2049
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O05",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O05",
+              "1f_view/L016g5"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O05",
+              "1f_view/L016g5"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O05"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g5"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O05"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O05",
+              "1f_view/L016g5"
+            ]
+          }
+        },
+        "room": "1f-c007",
+        "span": [
+          8.7302,
+          9.6527
+        ],
+        "z": [
+          0.9815,
+          2.6096
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-East_view-O06",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O06",
+              "2f_view/L019g5"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O06",
+              "2f_view/L019g5"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O06"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L019g5"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O06"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O06",
+              "2f_view/L019g5"
+            ]
+          }
+        },
+        "room": "2f-c009",
+        "span": [
+          10.3581,
+          11.2805
+        ],
+        "z": [
+          4.5768,
+          6.2049
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O07",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O07",
+              "1f_view/L016g4"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O07",
+              "1f_view/L016g4"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O07"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g4"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O07"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O07",
+              "1f_view/L016g4"
+            ]
+          }
+        },
+        "room": "1f-c008",
+        "span": [
+          10.3581,
+          11.2805
+        ],
+        "z": [
+          0.9815,
+          2.6096
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-East_view-O08",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O08",
+              "2f_view/L019g3"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O08",
+              "2f_view/L019g3"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O08"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L019g3"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O08"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O08",
+              "2f_view/L019g3"
+            ]
+          }
+        },
+        "room": "2f-c010",
+        "span": [
+          12.732,
+          13.6545
+        ],
+        "z": [
+          4.5768,
+          6.2049
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O09",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O09",
+              "1f_view/L016g3"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O09",
+              "1f_view/L016g3"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O09"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g3"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O09"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O09",
+              "1f_view/L016g3"
+            ]
+          }
+        },
+        "room": "1f-c009",
+        "span": [
+          12.732,
+          13.6681
+        ],
+        "z": [
+          0.9679,
+          2.6096
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O10",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O10",
+              "1f_view/L016g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O10",
+              "1f_view/L016g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O10"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O10"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O10",
+              "1f_view/L016g2"
+            ]
+          }
+        },
+        "room": "1f-c010",
+        "span": [
+          14.3463,
+          15.2823
+        ],
+        "z": [
+          0.9815,
+          2.6096
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "2f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-East_view-O11",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O11",
+              "2f_view/L019g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O11",
+              "2f_view/L019g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O11"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L019g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O11"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O11",
+              "2f_view/L019g1"
+            ]
+          }
+        },
+        "room": "2f-c011",
+        "span": [
+          14.3599,
+          15.2823
+        ],
+        "z": [
+          4.5768,
+          6.2049
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O12",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O12",
+              "1f_view/L016g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O12",
+              "1f_view/L016g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O12"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O12"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O12",
+              "1f_view/L016g1"
+            ]
+          }
+        },
+        "room": "1f-c011",
+        "span": [
+          16.7338,
+          17.6563
+        ],
+        "z": [
+          0.9815,
+          2.6096
+        ]
+      },
+      {
+        "facade": "East",
+        "facade_segment_id": "1f:facade:824b9c7d378941e87f27d166c9b6ebe903087f75d44fb4d564f7c9cd53acaec7",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-East_view-O13",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O13",
+              "1f_view/L016g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O13",
+              "1f_view/L016g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O13"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L016g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O13"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "East_view/O13",
+              "1f_view/L016g0"
+            ]
+          }
+        },
+        "room": "1f-c012",
+        "span": [
+          18.3481,
+          19.2841
+        ],
+        "z": [
+          0.9815,
+          2.6096
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "2f:facade:5faac39e2814e3dc9c76942a36364a13ef71705c255c31d08d8031357896a78d",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-North_view-O01",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O01",
+              "2f_view/L041g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O01",
+              "2f_view/L041g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O01"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L041g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O01"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O01",
+              "2f_view/L041g2"
+            ]
+          }
+        },
+        "room": "2f-c000",
+        "span": [
+          15.2746,
+          23.3136
+        ],
+        "z": [
+          4.5731,
+          6.8098
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "1f:facade:5faac39e2814e3dc9c76942a36364a13ef71705c255c31d08d8031357896a78d",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-North_view-O02",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O02",
+              "1f_view/L043g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O02",
+              "1f_view/L043g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O02"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L043g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O02"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O02",
+              "1f_view/L043g2"
+            ]
+          }
+        },
+        "room": "1f-c000",
+        "span": [
+          15.2746,
+          23.3136
+        ],
+        "z": [
+          0.981,
+          3.204
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-North_view-O03",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O03",
+              "2f_view/L027g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O03",
+              "2f_view/L027g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O03"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L027g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O03"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O03",
+              "2f_view/L027g2"
+            ]
+          }
+        },
+        "room": "2f-c006",
+        "span": [
+          10.2858,
+          10.9094
+        ],
+        "z": [
+          4.5867,
+          6.2133
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-North_view-O04",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O04",
+              "1f_view/L023g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O04",
+              "1f_view/L023g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O04"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L023g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O04"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O04",
+              "1f_view/L023g2"
+            ]
+          }
+        },
+        "room": "1f-c000",
+        "span": [
+          10.2858,
+          10.9094
+        ],
+        "z": [
+          0.981,
+          2.6076
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-North_view-O05",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O05",
+              "2f_view/L027g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O05",
+              "2f_view/L027g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O05"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L027g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O05"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O05",
+              "2f_view/L027g1"
+            ]
+          }
+        },
+        "room": "2f-c002",
+        "span": [
+          5.337700000000002,
+          7.764299999999999
+        ],
+        "z": [
+          4.5867,
+          6.1998
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-North_view-O06",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O06",
+              "1f_view/L023g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O06",
+              "1f_view/L023g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O06"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L023g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O06"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O06",
+              "1f_view/L023g1"
+            ]
+          }
+        },
+        "room": "1f-c002",
+        "span": [
+          5.337700000000002,
+          7.764299999999999
+        ],
+        "z": [
+          0.981,
+          2.6076
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "2f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-North_view-O07",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O07",
+              "2f_view/L027g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O07",
+              "2f_view/L027g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O07"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L027g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O07"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O07",
+              "2f_view/L027g0"
+            ]
+          }
+        },
+        "room": "2f-c001",
+        "span": [
+          2.2196999999999996,
+          4.6463
+        ],
+        "z": [
+          4.5867,
+          6.1998
+        ]
+      },
+      {
+        "facade": "North",
+        "facade_segment_id": "1f:facade:a02d51a77088c34665e258a0a852b5412b4b286657149769118ba01ad1d852b6",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-North_view-O08",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O08",
+              "1f_view/L023g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O08",
+              "1f_view/L023g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O08"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L023g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O08"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "North_view/O08",
+              "1f_view/L023g0"
+            ]
+          }
+        },
+        "room": "1f-c001",
+        "span": [
+          2.2196999999999996,
+          4.6463
+        ],
+        "z": [
+          0.981,
+          2.6076
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-South_view-O01",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O01",
+              "2f_view/L045g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O01",
+              "2f_view/L045g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O01"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L045g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O01"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O01",
+              "2f_view/L045g0"
+            ]
+          }
+        },
+        "room": "2f-c003",
+        "span": [
+          6.9219,
+          8.7512
+        ],
+        "z": [
+          4.5809,
+          6.2053
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "1f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-South_view-O02",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O02",
+              "1f_view/L047g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O02",
+              "1f_view/L047g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O02"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L047g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O02"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O02",
+              "1f_view/L047g0"
+            ]
+          }
+        },
+        "room": "1f-c003",
+        "span": [
+          8.6292,
+          12.6537
+        ],
+        "z": [
+          0.9803,
+          2.8077
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-South_view-O03",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O03",
+              "2f_view/L045g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O03",
+              "2f_view/L045g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O03"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L045g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O03"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O03",
+              "2f_view/L045g1"
+            ]
+          }
+        },
+        "room": "2f-c005",
+        "span": [
+          9.4422,
+          11.2715
+        ],
+        "z": [
+          4.5809,
+          6.2053
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "1f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-South_view-O04",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O04",
+              "1f_view/L047g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O04",
+              "1f_view/L047g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O04"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L047g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O04"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O04",
+              "1f_view/L047g2"
+            ]
+          }
+        },
+        "room": "1f-c013",
+        "span": [
+          13.3583,
+          17.3827
+        ],
+        "z": [
+          0.9803,
+          2.8077
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-South_view-O05",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O05",
+              "2f_view/L045g2"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O05",
+              "2f_view/L045g2"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O05"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L045g2"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O05"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O05",
+              "2f_view/L045g2"
+            ]
+          }
+        },
+        "room": "2f-c012",
+        "span": [
+          14.7404,
+          16.5697
+        ],
+        "z": [
+          4.5809,
+          6.2053
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-South_view-O06",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O06",
+              "2f_view/L045g3"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O06",
+              "2f_view/L045g3"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O06"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L045g3"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O06"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O06",
+              "2f_view/L045g3"
+            ]
+          }
+        },
+        "room": "2f-c013",
+        "span": [
+          17.2607,
+          19.09
+        ],
+        "z": [
+          4.5809,
+          6.2053
+        ]
+      },
+      {
+        "facade": "South",
+        "facade_segment_id": "2f:facade:d6dad28885367bd3da230ac1a074f512856baebbfeaff38a1968f3f8c515079d",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-South_view-O07",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O07",
+              "2f_view/L045g4"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O07",
+              "2f_view/L045g4"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O07"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L045g4"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O07"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "South_view/O07",
+              "2f_view/L045g4"
+            ]
+          }
+        },
+        "room": "2f-c014",
+        "span": [
+          21.2987,
+          23.1144
+        ],
+        "z": [
+          4.5674,
+          6.2053
+        ]
+      },
+      {
+        "facade": "West",
+        "facade_segment_id": "2f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-West_view-O02",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O02",
+              "2f_view/L007g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O02",
+              "2f_view/L007g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O02"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L007g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O02"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O02",
+              "2f_view/L007g0"
+            ]
+          }
+        },
+        "room": "2f-c004",
+        "span": [
+          7.819000000000001,
+          12.165600000000001
+        ],
+        "z": [
+          4.5805,
+          6.8003
+        ]
+      },
+      {
+        "facade": "West",
+        "facade_segment_id": "1f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-West_view-O03",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O03",
+              "1f_view/L005g0"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O03",
+              "1f_view/L005g0"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O03"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L005g0"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O03"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O03",
+              "1f_view/L005g0"
+            ]
+          }
+        },
+        "room": "1f-c005",
+        "span": [
+          10.3376,
+          12.165600000000001
+        ],
+        "z": [
+          0.98,
+          2.6043
+        ]
+      },
+      {
+        "facade": "West",
+        "facade_segment_id": "1f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "floor": "1f",
+        "floor_id": "1f",
+        "id": "1f-win-West_view-O04",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O04",
+              "1f_view/L005g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O04",
+              "1f_view/L005g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O04"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "1f_view/L005g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O04"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O04",
+              "1f_view/L005g1"
+            ]
+          }
+        },
+        "room": "1f-c004",
+        "span": [
+          7.819000000000001,
+          9.647
+        ],
+        "z": [
+          0.98,
+          2.6178
+        ]
+      },
+      {
+        "facade": "West",
+        "facade_segment_id": "2f:facade:306a133fb577c96b9eb51bb7c5556887d6e91f6372c5358ee5ec629cb4509acb",
+        "floor": "2f",
+        "floor_id": "2f",
+        "id": "2f-win-West_view-O05",
+        "provenance": {
+          "along": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O05",
+              "2f_view/L007g1"
+            ]
+          },
+          "existence": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_x_elevation",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O05",
+              "2f_view/L007g1"
+            ]
+          },
+          "head": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O05"
+            ]
+          },
+          "host": {
+            "knowledge_ref": null,
+            "method": "as_drawn_plan_face_pairing",
+            "provenance": "observed",
+            "source_ids": [
+              "2f_view/L007g1"
+            ]
+          },
+          "sill": {
+            "knowledge_ref": null,
+            "method": "as_drawn_elevation_z_range",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O05"
+            ]
+          },
+          "width": {
+            "knowledge_ref": null,
+            "method": "facade_convention_affine",
+            "provenance": "observed",
+            "source_ids": [
+              "West_view/O05",
+              "2f_view/L007g1"
+            ]
+          }
+        },
+        "room": "2f-c000",
+        "span": [
+          4.244199999999999,
+          5.462899999999999
+        ],
+        "z": [
+          4.5805,
+          6.2183
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646 retained). Jamb span re-measured on the original 2f plan with an independent labeled-dimension calibration (claim_0001): x 10.116-10.917 m (+-0.033 m per endpoint), clear width about 0.80 m, measured on the door leaf/arc ink, not on the longer wall-face ink gap (which runs from the c002/c006 party wall at px ~694 to the south-face resume at px ~750). Host plane checked against the labeled-chain y calibration (wall band px 518-524 -> y 16.05-16.07 m) and retained; no wall moved. Height still assumed 2.1 m; swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified.",
+    "Whole-building drawing fidelity, door heights/states and room roles remain unverified."
+  ]
+}

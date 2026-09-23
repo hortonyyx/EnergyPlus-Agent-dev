@@ -383,7 +383,26 @@ geometry. The example numbers/counts are unrelated to the supplied drawings.
  "reason":"explain observed wall extents","source_refs":["plan: local evidence"]};
 {"op":"remove_opening","id":"D1","reason":"explain reclassification",
  "source_refs":["image: observation"]};
+{"op":"add_opening","opening":{"id":"new_D2","kind":"door",
+ "space_id":"room-A","other_space_id":"room-B","p1":[3,1],"p2":[3,2],
+ "z":[0,2.1],"state":"unknown","assumptions":["height assumed"]},
+ "reason":"new door observed","source_refs":["plan: door and both hosts"]};
 {"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
+add_opening preserves all existing objects; it supports doors/open apertures and
+requires a new ID. World z is absolute, including on upper floors. Normal source
+validation rejects wrong/ambiguous hosts, overlaps or out-of-floor heights.
+For an inherited geometry.unsupported entry of kind as_drawn_opening_unbuilt,
+read exact records with read_candidate_items(collection="unsupported");
+after adding or identifying its actual door, explicitly use
+{"op":"resolve_unbuilt_observation","input_id":"plan",
+ "observation_ids":["old-face-gap"],"opening_ids":["new_D2"],
+ "reason":"explain original-image correspondence","source_refs":["plan: observation"]}.
+input_id/observation_ids must exactly match one saved entry. Replacement openings
+must exist on that floor. Multiple face observations may map to one physical door
+only with drawing evidence; do not count them as separate doors. The old record
+remains in corrections. This records your interpretation, not an independent pass.
+Combine addition and resolution in one revision when appropriate. Unresolved
+observations must remain; do not clear them merely to pass a check.
 Reflect transforms the entire proposal around the footprint midpoint on that
 axis, including rooms, window directions/spans and door coordinates. It preserves
 identities and connectivity. Replace stale directional assumptions with set_notes.
@@ -603,6 +622,11 @@ Adoption is YOUR decision, not application and not an independent fidelity pass.
 Code resolves the parameter; do not duplicate the numeric value. source_refs are
 added automatically for bound parameters. Supported slots: update_window.z/span;
 update_opening.z/p1/p2; move_shared_wall.coordinate_m (claim must name both spaces).
+add_opening.opening.p1/p2/z also accept references. Because the door does not
+exist yet, its claim must name the EXISTING host space(s), including both sides
+for an interior door. Use separate claims for measured plan endpoints and assumed
+height, so a plan image does not masquerade as height evidence. New door identity,
+kind and connectivity remain explicit declarations checked by the source builder.
 reshape_spaces also accepts a scalar reference at ANY polygon coordinate, e.g.
 {"op":"reshape_spaces", "spaces":[{"id":"room_A",
  "polygon":[[0,0],[{"claim":"claim_0001","value":"wall_x"},0],

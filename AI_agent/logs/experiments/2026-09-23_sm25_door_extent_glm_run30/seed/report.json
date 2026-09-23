@@ -1,0 +1,55 @@
+{
+  "agent_assumptions": [
+    "Historical assisted correction imported as an editable proposal; not cold start. Existing representative wall planes and 2.1 m assumed door heights are retained."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 30,
+    "openings": 61,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-23_sm25_door_connections_glm_run29/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f3e7f18b10e25abdb6d8cfdda556dd6994e4f12beb4556b611a45a261423262c",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, measured jamb span x 9.9518-10.8784, about +-0.05 m; height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified.",
+    "Whole-building drawing fidelity, door heights/states and room roles remain unverified."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1200,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 670.23,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 661709,
+    "stop_reason": "end_turn",
+    "session_id": "5d4851b8-9bf4-43cb-8c34-f83421b0131e",
+    "total_cost_usd": 1.3275384000000001,
+    "usage": {
+      "input_tokens": 145930,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1086592,
+      "output_tokens": 26325,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 145930,
+        "outputTokens": 26325,
+        "cacheReadInputTokens": 1086592,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.3275384000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 30,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Done. The narrow review of **2f-door-c000-c006-junction** is complete and delivered as **candidate_01**.\n\n## What was found\n\n**The previous calibration was wrong, and both endpoints moved.** Recalibrating from the original 2f plan's labeled dimension chains (green extension lines located by pixel profiles, not candidate geometry):\n- **X**: top 25000 mm chain → px 241=0.000, 470=5.000, 697=9.940, 748=11.060, 929=15.000, 1387=25.000 m (~45.8 px/m, vs the old 44.25)\n- **Y**: left 20000 mm chain → px 341=20.000 m (top edge), px 522=16.060 m (=20000−3940 line, exactly the door's host wall line) (~45.9 px/m)\n\n**Endpoint evidence (physical reference named):** the west jamb is the **hinge side of the drawn cyan door leaf** (px 704–706), and the east jamb is where the **swing arc returns to the wall** beside the wall-return stub (px 740–742). This is distinctly *not* the wall-face ink gap, which is longer: the north-face ink run ends at the c002/c006 party wall (px ~694, west of the hinge) and the south-face run resumes at px ~750 (east of the arc return).\n\n**Applied change (claim_0001, adopted, applied):** p1 x 9.9518 → **10.1157 m**, p2 x 10.8784 → **10.9173 m** (±0.033 m per endpoint; clear width ≈0.80 m). Identity, kind, both hosts (2f-c000 ↔ 2f-c006), host plane y=16.0646 and assumed z=[3.6, 5.7] unchanged; no other room, wall or opening touched; no wall moved. The west jamb moved ~0.16 m — the old value sat on the party-wall line, not the actual hinge jamb.\n\n**Verification:** overlay on 2f_view.png with the independent labeled anchors projects the door exactly at px 705.0→741.5, on the drawn leaf/arc. Partial door review submitted (only this aperture matched; all other 2f doors remain explicitly unreviewed). Obsolete endpoint/calibration note replaced in the saved source.\n\n## Limitations (retained/recorded)\n- Door height is still assumed 2.1 m (no height dimension on the plan); swing state unknown; all building heights unlinked to image observations.\n- ±1.5 px (~0.033 m) jamb reading uncertainty; x-scale from the local 1120 mm segment (45.54 px/m) vs whole-chain 45.84 px/m differs ≤5 mm (the overlay tool flags this cross-axis residual; door endpoints use the x scale only).\n- The inherited prior-run claims (old jamb readings and 44.25/43.07 px/m calibration) remain marked \"inherited / not rechecked\" — they are read-only in this run (retraction attempt failed on file access), so I did not risk an id-based retraction of the old \"claim_0001\" (id collision with the new claim); their supersession is recorded in the replaced note and audit history.\n- Whole-building fidelity, other openings, and room roles remain unverified; 1f side of this junction not examined.",
+    "ttft_ms": 4844,
+    "type": "result",
+    "duration_ms": 667316,
+    "uuid": "7521fe6d-e7cb-485e-bdcf-fcdd6e6ccd3b",
+    "ttft_stream_ms": 4590,
+    "time_to_request_ms": 63,
+    "first_content_frame_ms": 4590,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

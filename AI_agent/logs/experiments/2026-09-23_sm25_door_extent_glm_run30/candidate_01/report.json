@@ -1,0 +1,278 @@
+{
+  "agent_assumptions": [
+    "Historical assisted correction imported as an editable proposal; not cold start. Existing representative wall planes and 2.1 m assumed door heights are retained."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 30,
+    "openings": 61,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "c92ae7e0ce6e0400ee457ca18dc4e4e9604f1a4a6e45729f421b2b1d1ad61995",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "p1",
+          "resolved_value": [
+            10.1157,
+            16.0646
+          ],
+          "targets": [
+            [
+              "opening",
+              "2f-door-c000-c006-junction"
+            ]
+          ],
+          "value_field": "door_p1"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "p2",
+          "resolved_value": [
+            10.9173,
+            16.0646
+          ],
+          "targets": [
+            [
+              "opening",
+              "2f-door-c000-c006-junction"
+            ]
+          ],
+          "value_field": "door_p2"
+        }
+      ],
+      "claims": {
+        "claim_0001": {
+          "decision": {
+            "claim_id": "claim_0001",
+            "disposition": "adopted",
+            "id": "decision_0001",
+            "reason": "Jamb endpoints come from the original 2f plan with an independent labeled-dimension calibration (top 25000 chain and left 20000 chain extension lines), measured on the door leaf/arc ink rather than the wall-face ink gap; consistent with map_pixels conversion and a plausible 0.80 m clear width."
+          },
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "seed",
+              "objects": [
+                {
+                  "id": "2f-door-c000-c006-junction",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "Original 2f plan jamb re-measurement with an independent labeled-dimension calibration, replacing the previous calibration that reused saved candidate wall coordinates. X scale: the row-2 top dimension chain extension lines (labeled 5000|4940|1120|3940|10000, total 25000) were located by green-ink profile profile_001: px 241=0.000, 470=5.000, 697=9.940, 748=11.060, 929=15.000, 1387=25.000 m (whole-chain 45.84 px/m; local 1120 segment 697->748 px = 45.54 px/m used for the conversion). Y scale: left chain extension lines (profile_002): px 341 = building top edge 20.000 m and px 522 = the 3940 chain line 16.060 m (= 20000-3940), 45.85 px/m; the host wall band spans px 518-524, centerline consistent with the retained host plane y=16.0646. Door evidence: cyan door-leaf/arc ink (profile_004/008 and 8x crop): west jamb = hinge side of the drawn leaf at px x=705 (+-1.5 px); east jamb = where the swing arc returns to the wall next to the wall-return stub at px x=741.5 (+-1.5 px). This clear opening is deliberately distinguished from the longer wall-face ink gap: the north wall-face ink run ends at the c002/c006 party wall (px 693-699) west of the hinge, and the south-face run resumes at px ~750 east of the arc return. Values p1/p2 keep the existing host plane y=16.0646; only x is updated.",
+              "sources": [
+                {
+                  "box": [
+                    685.0,
+                    480.0,
+                    775.0,
+                    535.0
+                  ],
+                  "image": "2f_view.png"
+                },
+                {
+                  "box": [
+                    150.0,
+                    60.0,
+                    1420.0,
+                    330.0
+                  ],
+                  "image": "2f_view.png"
+                },
+                {
+                  "box": [
+                    90.0,
+                    320.0,
+                    280.0,
+                    1260.0
+                  ],
+                  "image": "2f_view.png"
+                }
+              ],
+              "unresolved": [
+                "Jamb pixel readings carry about +-1.5 px (~0.033 m) uncertainty per endpoint; the door leaf ink band is 704-706 px and the arc return 740-742 px.",
+                "Local conversion uses the labeled 1120 mm chain segment (45.54 px/m); the whole 25000 mm chain gives 45.84 px/m, which moves the endpoints by <=5 mm and is included in the stated uncertainty.",
+                "Door height remains assumed 2.1 m above the 2f floor (no height dimension on the plan); swing state unknown.",
+                "Wall-face ink-run gap (party wall px ~694 to south-face resume px ~750) is NOT the door span; it was explicitly not used as the jamb span."
+              ],
+              "value_targets": {
+                "door_p1": [
+                  {
+                    "id": "2f-door-c000-c006-junction",
+                    "kind": "opening"
+                  }
+                ],
+                "door_p2": [
+                  {
+                    "id": "2f-door-c000-c006-junction",
+                    "kind": "opening"
+                  }
+                ],
+                "jamb_interval_x": []
+              },
+              "values": {
+                "door_p1": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    10.1157,
+                    16.0646
+                  ]
+                },
+                "door_p2": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    10.9173,
+                    16.0646
+                  ]
+                },
+                "jamb_interval_x": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    10.1157,
+                    10.9173
+                  ]
+                }
+              }
+            },
+            "computations": {
+              "door_p1": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              },
+              "door_p2": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              },
+              "jamb_interval_x": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              }
+            },
+            "id": "claim_0001",
+            "parent_proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6",
+            "resolved_values": {
+              "door_p1": [
+                10.1157,
+                16.0646
+              ],
+              "door_p2": [
+                10.9173,
+                16.0646
+              ],
+              "jamb_interval_x": [
+                10.1157,
+                10.9173
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  685.0,
+                  480.0,
+                  775.0,
+                  535.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              },
+              {
+                "box": [
+                  150.0,
+                  60.0,
+                  1420.0,
+                  330.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              },
+              {
+                "box": [
+                  90.0,
+                  320.0,
+                  280.0,
+                  1260.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0002.json",
+      "parent_candidate": "seed",
+      "parent_proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "27651b7467b564e328b2b726ea14459464cfc263f3c12bb448397dd5899d175f",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "7dfb4e76a57573fb247fb4a3e4db656a8973d3afce6177fcf0e6218ee6f241e6"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "db878736726db777f721d790fb173687229d3c228723471cecee08668f9bbffd",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646 retained). Jamb span re-measured on the original 2f plan with an independent labeled-dimension calibration (claim_0001): x 10.116-10.917 m (+-0.033 m per endpoint), clear width about 0.80 m, measured on the door leaf/arc ink, not on the longer wall-face ink gap (which runs from the c002/c006 party wall at px ~694 to the south-face resume at px ~750). Host plane checked against the labeled-chain y calibration (wall band px 518-524 -> y 16.05-16.07 m) and retained; no wall moved. Height still assumed 2.1 m; swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified.",
+    "Whole-building drawing fidelity, door heights/states and room roles remain unverified."
+  ]
+}

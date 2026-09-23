@@ -116,6 +116,13 @@ def parameter_slots(operation):
         targets = [(name.removeprefix("update_"), operation.get("id"))]
         for field in operation.get("changes", {}):
             yield operation["changes"], field, field, targets, field in {"z", "span", "p1", "p2"}
+    elif name == "add_opening":
+        opening = operation.get("opening", {})
+        # Observe the existing host spaces before the new object exists.
+        targets = [("space", opening[key]) for key in ("space_id", "other_space_id") if opening.get(key) is not None]
+        for field in ("p1", "p2", "z"):
+            if field in opening:
+                yield opening, field, field, targets, True
     elif name in {"move_shared_wall", "set_component_thickness"}:
         field = "coordinate_m" if name == "move_shared_wall" else "thickness_m"
         targets = ([("space", identity) for identity in operation.get("space_ids", [])]

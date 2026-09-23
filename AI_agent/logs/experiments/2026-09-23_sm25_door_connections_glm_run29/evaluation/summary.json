@@ -1,0 +1,127 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "modelling_task": "reconstruction",
+  "reference_scope": "Post-generation only; original six drawings plus historical assisted seed supplied, no GT in generation. Partition/window diagnostics do not validate the newly recovered door.",
+  "interpretation": "还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。",
+  "input_manifest_sha256": "b6718a53132e1e86baabbb6a9b1525cfbd046f7947c33149613d2f3ce9474332",
+  "reference_case": "sm25-L_anchor",
+  "reference_path": "case_tests/test_baseline/gt/sm25-L_anchor/gt.json",
+  "reference_sha256": "654d94fed8a313f24631f36f7551f1a115f83dc66956538fa49cb40b5ad9b0a9",
+  "candidates": [
+    {
+      "candidate": "seed",
+      "is_recovery_seed": true,
+      "source_sha256": "707ddc701648532cdfa08ca8a8fb529fb4fb48b009ac8f649d73275ead312a94",
+      "partition_status": "not_evaluated",
+      "reference_spaces": 29,
+      "candidate_spaces": 29,
+      "openings": {
+        "window": 31,
+        "door": 29
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 31,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        },
+        {
+          "floor_id": "F2",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_01",
+      "is_recovery_seed": false,
+      "source_sha256": "88d7257cc872881cf1d44bd689c083e22b5e82c2293fc12b8624f8f74f029b80",
+      "partition_status": "not_evaluated",
+      "reference_spaces": 29,
+      "candidate_spaces": 29,
+      "openings": {
+        "window": 31,
+        "door": 30
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 31,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        },
+        {
+          "floor_id": "F2",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_02",
+      "is_recovery_seed": false,
+      "source_sha256": "7f7401f82c7b3225f70b39a1984a6640cf0c2b24cb17233c8ae7d4909f478003",
+      "partition_status": "not_evaluated",
+      "reference_spaces": 29,
+      "candidate_spaces": 29,
+      "openings": {
+        "window": 31,
+        "door": 30
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 31,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        },
+        {
+          "floor_id": "F2",
+          "missing_length_m": 0.0,
+          "extra_length_m": 0.0,
+          "missing_wkt": "LINESTRING EMPTY",
+          "extra_wkt": "LINESTRING EMPTY"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "Reference completeness and original pixel truth require separate evidence.",
+    "Partition comparison does not verify doors, connectivity, or vertical voids.",
+    "Reference-plane differences retain their existing evaluator interpretation.",
+    "No evaluation feedback supplied to the generating model."
+  ]
+}

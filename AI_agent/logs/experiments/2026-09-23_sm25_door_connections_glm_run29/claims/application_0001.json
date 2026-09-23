@@ -1,0 +1,69 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "seed",
+  "submitted_operations": [
+    {
+      "op": "add_opening",
+      "opening": {
+        "id": "2f-door-c000-c006-junction",
+        "kind": "door",
+        "space_id": "2f-c000",
+        "other_space_id": "2f-c006",
+        "p1": {
+          "claim": "claim_0001",
+          "value": "p1"
+        },
+        "p2": {
+          "claim": "claim_0001",
+          "value": "p2"
+        },
+        "z": {
+          "claim": "claim_0002",
+          "value": "z"
+        },
+        "state": "unknown",
+        "assumptions": [
+          "Height 2.1 m assumed (claim_0002); plan drawing shows no height dimension."
+        ]
+      },
+      "reason": "Original 2f_view shows exactly one door symbol at this junction: opening gap in the corridor north wall ink between the c002/c006 party wall line (x699) and resumed ink (x741), cyan leaf hinged west with a single quarter-circle arc swinging north into c006. Connects corridor 2f-c000 with room 2f-c006.",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "resolve_unbuilt_observation",
+      "input_id": "2f_view",
+      "observation_ids": [
+        "L029g3",
+        "L030g2"
+      ],
+      "opening_ids": [
+        "2f-door-c000-c006-junction"
+      ],
+      "reason": "Both historical records describe the SAME physical door, not two doors: their along-wall spans [9.9038,10.9286] and [10.1219,11.1248] overlap and the original drawing shows only one leaf+arc symbol at this junction. L029g3's span (abs x 10.02-11.05) matches the measured drawn jambs (abs x 9.953-10.961) within ~0.08 m; L030g2 is a shifted duplicate observation whose east end (abs 11.245) overshot the wall segment end (11.0598) into the c011 corner, which caused opening_crosses_room_boundaries. The party wall x=9.94 is continuously drawn (profile_008, y352-504) and the c006 south / c011 north wall stretch east of the junction shows no second symbol, so no second door exists there.",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Two historical positive opening observations near the second-floor northern corridor junction remain unbuilt; their number does not establish the number of physical doors. See geometry.unsupported for exact records.",
+      "reason": "Original-image review of 2f_view resolved the two overlapping unbuilt observations to a single drawn door, now built as 2f-door-c000-c006-junction on the corridor north wall (host plane y=16.0646, jamb span x 9.9528-10.9614) connecting corridor 2f-c000 with room 2f-c006.",
+      "replacement": [
+        "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, x 9.9528-10.9614, height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified."
+      ],
+      "source_refs": [
+        "claim_0001"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0001",
+    "claim_0002"
+  ],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "error": "claim must be explicitly adopted before application"
+}

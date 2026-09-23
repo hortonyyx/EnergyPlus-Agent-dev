@@ -450,11 +450,13 @@ class Toolkit:
                 name = operation["op"]
                 if name in {"update_opening", "update_window"}:
                     expected.add((name.removeprefix("update_"), operation["id"]))
+                elif name == "add_opening":
+                    expected.add(("opening", operation["opening"]["id"]))
                 elif name == "move_shared_wall":
                     expected.update(("space", identity) for identity in operation["space_ids"])
                 elif name == "reshape_spaces":
                     expected.update(("space", row["id"]) for row in operation["spaces"])
-                elif name not in {"set_component_thickness", "replace_note", "set_notes"}:
+                elif name not in {"set_component_thickness", "replace_note", "set_notes", "resolve_unbuilt_observation"}:
                     supported = False
             for audit in updated["geometry"].get("corrections", [])[len(parent["geometry"].get("corrections", [])):]:
                 expected.update(("opening", row["id"]) for row in audit.get("moved_openings", []))
@@ -1727,14 +1729,14 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def read_candidate_items(candidate: str, collection: str, floor_id: str | None = None,
                                  offset: int = 0, limit: int = 20) -> dict:
-            """Read exact saved proposal cells, windows or openings in bounded pages.
-            collection is cells/windows/openings; floor_id optionally narrows it.
+            """Read exact saved proposal cells, windows, openings or unsupported records.
+            collection is cells/windows/openings/unsupported; floor_id optionally narrows it.
             Each cell includes floor_id. Read next_offset for more; page_is_partial
             means this is not a complete build_bim input. Prefer revise_bim to keep
             unexamined objects. This reads the proposal, not mesh/GT observations.
             """
-            if collection not in {'cells','windows','openings'}:
-                raise ValueError('collection must be cells, windows or openings')
+            if collection not in {'cells','windows','openings','unsupported'}:
+                raise ValueError('collection must be cells, windows, openings or unsupported')
             if not 1 <= limit <= 50 or offset < 0:
                 raise ValueError('requires offset >= 0 and limit 1..50')
             proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
@@ -1745,6 +1747,8 @@ def serve(run: Path, readonly=False):
             cells = [{**c,'floor_id':f['name']} for f in floors for c in f['cells']]
             ids = {c['id'] for c in cells}
             items = (cells if collection == 'cells' else
+                [r for r in geometry.get('unsupported', []) if floor_id is None or r.get('floor_id') == floor_id]
+                if collection == 'unsupported' else
                 [w for w in geometry.get('windows',[]) if floor_id is None or w['floor'] == floor_id]
                 if collection == 'windows' else
                 [o for o in geometry.get('openings',[]) if floor_id is None or o['space_id'] in ids

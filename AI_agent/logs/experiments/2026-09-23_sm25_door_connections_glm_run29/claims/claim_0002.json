@@ -1,0 +1,85 @@
+{
+  "claim": {
+    "basis": "declared",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "2f-c000",
+        "kind": "space"
+      },
+      {
+        "id": "2f-c006",
+        "kind": "space"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "The plan drawing shows no height dimension for any door. Height is an inherited assumption of the imported proposal, restated here separately from the plan-endpoint measurement: 2.1 m door leaf above the second-floor slab at z=3.6, giving absolute z=[3.6,5.7]. The referenced plan image contains no height label; it is cited only as the examined drawing that lacks height evidence.",
+    "sources": [
+      {
+        "box": [
+          660.0,
+          430.0,
+          810.0,
+          570.0
+        ],
+        "image": "2f_view.png"
+      }
+    ],
+    "unresolved": [
+      "Door height is assumed, not measured; all other door/window heights in the building remain unlinked to image observations."
+    ],
+    "value_targets": {
+      "z": [
+        {
+          "id": "2f-c000",
+          "kind": "space"
+        },
+        {
+          "id": "2f-c006",
+          "kind": "space"
+        }
+      ]
+    },
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          3.6,
+          5.7
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "declared",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9",
+  "resolved_values": {
+    "z": [
+      3.6,
+      5.7
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        660.0,
+        430.0,
+        810.0,
+        570.0
+      ],
+      "image": "2f_view.png",
+      "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "size": [
+        1661,
+        1561
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

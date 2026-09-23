@@ -113,7 +113,7 @@ def height_coverage(store, candidate, current_state=None):
         for binding in claim_state.get("retained_bindings", []):
             if binding.get("parameter") != "z":
                 continue
-            for target in binding.get("targets", []):
+            for target in binding.get("result_targets", binding.get("targets", [])):
                 if not isinstance(target, (list, tuple)) or len(target) != 2:
                     continue
                 kind, identity = target

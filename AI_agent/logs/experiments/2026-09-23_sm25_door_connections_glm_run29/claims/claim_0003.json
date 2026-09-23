@@ -1,0 +1,226 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "2f-c000",
+        "kind": "space"
+      },
+      {
+        "id": "2f-c006",
+        "kind": "space"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Refined x calibration for the drawn door jambs of 2f-door-c000-c006-junction after the first overlay flagged a 5.8% cross-axis scale disagreement. Third x anchor added: c006/c011 east exterior wall inner-face line at x=918px (profile_010 C01, continuous y380-469; world plane 14.8784 m), type-consistent with the party-wall centreline anchor 699.5px=9.9405 m (profile_003). New x scale 44.25 px/m, consistent with the y scale 43.07 px/m within 2.7%. Jamb ink peaks unchanged: profile_002 C01 (x=699, wall resumes east of it) and C02 (x=741, wall ink resumes). map_pixels with anchors [[699.5,9.9405],[918,14.8784]] and [[525,16.0646],[614,13.9982]] gives west jamb 9.9518 m, east jamb 10.8784 m on host plane y=16.0646; drawn span ~0.93 m.",
+    "sources": [
+      {
+        "box": [
+          670.0,
+          517.0,
+          780.0,
+          527.0
+        ],
+        "image": "2f_view.png"
+      },
+      {
+        "box": [
+          905.0,
+          380.0,
+          935.0,
+          470.0
+        ],
+        "image": "2f_view.png"
+      }
+    ],
+    "unresolved": [
+      "Remaining 2.7% cross-axis scale disagreement (x 44.25 vs y 43.07 px/m) is drawing/calibration residual; east jamb value carries about +-0.05 m uncertainty.",
+      "The first, coarser calibration gave east jamb 10.9614 m; both readings bracket the drawn east jamb; the three-anchor value is preferred."
+    ],
+    "value_targets": {
+      "jamb_span_check": [],
+      "p1": [
+        {
+          "id": "2f-c000",
+          "kind": "space"
+        },
+        {
+          "id": "2f-c006",
+          "kind": "space"
+        }
+      ],
+      "p2": [
+        {
+          "id": "2f-c000",
+          "kind": "space"
+        },
+        {
+          "id": "2f-c006",
+          "kind": "space"
+        }
+      ]
+    },
+    "values": {
+      "jamb_span_check": {
+        "anchors": [
+          [
+            699.5,
+            9.9405
+          ],
+          [
+            918,
+            14.8784
+          ]
+        ],
+        "axis": "x",
+        "image": "2f_view.png",
+        "pixels": [
+          {
+            "candidate": "C01",
+            "profile": "profile_002"
+          },
+          {
+            "candidate": "C02",
+            "profile": "profile_002"
+          }
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      },
+      "p1": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          9.9518,
+          16.0646
+        ]
+      },
+      "p2": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          10.8784,
+          16.0646
+        ]
+      }
+    }
+  },
+  "computations": {
+    "jamb_span_check": {
+      "axis": "x",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [
+        {
+          "axis": "x",
+          "candidate": {
+            "id": "C01",
+            "peak": 699,
+            "pixels": [
+              699,
+              699
+            ],
+            "selected_at": "peak"
+          },
+          "image": "2f_view.png",
+          "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+          "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+          "reference": {
+            "candidate": "C01",
+            "profile": "profile_002"
+          },
+          "resolved_pixel": 699,
+          "slot": "pixels[2]"
+        },
+        {
+          "axis": "x",
+          "candidate": {
+            "id": "C02",
+            "peak": 741,
+            "pixels": [
+              741,
+              741
+            ],
+            "selected_at": "peak"
+          },
+          "image": "2f_view.png",
+          "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+          "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+          "reference": {
+            "candidate": "C02",
+            "profile": "profile_002"
+          },
+          "resolved_pixel": 741,
+          "slot": "pixels[3]"
+        }
+      ],
+      "method": "image_axis",
+      "metre_anchors": [
+        9.9405,
+        14.8784
+      ],
+      "metres_per_pixel": 0.022599084668192215,
+      "pixels": [
+        699.5,
+        918,
+        699,
+        741
+      ]
+    },
+    "p1": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    },
+    "p2": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "29fc16d19394bfdc1f1ead0331795f42a52f70292a10949f3af7996b054d9d7a",
+  "resolved_values": {
+    "jamb_span_check": [
+      9.929200458,
+      10.878362014
+    ],
+    "p1": [
+      9.9518,
+      16.0646
+    ],
+    "p2": [
+      10.8784,
+      16.0646
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        670.0,
+        517.0,
+        780.0,
+        527.0
+      ],
+      "image": "2f_view.png",
+      "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "size": [
+        1661,
+        1561
+      ]
+    },
+    {
+      "box": [
+        905.0,
+        380.0,
+        935.0,
+        470.0
+      ],
+      "image": "2f_view.png",
+      "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "size": [
+        1661,
+        1561
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

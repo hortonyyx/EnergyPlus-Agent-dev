@@ -1,0 +1,487 @@
+{
+  "agent_assumptions": [
+    "Historical assisted correction imported as an editable proposal; not cold start. Existing representative wall planes and 2.1 m assumed door heights are retained."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 30,
+    "openings": 61,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "29fc16d19394bfdc1f1ead0331795f42a52f70292a10949f3af7996b054d9d7a",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "p1",
+          "resolved_value": [
+            9.9528,
+            16.0646
+          ],
+          "targets": [
+            [
+              "space",
+              "2f-c000"
+            ],
+            [
+              "space",
+              "2f-c006"
+            ]
+          ],
+          "value_field": "p1"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "p2",
+          "resolved_value": [
+            10.9614,
+            16.0646
+          ],
+          "targets": [
+            [
+              "space",
+              "2f-c000"
+            ],
+            [
+              "space",
+              "2f-c006"
+            ]
+          ],
+          "value_field": "p2"
+        },
+        {
+          "claim_id": "claim_0002",
+          "computation": {
+            "basis": "declared",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            3.6,
+            5.7
+          ],
+          "targets": [
+            [
+              "space",
+              "2f-c000"
+            ],
+            [
+              "space",
+              "2f-c006"
+            ]
+          ],
+          "value_field": "z"
+        }
+      ],
+      "claims": {
+        "claim_0001": {
+          "decision": {
+            "claim_id": "claim_0001",
+            "disposition": "adopted",
+            "id": "decision_0001",
+            "reason": "Junction fully inspected in the original drawing: one door symbol (single leaf + arc), party wall continuous, jamb ink peaks measured with pixel profiles and converted with anchors from adjacent observed wall planes of the same drawing."
+          },
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "seed",
+              "objects": [
+                {
+                  "id": "2f-c000",
+                  "kind": "space"
+                },
+                {
+                  "id": "2f-c006",
+                  "kind": "space"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "One drawn door symbol at the 2f corridor north wall / c006 south wall junction (2f_view.png): cyan door leaf at x~704-707px hinged at the west jamb with a single quarter-circle arc swinging north into c006; opening gap in the wall ink runs from the c002/c006 party wall line (x~699.5px, profile_002 C01, continuous y352-504, so no c002-c006 door) to the resumed wall ink at x=741px (profile_002 C02). Jamb pixels converted with map_pixels anchors taken from adjacent observed wall planes of the same drawing: x 699.5px=9.9405 m (party wall plane, profile_003) and x 745px=11.0598 m (c011 west wall line, profile_006); y 525px=16.0646 m (corridor north wall host plane, profile_007) and y 614px=13.9982 m (c011 south wall line, profile_005). Result: jamb x 9.9528 m and 10.9614 m on host plane y=16.0646; both jambs lie inside the c000/c006 shared segment (9.9405-11.0598 m).",
+              "sources": [
+                {
+                  "box": [
+                    660.0,
+                    430.0,
+                    810.0,
+                    570.0
+                  ],
+                  "image": "2f_view.png"
+                },
+                {
+                  "box": [
+                    670.0,
+                    517.0,
+                    780.0,
+                    527.0
+                  ],
+                  "image": "2f_view.png"
+                },
+                {
+                  "box": [
+                    740.0,
+                    440.0,
+                    940.0,
+                    545.0
+                  ],
+                  "image": "2f_view.png"
+                }
+              ],
+              "unresolved": [
+                "Jamb pixel readings carry about +-2 px (~0.05 m) uncertainty; the west jamb coincides with the drawn party wall line, i.e. the door begins at the c002/c006 party wall as drawn.",
+                "No 1f door position is implied; 1f layout of this junction was not examined."
+              ],
+              "value_targets": {
+                "jamb_span": [],
+                "p1": [
+                  {
+                    "id": "2f-c000",
+                    "kind": "space"
+                  },
+                  {
+                    "id": "2f-c006",
+                    "kind": "space"
+                  }
+                ],
+                "p2": [
+                  {
+                    "id": "2f-c000",
+                    "kind": "space"
+                  },
+                  {
+                    "id": "2f-c006",
+                    "kind": "space"
+                  }
+                ]
+              },
+              "values": {
+                "jamb_span": {
+                  "anchors": [
+                    [
+                      699.5,
+                      9.9405
+                    ],
+                    [
+                      745,
+                      11.0598
+                    ]
+                  ],
+                  "axis": "x",
+                  "image": "2f_view.png",
+                  "pixels": [
+                    {
+                      "candidate": "C01",
+                      "profile": "profile_002"
+                    },
+                    {
+                      "candidate": "C02",
+                      "profile": "profile_002"
+                    }
+                  ],
+                  "reduction": null,
+                  "type": "image_axis"
+                },
+                "p1": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    9.9528,
+                    16.0646
+                  ]
+                },
+                "p2": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    10.9614,
+                    16.0646
+                  ]
+                }
+              }
+            },
+            "computations": {
+              "jamb_span": {
+                "axis": "x",
+                "calibration": "caller_interpreted_not_verified",
+                "measurement_bindings": [
+                  {
+                    "axis": "x",
+                    "candidate": {
+                      "id": "C01",
+                      "peak": 699,
+                      "pixels": [
+                        699,
+                        699
+                      ],
+                      "selected_at": "peak"
+                    },
+                    "image": "2f_view.png",
+                    "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                    "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+                    "reference": {
+                      "candidate": "C01",
+                      "profile": "profile_002"
+                    },
+                    "resolved_pixel": 699,
+                    "slot": "pixels[2]"
+                  },
+                  {
+                    "axis": "x",
+                    "candidate": {
+                      "id": "C02",
+                      "peak": 741,
+                      "pixels": [
+                        741,
+                        741
+                      ],
+                      "selected_at": "peak"
+                    },
+                    "image": "2f_view.png",
+                    "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                    "profile_sha256": "9022d77725d368a7b5383b74bf1b96721197b6e2f8b8814db1dce3b6a3647ea3",
+                    "reference": {
+                      "candidate": "C02",
+                      "profile": "profile_002"
+                    },
+                    "resolved_pixel": 741,
+                    "slot": "pixels[3]"
+                  }
+                ],
+                "method": "image_axis",
+                "metre_anchors": [
+                  9.9405,
+                  11.0598
+                ],
+                "metres_per_pixel": 0.02459999999999998,
+                "pixels": [
+                  699.5,
+                  745,
+                  699,
+                  741
+                ]
+              },
+              "p1": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              },
+              "p2": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              }
+            },
+            "id": "claim_0001",
+            "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9",
+            "resolved_values": {
+              "jamb_span": [
+                9.9282,
+                10.9614
+              ],
+              "p1": [
+                9.9528,
+                16.0646
+              ],
+              "p2": [
+                10.9614,
+                16.0646
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  660.0,
+                  430.0,
+                  810.0,
+                  570.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              },
+              {
+                "box": [
+                  670.0,
+                  517.0,
+                  780.0,
+                  527.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              },
+              {
+                "box": [
+                  740.0,
+                  440.0,
+                  940.0,
+                  545.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        },
+        "claim_0002": {
+          "decision": {
+            "claim_id": "claim_0002",
+            "disposition": "adopted",
+            "id": "decision_0002",
+            "reason": "Explicit inherited assumption restated separately from the plan measurement; the drawing carries no height information, so the assumed 2.1 m leaf is retained knowingly."
+          },
+          "record": {
+            "claim": {
+              "basis": "declared",
+              "candidate": "seed",
+              "objects": [
+                {
+                  "id": "2f-c000",
+                  "kind": "space"
+                },
+                {
+                  "id": "2f-c006",
+                  "kind": "space"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "The plan drawing shows no height dimension for any door. Height is an inherited assumption of the imported proposal, restated here separately from the plan-endpoint measurement: 2.1 m door leaf above the second-floor slab at z=3.6, giving absolute z=[3.6,5.7]. The referenced plan image contains no height label; it is cited only as the examined drawing that lacks height evidence.",
+              "sources": [
+                {
+                  "box": [
+                    660.0,
+                    430.0,
+                    810.0,
+                    570.0
+                  ],
+                  "image": "2f_view.png"
+                }
+              ],
+              "unresolved": [
+                "Door height is assumed, not measured; all other door/window heights in the building remain unlinked to image observations."
+              ],
+              "value_targets": {
+                "z": [
+                  {
+                    "id": "2f-c000",
+                    "kind": "space"
+                  },
+                  {
+                    "id": "2f-c006",
+                    "kind": "space"
+                  }
+                ]
+              },
+              "values": {
+                "z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    3.6,
+                    5.7
+                  ]
+                }
+              }
+            },
+            "computations": {
+              "z": {
+                "basis": "declared",
+                "method": "explicit_metric_value"
+              }
+            },
+            "id": "claim_0002",
+            "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9",
+            "resolved_values": {
+              "z": [
+                3.6,
+                5.7
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  660.0,
+                  430.0,
+                  810.0,
+                  570.0
+                ],
+                "image": "2f_view.png",
+                "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+                "size": [
+                  1661,
+                  1561
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0003.json",
+      "parent_candidate": "seed",
+      "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "b6718a53132e1e86baabbb6a9b1525cfbd046f7947c33149613d2f3ce9474332",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "f32420a66e7591da6a52e4e1ffdcfe67edd728fc8b50e4378d2725d4b8aae6c9"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "88d7257cc872881cf1d44bd689c083e22b5e82c2293fc12b8624f8f74f029b80",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Resolved at the 2f northern corridor junction: the two overlapping historical records (L029g3, L030g2) describe ONE physical door, built as 2f-door-c000-c006-junction (2f-c000 <-> 2f-c006, host plane y=16.0646, x 9.9528-10.9614, height still assumed 2.1 m). Door swing state unknown. Whole-building drawing fidelity, other openings and room roles remain unverified.",
+    "Whole-building drawing fidelity, door heights/states and room roles remain unverified."
+  ]
+}

@@ -22,6 +22,11 @@ def targets(operation):
 def parameter_present(proposal, operation, parameter):
     """A successful batch may subsequently overwrite one of its own bindings."""
     name = operation['op']
+    if name == 'add_opening':
+        intended = operation['opening']
+        row = next((r for r in proposal['geometry'].get('openings', []) if r['id'] == intended['id']), None)
+        return row is not None and row.get(parameter) == intended[parameter] and all(
+            row.get(k) == intended.get(k) for k in ('kind', 'space_id', 'other_space_id'))
     if name == 'reshape_spaces':
         _, space_index, _, vertex, axis = parameter.split('.')
         intended = operation['spaces'][int(space_index)]
@@ -116,10 +121,13 @@ def project(store, candidate):
                     continue
                 operation = application['resolved_operations'][binding['operation_index']]
                 refs = binding.get('targets', targets(operation))
+                result_refs = ([['opening', operation['opening']['id']]]
+                               if operation['op'] == 'add_opening' else refs)
                 item = {'record': application['id'], 'kind': application.get('kind', 'application'),
-                        'value': binding['value_field'], 'targets': refs, 'parameter': binding['parameter']}
+                        'value': binding['value_field'], 'targets': refs, 'parameter': binding['parameter'],
+                        'result_targets': result_refs}
                 matches = (parameter_present(current, operation, binding['parameter']) and
-                           context(saved, saved_source, refs) == context(current, source, refs))
+                           context(saved, saved_source, refs + result_refs) == context(current, source, refs + result_refs))
                 (retained if matches else stale).append(item)
         expected = {(value, ref['kind'], ref['id']) for value in row['resolved_values']
                     for ref in value_targets(row['claim'], value)}
