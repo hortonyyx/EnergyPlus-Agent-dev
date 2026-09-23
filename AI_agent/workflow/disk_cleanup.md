@@ -22,6 +22,10 @@ Get-PSDrive D | Select-Object Name, Used, Free
 
 `d5136ba15fc0` 是 09-23 清理时当前开发容器的 ID 前缀，后续环境变化后应重新核实。容器启动命令显示 `echo` 不能证明它没有开发用途；VS Code 可以通过 exec 在容器中运行其他进程。删除前还需检查容器写入层中的源码、配置和独有产物，并将需要保留的内容备份到容器之外。不要直接运行删除全部停止容器/卷的 prune 命令。
 
+09-23 用户返回结果已确认：`d5136ba15fc0` 就是 `vibrant_murdock`，是当前唯一运行的开发容器，不能整只删除。确认其他容器停止后，本轮已清理 7 个旧 server，保留当前版本及一个近期备用版本。
+
+pytest 指定的 `--basetemp` 也会持续占空间。完成测试并把结果、必要失败证据存入仓库后，可清除已经核实的旧 worker 临时树；不要删除同级独有审阅报告和脚本。本轮三个旧全量的 worker 树合计释放约 13.9GB，正式执行与复核记录保留。
+
 ## 将空闲空间归还 D 盘
 
 先在 Docker Desktop 的 **Settings → Resources → Advanced** 核实实际磁盘位置；官方路径说明见 [Docker WSL 文档](https://docs.docker.com/desktop/features/wsl/)。本轮容器没有 Docker socket、Windows 命令入口或 FITRIM 权限，无法在容器内完成宿主磁盘回收。

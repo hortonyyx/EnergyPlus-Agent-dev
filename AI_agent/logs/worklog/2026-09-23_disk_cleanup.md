@@ -45,3 +45,15 @@ tar -xzf /var/tmp/energyplus-cleanup-2026-09-23/historical-tmp.tar.gz -C /tmp/en
 宿主核验及压缩步骤见[磁盘清理操作说明](../../workflow/disk_cleanup.md)；最后退出 Docker/关闭 WSL 会中断当前会话，需在 Windows 完成。VHDX 与 Docker 统计的差值不能直接承诺为可回收字节数。
 
 逐项执行清单见[清理证据目录](../experiments/2026-09-23_disk_cleanup/)。产品研发下一入口仍是 [09-22 BIM 输出与 Agent 主线讨论](2026-09-22_reconstruction_agent_reframing_close.md)。
+
+## 用户返回 Windows 结果后的续清理
+
+用户提供 `docker ps -a --size` 和 `docker inspect`：当前 `d5136ba15fc0` 就是 `vibrant_murdock`，也是唯一运行中的容器，另一只 `ep_agent_dev` 已停止。前者不能作为“无用旧容器”删除；`echo` 启动命令不代表其实际用途。挂载结果再次确认源码在 C 盘、`vscode` 为独立卷。用户贴出的 53.7GB 是其执行命令时的 Docker 统计，不覆盖本轮实时文件系统读数。
+
+核对全部当前进程的程序路径、工作目录和打开文件后，清除 7 个超过一周未修改的旧版 VS Code server，保留当前 `7debcd0e2acdea1c52de81bf9ee1620444407dda` 及 09-17 的 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`。确认目录为 VS Code 程序分发包，删除对应旧链接；文件系统净减少 4,988,264,448 字节，卷现约 1.4GiB。
+
+继续发现 `/var/tmp/ea2_astra_pytest` 和 `/var/tmp/ea2_review_glm_pytest` 的历史完整测试副本。与 [09-06 执行记录](../reviews/execution/2026-09-06d_Ea2_evidence/resumption.md)、[复核记录](../reviews/verdict/2026-09-06g_Ea2_crossreview_claude.md) 和现有测试函数核实：`authorized_baseline`、`final_full`、`claude_full` 三目录仅包含各 6 个 pytest-xdist worker 的临时测试树，全部内容超过两周未修改且无当前进程引用。清除这三个可重建目录，净减少 13,873,688,576 字节。保留同级审阅报告、脚本、其他临时结果及仓库内正式测试原文；未将整个 `/var/tmp` 当缓存删除。
+
+本次追加净减少约 **18.86GB**，最终文件系统使用量 **41,227,739,136 字节**；相对第一轮清理前净减少 **42,842,701,824 字节，约 42.84GB / 39.9GiB**。当前程序、备用程序、本地历史归档和审阅报告均存在，Python 依赖可导入，源码未改，无需重跑全量。
+
+清单新增 `server_cleanup.json`、`pytest_cleanup.json`、`host_followup.json`。已经询问 VHDX 完整路径，宿主压缩和 Windows D 盘实际回收量仍待完成；没有删除任何容器、镜像、卷。
