@@ -36,7 +36,11 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 运行不使用付费 API 或默认回退，拒绝其他模型别名；六候选、两次局部复核和超时仅是本次实验预算。首次启动需 `alwaysLoad` 保证 MCP 工具在模型首请求前加载；工具清单、图片限制与生成接口已有离线 stdio 检查。主模型默认使用medium effort，可显式加`--effort low`，仅支持low/medium，不改变Haiku设置；实际档位与模型版本以回执为准。此入口未替换旧读图路径；实际质量与当前限制见 [任务页](../project/roadmap.md)。
 
-`review_detail(question, images, timeout_seconds=120)` 由总 Agent 自选局部问题、原图和15–240秒时限，可不调用。每次只把选中的原图副本与原样问题放入独立只读目录 `detail_XX/`；局部 Haiku 不获得主任务 scope、seed、候选、其他原图或旧评价，也不能再次派工或改 BIM。图像与输入清单保存摘要，父目录保留对应请求、流记录和回执；局部成本随主调用汇总一次。文件隔离不清洗问题文本，主模型若在问题里带答案，仍可能影响观察。
+09-23 本轮工作模型按用户要求继续 GLM：运行命令显式加 `--provider glm`，主模型和 `review_detail` 都经 `scripts/glm_code.sh` 使用已验证图像能力的 `glm-5.3-flash`，子目录继承路由。请求/回执分别保存实际请求型号与返回型号，型号不符标记路由失败，不自动回退。历史未注明 provider 的运行仍按 Claude 解释，不改写旧记录。
+
+`review_detail(question, images, timeout_seconds=120)` 由总 Agent 自选局部问题、原图和15–240秒时限，可不调用。每次只把选中的原图副本与原样问题放入独立只读目录 `detail_XX/`；局部模型（Claude 路由为 Haiku，GLM 路由为上述图像模型）不获得主任务 scope、seed、候选、其他原图或旧评价，也不能再次派工或改 BIM。图像与输入清单保存摘要，父目录保留对应请求、流记录和回执；局部成本随主调用汇总一次。文件隔离不清洗问题文本，主模型若在问题里带答案，仍可能影响观察。
+
+局部修订可读取 `get_bim_reference('claims')`，按原图框和目标对象 `record_claim`，再明确 `decide_claim`。`revise_bim` 的参数可传 `{"claim":"claim_0001","value":"height"}`，由代码取值、换算并调用现有几何操作。`claim_status` 区分采纳、应用与未评价保真；每次应用保留 `claims/application_*.json`，失败也保存。`set_component_thickness` 在同一修订入口只写墙/板属性，正厚度必须有依据，不改变几何。接口及当前限制见[架构实现范围](../design/architecture.md#09-23-opus-55-设计讨论后的实施收敛)。
 
 09-13 已把实际局部截止时间写入子清单后再计算摘要：取240秒上限与父任务剩余时间（预留45秒收尾）中较短者，拷图耗时也计入。子任务的 `inputs` / `view_image` 现在可显示递减剩余时间；只读提示提醒及时交付并标明未核范围。此前局部观察即使有外层超时，工具仍显示 null，见[真实反例与修复](../logs/worklog/2026-09-13_reconstruction_partition_and_reading.md)。随后两墙局部返工已实际收到剩时并在215.94秒结束，但修正观察仍不可用；这不证明时间反馈使识读可靠，见[后续实跑](../logs/worklog/2026-09-13_reconstruction_annotation_recovery.md)。
 

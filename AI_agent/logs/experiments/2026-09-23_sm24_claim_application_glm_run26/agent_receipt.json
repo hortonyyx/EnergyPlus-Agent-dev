@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1200,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 237.09,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 232710,
+    "stop_reason": "end_turn",
+    "session_id": "1efc7766-8b56-404d-8a05-436ab1479716",
+    "total_cost_usd": 0.5745119999999999,
+    "usage": {
+      "input_tokens": 72757,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 366720,
+      "output_tokens": 10507,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 72757,
+        "outputTokens": 10507,
+        "cacheReadInputTokens": 366720,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.5745119999999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 25,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Finished. Summary of the bounded East-elevation recovery:\n\n## Selected candidate: `candidate_01` (from `seed`), one applied correction\n\n**Method**\n1. Read the seed's East facade openings (ED1 door, EW1/EW2/EW3 windows) and the claims reference.\n2. Read East_view.png vertical dimension chains from enlarged crops: left chain **1900/2400/200**, mid chain **1100/2400/1000**, right chain **1700/1800/1000**, total 4500 mm.\n3. Anchored the scale by measured profiles: building top y=229, ground y=654 (425 px = 4500 mm, profile_004), then measured the cyan frame ink: door y408–635 (profile_001), large window y333–559 (profile_002), small windows y389–559 (profile_003).\n\n**Located observations (claims, all adopted)**\n| Object | Claim | Chain → z | Measured ink → z | Seed value | Action |\n|---|---|---|---|---|---|\n| ED1_door | claim_0001 | 1900/2400/200 → **0.2–2.6 m** | y408–635 → 2.605/0.201 m | 0–2.4 ✗ | **corrected via revise_bim** (claim reference, resolved [0.2, 2.6]) |\n| EW1_window | claim_0002 | 1100/2400/1000 → 1.0–3.4 | y333–559 → 3.399/1.006 | 1.0–3.4 ✓ | confirmed, no change |\n| EW2/EW3 | claim_0003 | 1700/1800/1000 → 1.0–2.8 | y389–559 → 2.806/1.006 | 1.0–2.8 ✓ | confirmed, no change |\n\nDoor horizontal position was cross-checked and already correct (elevation 5700–7300 mm from the south corner ↔ plan y −12.710…−14.305; width 1600).\n\n**Result check:** the applied revision passed source validation, and `view_elevation_candidate(East)` shows ED1_door spanning z 0.2–2.6 m inside its host wall, with the three windows unchanged. Claim applications (application_0001, applied) and the two adopted-but-unapplied confirmation claims (claim_0002/0003) are visible in the delivery record.\n\n**Honest limitations / unresolved**\n- The 200 mm zone below the door frame is unlabeled in the drawing (plinth vs. external step); both the dimension chain and the drawn frame position place the door bottom at z = 0.2 m, but the physical meaning of that plinth is not established.\n- No interior elevation evidence exists for the door, so the head-side condition above 2.6 m (lintel) is not modeled.\n- The seed's inherited assumption text still reads \"all doors 2.4 m, base 0\"; it is superseded for ED1 only by the recorded claim application. Other doors (North/South/interior) were out of scope and remain 0–2.4 m assumptions.\n- West facade sill/head heights remain inherited, unverified (unchanged per bounded scope); room roles remain furniture-inferred; drawing fidelity is not evaluated by any of these checks.",
+    "ttft_ms": 6077,
+    "type": "result",
+    "duration_ms": 233912,
+    "uuid": "3d2226b7-a4fc-4ac8-9494-03a0255fa174",
+    "ttft_stream_ms": 5802,
+    "time_to_request_ms": 62,
+    "first_content_frame_ms": 5802,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

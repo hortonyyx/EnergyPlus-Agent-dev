@@ -15,7 +15,7 @@ from src.agent.correction.schema import Window
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
-                    "wall_references", "wall_dimensions", "mesh_frame"}
+                    "wall_references", "wall_dimensions", "mesh_frame", "component_attributes"}
 _WINDOW_FIELDS = {"facade", "span", "z", "room", "floor", "assumptions"}
 _OPENING_FIELDS = {"space_id", "other_space_id", "p1", "p2", "z", "state", "assumptions"}
 _FACADE_REFLECTIONS = {

@@ -1,0 +1,288 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "seed",
+  "submitted_operations": [
+    {
+      "op": "update_opening",
+      "id": "ED1_door",
+      "changes": {
+        "z": {
+          "claim": "claim_0001",
+          "value": "height"
+        }
+      },
+      "reason": "Replay archived interpretation through computed edit parameter"
+    }
+  ],
+  "claim_ids": [
+    "claim_0001"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "9c6a8adc1812c5a7bb4744fb38a6a12b1c44d6e49008383eb7d90ed4a0cc5bc9",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "claim_id": "claim_0001",
+        "value_field": "height",
+        "resolved_value": [
+          0.2,
+          2.6
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.9,
+                "start_m": 4.5,
+                "end_m": 2.6,
+                "span_m": [
+                  2.6,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.4,
+                "start_m": 2.6,
+                "end_m": 0.2,
+                "span_m": [
+                  0.2,
+                  2.6
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 0.2,
+                "start_m": 0.2,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  0.2
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0001": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "ED1_door",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "Developer replay of archived GLM vertical chain; no fresh visual observation",
+            "sources": [
+              {
+                "box": [
+                  0.0,
+                  0.0,
+                  2639.0,
+                  931.0
+                ],
+                "image": "East_view.png"
+              }
+            ],
+            "unresolved": [],
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1900.0,
+                  2400.0,
+                  200.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.6,
+                    "index": 0,
+                    "length_m": 1.9,
+                    "span_m": [
+                      2.6,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 0.2,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      0.2,
+                      2.6
+                    ],
+                    "start_m": 2.6
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.2
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0001",
+          "parent_proposal_sha256": "9c6a8adc1812c5a7bb4744fb38a6a12b1c44d6e49008383eb7d90ed4a0cc5bc9",
+          "resolved_values": {
+            "height": [
+              0.2,
+              2.6
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                0.0,
+                0.0,
+                2639.0,
+                931.0
+              ],
+              "image": "East_view.png",
+              "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+              "size": [
+                2639,
+                931
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "Replay interface check only"
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_opening",
+      "id": "ED1_door",
+      "changes": {
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      "reason": "Replay archived interpretation through computed edit parameter",
+      "source_refs": [
+        "claim:claim_0001:e54dba2376453f9ee54a601016668280f07de892ef0438fef8b14cf9c749171b"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "7e06272798c32fd47b307347d26527b090b14fb3488b32420d791dbf5dad7a3c",
+  "geometry_after_sha256": "2287804b0b003aedadf9d29bebd16297f15bcee423aff09bb4f7a7de0e314d12",
+  "changes": [
+    {
+      "kind": "opening",
+      "id": "ED1_door",
+      "before": {
+        "id": "ED1_door",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          -12.709766
+        ],
+        "p2": [
+          10.0,
+          -14.305365
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.0,
+          2.4
+        ]
+      },
+      "after": {
+        "id": "ED1_door",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          -12.709766
+        ],
+        "p2": [
+          10.0,
+          -14.305365
+        ],
+        "space_id": "CorridorN_SE_open",
+        "z": [
+          0.2,
+          2.6
+        ]
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_01",
+  "source_model_sha256": "e07fc3dc9b0d0088aaea152ff1ce365d74fa71360332035622ed4fd2ca7574b2",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

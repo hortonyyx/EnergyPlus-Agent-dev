@@ -84,7 +84,7 @@ slots instead of retyping estimated coordinates. You still decide which peaks
 belong to the same aperture and which dimension endpoints define the scale.
 
 Your primary role is coordination and resolving evidence conflicts.
-review_detail asks Haiku a small local visual question using only selected
+review_detail asks the configured local image model a small visual question using only selected
 originals and your exact question. Use it when useful, with a bounded timeout.
 Describe a location and observable question, not an expected wall or room answer;
 check the returned measurements before applying them. Do not duplicate a whole
@@ -110,6 +110,14 @@ to page exact cells/windows/openings; oversized inspections return a summary.
 check_wall_dimensions also pages its host inventory and accepts floor_id.
 Partial pages are observations of a saved proposal, never full replacement input.
 Preserve reliable objects with local revisions.
+For a local dimensional revision, read get_bim_reference('claims'). Record your
+located interpretation and its computable value, decide whether to adopt it,
+then reference that value inside revise_bim. Code resolves saved measurements or
+dimension-chain arithmetic into the actual edit parameter. Do not recalculate
+the same coordinates in prose. This is currently an existing-candidate revision
+capability, not a required representation for all first builds. Literal metric
+estimates/inferences remain allowed when explicitly labelled. claim_status shows
+adopted versus actually applied/failed; none of these proves drawing truth.
 A successful build/revision returns source plan images. Inspect them; for
 positional comparisons use overlay_candidate with original pixel/metre anchors
 supported by the same observed reference plane. Registered anchors are reused
@@ -138,6 +146,7 @@ Parameter details are available through get_bim_reference(topic):
 - geometry: build_bim JSON schema, nonrectangular rooms and coordinate conventions.
 - plan_partition: optional build_plan_bim from pixel walls/openings, single floor.
 - edits: revise_bim operations, supported scopes and examples.
+- claims: located claims, parameter references, actual application and thickness attributes.
 - wall_dimensions: optional wall-face offsets and dimension endpoint conversions.
 - opening_review: observed-mark schema for check_openings; partial review is allowed.
 Read the needed reference when preparing that call; avoid unrelated details.
@@ -529,4 +538,83 @@ inspect_parametric_plan(candidate) to read/edit a template and resubmit the FULL
 compact plan. Preserve all reliable IDs/geometry/evidence and explain changes.
 A failed expansion is saved as parametric_drafts; a failed source build retains
 its candidate. Return feedback is a geometric check, not input fidelity approval.
+"""
+
+REFERENCES['claims'] = """Located observations that actually supply local revision parameters.
+
+1. inspect_candidate identifies exact existing window/opening/space IDs.
+2. record_claim(claim_json) stores a candidate-bound observation:
+{
+  "candidate": "seed",
+  "objects": [{"kind": "opening", "id": "door_A"}],
+  "basis": "annotation_and_pixels",
+  "reason": "The located dimension chain bounds this door, with its origin explained here.",
+  "sources": [{"image": "elevation.png", "box": [20, 30, 100, 200]}],
+  "values": {"height": {"type": "dimension_chain", "lengths": [900, 1800, 300],
+      "unit": "mm", "origin_m": 3.0, "direction": -1, "segment": 1}},
+  "observation_mode": "candidate_review",
+  "unresolved": []
+}
+The unrelated example yields absolute z=[0.3,2.1] from the zero-based segment.
+It is NOT a case answer. Transcribe YOUR actual labels and explain the world
+origin, which physical extent they measure, and any frame assumptions.
+
+basis: annotation_and_pixels, pixels, visual_estimate, inference, declared.
+Use original image boxes; code binds actual source hashes. Image-based claims
+require sources; declared/inference may have none but must state the actual basis.
+Record unexamined/conflicting evidence in unresolved. A direct observation is
+not automatically independent: observation_mode is caller-reported, and review
+of a shown hypothesis does not count as an independent corroboration.
+
+objects kinds: opening (geometry.openings), window (geometry.windows), space,
+boundary (exact source boundary ID). Values have named fields and three types:
+- literal: {"type":"literal", "value":0.18, "unit":"m"}; also a two-number
+  vector/interval. Use the true basis (including declared/inference), not a fake scan.
+- dimension_chain: as above; code uses map_dimension_chain, returns the selected
+  segment's ordered span in absolute metres. Closed arithmetic is not verified OCR.
+- image_axis: {"type":"image_axis", "image":"elevation.png", "axis":"y",
+  "anchors":[[10,3.0],[210,0.0]], "pixels":[40,180]}.
+  Image pixel axis can map to a chosen world x/y/z coordinate; explain that mapping
+  in reason. One pixel returns a scalar, two return an ORDERED metric interval.
+  For p1/p2 use an explicit two-coordinate literal; an image_axis interval is not
+  a 2D point transformation. Each pixel, including anchor pixels, can instead be
+  {"profile":"profile_001","candidate":"C01","at":"start"} (peak/end also
+  accepted), from view_pixel_profile. Code loads the immutable measured coordinate
+  and checks image/axis/hash. Numeric pixels remain explicitly model-selected;
+  profile candidates locate ink, not automatically a physical wall or aperture.
+
+3. decide_claim(claim_id, 'adopted'|'deferred'|'retracted', reason).
+Adoption is YOUR decision, not application and not an independent fidelity pass.
+4. revise_bim uses a reference IN PLACE OF the parameter value, e.g.:
+[{"op":"update_opening", "id":"door_A",
+  "changes":{"z":{"claim":"claim_0001","value":"height"}},
+  "reason":"Apply the checked extent using the recorded chain"}]
+Code resolves the parameter; do not duplicate the numeric value. source_refs are
+added automatically for bound parameters. Supported slots: update_window.z/span;
+update_opening.z/p1/p2; move_shared_wall.coordinate_m (claim must name both spaces).
+Other operations still use the edits contract and are reported as unbound.
+Claims bind the exact parent proposal. After a geometry/notes revision, record
+against the new candidate before further application; no silent stale reuse.
+Multiple objects/values may share one observation and be applied in one revision.
+
+Thickness only: inspect source wall/floor/ceiling boundary IDs via
+check_wall_dimensions/include_inventory for walls, or existing source inventories.
+revise_bim also accepts:
+{"op":"set_component_thickness", "boundary_id":"space/room_A/wall/0",
+ "thickness_m":{"claim":"claim_0002","value":"thickness"},
+ "basis":"observed overall thickness; finishes included",
+ "reason":"Preserve the explicit property without moving geometry"}.
+The claim names this boundary. This updates optional component_attributes on a
+new proposal/source; no space dimensions, opening geometry or level changes.
+Shared full coincident sides receive ONE property record. Partial contacts and
+open/unknown enclosure are not supported. Host identity is bound; later changing
+that boundary requires explicit rebinding rather than silently reusing thickness.
+
+claim_status() returns persisted claims/decisions and execution results. A failed
+edit retains its record and parent; source validation may also retain a failed
+candidate for inspection. Applications show exact resolved operations, actual
+source changes, legitimate hosted-opening movement and any unsupported scope.
+Missing claim references mean 'not tracked by this interface', not automatically
+wrong geometry. Applied on one candidate does NOT mean current on all descendants.
+finish_bim keeps failures and adopted-but-unapplied claims visible in delivery.
 """

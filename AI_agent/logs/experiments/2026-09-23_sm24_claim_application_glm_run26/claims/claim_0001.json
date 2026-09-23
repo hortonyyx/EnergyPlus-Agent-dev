@@ -1,0 +1,162 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "ED1_door",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East elevation external double door ED1. Green dimension chain attached to the door head/bottom extension lines reads 1900 above / 2400 door / 200 below within the 4500 total wall height. Measured calibration: building top line profile_004 C01 at y=229, ground line profile_004 C02 at y=654 (425 px = 4500 mm). Measured cyan door outer frame profile_001 C01/C13 at y=408..635 gives z=2605..201 mm, confirming the chain: head z=2600, bottom z=200, height 2400. The 200 mm is the drawn plinth/step below the door frame; the door frame is genuinely drawn above the ground line. World z is absolute height above floor level 0.",
+    "sources": [
+      {
+        "box": [
+          180.0,
+          150.0,
+          1250.0,
+          720.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          890.0,
+          200.0,
+          1090.0,
+          700.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          300.0,
+          150.0,
+          700.0,
+          720.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [
+      "The drawing does not label what the 200 mm zone below the door frame is (plinth or step); the chain and drawn frame position both place the door bottom at z=0.2 m."
+    ],
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          1900.0,
+          2400.0,
+          200.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 0.2,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.2
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "9c6a8adc1812c5a7bb4744fb38a6a12b1c44d6e49008383eb7d90ed4a0cc5bc9",
+  "resolved_values": {
+    "z": [
+      0.2,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        180.0,
+        150.0,
+        1250.0,
+        720.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    },
+    {
+      "box": [
+        890.0,
+        200.0,
+        1090.0,
+        700.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    },
+    {
+      "box": [
+        300.0,
+        150.0,
+        700.0,
+        720.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -17,7 +17,7 @@ from src.agent.geometry.source_model import _digest
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
-                    "wall_references", "wall_dimensions", "mesh_frame"}
+                    "wall_references", "wall_dimensions", "mesh_frame", "component_attributes"}
 
 
 def _json_bytes(value: object, *, indent: int | None = None) -> bytes:
@@ -132,6 +132,9 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             capability_profile="orthogonal_polygon",
             enclosure_declaration=enclosure,
         )
+        if "component_attributes" in proposal:
+            from src.agent.geometry.component_attributes import validate_component_attributes
+            source["component_attributes"] = validate_component_attributes(source, proposal["component_attributes"])
         if "wall_references" in proposal or "wall_dimensions" in proposal:
             from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
             walls = resolve_wall_references(source, proposal.get("wall_references", []))

@@ -210,3 +210,18 @@ def resolve_observations(
                     )
 
     return resolved, bindings
+
+
+def resolve_pixel_slots(values: list, *, view: dict, load_profile: Callable) -> tuple[list, list]:
+    """Resolve arbitrary original-pixel slots using the same audited profile contract."""
+    cache, resolved, bindings = {}, [], []
+    for index, value in enumerate(values):
+        if isinstance(value, dict):
+            value, binding = _resolve_reference(
+                value, slot=f"pixels[{index}]", view_name="image", load_profile=load_profile,
+                views={"image": view}, cache=cache)
+            bindings.append(binding)
+        else:
+            value = _finite_number(value, f"pixels[{index}]")
+        resolved.append(value)
+    return resolved, bindings

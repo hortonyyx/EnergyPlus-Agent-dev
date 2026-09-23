@@ -1,0 +1,202 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "candidate_01",
+  "submitted_operations": [
+    {
+      "op": "set_component_thickness",
+      "boundary_id": "space/Boardroom_W4/ceiling",
+      "thickness_m": {
+        "claim": "claim_0002",
+        "value": "thickness"
+      },
+      "basis": "synthetic fixture; not observed",
+      "reason": "Verify geometry preservation",
+      "source_refs": [
+        "fixture"
+      ]
+    },
+    {
+      "op": "set_component_thickness",
+      "boundary_id": "space/Boardroom_W4/wall/0",
+      "thickness_m": {
+        "claim": "claim_0003",
+        "value": "thickness"
+      },
+      "basis": "synthetic fixture; not observed",
+      "reason": "Verify geometry preservation",
+      "source_refs": [
+        "fixture"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0002",
+    "claim_0003"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "2237ab23a5f088f3cb04f315f4b823c258be4273730b68176d8854f3941ebcfc",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "thickness_m",
+        "claim_id": "claim_0002",
+        "value_field": "thickness",
+        "resolved_value": 0.2,
+        "computation": {
+          "method": "explicit_metric_value",
+          "basis": "inference"
+        }
+      },
+      {
+        "operation_index": 1,
+        "parameter": "thickness_m",
+        "claim_id": "claim_0003",
+        "value_field": "thickness",
+        "resolved_value": 0.2,
+        "computation": {
+          "method": "explicit_metric_value",
+          "basis": "inference"
+        }
+      }
+    ],
+    "claims": {
+      "claim_0002": {
+        "record": {
+          "claim": {
+            "basis": "inference",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "space/Boardroom_W4/ceiling",
+                "kind": "boundary"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "Synthetic 0.2 m acceptance value, NOT an observed sm24 thickness",
+            "sources": [],
+            "unresolved": [],
+            "values": {
+              "thickness": {
+                "type": "literal",
+                "unit": "m",
+                "value": 0.2
+              }
+            }
+          },
+          "computations": {
+            "thickness": {
+              "basis": "inference",
+              "method": "explicit_metric_value"
+            }
+          },
+          "id": "claim_0002",
+          "parent_proposal_sha256": "2237ab23a5f088f3cb04f315f4b823c258be4273730b68176d8854f3941ebcfc",
+          "resolved_values": {
+            "thickness": 0.2
+          },
+          "sources": [],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0002",
+          "disposition": "adopted",
+          "id": "decision_0002",
+          "reason": "Synthetic acceptance only"
+        }
+      },
+      "claim_0003": {
+        "record": {
+          "claim": {
+            "basis": "inference",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "space/Boardroom_W4/wall/0",
+                "kind": "boundary"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "Synthetic 0.2 m acceptance value, NOT an observed sm24 thickness",
+            "sources": [],
+            "unresolved": [],
+            "values": {
+              "thickness": {
+                "type": "literal",
+                "unit": "m",
+                "value": 0.2
+              }
+            }
+          },
+          "computations": {
+            "thickness": {
+              "basis": "inference",
+              "method": "explicit_metric_value"
+            }
+          },
+          "id": "claim_0003",
+          "parent_proposal_sha256": "2237ab23a5f088f3cb04f315f4b823c258be4273730b68176d8854f3941ebcfc",
+          "resolved_values": {
+            "thickness": 0.2
+          },
+          "sources": [],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0003",
+          "disposition": "adopted",
+          "id": "decision_0003",
+          "reason": "Synthetic acceptance only"
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "set_component_thickness",
+      "boundary_id": "space/Boardroom_W4/ceiling",
+      "thickness_m": 0.2,
+      "basis": "synthetic fixture; not observed",
+      "reason": "Verify geometry preservation",
+      "source_refs": [
+        "fixture",
+        "claim:claim_0002:5e71584abe81bb0711fcf371e8011bf9df1872c23e7bc9d8d0c51ba56bb52292"
+      ]
+    },
+    {
+      "op": "set_component_thickness",
+      "boundary_id": "space/Boardroom_W4/wall/0",
+      "thickness_m": 0.2,
+      "basis": "synthetic fixture; not observed",
+      "reason": "Verify geometry preservation",
+      "source_refs": [
+        "fixture",
+        "claim:claim_0003:38014e17eaf446e365da9c8a4c2118f5e70e28e29f7eb7a5ac3bf23d4baea9c1"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "2287804b0b003aedadf9d29bebd16297f15bcee423aff09bb4f7a7de0e314d12",
+  "geometry_after_sha256": "2287804b0b003aedadf9d29bebd16297f15bcee423aff09bb4f7a7de0e314d12",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_02",
+  "source_model_sha256": "ea11f074bae59880be052b5dc09c634e39474488664de06f75c61b6844e66aec",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

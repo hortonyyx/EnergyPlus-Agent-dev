@@ -138,8 +138,16 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         raise ValueError("only configured subscription aliases are allowed")
     run = run.resolve()
     log_run = (log_run or run).resolve()
+    manifest = json.loads((run / "inputs.json").read_text())
+    provider = manifest.get("provider", "claude")
+    if provider not in {"claude", "glm"}:
+        raise ValueError("unsupported subscription provider")
+    if provider == "glm" and exploratory_opus:
+        raise ValueError("GLM routing cannot be combined with exploratory Opus")
+    routed_model = "glm-5.3-flash" if provider == "glm" else model
     from src.agent.execution.subscription_json import _isolated_env, _redact_secrets
-    command = ["claude", "-p", "--model", model, "--tools", "",
+    launcher = str(ROOT / "scripts/glm_code.sh") if provider == "glm" else "claude"
+    command = [launcher, "-p", "--model", routed_model, "--tools", "",
                "--allowedTools", "mcp__bim__*", "--permission-mode", "dontAsk",
                "--strict-mcp-config", "--setting-sources", "",
                "--settings", '{"disableAllHooks":true}',
@@ -165,7 +173,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     command.extend(["--mcp-config", json.dumps({"mcpServers": {"bim": {
         "command": server[0], "args": server[1:], "alwaysLoad": True}}})])
     started = time.monotonic()
-    record = {"requested_model": model, "channel": "Claude subscription; no API/fallback",
+    record = {"requested_model": routed_model, "requested_role": model, "provider": provider,
+              "channel": f"{provider} subscription; no paid API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
               "exploratory_opus": exploratory_opus,
               "effort": (effort or "medium") if not readonly or model == "sonnet" else None}
@@ -177,6 +186,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     with tempfile.TemporaryDirectory(prefix="bim-agent-cwd-") as cwd:
         with stdout_path.open("x") as stdout, stderr_path.open("x") as stderr:
             env = {**_isolated_env(), "ENABLE_TOOL_SEARCH": "false"}
+            if provider == "glm":
+                env.update(GLM_MODEL=routed_model, GLM_SMALL_MODEL=routed_model)
             process = subprocess.Popen(command, cwd=cwd, env=env,
                                        stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
                                        text=True, start_new_session=True)
@@ -198,6 +209,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
             record["actual_model"] = event.get("model")
         if event.get("type") == "result":
             record["result"] = event
+    if provider == "glm" and record.get("actual_model") != routed_model:
+        record["routing_error"] = "GLM invocation did not confirm the requested image model"
     dump(log_run / f"{name}_receipt.json", record)
     return record
 
@@ -245,6 +258,7 @@ def prepare_detail_observation(
     (child / "question.txt").write_text(question, encoding="utf-8")
     manifest = {
         "images": selected,
+        "provider": toolkit.manifest.get("provider", "claude"),
         "input_mode": "isolated_detail_observation",
         "only_input": (
             "selected original image copies and local question; no parent scope, "
@@ -302,13 +316,15 @@ def review_detail_observation(
                         receipt_context={"observation_source": source})
         result_event = result.get("result")
         completed = (bool(result_event) and not result_event.get("is_error", False)
-                     and not result.get("timed_out", False) and result.get("returncode") == 0)
+                     and not result.get("timed_out", False) and result.get("returncode") == 0
+                     and not result.get("routing_error"))
         return {"actual_model": result.get("actual_model"),
                 "timed_out": result.get("timed_out", False),
                 "returncode": result.get("returncode"),
                 "result": result_event.get("result", "No completed answer") if result_event else "No completed answer",
                 "is_error": result_event.get("is_error", False) if result_event else True,
                 "completed": completed,
+                "routing_error": result.get("routing_error"),
                 "observation_source": source,
                 "remaining_seconds": toolkit.remaining_seconds()}
 
@@ -349,6 +365,116 @@ class Toolkit:
         self.manifest = json.loads((self.run / "inputs.json").read_text())
         self.readonly = readonly
 
+    def claims(self):
+        from src.agent.execution.bim_claims import ClaimStore
+        return ClaimStore(self)
+
+    def record_claim(self, claim_json):
+        if self.readonly:
+            raise ValueError("only the coordinator may record candidate claims")
+        result = self.claims().record(json.loads(claim_json))
+        self.log("record_claim", result)
+        return result
+
+    def decide_claim(self, claim_id, disposition, reason):
+        if self.readonly:
+            raise ValueError("only the coordinator may decide candidate claims")
+        result = self.claims().decide(claim_id, disposition, reason)
+        self.log("decide_claim", result)
+        return result
+
+    def revise(self, candidate, operations_json):
+        """Resolve evidence values, use the existing edits, then record actual outcome."""
+        import copy
+        from src.agent.execution.bim_claims import geometry_state, objects, sha
+        from src.agent.geometry.component_attributes import thickness_record
+        from src.agent.geometry.proposal_edits import apply_proposal_edits
+        if self.readonly:
+            raise ValueError("only the coordinator may revise BIM")
+        store = self.claims()
+        submitted = json.loads(operations_json)
+        def references(value):
+            if isinstance(value, dict):
+                found = {value["claim"]} if isinstance(value.get("claim"), str) else set()
+                return found | set().union(*(references(v) for v in value.values()))
+            if isinstance(value, list):
+                return set().union(*(references(v) for v in value))
+            return set()
+        application = store._write("application", {"parent_candidate": candidate,
+            "submitted_operations": submitted, "claim_ids": sorted(references(submitted)),
+            "status": "pending", "drawing_fidelity": "not_evaluated"})
+        application_path = store.folder / f"{application['id']}.json"
+        try:
+            parent, parent_source = store.candidate(candidate)
+            operations, evidence = store.resolve_operations(candidate, submitted)
+            application.update(evidence=evidence, resolved_operations=operations)
+            updated = copy.deepcopy(parent)
+            for operation in operations:
+                if operation.get("op") != "set_component_thickness":
+                    updated = apply_proposal_edits(updated, [operation])
+                    continue
+                if set(operation) != {"op", "boundary_id", "thickness_m", "basis", "reason", "source_refs"}:
+                    raise ValueError("set_component_thickness requires boundary_id/thickness_m/basis/reason/source_refs")
+                if not isinstance(operation["reason"], str) or not operation["reason"].strip():
+                    raise ValueError("thickness edit requires a reason")
+                record = thickness_record(parent_source, operation["boundary_id"], operation["thickness_m"],
+                    basis=operation["basis"], source_refs=operation["source_refs"])
+                ids = set(record["boundary_ids"])
+                before = updated.get("component_attributes", [])
+                updated["component_attributes"] = [row for row in before if not ids.intersection(row["boundary_ids"])] + [record]
+                updated["geometry"].setdefault("corrections", []).append({"operation": "set_component_thickness",
+                    "reason": operation["reason"], "before": before,
+                    "after": updated["component_attributes"], "geometry_effect": "none"})
+            # Evidence and computed parameter mapping survive proposal-only recovery.
+            if evidence["bindings"]:
+                updated["geometry"].setdefault("corrections", []).append({"operation": "claim_application",
+                    "application_id": application["id"], **evidence})
+            old_objects, new_objects = objects(parent, parent_source), objects(updated, parent_source)
+            changes = [{"kind": key[0], "id": key[1], "before": old_objects.get(key), "after": new_objects.get(key)}
+                       for key in sorted(old_objects.keys() | new_objects.keys())
+                       if key[0] != "boundary" and old_objects.get(key) != new_objects.get(key)]
+            expected = set()
+            supported = True
+            for operation in operations:
+                name = operation["op"]
+                if name in {"update_opening", "update_window"}:
+                    expected.add((name.removeprefix("update_"), operation["id"]))
+                elif name == "move_shared_wall":
+                    expected.update(("space", identity) for identity in operation["space_ids"])
+                elif name != "set_component_thickness":
+                    supported = False
+            for audit in updated["geometry"].get("corrections", [])[len(parent["geometry"].get("corrections", [])):]:
+                expected.update(("opening", row["id"]) for row in audit.get("moved_openings", []))
+            application.update(geometry_before_sha256=sha(geometry_state(parent)),
+                geometry_after_sha256=sha(geometry_state(updated)), changes=changes,
+                scope_check="checked" if supported else "not_supported_for_all_operations",
+                outside_declared_scope=[row for row in changes if (row["kind"], row["id"]) not in expected] if supported else None)
+            bound_slots = {(row["operation_index"], row["parameter"]) for row in evidence["bindings"]}
+            application["parameters_without_claims"] = [
+                {"operation_index": index, "parameter": field}
+                for index, operation in enumerate(operations)
+                for field in (operation.get("changes", {}).keys() if operation["op"] in {"update_window", "update_opening"}
+                              else ["coordinate_m"] if operation["op"] == "move_shared_wall"
+                              else ["thickness_m"] if operation["op"] == "set_component_thickness" else [])
+                if (index, field) not in bound_slots]
+            result = self.build(updated, action="revise_bim", parent=candidate, operations=operations,
+                                claim_application={"file": str(application_path.relative_to(self.run)), **evidence})
+            application.update(candidate=result.get("candidate"), source_model_sha256=result.get("source_model_sha256"),
+                status="applied" if result.get("source_geometry_ready") else "failed",
+                source_geometry_ready=result.get("source_geometry_ready", False),
+                error=result.get("error"), source_validation=result.get("source_validation"))
+        except Exception as error:
+            application.update(status="failed", error=str(error))
+            dump(application_path, application)
+            self.log("claim_application", application)
+            raise
+        dump(application_path, application)
+        if result.get("candidate"):
+            dump(self.candidate_path(result["candidate"]) / "application.json", application)
+        self.log("claim_application", application)
+        result["claim_application"] = application
+        return result
+
     def log(self, action, data):
         with (self.run / "tools.jsonl").open("a") as stream:
             stream.write(json.dumps({"time": time.time(), "readonly": self.readonly,
@@ -379,6 +505,13 @@ class Toolkit:
                   "generation_status": generation_status or {"state":"in_progress"},
                   **summarize_delivery(source, reviews)}
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
+        claim_state = self.claims().status()
+        # Keep full claims in their files; summarize unresolved execution in handoff.
+        result["claim_applications"] = [{key: row.get(key) for key in
+            ("id", "parent_candidate", "candidate", "claim_ids", "status", "error", "parameters_without_claims")}
+            for row in claim_state["applications"]]
+        result["adopted_unapplied_claims"] = [row["id"] for row in claim_state["claims"]
+            if (row["decision"] or {}).get("disposition") == "adopted" and not row["applied_anywhere"]]
         dump(self.run / "delivery.json", result)
         # A separate handoff preserves the immutable candidate's original report.
         statuses = {"not_reviewed":"未回查", "partial":"仅有局部回查",
@@ -498,6 +631,11 @@ class Toolkit:
             f'{facade_table}'
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
+            '<details><summary>观察与实际应用</summary><p>采纳、执行成功与原图正确分别判断；'
+            '历史应用成功不代表当前候选保留该结果。完整记录见检查记录。</p><pre>'
+            + html.escape(json.dumps({"adopted_unapplied": result["adopted_unapplied_claims"],
+                                      "applications": result["claim_applications"]}, ensure_ascii=False, indent=2))
+            + '</pre></details>'
             f'{feedback_html}'
             f'{evidence_html}'
             f'<iframe title="保存的 BIM 候选" src="{result["viewer"]}"></iframe>'
@@ -615,7 +753,7 @@ class Toolkit:
         return result
 
     def build(self, proposal, *, action="build_bim", parent=None, operations=None,
-              plan_input=None, calibration=None):
+              plan_input=None, calibration=None, claim_application=None):
         from src.agent.execution.source_proposal import export_source_proposal
         if isinstance(proposal, dict) and 'mesh_frame' in proposal:
             from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
@@ -628,12 +766,14 @@ class Toolkit:
         candidate = f"candidate_{index:02d}"
         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
                       "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
-                      "generator": "Claude subscription tool loop"}
+                      "generator": f"{self.manifest.get('provider', 'claude')} subscription tool loop"}
         if parent is not None:
             provenance.update(parent_candidate=parent,
                               parent_proposal_sha256=digest(self.candidate_path(parent)/"proposal.json"))
         if plan_input is not None:
             provenance["plan_input"] = plan_input
+        if claim_application is not None:
+            provenance["claim_application"] = claim_application
         report = export_source_proposal(proposal, self.run/candidate, provenance=provenance)
         if operations is not None:
             dump(self.run/candidate/"operations.json", operations)
@@ -1421,6 +1561,26 @@ def serve(run: Path, readonly=False):
 
     if not readonly:
         @server.tool()
+        def record_claim(claim_json: str) -> dict:
+            """Record a located interpretation and computable values for an existing candidate.
+            Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
+            """
+            return toolkit.record_claim(claim_json)
+
+        @server.tool()
+        def decide_claim(claim_id: str, disposition: str, reason: str) -> dict:
+            """Choose adopted/deferred/retracted; adoption does not apply geometry."""
+            return toolkit.decide_claim(claim_id, disposition, reason)
+
+        @server.tool()
+        def claim_status(candidate: str | None = None) -> dict:
+            """Read persisted claims, decisions and actual application results.
+            Optional candidate filters observations made against that parent; applications
+            remain run-wide. Success on another candidate is not current applicability.
+            """
+            return toolkit.claims().status(candidate)
+
+        @server.tool()
         def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "",
                                   include_inventory: bool = False, floor_id: str | None = None,
                                   offset: int = 0, limit: int = 30) -> dict:
@@ -1630,13 +1790,7 @@ def serve(run: Path, readonly=False):
             See get_bim_reference("edits") for operations. Prior candidates stay unchanged.
             Opening changes/removals and shared-wall moves require a reason and source_refs.
             """
-            from src.agent.geometry.proposal_edits import apply_proposal_edits
-            path = toolkit.candidate_path(candidate)
-            proposal = json.loads((path/"proposal.json").read_text())
-            operations = json.loads(operations_json)
-            updated = apply_proposal_edits(proposal, operations)
-            return candidate_result(toolkit.build(
-                updated, action="revise_bim", parent=candidate, operations=operations))
+            return candidate_result(toolkit.revise(candidate, operations_json))
 
         @server.tool()
         def review_detail(question: str, images: list[str], timeout_seconds: float = 120) -> dict:
@@ -1749,6 +1903,9 @@ def serve(run: Path, readonly=False):
 
 
 def run_experiment(args):
+    provider = getattr(args, "provider", "claude")
+    if provider == "glm" and getattr(args, "exploratory_opus", False):
+        raise ValueError("--provider glm cannot be combined with --exploratory-opus")
     seed_path = getattr(args, "resume_candidate", None)
     resume_plan_path = getattr(args, "resume_plan", None)
     plan_image = getattr(args, "plan_image", None)
@@ -1795,7 +1952,7 @@ def run_experiment(args):
             source_input_mode += '_with_building_declaration'
         if not seed_path and not plan_recovery:
             generation_mode = 'native_mesh_agent_experiment'
-    manifest = {"images":images,"scope":args.scope,
+    manifest = {"images":images,"scope":args.scope,"provider":provider,
                              "input_mode": generation_mode,
                              "exploratory_opus": getattr(args, "exploratory_opus", False),
                              "source_input_mode": source_input_mode,
@@ -1811,6 +1968,8 @@ def run_experiment(args):
                                  "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
                                  "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
+                                 "src/agent/execution/bim_claims.py":digest(ROOT/"src/agent/execution/bim_claims.py"),
+                                 "src/agent/geometry/component_attributes.py":digest(ROOT/"src/agent/geometry/component_attributes.py"),
                                  "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
                                  "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),
                                  "src/agent/geometry/mesh_bim_frame.py":digest(ROOT/"src/agent/geometry/mesh_bim_frame.py"),
@@ -1907,7 +2066,9 @@ def run_experiment(args):
                            "counts":report.get("counts")})
     selection = run / "delivery_selection.json"
     delivery = None
-    response_completed = bool(record.get("result")) and not record["result"].get("is_error",False)
+    response_completed = (bool(record.get("result")) and not record["result"].get("is_error",False)
+                          and not record.get("routing_error") and not record.get("timed_out")
+                          and record.get("returncode", 0) == 0)
     generation_status = {"state":"completed" if response_completed else "interrupted",
                          "agent_response_completed":response_completed,
                          "elapsed_seconds":record["elapsed_seconds"],
@@ -1915,6 +2076,8 @@ def run_experiment(args):
                          "timed_out":record.get("timed_out", False)}
     if record.get("result", {}).get("is_error"):
         generation_status["error"] = str(record["result"].get("result", "Model invocation failed"))[:1000]
+    if record.get("routing_error"):
+        generation_status["error"] = record["routing_error"]
     if selection.exists():
         chosen = json.loads(selection.read_text())["candidate"]
         delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected", generation_status=generation_status)
@@ -1956,6 +2119,8 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--provider", choices=("claude", "glm"), default="claude",
+                     help="Subscription route; glm uses glm-5.3-flash for main and local image tasks")
     run.add_argument("--exploratory-opus", action="store_true",
                      help="Explicit task-authorized exploratory Opus subscription run; default remains Sonnet")
     run.add_argument("--effort", choices=("low", "medium"), default="medium",

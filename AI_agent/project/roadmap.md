@@ -1,5 +1,9 @@
 # 路线与当前任务
 
+**09-23 首个应用节点完成：** 结构化观察、采纳决定、尺寸链/profile 换算到现有门窗/共享墙修改参数及真实执行记录已接通；厚度作为不改几何的墙/板属性保存。102 项离线检查与真实历史产物回放通过。GLM/run26 在 237.09 秒独立读东立面三链，实际只把东门从 0–2.4m 改到 0.2–2.6m，其他几何保持。定点恢复有效，不是整案自主验收；采用基点不变。下一步处理确认保持、过时假设及当前候选未决项的交付，再换例和自主选题。见[本节点记录](../logs/worklog/2026-09-23_claim_application_implementation.md)。
+
+**本轮工作模型：用户明确继续 GLM。** 已显式接入 `--provider glm`，原图及局部图像模型均走 `glm-5.3-flash`。run26 实际型号已核对，1 次主调用、无局部调用和回退；所有调用结束。
+
 **09-23 Opus 5.5 总 Agent 讨论完成：** 用户指定的两轮开发审阅已完成，实际模型与输入/回答均留证。下一增量从“先做通用账本”收敛为结构化观察直接参与现有建模/修订，记录采纳与真实应用的区别、参数引用和受影响对象；厚度作小型属性增量。先历史产物核接口，再有界原图验证实际判断与修订，之后自主选题/冷启动及换例。详见[讨论结论、修正与限制](../logs/experiments/2026-09-23_opus55_agent_design/README.md)。本次无新BIM或生产实现。
 
 **09-23 输出边界已澄清，下一步回到总 Agent 实现：** 厚度作为墙、板等构件属性保存，主要服务仿真；其对几何的细小影响不是当前需求重点。逻辑闭合空间体和基于该形态的停点编辑保持不变。先贯通最小观察/采纳状态、构件厚度属性与候选输出，再接已有识读/量测能力，用 sm24 验证观察驱动的建模与回叠闭环，随后 sm21 换例、sm25 多层/门连接。具体交付与完成依据见[本次讨论及实施计划](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)。本次仍为讨论和计划，没有新生产代码、模型实验或采用候选。
@@ -106,7 +110,7 @@
 
 ## 当前交接
 
-**当前交接：[09-23 输出需求与接续记录](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)，最新实施取舍见[Opus 5.5 两轮讨论](../logs/experiments/2026-09-23_opus55_agent_design/README.md)。** 厚度保存但不前置几何精修；先做观察到现有修订工具的参数引用与实际应用贯通，再验证原图判断和真实修订。主线重定位依据保留在[09-22 交接](../logs/worklog/2026-09-22_reconstruction_agent_reframing_close.md)，上一轮 GLM 实验与采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
+**当前交接：[09-23 观察应用与厚度实现节点](../logs/worklog/2026-09-23_claim_application_implementation.md)。** 局部参数应用已取得 GLM 原图实跑证据，先补确认保持/过时假设/未决项的状态表达，再换例与自主选题。需求依据见[输出范围](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)，设计取舍见[Opus 5.5 两轮讨论](../logs/experiments/2026-09-23_opus55_agent_design/README.md)。主线重定位见[09-22 交接](../logs/worklog/2026-09-22_reconstruction_agent_reframing_close.md)，采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 
