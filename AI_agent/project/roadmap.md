@@ -1,5 +1,7 @@
 # 路线与当前任务
 
+**09-23 本会话已收工：** 输出厚度边界、Opus两轮设计讨论、观察到参数应用、当前状态/确认保持、联合改形引用及逐层高度依据已完成本轮增量。GLM三次实跑全部结束，最新sm21窗口15/15完整匹配、分区minor，12内门高度仍未核查。下次转sm25多层/门连接，整案自主与真实厚度采集仍待验证；详见[完整收工交接](../logs/worklog/2026-09-23_reconstruction_session_close.md)。本次不再实验。
+
 **09-23 联合改形与逐层高度节点完成：** 多房间顶点引用、值/对象对应、支撑量测及逐层立面高度依据已接通，86项相关测试和七房间16坐标真实回放通过。GLM/run28 在503.26秒先确认8外开口、再修9窗高度，全部平面/连接保持；生成后窗评价达15/15完整，分区minor，17外开口图像高度依据已关联、12内门仍未核查。工作模型仍为GLM，全部调用已结束。该例是限定范围续修，不是整案自主验收；下一项转sm25多层/门连接，联合改形模型使用仍待换例实证。见[本节点交接](../logs/worklog/2026-09-23_shape_bindings_and_height_coverage.md)。
 
 **09-23 当前状态与 sm21 换例完成：** 当前候选投影、确认保持、未决项交付、显式假设替换及同批覆盖后重新核值已实现，74项相关测试通过。GLM/run27 自选首层走廊与东窗问题，并规整二层两隔墙；14空间/29开口/14连接保持，独立分区 severe→minor，但窗仍14/15，二层东窗仍低0.2m。只有东窗修改完整引用观察参数，联合改形尚未接通；确认保持只在离线/真实回放通过，未在本次模型实跑使用。采用基点不变，下一项接联合改形参数/支撑量测的对应及逐层立面高度检查。见[本节点交接](../logs/worklog/2026-09-23_claim_state_and_sm21.md)。
@@ -114,7 +116,7 @@
 
 ## 当前交接
 
-**当前交接：[09-23 联合改形参数与逐层高度依据](../logs/worklog/2026-09-23_shape_bindings_and_height_coverage.md)。** 参数引用回放与GLM高度续审已通过，run28/candidate_01为sm21最新局部续修入口；下一项sm25多层/门连接换例，仍不把15/15窗和minor当成整案自主通过。此前[当前状态与自选复核](../logs/worklog/2026-09-23_claim_state_and_sm21.md)保留。此前[观察应用/厚度节点](../logs/worklog/2026-09-23_claim_application_implementation.md)、[输出范围](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)、[Opus 5.5讨论](../logs/experiments/2026-09-23_opus55_agent_design/README.md)保留。主线重定位见[09-22交接](../logs/worklog/2026-09-22_reconstruction_agent_reframing_close.md)，采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
+**当前交接：[09-23 还原建模全会话收工](../logs/worklog/2026-09-23_reconstruction_session_close.md)。** 覆盖需求讨论、设计审阅、实现和三次GLM实验；全部调用结束。run28/candidate_01为sm21最新局部续修入口，下一项sm25多层/门连接；仍不把15/15窗和minor当成整案自主通过。详细实现见[联合改形与逐层高度](../logs/worklog/2026-09-23_shape_bindings_and_height_coverage.md)。此前[当前状态与自选复核](../logs/worklog/2026-09-23_claim_state_and_sm21.md)保留。此前[观察应用/厚度节点](../logs/worklog/2026-09-23_claim_application_implementation.md)、[输出范围](../logs/worklog/2026-09-23_bim_output_scope_and_next.md)、[Opus 5.5讨论](../logs/experiments/2026-09-23_opus55_agent_design/README.md)保留。主线重定位见[09-22交接](../logs/worklog/2026-09-22_reconstruction_agent_reframing_close.md)，采用基点见[会话收工](../logs/worklog/2026-09-22_reconstruction_session_close.md)。
 
 **09-21 初始接续安排：[三案例状态、下一阶段方案与估时](../logs/worklog/2026-09-21_reconstruction_next_stage.md)。** 此为实跑前的核对及计划；后续实测与排期判断以上方当前交接为准，采用候选恢复入口不变。
 
