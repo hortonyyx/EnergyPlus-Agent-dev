@@ -87,6 +87,29 @@ def _empty_profile_diagnostics(pixels, rgb, counts, minimum_count, support_lengt
     }
 
 
+def _profile_axis(mask, box, axis, min_fraction):
+    """Measure one projection of an existing mask, retaining exact peak support."""
+    counts = mask.sum(axis=0 if axis == "x" else 1)
+    projection_offset = box[0] if axis == "x" else box[1]
+    support_offset = box[1] if axis == "x" else box[0]
+    support_length = mask.shape[0] if axis == "x" else mask.shape[1]
+    minimum_count = max(1, math.ceil(support_length * float(min_fraction)))
+    runs = []
+    for start, end in _inclusive_runs(counts >= minimum_count):
+        peak = start + int(counts[start:end + 1].argmax())
+        support = mask[:, peak] if axis == "x" else mask[peak, :]
+        runs.append({
+            "pixels": [start + projection_offset, end + projection_offset],
+            "peak": peak + projection_offset,
+            "max_count": int(counts[peak]),
+            "max_fraction": round(float(counts[peak]) / support_length, 6),
+            "support_intervals_at_peak": [
+                [lo + support_offset, hi + support_offset]
+                for lo, hi in _inclusive_runs(support)],
+        })
+    return counts, minimum_count, support_length, runs
+
+
 def coordinate_grid_view(pic, region):
     """Label original pixels on a disposable model view, keeping its affine frame."""
     if min(pic.size) < 100:
@@ -185,6 +208,9 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                "--system-prompt", ("Answer only the supplied local visual question using tools. "
                                     "Inspect a suitable crop; cite original pixel locations of marks. "
                                     "Separate door arcs, gaps and dimension ticks. State uncertainty; "
+                                    "For line evidence, compare both profile axes; peak support at a junction "
+                                    "is not a whole wall's extent or thickness. Inspect beyond both ends "
+                                    "and trace adjoining space boundaries before calling an endpoint free. "
                                     "do not infer a connection just because rooms are adjacent. "
                                     "For dimension labels, use a magnified clean crop and bind each "
                                     "transcription to its actual label box, dimension line and adjacent "
@@ -1252,32 +1278,23 @@ class Toolkit:
             if not (0 <= x0 < x1 <= raw.width and 0 <= y0 < y1 <= raw.height):
                 raise ValueError("box outside original image bounds")
             crop = raw.convert("RGB").crop(box)
+            original_size = raw.size
             pixels = np.asarray(crop).astype(float)
         if len(rgb) != 3 or not all(0 <= c <= 255 for c in rgb) or not 0 <= tolerance <= 442:
             raise ValueError("RGB in 0..255 and distance tolerance in 0..442 required")
         if axis not in {"x", "y"}:
             raise ValueError("axis must be x or y")
         mask = np.linalg.norm(pixels - np.asarray(rgb), axis=2) <= tolerance
-        counts = mask.sum(axis=0 if axis == "x" else 1)
+        counts, minimum_count, support_length, runs = _profile_axis(mask, box, axis, min_fraction)
         projection_offset = x0 if axis == "x" else y0
         support_offset = y0 if axis == "x" else x0
-        support_length = mask.shape[0] if axis == "x" else mask.shape[1]
-        minimum_count = max(1, math.ceil(support_length * float(min_fraction)))
-        candidates = []
-        for start, end in _inclusive_runs(counts >= minimum_count):
-            peak = start + int(counts[start:end + 1].argmax())
-            support = mask[:, peak] if axis == "x" else mask[peak, :]
-            candidates.append({
-                "id": f"C{len(candidates) + 1:02d}",
-                "pixels": [start + projection_offset, end + projection_offset],
-                "peak": peak + projection_offset,
-                "max_count": int(counts[peak]),
-                "max_fraction": round(float(counts[peak]) / support_length, 6),
-                "support_intervals_at_peak": [
-                    [lo + support_offset, hi + support_offset]
-                    for lo, hi in _inclusive_runs(support)
-                ],
-            })
+        candidates = [{"id": f"C{i + 1:02d}", **row} for i, row in enumerate(runs)]
+        other_axis = "y" if axis == "x" else "x"
+        _, other_minimum, other_length, other_runs = _profile_axis(mask, box, other_axis, min_fraction)
+        edge_support = {}
+        for edge, support, offset in (("left", mask[:, 0], y0), ("right", mask[:, -1], y0),
+                                      ("top", mask[0, :], x0), ("bottom", mask[-1, :], x0)):
+            edge_support[edge] = [[lo + offset, hi + offset] for lo, hi in _inclusive_runs(support)]
 
         # Keep the original crop untouched on the left.  The right panel is a
         # separate exact mask view with candidate bands and peaks labelled.
@@ -1326,6 +1343,23 @@ class Toolkit:
             "support_length": support_length,
             "matching_pixels": int(mask.sum()),
             "candidates": candidates,
+            "cross_axis_profile": {
+                "axis": other_axis, "min_fraction": float(min_fraction),
+                "minimum_count": other_minimum, "support_length": other_length,
+                "runs": other_runs,
+                "note": "Same exact mask and fraction, measured along the other axis. "
+                        "Compare long traces with local junction peaks; neither is a wall label. "
+                        "For bindable C IDs on this axis, request a profile using this axis.",
+            },
+            "crop_context": {
+                "edge_support_intervals": edge_support,
+                "suggested_view_box": [max(0, x0 - 32), max(0, y0 - 32),
+                                       min(original_size[0], x1 + 32), min(original_size[1], y1 + 32)],
+                "note": "Edge intervals are matching pixels on the crop border (right/bottom are exclusive "
+                        "box limits, so samples are at right-1/bottom-1). A crop edge is not an object endpoint. "
+                        "The suggested box is only an initial 32px context expansion; inspect further as needed "
+                        "to establish both endpoints and adjoining space boundaries. No continuation is inferred.",
+            },
             "profile_image": str(image_path.relative_to(self.run)),
             "profile_record": str(record_path.relative_to(self.run)),
             "profile_image_sha256": digest(image_path),
@@ -1483,6 +1517,8 @@ def serve(run: Path, readonly=False):
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
+        cross_axis_profile measures the SAME mask in the other direction;
+        crop_context flags cut ink and suggests a wider original-image view.
         Use profile_id and candidate IDs in compare_facade_spans coordinate slots
         to adopt measured coordinates without copying numbers.
         """

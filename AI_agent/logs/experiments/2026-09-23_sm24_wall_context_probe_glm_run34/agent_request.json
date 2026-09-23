@@ -1,0 +1,12 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": true,
+  "timeout_seconds": 600,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "prompt": "Inspect the original plan near pixel box [450,570,615,600] and its adjoining areas. Determine whether a physical partition is present and describe its full endpoints and the areas on either side, with uncertainty where needed. This is a developer-targeted local method probe, not whole-building reconstruction. First reproduce an unverified filter using view_pixel_profile: image 1f_view.png, box [462,578,615,596], axis x, rgb [255,255,255], tolerance 60, min_fraction 0.08. If empty, use its empty_filter_diagnostics to reconsider the colour, axis or support threshold and inspect original-image crops. Neither an empty filter nor a matching colour alone establishes wall absence/presence or a connection. Report evidence, revised interpretation and unresolved details. Do not build a BIM. No candidate geometry or evaluation answer is supplied.",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; For line evidence, compare both profile axes; peak support at a junction is not a whole wall's extent or thickness. Inspect beyond both ends and trace adjoining space boundaries before calling an endpoint free. do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}

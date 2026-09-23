@@ -1,0 +1,82 @@
+{
+  "agent_assumptions": [
+    "z_floor=0, ceiling 3.0m, door height 2.1m, window sill 0.9m / head 2.4m remain EXPLICIT ASSUMPTIONS (no elevation supplied).",
+    "Interior partitions nominal 120mm; BIM paths are midplanes; exterior walls 240mm on outer-face plane.",
+    "Room roles inferred from furniture symbols (desk in strip office, two meeting tables, conference oval, workshop bench).",
+    "Door swing states unknown; directions read from leaf+arc symbols.",
+    "Calibration inherited from the caller-supplied draft; not independently re-derived.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "abc760225bb05284a9a813c53accd085bd3448757ae067aa4656e9ac97d4fa5f",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "5e45e241ca5f97017a59beba89a458ce9029604be7f847a9c2612bf08f670741",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "86855bf8755129f595deadbc5e5c3a5892eed94e7346805a5b2653ff12c6dfd3",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "a4e66dadcb9fe284182622d540c0d54aeea2f95f4d5b4739debe1ea3d502fd3c",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "58e26e2c03076b0954a54e21da02b3600e25b392f066aeab88ea138111444d58",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "79bf44b7a8cffc429cef3985e649555f03ae6ff631ab9ead88921293bc3ad1b1"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "04ceb791979f9a34e8d29814d63b2ab79249be9c8b8c8f04e8432702e8abecc6",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Opening heights and ceiling height unverified (no elevation).",
+    "Strip-office furniture (long counter x~508-595 y~305-330) treated as furniture, not enclosure.",
+    "DA/DB jamb pixels read as y324-355 / y383-414; declared rounded values y326-356 / y383-415 kept (<=1px).",
+    "wall_se_y700 south face drawn line not captured by grey profile (visual ~y702.5); midplane 699.5 used.",
+    "No wall at x459.5 y587-696 and y755-869 asserted from grey profiles; a non-grey screen there would be unobserved.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

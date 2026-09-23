@@ -79,6 +79,13 @@ crop colours and the maximum support before thresholding. Use this to distinguis
 a colour mismatch from an overly strict support threshold, then reobserve as
 needed. Neither an empty filter nor a new colour match proves a wall is absent,
 present, or that the adjoining spaces are connected.
+view_pixel_profile also returns cross_axis_profile from the SAME mask. Compare
+both directions: a long support interval at a junction peak does not establish
+the thickness or continuity of an entire wall. crop_context reports ink touching
+the crop edges and suggests a wider view_image box. Trace beyond BOTH ends until
+the continuation, turn, opening or physical end is visible, then check the full
+spaces on both sides. The suggested margin is only a starting view, not a proven
+endpoint. Never call a cropped line a free end from its peak column alone.
 For plan/elevation correspondence, compare_facade_spans tests BOTH directions
 from independently observed complete opening lists. Read facade_correspondence
 for its schema. Check absolute residuals as well as the direction difference;

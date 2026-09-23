@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1500,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 965.66,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 958337,
+    "stop_reason": "end_turn",
+    "session_id": "8bcca736-a026-4ec1-bafe-6f0a6a7f503b",
+    "total_cost_usd": 1.5267848000000002,
+    "usage": {
+      "input_tokens": 118108,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 648064,
+      "output_tokens": 46237,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 118108,
+        "outputTokens": 46237,
+        "cacheReadInputTokens": 648064,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.5267848000000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 29,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Done. **Selected candidate: `candidate_02`** (viewer at `candidate_02/viewer.html`; delivery report in `delivery.json`).\n\n## What the recovery found\n\nThe imported declaration compiled cleanly as `candidate_01` (7 spaces) — its \"not compiled\" status was only unverified import — but it contradicted the original drawing in exactly the scoped areas. Grey-fill pixel profiles and scale-6/8 crops of `1f_view.png` established:\n\n**Eastern dividers**\n- **New partition `wall_meet_strip` (midplane y=369; drawn lines y367/y371)** runs continuously x462–611 across the \"meeting room\" — the old plan missed it entirely. It creates a narrow north **strip office** (~5.5×1.9 m) served by door **DA** and window **W_E2** (both were wrongly attributed to the meeting room). W_E3 + DB now correctly host the meeting room alone.\n- **`wall_se_x459` truncated to a stub (y699.5–753)**: profile scan shows ink at x455–465 **only** for y560–587, y696–755 and y869–877. The old full-length divider y700.5–878 does not exist in the drawing.\n- **`wall_se_y700` midplane corrected 700.5→699.5** (north face measured at y696); **D4 jambs re-measured x560–591** (not 560–592).\n\n**Corridor's lower turns**\n- **New `wall_corridor_end` (midplane y=753; drawn y751/y755)** spans the full corridor width x402–462 with **no opening** — the corridor dead-ends there; the old plan had no such wall.\n- Because of the stub truncation, the corridor is **open into the east hall across x459.5, y587–696** (D_E1's vestibule zone), and the **south pocket x400–459.5, y753–878 (with exterior door D_S1) is part of the SE workroom**, which becomes L-shaped. Both extents were followed around their full boundaries (east hall: HW3-east/y585, y700 wall, east wall D_E1; workroom: y700 wall + D4, stub, corridor-end wall, west wall, south wall W_S2/D_S1, east wall).\n\n**Top internal door D_top**\n- Actual jambs are **x≈408.5–450.5** (~1155 mm): grey-band gap 409–450, cyan jamb strokes at x407–409 / 450–452, twin leaves meeting at ~x429. The old aperture (400–459.5, the whole corridor mouth) was ~0.48 m too wide and has been corrected, not trimmed arbitrarily — evidence is independent of the host error.\n\n**Kept per scope:** declared frame/anchors, floor z=0, ceiling 3.0 m, footprint, and all unaffected paths/openings (top/west/south/exterior openings, wall_hw2, HW3-east faces re-verified at y583/587, D1/D2/D3, DA/DB within ≤1 px). Result: 8 spaces, 21 openings, all hosted, source validation pass; overlays `overlay_002/003/004` visually match the original ink in both critical regions.\n\n## Uncertainties (also recorded in the saved proposal)\n- **All 21 opening heights and the ceiling remain unverified assumptions** — height coverage reports `no_image_evidence_linked` for every opening (no elevation supplied).\n- Calibration inherited from the caller draft, not independently re-derived; drawing fidelity is not certified by the passing checks.\n- `wall_se_y700` south face (~y702.5) read visually, not captured by the grey profile; midplane 699.5 used (±1–2 px ≈ 30–55 mm).\n- The absence of wall ink at x459.5 (y587–696, y755–869) is asserted from grey profiles; a non-grey screen/glazing there would be unobserved.\n- Strip-office furniture (counter x508–595, y305–330) treated as furniture, not enclosure; DA/DB jambs kept at declared rounded values (≤1 px from measured); door swing states unknown; DA hinge read as north jamb (declared said south — swing only, no geometric impact).\n- Unexamined: no independent re-measurement of the west/south exterior openings or the lounge interior beyond inherited evidence.",
+    "ttft_ms": 5223,
+    "type": "result",
+    "duration_ms": 962523,
+    "uuid": "73127ac4-038b-40e3-b902-167338323e93",
+    "ttft_stream_ms": 5044,
+    "time_to_request_ms": 54,
+    "first_content_frame_ms": 5044,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

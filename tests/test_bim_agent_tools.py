@@ -373,6 +373,48 @@ def test_view_pixel_profile_filters_sparse_strokes_and_reports_unbridged_peak_su
 
 
 @pytest.mark.parametrize("readonly", [True, False])
+def test_profile_cross_axis_separates_long_traces_from_junction_peak(tmp_path, readonly):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        path = run / "images/plan.png"
+        pic = Image.new("RGB", (24, 20), "black")
+        # Two long horizontal strokes meet one vertical stroke. Its peak
+        # spans the crop height but is not the thickness of the long strokes.
+        for x in range(4, 20):
+            for y in (8, 11):
+                pic.putpixel((x, y), (128, 128, 128))
+        for y in range(5, 15):
+            pic.putpixel((19, y), (128, 128, 128))
+        pic.save(path)
+        before = digest(path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["plan.png"].update(size=list(pic.size), sha256=before)
+        (run / "inputs.json").write_text(json.dumps(manifest))
+        common = dict(name="plan.png", box=[4, 5, 20, 15], rgb=[128, 128, 128],
+                      tolerance=0, min_fraction=.2)
+        async with _server_session(run, readonly=readonly) as session:
+            data = json.loads((await session.call_tool("view_pixel_profile", {**common, "axis": "x"})).content[1].text)
+            assert data["candidates"][0]["support_intervals_at_peak"] == [[5, 14]]
+            cross = data["cross_axis_profile"]
+            assert cross["axis"] == "y" and cross["minimum_count"] == 4
+            assert [row["pixels"] for row in cross["runs"]] == [[8, 8], [11, 11]]
+            assert all(row["max_count"] == 16 and row["support_intervals_at_peak"] == [[4, 19]]
+                       for row in cross["runs"])
+            context = data["crop_context"]
+            assert context["edge_support_intervals"] == {
+                "left": [[8, 8], [11, 11]], "right": [[5, 14]],
+                "top": [[19, 19]], "bottom": [[19, 19]]}
+            assert context["suggested_view_box"] == [0, 0, 24, 20]
+            other = json.loads((await session.call_tool("view_pixel_profile", {**common, "axis": "y"})).content[1].text)
+            assert [{k: v for k, v in row.items() if k != "id"} for row in other["candidates"]] == cross["runs"]
+            assert other["cross_axis_profile"]["runs"] == [
+                {k: v for k, v in row.items() if k != "id"} for row in data["candidates"]]
+            assert json.loads((run / data["profile_record"]).read_text()) == data
+        assert digest(path) == before
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("readonly", [True, False])
 def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, readonly):
     async def scenario():
         run = _run_with_one_image(tmp_path)

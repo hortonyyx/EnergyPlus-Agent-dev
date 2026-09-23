@@ -1,0 +1,1197 @@
+{
+  "schema_version": "plan_draft_view_v1",
+  "mode": "draft_only",
+  "draft_only": true,
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_ready": false,
+  "source_bim": false,
+  "room_status": "not_inferred_or_claimed",
+  "image": {
+    "name": "1f_view.png",
+    "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "size": [
+      790,
+      1111
+    ]
+  },
+  "plan": {
+    "file": "plan_drafts/draft_003/plan.json",
+    "sha256": "79bf44b7a8cffc429cef3985e649555f03ae6ff631ab9ead88921293bc3ad1b1"
+  },
+  "declaration": {
+    "floor_id": "F1",
+    "z_floor": 0,
+    "ceiling_height": 3.0,
+    "x_anchors": [
+      [
+        248,
+        0
+      ],
+      [
+        612,
+        10
+      ]
+    ],
+    "y_anchors": [
+      [
+        151,
+        0
+      ],
+      [
+        878,
+        20
+      ]
+    ],
+    "basis": "Same declared calibration/frame as imported draft (top chain ticks x=248/267/326/417/592/612 -> 0/540/2140/4660/9460/10000 mm; left chain 20000 mm ticks y=151/878; ~27.5 mm/px). Representative planes: footprint on observed EXTERIOR outer faces; interior partitions on measured MIDPLANES. EASTERN/CORRIDOR REVISION from grey-fill pixel profiles on 1f_view.png: (1) NEW thin partition midplane y=369 (drawn lines y367/y371) spanning x457-611 across the meeting room, making a narrow north strip office served by DA; measured continuous x462-611, no opening. (2) NEW corridor-end wall midplane y=753 (drawn y751/y755) spanning the full corridor width x400-459.5, solid x402-462 with no opening: the corridor dead-ends there. (3) wall_se_x459 truncated to a stub midplane x=459.5 from y699.5 to y753 (drawn ink only y696-755); NO wall exists at x459.5 in y587-696 (corridor opens into the east hall, D_E1 zone) nor in y755-869 (the south pocket x400-459.5 y753-878 is part of the SE workroom). (4) wall_se_y700 midplane corrected to y=699.5 (north face line measured y696). (5) D_top actual jambs corrected to x=408.5-450.5 (grey-band gap 409-450 within band y293-303; cyan jamb strokes at x407-409 and x450-452; leaf-V vertex ~x429): the old corridor-mouth 400-459.5 aperture was wider than the drawn door. (6) D4 jambs measured x560-591 on the y700 wall.",
+    "footprint_pixels": [
+      [
+        249,
+        151
+      ],
+      [
+        612,
+        151
+      ],
+      [
+        612,
+        878
+      ],
+      [
+        249,
+        878
+      ]
+    ],
+    "partitions": [
+      {
+        "id": "wall_top_south",
+        "points": [
+          [
+            249,
+            298.5
+          ],
+          [
+            612,
+            298.5
+          ]
+        ],
+        "source_refs": [
+          "profile_010: solid 249-398 and 461-612, door mouth x409-450; band y296-301"
+        ]
+      },
+      {
+        "id": "wall_corridor_west",
+        "points": [
+          [
+            400,
+            298.5
+          ],
+          [
+            400,
+            878
+          ]
+        ],
+        "source_refs": [
+          "profiles_012/027: faces 397/402, solid to south wall with D1/D2/D3"
+        ]
+      },
+      {
+        "id": "wall_corridor_east",
+        "points": [
+          [
+            459.5,
+            298.5
+          ],
+          [
+            459.5,
+            585
+          ]
+        ],
+        "source_refs": [
+          "profile y-scan x455-466: wall y301-323, DA gap ~324-355, wall y356-382 (strip-wall junction at 367-371), DB gap 383-414, wall from y415; south end at HW3 y583-587"
+        ]
+      },
+      {
+        "id": "wall_hw2",
+        "points": [
+          [
+            249,
+            403.5
+          ],
+          [
+            400,
+            403.5
+          ]
+        ],
+        "source_refs": [
+          "profile_021: solid 249-398, no opening"
+        ]
+      },
+      {
+        "id": "wall_hw3_west",
+        "points": [
+          [
+            249,
+            585
+          ],
+          [
+            400,
+            585
+          ]
+        ],
+        "source_refs": [
+          "scale-5 crop: double line x251-398, no opening"
+        ]
+      },
+      {
+        "id": "wall_hw3_east",
+        "points": [
+          [
+            459.5,
+            585
+          ],
+          [
+            612,
+            585
+          ]
+        ],
+        "source_refs": [
+          "profile y-scan x470-600: lines y583/y587 full width, no opening"
+        ]
+      },
+      {
+        "id": "wall_meet_strip",
+        "points": [
+          [
+            459.5,
+            369
+          ],
+          [
+            612,
+            369
+          ]
+        ],
+        "source_refs": [
+          "NEW: profile y-scan x464-598 = lines y367/y371 both count 134/134; x-scan y364-374 = continuous x462-611; separates strip office (DA side) from meeting room; no opening"
+        ]
+      },
+      {
+        "id": "wall_se_y700",
+        "points": [
+          [
+            459.5,
+            699.5
+          ],
+          [
+            612,
+            699.5
+          ]
+        ],
+        "source_refs": [
+          "profile y-scan x470-545: north face line y696; visual south face ~y702.5; D4 gap x560-591 (x-scan y694-706)"
+        ]
+      },
+      {
+        "id": "wall_se_x459",
+        "points": [
+          [
+            459.5,
+            699.5
+          ],
+          [
+            459.5,
+            753
+          ]
+        ],
+        "source_refs": [
+          "TRUNCATED to stub: profile y-scan x455-465 ink only y696-755; no ink y587-696 (open to east hall) nor y755-869 (open to workroom pocket)"
+        ]
+      },
+      {
+        "id": "wall_corridor_end",
+        "points": [
+          [
+            400,
+            753
+          ],
+          [
+            459.5,
+            753
+          ]
+        ],
+        "source_refs": [
+          "NEW: profile y-scan x403-458 = lines y751/y755 full 55/55 width; x-scan y749-758 continuous x402-462, no opening; corridor dead-ends"
+        ]
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_N1",
+        "kind": "door",
+        "p1": [
+          268,
+          151
+        ],
+        "p2": [
+          325,
+          151
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "north wall grey gap 268-325 (profile_005); height assumed"
+        ]
+      },
+      {
+        "id": "W_N1",
+        "kind": "window",
+        "p1": [
+          417,
+          151
+        ],
+        "p2": [
+          592,
+          151
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "north wall grey gap 417-592, chain 4800; heights assumed"
+        ]
+      },
+      {
+        "id": "W_W1",
+        "kind": "window",
+        "p1": [
+          249,
+          170
+        ],
+        "p2": [
+          249,
+          225
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "west wall grey gap 170-225; heights assumed"
+        ]
+      },
+      {
+        "id": "W_W2",
+        "kind": "window",
+        "p1": [
+          249,
+          311
+        ],
+        "p2": [
+          249,
+          355
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "west wall grey gap 311-355; heights assumed"
+        ]
+      },
+      {
+        "id": "W_W3",
+        "kind": "window",
+        "p1": [
+          249,
+          418
+        ],
+        "p2": [
+          249,
+          473
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "west wall grey gap 418-473; heights assumed"
+        ]
+      },
+      {
+        "id": "W_W4",
+        "kind": "window",
+        "p1": [
+          249,
+          517
+        ],
+        "p2": [
+          249,
+          572
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "west wall grey gap 517-572; heights assumed"
+        ]
+      },
+      {
+        "id": "W_W5",
+        "kind": "window",
+        "p1": [
+          249,
+          684
+        ],
+        "p2": [
+          249,
+          859
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "west wall grey gap 684-859, conference room; heights assumed"
+        ]
+      },
+      {
+        "id": "W_E1",
+        "kind": "window",
+        "p1": [
+          612,
+          170
+        ],
+        "p2": [
+          612,
+          225
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "east wall grey gap 170-225; heights assumed"
+        ]
+      },
+      {
+        "id": "W_E2",
+        "kind": "window",
+        "p1": [
+          612,
+          311
+        ],
+        "p2": [
+          612,
+          355
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "east wall grey gap 311-355; lights the NEW strip office; heights assumed"
+        ]
+      },
+      {
+        "id": "W_E3",
+        "kind": "window",
+        "p1": [
+          612,
+          382
+        ],
+        "p2": [
+          612,
+          557
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "east wall grey gap 382-557, meeting room; heights assumed"
+        ]
+      },
+      {
+        "id": "D_E1",
+        "kind": "door",
+        "p1": [
+          612,
+          614
+        ],
+        "p2": [
+          612,
+          669
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "east wall grey gap 614-669; serves corridor+east hall (open at x459.5 y587-696); height assumed"
+        ]
+      },
+      {
+        "id": "W_S1",
+        "kind": "window",
+        "p1": [
+          266,
+          878
+        ],
+        "p2": [
+          323,
+          878
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "south wall grey gap 266-323; heights assumed"
+        ]
+      },
+      {
+        "id": "D_S1",
+        "kind": "door",
+        "p1": [
+          412,
+          878
+        ],
+        "p2": [
+          445,
+          878
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "south wall grey gap 412-445; opens into workroom SW pocket (no x459.5 wall below y755); height assumed"
+        ]
+      },
+      {
+        "id": "W_S2",
+        "kind": "window",
+        "p1": [
+          536,
+          878
+        ],
+        "p2": [
+          593,
+          878
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "south wall grey gap 536-593; heights assumed"
+        ]
+      },
+      {
+        "id": "D_top",
+        "kind": "door",
+        "p1": [
+          408.5,
+          298.5
+        ],
+        "p2": [
+          450.5,
+          298.5
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "CORRECTED jambs: grey-band gap x409-450 in band y293-303; cyan jamb strokes x407-409/x450-452; twin leaves meet ~x429; aperture ~1155mm; height assumed"
+        ]
+      },
+      {
+        "id": "D1",
+        "kind": "door",
+        "p1": [
+          400,
+          360
+        ],
+        "p2": [
+          400,
+          391
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "corridor west wall y360-391; height assumed"
+        ]
+      },
+      {
+        "id": "D2",
+        "kind": "door",
+        "p1": [
+          400,
+          419
+        ],
+        "p2": [
+          400,
+          450
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "corridor west wall y419-450; height assumed"
+        ]
+      },
+      {
+        "id": "D3",
+        "kind": "door",
+        "p1": [
+          400,
+          601
+        ],
+        "p2": [
+          400,
+          630
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "corridor west wall y601-630, swing west into conference; height assumed"
+        ]
+      },
+      {
+        "id": "DA",
+        "kind": "door",
+        "p1": [
+          459.5,
+          326
+        ],
+        "p2": [
+          459.5,
+          356
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "corridor east wall gap y324-355; swings east into strip office, hinge north jamb (leaf x459.5-480 at y322-328); height assumed"
+        ]
+      },
+      {
+        "id": "DB",
+        "kind": "door",
+        "p1": [
+          459.5,
+          383
+        ],
+        "p2": [
+          459.5,
+          415
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "corridor east wall gap y383-414; swings east into meeting room; height assumed"
+        ]
+      },
+      {
+        "id": "D4",
+        "kind": "door",
+        "p1": [
+          560,
+          699.5
+        ],
+        "p2": [
+          591,
+          699.5
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "y700 wall gap x560-591 measured; swing south into SE workroom; height assumed"
+        ]
+      }
+    ],
+    "space_seeds": [
+      {
+        "id": "lounge_top",
+        "point": [
+          430,
+          220
+        ],
+        "role": "lounge"
+      },
+      {
+        "id": "office_nw",
+        "point": [
+          320,
+          350
+        ],
+        "role": "office"
+      },
+      {
+        "id": "office_sw",
+        "point": [
+          320,
+          500
+        ],
+        "role": "office"
+      },
+      {
+        "id": "conference_sw",
+        "point": [
+          320,
+          730
+        ],
+        "role": "conference"
+      },
+      {
+        "id": "corridor_hall",
+        "point": [
+          430,
+          550
+        ],
+        "role": "corridor"
+      },
+      {
+        "id": "office_ne",
+        "point": [
+          590,
+          335
+        ],
+        "role": "office"
+      },
+      {
+        "id": "meeting_east",
+        "point": [
+          590,
+          470
+        ],
+        "role": "meeting"
+      },
+      {
+        "id": "workroom_se",
+        "point": [
+          540,
+          790
+        ],
+        "role": "workshop"
+      }
+    ],
+    "assumptions": [
+      "z_floor=0, ceiling 3.0m, door height 2.1m, window sill 0.9m / head 2.4m remain EXPLICIT ASSUMPTIONS (no elevation supplied).",
+      "Interior partitions nominal 120mm; BIM paths are midplanes; exterior walls 240mm on outer-face plane.",
+      "Room roles inferred from furniture symbols (desk in strip office, two meeting tables, conference oval, workshop bench).",
+      "Door swing states unknown; directions read from leaf+arc symbols.",
+      "Calibration inherited from the caller-supplied draft; not independently re-derived."
+    ],
+    "unresolved": [
+      "Opening heights and ceiling height unverified (no elevation).",
+      "Strip-office furniture (long counter x~508-595 y~305-330) treated as furniture, not enclosure.",
+      "DA/DB jamb pixels read as y324-355 / y383-414; declared rounded values y326-356 / y383-415 kept (<=1px).",
+      "wall_se_y700 south face drawn line not captured by grey profile (visual ~y702.5); midplane 699.5 used.",
+      "No wall at x459.5 y587-696 and y755-869 asserted from grey profiles; a non-grey screen there would be unobserved."
+    ]
+  },
+  "rendered": {
+    "footprint": [
+      {
+        "id": "footprint",
+        "declared_pixel_points": [
+          [
+            249,
+            151
+          ],
+          [
+            612,
+            151
+          ],
+          [
+            612,
+            878
+          ],
+          [
+            249,
+            878
+          ]
+        ],
+        "drawn_segment_count": 4,
+        "closure_semantics": "closed only as declared footprint-ring semantics"
+      }
+    ],
+    "partitions": [
+      {
+        "id": "wall_top_south",
+        "declared_pixel_points": [
+          [
+            249,
+            298.5
+          ],
+          [
+            612,
+            298.5
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_corridor_west",
+        "declared_pixel_points": [
+          [
+            400,
+            298.5
+          ],
+          [
+            400,
+            878
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_corridor_east",
+        "declared_pixel_points": [
+          [
+            459.5,
+            298.5
+          ],
+          [
+            459.5,
+            585
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_hw2",
+        "declared_pixel_points": [
+          [
+            249,
+            403.5
+          ],
+          [
+            400,
+            403.5
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_hw3_west",
+        "declared_pixel_points": [
+          [
+            249,
+            585
+          ],
+          [
+            400,
+            585
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_hw3_east",
+        "declared_pixel_points": [
+          [
+            459.5,
+            585
+          ],
+          [
+            612,
+            585
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_meet_strip",
+        "declared_pixel_points": [
+          [
+            459.5,
+            369
+          ],
+          [
+            612,
+            369
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_se_y700",
+        "declared_pixel_points": [
+          [
+            459.5,
+            699.5
+          ],
+          [
+            612,
+            699.5
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_se_x459",
+        "declared_pixel_points": [
+          [
+            459.5,
+            699.5
+          ],
+          [
+            459.5,
+            753
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_corridor_end",
+        "declared_pixel_points": [
+          [
+            400,
+            753
+          ],
+          [
+            459.5,
+            753
+          ]
+        ],
+        "drawn_segment_count": 1
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_N1",
+        "kind": "door",
+        "declared_p1": [
+          268,
+          151
+        ],
+        "declared_p2": [
+          325,
+          151
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_N1",
+        "kind": "window",
+        "declared_p1": [
+          417,
+          151
+        ],
+        "declared_p2": [
+          592,
+          151
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_W1",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          170
+        ],
+        "declared_p2": [
+          249,
+          225
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_W2",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          311
+        ],
+        "declared_p2": [
+          249,
+          355
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_W3",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          418
+        ],
+        "declared_p2": [
+          249,
+          473
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_W4",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          517
+        ],
+        "declared_p2": [
+          249,
+          572
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_W5",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          684
+        ],
+        "declared_p2": [
+          249,
+          859
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_E1",
+        "kind": "window",
+        "declared_p1": [
+          612,
+          170
+        ],
+        "declared_p2": [
+          612,
+          225
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_E2",
+        "kind": "window",
+        "declared_p1": [
+          612,
+          311
+        ],
+        "declared_p2": [
+          612,
+          355
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_E3",
+        "kind": "window",
+        "declared_p1": [
+          612,
+          382
+        ],
+        "declared_p2": [
+          612,
+          557
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_E1",
+        "kind": "door",
+        "declared_p1": [
+          612,
+          614
+        ],
+        "declared_p2": [
+          612,
+          669
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_S1",
+        "kind": "window",
+        "declared_p1": [
+          266,
+          878
+        ],
+        "declared_p2": [
+          323,
+          878
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_S1",
+        "kind": "door",
+        "declared_p1": [
+          412,
+          878
+        ],
+        "declared_p2": [
+          445,
+          878
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_S2",
+        "kind": "window",
+        "declared_p1": [
+          536,
+          878
+        ],
+        "declared_p2": [
+          593,
+          878
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_top",
+        "kind": "door",
+        "declared_p1": [
+          408.5,
+          298.5
+        ],
+        "declared_p2": [
+          450.5,
+          298.5
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D1",
+        "kind": "door",
+        "declared_p1": [
+          400,
+          360
+        ],
+        "declared_p2": [
+          400,
+          391
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D2",
+        "kind": "door",
+        "declared_p1": [
+          400,
+          419
+        ],
+        "declared_p2": [
+          400,
+          450
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D3",
+        "kind": "door",
+        "declared_p1": [
+          400,
+          601
+        ],
+        "declared_p2": [
+          400,
+          630
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "DA",
+        "kind": "door",
+        "declared_p1": [
+          459.5,
+          326
+        ],
+        "declared_p2": [
+          459.5,
+          356
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "DB",
+        "kind": "door",
+        "declared_p1": [
+          459.5,
+          383
+        ],
+        "declared_p2": [
+          459.5,
+          415
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D4",
+        "kind": "door",
+        "declared_p1": [
+          560,
+          699.5
+        ],
+        "declared_p2": [
+          591,
+          699.5
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      }
+    ]
+  },
+  "unrenderable": [],
+  "method": {
+    "coordinate_frame": "identity_original_image_pixels",
+    "original_image_box_in_preview": [
+      0,
+      0,
+      790,
+      1111
+    ],
+    "preview_output_size": [
+      790,
+      1135
+    ],
+    "endpoints_modified": false,
+    "endpoint_markers_centered_at_declared_points": true,
+    "partitions_extended_or_snapped": false,
+    "openings_clipped_or_hosted": false,
+    "spaces_or_rooms_derived": false
+  },
+  "scope": "Literal caller-declared pixel linework over the original image. This is neither a source BIM nor evidence that walls, openings, rooms, or drawing fidelity are valid.",
+  "preview": {
+    "image_file": "plan_drafts/draft_003/draft_view.png",
+    "image_sha256": "a4e66dadcb9fe284182622d540c0d54aeea2f95f4d5b4739debe1ea3d502fd3c"
+  }
+}
