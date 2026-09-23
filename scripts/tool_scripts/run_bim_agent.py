@@ -57,6 +57,36 @@ def _inclusive_runs(flags):
     return runs
 
 
+def _empty_profile_diagnostics(pixels, rgb, counts, minimum_count, support_length):
+    """Explain an empty colour filter without inferring walls or changing it."""
+    import numpy as np
+    if int(counts.max()) >= minimum_count:
+        return None
+    packed = pixels.astype(np.uint32)
+    packed = ((packed[..., 0] << 16) | (packed[..., 1] << 8) | packed[..., 2]).ravel()
+    values, frequencies = np.unique(packed, return_counts=True)
+    colors = np.column_stack(((values >> 16) & 255, (values >> 8) & 255, values & 255))
+    distances = np.linalg.norm(colors.astype(float) - np.asarray(rgb), axis=1)
+    nearest = int(distances.argmin())
+    order = np.argsort(-frequencies, kind="stable")[:8]
+    return {
+        "reason": "no_pixels_match_requested_color" if int(counts.sum()) == 0
+                  else "matching_pixels_below_support_threshold",
+        "nearest_observed_color": {"rgb": colors[nearest].tolist(),
+                                   "distance": round(float(distances[nearest]), 6),
+                                   "pixel_count": int(frequencies[nearest])},
+        "frequent_observed_colors": [
+            {"rgb": colors[i].tolist(), "pixel_count": int(frequencies[i])} for i in order],
+        "total_crop_pixels": int(packed.size),
+        "maximum_support_count": int(counts.max()),
+        "maximum_support_fraction": round(float(counts.max()) / support_length, 6),
+        "minimum_count": int(minimum_count),
+        "interpretation": "These are exact crop colours and filter support, not object labels. "
+                          "Reinspect the original and choose a suitable RGB/axis/threshold if needed. "
+                          "An empty filter does not establish a missing wall or an open connection.",
+    }
+
+
 def coordinate_grid_view(pic, region):
     """Label original pixels on a disposable model view, keeping its affine frame."""
     if min(pic.size) < 100:
@@ -1203,6 +1233,10 @@ class Toolkit:
                              "max_count": int(counts[peak])})
                 start = None
         result = {"axis": axis, "runs": runs, "matching_pixels": int(mask.sum())}
+        diagnostic = _empty_profile_diagnostics(
+            pixels, rgb, counts, 1, mask.shape[0] if axis == "x" else mask.shape[1])
+        if diagnostic is not None:
+            result["empty_filter_diagnostics"] = diagnostic
         self.log("pixel_profile", {"name": name, "box": box, "rgb": rgb,
                                    "tolerance": tolerance, "result": result})
         return result
@@ -1304,6 +1338,9 @@ class Toolkit:
             "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
             "remaining_seconds": self.remaining_seconds(),
         }
+        diagnostic = _empty_profile_diagnostics(pixels, rgb, counts, minimum_count, support_length)
+        if diagnostic is not None:
+            result["empty_filter_diagnostics"] = diagnostic
         returned = combined.copy()
         returned.thumbnail((1600, 1600))
         data = io.BytesIO()

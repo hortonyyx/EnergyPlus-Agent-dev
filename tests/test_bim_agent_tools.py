@@ -372,6 +372,54 @@ def test_view_pixel_profile_filters_sparse_strokes_and_reports_unbridged_peak_su
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("readonly", [True, False])
+def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, readonly):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        path = run / "images" / "plan.png"
+        pic = Image.new("RGB", (12, 8), "black")
+        for x in range(2, 10):
+            pic.putpixel((x, 3), (128, 128, 128))
+        pic.save(path)
+        before = digest(path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["plan.png"]["sha256"] = before
+        (run / "inputs.json").write_text(json.dumps(manifest))
+        common = dict(name="plan.png", box=[0, 0, 12, 8], axis="y", tolerance=0)
+        async with _server_session(run, readonly=readonly) as session:
+            wrong = await session.call_tool("view_pixel_profile", {
+                **common, "rgb": [255, 255, 255], "min_fraction": .5})
+            data = json.loads(wrong.content[1].text)
+            diagnostic = data["empty_filter_diagnostics"]
+            assert data["candidates"] == [] and data["matching_pixels"] == 0
+            assert diagnostic["reason"] == "no_pixels_match_requested_color"
+            assert diagnostic["nearest_observed_color"]["rgb"] == [128, 128, 128]
+            assert diagnostic["frequent_observed_colors"] == [
+                {"rgb": [0, 0, 0], "pixel_count": 88},
+                {"rgb": [128, 128, 128], "pixel_count": 8}]
+            assert json.loads((run / data["profile_record"]).read_text()) == data
+            strict = await session.call_tool("view_pixel_profile", {
+                **common, "rgb": diagnostic["nearest_observed_color"]["rgb"], "min_fraction": 1})
+            data = json.loads(strict.content[1].text)
+            diagnostic = data["empty_filter_diagnostics"]
+            assert data["candidates"] == [] and data["matching_pixels"] == 8
+            assert diagnostic["reason"] == "matching_pixels_below_support_threshold"
+            assert diagnostic["maximum_support_count"] == 8 and diagnostic["minimum_count"] == 12
+            good = await session.call_tool("view_pixel_profile", {
+                **common, "rgb": [128, 128, 128], "min_fraction": .5})
+            data = json.loads(good.content[1].text)
+            assert "empty_filter_diagnostics" not in data
+            assert data["candidates"][0]["pixels"] == [3, 3]
+            assert data["candidates"][0]["support_intervals_at_peak"] == [[2, 9]]
+            plain = _json_result(await session.call_tool("pixel_profile", {
+                **common, "rgb": [255, 255, 255]}))
+            assert plain["runs"] == []
+            assert plain["empty_filter_diagnostics"]["reason"] == "no_pixels_match_requested_color"
+        assert digest(path) == before
+
+    asyncio.run(scenario())
+
+
 def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_path):
     import base64
     import io

@@ -74,6 +74,11 @@ thresholds from the actual image; unsuitable color evidence permits another
 method or an explicitly uncertain observation. Tools are optional, not a fixed
 sequence. map_pixels and map_dimension_chain perform coordinate and dimension
 arithmetic; they do not validate your interpretation or calibration.
+An empty pixel profile includes empty_filter_diagnostics: actual frequent/nearest
+crop colours and the maximum support before thresholding. Use this to distinguish
+a colour mismatch from an overly strict support threshold, then reobserve as
+needed. Neither an empty filter nor a new colour match proves a wall is absent,
+present, or that the adjoining spaces are connected.
 For plan/elevation correspondence, compare_facade_spans tests BOTH directions
 from independently observed complete opening lists. Read facade_correspondence
 for its schema. Check absolute residuals as well as the direction difference;

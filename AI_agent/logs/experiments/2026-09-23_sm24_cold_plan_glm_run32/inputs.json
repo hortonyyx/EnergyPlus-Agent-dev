@@ -1,0 +1,63 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    }
+  },
+  "scope": "Cold-start reconstruction of the single floor in the supplied original plan. The bounded objective is its complete physical partition layout, plan openings, and actual door connections. No other floor or elevation is supplied. Choose explicit assumptions for unobserved vertical heights and state this limitation. Read the reconstruction and plan_partition references. Establish your own coordinate frame from original dimension annotations and their image endpoints before building; retain the calibration evidence and distinguish dimension baselines from wall faces. Use original-image crops, profiles or region tools to resolve consequential ambiguities. Declare observed pixel wall paths and apertures for build_plan_bim so deterministic code constructs rooms and hosts; do not manually enumerate a whole BIM vertex list. Identify complete physical spaces rather than treating furniture, door swings or text as walls. Keep shared open circulation intact. Choose observations and revisions yourself, use failures to re-examine the original, and preserve unresolved findings. After construction inspect the actual source plan and its original-image overlay, check both sides of partitions and the original opening inventory, and correct substantive discrepancies. Use evidence-bound local edits when suitable, keeping assumptions separate from observations. Deliver the best inspectable candidate and a truthful account of checked and unverified content. Geometry validity and agreement with your own annotations do not establish drawing fidelity.",
+  "provider": "glm",
+  "input_mode": "original_images_agent_experiment",
+  "exploratory_opus": false,
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 1
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1790174249.8330429,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "a486b14c4e021fa3603f687deced65c5a93f6ba008070def3d69ec9327ecd824",
+    "scripts/tool_scripts/bim_agent_guidance.py": "1111b4d15e785fbe301adac125d062cddcb12d565057bc8426498f8bb33aee66",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "src/agent/execution/bim_claims.py": "deb2905a8f5f209a4061d61fa1e3c94ac1e3a4a169ebe89d79a9edbc5a8fecfb",
+    "src/agent/execution/bim_claim_state.py": "bea4afc788bf4c447575b6cc52afe3a2a508234225d4a978635104ec25e38ee4",
+    "src/agent/execution/bim_height_coverage.py": "983545c55abc9de3fa32f6388ecd84eaf407e9ab97a1fb9f9a7f2b870d40747e",
+    "src/agent/geometry/component_attributes.py": "c6084c54e07c7eb17d1a8c86442276d70fcbf11c61d872ee21823f4643468be6",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "1438214451cd077c8cfb696a0c40fc4866cabcdba4db3571ea715123eac3631d",
+    "src/agent/geometry/proposal_edits.py": "b44662abc1226f93304ae54ebf73f1b6931afd3bd07e184c12242f8e8d34dcc3",
+    "src/agent/geometry/opening_review.py": "4f548ae30a2aa630a2f87360e9fdd2d047f99dd6fc83b68785108a618fc297ba",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "05310f09b8c26d1289d507f88f5a7ba8e1694dd150e2d1bdf12ee6ce0146c946",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "bee4174223919c29f59f53d0b7c2fe2e21c99b842554a6c80b9186b12de52f53",
+    "src/agent/geometry/source_bim.py": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "320242868487701b7260e2c57306e613b3f7661ab762c56aa3ebd0dbb9a90f8b",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "25d1bf1ef1792e63c5780adb19852a3e2b8eb4e3d2d3f0b527f3bab6f6990a03",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, and optional saved generated proposal; no building declaration and no GT/evaluation"
+}

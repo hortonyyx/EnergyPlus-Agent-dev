@@ -1,0 +1,82 @@
+{
+  "agent_assumptions": [
+    "No elevation/section supplied: z_floor=0, ceiling 3.0m, door height 2.1m, window sill 0.9m and head 2.4m are EXPLICIT ASSUMPTIONS, not observations.",
+    "Exterior wall thickness taken as the annotated 240mm; the drawn grey band is ~11px (~300mm) including finish; openings are placed on the outer-face plane.",
+    "Interior partitions drawn ~5px double lines; nominal 120mm assumed for thickness reporting only (BIM paths are midplanes).",
+    "Room roles inferred from furniture symbols (desks, meeting tables, conference oval, lounge counter), not from labels.",
+    "Door operating states unknown; swing directions read from leaf+arc symbols.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 46,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f78e421c2b07250bd5b40b1712b02bfe26a9b3f075a28b5eb312d5ebb872c44e",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "50f17a3373949df4855f4276dce8176b2983cd35095df32bb87ea9ccba8b8118",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_004/compilation.json",
+      "compilation_sha256": "f7fc89c8c60ff446413853437e9a2c4c6ec38f13d967f02129f683075e3f8156",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_004/draft_view.png",
+        "image_sha256": "59a3df3bfdacef478eaa707bedf159d5a3e0c4a5b17ccb3a7a835e94e3e984dc",
+        "metadata_file": "plan_drafts/draft_004/draft_view.json",
+        "metadata_sha256": "a9154235e9b118f5414adfb640861ed85d7d729e06bb8cb7b6a0877e26b67b7d",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_004/plan.json",
+      "plan_sha256": "2fe65af8b64ee243ac45c2e433f003e7d0e9782cb501ead76077b5bcf413edc9"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "86499079a3e3bfc2f34bcb2e601835a771b21d18aebb225d0afa5888804cc6d0",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "All opening heights and the ceiling height are unverified against any drawing (no elevation supplied).",
+    "Outer left chain read as 4060+2940+4940+8080=20020 vs total 20000 (one label likely misread); inner chains used for calibration instead.",
+    "Measured east double door 614-669 (~1510mm) vs chain label 1600; measured pixel gap retained.",
+    "Corridor tail and east hall verified mutually open along x=459.5, y585-700 (no wall found); if the original intends a screen there it is unobserved.",
+    "Furniture, text and dimension annotations not modelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

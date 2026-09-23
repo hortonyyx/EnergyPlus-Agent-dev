@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1591.0,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 1581168,
+    "stop_reason": "end_turn",
+    "session_id": "e80c89a7-44fe-4732-af66-2c28a6764a9f",
+    "total_cost_usd": 3.0893856,
+    "usage": {
+      "input_tokens": 193783,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1916800,
+      "output_tokens": 89946,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 195108,
+        "outputTokens": 94656,
+        "cacheReadInputTokens": 2079168,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 3.0893856,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 60,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "**Delivery complete: candidate_01 selected.** Viewer: `candidate_01/viewer.html`; source model sha256 `86499079…`; delivery report `delivery.json`.\n\n## What was built (single floor F1, ~10.0 × 20.0 m footprint)\n- **7 spaces**: north lounge/open area, two west offices (separated by cross wall HW2), south-west conference, central corridor/hall, east meeting room, south-east workroom.\n- **21 openings** (10 doors, 11 windows), 10 door connections, 0 unbuilt.\n- Partitions: corridor walls at x≈400 and x≈459.5, cross walls HW2 (y≈403.5) and HW3 (y≈585), SE wall at y≈700.5 with its x≈459.5 return; exterior envelope on the observed outer faces.\n- The corridor tail and east hall are **mutually open** (verified open along x≈459.5, y 585–700) — kept as one shared circulation space.\n\n## Evidence basis (observations)\n- **Calibration (calibration_001)**: dimension chains read via pixel profiles — top chain ticks map to 0/540/2140/4660/9460/10000 mm; left chain 20000 mm with inner segments summing exactly to 20000 within ~1 px. Scale ≈ 27.5 mm/px, orthogonal axes. Registered on the source model; caller-supplied, not independently verified by the tools.\n- **Wall planes**: footprint = observed exterior outer faces (240 mm annotated; drawn band ~11 px incl. finish); interior partitions = measured midplanes of the ~5 px double lines, each face located by profile or scale-5 crop.\n- **Openings** = gaps in grey wall fill + cyan jamb ticks, cross-checked against chain labels (~1–2 px agreement).\n- The finished overlay (`image_overlays/overlay_001.png`) shows declared partitions/openings aligned with the original drawing.\n\n## Explicit assumptions (not observations — no elevation supplied)\n- z_floor = 0, ceiling 3.0 m, door height 2.1 m, window sill 0.9 / head 2.4 m.\n- Interior partition thickness 120 mm nominal (reporting only; BIM paths are midplanes).\n- Room roles inferred from furniture symbols (desks, meeting table, conference oval, lounge counter); furniture, text, and dimension annotations not modelled; door operating states unknown (swings read from leaf+arc symbols).\n\n## Unresolved / unexamined\n- **All 21 opening heights and the ceiling height are unchecked** — `height_coverage` reports `no_image_evidence_linked` for every opening; these z values are assumptions only.\n- Outer left chain reads 4060+2940+4940+8080 = 20020 vs total 20000 (one label likely misread; inner chains used instead).\n- East double door measured ≈1510 mm vs chain label 1600; the measured pixel gap was retained.\n- If the original intends a screen/partition between corridor tail and east hall, it was not observed.\n- Facade/opening review scopes remain `not_reviewed` (3 opening scopes, 12 facade scopes); no height evidence exists to review against.\n\n**Honest caveat**: the geometry passes internal self-consistency and matches my own measurements and annotations, but **drawing fidelity is `not_evaluated`** — self-consistency does not certify faithful reconstruction of the original plan.",
+    "ttft_ms": 5597,
+    "type": "result",
+    "duration_ms": 1586299,
+    "uuid": "9bc9ac5d-92cb-4805-b62a-0f0faef3751a",
+    "ttft_stream_ms": 5268,
+    "time_to_request_ms": 283,
+    "first_content_frame_ms": 5268,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
