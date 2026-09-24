@@ -36,6 +36,21 @@ def example():
     return json.JSONDecoder().raw_decode(reference[reference.index("{"):])[0]
 
 
+def test_concave_plan_tool_keeps_recess_and_returns_actual_source_feedback(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    plan = example()
+    plan["footprint_pixels"] = [[1, 1], [11, 1], [11, 7], [8, 7], [8, 6], [1, 6]]
+    plan["partitions"][0]["points"][-1] = [6, 6]
+    plan["openings"][1].update(p1=[8, 6.2], p2=[8, 6.8])
+    result = Toolkit(run).build_plan("plan.png", json.dumps(plan))
+    assert result["source_geometry_ready"], result
+    source = json.loads((run / result["candidate"] / "source_model.json").read_text())
+    assert len(source["floors"][0]["footprint"]) == 6
+    assert len(source["spaces"]) == 2 and len(source["openings"]) == 2
+    assert result["source_image_projections"][0]["source_model_sha256"] == source["source_model_sha256"]
+    assert (run / result["plan_input"]["compilation_file"]).is_file()
+
+
 def test_plan_tool_source_images_provenance_and_revised_calibration(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)

@@ -1,11 +1,10 @@
 """Compile declared plan linework into a deterministic source proposal.
 
-The compiler is deliberately literal: it polygonizes a rectangular footprint
+The compiler is deliberately literal: it polygonizes a simple orthogonal footprint
 and the supplied physical partition representatives without snapping,
-extending, clipping, or inventing linework.  Schema-v2 cannot encode a
-non-rectangular floor footprint, so such footprints are rejected rather than
-silently replaced by their bounding box.  Cells inside the footprint may be
-arbitrary orthogonal polygons.
+extending, clipping, or inventing linework. Concave footprints use the existing
+per-floor ring supported by the standalone source exporter; their bounding-box
+gaps never become rooms. Cells may be arbitrary orthogonal polygons.
 """
 from __future__ import annotations
 
@@ -229,11 +228,7 @@ def compile_plan_partition(
     if not footprint.is_valid or footprint.area <= 0 or footprint.interiors:
         raise ValueError("plan.footprint_pixels must be one valid simple outer ring without holes")
     min_px, min_py, max_px, max_py = footprint.bounds
-    if not footprint.equals(box(min_px, min_py, max_px, max_py)):
-        raise ValueError(
-            "plan.footprint_pixels is non-rectangular; geometry schema v2 cannot represent "
-            "that floor footprint without filling its bounding-box gaps"
-        )
+    rectangular_footprint = footprint.equals(box(min_px, min_py, max_px, max_py))
 
     raw_partitions = plan["partitions"]
     if not isinstance(raw_partitions, list):
@@ -414,7 +409,7 @@ def compile_plan_partition(
     opening_hosts = []
     opening_ids = set()
     footprint_world = Polygon([world(point) for point in footprint_points])
-    world_bounds = footprint_world.bounds
+    world_footprint_ring = _canonical_ring(footprint_world)
     for index, raw in enumerate(raw_openings):
         item = _fields(
             raw, path=f"plan.openings[{index}]", allowed=_OPENING_FIELDS,
@@ -481,20 +476,21 @@ def compile_plan_partition(
         if kind == "window":
             if not exterior:
                 raise ValueError(f"opening {opening_id}: interior windows are not supported")
-            min_x, min_y, max_x, max_y = world_bounds
-            if p1_world[1] == p2_world[1] == _rounded(max_y):
-                facade = "North"
-            elif p1_world[1] == p2_world[1] == _rounded(min_y):
-                facade = "South"
-            elif p1_world[0] == p2_world[0] == _rounded(max_x):
-                facade = "East"
-            elif p1_world[0] == p2_world[0] == _rounded(min_x):
-                facade = "West"
-            else:
+            # The CCW ring has its interior on the left. Classify the actual
+            # outward edge, including a recessed facade, in the calibrated frame.
+            segment = LineString([p1_world, p2_world])
+            edges = [(a, b) for a, b in zip(
+                world_footprint_ring, world_footprint_ring[1:] + world_footprint_ring[:1])
+                if LineString([a, b]).covers(segment)]
+            if len(edges) != 1:
                 raise ValueError(
-                    f"opening {opening_id}: windows are supported only on the global North/South/"
-                    "East/West footprint boundary, not an interior or concave facade segment"
+                    f"opening {opening_id}: rounded window must lie on one complete footprint edge"
                 )
+            a, b = edges[0]
+            if a[1] == b[1]:
+                facade = "South" if b[0] > a[0] else "North"
+            else:
+                facade = "East" if b[1] > a[1] else "West"
             along = [p1_world[0], p2_world[0]] if facade in {"North", "South"} else [p1_world[1], p2_world[1]]
             window = {
                 "id": opening_id, "kind": "window", "floor": floor_id,
@@ -523,7 +519,6 @@ def compile_plan_partition(
             "source_refs": refs,
         })
 
-    world_footprint_ring = _canonical_ring(footprint_world)
     world_footprint = Polygon(world_footprint_ring)
     min_x, min_y, max_x, max_y = world_footprint.bounds
     assumptions = _append_once(assumptions, _AUTO_METHOD)
@@ -547,6 +542,10 @@ def compile_plan_partition(
         "assumptions": assumptions,
         "unresolved": unresolved,
     }
+    if not rectangular_footprint:
+        # Same explicit floor ring as the parametric source-proposal adapter.
+        # Keep rectangular proposals unchanged for existing replay consumers.
+        proposal["geometry"]["floors"][0]["footprint"] = {"vertices": world_footprint_ring}
     metadata = {
         "mode": "deterministic_plan_partition",
         "image_name": image_name,

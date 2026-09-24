@@ -214,15 +214,66 @@ def test_seed_on_boundary_duplicate_seed_face_and_unknown_fields_are_rejected():
         compile_plan_partition(unknown, image_size=(100, 100), image_name="plan.png")
 
 
-def test_nonrectangular_v2_footprint_is_rejected_instead_of_filled_to_bbox():
+@pytest.mark.parametrize("reflect_x", [False, True])
+def test_concave_footprint_recessed_windows_and_connections_export_exactly(tmp_path, reflect_x):
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+
     plan = _plan()
     plan["footprint_pixels"] = [
         [10, 10], [90, 10], [90, 50], [60, 50], [60, 90], [10, 90],
     ]
-    plan["partitions"] = []
-    plan["openings"] = []
+    if reflect_x:
+        plan["x_anchors"] = [[0, 9.9], [99, 0.0]]
+    plan["partitions"] = [{"id": "shared", "points": [[40, 10], [40, 90]],
+                           "source_refs": ["synthetic wall"]}]
+    plan["openings"] = [
+        {"id": "recess_vertical", "kind": "window", "p1": [60, 60], "p2": [60, 75],
+         "z": [0.9, 2.4], "source_refs": ["synthetic recessed window"]},
+        {"id": "recess_horizontal", "kind": "window", "p1": [65, 50], "p2": [80, 50],
+         "z": [0.9, 2.4], "source_refs": ["synthetic recessed window"]},
+        {"id": "internal", "kind": "door", "p1": [40, 60], "p2": [40, 70],
+         "z": [0, 2.1], "source_refs": ["synthetic door"]},
+        {"id": "external", "kind": "door", "p1": [60, 78], "p2": [60, 88],
+         "z": [0, 2.1], "source_refs": ["synthetic exterior door"]},
+    ]
     plan["space_seeds"] = []
-    with pytest.raises(ValueError, match=r"non-rectangular.*schema v2.*bounding-box gaps"):
+    original = copy.deepcopy(plan)
+    proposal, metadata = compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
+    assert plan == original
+    assert proposal["geometry"]["windows"][0]["facade"] == ("West" if reflect_x else "East")
+    assert proposal["geometry"]["windows"][1]["facade"] == "South"
+    report = export_source_proposal(proposal, tmp_path / "candidate")
+    assert report["source_geometry_ready"], report
+    source = json.loads((tmp_path / "candidate/source_model.json").read_text())
+    assert len(source["spaces"]) == 2
+    expected = Polygon(metadata["footprint"]["world_polygon_m"])
+    assert unary_union([Polygon(s["polygon"]) for s in source["spaces"]]).equals(expected)
+    assert Polygon(source["floors"][0]["footprint"]).equals(expected)
+    assert expected.area < expected.envelope.area
+    assert not source["unbuilt_openings"]
+    for opening, host in zip(sorted(source["openings"], key=lambda o: o["id"]),
+                             sorted(metadata["opening_hosts"], key=lambda o: o["opening_id"])):
+        assert opening["id"] == host["opening_id"]
+        assert {tuple(v[:2]) for v in opening["vertices"]} == {
+            tuple(host["p1_world_m"]), tuple(host["p2_world_m"])}
+        assert opening["space_ids"] == host["space_ids"]
+        assert opening["exterior"] == host["exterior"]
+    connections = {c["opening_id"]: c for c in source["connections"]}
+    assert len(connections["internal"]["space_ids"]) == 2
+    assert connections["external"]["exterior"]
+    reloaded = json.loads((tmp_path / "candidate/proposal.json").read_text())
+    replay = export_source_proposal(reloaded, tmp_path / "replay")
+    assert replay["source_model_sha256"] == report["source_model_sha256"]
+
+
+def test_concave_footprint_rejects_opening_across_recess():
+    plan = _plan()
+    plan.update(footprint_pixels=[[10, 10], [90, 10], [90, 50], [60, 50], [60, 90], [10, 90]],
+                partitions=[], space_seeds=[])
+    plan["openings"] = [{"id": "across_recess", "kind": "window", "p1": [50, 50],
+                         "p2": [80, 50], "z": [1, 2], "source_refs": ["invalid span"]}]
+    with pytest.raises(ValueError, match="across_recess.*full-boundary hosts"):
         compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
 
 

@@ -2019,8 +2019,9 @@ def serve(run: Path, readonly=False):
             Read get_bim_reference('plan_partition') for the JSON contract. Code
             closes faces and finds opening hosts; it never fills wall-path gaps,
             invents partitions or trims openings. Returns actual source plan and
-            original overlay images. Rectangular outer footprint, orthogonal
-            interior partitions only. A draft with known omissions needs explicit
+            original overlay images. Simple orthogonal outer footprint without
+            holes, including concave outlines; orthogonal interior partitions.
+            A draft with known omissions needs explicit
             unresolved notes. Each source export uses the shared candidate budget.
             """
             return candidate_result(toolkit.build_plan(image, plan_json))

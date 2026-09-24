@@ -106,7 +106,7 @@ Uncertainty permits stated assumptions, not silent omission or invented evidence
 
 Prioritize faithful physical partitions and openings over an early first draft.
 Use the available budget to resolve consequential uncertainty and compare the
-actual saved source with the originals. For a single floor with a rectangular footprint,
+actual saved source with the originals. For a single floor with a simple orthogonal footprint,
 build_plan_bim can derive complete rooms and opening hosts from your observed
 pixel partition paths; read plan_partition for its compact input format. This
 avoids repeating shared room vertices and doing coordinate arithmetic yourself.
@@ -340,8 +340,12 @@ representative plane: the perimeter may use observed outer faces while internal
 dividers use measured midplanes. Document that choice; do not confuse a face
 dimension with a centreline dimension or apply an unobserved half-thickness.
 World z is absolute. basis explains observed dimensions and reference planes.
-Current scope: ONE floor, rectangular outer footprint, orthogonal partitions;
-rooms may be nonrectangular. Unsupported outer shapes explicitly fail.
+Current scope: ONE floor, simple orthogonal outer footprint without holes,
+orthogonal partitions; footprint and rooms may be nonrectangular. Trace every
+outer turn, including recesses; never fill the bounding rectangle or add walls
+to split a continuous space into boxes. Windows on recessed exterior edges are
+supported; code derives their outward direction from the calibrated outer ring.
+Nonorthogonal rings, holes and ambiguous hosts explicitly fail.
 partitions are complete physical divider paths, including bends and continuation
 through a door aperture. Put the aperture separately in openings. Shared path
 endpoints must coincide explicitly. The compiler will not extend, snap or bridge
