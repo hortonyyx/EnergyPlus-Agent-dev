@@ -1,0 +1,136 @@
+{
+  "mode": "post_generation_repeat_comparison_no_mutation_no_best_run_selection",
+  "scope_and_production_hashes_identical": true,
+  "independent_runtime_sessions_verified": true,
+  "acceptance_scope": {
+    "internal_door_height": "Unavailable in supplied evidence; explicit assumption is nonblocking per user 2026-09-24.",
+    "internal_door_geometry": "Existence, position, host, connectivity and within-space height checks remain applicable.",
+    "other_heights": "Plan-only experiment: assumed, not verified; no new exemption for heights supplied in future evidence."
+  },
+  "runs": [
+    {
+      "run": "2026-09-24_sm24_cold_support_glm_run39",
+      "candidate": "candidate_01",
+      "source_sha256": "380a2edcc813c72cd907b09fd5a48243dc8ac6a2c1658c1ba441fbe65031a7a9",
+      "actual_model": "glm-5.3-flash",
+      "effort": "medium",
+      "elapsed_seconds": 1325.7,
+      "cli_estimate_usd_not_bill": 1.857008,
+      "counts": {
+        "spaces": 8,
+        "openings": {
+          "door": 10,
+          "window": 11
+        },
+        "connections": 10,
+        "unsupported": 0,
+        "unbuilt_openings": 0
+      },
+      "original_partition_status": "severe",
+      "original_partition_matches": 8,
+      "original_partition_match_statuses": {
+        "severe": 4,
+        "minor": 4
+      },
+      "original_partition_finding_codes": {
+        "partition_boundary_changed": 4,
+        "space_geometry_within_tolerance": 4
+      },
+      "original_max_boundary_distance_m": 0.11311435296570335,
+      "original_position_matches": 14,
+      "original_host_matches": 21,
+      "original_door_connection_matches": 10,
+      "declared_frame_partition_status": "severe",
+      "declared_frame_position_matches": 20,
+      "declared_frame_host_matches": 21,
+      "declared_frame_door_connection_matches": 10,
+      "internal_door_ids_with_nonblocking_unknown_height": [
+        "D_conf",
+        "D_cor_top",
+        "D_offA",
+        "D_offB",
+        "D_roomC",
+        "D_roomD",
+        "D_store"
+      ],
+      "tools": {
+        "inputs": 1,
+        "get_bim_reference": 2,
+        "view_image": 5,
+        "view_pixel_profile": 15,
+        "map_pixels": 1,
+        "build_plan_bim": 3,
+        "view_plan_wall_support": 1,
+        "check_openings": 1,
+        "finish_bim": 1
+      },
+      "actual_image_count": 25,
+      "source_replay_exact": true,
+      "display_replay_exact": true
+    },
+    {
+      "run": "2026-09-24_sm24_repeat_support_glm_run40",
+      "candidate": "candidate_01",
+      "source_sha256": "f7567b7519b0360faeb81578839d51488edcc5c06b1218a2fe3b5349776e34c4",
+      "actual_model": "glm-5.3-flash",
+      "effort": "medium",
+      "elapsed_seconds": 1135.59,
+      "cli_estimate_usd_not_bill": 1.7165288000000003,
+      "counts": {
+        "spaces": 8,
+        "openings": {
+          "door": 10,
+          "window": 11
+        },
+        "connections": 10,
+        "unsupported": 0,
+        "unbuilt_openings": 0
+      },
+      "original_partition_status": "severe",
+      "original_partition_matches": 8,
+      "original_partition_match_statuses": {
+        "severe": 7,
+        "minor": 1
+      },
+      "original_partition_finding_codes": {
+        "partition_boundary_changed": 7,
+        "space_geometry_within_tolerance": 1
+      },
+      "original_max_boundary_distance_m": 0.1430169285700624,
+      "original_position_matches": 17,
+      "original_host_matches": 21,
+      "original_door_connection_matches": 10,
+      "declared_frame_partition_status": "severe",
+      "declared_frame_position_matches": 18,
+      "declared_frame_host_matches": 21,
+      "declared_frame_door_connection_matches": 10,
+      "internal_door_ids_with_nonblocking_unknown_height": [
+        "D_boffice",
+        "D_cab",
+        "D_dining",
+        "D_hall",
+        "D_meet",
+        "D_office1",
+        "D_work"
+      ],
+      "tools": {
+        "inputs": 1,
+        "get_bim_reference": 2,
+        "view_image": 16,
+        "pixel_profile": 16,
+        "build_plan_bim": 1,
+        "view_plan_wall_support": 1,
+        "check_openings": 1,
+        "finish_bim": 1
+      },
+      "actual_image_count": 19,
+      "source_replay_exact": true,
+      "display_replay_exact": true
+    }
+  ],
+  "limits": [
+    "Two runs on one image are not a general success rate or broad stability proof.",
+    "Raw original and declared-frame scores remain distinct and unchanged.",
+    "Space count alone cannot establish correct partitions; compare matched geometry, findings and original overlay."
+  ]
+}

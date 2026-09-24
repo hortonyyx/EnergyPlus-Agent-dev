@@ -1,0 +1,80 @@
+{
+  "agent_assumptions": [
+    "No elevation supplied: z_floor=0 and ceiling_height=3.0 m are explicit assumptions.",
+    "All door leaf heights assumed 2.1 m; window sill 0.9 m / head 2.4 m assumed uniformly; ribbon windows may differ.",
+    "Door operating states unknown; swing directions read from arcs only.",
+    "Room roles are indicative from furniture; plan-only evidence.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "9ef01ada19a4d603cdddf13069aa1ca953fe0c726bb911426c31ac3ddf52ec10",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "c31237fdf271a458d5d6d542f60e4a4710e3967fa51b9fdfe22009649e516fc0",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "280aa30dbb90ffa16e2048a4b3c8c85b423bcd00afb69be28cf62a028fa7067b",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "162a24180875208110b73c42ab737c9abbd6ccf5535a15730202c17c80cb25b3",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "9a537b5bbe5d66eaf5c74940dc81bfe1b9b7cc1400c4c7f749268701ec1bbfc2",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "ea46a52e897c5b2e2eb168c2df3e895ecd4b7f24fe3a5cbcbed0132ad83aefa9"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f7567b7519b0360faeb81578839d51488edcc5c06b1218a2fe3b5349776e34c4",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Interior wall thicknesses read from ~8-10 px double-line bands (~240-280 mm); centreplanes used, not individual faces.",
+    "Right-wall 1600 door observed at y613-670 while my first reading of the right chain suggested y592-636; pixel jamb ticks and the 5600 bottom segment were preferred.",
+    "Whether D_bot/D_right/D_entry leaves are double-leaf is read from arcs; leaf count not dimensioned.",
+    "Furniture, text and dimension ink were treated as non-partition; no furniture modelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
