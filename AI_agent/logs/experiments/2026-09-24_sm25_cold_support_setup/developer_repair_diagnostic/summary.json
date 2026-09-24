@@ -1,0 +1,55 @@
+{
+  "mode": "controlled_developer_intervention_not_autonomous_or_adopted",
+  "model_calls": 0,
+  "steps": [
+    {
+      "intervention": "split_false_wall_only",
+      "counts": {
+        "spaces": 14,
+        "boundaries": 96,
+        "openings": 30,
+        "connections": 15,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      },
+      "unchanged_other_partition_count": 16,
+      "unchanged_original_opening_geometry": 30,
+      "unchanged_non_corridor_room_polygons": 13,
+      "partition_status": "severe",
+      "qualitative_topology_findings": [],
+      "positions_matched": 30,
+      "hosts_matched": 30,
+      "door_connections_matched": 15,
+      "unmatched_reference": [
+        "DX_WS"
+      ],
+      "unmatched_actual": []
+    },
+    {
+      "intervention": "restore_missing_exterior_door",
+      "counts": {
+        "spaces": 14,
+        "boundaries": 96,
+        "openings": 31,
+        "connections": 16,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      },
+      "unchanged_other_partition_count": 16,
+      "unchanged_original_opening_geometry": 30,
+      "unchanged_non_corridor_room_polygons": 13,
+      "partition_status": "severe",
+      "qualitative_topology_findings": [],
+      "positions_matched": 31,
+      "hosts_matched": 31,
+      "door_connections_matched": 16,
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    }
+  ],
+  "conclusion": "Existing compiler can preserve the gap and all unrelated walls. Failed model retries removed meeting-room declarations; the failure does not prove this geometry is unrepresentable.",
+  "limitations": [
+    "Original midline/exterior-face residuals and west office wall-band sliver retained.",
+    "Developer chose the changed wall and missing door using original evidence. This is not a repaired working-model score."
+  ]
+}

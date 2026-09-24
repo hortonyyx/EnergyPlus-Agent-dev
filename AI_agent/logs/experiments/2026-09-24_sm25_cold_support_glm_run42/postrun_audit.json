@@ -1,0 +1,68 @@
+{
+  "candidate": "candidate_03",
+  "actual_model": "glm-5.3-flash",
+  "elapsed_seconds": 1893.1,
+  "estimated_cost_usd_not_bill": 3.5017327999999996,
+  "cold_input_and_runtime_verified": true,
+  "source_replay_exact": true,
+  "display_replay_exact": true,
+  "reference_predates_first_submission": true,
+  "plan_origin_candidate": "candidate_01",
+  "selected_geometry_unchanged_from_plan_origin": true,
+  "counts": {
+    "spaces": 15,
+    "openings": 30,
+    "connections": 15,
+    "unsupported": 0,
+    "unbuilt_openings": 0
+  },
+  "opening_kinds": {
+    "door": 15,
+    "window": 15
+  },
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 3,
+    "view_image": 9,
+    "pixel_profile": 40,
+    "build_plan_bim": 8,
+    "view_plan_wall_support": 1,
+    "revise_bim": 2,
+    "claim_application": 2,
+    "finish_bim": 1
+  },
+  "transported_image_count": 23,
+  "exact_saved_feedback_images": 10,
+  "viewer_has_no_remote_scripts": true,
+  "comparisons": {
+    "original": {
+      "partition_status": "severe",
+      "matched_spaces": 14,
+      "positions_matched": 30,
+      "hosts_matched": 26,
+      "door_connections_matched": 12,
+      "unmatched_reference": [
+        "DX_WS"
+      ],
+      "unmatched_actual": []
+    },
+    "declared_frame": {
+      "partition_status": "severe",
+      "matched_spaces": 14,
+      "positions_matched": 30,
+      "hosts_matched": 26,
+      "door_connections_matched": 12,
+      "unmatched_reference": [
+        "DX_WS"
+      ],
+      "unmatched_actual": []
+    }
+  },
+  "limitations": [
+    "Manual original-image reference, not a measured survey. Midline versus exterior-face choices can contribute about 12cm to raw boundary differences.",
+    "Door leaves/arcs identify aperture endpoints; their curved bounds do not define walls.",
+    "Plan only: all unseen heights excluded from plan acceptance; internal-door height assumptions do not block acceptance.",
+    "Single-floor cold start; whole-building autonomy/repeatability and WebGL interaction not evaluated.",
+    "Declared-frame transform inverts submitted anchors; no candidate fitting or source mutation. Raw scores retained."
+  ]
+}

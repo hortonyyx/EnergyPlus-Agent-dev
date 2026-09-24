@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 2400,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1893.1,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 1878787,
+    "stop_reason": "end_turn",
+    "session_id": "7c2dbdf9-f8bb-4067-ac74-d2f85fcc0387",
+    "total_cost_usd": 3.5017327999999996,
+    "usage": {
+      "input_tokens": 281485,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1937920,
+      "output_tokens": 91245,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 282837,
+        "outputTokens": 97517,
+        "cacheReadInputTokens": 2100224,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 3.5017327999999996,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 70,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "**Delivered: candidate_03** (viewer: `candidate_03/viewer.html`, source model `candidate_03/source_model.json`). Source validation **pass** — 15 spaces, 98 boundaries, 30 openings (15 doors, 15 windows), 0 unbuilt/unresolved geometry items.\n\n## What was checked against the original\n\n- **Calibration**: from the drawing's own dimension annotations — 25 000 × 20 000 mm mapped to outer wall faces px 282→1437 / 1235→310; both axis scales agree within 0.15 %. Anchors saved as `calibration_001`; overlay `image_overlays/overlay_003.png` matches the plan.\n- **Partition support review** (`view_plan_wall_support`, draft_004, grey ink rgb≈150 tol 80, r=6): every partition is supported along its full length; all 15 declared doors/windows appear exactly as excluded intervals; remaining unsupported spans are ≤10 px junction/endpoint effects. The **only** large unsupported span (G01, px 699–789 on the corridor north wall) is the real wall void confirmed in the clean original — grey ink exists only at x524–696 and x790–988.\n- **Opening inventory** vs observed cyan marks: 15 doors (2 entrances, D_A/D_B, D_M3/D_M4, D_O1–D_O7, double doors D_C1/D_C2) and 15 windows, all hosted correctly.\n\n## The one substantive unresolved defect (documented in the saved candidate)\n\nThe original has **no wall** at x698–790 on the corridor north wall — the vertical corridor continues openly into the bottom-wing hall. candidate_03 declares that wall continuous, so the circulation is split into two spaces (`corridor_open` + `F1_S13`) **with no opening between them** — the hall/meeting zone connects only via the east main entrance or through meeting-room doors. Every faithful alternative was rejected by the builder: gapped wall (drafts 005/006/008 — shifting seed-conflict errors), declared open passage (draft_007 — same), post-build `add_opening` (candidate_02 — `source.opening_unbuilt`, severe). I kept the built, validated candidate rather than inventing or deleting geometry to clear the check.\n\n## Explicit assumptions (no elevation/other floor supplied)\n\n- z = 0 floor, 3.0 m ceiling — whole-floor assumptions; **all 30 openings have unlinked heights** (doors 2.1 m, windows 0.9–2.7 m assumed — confirmed by `height_coverage`: no image evidence exists for any height).\n- Exterior walls 240 mm (11 px double line); interior partitions nominal ~120 mm from thin line pairs.\n- Door states unknown; room roles inferred from furniture only.\n\n## Unexamined scope\n\nW_N1 mullions unresolved (one ~8 m band); drawing fidelity **not evaluated** by any tool; no elevation/facade evidence exists. `claim_status`: no claims recorded; notes on candidate_03 are current.",
+    "ttft_ms": 12678,
+    "type": "result",
+    "duration_ms": 1887990,
+    "uuid": "89d63360-c49d-4697-9372-6c71e2ca681e",
+    "ttft_stream_ms": 12433,
+    "time_to_request_ms": 59,
+    "first_content_frame_ms": 12434,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

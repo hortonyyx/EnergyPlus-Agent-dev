@@ -1,0 +1,20 @@
+[
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.",
+      "All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.",
+      "Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.",
+      "Door operating states unknown; swing arcs give hinge side only.",
+      "Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.",
+      "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+    ],
+    "unresolved": [
+      "KNOWN COMPROMISE - circulation continuity: the original shows no wall ink at x698-790 on the corridor north wall (wall faces y957/969 measured only x524-696 and x790-988); the vertical corridor continues openly into the bottom-wing hall. candidate_01 declares P_corr_north_w continuous, so the circulation is represented as TWO spaces (corridor_open L-shape and F1_S13 hall) with NO opening between them - the hall/meeting zone is reachable only via D_main_entr or through meeting-room doors D_C1/D_C2, which is a connectivity error. Faithful alternatives were attempted and rejected by the builder: splitting the wall at the gap (drafts 005/006/008) and declaring an open passage on it (draft 007) both failed the seed-space check with shifting conflict pairs; a post-build add_opening of the passage (candidate_02) left the opening unbuilt (source.opening_unbuilt). Keep this defect in mind for any downstream use.",
+      "P_corr_north_w declared on its measured north face line y957 (faces 957/969) so it closes at the strip ring corner; the corridor polygon includes that 12px wall band on its north side.",
+      "Cyan window band W_N1 drawn as one continuous ~8 m glazed band; any mullions within it were not resolved.",
+      "Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.",
+      "Pixel-to-world calibration was derived from the drawing's own dimension annotations and cross-checked (scales agree within 0.15%) but rests on the annotated 25000x20000 mm totals being outer-face dimensions."
+    ]
+  }
+]

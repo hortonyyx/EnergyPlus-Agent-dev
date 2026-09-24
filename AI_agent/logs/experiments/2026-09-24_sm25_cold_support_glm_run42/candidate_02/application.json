@@ -1,0 +1,181 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "candidate_01",
+  "submitted_operations": [
+    {
+      "op": "add_opening",
+      "opening": {
+        "id": "X_corr_hall",
+        "kind": "open",
+        "space_id": "corridor_open",
+        "other_space_id": "F1_S13",
+        "p1": [
+          698,
+          957
+        ],
+        "p2": [
+          790,
+          957
+        ],
+        "z": [
+          0,
+          3.0
+        ],
+        "assumptions": [
+          "full-height open passage; no leaf/head evidence in plan"
+        ]
+      },
+      "reason": "The grey wall ink along P_corr_north_w stops at x696 and resumes at x790 (wall faces y957/969 measured x524-696 and x790-988); the x698-790 span has no wall in the original - it is the real open connection between the vertical corridor and the bottom-wing hall. candidate_01 declared this partition continuous, incorrectly sealing the circulation. This edit restores the observed passage without moving any wall.",
+      "source_refs": [
+        "1f_view.png: wall support review G01 unsupported span x699-789 between corridor_open and F1_S13; grey ink rgb~150 present x524-696 and x790-988 only"
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "fb6bddef9cd161979dda1d7b883f1e0709713e0ef79c05a9a44687da20104a43",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "add_opening",
+      "opening": {
+        "id": "X_corr_hall",
+        "kind": "open",
+        "space_id": "corridor_open",
+        "other_space_id": "F1_S13",
+        "p1": [
+          698,
+          957
+        ],
+        "p2": [
+          790,
+          957
+        ],
+        "z": [
+          0,
+          3.0
+        ],
+        "assumptions": [
+          "full-height open passage; no leaf/head evidence in plan"
+        ]
+      },
+      "reason": "The grey wall ink along P_corr_north_w stops at x696 and resumes at x790 (wall faces y957/969 measured x524-696 and x790-988); the x698-790 span has no wall in the original - it is the real open connection between the vertical corridor and the bottom-wing hall. candidate_01 declared this partition continuous, incorrectly sealing the circulation. This edit restores the observed passage without moving any wall.",
+      "source_refs": [
+        "1f_view.png: wall support review G01 unsupported span x699-789 between corridor_open and F1_S13; grey ink rgb~150 present x524-696 and x790-988 only"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "2a9ae5f69b6a03bebaefde97916d2266315b8361fb11cd388b7f1a7aae13b9cd",
+  "geometry_after_sha256": "7514af251d683e0cdfcc9b2962fbd62932fe634b1b9c3ea4e3d539a7c52ab78f",
+  "changes": [
+    {
+      "kind": "opening",
+      "id": "X_corr_hall",
+      "before": null,
+      "after": {
+        "id": "X_corr_hall",
+        "kind": "open",
+        "space_id": "corridor_open",
+        "other_space_id": "F1_S13",
+        "p1": [
+          698.0,
+          957.0
+        ],
+        "p2": [
+          790.0,
+          957.0
+        ],
+        "z": [
+          0.0,
+          3.0
+        ],
+        "state": "open"
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [
+    {
+      "operation_index": 0,
+      "parameter": "p1"
+    },
+    {
+      "operation_index": 0,
+      "parameter": "p2"
+    },
+    {
+      "operation_index": 0,
+      "parameter": "z"
+    }
+  ],
+  "candidate": "candidate_02",
+  "source_model_sha256": "f067fad66bc6f609f54ed4fc641967dd02b0f1433a2d0af289af5e0cf90ea634",
+  "source_geometry_ready": false,
+  "error": null,
+  "source_validation": {
+    "status": "severe",
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "severity": "severe",
+        "opening_id": "X_corr_hall",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            0.0,
+            3.0
+          ],
+          "declared_space_bounds": [
+            {
+              "side": "space",
+              "space_id": "corridor_open",
+              "floor_id": "F1",
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "actual_opening_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "below_floor_m": 0.0,
+              "above_ceiling_m": 0.0,
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "side": "other_space",
+              "space_id": "F1_S13",
+              "floor_id": "F1",
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "actual_opening_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "below_floor_m": 0.0,
+              "above_ceiling_m": 0.0,
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        }
+      }
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

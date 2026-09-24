@@ -1,0 +1,36 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BIM 候选与实际检查</title><style>body{font:16px system-ui;max-width:1100px;margin:30px auto;padding:0 16px;line-height:1.6}table{border-collapse:collapse;width:100%}td,th{padding:8px;border:1px solid #ccc;text-align:left}iframe{width:100%;height:680px;border:1px solid #ccc}</style><h1>BIM 候选与实际检查</h1><p>以下状态来自保存的源模型和回查记录。几何自洽或观察对应不等于原图保真；未核查和待处理问题见下方记录。</p><p>本次模型调用正常结束。</p><p>模型选定：candidate_03。15 个空间，30 个已建开口，0 个未建开口。几何自洽：通过；原图保真：未评价。</p><p><a href="candidate_03/viewer.html">打开模型</a> · <a href="candidate_03/source_model.json">源 BIM</a> · <a href="delivery.json">检查记录</a></p><table><tr><th>楼层</th><th>类别</th><th>已建数量</th><th>原图观察回查</th></tr><tr><td>F1</td><td>门洞</td><td>15</td><td>未回查</td></tr><tr><td>F1</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>窗</td><td>15</td><td>未回查</td></tr></table><p>0 份旧源回查未用于当前候选。</p><details><summary>逐立面回查范围</summary><p>零个已建开口也需明确观察；内部及无法确定方向的开口不能靠立面回查覆盖。与所报观察一致仍不代表原图保真。</p><table><tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr><tr><td>F1</td><td>北</td><td>门洞</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>南</td><td>门洞</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>东</td><td>门洞</td><td>1</td><td>未回查</td></tr><tr><td>F1</td><td>西</td><td>门洞</td><td>1</td><td>未回查</td></tr><tr><td>F1</td><td>北</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>南</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>东</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>西</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>F1</td><td>北</td><td>窗</td><td>3</td><td>未回查</td></tr><tr><td>F1</td><td>南</td><td>窗</td><td>2</td><td>未回查</td></tr><tr><td>F1</td><td>东</td><td>窗</td><td>7</td><td>未回查</td></tr><tr><td>F1</td><td>西</td><td>窗</td><td>2</td><td>未回查</td></tr></table></details><h2>开口高度观察范围</h2><p>按实际开口的当前高度引用统计；图像依据已关联不代表图意已独立验证。推断/声明仍列入未关联图像范围；零个已建开口不证明图纸没有开口。</p><table><tr><th>楼层</th><th>立面</th><th>已建</th><th>高度图像依据已关联</th><th>高度尚未关联图像依据</th></tr><tr><td>F1</td><td>北</td><td>3</td><td>0</td><td>W_top1, W_top2, W_top3</td></tr><tr><td>F1</td><td>南</td><td>2</td><td>0</td><td>W_S1, W_S2</td></tr><tr><td>F1</td><td>东</td><td>8</td><td>0</td><td>D_main_entr, W_E1, W_E2, W_E3, W_E4, W_E5, W_E6, W_E7</td></tr><tr><td>F1</td><td>西</td><td>3</td><td>0</td><td>D_west_entr, W_MW1, W_MW2</td></tr><tr><td>F1</td><td>内部/未确定方向</td><td>14</td><td>0</td><td>D_A, D_B, D_C1, D_C2, D_M3, D_M4, D_O1, D_O2, D_O3, D_O4, D_O5, D_O6, D_O7, W_N1</td></tr></table><h2>尚未解决</h2><ul><li>KNOWN COMPROMISE - circulation continuity: the original shows no wall ink at x698-790 on the corridor north wall (wall faces y957/969 measured only x524-696 and x790-988); the vertical corridor continues openly into the bottom-wing hall. candidate_01 declares P_corr_north_w continuous, so the circulation is represented as TWO spaces (corridor_open L-shape and F1_S13 hall) with NO opening between them - the hall/meeting zone is reachable only via D_main_entr or through meeting-room doors D_C1/D_C2, which is a connectivity error. Faithful alternatives were attempted and rejected by the builder: splitting the wall at the gap (drafts 005/006/008) and declaring an open passage on it (draft 007) both failed the seed-space check with shifting conflict pairs; a post-build add_opening of the passage (candidate_02) left the opening unbuilt (source.opening_unbuilt). Keep this defect in mind for any downstream use.</li><li>P_corr_north_w declared on its measured north face line y957 (faces 957/969) so it closes at the strip ring corner; the corridor polygon includes that 12px wall band on its north side.</li><li>Cyan window band W_N1 drawn as one continuous ~8 m glazed band; any mullions within it were not resolved.</li><li>Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.</li><li>Pixel-to-world calibration was derived from the drawing&#x27;s own dimension annotations and cross-checked (scales agree within 0.15%) but rests on the annotated 25000x20000 mm totals being outer-face dimensions.</li></ul><details><summary>模型采用的假设</summary><ul><li>Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.</li><li>Contacts describe adjacency, not traversability or EnergyPlus surface pairing.</li><li>Only explicit openings are represented; absent observations do not establish a solid wall.</li><li>Source boundary identity follows cell identity and ring order; topology edits need identity migration.</li><li>No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.</li><li>All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.</li><li>Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.</li><li>Door operating states unknown; swing arcs give hinge side only.</li><li>Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.</li><li>Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.</li></ul></details><h2>当前候选的观察结论</h2><p>以下核对实际参数和宿主是否仍保留，不代表原图判断已经验证。</p><table><tr><th>观察</th><th>当前状态</th><th>依据</th></tr></table><details><summary>已替代的说明</summary><ul><li>无显式替代记录。</li></ul></details><details><summary>观察与实际应用</summary><p>采纳、执行成功与原图正确分别判断；历史应用成功不代表当前候选保留该结果。完整记录见检查记录。</p><pre>{
+  &quot;adopted_unapplied&quot;: [],
+  &quot;applications&quot;: [
+    {
+      &quot;id&quot;: &quot;application_0001&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: &quot;candidate_02&quot;,
+      &quot;claim_ids&quot;: [],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: [
+        {
+          &quot;operation_index&quot;: 0,
+          &quot;parameter&quot;: &quot;p1&quot;
+        },
+        {
+          &quot;operation_index&quot;: 0,
+          &quot;parameter&quot;: &quot;p2&quot;
+        },
+        {
+          &quot;operation_index&quot;: 0,
+          &quot;parameter&quot;: &quot;z&quot;
+        }
+      ]
+    },
+    {
+      &quot;id&quot;: &quot;application_0002&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: &quot;candidate_03&quot;,
+      &quot;claim_ids&quot;: [],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    }
+  ]
+}</pre></details><h2>原图回叠反馈</h2><p>标定由模型提供，尚未独立验证；图像已生成不代表已审视或原图保真。</p><p>当前源投影 1 份；旧源投影 2 份；登记但当前楼层未覆盖 0 份；当前源无登记图面楼层 0 个。</p><ul><li>1f_view.png / F1：<a href="image_overlays/overlay_003.png">当前源回叠图</a></li></ul><details><summary>旧源投影</summary><ul><li>1f_view.png / F1：bbd745624c9e</li><li>1f_view.png / F1：f067fad66bc6</li></ul></details><details><summary>未覆盖或失败</summary><ul><li>无</li></ul></details><iframe title="保存的 BIM 候选" src="candidate_03/viewer.html"></iframe></html>
