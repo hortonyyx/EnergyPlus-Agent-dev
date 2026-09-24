@@ -1,0 +1,81 @@
+{
+  "agent_assumptions": [
+    "No elevation/section supplied: floor z=0, ceiling 3.0m, doors 0-2.1m, windows 0.9-2.7m are explicit assumptions, not drawing observations",
+    "Interior partitions drawn as thin double lines without thickness annotation; modeled as zero-thickness centrelines",
+    "Exterior footprint uses observed outer faces; 240mm exterior wall thickness annotated in plan",
+    "World frame: x east (0 at west outer face), y north (0 at south outer face), matching plan orientation",
+    "Door leaves/swings not encoded; operating states unknown",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "b6523408fe0254330c9a12047205ae8e3a1e41dfae1cb3844c0f170d888f1eb1",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "b6547074f0a6010ac9120e91b5b403c69c20e8f98da74e8ffe747adadcbaa7f3",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "a27986a80e73153b0bad7270c2e40a85fdcf67ded6eb3b04286d3503eb0d0457",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "dbeb9bf7a28b6d366de9bf6cf39f85f2aa14f8e493c676537d37d2a4624f2c29",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "ff5bd3de0e014486c8a67f403c883e46f5271afbb382f9ebdd3b3e09ecfd6f92",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "1cf7ff01a685b5e819ac5583d014ef2ef76e48ff29d2b1aaef3aeff0f1295359"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "380a2edcc813c72cd907b09fd5a48243dc8ac6a2c1658c1ba441fbe65031a7a9",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Furniture, door-swing arcs and text ignored as structure per observation of full wall paths",
+    "Corridor mouth aperture (x 408-451) carries double-leaf cyan marks; encoded as one 1.19m double door",
+    "No vertical dimension evidence at all; all heights are assumed",
+    "Interior partition thickness (drawn ~150-200mm double-line, unannotated) approximated as zero",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

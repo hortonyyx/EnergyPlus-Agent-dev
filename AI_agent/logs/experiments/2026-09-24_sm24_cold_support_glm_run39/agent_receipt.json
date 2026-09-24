@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1325.7,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 1316639,
+    "stop_reason": "end_turn",
+    "session_id": "c03e4f1e-41c7-4719-a16a-99b4300e1e53",
+    "total_cost_usd": 1.857008,
+    "usage": {
+      "input_tokens": 148901,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 974720,
+      "output_tokens": 53323,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 148901,
+        "outputTokens": 53323,
+        "cacheReadInputTokens": 974720,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.857008,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 33,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Delivery recorded for **candidate_01** (viewer: `candidate_01/viewer.html`). Final report:\n\n## Delivered model\n**candidate_01** — single floor F1, 8 spaces, 8 declared partitions, 21 openings (10 doors, 11 windows), 10 door connections. Source-geometry validation: pass (0 unbuilt/unsupported openings). Built with `build_plan_bim` from observed pixel wall paths, so rooms and opening hosts were derived deterministically — no hand-enumerated vertices.\n\n## Coordinate frame and calibration (evidence retained)\n- From the original dimension chains, which sum exactly: top 540+1600+2520+4800+540 = **10000 mm**; left 540+1500+2380+1200+1740+1500+1220+1500+3080+4800+540 = **20000 mm**. These were anchored to the measured outer wall faces (grey double-line bands): x px 249→0 m, 610→10 m; y px 877→0 m (south), 152→20 m (north). Scale 27.70 mm/px (x), 27.59 mm/px (y). Chain segment boundaries matched measured wall/opening ink transitions to within ~2–3 px on every facade.\n- **Dimension baselines vs wall faces:** footprint uses observed **outer faces**; exterior thickness 240 mm is annotated in the plan. Interior partitions are drawn as unannotated thin double lines (~150–200 mm); they are modelled as **measured centrelines** (V1 centre x≈400 consistent with the 4180 chain; V2 centre x≈460 with the 1640 chain). Partition endpoints were regularized to the footprint boundary where ink stops at inner faces — recorded in the saved basis.\n- The tool flagged a cross-axis scale disagreement (36.10 vs 36.25 px/m, 0.41 %). This reflects ±1 px in reading the outer-face lines over 361/725 px; per-axis scales were used, and the disagreement is preserved in the delivery record rather than silently blended.\n\n## Physical layout recovered\nNorth open office (full width); west column: office_a, office_b, south conference room; east column: room_c, room_d meeting room; **L-shaped corridor+lobby circulation kept intact** (the corridor's east wall demonstrably ends at y≈582 px — no ink between there and the y≈699 wall — so corridor and entry lobby are one connected space); L-shaped south-east work room with its own external door. Doors: corridor-mouth double door (1.19 m) plus 6 single doors off the corridor/lobby, 3 exterior doors. All 8 spaces are connected; no space is isolated.\n\n## Verification performed\n- Facade openings measured by cyan profiles on all four walls; every chain segment matched an observed wall pier or aperture.\n- `view_plan_wall_support(draft_003, grey, tol 60, r=5)`: every declared path is fully ink-supported. All unsupported samples (G01–G20) are 2–4 px T-junction artifacts at wall crossings or 1-px offsets at exterior face lines — **no missing wall spans, no undeclared apertures**; nothing was deleted or invented to clear the report.\n- Clean-original vs marked-panel comparison, both adjoining spaces of each divider checked; compiled source plan and original-image overlay inspected visually and agree with the drawing's partition topology.\n\n## Limitations (unverified scope — stated honestly)\n- **All heights are assumptions**: no elevation/section was supplied. z=0, ceiling 3.0 m, doors 0–2.1 m, windows 0.9–2.7 m are declared assumptions; `check_openings(heights_only)` confirms all 21 openings are height-unchecked with no image-linked evidence.\n- Interior partition thickness approximated as zero (drawing gives no value).\n- Swing orientations and door operating states not encoded; the corridor-mouth mark was read as one double door (two ~0.6 m leaves).\n- Furniture, swing arcs, and text were treated as non-structure after checking full wall paths; drawing fidelity remains **not evaluated** — internal consistency and agreement with my own calibration do not certify reconstruction of the real building.",
+    "ttft_ms": 5169,
+    "type": "result",
+    "duration_ms": 1322091,
+    "uuid": "583f9ca0-bcea-4c40-b36e-4a147cfbb6fc",
+    "ttft_stream_ms": 5030,
+    "time_to_request_ms": 63,
+    "first_content_frame_ms": 5031,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

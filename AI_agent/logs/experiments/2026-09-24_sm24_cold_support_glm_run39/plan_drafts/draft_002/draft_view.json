@@ -1,0 +1,1152 @@
+{
+  "schema_version": "plan_draft_view_v1",
+  "mode": "draft_only",
+  "draft_only": true,
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_ready": false,
+  "source_bim": false,
+  "room_status": "not_inferred_or_claimed",
+  "image": {
+    "name": "1f_view.png",
+    "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "size": [
+      790,
+      1111
+    ]
+  },
+  "plan": {
+    "file": "plan_drafts/draft_002/plan.json",
+    "sha256": "7a7d283cdcc064e4d388dfbe2c16791a3b7af3a1189a7cc6848238157dbe59a7"
+  },
+  "declaration": {
+    "floor_id": "F1",
+    "z_floor": 0,
+    "ceiling_height": 3.0,
+    "x_anchors": [
+      [
+        249,
+        0
+      ],
+      [
+        610,
+        10
+      ]
+    ],
+    "y_anchors": [
+      [
+        877,
+        0
+      ],
+      [
+        152,
+        20
+      ]
+    ],
+    "basis": "Calibration from original dimension chains: top chain 540+1600+2520+4800+540=10000mm and left chain 540+1500+2380+1200+1740+1500+1220+1500+3080+4800+540=20000mm between measured outer wall faces (grey double-line bands). Outer faces: x px 249->0m, 610->10m; y px 152->20m (north), 877->0m (south); 27.70mm/px in x, 27.59mm/px in y. Exterior walls 240mm thick (annotated '240'); footprint points are OUTER faces. Interior partitions are drawn as thin double lines (~150-200mm, no thickness annotation); paths are measured wall CENTRELINES (V1 x px 397-403 -> centre 400; V2 x px 461-462 band -> centre 460, consistent with bottom chain 4180/1640/4180; H walls centre rows y 303/367/407/583/699/753 from grey line-pair peaks). Aperture extents are grey-interruption gaps bounded by jamb lines (cyan profiles: profile_004..profile_015).",
+    "footprint_pixels": [
+      [
+        249,
+        152
+      ],
+      [
+        610,
+        152
+      ],
+      [
+        610,
+        877
+      ],
+      [
+        249,
+        877
+      ]
+    ],
+    "partitions": [
+      {
+        "id": "wall_top",
+        "points": [
+          [
+            249,
+            303
+          ],
+          [
+            610,
+            303
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_003 C03/C04: horizontal wall y band 300-306 full width; corridor mouth opening x 408-451 (profile_011 cyan jambs); no other openings (profile_011)"
+        ]
+      },
+      {
+        "id": "wall_V1",
+        "points": [
+          [
+            400,
+            303
+          ],
+          [
+            400,
+            877
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753"
+        ]
+      },
+      {
+        "id": "wall_V2",
+        "points": [
+          [
+            460,
+            303
+          ],
+          [
+            460,
+            583
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_003 run [461,462]: grey y 300-321,358-372,381-417,417-582; doors 321-358 (room C) and 381-417 (room D); wall ENDS at y 582 - corridor openly continues into lobby (no ink x~461, y 583-699)"
+        ]
+      },
+      {
+        "id": "wall_H3",
+        "points": [
+          [
+            249,
+            407
+          ],
+          [
+            400,
+            407
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_003 C08: grey row y 407 x 258-397; no cyan door (profile_015)"
+        ]
+      },
+      {
+        "id": "wall_H367",
+        "points": [
+          [
+            460,
+            367
+          ],
+          [
+            610,
+            367
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_003 C07: grey row y 367 x 463-601; no door observed"
+        ]
+      },
+      {
+        "id": "wall_H583L",
+        "points": [
+          [
+            249,
+            583
+          ],
+          [
+            400,
+            583
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_010: grey row y 583 x 258-398; no cyan door (profile_014)"
+        ]
+      },
+      {
+        "id": "wall_H583R",
+        "points": [
+          [
+            460,
+            583
+          ],
+          [
+            610,
+            583
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png profile_003 C09: grey row y 583 x 463-601; no cyan door (profile_014)"
+        ]
+      },
+      {
+        "id": "wall_L",
+        "points": [
+          [
+            400,
+            753
+          ],
+          [
+            460,
+            753
+          ],
+          [
+            460,
+            699
+          ],
+          [
+            602,
+            699
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png crop (380,680,625,790): bent wall y~753 x 402-462, up x~460 to y~700, east y~697-702 to x 557, jamb stub x 594-602 (profile_013); door aperture x 557-594 with cyan leaf/arc"
+        ]
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_entry_top",
+        "kind": "door",
+        "p1": [
+          267,
+          152
+        ],
+        "p2": [
+          324,
+          152
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png profile_004 cyan jambs x 267/324; top chain segment 1600mm; swing into top room"
+        ]
+      },
+      {
+        "id": "W_top",
+        "kind": "window",
+        "p1": [
+          417,
+          152
+        ],
+        "p2": [
+          592,
+          152
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "1f_view.png profile_004 cyan band x 417-592; top chain 4800mm; heights assumed"
+        ]
+      },
+      {
+        "id": "W_conf_bottom",
+        "kind": "window",
+        "p1": [
+          267,
+          877
+        ],
+        "p2": [
+          322,
+          877
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_005 cyan 267-322; bottom chain 1500mm; heights assumed"
+        ]
+      },
+      {
+        "id": "D_work_bottom",
+        "kind": "door",
+        "p1": [
+          413,
+          877
+        ],
+        "p2": [
+          445,
+          877
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_005 cyan jambs 413/445; bottom chain 900mm; height assumed"
+        ]
+      },
+      {
+        "id": "W_work_bottom",
+        "kind": "window",
+        "p1": [
+          537,
+          877
+        ],
+        "p2": [
+          592,
+          877
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_005 cyan 537-592; bottom chain 1500mm; heights assumed"
+        ]
+      },
+      {
+        "id": "W_left_top",
+        "kind": "window",
+        "p1": [
+          249,
+          170
+        ],
+        "p2": [
+          249,
+          225
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_006 cyan jambs y 170/225; left chain 1500mm"
+        ]
+      },
+      {
+        "id": "W_left_A",
+        "kind": "window",
+        "p1": [
+          249,
+          311
+        ],
+        "p2": [
+          249,
+          355
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_006 y 311/355; chain 1200mm"
+        ]
+      },
+      {
+        "id": "W_left_B1",
+        "kind": "window",
+        "p1": [
+          249,
+          418
+        ],
+        "p2": [
+          249,
+          473
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_006 y 418/473; chain 1500mm"
+        ]
+      },
+      {
+        "id": "W_left_B2",
+        "kind": "window",
+        "p1": [
+          249,
+          517
+        ],
+        "p2": [
+          249,
+          572
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_006 y 517/572; chain 1500mm"
+        ]
+      },
+      {
+        "id": "W_left_conf",
+        "kind": "window",
+        "p1": [
+          249,
+          684
+        ],
+        "p2": [
+          249,
+          858
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_006 continuous cyan y 684-858, no grey pier inside (profile_003 cross-axis); chain 4800mm"
+        ]
+      },
+      {
+        "id": "W_right_top",
+        "kind": "window",
+        "p1": [
+          610,
+          170
+        ],
+        "p2": [
+          610,
+          225
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_007 cyan jambs y 170/225; chain 1500mm"
+        ]
+      },
+      {
+        "id": "W_right_C",
+        "kind": "window",
+        "p1": [
+          610,
+          311
+        ],
+        "p2": [
+          610,
+          355
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_007 y 311/355; chain 1200mm"
+        ]
+      },
+      {
+        "id": "W_right_D",
+        "kind": "window",
+        "p1": [
+          610,
+          382
+        ],
+        "p2": [
+          610,
+          556
+        ],
+        "z": [
+          0.9,
+          2.7
+        ],
+        "source_refs": [
+          "profile_007 cyan y 382-556; chain 4800mm"
+        ]
+      },
+      {
+        "id": "D_entry_right",
+        "kind": "door",
+        "p1": [
+          610,
+          614
+        ],
+        "p2": [
+          610,
+          669
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_007 cyan jambs/arc y 614-669; chain 1600mm; entry door to lobby"
+        ]
+      },
+      {
+        "id": "D_cor_top",
+        "kind": "door",
+        "p1": [
+          408,
+          303
+        ],
+        "p2": [
+          451,
+          303
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_011 cyan jamb marks x 408/429/450 - double door at corridor mouth into top room; heights assumed"
+        ]
+      },
+      {
+        "id": "D_offA",
+        "kind": "door",
+        "p1": [
+          400,
+          357
+        ],
+        "p2": [
+          400,
+          393
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_009 V1 gap y 357-393 with cyan swing (crop 385,340,475,420)"
+        ]
+      },
+      {
+        "id": "D_offB",
+        "kind": "door",
+        "p1": [
+          400,
+          416
+        ],
+        "p2": [
+          400,
+          452
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_009 V1 gap y 416-452; corridor to room B"
+        ]
+      },
+      {
+        "id": "D_conf",
+        "kind": "door",
+        "p1": [
+          400,
+          597
+        ],
+        "p2": [
+          400,
+          633
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_009 V1 gap y 597-633; corridor to conference room"
+        ]
+      },
+      {
+        "id": "D_roomC",
+        "kind": "door",
+        "p1": [
+          460,
+          321
+        ],
+        "p2": [
+          460,
+          358
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_003 V2 gap y 321-358 with cyan swing (crop 385,340,475,420)"
+        ]
+      },
+      {
+        "id": "D_roomD",
+        "kind": "door",
+        "p1": [
+          460,
+          381
+        ],
+        "p2": [
+          460,
+          417
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_003 V2 gap y 381-417 with cyan swing (middle band crop)"
+        ]
+      },
+      {
+        "id": "D_store",
+        "kind": "door",
+        "p1": [
+          557,
+          699
+        ],
+        "p2": [
+          594,
+          699
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "profile_013 grey [550,557]+[594,602]; cyan leaf/arc in crop (380,680,625,790); lobby to bottom-right work room"
+        ]
+      }
+    ],
+    "space_seeds": [
+      {
+        "id": "open_office_top",
+        "point": [
+          300,
+          250
+        ],
+        "role": "open_office"
+      },
+      {
+        "id": "office_a",
+        "point": [
+          300,
+          380
+        ],
+        "role": "office"
+      },
+      {
+        "id": "office_b",
+        "point": [
+          375,
+          470
+        ],
+        "role": "office"
+      },
+      {
+        "id": "room_c",
+        "point": [
+          530,
+          355
+        ],
+        "role": "office"
+      },
+      {
+        "id": "room_d",
+        "point": [
+          590,
+          470
+        ],
+        "role": "meeting_room"
+      },
+      {
+        "id": "conference",
+        "point": [
+          270,
+          625
+        ],
+        "role": "conference"
+      },
+      {
+        "id": "circulation",
+        "point": [
+          430,
+          500
+        ],
+        "role": "corridor_lobby"
+      },
+      {
+        "id": "workroom",
+        "point": [
+          480,
+          855
+        ],
+        "role": "work_room"
+      }
+    ],
+    "assumptions": [
+      "No elevation/section supplied: floor z=0, ceiling 3.0m, doors 0-2.1m, windows 0.9-2.7m are explicit assumptions, not drawing observations",
+      "Interior partitions drawn as thin double lines without thickness annotation; modeled as zero-thickness centrelines",
+      "Exterior footprint uses observed outer faces; 240mm exterior wall thickness annotated in plan",
+      "World frame: x east (0 at west outer face), y north (0 at south outer face), matching plan orientation",
+      "Door leaves/swings not encoded; operating states unknown"
+    ],
+    "unresolved": [
+      "Furniture, door-swing arcs and text ignored as structure per observation of full wall paths",
+      "Corridor mouth aperture (x 408-451) carries double-leaf cyan marks; encoded as one 1.19m double door",
+      "No vertical dimension evidence at all; all heights are assumed",
+      "Interior partition thickness (drawn ~150-200mm double-line, unannotated) approximated as zero"
+    ]
+  },
+  "rendered": {
+    "footprint": [
+      {
+        "id": "footprint",
+        "declared_pixel_points": [
+          [
+            249,
+            152
+          ],
+          [
+            610,
+            152
+          ],
+          [
+            610,
+            877
+          ],
+          [
+            249,
+            877
+          ]
+        ],
+        "drawn_segment_count": 4,
+        "closure_semantics": "closed only as declared footprint-ring semantics"
+      }
+    ],
+    "partitions": [
+      {
+        "id": "wall_top",
+        "declared_pixel_points": [
+          [
+            249,
+            303
+          ],
+          [
+            610,
+            303
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_V1",
+        "declared_pixel_points": [
+          [
+            400,
+            303
+          ],
+          [
+            400,
+            877
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_V2",
+        "declared_pixel_points": [
+          [
+            460,
+            303
+          ],
+          [
+            460,
+            583
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_H3",
+        "declared_pixel_points": [
+          [
+            249,
+            407
+          ],
+          [
+            400,
+            407
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_H367",
+        "declared_pixel_points": [
+          [
+            460,
+            367
+          ],
+          [
+            610,
+            367
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_H583L",
+        "declared_pixel_points": [
+          [
+            249,
+            583
+          ],
+          [
+            400,
+            583
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_H583R",
+        "declared_pixel_points": [
+          [
+            460,
+            583
+          ],
+          [
+            610,
+            583
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "wall_L",
+        "declared_pixel_points": [
+          [
+            400,
+            753
+          ],
+          [
+            460,
+            753
+          ],
+          [
+            460,
+            699
+          ],
+          [
+            602,
+            699
+          ]
+        ],
+        "drawn_segment_count": 3
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_entry_top",
+        "kind": "door",
+        "declared_p1": [
+          267,
+          152
+        ],
+        "declared_p2": [
+          324,
+          152
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_top",
+        "kind": "window",
+        "declared_p1": [
+          417,
+          152
+        ],
+        "declared_p2": [
+          592,
+          152
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_conf_bottom",
+        "kind": "window",
+        "declared_p1": [
+          267,
+          877
+        ],
+        "declared_p2": [
+          322,
+          877
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_work_bottom",
+        "kind": "door",
+        "declared_p1": [
+          413,
+          877
+        ],
+        "declared_p2": [
+          445,
+          877
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_work_bottom",
+        "kind": "window",
+        "declared_p1": [
+          537,
+          877
+        ],
+        "declared_p2": [
+          592,
+          877
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_left_top",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          170
+        ],
+        "declared_p2": [
+          249,
+          225
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_left_A",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          311
+        ],
+        "declared_p2": [
+          249,
+          355
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_left_B1",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          418
+        ],
+        "declared_p2": [
+          249,
+          473
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_left_B2",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          517
+        ],
+        "declared_p2": [
+          249,
+          572
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_left_conf",
+        "kind": "window",
+        "declared_p1": [
+          249,
+          684
+        ],
+        "declared_p2": [
+          249,
+          858
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_right_top",
+        "kind": "window",
+        "declared_p1": [
+          610,
+          170
+        ],
+        "declared_p2": [
+          610,
+          225
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_right_C",
+        "kind": "window",
+        "declared_p1": [
+          610,
+          311
+        ],
+        "declared_p2": [
+          610,
+          355
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_right_D",
+        "kind": "window",
+        "declared_p1": [
+          610,
+          382
+        ],
+        "declared_p2": [
+          610,
+          556
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_entry_right",
+        "kind": "door",
+        "declared_p1": [
+          610,
+          614
+        ],
+        "declared_p2": [
+          610,
+          669
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_cor_top",
+        "kind": "door",
+        "declared_p1": [
+          408,
+          303
+        ],
+        "declared_p2": [
+          451,
+          303
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_offA",
+        "kind": "door",
+        "declared_p1": [
+          400,
+          357
+        ],
+        "declared_p2": [
+          400,
+          393
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_offB",
+        "kind": "door",
+        "declared_p1": [
+          400,
+          416
+        ],
+        "declared_p2": [
+          400,
+          452
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_conf",
+        "kind": "door",
+        "declared_p1": [
+          400,
+          597
+        ],
+        "declared_p2": [
+          400,
+          633
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_roomC",
+        "kind": "door",
+        "declared_p1": [
+          460,
+          321
+        ],
+        "declared_p2": [
+          460,
+          358
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_roomD",
+        "kind": "door",
+        "declared_p1": [
+          460,
+          381
+        ],
+        "declared_p2": [
+          460,
+          417
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_store",
+        "kind": "door",
+        "declared_p1": [
+          557,
+          699
+        ],
+        "declared_p2": [
+          594,
+          699
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      }
+    ]
+  },
+  "unrenderable": [],
+  "method": {
+    "coordinate_frame": "identity_original_image_pixels",
+    "original_image_box_in_preview": [
+      0,
+      0,
+      790,
+      1111
+    ],
+    "preview_output_size": [
+      790,
+      1135
+    ],
+    "endpoints_modified": false,
+    "endpoint_markers_centered_at_declared_points": true,
+    "partitions_extended_or_snapped": false,
+    "openings_clipped_or_hosted": false,
+    "spaces_or_rooms_derived": false
+  },
+  "scope": "Literal caller-declared pixel linework over the original image. This is neither a source BIM nor evidence that walls, openings, rooms, or drawing fidelity are valid.",
+  "preview": {
+    "image_file": "plan_drafts/draft_002/draft_view.png",
+    "image_sha256": "a66ec8cb95ae727a2009cc487c29c849b1ff78b734ba9f5d662d352930ed9752"
+  }
+}

@@ -1,0 +1,1610 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "1f_view.png",
+  "image_size": [
+    790,
+    1111
+  ],
+  "floor_id": "F1",
+  "basis": "Calibration from original dimension chains: top chain 540+1600+2520+4800+540=10000mm and left chain 540+1500+2380+1200+1740+1500+1220+1500+3080+4800+540=20000mm between measured outer wall faces (grey double-line bands). Outer faces: x px 249->0m, 610->10m; y px 152->20m (north), 877->0m (south); 27.70mm/px in x, 27.59mm/px in y. Exterior walls 240mm thick (annotated '240'); footprint points are OUTER faces. Interior partitions are drawn as thin double lines (~150-200mm, no thickness annotation); paths are measured wall CENTRELINES (V1 x px 397-403 -> centre 400; V2 x px 461-462 band -> centre 460, consistent with bottom chain 4180/1640/4180; H walls centre rows y 303/367/407/583/699/753 from grey line-pair peaks). Aperture extents are grey-interruption gaps bounded by jamb lines (cyan profiles profile_004..profile_015). Regularization: interior partition endpoints extended to the outer-face footprint boundary where they abut exterior walls (observed ink stops at inner faces).",
+  "space_count": 8,
+  "space_mapping": [
+    {
+      "space_id": "open_office_top",
+      "role": "open_office",
+      "pixel_polygon": [
+        [
+          249.0,
+          152.0
+        ],
+        [
+          610.0,
+          152.0
+        ],
+        [
+          610.0,
+          303.0
+        ],
+        [
+          249.0,
+          303.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          15.834483
+        ],
+        [
+          10.0,
+          15.834483
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          15.834483,
+          20.0
+        ]
+      },
+      "partition_ids": [
+        "wall_top"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_003 C03/C04: horizontal wall y band 300-306 full width; corridor mouth opening x 408-451 (profile_011 cyan jambs); no other openings (profile_011)"
+      ],
+      "seed": {
+        "id": "open_office_top",
+        "point_pixel": [
+          300.0,
+          250.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "office_a",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          249.0,
+          303.0
+        ],
+        [
+          400.0,
+          303.0
+        ],
+        [
+          400.0,
+          407.0
+        ],
+        [
+          249.0,
+          407.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          12.965517
+        ],
+        [
+          4.182825,
+          12.965517
+        ],
+        [
+          4.182825,
+          15.834483
+        ],
+        [
+          0.0,
+          15.834483
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.182825
+        ],
+        "y": [
+          12.965517,
+          15.834483
+        ]
+      },
+      "partition_ids": [
+        "wall_H3",
+        "wall_V1",
+        "wall_top"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_003 C03/C04: horizontal wall y band 300-306 full width; corridor mouth opening x 408-451 (profile_011 cyan jambs); no other openings (profile_011)",
+        "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753",
+        "1f_view.png profile_003 C08: grey row y 407 x 258-397; no cyan door (profile_015)"
+      ],
+      "seed": {
+        "id": "office_a",
+        "point_pixel": [
+          300.0,
+          380.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "circulation",
+      "role": "corridor_lobby",
+      "pixel_polygon": [
+        [
+          400.0,
+          303.0
+        ],
+        [
+          460.0,
+          303.0
+        ],
+        [
+          460.0,
+          583.0
+        ],
+        [
+          610.0,
+          583.0
+        ],
+        [
+          610.0,
+          699.0
+        ],
+        [
+          460.0,
+          699.0
+        ],
+        [
+          460.0,
+          753.0
+        ],
+        [
+          400.0,
+          753.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.182825,
+          3.42069
+        ],
+        [
+          5.844875,
+          3.42069
+        ],
+        [
+          5.844875,
+          4.910345
+        ],
+        [
+          10.0,
+          4.910345
+        ],
+        [
+          10.0,
+          8.110345
+        ],
+        [
+          5.844875,
+          8.110345
+        ],
+        [
+          5.844875,
+          15.834483
+        ],
+        [
+          4.182825,
+          15.834483
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.182825,
+          10.0
+        ],
+        "y": [
+          3.42069,
+          15.834483
+        ]
+      },
+      "partition_ids": [
+        "wall_H583R",
+        "wall_L",
+        "wall_V1",
+        "wall_V2",
+        "wall_top"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_003 C03/C04: horizontal wall y band 300-306 full width; corridor mouth opening x 408-451 (profile_011 cyan jambs); no other openings (profile_011)",
+        "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753",
+        "1f_view.png profile_003 run [461,462]: grey y 300-321,358-372,381-417,417-582; doors 321-358 (room C) and 381-417 (room D); wall ENDS at y 582 - corridor openly continues into lobby (no ink x~461, y 583-699)",
+        "1f_view.png profile_003 C09: grey row y 583 x 463-601; no cyan door (profile_014)",
+        "1f_view.png crop (380,680,625,790): bent wall y~753 x 402-462, up x~460 to y~700, east y~697-702 to x 557, jamb stub x 594-602 (profile_013), extended to outer face x 610 for enclosure; door aperture x 557-594 with cyan leaf/arc"
+      ],
+      "seed": {
+        "id": "circulation",
+        "point_pixel": [
+          430.0,
+          500.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "room_c",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          460.0,
+          303.0
+        ],
+        [
+          610.0,
+          303.0
+        ],
+        [
+          610.0,
+          367.0
+        ],
+        [
+          460.0,
+          367.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.844875,
+          14.068966
+        ],
+        [
+          10.0,
+          14.068966
+        ],
+        [
+          10.0,
+          15.834483
+        ],
+        [
+          5.844875,
+          15.834483
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.844875,
+          10.0
+        ],
+        "y": [
+          14.068966,
+          15.834483
+        ]
+      },
+      "partition_ids": [
+        "wall_H367",
+        "wall_V2",
+        "wall_top"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_003 C03/C04: horizontal wall y band 300-306 full width; corridor mouth opening x 408-451 (profile_011 cyan jambs); no other openings (profile_011)",
+        "1f_view.png profile_003 run [461,462]: grey y 300-321,358-372,381-417,417-582; doors 321-358 (room C) and 381-417 (room D); wall ENDS at y 582 - corridor openly continues into lobby (no ink x~461, y 583-699)",
+        "1f_view.png profile_003 C07: grey row y 367 x 463-601; no door observed"
+      ],
+      "seed": {
+        "id": "room_c",
+        "point_pixel": [
+          530.0,
+          355.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "room_d",
+      "role": "meeting_room",
+      "pixel_polygon": [
+        [
+          460.0,
+          367.0
+        ],
+        [
+          610.0,
+          367.0
+        ],
+        [
+          610.0,
+          583.0
+        ],
+        [
+          460.0,
+          583.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.844875,
+          8.110345
+        ],
+        [
+          10.0,
+          8.110345
+        ],
+        [
+          10.0,
+          14.068966
+        ],
+        [
+          5.844875,
+          14.068966
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.844875,
+          10.0
+        ],
+        "y": [
+          8.110345,
+          14.068966
+        ]
+      },
+      "partition_ids": [
+        "wall_H367",
+        "wall_H583R",
+        "wall_V2"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_003 run [461,462]: grey y 300-321,358-372,381-417,417-582; doors 321-358 (room C) and 381-417 (room D); wall ENDS at y 582 - corridor openly continues into lobby (no ink x~461, y 583-699)",
+        "1f_view.png profile_003 C07: grey row y 367 x 463-601; no door observed",
+        "1f_view.png profile_003 C09: grey row y 583 x 463-601; no cyan door (profile_014)"
+      ],
+      "seed": {
+        "id": "room_d",
+        "point_pixel": [
+          590.0,
+          470.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "office_b",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          249.0,
+          407.0
+        ],
+        [
+          400.0,
+          407.0
+        ],
+        [
+          400.0,
+          583.0
+        ],
+        [
+          249.0,
+          583.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          8.110345
+        ],
+        [
+          4.182825,
+          8.110345
+        ],
+        [
+          4.182825,
+          12.965517
+        ],
+        [
+          0.0,
+          12.965517
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.182825
+        ],
+        "y": [
+          8.110345,
+          12.965517
+        ]
+      },
+      "partition_ids": [
+        "wall_H3",
+        "wall_H583L",
+        "wall_V1"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753",
+        "1f_view.png profile_003 C08: grey row y 407 x 258-397; no cyan door (profile_015)",
+        "1f_view.png profile_010: grey row y 583 x 258-398; no cyan door (profile_014)"
+      ],
+      "seed": {
+        "id": "office_b",
+        "point_pixel": [
+          375.0,
+          470.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "conference",
+      "role": "conference",
+      "pixel_polygon": [
+        [
+          249.0,
+          583.0
+        ],
+        [
+          400.0,
+          583.0
+        ],
+        [
+          400.0,
+          877.0
+        ],
+        [
+          249.0,
+          877.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4.182825,
+          0.0
+        ],
+        [
+          4.182825,
+          8.110345
+        ],
+        [
+          0.0,
+          8.110345
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.182825
+        ],
+        "y": [
+          0.0,
+          8.110345
+        ]
+      },
+      "partition_ids": [
+        "wall_H583L",
+        "wall_V1"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753",
+        "1f_view.png profile_010: grey row y 583 x 258-398; no cyan door (profile_014)"
+      ],
+      "seed": {
+        "id": "conference",
+        "point_pixel": [
+          270.0,
+          625.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "workroom",
+      "role": "work_room",
+      "pixel_polygon": [
+        [
+          400.0,
+          753.0
+        ],
+        [
+          460.0,
+          753.0
+        ],
+        [
+          460.0,
+          699.0
+        ],
+        [
+          610.0,
+          699.0
+        ],
+        [
+          610.0,
+          877.0
+        ],
+        [
+          400.0,
+          877.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.182825,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          4.910345
+        ],
+        [
+          5.844875,
+          4.910345
+        ],
+        [
+          5.844875,
+          3.42069
+        ],
+        [
+          4.182825,
+          3.42069
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.182825,
+          10.0
+        ],
+        "y": [
+          0.0,
+          4.910345
+        ]
+      },
+      "partition_ids": [
+        "wall_L",
+        "wall_V1"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753",
+        "1f_view.png crop (380,680,625,790): bent wall y~753 x 402-462, up x~460 to y~700, east y~697-702 to x 557, jamb stub x 594-602 (profile_013), extended to outer face x 610 for enclosure; door aperture x 557-594 with cyan leaf/arc"
+      ],
+      "seed": {
+        "id": "workroom",
+        "point_pixel": [
+          480.0,
+          855.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "wall_top",
+      "pixel_points": [
+        [
+          249.0,
+          303.0
+        ],
+        [
+          610.0,
+          303.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          15.834483
+        ],
+        [
+          10.0,
+          15.834483
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_003 C03/C04: horizontal wall y band 300-306 full width; corridor mouth opening x 408-451 (profile_011 cyan jambs); no other openings (profile_011)"
+      ]
+    },
+    {
+      "partition_id": "wall_V1",
+      "pixel_points": [
+        [
+          400.0,
+          303.0
+        ],
+        [
+          400.0,
+          877.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.182825,
+          15.834483
+        ],
+        [
+          4.182825,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_009/cross-axis: grey y 301-357,393-403,408-416,452-583,587-597,633-867; door gaps 357-393, 416-452, 597-633; T-junctions at y 407,583,753"
+      ]
+    },
+    {
+      "partition_id": "wall_V2",
+      "pixel_points": [
+        [
+          460.0,
+          303.0
+        ],
+        [
+          460.0,
+          583.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.844875,
+          15.834483
+        ],
+        [
+          5.844875,
+          8.110345
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_003 run [461,462]: grey y 300-321,358-372,381-417,417-582; doors 321-358 (room C) and 381-417 (room D); wall ENDS at y 582 - corridor openly continues into lobby (no ink x~461, y 583-699)"
+      ]
+    },
+    {
+      "partition_id": "wall_H3",
+      "pixel_points": [
+        [
+          249.0,
+          407.0
+        ],
+        [
+          400.0,
+          407.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          12.965517
+        ],
+        [
+          4.182825,
+          12.965517
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_003 C08: grey row y 407 x 258-397; no cyan door (profile_015)"
+      ]
+    },
+    {
+      "partition_id": "wall_H367",
+      "pixel_points": [
+        [
+          460.0,
+          367.0
+        ],
+        [
+          610.0,
+          367.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.844875,
+          14.068966
+        ],
+        [
+          10.0,
+          14.068966
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_003 C07: grey row y 367 x 463-601; no door observed"
+      ]
+    },
+    {
+      "partition_id": "wall_H583L",
+      "pixel_points": [
+        [
+          249.0,
+          583.0
+        ],
+        [
+          400.0,
+          583.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          8.110345
+        ],
+        [
+          4.182825,
+          8.110345
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_010: grey row y 583 x 258-398; no cyan door (profile_014)"
+      ]
+    },
+    {
+      "partition_id": "wall_H583R",
+      "pixel_points": [
+        [
+          460.0,
+          583.0
+        ],
+        [
+          610.0,
+          583.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.844875,
+          8.110345
+        ],
+        [
+          10.0,
+          8.110345
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png profile_003 C09: grey row y 583 x 463-601; no cyan door (profile_014)"
+      ]
+    },
+    {
+      "partition_id": "wall_L",
+      "pixel_points": [
+        [
+          400.0,
+          753.0
+        ],
+        [
+          460.0,
+          753.0
+        ],
+        [
+          460.0,
+          699.0
+        ],
+        [
+          610.0,
+          699.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.182825,
+          3.42069
+        ],
+        [
+          5.844875,
+          3.42069
+        ],
+        [
+          5.844875,
+          4.910345
+        ],
+        [
+          10.0,
+          4.910345
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png crop (380,680,625,790): bent wall y~753 x 402-462, up x~460 to y~700, east y~697-702 to x 557, jamb stub x 594-602 (profile_013), extended to outer face x 610 for enclosure; door aperture x 557-594 with cyan leaf/arc"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "D_entry_top",
+      "kind": "door",
+      "space_ids": [
+        "open_office_top"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        267.0,
+        152.0
+      ],
+      "p2_pixel": [
+        324.0,
+        152.0
+      ],
+      "p1_world_m": [
+        0.498615,
+        20.0
+      ],
+      "p2_world_m": [
+        2.077562,
+        20.0
+      ],
+      "width_m": 1.578947,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png profile_004 cyan jambs x 267/324; top chain segment 1600mm; swing into top room"
+      ]
+    },
+    {
+      "opening_id": "W_top",
+      "kind": "window",
+      "space_ids": [
+        "open_office_top"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        417.0,
+        152.0
+      ],
+      "p2_pixel": [
+        592.0,
+        152.0
+      ],
+      "p1_world_m": [
+        4.65374,
+        20.0
+      ],
+      "p2_world_m": [
+        9.501385,
+        20.0
+      ],
+      "width_m": 4.847645,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "1f_view.png profile_004 cyan band x 417-592; top chain 4800mm; heights assumed"
+      ]
+    },
+    {
+      "opening_id": "W_conf_bottom",
+      "kind": "window",
+      "space_ids": [
+        "conference"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        267.0,
+        877.0
+      ],
+      "p2_pixel": [
+        322.0,
+        877.0
+      ],
+      "p1_world_m": [
+        0.498615,
+        0.0
+      ],
+      "p2_world_m": [
+        2.022161,
+        0.0
+      ],
+      "width_m": 1.523546,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_005 cyan 267-322; bottom chain 1500mm; heights assumed"
+      ]
+    },
+    {
+      "opening_id": "D_work_bottom",
+      "kind": "door",
+      "space_ids": [
+        "workroom"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        413.0,
+        877.0
+      ],
+      "p2_pixel": [
+        445.0,
+        877.0
+      ],
+      "p1_world_m": [
+        4.542936,
+        0.0
+      ],
+      "p2_world_m": [
+        5.429363,
+        0.0
+      ],
+      "width_m": 0.886427,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_005 cyan jambs 413/445; bottom chain 900mm; height assumed"
+      ]
+    },
+    {
+      "opening_id": "W_work_bottom",
+      "kind": "window",
+      "space_ids": [
+        "workroom"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        537.0,
+        877.0
+      ],
+      "p2_pixel": [
+        592.0,
+        877.0
+      ],
+      "p1_world_m": [
+        7.977839,
+        0.0
+      ],
+      "p2_world_m": [
+        9.501385,
+        0.0
+      ],
+      "width_m": 1.523546,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_005 cyan 537-592; bottom chain 1500mm; heights assumed"
+      ]
+    },
+    {
+      "opening_id": "W_left_top",
+      "kind": "window",
+      "space_ids": [
+        "open_office_top"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        249.0,
+        170.0
+      ],
+      "p2_pixel": [
+        249.0,
+        225.0
+      ],
+      "p1_world_m": [
+        0.0,
+        19.503448
+      ],
+      "p2_world_m": [
+        0.0,
+        17.986207
+      ],
+      "width_m": 1.517241,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_006 cyan jambs y 170/225; left chain 1500mm"
+      ]
+    },
+    {
+      "opening_id": "W_left_A",
+      "kind": "window",
+      "space_ids": [
+        "office_a"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        249.0,
+        311.0
+      ],
+      "p2_pixel": [
+        249.0,
+        355.0
+      ],
+      "p1_world_m": [
+        0.0,
+        15.613793
+      ],
+      "p2_world_m": [
+        0.0,
+        14.4
+      ],
+      "width_m": 1.213793,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_006 y 311/355; chain 1200mm"
+      ]
+    },
+    {
+      "opening_id": "W_left_B1",
+      "kind": "window",
+      "space_ids": [
+        "office_b"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        249.0,
+        418.0
+      ],
+      "p2_pixel": [
+        249.0,
+        473.0
+      ],
+      "p1_world_m": [
+        0.0,
+        12.662069
+      ],
+      "p2_world_m": [
+        0.0,
+        11.144828
+      ],
+      "width_m": 1.517241,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_006 y 418/473; chain 1500mm"
+      ]
+    },
+    {
+      "opening_id": "W_left_B2",
+      "kind": "window",
+      "space_ids": [
+        "office_b"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        249.0,
+        517.0
+      ],
+      "p2_pixel": [
+        249.0,
+        572.0
+      ],
+      "p1_world_m": [
+        0.0,
+        9.931034
+      ],
+      "p2_world_m": [
+        0.0,
+        8.413793
+      ],
+      "width_m": 1.517241,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_006 y 517/572; chain 1500mm"
+      ]
+    },
+    {
+      "opening_id": "W_left_conf",
+      "kind": "window",
+      "space_ids": [
+        "conference"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        249.0,
+        684.0
+      ],
+      "p2_pixel": [
+        249.0,
+        858.0
+      ],
+      "p1_world_m": [
+        0.0,
+        5.324138
+      ],
+      "p2_world_m": [
+        0.0,
+        0.524138
+      ],
+      "width_m": 4.8,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_006 continuous cyan y 684-858, no grey pier inside (profile_003 cross-axis); chain 4800mm"
+      ]
+    },
+    {
+      "opening_id": "W_right_top",
+      "kind": "window",
+      "space_ids": [
+        "open_office_top"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        610.0,
+        170.0
+      ],
+      "p2_pixel": [
+        610.0,
+        225.0
+      ],
+      "p1_world_m": [
+        10.0,
+        19.503448
+      ],
+      "p2_world_m": [
+        10.0,
+        17.986207
+      ],
+      "width_m": 1.517241,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_007 cyan jambs y 170/225; chain 1500mm"
+      ]
+    },
+    {
+      "opening_id": "W_right_C",
+      "kind": "window",
+      "space_ids": [
+        "room_c"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        610.0,
+        311.0
+      ],
+      "p2_pixel": [
+        610.0,
+        355.0
+      ],
+      "p1_world_m": [
+        10.0,
+        15.613793
+      ],
+      "p2_world_m": [
+        10.0,
+        14.4
+      ],
+      "width_m": 1.213793,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_007 y 311/355; chain 1200mm"
+      ]
+    },
+    {
+      "opening_id": "W_right_D",
+      "kind": "window",
+      "space_ids": [
+        "room_d"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        610.0,
+        382.0
+      ],
+      "p2_pixel": [
+        610.0,
+        556.0
+      ],
+      "p1_world_m": [
+        10.0,
+        13.655172
+      ],
+      "p2_world_m": [
+        10.0,
+        8.855172
+      ],
+      "width_m": 4.8,
+      "z_absolute_m": [
+        0.9,
+        2.7
+      ],
+      "source_refs": [
+        "profile_007 cyan y 382-556; chain 4800mm"
+      ]
+    },
+    {
+      "opening_id": "D_entry_right",
+      "kind": "door",
+      "space_ids": [
+        "circulation"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        610.0,
+        614.0
+      ],
+      "p2_pixel": [
+        610.0,
+        669.0
+      ],
+      "p1_world_m": [
+        10.0,
+        7.255172
+      ],
+      "p2_world_m": [
+        10.0,
+        5.737931
+      ],
+      "width_m": 1.517241,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_007 cyan jambs/arc y 614-669; chain 1600mm; entry door to lobby"
+      ]
+    },
+    {
+      "opening_id": "D_cor_top",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "open_office_top"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        408.0,
+        303.0
+      ],
+      "p2_pixel": [
+        451.0,
+        303.0
+      ],
+      "p1_world_m": [
+        4.404432,
+        15.834483
+      ],
+      "p2_world_m": [
+        5.595568,
+        15.834483
+      ],
+      "width_m": 1.191136,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_011 cyan jamb marks x 408/429/450 - double door at corridor mouth into top room; heights assumed"
+      ]
+    },
+    {
+      "opening_id": "D_offA",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "office_a"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        400.0,
+        357.0
+      ],
+      "p2_pixel": [
+        400.0,
+        393.0
+      ],
+      "p1_world_m": [
+        4.182825,
+        14.344828
+      ],
+      "p2_world_m": [
+        4.182825,
+        13.351724
+      ],
+      "width_m": 0.993104,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_009 V1 gap y 357-393 with cyan swing (crop 385,340,475,420)"
+      ]
+    },
+    {
+      "opening_id": "D_offB",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "office_b"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        400.0,
+        416.0
+      ],
+      "p2_pixel": [
+        400.0,
+        452.0
+      ],
+      "p1_world_m": [
+        4.182825,
+        12.717241
+      ],
+      "p2_world_m": [
+        4.182825,
+        11.724138
+      ],
+      "width_m": 0.993103,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_009 V1 gap y 416-452; corridor to room B"
+      ]
+    },
+    {
+      "opening_id": "D_conf",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "conference"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        400.0,
+        597.0
+      ],
+      "p2_pixel": [
+        400.0,
+        633.0
+      ],
+      "p1_world_m": [
+        4.182825,
+        7.724138
+      ],
+      "p2_world_m": [
+        4.182825,
+        6.731034
+      ],
+      "width_m": 0.993104,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_009 V1 gap y 597-633; corridor to conference room"
+      ]
+    },
+    {
+      "opening_id": "D_roomC",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "room_c"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        460.0,
+        321.0
+      ],
+      "p2_pixel": [
+        460.0,
+        358.0
+      ],
+      "p1_world_m": [
+        5.844875,
+        15.337931
+      ],
+      "p2_world_m": [
+        5.844875,
+        14.317241
+      ],
+      "width_m": 1.02069,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_003 V2 gap y 321-358 with cyan swing (crop 385,340,475,420)"
+      ]
+    },
+    {
+      "opening_id": "D_roomD",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "room_d"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        460.0,
+        381.0
+      ],
+      "p2_pixel": [
+        460.0,
+        417.0
+      ],
+      "p1_world_m": [
+        5.844875,
+        13.682759
+      ],
+      "p2_world_m": [
+        5.844875,
+        12.689655
+      ],
+      "width_m": 0.993104,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_003 V2 gap y 381-417 with cyan swing (middle band crop)"
+      ]
+    },
+    {
+      "opening_id": "D_store",
+      "kind": "door",
+      "space_ids": [
+        "circulation",
+        "workroom"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        557.0,
+        699.0
+      ],
+      "p2_pixel": [
+        594.0,
+        699.0
+      ],
+      "p1_world_m": [
+        8.531856,
+        4.910345
+      ],
+      "p2_world_m": [
+        9.556787,
+        4.910345
+      ],
+      "width_m": 1.024931,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "profile_013 grey [550,557]+[594,602]; cyan leaf/arc in crop (380,680,625,790); lobby to bottom-right work room"
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        249.0,
+        152.0
+      ],
+      [
+        610.0,
+        152.0
+      ],
+      [
+        610.0,
+        877.0
+      ],
+      [
+        249.0,
+        877.0
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        10.0,
+        0.0
+      ],
+      [
+        10.0,
+        20.0
+      ],
+      [
+        0.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        249.0,
+        0.0
+      ],
+      [
+        610.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        877.0,
+        0.0
+      ],
+      [
+        152.0,
+        20.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.027700831024930747,
+      "y": -0.027586206896551724
+    },
+    "basis": "Calibration from original dimension chains: top chain 540+1600+2520+4800+540=10000mm and left chain 540+1500+2380+1200+1740+1500+1220+1500+3080+4800+540=20000mm between measured outer wall faces (grey double-line bands). Outer faces: x px 249->0m, 610->10m; y px 152->20m (north), 877->0m (south); 27.70mm/px in x, 27.59mm/px in y. Exterior walls 240mm thick (annotated '240'); footprint points are OUTER faces. Interior partitions are drawn as thin double lines (~150-200mm, no thickness annotation); paths are measured wall CENTRELINES (V1 x px 397-403 -> centre 400; V2 x px 461-462 band -> centre 460, consistent with bottom chain 4180/1640/4180; H walls centre rows y 303/367/407/583/699/753 from grey line-pair peaks). Aperture extents are grey-interruption gaps bounded by jamb lines (cyan profiles profile_004..profile_015). Regularization: interior partition endpoints extended to the outer-face footprint boundary where they abut exterior walls (observed ink stops at inner faces).",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}
