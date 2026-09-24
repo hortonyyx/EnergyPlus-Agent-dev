@@ -1,0 +1,226 @@
+{
+  "assistant_text": [
+    "I'll start by listing the supplied inputs and reading the plan partition contract.",
+    "I have the saved declaration. Now let me inspect the original image and the resume draft hash in parallel.",
+    "The declaration is detailed and its dimension chains cross-check well against the drawing annotations. Now let me independently verify key areas of the original: the bottom-right entrance lobby enclosure, the recess/south-wall junction at left, and the west wall of room A.",
+    "Crop 1 confirms: the entrance lobby (x1250–1437) has **no wall at y1052** — it's open to the wing corridor, matching the declaration's omission. Main door at y≈1137–1207 ✓. Crop 2 confirms D_west_entr, D_A, D_B and the band south wall (~y572–585). Now let me check the critical corridor-passage area at y957 and the lobby west door.",
+    "This crop confirms the critical features: the middle-block south wall (~y955–960), the **open gap x≈698–792 at y957** (PASS_corr_s ✓), W_N1 cyan starting at x≈988 ✓, and D_lobby_west opening starting y≈995 ✓. The declaration matches the original well on these consequential points. Now let me submit it unchanged to get compiler feedback.",
+    "The saved declaration actually compiled successfully — `candidate_01`, 15 spaces, 32 openings, source geometry self-consistency **pass**. My independent checks against the original (dimension chains, crops) confirm the layout. I found three candidate refinements to verify with pixel measurements: (a) the footprint recess corner at y588 vs partition y582 creates a sliver tail in mid_office_N; (b) P_strip_5 at y775 vs the uniform 2000mm rhythm (expected y770); (c) main door north jamb y1138 vs the 1600mm chain (y1135).",
+    "Measurements:\n- **P_strip_5**: the ink is a **line pair at y770 and y775** (both full support x820–949) — the declared y775 took the south line; the centreline is ~772, consistent with the uniform 2000 mm office rhythm (expected 770). I'll correct it to y772.\n- **Main door**: measured cyan jamb at **y1138** (strong support), matching the declaration; the nominal chain value (1135) is rounding. **No change needed.**\n- **Sliver**: mid_office_N compiled with a phantom 6 px × 5 m tail (x282–513 between partition y582 and ring y588) — the recess wall is double-represented. I'll align the two recess ring corners to the same representative plane (y582) as P_corr_south.\n\nLet me get the exact draft hash and apply these local revisions.",
+    "Now applying the three targeted local revisions (footprint regularization, P_strip_5 centreline, updated notes) while preserving all other declarations.",
+    "The compiler rejects a partition collinear-overlapping the footprint ring. The correct formulation: with the ring recess corners moved to y582, **trim P_corr_south to x513–695** so it starts exactly at the ring corner (513,582) — one continuous wall line, split at the corner, no overlap (same pattern as P_corr_north_w at the (513,957) corner).",
+    "`candidate_02` compiled cleanly: **mid_office_N is now an exact rectangle** (sliver removed), offices 5/6 split at the measured centreline y772, all 32 openings re-hosted, source validation pass. One stale auto-appended note (\"calibration ... not independently verified\") contradicts my updated verification note — let me check claim status and the edit op format to fix it.",
+    "No claims to reconcile. I'll replace the stale auto-appended calibration note with `set_notes`, keeping all other assumptions.",
+    "The notes-only revision produced `candidate_03` with identical geometry (geometry sha unchanged) and updated notes. The final overlay shows all source boundaries and openings tracking the original drawing. Finishing.",
+    "Done. **Selected candidate: `candidate_03`** (viewer: `candidate_03/viewer.html`), a lightweight single-floor source BIM of the supplied plan `1f_view.png`, built from the recovered pixel declaration via `build_plan_bim` + targeted `revise_plan_bim`/`revise_bim` edits.\n\n## What the recovery declaration got right (independently verified)\n- **Calibration**: cross-checked against the drawing's own dimension chains (top 5000/4940/1120/3940/10000, left 3940/2060/4000/4120/1940/3940, bottom 5000/3640/4000/720/4000/3580/4060, east 7×2000) — every partition, window and door position agrees within ~2–3 px (0.05–0.07 m). The old \"not independently verified\" note was superseded.\n- **Connectivity**: the open gap x≈698–792 at y957 (PASS_corr_s) was re-verified visually — the vertical corridor and bottom-wing corridor are genuinely one continuous space; the entrance lobby (x1250–1437) correctly has **no** wall at y1052 and merges with the wing corridor.\n- **Opening coverage**: all 15 windows and 16 doors in the declaration match cyan ink in the original; no missing or invented openings found. Main door measured at y1138 (kept; the nominal 1600 mm chain value rounds to y1135).\n\n## Errors found and fixed (local revisions, unrelated declarations preserved)\n1. **Phantom sliver in mid_office_N** — the recess wall was double-represented (ring at y588 + partition at y582), compiling a 6 px × 5 m tail inside the physical wall. Fixed by aligning the ring recess corners to y582 and trimming `P_corr_south` to x513–695 starting exactly at the ring corner (an earlier attempt overlapping the ring failed compilation, as expected).\n2. **P_strip_5** — the declared y775 took the south line of the drawn line pair (profile: full-support lines at y770 and y775); corrected to centreline **y772**, consistent with the uniform 2000 mm office rhythm.\n\n## Result\n15 spaces (2 top offices, 7-office strip, 2 middle offices, L-shaped corridor, 2 meeting rooms, corridor/lobby space F1_S13), 96 boundaries, 32 openings (16 doors, 15 windows, 1 full-height passage), source self-consistency **pass**; final overlay and rendered source plan inspected against the original.\n\n## Remaining limitations (recorded in the BIM notes)\n- All heights (z=0 floor, 3.0 m ceiling, 2.1 m doors, 0.9/2.7 m windows) are **assumptions** — no elevation exists in the input; height coverage is `no_image_evidence_linked`.\n- The recess north edge sits on the wall centreline y582 (~0.13 m shallow vs. the outer face) — an accepted representative-plane regularization.\n- Office-strip dividers are drawn as ~5 px line pairs; individual dividers may be ~0.05 m off true centreline. W_N1 mullions unresolved (modelled as one 8 m band). Opening review was visual/dimensional, not an automated mark-by-mark review; drawing fidelity is not certified."
+  ],
+  "tool_calls": [
+    {
+      "name": "mcp__bim__inputs",
+      "input": {}
+    },
+    {
+      "name": "mcp__bim__get_bim_reference",
+      "input": {
+        "topic": "plan_partition"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__inspect_plan_draft",
+      "input": {
+        "draft_id": "resume"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          1230,
+          930,
+          1460,
+          1250
+        ],
+        "display_scale": 3,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          260,
+          440,
+          800,
+          630
+        ],
+        "display_scale": 2,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          490,
+          930,
+          1010,
+          1010
+        ],
+        "display_scale": 3,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__build_plan_bim",
+      "input": {
+        "image": "1f_view.png",
+        "plan_json": "{\"floor_id\":\"F1\",\"z_floor\":0,\"ceiling_height\":3.0,\"x_anchors\":[[282,0.0],[1437,25.0]],\"y_anchors\":[[1235,0.0],[310,20.0]],\"basis\":\"Calibration from overall dimension annotations 25000x20000 mm mapped to observed outer wall faces: x px282->1437 = 0->25.0 m, y px1235->310 = 0->20.0 m (scales 21.65 and 21.62 mm/px agree within 0.15%). Dimension baselines are the outer faces of exterior walls (240 mm = 11 px, verified on all four sides); interior partitions are measured line-pair centrelines (~5-6 px ~= 110-130 mm). Windows measured as cyan ink extents, doors as cyan jamb marks; grey wall ink rgb~150 tol 80, cyan rgb(11,164,144) tol 90.\",\"footprint_pixels\":[[282,310],[975,310],[975,957],[1437,957],[1437,1235],[513,1235],[513,588],[282,588]],\"partitions\":[{\"id\":\"P_rooms_south\",\"points\":[[282,492],[741,492]],\"source_refs\":[\"faces y490/495 by profile x600-622; carries doors D_A,D_B; runs from west outer face to room-B east wall centre\"]},{\"id\":\"P_AB\",\"points\":[[513,310],[513,492]],\"source_refs\":[\"faces x510/516; top wall to rooms south wall\"]},{\"id\":\"P_RB_east\",\"points\":[[741,310],[741,492]],\"source_refs\":[\"faces x738/744; top wall to rooms south wall\"]},{\"id\":\"P_corr_south\",\"points\":[[282,582],[695,582]],\"source_refs\":[\"faces y577/588; exterior toward recess x282-513, continues as middle block north wall to x695\"]},{\"id\":\"P_mid_east\",\"points\":[[695,582],[695,957]],\"source_refs\":[\"faces x692/698; doors D_M3,D_M4; south end at corridor north wall face line\"]},{\"id\":\"P_mid_34\",\"points\":[[513,772],[695,772]],\"source_refs\":[\"faces y770/775 between middle offices\"]},{\"id\":\"P_strip_west\",\"points\":[[792,310],[792,957]],\"source_refs\":[\"faces x789/796; seven office doors D_O1..D_O7; south end at corridor north wall face line\"]},{\"id\":\"P_strip_1\",\"points\":[[792,400],[975,400]],\"source_refs\":[\"profile peak y400; to east outer face\"]},{\"id\":\"P_strip_2\",\"points\":[[792,492],[975,492]],\"source_refs\":[\"profile peak y492\"]},{\"id\":\"P_strip_3\",\"points\":[[792,585],[975,585]],\"source_refs\":[\"profile peak y585\"]},{\"id\":\"P_strip_4\",\"points\":[[792,677],[975,677]],\"source_refs\":[\"profile peak y677\"]},{\"id\":\"P_strip_5\",\"points\":[[792,775],[975,775]],\"source_refs\":[\"profile peak y775\"]},{\"id\":\"P_strip_6\",\"points\":[[792,862],[975,862]],\"source_refs\":[\"profile peak y862\"]},{\"id\":\"P_corr_north_w\",\"points\":[[513,957],[975,957]],\"source_refs\":[\"bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s\"]},{\"id\":\"P_meet_top\",\"points\":[[513,1052],[1249,1052]],\"source_refs\":[\"faces y1050/1055; double doors D_C1,D_C2\"]},{\"id\":\"P_meet_12\",\"points\":[[882,1052],[882,1235]],\"source_refs\":[\"faces x880/885 between meeting rooms; to south outer face\"]},{\"id\":\"P_meet_east\",\"points\":[[1249,1052],[1249,1235]],\"source_refs\":[\"faces x1247/1252, meeting room 2 east wall; to south outer face\"]}],\"openings\":[{\"id\":\"D_west_entr\",\"kind\":\"door\",\"p1\":[282,525],\"p2\":[282,562],\"z\":[0,2.1],\"source_refs\":[\"cyan jambs y525/562 in west wall, swing arc into corridor; height assumed\"]},{\"id\":\"D_main_entr\",\"kind\":\"door\",\"p1\":[1437,1138],\"p2\":[1437,1209],\"z\":[0,2.1],\"source_refs\":[\"double door in east wall, jambs y1138/1209, centre mullion ~1172; height assumed\"]},{\"id\":\"D_A\",\"kind\":\"door\",\"p1\":[460,492],\"p2\":[494,492],\"z\":[0,2.1],\"source_refs\":[\"jambs x460/494; room A to corridor\"]},{\"id\":\"D_B\",\"kind\":\"door\",\"p1\":[530,492],\"p2\":[566,492],\"z\":[0,2.1],\"source_refs\":[\"jambs x530/566; room B to corridor\"]},{\"id\":\"D_M3\",\"kind\":\"door\",\"p1\":[695,719],\"p2\":[695,755],\"z\":[0,2.1],\"source_refs\":[\"jambs y719/755; middle north office to corridor\"]},{\"id\":\"D_M4\",\"kind\":\"door\",\"p1\":[695,790],\"p2\":[695,826],\"z\":[0,2.1],\"source_refs\":[\"jambs y790/826; middle south office to corridor\"]},{\"id\":\"D_O1\",\"kind\":\"door\",\"p1\":[792,350],\"p2\":[792,385],\"z\":[0,2.1],\"source_refs\":[\"strip office 1 door jambs\"]},{\"id\":\"D_O2\",\"kind\":\"door\",\"p1\":[792,420],\"p2\":[792,456],\"z\":[0,2.1],\"source_refs\":[\"strip office 2 door jambs\"]},{\"id\":\"D_O3\",\"kind\":\"door\",\"p1\":[792,534],\"p2\":[792,570],\"z\":[0,2.1],\"source_refs\":[\"strip office 3 door jambs\"]},{\"id\":\"D_O4\",\"kind\":\"door\",\"p1\":[792,605],\"p2\":[792,641],\"z\":[0,2.1],\"source_refs\":[\"strip office 4 door jambs\"]},{\"id\":\"D_O5\",\"kind\":\"door\",\"p1\":[792,719],\"p2\":[792,755],\"z\":[0,2.1],\"source_refs\":[\"strip office 5 door jambs\"]},{\"id\":\"D_O6\",\"kind\":\"door\",\"p1\":[792,789],\"p2\":[792,826],\"z\":[0,2.1],\"source_refs\":[\"strip office 6 door jambs\"]},{\"id\":\"D_O7\",\"kind\":\"door\",\"p1\":[792,882],\"p2\":[792,919],\"z\":[0,2.1],\"source_refs\":[\"strip office 7 door jambs\"]},{\"id\":\"D_C1\",\"kind\":\"door\",\"p1\":[792,1052],\"p2\":[866,1052],\"z\":[0,2.1],\"source_refs\":[\"double door jambs x792/866, centre mullion x828; corridor to meeting room 1\"]},{\"id\":\"D_C2\",\"kind\":\"door\",\"p1\":[899,1052],\"p2\":[974,1052],\"z\":[0,2.1],\"source_refs\":[\"double door jambs x899/974, centre mullion x937; corridor to meeting room 2\"]},{\"id\":\"W_top1\",\"kind\":\"window\",\"p1\":[384,310],\"p2\":[497,310],\"z\":[0.9,2.7],\"source_refs\":[\"cyan window extent, room A north; heights assumed\"]},{\"id\":\"W_top2\",\"kind\":\"window\",\"p1\":[528,310],\"p2\":[641,310],\"z\":[0.9,2.7],\"source_refs\":[\"cyan window extent, room B north; heights assumed\"]},{\"id\":\"W_top3\",\"kind\":\"window\",\"p1\":[757,310],\"p2\":[787,310],\"z\":[0.9,2.7],\"source_refs\":[\"cyan window extent, north end of vertical corridor; heights assumed\"]},{\"id\":\"W_E1\",\"kind\":\"window\",\"p1\":[975,344],\"p2\":[975,386],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 1; heights assumed\"]},{\"id\":\"W_E2\",\"kind\":\"window\",\"p1\":[975,419],\"p2\":[975,461],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 2\"]},{\"id\":\"W_E3\",\"kind\":\"window\",\"p1\":[975,529],\"p2\":[975,572],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 3\"]},{\"id\":\"W_E4\",\"kind\":\"window\",\"p1\":[975,604],\"p2\":[975,647],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 4\"]},{\"id\":\"W_E5\",\"kind\":\"window\",\"p1\":[975,713],\"p2\":[975,757],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 5\"]},{\"id\":\"W_E6\",\"kind\":\"window\",\"p1\":[975,790],\"p2\":[975,831],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 6\"]},{\"id\":\"W_E7\",\"kind\":\"window\",\"p1\":[975,881],\"p2\":[975,924],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 7\"]},{\"id\":\"W_MW1\",\"kind\":\"window\",\"p1\":[513,672],\"p2\":[513,757],\"z\":[0.9,2.7],\"source_refs\":[\"middle block west wall window, north office; heights assumed\"]},{\"id\":\"W_MW2\",\"kind\":\"window\",\"p1\":[513,788],\"p2\":[513,873],\"z\":[0.9,2.7],\"source_refs\":[\"middle block west wall window, south office\"]},{\"id\":\"W_N1\",\"kind\":\"window\",\"p1\":[988,957],\"p2\":[1359,957],\"z\":[0.9,2.7],\"source_refs\":[\"long glazed band on bottom-wing north wall x988-1359; heights assumed\"]},{\"id\":\"W_S1\",\"kind\":\"window\",\"p1\":[680,1235],\"p2\":[867,1235],\"z\":[0.9,2.7],\"source_refs\":[\"south facade window, meeting room 1; heights assumed\"]},{\"id\":\"W_S2\",\"kind\":\"window\",\"p1\":[899,1235],\"p2\":[1085,1235],\"z\":[0.9,2.7],\"source_refs\":[\"south facade window, meeting room 2\"]},{\"id\":\"D_lobby_west\",\"kind\":\"door\",\"p1\":[513,1000],\"p2\":[513,1035],\"z\":[0,2.1],\"source_refs\":[\"1f_view.png: cyan door leaf and quarter-circle swing arc in the bottom-wing west wall (wall x513-524); grey wall profile in box x506-532 shows ink runs y955-999 and y1036-1064, so the opening is y1000-1035, about 0.78 m; swings into the bottom-wing corridor lobby; height assumed\"]},{\"id\":\"PASS_corr_s\",\"kind\":\"open\",\"p1\":[697,957],\"p2\":[789,957],\"z\":[0,3.0],\"source_refs\":[\"1f_view.png: no wall ink on y957-969 between x695-790 (draft_001 wall-support gap x699-789, 91 unsupported samples); the vertical corridor continues directly south into the bottom-wing corridor as one continuous open space; full-height opening, ceiling 3.0 m is an assumption\"]}],\"space_seeds\":[{\"id\":\"room_A\",\"point\":[400,400],\"role\":\"office\"},{\"id\":\"room_B\",\"point\":[630,400],\"role\":\"office\"},{\"id\":\"corridor_open\",\"point\":[760,530],\"role\":\"corridor\"},{\"id\":\"mid_office_N\",\"point\":[600,680],\"role\":\"office\"},{\"id\":\"mid_office_S\",\"point\":[600,880],\"role\":\"office\"},{\"id\":\"office_1\",\"point\":[880,360],\"role\":\"office\"},{\"id\":\"office_2\",\"point\":[880,445],\"role\":\"office\"},{\"id\":\"office_3\",\"point\":[880,538],\"role\":\"office\"},{\"id\":\"office_4\",\"point\":[880,610],\"role\":\"office\"},{\"id\":\"office_5\",\"point\":[880,725],\"role\":\"office\"},{\"id\":\"office_6\",\"point\":[880,820],\"role\":\"office\"},{\"id\":\"office_7\",\"point\":[880,910],\"role\":\"office\"},{\"id\":\"meeting_1\",\"point\":[700,1140],\"role\":\"meeting_room\"},{\"id\":\"meeting_2\",\"point\":[1060,1140],\"role\":\"meeting_room\"}],\"assumptions\":[\"No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.\",\"All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.\",\"Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.\",\"Door operating states unknown; swing arcs give hinge side only.\",\"Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.\"],\"unresolved\":[\"Open passage PASS_corr_s at y957 x697-789 declared explicitly after wall-support and pixel review confirmed the ink gap x695-790; the vertical corridor and bottom-wing corridor are one continuous open space.\",\"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\",\"Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.\",\"Caller-supplied pixel-to-metre calibration was reused; it is consistent with the 25000x20000 mm overall dimension annotations but was not independently re-derived.\",\"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\"]}"
+      }
+    },
+    {
+      "name": "mcp__bim__view_pixel_profile",
+      "input": {
+        "axis": "y",
+        "box": [
+          820,
+          745,
+          950,
+          800
+        ],
+        "name": "strip5_divider",
+        "rgb": [
+          150,
+          150,
+          150
+        ],
+        "tolerance": 80
+      }
+    },
+    {
+      "name": "mcp__bim__view_pixel_profile",
+      "input": {
+        "axis": "y",
+        "box": [
+          1415,
+          1115,
+          1450,
+          1230
+        ],
+        "name": "main_door_jambs",
+        "rgb": [
+          11,
+          164,
+          144
+        ],
+        "tolerance": 90
+      }
+    },
+    {
+      "name": "mcp__bim__view_pixel_profile",
+      "input": {
+        "axis": "y",
+        "box": [
+          820,
+          745,
+          950,
+          800
+        ],
+        "name": "1f_view.png",
+        "rgb": [
+          150,
+          150,
+          150
+        ],
+        "tolerance": 80
+      }
+    },
+    {
+      "name": "mcp__bim__view_pixel_profile",
+      "input": {
+        "axis": "y",
+        "box": [
+          1415,
+          1115,
+          1450,
+          1230
+        ],
+        "name": "1f_view.png",
+        "rgb": [
+          11,
+          164,
+          144
+        ],
+        "tolerance": 90
+      }
+    },
+    {
+      "name": "mcp__bim__inspect_plan_draft",
+      "input": {
+        "draft_id": "draft_001"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "809590de3e3c45865eccba8b52fa7b88bf9df3997fb1da52a676721265433f52",
+        "operations_json": "[{\"op\": \"set\", \"field\": \"footprint_pixels\", \"value\": [[282, 310], [975, 310], [975, 957], [1437, 957], [1437, 1235], [513, 1235], [513, 582], [282, 582]], \"reason\": \"Remove phantom sliver: the recess north wall was double-represented by ring y588 and partition P_corr_south y582, which compiled mid_office_N with a 6px x 5m tail inside the physical wall. Align the two recess ring corners to the same measured wall representative plane y582 (measured faces y577/588) as P_corr_south.\", \"source_refs\": [\"1f_view.png: wall faces y577/588 at x282-695 verified visually in crop [260,440,800,630]; left dimension chain 2060 to the wall corner\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_strip_5\", \"changes\": {\"points\": [[792, 772], [975, 772]], \"source_refs\": [\"1f_view.png: measured ink line pair y770/775 with full support x820-949 (profile_001); centreline y772 matches the uniform 2000mm office rhythm of the east dimension chain\"]}, \"reason\": \"Declared single peak y775 took the south line of the drawn line pair; centreline y772 restores consistency with the other five office dividers and the 2000mm chain.\", \"source_refs\": [\"profile_001 of 1f_view.png box [820,745,950,800]: candidates y770 and y775 both full support x820-949; east facade chain 7x2000mm from y310\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_south\", \"changes\": {\"source_refs\": [\"1f_view.png: measured wall faces y577/588, line-pair structure; declared on centreline y582, which the recess ring corners now share so this wall is represented once, not twice\"]}, \"reason\": \"Document the representative-plane regularization after aligning the recess ring corners to y582.\", \"source_refs\": [\"1f_view.png: same physical wall forms the recess north edge x282-513 and the middle block north wall x513-695\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.\", \"Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px.\", \"Recess north edge is declared on the wall centreline y582 (not the outer face y588) so the ring and P_corr_south share one representative plane; the recess footprint is therefore ~0.13 m shallow on that edge, an accepted regularization.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\", \"East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "809590de3e3c45865eccba8b52fa7b88bf9df3997fb1da52a676721265433f52",
+        "operations_json": "[{\"op\": \"set\", \"field\": \"footprint_pixels\", \"value\": [[282, 310], [975, 310], [975, 957], [1437, 957], [1437, 1235], [513, 1235], [513, 582], [282, 582]], \"reason\": \"Remove phantom sliver: the recess north wall was double-represented by ring y588 and partition P_corr_south y582, which compiled mid_office_N with a 6px x 5m tail inside the physical wall. Align the two recess ring corners to the same measured wall representative plane y582 (measured faces y577/588) as P_corr_south.\", \"source_refs\": [\"1f_view.png: wall faces y577/588 at x282-695 verified visually in crop [260,440,800,630]; left dimension chain 2060 to the wall corner\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_strip_5\", \"changes\": {\"points\": [[792, 772], [975, 772]], \"source_refs\": [\"1f_view.png: measured ink line pair y770/775 with full support x820-949 (profile_001); centreline y772 matches the uniform 2000mm office rhythm of the east dimension chain\"]}, \"reason\": \"Declared single peak y775 took the south line of the drawn line pair; centreline y772 restores consistency with the other five office dividers and the 2000mm chain.\", \"source_refs\": [\"profile_001 of 1f_view.png box [820,745,950,800]: candidates y770 and y775 both full support x820-949; east facade chain 7x2000mm from y310\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_south\", \"changes\": {\"source_refs\": [\"1f_view.png: measured wall faces y577/588, line-pair structure; declared on centreline y582, which the recess ring corners now share so this wall is represented once, not twice\"]}, \"reason\": \"Document the representative-plane regularization after aligning the recess ring corners to y582.\", \"source_refs\": [\"1f_view.png: same physical wall forms the recess north edge x282-513 and the middle block north wall x513-695\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.\", \"Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px.\", \"Recess north edge is declared on the wall centreline y582 (not the outer face y588) so the ring and P_corr_south share one representative plane; the recess footprint is therefore ~0.13 m shallow on that edge, an accepted regularization.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\", \"East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.\"], \"reason\": \"Update recovery notes: record the independent calibration verification, the recess representative-plane regularization, and the re-verified passage; remove the obsolete 'caller-supplied, not independently verified' wording.\", \"source_refs\": [\"1f_view.png dimension annotations and profiles profile_001/profile_002; visual crops [260,440,800,630], [1230,930,1460,1250], [490,930,1010,1010]\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "809590de3e3c45865eccba8b52fa7b88bf9df3997fb1da52a676721265433f52",
+        "operations_json": "[{\"op\": \"set\", \"field\": \"footprint_pixels\", \"value\": [[282, 310], [975, 310], [975, 957], [1437, 957], [1437, 1235], [513, 1235], [513, 582], [282, 582]], \"reason\": \"Remove phantom sliver: the recess north wall was double-represented by ring y588 and partition P_corr_south y582, which compiled mid_office_N with a 6px x 5m tail inside the physical wall. The ring recess edge now follows the same measured wall line (centreline y582 of faces y577/588) as the partition.\", \"source_refs\": [\"1f_view.png: wall faces y577/588 at x282-695 verified visually in crop [260,440,800,630]; left dimension chain 2060 to the wall corner\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_south\", \"changes\": {\"points\": [[513, 582], [695, 582]], \"source_refs\": [\"1f_view.png: measured wall faces y577/588; the wall is one physical line: ring segment x282-513 (recess exterior edge) plus this interior divider x513-695 starting exactly at ring corner (513,582)\"]}, \"reason\": \"Trim the partition to the interior portion x513-695 so it does not overlap the footprint ring segment x282-513 on the same line; the shared endpoint (513,582) coincides explicitly with the ring corner.\", \"source_refs\": [\"1f_view.png: same physical wall forms the recess north edge x282-513 and the middle block north wall x513-695\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_strip_5\", \"changes\": {\"points\": [[792, 772], [975, 772]], \"source_refs\": [\"1f_view.png: measured ink line pair y770/775 with full support x820-949 (profile_001); centreline y772 matches the uniform 2000mm office rhythm of the east dimension chain\"]}, \"reason\": \"Declared single peak y775 took the south line of the drawn line pair; centreline y772 restores consistency with the other five office dividers and the 2000mm chain.\", \"source_refs\": [\"profile_001 of 1f_view.png box [820,745,950,800]: candidates y770 and y775 both full support x820-949; east facade chain 7x2000mm from y310\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.\", \"Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px.\", \"Recess north edge (ring x282-513) is declared on the wall centreline y582, not the outer face y588, so ring and partition share one representative plane; that footprint edge is ~0.13 m shallow, an accepted regularization.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\", \"East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.\"], \"reason\": \"Update recovery notes: record the independent calibration verification, the recess representative-plane regularization, and the re-verified passage; remove the obsolete 'caller-supplied, not independently verified' wording.\", \"source_refs\": [\"1f_view.png dimension annotations and profiles profile_001/profile_002; visual crops [260,440,800,630], [1230,930,1460,1250], [490,930,1010,1010]\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__claim_status",
+      "input": {
+        "candidate": "candidate_02"
+      }
+    },
+    {
+      "name": "mcp__bim__get_bim_reference",
+      "input": {
+        "topic": "edits"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_bim",
+      "input": {
+        "candidate": "candidate_02",
+        "operations_json": "[{\"op\": \"set_notes\", \"assumptions\": [\"No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.\", \"All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.\", \"Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.\", \"Door operating states unknown; swing arcs give hinge side only.\", \"Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.\", \"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\"], \"unresolved\": [\"Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.\", \"Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px; the earlier 'not independently verified' note is superseded.\", \"Recess north edge (ring x282-513) is declared on the wall centreline y582, not the outer face y588, so ring and partition share one representative plane; that footprint edge is ~0.13 m shallow, an accepted regularization.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\", \"East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.\", \"Opening coverage was checked against the original by visual crops, dimension chains and the source overlay (all 15 windows and 16 doors accounted for); no automated mark-by-mark review was run, and unexamined ink outside the inspected crops remains possible.\"], \"reason\": \"Replace the stale auto-appended 'calibration not independently verified' note with the completed independent verification, and record the scope of the opening-coverage check.\", \"source_refs\": [\"1f_view.png dimension annotations; profiles profile_001/profile_002; crops [260,440,800,630], [1230,930,1460,1250], [490,930,1010,1010]; overlay_002\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_bim",
+      "input": {
+        "candidate": "candidate_02",
+        "operations_json": "[{\"op\": \"set_notes\", \"assumptions\": [\"No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.\", \"All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.\", \"Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.\", \"Door operating states unknown; swing arcs give hinge side only.\", \"Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.\", \"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\"], \"unresolved\": [\"Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.\", \"Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px; the earlier 'not independently verified' note is superseded.\", \"Recess north edge (ring x282-513) is declared on the wall centreline y582, not the outer face y588, so ring and partition share one representative plane; that footprint edge is ~0.13 m shallow, an accepted regularization.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\", \"East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.\", \"Opening coverage was checked against the original by visual crops, dimension chains and the source overlay (all 15 windows and 16 doors accounted for); no automated mark-by-mark review was run, and unexamined ink outside the inspected crops remains possible.\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__finish_bim",
+      "input": {
+        "candidate": "candidate_03"
+      }
+    }
+  ],
+  "note": "Extracted public assistant messages and tool inputs; actual images audited separately."
+}

@@ -1,0 +1,81 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "candidate_02",
+  "submitted_operations": [
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.",
+        "All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.",
+        "Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.",
+        "Door operating states unknown; swing arcs give hinge side only.",
+        "Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+      ],
+      "unresolved": [
+        "Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.",
+        "Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.",
+        "Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.",
+        "Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px; the earlier 'not independently verified' note is superseded.",
+        "Recess north edge (ring x282-513) is declared on the wall centreline y582, not the outer face y588, so ring and partition share one representative plane; that footprint edge is ~0.13 m shallow, an accepted regularization.",
+        "No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.",
+        "East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.",
+        "Opening coverage was checked against the original by visual crops, dimension chains and the source overlay (all 15 windows and 16 doors accounted for); no automated mark-by-mark review was run, and unexamined ink outside the inspected crops remains possible."
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "f2f05a779749a2517f721eadf9127fab5136a366b28e9c44044f104ec5f0581e",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.",
+        "All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.",
+        "Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.",
+        "Door operating states unknown; swing arcs give hinge side only.",
+        "Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+      ],
+      "unresolved": [
+        "Open passage PASS_corr_s at y957 x697-789 re-verified visually on 1f_view.png crop [490,930,1010,1010]: no wall ink between x698-792; the vertical corridor and bottom-wing corridor are one continuous open space.",
+        "Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.",
+        "Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.",
+        "Pixel-to-metre calibration cross-checked independently against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px; the earlier 'not independently verified' note is superseded.",
+        "Recess north edge (ring x282-513) is declared on the wall centreline y582, not the outer face y588, so ring and partition share one representative plane; that footprint edge is ~0.13 m shallow, an accepted regularization.",
+        "No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.",
+        "East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.",
+        "Opening coverage was checked against the original by visual crops, dimension chains and the source overlay (all 15 windows and 16 doors accounted for); no automated mark-by-mark review was run, and unexamined ink outside the inspected crops remains possible."
+      ]
+    }
+  ],
+  "geometry_before_sha256": "9eeca7ef4fc7125563f36f7c65167bfa7b0d5bd7fa5d666a4a962ab7a28b5ba8",
+  "geometry_after_sha256": "9eeca7ef4fc7125563f36f7c65167bfa7b0d5bd7fa5d666a4a962ab7a28b5ba8",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_03",
+  "source_model_sha256": "28e4b8032b4ee4c81d304d3b56f2b19654e029d5680ccc5f3950b9580336e87a",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}
