@@ -113,6 +113,11 @@ avoids repeating shared room vertices and doing coordinate arithmetic yourself.
 For local corrections, inspect_plan_draft then revise_plan_bim edits selected
 wall/opening/seed IDs while preserving every untouched declaration. Prefer this
 over retyping all arrays. Read plan_partition for the operation contract.
+Choose the physical partition before choosing connectivity: an opening connects
+two already separate spaces; it NEVER merges them. Where the original shows one
+continuous space, remove the invented separating path portion and rebuild its
+boundary, rather than adding a passage across that invented division. Preserve
+the real wall portions and all unrelated rooms/openings.
 It returns the actual source overlaid on the same original using your anchors.
 If compilation fails, its draft overlay shows the submitted pixel paths and
 apertures, not a constructed or verified BIM. Compare the numbered paths with
@@ -354,6 +359,14 @@ through a door aperture. Put the aperture separately in openings. Shared path
 endpoints must coincide explicitly. The compiler will not extend, snap or bridge
 paths; revise coordinates only with evidence and record any regularization.
 Every enclosed face becomes one space. No room count is supplied or enforced.
+An open passage still leaves two faces and two spaces, even at full ceiling height.
+Use it for an evidenced opening in a real separating wall. A corridor bend or
+continuation without a physical separator belongs to ONE face: do not draw a
+closing line there just to host a passage. To repair an overextended partition,
+update its points to one real wall portion and add the other real portions as
+separate paths with coincident actual junctions. Remove any invented opening on
+the removed portion in the SAME revision. The compiler then derives the merged
+space and its actual opening hosts; do not manually recreate every room polygon.
 Optional space_seeds assign IDs/roles to containing faces; every unseeded face is
 retained with a stable derived ID and unknown role. Seeds are points INSIDE rooms,
 not wall points. Two seeds in one face fail rather than inventing a divider.
