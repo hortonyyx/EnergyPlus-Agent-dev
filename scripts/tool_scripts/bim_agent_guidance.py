@@ -110,6 +110,9 @@ actual saved source with the originals. For a single floor with a simple orthogo
 build_plan_bim can derive complete rooms and opening hosts from your observed
 pixel partition paths; read plan_partition for its compact input format. This
 avoids repeating shared room vertices and doing coordinate arithmetic yourself.
+For local corrections, inspect_plan_draft then revise_plan_bim edits selected
+wall/opening/seed IDs while preserving every untouched declaration. Prefer this
+over retyping all arrays. Read plan_partition for the operation contract.
 It returns the actual source overlaid on the same original using your anchors.
 If compilation fails, its draft overlay shows the submitted pixel paths and
 apertures, not a constructed or verified BIM. Compare the numbered paths with
@@ -364,6 +367,25 @@ Empty openings or incomplete observed coverage is allowed ONLY as an explicit
 partial draft: record unexamined views and omissions in unresolved. A partial
 draft does not establish room completeness or drawing fidelity.
 The raw declaration and deterministic mapping are retained in plan_drafts.
+Local revision: inspect_plan_draft('draft_NNN') returns declaration and plan_sha256;
+use 'resume' for an explicitly supplied saved pixel plan. Pass that hash as
+expected_plan_sha256 to revise_plan_bim(draft_id, expected_plan_sha256,
+operations_json). operations_json is a list of 1-100 operations. Each needs
+reason and nonempty source_refs, plus:
+- update: collection, id, changes (nonempty fields, no id).
+- add: collection, value (complete new row with a new id).
+- remove: collection, id.
+- set: field, value (top-level scalar/array fields except floor_id and collections).
+Collections are partitions, openings, space_seeds; edit each row/field once per
+batch. Example operation on the synthetic declaration above:
+{"op":"update","collection":"openings","id":"D1","changes":{"z":[0,2.2]},
+"reason":"explicit revised height assumption","source_refs":["height assumed"]}
+Untouched declarations remain exact; changed topology may change derived rooms
+and hosts. Every revision saves a NEW full draft and runs the same compiler and
+source/overlay feedback. Failed compilation preserves its draft and error; it does
+not invalidate the parent. Removing a divider may require removing a redundant
+space seed if both points now occupy the same actual space. Resolve that from the
+original; never delete unrelated physical partitions just to clear seed errors.
 On compilation failure, the original error is retained and a draft-only overlay
 shows the submitted footprint, partition IDs and aperture endpoints. Unrenderable
 items are listed explicitly. This is not a source BIM or a claim of room validity;

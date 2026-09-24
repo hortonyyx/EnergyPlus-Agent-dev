@@ -119,6 +119,8 @@ GT 也允许从原始 CAD 派生有记录的规整参考，不要求先手工修
 
 ## GT 与当前评分链
 
+09-24 用户确认 GT 可辅助核对，现有 DXF 也是后续输入模态。已有 GT 优先复用，记录浮点、画图和参考面误差；局部疑点才补原图核查，不常规重画完整人工参照。未来可明确把 DXF 作为生成输入，此时按 DXF 输入/辅助模式评价；原图独立实验仍隔离对应答案。`annotated_reference.png` 是开发侧评价标注，图线对齐不代表工作模型已生成相同几何。
+
 GT 留在评测侧，不输入被评测生成器。原始设计几何、人工参考、机器规整与修订各自保留来源；修订要说明改变设计事实还是只规整表示，保留旧版本及相应确认依据。
 已有 [gt_revisions.py](../../src/agent/judge/gt_revisions.py)、AnswerCompiler、暂存 facts 和 [judge](../../src/agent/judge/) 可复用。但 [gt_promotion.py](../../src/agent/judge/gt_promotion.py) 未把 facts 随正式 GT 晋升，暂存/签字/正式目录不能视为等价。
 当前 as-drawn 平面评分按 request 源哈希查 signed DXF 后编译分母，立面从 GT 派生 targets（[flow_wiring.py](../../src/agent/judge/as_drawn/flow_wiring.py)）；整链尚未统一消费 frozen facts。评分只在实际启用和可用的条件下报告。

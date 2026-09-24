@@ -745,7 +745,62 @@ class Toolkit:
             '</html>', encoding="utf-8")
         return result
 
-    def build_plan(self, image, plan_json):
+    def inspect_plan(self, draft_id):
+        """Read an admitted immutable draft or the explicitly supplied resume plan."""
+        if self.readonly:
+            raise ValueError("saved plans are available only to the coordinator")
+        if draft_id == "resume":
+            record = self.manifest.get("plan_recovery")
+            if record is None:
+                raise ValueError("no saved resume plan was supplied")
+            path = self.run / record["frozen_path"]
+            expected, image_name = record["raw_sha256"], record["image"]
+        else:
+            if not isinstance(draft_id, str) or not draft_id.startswith("draft_") or not draft_id[6:].isdigit():
+                raise ValueError("choose resume or an existing draft_NNN")
+            folder = self.run / "plan_drafts" / draft_id
+            record = json.loads((folder / "input.json").read_text())
+            path = folder / "plan.json"
+            expected, image_name = record["plan_sha256"], record["image"]
+        if digest(path) != expected or digest(self.image_path(image_name)) != record["image_sha256"]:
+            raise ValueError("saved plan or original image changed")
+        return dict(draft_id=draft_id, plan_sha256=expected, image=image_name,
+                    declaration=json.loads(path.read_text()))
+
+    def revise_plan(self, draft_id, expected_plan_sha256, operations_json):
+        from src.agent.geometry.plan_revision import apply_plan_revision
+        parent = self.inspect_plan(draft_id)
+        if parent["plan_sha256"] != expected_plan_sha256:
+            raise ValueError("stale plan hash; inspect the intended saved draft before revision")
+        folder = self.run / "plan_revisions"
+        folder.mkdir(exist_ok=True)
+        path = folder / f"revision_{len(list(folder.glob('revision_*.json'))) + 1:03d}.json"
+        revision = dict(parent_draft_id=draft_id, parent_plan_sha256=expected_plan_sha256,
+                        operations_json=operations_json, status="pending")
+        dump(path, revision)
+        try:
+            updated, preservation = apply_plan_revision(parent["declaration"], json.loads(operations_json))
+            revision.update(status="declaration_applied", **preservation)
+            dump(path, revision)
+            # Bind immutable operations and their preservation audit in the new
+            # draft's provenance before compiling, including on compiler failure.
+            binding = dict(file=str(path.relative_to(self.run)), sha256=digest(path),
+                           parent_draft_id=draft_id, parent_plan_sha256=expected_plan_sha256)
+            result = self.build_plan(parent["image"], json.dumps(updated, ensure_ascii=False), revision=binding)
+        except Exception as error:
+            # Once bound, preserve the exact revision file even for internal faults.
+            if revision["status"] == "pending":
+                revision.update(status="rejected", error=str(error)); dump(path, revision)
+            self.log("revise_plan_bim", dict(revision_file=str(path.relative_to(self.run)), error=str(error)))
+            raise
+        result["plan_revision"] = dict(**binding, unchanged_ids=preservation["unchanged_ids"],
+            changed_targets=[dict(field=r["field"], id=r["id"]) for r in preservation["changes"]])
+        self.log("revise_plan_bim", dict(candidate=result.get("candidate"),
+            source_geometry_ready=result.get("source_geometry_ready"), plan_input=result.get("plan_input"),
+            plan_revision=result["plan_revision"], error=result.get("error")))
+        return result
+
+    def build_plan(self, image, plan_json, *, revision=None):
         """Preserve a pixel declaration before deterministic compilation or errors."""
         from src.agent.geometry.plan_partition import OpeningHostError, compile_plan_partition
         from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
@@ -759,6 +814,8 @@ class Toolkit:
         record = {"plan_file": str(raw_path.relative_to(self.run)),
                   "plan_sha256": digest(raw_path), "image": image,
                   "image_sha256": digest(image_path)}
+        if revision is not None:
+            record["revision"] = revision
         dump(draft / "input.json", record)
         try:
             plan = json.loads(plan_json)
@@ -1733,6 +1790,22 @@ def serve(run: Path, readonly=False):
 
     if not readonly:
         @server.tool()
+        def inspect_plan_draft(draft_id: str) -> dict:
+            """Read a saved draft_NNN or resume declaration and its immutable hash.
+            Use the returned hash with revise_plan_bim for local edits.
+            """
+            return toolkit.inspect_plan(draft_id)
+
+        @server.tool()
+        def revise_plan_bim(draft_id: str, expected_plan_sha256: str, operations_json: str) -> CallToolResult:
+            """Locally edit saved pixel wall/opening/seed declarations by ID.
+            Read plan_partition reference for operations. Untouched declarations
+            stay exact; compiler and source/overlay feedback run normally. This
+            rebuilds ONE floor and may change room topology, never auto-fixes it.
+            """
+            return candidate_result(toolkit.revise_plan(draft_id, expected_plan_sha256, operations_json))
+
+        @server.tool()
         def view_plan_wall_support(draft_id: str, rgb: list[int], tolerance: float = 70,
                                    radius_pixels: int = 6, minimum_ink_pixels: int = 1):
             """Check complete partition paths from a saved build_plan_bim draft_NNN.
@@ -2195,6 +2268,7 @@ def run_experiment(args):
                                  "src/agent/geometry/profile_observation_binding.py":digest(ROOT/"src/agent/geometry/profile_observation_binding.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
+                                 "src/agent/geometry/plan_revision.py":digest(ROOT/"src/agent/geometry/plan_revision.py"),
                                  "src/agent/geometry/plan_wall_support.py":digest(ROOT/"src/agent/geometry/plan_wall_support.py"),
                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
