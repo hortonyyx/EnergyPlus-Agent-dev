@@ -1,0 +1,35 @@
+{
+  "mode": "developer_selected_postrun_diagnostic_not_autonomous_recovery",
+  "original_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "false_path": {
+    "id": "P_corridor_east",
+    "x": 459.5,
+    "declared_y": [
+      298.5,
+      698
+    ],
+    "unsupported_interior_probe_box": [
+      450,
+      595,
+      470,
+      690
+    ]
+  },
+  "exact_probe_colors": [
+    {
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "count": 1900
+    }
+  ],
+  "total_probe_pixels": 1900,
+  "observation": "The interior of the proposed extension is blank original background, while the full-context profile shows the real upper wall and lower return separated by a gap.",
+  "consequences": [
+    "Continuous circulation is split into corridor and zoneA.",
+    "D_Rdouble and D7_zoneA_C attach to the spurious zoneA instead of the continuous corridor."
+  ],
+  "boundary": "No model invocation, source mutation, GT coordinate input or changed evaluation tolerance. A blank color filter alone is not a universal wall-absence rule."
+}
