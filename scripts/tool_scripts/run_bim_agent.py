@@ -1235,6 +1235,58 @@ class Toolkit:
         self.log("view_image", metadata)
         return [Image(data=data.getvalue(), format="png"), json.dumps(metadata)]
 
+    def plan_wall_support(self, draft_id, rgb, tolerance=70, radius_pixels=6, minimum_ink_pixels=1):
+        """Review exactly one saved declaration; never mutate or approve it."""
+        from src.agent.geometry.plan_wall_support import measure_plan_wall_support
+        if self.readonly:
+            raise ValueError("saved plan drafts are available only to the coordinator")
+        if (not isinstance(draft_id, str) or not draft_id.startswith("draft_")
+                or not draft_id[6:].isdigit()):
+            raise ValueError("choose a saved draft_NNN from build_plan_bim")
+        folder = self.run / "plan_drafts" / draft_id
+        if not (folder / "input.json").is_file():
+            raise ValueError("choose an existing saved plan draft")
+        admitted = json.loads((folder / "input.json").read_text())
+        plan_path = folder / "plan.json"
+        if digest(plan_path) != admitted["plan_sha256"]:
+            raise ValueError("saved plan changed")
+        image_path = self.image_path(admitted["image"])
+        if digest(image_path) != admitted["image_sha256"]:
+            raise ValueError("draft original image changed")
+        compilation_path = folder / "compilation.json"
+        compilation = None
+        if compilation_path.is_file():
+            saved = json.loads((folder / "result.json").read_text())["plan_input"]
+            if (saved["plan_sha256"] != admitted["plan_sha256"]
+                    or digest(compilation_path) != saved["compilation_sha256"]):
+                raise ValueError("saved compilation changed")
+            compilation = json.loads(compilation_path.read_text())
+        with PILImage.open(image_path) as original:
+            pic, result = measure_plan_wall_support(original, json.loads(plan_path.read_text()),
+                rgb=rgb, tolerance=tolerance, radius_pixels=radius_pixels,
+                minimum_ink_pixels=minimum_ink_pixels,
+                spaces=compilation["space_mapping"] if compilation else None)
+        target = self.run / "plan_wall_support"
+        target.mkdir(exist_ok=True)
+        stem = f"support_{len(list(target.glob('support_*.json'))) + 1:03d}"
+        pic.save(target / f"{stem}.png")
+        result.update(draft_id=draft_id, plan_sha256=admitted["plan_sha256"],
+                      image=admitted["image"], image_sha256=admitted["image_sha256"],
+                      support_image=f"plan_wall_support/{stem}.png",
+                      support_record=f"plan_wall_support/{stem}.json",
+                      support_image_sha256=digest(target / f"{stem}.png"),
+                      remaining_seconds=self.remaining_seconds())
+        returned = pic.copy()
+        returned.thumbnail((1600, 1600))
+        data = io.BytesIO()
+        returned.save(data, "PNG")
+        result["returned_size"] = list(returned.size)
+        result["original_combined_size"] = list(pic.size)
+        dump(target / f"{stem}.json", result)
+        self.log("view_plan_wall_support", {"draft_id": draft_id, "record": result["support_record"],
+                                             "review_interval_count": len(result["review_intervals"])})
+        return [Image(data=data.getvalue(), format="png"), json.dumps(result)]
+
     def profile(self, name, box, axis, rgb, tolerance):
         import numpy as np
         with PILImage.open(self.image_path(name)) as raw:
@@ -1680,6 +1732,18 @@ def serve(run: Path, readonly=False):
         return result
 
     if not readonly:
+        @server.tool()
+        def view_plan_wall_support(draft_id: str, rgb: list[int], tolerance: float = 70,
+                                   radius_pixels: int = 6, minimum_ink_pixels: int = 1):
+            """Check complete partition paths from a saved build_plan_bim draft_NNN.
+            Choose wall RGB and strip radius from the original. Returns clean/marked
+            original, exact supported and unsupported intervals, declared apertures
+            separately, and proposed adjacent rooms if compilation exists. Gaps are
+            prompts to reobserve, not missing-wall verdicts. No BIM change or approval.
+            Supports failed drafts too. Coordinates are original pixels, never GT.
+            """
+            return toolkit.plan_wall_support(draft_id, rgb, tolerance, radius_pixels, minimum_ink_pixels)
+
         @server.tool()
         def record_claim(claim_json: str) -> dict:
             """Record a located interpretation and computable values for an existing candidate.
@@ -2130,6 +2194,7 @@ def run_experiment(args):
                                  "src/agent/geometry/profile_observation_binding.py":digest(ROOT/"src/agent/geometry/profile_observation_binding.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
+                                 "src/agent/geometry/plan_wall_support.py":digest(ROOT/"src/agent/geometry/plan_wall_support.py"),
                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
                                  "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},

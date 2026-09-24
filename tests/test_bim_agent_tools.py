@@ -75,6 +75,56 @@ def _error_text(result) -> str:
     return "\n".join(getattr(row, "text", "") for row in result.content)
 
 
+def test_plan_wall_support_stdio_reads_saved_paths_and_preserves_source(tmp_path):
+    async def scenario():
+        from PIL import ImageDraw
+        run = _run_with_one_image(tmp_path)
+        picture = Image.new('RGB', (80, 80), 'black')
+        draw = ImageDraw.Draw(picture)
+        for a, b in ((5, 19), (30, 44), (60, 70)):
+            draw.line((20, a, 20, b), fill=(128, 128, 128))
+        picture.save(run/'images/plan.png')
+        manifest = json.loads((run/'inputs.json').read_text())
+        manifest['images']['plan.png'] = dict(size=[80, 80], sha256=digest(run/'images/plan.png'))
+        (run/'inputs.json').write_text(json.dumps(manifest))
+        plan = dict(floor_id='F1', z_floor=0, ceiling_height=3,
+            x_anchors=[[0, 0], [79, 7.9]], y_anchors=[[0, 7.9], [79, 0]],
+            basis='synthetic', footprint_pixels=[[5,5],[70,5],[70,70],[5,70]],
+            partitions=[dict(id='wall', points=[[20,5],[20,65]], source_refs=['synthetic'])],
+            openings=[dict(id='door', kind='door', p1=[20,20], p2=[20,29], z=[0,2.1],
+                           source_refs=['synthetic'])], assumptions=[], unresolved=[])
+        async with _server_session(run, readonly=False) as session:
+            failed = _json_result(await session.call_tool('build_plan_bim',
+                dict(image='plan.png', plan_json=json.dumps(plan))))
+            assert not failed['source_geometry_ready']
+            args = dict(draft_id='draft_001', rgb=[128]*3, tolerance=0, radius_pixels=1)
+            first = await session.call_tool('view_plan_wall_support', args)
+            assert not first.isError
+            data = json.loads(first.content[1].text)
+            assert not data['proposed_space_adjacency_available']
+            assert data['review_intervals'][0]['span_pixels'] == [45,59]
+            plan['partitions'][0]['points'][1][1] = 70
+            built = _json_result(await session.call_tool('build_plan_bim',
+                dict(image='plan.png', plan_json=json.dumps(plan))))
+            source = run/built['candidate']/'source_model.json'
+            before = source.read_bytes()
+            second = await session.call_tool('view_plan_wall_support', {**args, 'draft_id':'draft_002'})
+            assert not second.isError
+            data = json.loads(second.content[1].text)
+            assert len(data['review_intervals'][0]['proposed_adjacent_space_ids']) == 2
+            assert data['segments'][0]['declared_opening_sample_count'] == 10
+            assert json.loads((run/data['support_record']).read_text()) == data
+            assert digest(run/data['support_image']) == data['support_image_sha256']
+            with Image.open(io.BytesIO(base64.b64decode(second.content[0].data))) as returned:
+                assert returned.crop((0,0,80,80)).tobytes() == picture.tobytes()
+            assert source.read_bytes() == before
+            bad = await session.call_tool('view_plan_wall_support', {**args, 'draft_id':'../draft_001'})
+            assert bad.isError
+        async with _server_session(run, readonly=True) as session:
+            assert 'view_plan_wall_support' not in {t.name for t in (await session.list_tools()).tools}
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("readonly", [True, False])
 def test_facade_comparison_stdio_binds_originals_without_building(tmp_path, readonly):
     async def scenario():

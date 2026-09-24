@@ -1,0 +1,896 @@
+{
+  "assumptions": [
+    "No elevation or other floors supplied: z_floor=0 and ceiling_height=3.0m are explicit assumptions (inherited, unchanged).",
+    "Door heights 0-2.1m and window sill/head 0.9-2.4m assumed (standard, not observed in plan; inherited, unchanged).",
+    "Wall thickness 240mm per plan labels; interior partitions represented at measured stroke centerlines (inherited, unchanged).",
+    "Opening widths from measured cyan jamb runs; swing directions from arcs, door leaf states unknown (inherited, unchanged).",
+    "ZoneA seed removed in this revision because the drawn evidence shows no wall between corridor and the former zoneA face; the combined open space keeps the corridor seed and circulation role.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "lobby_living",
+            "polygon": [
+              [
+                0.0,
+                15.942228
+              ],
+              [
+                10.0,
+                15.942228
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                0.0,
+                20.0
+              ]
+            ],
+            "role": "living_entrance",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png crop[240,280,630,330]s4 and crop[385,275,475,345]s6: continuous divider at y~296-302 across full width, continues through double-door aperture to corridor; ends T into corridor walls x397-402 / x457-462; draft_001 support [249,408]+[451,602] with D1 declared 403-456"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              15.942228,
+              20.0
+            ]
+          },
+          {
+            "id": "office1",
+            "polygon": [
+              [
+                0.0,
+                12.971114
+              ],
+              [
+                4.146006,
+                12.971114
+              ],
+              [
+                4.146006,
+                15.942228
+              ],
+              [
+                0.0,
+                15.942228
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png crop[240,280,630,330]s4 and crop[385,275,475,345]s6: continuous divider at y~296-302 across full width, continues through double-door aperture to corridor; ends T into corridor walls x397-402 / x457-462; draft_001 support [249,408]+[451,602] with D1 declared 403-456",
+              "1f_view.png profiles band y480-500: faces x397-402; runs from lobby wall to bottom exterior wall edge (y878); draft_001 support [300,359],[392,404],[406,418],[452,598],[631,877] with declared doors D2/D3/D6",
+              "1f_view.png crop[240,290,420,600]s2.5: horizontal divider y~403-410 between office1 and office2, west wall to corridor west wall; draft_001 support [249,398]"
+            ],
+            "x": [
+              0.0,
+              4.146006
+            ],
+            "y": [
+              12.971114,
+              15.942228
+            ]
+          },
+          {
+            "id": "corridor",
+            "polygon": [
+              [
+                4.146006,
+                3.4663
+              ],
+              [
+                5.798898,
+                3.4663
+              ],
+              [
+                5.798898,
+                4.951857
+              ],
+              [
+                10.0,
+                4.951857
+              ],
+              [
+                10.0,
+                8.060523
+              ],
+              [
+                5.798898,
+                8.060523
+              ],
+              [
+                5.798898,
+                15.942228
+              ],
+              [
+                4.146006,
+                15.942228
+              ]
+            ],
+            "role": "circulation",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png crop[240,280,630,330]s4 and crop[385,275,475,345]s6: continuous divider at y~296-302 across full width, continues through double-door aperture to corridor; ends T into corridor walls x397-402 / x457-462; draft_001 support [249,408]+[451,602] with D1 declared 403-456",
+              "1f_view.png profiles band y480-500: faces x397-402; runs from lobby wall to bottom exterior wall edge (y878); draft_001 support [300,359],[392,404],[406,418],[452,598],[631,877] with declared doors D2/D3/D6",
+              "REVISED vs prior draft: terminates at T-junction with P_zoneA_north (y585). Draft_001 support showed ink only y300-587; profile_001 (band y595-690, tolerance 100) found NO ink between x430-600, only east wall x603/611: no wall exists between y~588 and y~695, so the former zoneA is open to the corridor. Doors D4 y323-354, D5 y382-415 declared as apertures; draft_001 support [300,323],[356,368],[370,382],[415,587]",
+              "1f_view.png crop[440,550,620,615]s4: divider y~581-587 continuous x459-612, dining/hall, no openings; draft_001 support [461,602],[604,610],[612,612]",
+              "1f_view.png profile_002 (band y694-702): ink from x457 to x559, aperture x560-591 (D7), resumes x592-602/604-610/612; west end aligns with corridor east wall line x457-462",
+              "REVISED id (was P_stub463): profile_003 (band y710-747) shows faces x457 and x461-462 over the full length, centerline x459.5, same wall line as corridor east wall; prior draft placed it at x463 (faces 461-465) ~4px east of the drawn stroke",
+              "REVISED east endpoint to x459.5 to meet P_stub_hall (was x463); profile_002/003 show stub faces x457-462; divider y~750-754 from corridor west wall east to stub, no openings; draft_001 support [402,457],[461,462]"
+            ],
+            "x": [
+              4.146006,
+              10.0
+            ],
+            "y": [
+              3.4663,
+              15.942228
+            ]
+          },
+          {
+            "id": "ne_room",
+            "polygon": [
+              [
+                5.798898,
+                13.961486
+              ],
+              [
+                10.0,
+                13.961486
+              ],
+              [
+                10.0,
+                15.942228
+              ],
+              [
+                5.798898,
+                15.942228
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png crop[240,280,630,330]s4 and crop[385,275,475,345]s6: continuous divider at y~296-302 across full width, continues through double-door aperture to corridor; ends T into corridor walls x397-402 / x457-462; draft_001 support [249,408]+[451,602] with D1 declared 403-456",
+              "REVISED vs prior draft: terminates at T-junction with P_zoneA_north (y585). Draft_001 support showed ink only y300-587; profile_001 (band y595-690, tolerance 100) found NO ink between x430-600, only east wall x603/611: no wall exists between y~588 and y~695, so the former zoneA is open to the corridor. Doors D4 y323-354, D5 y382-415 declared as apertures; draft_001 support [300,323],[356,368],[370,382],[415,587]",
+              "1f_view.png crop[430,315,540,425]s4 + crop[450,290,620,600]s2.5: divider y~367-374 from corridor east wall to right exterior wall; draft_001 support [461,602],[604,610],[612,612]"
+            ],
+            "x": [
+              5.798898,
+              10.0
+            ],
+            "y": [
+              13.961486,
+              15.942228
+            ]
+          },
+          {
+            "id": "dining",
+            "polygon": [
+              [
+                5.798898,
+                8.060523
+              ],
+              [
+                10.0,
+                8.060523
+              ],
+              [
+                10.0,
+                13.961486
+              ],
+              [
+                5.798898,
+                13.961486
+              ]
+            ],
+            "role": "dining",
+            "source_refs": [
+              "image:1f_view.png",
+              "REVISED vs prior draft: terminates at T-junction with P_zoneA_north (y585). Draft_001 support showed ink only y300-587; profile_001 (band y595-690, tolerance 100) found NO ink between x430-600, only east wall x603/611: no wall exists between y~588 and y~695, so the former zoneA is open to the corridor. Doors D4 y323-354, D5 y382-415 declared as apertures; draft_001 support [300,323],[356,368],[370,382],[415,587]",
+              "1f_view.png crop[440,550,620,615]s4: divider y~581-587 continuous x459-612, dining/hall, no openings; draft_001 support [461,602],[604,610],[612,612]",
+              "1f_view.png crop[430,315,540,425]s4 + crop[450,290,620,600]s2.5: divider y~367-374 from corridor east wall to right exterior wall; draft_001 support [461,602],[604,610],[612,612]"
+            ],
+            "x": [
+              5.798898,
+              10.0
+            ],
+            "y": [
+              8.060523,
+              13.961486
+            ]
+          },
+          {
+            "id": "office2",
+            "polygon": [
+              [
+                0.0,
+                8.060523
+              ],
+              [
+                4.146006,
+                8.060523
+              ],
+              [
+                4.146006,
+                12.971114
+              ],
+              [
+                0.0,
+                12.971114
+              ]
+            ],
+            "role": "shared_office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png profiles band y480-500: faces x397-402; runs from lobby wall to bottom exterior wall edge (y878); draft_001 support [300,359],[392,404],[406,418],[452,598],[631,877] with declared doors D2/D3/D6",
+              "1f_view.png crop[240,290,420,600]s2.5: horizontal divider y~403-410 between office1 and office2, west wall to corridor west wall; draft_001 support [249,398]",
+              "1f_view.png crop[240,570,630,700]s2.5: divider y~580-590, office2/conference, continuous, no openings; draft_001 support [249,398]"
+            ],
+            "x": [
+              0.0,
+              4.146006
+            ],
+            "y": [
+              8.060523,
+              12.971114
+            ]
+          },
+          {
+            "id": "conference",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.146006,
+                0.0
+              ],
+              [
+                4.146006,
+                8.060523
+              ],
+              [
+                0.0,
+                8.060523
+              ]
+            ],
+            "role": "meeting",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png profiles band y480-500: faces x397-402; runs from lobby wall to bottom exterior wall edge (y878); draft_001 support [300,359],[392,404],[406,418],[452,598],[631,877] with declared doors D2/D3/D6",
+              "1f_view.png crop[240,570,630,700]s2.5: divider y~580-590, office2/conference, continuous, no openings; draft_001 support [249,398]"
+            ],
+            "x": [
+              0.0,
+              4.146006
+            ],
+            "y": [
+              0.0,
+              8.060523
+            ]
+          },
+          {
+            "id": "workroom_se",
+            "polygon": [
+              [
+                4.146006,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.951857
+              ],
+              [
+                5.798898,
+                4.951857
+              ],
+              [
+                5.798898,
+                3.4663
+              ],
+              [
+                4.146006,
+                3.4663
+              ]
+            ],
+            "role": "workroom",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png profiles band y480-500: faces x397-402; runs from lobby wall to bottom exterior wall edge (y878); draft_001 support [300,359],[392,404],[406,418],[452,598],[631,877] with declared doors D2/D3/D6",
+              "1f_view.png profile_002 (band y694-702): ink from x457 to x559, aperture x560-591 (D7), resumes x592-602/604-610/612; west end aligns with corridor east wall line x457-462",
+              "REVISED id (was P_stub463): profile_003 (band y710-747) shows faces x457 and x461-462 over the full length, centerline x459.5, same wall line as corridor east wall; prior draft placed it at x463 (faces 461-465) ~4px east of the drawn stroke",
+              "REVISED east endpoint to x459.5 to meet P_stub_hall (was x463); profile_002/003 show stub faces x457-462; divider y~750-754 from corridor west wall east to stub, no openings; draft_001 support [402,457],[461,462]"
+            ],
+            "x": [
+              4.146006,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.951857
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_main",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.495868,
+          20.0
+        ],
+        "p2": [
+          2.121212,
+          20.0
+        ],
+        "source_refs": [
+          "1f_view.png top-wall cyan jamb runs x267-269/295-298/324-326: double entrance door 1600 with centre mullion, swings inward (arcs); height assumed"
+        ],
+        "space_id": "lobby_living",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_b2",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.517906,
+          0.0
+        ],
+        "p2": [
+          5.426997,
+          0.0
+        ],
+        "source_refs": [
+          "bottom-wall cyan jambs x413/445, ~900 chain segment, swing arc inward into SE workroom"
+        ],
+        "space_id": "workroom_se",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Rdouble",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.317744
+        ],
+        "p2": [
+          10.0,
+          5.694635
+        ],
+        "source_refs": [
+          "right wall cyan jambs y612-614/640-643/669-671: double door 1600 with mullion, swing arcs outside (crop[585,575,655,665]s6); host is now the open hall (former zoneA face)"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D1_corridor_head",
+        "kind": "door",
+        "other_space_id": "lobby_living",
+        "p1": [
+          4.242424,
+          15.942228
+        ],
+        "p2": [
+          5.702479,
+          15.942228
+        ],
+        "source_refs": [
+          "crop[385,275,475,345]s6: double door in lobby south wall, opening spans corridor width, arcs swing north into lobby; draft_001 wall-ink gap was x408-451, cyan jamb evidence kept 403-456 (minor uncertainty)"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D2_office1",
+        "kind": "door",
+        "other_space_id": "office1",
+        "p1": [
+          4.146006,
+          14.277854
+        ],
+        "p2": [
+          4.146006,
+          13.370014
+        ],
+        "source_refs": [
+          "corridor west wall cyan jambs y359/392; leaf arc into office1"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D3_office2",
+        "kind": "door",
+        "other_space_id": "office2",
+        "p1": [
+          4.146006,
+          12.654746
+        ],
+        "p2": [
+          4.146006,
+          11.746905
+        ],
+        "source_refs": [
+          "corridor west wall cyan jambs y418/451"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D4_ne_room",
+        "kind": "door",
+        "other_space_id": "ne_room",
+        "p1": [
+          5.798898,
+          15.268226
+        ],
+        "p2": [
+          5.798898,
+          14.415406
+        ],
+        "source_refs": [
+          "corridor east wall cyan jambs y323/354; leaf into NE room"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D5_dining",
+        "kind": "door",
+        "other_space_id": "dining",
+        "p1": [
+          5.798898,
+          13.645117
+        ],
+        "p2": [
+          5.798898,
+          12.737276
+        ],
+        "source_refs": [
+          "corridor east wall cyan jambs y382/415; leaf into dining"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D6_conference",
+        "kind": "door",
+        "other_space_id": "corridor",
+        "p1": [
+          4.146006,
+          7.702889
+        ],
+        "p2": [
+          4.146006,
+          6.795048
+        ],
+        "source_refs": [
+          "corridor west wall cyan jambs y598/631; leaf arc into conference room"
+        ],
+        "space_id": "conference",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D7_zoneA_C",
+        "kind": "door",
+        "other_space_id": "workroom_se",
+        "p1": [
+          8.567493,
+          4.951857
+        ],
+        "p2": [
+          9.421488,
+          4.951857
+        ],
+        "source_refs": [
+          "profile_002: aperture in y698 wall x560-591, leaf swings south into SE workroom; west host is now the open hall (former zoneA face merged with corridor); ID kept stable, hosts changed by observed wall removal"
+        ],
+        "space_id": "corridor",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_top",
+        "kind": "window",
+        "p1": [
+          4.683196,
+          20.0
+        ],
+        "p2": [
+          9.449036,
+          20.0
+        ],
+        "room": "lobby_living",
+        "source_refs": [
+          "1f_view.png top-wall cyan band x431-592+jamb 417-428; matches top chain 4800 segment x419-593; sill/head assumed"
+        ],
+        "span": [
+          4.683196,
+          9.449036
+        ],
+        "width_m": 4.76584,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_b1",
+        "kind": "window",
+        "p1": [
+          0.495868,
+          0.0
+        ],
+        "p2": [
+          2.011019,
+          0.0
+        ],
+        "room": "conference",
+        "source_refs": [
+          "bottom-wall cyan run x267-322 (~1500 bottom chain segment)"
+        ],
+        "span": [
+          0.495868,
+          2.011019
+        ],
+        "width_m": 1.515151,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_b3",
+        "kind": "window",
+        "p1": [
+          7.933884,
+          0.0
+        ],
+        "p2": [
+          9.449036,
+          0.0
+        ],
+        "room": "workroom_se",
+        "source_refs": [
+          "bottom-wall cyan run x537-592 (~1500)"
+        ],
+        "span": [
+          7.933884,
+          9.449036
+        ],
+        "width_m": 1.515152,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_L1",
+        "kind": "window",
+        "p1": [
+          0.0,
+          19.477304
+        ],
+        "p2": [
+          0.0,
+          17.936726
+        ],
+        "room": "lobby_living",
+        "source_refs": [
+          "left wall cyan y170-226; left chain 1500"
+        ],
+        "span": [
+          17.936726,
+          19.477304
+        ],
+        "width_m": 1.540578,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_L2",
+        "kind": "window",
+        "p1": [
+          0.0,
+          15.598349
+        ],
+        "p2": [
+          0.0,
+          14.360385
+        ],
+        "room": "office1",
+        "source_refs": [
+          "left wall cyan y311-356; chain 1200"
+        ],
+        "span": [
+          14.360385,
+          15.598349
+        ],
+        "width_m": 1.237964,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_L3",
+        "kind": "window",
+        "p1": [
+          0.0,
+          12.654746
+        ],
+        "p2": [
+          0.0,
+          11.141678
+        ],
+        "room": "office2",
+        "source_refs": [
+          "left wall cyan y418-473; chain 1500"
+        ],
+        "span": [
+          11.141678,
+          12.654746
+        ],
+        "width_m": 1.513068,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_L4",
+        "kind": "window",
+        "p1": [
+          0.0,
+          9.931224
+        ],
+        "p2": [
+          0.0,
+          8.418157
+        ],
+        "room": "office2",
+        "source_refs": [
+          "left wall cyan y517-572; chain 1500"
+        ],
+        "span": [
+          8.418157,
+          9.931224
+        ],
+        "width_m": 1.513067,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W_Lband",
+        "kind": "window",
+        "p1": [
+          0.0,
+          5.337001
+        ],
+        "p2": [
+          0.0,
+          0.550206
+        ],
+        "room": "conference",
+        "source_refs": [
+          "left wall continuous cyan band y684-858; chain 4800; possibly mullioned group (see unresolved)"
+        ],
+        "span": [
+          0.550206,
+          5.337001
+        ],
+        "width_m": 4.786795,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_R1",
+        "kind": "window",
+        "p1": [
+          10.0,
+          19.477304
+        ],
+        "p2": [
+          10.0,
+          17.964237
+        ],
+        "room": "lobby_living",
+        "source_refs": [
+          "right wall cyan y170-225; chain 1500"
+        ],
+        "span": [
+          17.964237,
+          19.477304
+        ],
+        "width_m": 1.513067,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_R2",
+        "kind": "window",
+        "p1": [
+          10.0,
+          15.598349
+        ],
+        "p2": [
+          10.0,
+          14.360385
+        ],
+        "room": "ne_room",
+        "source_refs": [
+          "right wall cyan y311-356; chain 1200"
+        ],
+        "span": [
+          14.360385,
+          15.598349
+        ],
+        "width_m": 1.237964,
+        "z": [
+          0.9,
+          2.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_Rband",
+        "kind": "window",
+        "p1": [
+          10.0,
+          13.645117
+        ],
+        "p2": [
+          10.0,
+          8.858322
+        ],
+        "room": "dining",
+        "source_refs": [
+          "right wall cyan y382-556; chain 4800; possibly mullioned group (see unresolved)"
+        ],
+        "span": [
+          8.858322,
+          13.645117
+        ],
+        "width_m": 4.786795,
+        "z": [
+          0.9,
+          2.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "RESOLVED THIS REVISION (was prior unresolved note): the prior draft claimed the SE suite had no corridor door and a dead-end corridor. Observed evidence shows the former zoneA area is an open ~3.0m-wide alcove of the circulation hall (no wall y~588-695 at x459.5; profile_001), so the hall connects to the SE workroom via D7 and to the exterior via D_Rdouble; corridor is not dead-ended by a missing door.",
+    "W_top, W_Rband, W_Lband are ~4.8m continuous cyan bands; mullion subdivision into multiple windows not separable at this resolution (inherited).",
+    "Right-hand dimension aggregate labels (4060/1940/5940/3120/4940) not individually re-verified; fine-chain ticks were verified instead (inherited).",
+    "D4 leaf/arc geometry read as single door; arcs could indicate double-acting leaf. Room roles inferred from furniture only (inherited).",
+    "D1_corridor_head span: cyan-jamb evidence x403-456 vs wall-ink gap x408-451 (~0.28m difference); cyan evidence kept, unresolved.",
+    "Whether the open hall alcove (former zoneA) had a intended removable partition cannot be determined from this plan; modelled as drawn (open).",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

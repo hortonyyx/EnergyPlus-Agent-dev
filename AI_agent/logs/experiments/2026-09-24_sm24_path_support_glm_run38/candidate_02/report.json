@@ -1,0 +1,83 @@
+{
+  "agent_assumptions": [
+    "No elevation or other floors supplied: z_floor=0 and ceiling_height=3.0m are explicit assumptions (inherited, unchanged).",
+    "Door heights 0-2.1m and window sill/head 0.9-2.4m assumed (standard, not observed in plan; inherited, unchanged).",
+    "Wall thickness 240mm per plan labels; interior partitions represented at measured stroke centerlines (inherited, unchanged).",
+    "Opening widths from measured cyan jamb runs; swing directions from arcs, door leaf states unknown (inherited, unchanged).",
+    "ZoneA seed removed in this revision because the drawn evidence shows no wall between corridor and the former zoneA face; the combined open space keeps the corridor seed and circulation role.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "8f65ce4dbd28805c0bb65d4a1506ac5883d7a2054aa0b0bb8a3cce783a22fde1",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "a80df86158d30821c999af136b19066e83cdabc07ec031659acbfcb0e575185a",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_002/compilation.json",
+      "compilation_sha256": "f09e1ba3c321cc2ab98a5320e302e76c92d017be59acc2727e74db9f5d149d99",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_002/draft_view.png",
+        "image_sha256": "13a8b802ff01755336f027f43a383c5e9cf8476ea58e0bd6a157f3173c1dea74",
+        "metadata_file": "plan_drafts/draft_002/draft_view.json",
+        "metadata_sha256": "ba204146eeef412de68b1fa0154f735eea5490fab7d2214cb8b97cd60891b151",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_002/plan.json",
+      "plan_sha256": "7693a76237774814ceaf52d1c76fa3ad24e65022447a922fa0178d15df7e0893"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "391f47186c7d5e86c6ca18323883ea64bde8eaa0f7b93a8c62706f2ffded35d1",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "RESOLVED THIS REVISION (was prior unresolved note): the prior draft claimed the SE suite had no corridor door and a dead-end corridor. Observed evidence shows the former zoneA area is an open ~3.0m-wide alcove of the circulation hall (no wall y~588-695 at x459.5; profile_001), so the hall connects to the SE workroom via D7 and to the exterior via D_Rdouble; corridor is not dead-ended by a missing door.",
+    "W_top, W_Rband, W_Lband are ~4.8m continuous cyan bands; mullion subdivision into multiple windows not separable at this resolution (inherited).",
+    "Right-hand dimension aggregate labels (4060/1940/5940/3120/4940) not individually re-verified; fine-chain ticks were verified instead (inherited).",
+    "D4 leaf/arc geometry read as single door; arcs could indicate double-acting leaf. Room roles inferred from furniture only (inherited).",
+    "D1_corridor_head span: cyan-jamb evidence x403-456 vs wall-ink gap x408-451 (~0.28m difference); cyan evidence kept, unresolved.",
+    "Whether the open hall alcove (former zoneA) had a intended removable partition cannot be determined from this plan; modelled as drawn (open).",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1500,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 364.37,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 355844,
+    "stop_reason": "end_turn",
+    "session_id": "eda7c535-3b0e-4a8b-a93b-2a35d77bdf19",
+    "total_cost_usd": 0.9322623999999999,
+    "usage": {
+      "input_tokens": 112052,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 585472,
+      "output_tokens": 18348,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 112052,
+        "outputTokens": 18348,
+        "cacheReadInputTokens": 585472,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.9322623999999999,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 14,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Done. **Selected candidate: candidate_02** (viewer: `candidate_02/viewer.html`), built from revised pixel paths of the recovered unverified declaration.\n\n## What I did\n1. **Reproduced the prior declaration unchanged** → candidate_01 (9 spaces) compiled successfully, so the failure to review was not a compile error but content fidelity.\n2. **Ran `view_plan_wall_support`** on its draft with the wall gray (128,128,128, tol 70, r=6) taken from the original. One consequential gap: **G01 — 108 unsupported samples on `P_corridor_east` y=588–695** (corridor↔zoneA). All other gaps were 1–3 px junction/endpoint ticks.\n3. **Resolved G01 with original evidence**: a 4× crop and a generous raw ink profile (tol 100, band y595–690) found **no ink at all between x430–600** — only the east exterior wall at x603/611. The corridor east wall genuinely stops at the y585 T-junction; the former \"zoneA\" is an **open ~3.0 m alcove of the circulation hall** (no door leaf drawn).\n\n## Changed (with evidence)\n- **`P_corridor_east` shortened** from y698 → **y585**. The hall+alcove is now one connected T-shaped space (8 spaces, not 9); the zoneA seed was removed to avoid two seeds in one face. `D7_zoneA_C` and `D_Rdouble` now host on the hall. This also **corrects the prior draft's \"unresolved\" claim**: the SE suite is *not* disconnected — it reaches the corridor through the open alcove.\n- **Stub wall realigned** x463 → **x459.5** (`P_stub463` → `P_stub_hall`): profile_003 shows faces x457/461–462 over its full length, i.e. the same wall line as the corridor east wall; `P_y752` east endpoint moved to meet it.\n- Rebuilt deterministically (draft_002 → candidate_02); re-ran wall support: G01 cleared, all partitions supported, only 1–2 px junction ticks remain. Source validation passes; overlay `image_overlays/overlay_002.png` matches the original layout.\n\n## Preserved (verified reliable, unchanged)\n- Inherited calibration (10 m × 20 m over outer faces px249–612 / px878–151), footprint, z_floor=0, ceiling 3.0 m, wall thickness 240 mm, all 21 openings and their spans/hosts, all other partitions, the other 7 space seeds/roles, door/window height assumptions, and the inherited unresolved items (4.8 m window bands possibly mullioned; unverified aggregate chain labels; D4 leaf ambiguity).\n\n## Unresolved / limitations\n- All 21 opening heights remain **unchecked assumptions** (no elevation supplied; height_coverage = no_image_evidence_linked).\n- D1_corridor_head span: cyan-jamb evidence (x403–456) vs wall-ink gap (x408–451), ~0.28 m difference — cyan evidence kept.\n- The pixel-to-world calibration is caller-supplied and was **not independently verified**; drawing fidelity is not_evaluated (geometry checks prove internal consistency only).\n- Whether the open alcove had an intended removable partition cannot be determined from this plan; modelled as drawn (open).\n- Unexamined: right-side aggregate dimension labels; window mullion subdivision.",
+    "ttft_ms": 5169,
+    "type": "result",
+    "duration_ms": 361463,
+    "uuid": "7a4fd833-e292-472e-b075-f24914c99ebe",
+    "ttft_stream_ms": 5054,
+    "time_to_request_ms": 64,
+    "first_content_frame_ms": 5054,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -115,6 +115,15 @@ If compilation fails, its draft overlay shows the submitted pixel paths and
 apertures, not a constructed or verified BIM. Compare the numbered paths with
 the original before revising them. Closing a polygon is not evidence for a wall:
 check both adjoining spatial extents and any continuation through a door aperture.
+After submitting a pixel plan, view_plan_wall_support(draft_id, rgb, ...) can
+measure support along EVERY submitted partition, including failed drafts. Choose
+wall colour and a narrow cross-path radius from the original. It separates
+declared apertures from remaining unsupported intervals and shows proposed adjacent
+spaces where compiled. Compare its CLEAN original panel with the marked panel;
+overlay strokes can conceal empty background. Check long unsupported spans in
+context before treating a locally observed line as a whole continuous wall.
+Neither matching colour nor a gap is a semantic verdict. Declared doors are still
+unverified: never invent an aperture or delete a wall merely to clear this report.
 If a seed exists, inspect_candidate('seed') reads its proposal and checks;
 include_geometry=False retrieves notes/frame/floor summary without a large
 expanded geometry. Use floor_id to inspect one floor or read_candidate_items
