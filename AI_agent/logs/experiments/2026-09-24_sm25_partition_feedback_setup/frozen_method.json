@@ -1,0 +1,16 @@
+{
+  "scope": "Reconstruct only the supplied original floor plan as a lightweight source BIM.\nAn unverified saved pixel declaration from an earlier attempt is supplied for recovery,\nnot as an answer. Independently inspect the original and saved declaration for consequential\npartition, connectivity and aperture coverage errors. Use inspect_plan_draft and\nrevise_plan_bim for local changes so unrelated declarations are preserved automatically;\nget_bim_reference('plan_partition') documents the operations. Resolve errors from the\noriginal, including full paths and spatial context, without deleting other real walls.\nIndependently check opening coverage against the original, and inspect the final actual\nsource plan and original overlay. Preserve reliable existing evidence and record uncertain\nheights/reference planes as assumptions. Use the available quality budget and report\nremaining material discrepancies honestly. No other floors or elevations are requested.\nDeveloper review feedback from the original and the saved source: the vertical corridor\nand the lower horizontal wing corridor are ONE continuous physical space, but the current\nsource keeps them as two spaces joined by PASS_corr_s. This is a material partition error,\nnot a missing-connectivity problem. Recheck that location in the original, then correct the\nactual separating partition geometry and the now-unnecessary passage using local edits.\nPreserve the real walls on either side of the continuous route and all unrelated rooms and\nexisting doors/windows. Determine wall extents from the original; no corrected coordinates\nare supplied. Inspect the final source to verify that the two corridor portions now belong\nto the same source space. Keep successful prior corrections and explicit assumptions.",
+  "mode": "saved_draft_recovery_not_cold_start",
+  "parent_plan": "AI_agent/logs/experiments/2026-09-24_sm25_continuous_space_glm_run44/plan_drafts/draft_003/plan.json",
+  "parent_plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830",
+  "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "0425faf57bd90cde71bf01daf067a539da3944350483ed8d048be80d23b280a7",
+    "scripts/tool_scripts/bim_agent_guidance.py": "1d9c2cc04cef584baa45f009daffef76c553941dbc018445c4ac1adde0a15b6a",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "src/agent/geometry/plan_revision.py": "9ec61ac7afbd8216da1ab218ec2366fb2063c4796e176824c934e43c1660d40d",
+    "src/agent/geometry/plan_partition.py": "6dc64a1301b9f050b8f3cc30849a27aa88159bc6768dfbf65ba5782651d689d3"
+  },
+  "developer_participation": "Selected run44 draft_003 (same geometry as final candidate_03; notes-only cleanup not imported). Explicit original-image feedback identifies the corridor split and PASS_corr_s; model must derive the geometric edits. This is developer-targeted recovery. No correct coordinates, counts, GT, annotated reference or developer-repaired source supplied.",
+  "evaluation": "Reuse existing frozen original reference and GT F1 after generation."
+}

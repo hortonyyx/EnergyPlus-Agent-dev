@@ -1,0 +1,91 @@
+{
+  "agent_assumptions": [
+    "No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.",
+    "All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.",
+    "Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.",
+    "Door operating states unknown; swing arcs give hinge side only.",
+    "Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 94,
+    "connections": 16,
+    "openings": 31,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "b18b7a84bb15486d88f5e1a2b84e77fc67301f18ae2635be6ea9b0d322b9234a",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "a3a63b4c2799708ece860a7567b6e57fd69c6a25a86f3d4ea81cc3e8492fb3a1",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "d2a9c221407360307cff857074bb542d0ad7e0534babe88c320ec867a00d5dcb",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "00b60e1b6e0d83f2566c210e901a5b5dfa1ecafb271c82f703be9a1ed8230de8",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "253bd7be305ea7efaf139c30bacf10e9a0131c5abdfefd899eeee6791ad1e0fc",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "46a2a913643a7f1900eb8e8c47bdf3e25b33ee3cdd18ba7b9f458b32aafbef2d",
+      "revision": {
+        "file": "plan_revisions/revision_002.json",
+        "parent_draft_id": "resume",
+        "parent_plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830",
+        "sha256": "0e2c714b594297e41baf55ffecdb409f9fbc3c84c9385423f41bd4ae74376716"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "8946775ff611cbe41def52f1a0aaa7d0f489d046a4ec2eda2f5ba43aaddd43c0",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Corridor junction corrected from saved unverified declaration: profile_001 on 1f_view.png shows the y957/969 wall ink only at x527-687 and x798-952 (plus end caps of the vertical corridor side walls at x692/698 and x789/796); the gap x~695-790 is a real opening with no separating wall, so P_corr_north_w was split into west (x513-695) and east (x792-975) portions and the open passage PASS_corr_s removed; the vertical corridor and bottom-wing corridor are one continuous source space.",
+    "Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.",
+    "Interior partition faces measured from line pairs; exact thicknesses below drawing line width are uncertain.",
+    "Pixel-to-metre calibration cross-checked against the drawing's dimension chains: top (5000/4940/1120/3940/10000), left (3940/2060/4000/4120/1940/3940), bottom (5000/3640/4000/720/4000/3580/4060) and east office chain (7x2000) all agree with the anchor positions within ~2-3 px.",
+    "Recess north edge (ring x282-513) is declared on the wall centreline y582, not the outer face y588, so ring and partition share one representative plane; that footprint edge is ~0.13 m shallow, an accepted regularization.",
+    "No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.",
+    "East office strip dividers are drawn as ~5 px line pairs; declared y values may be ~2 px (0.05 m) from true centrelines.",
+    "Some door jamb marks are faint below the cyan profile threshold (e.g. D_M4 north jamb ~y790, D_O5 south jamb ~y755); doors were kept at their observed pair positions consistent with the uniform door rhythm.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

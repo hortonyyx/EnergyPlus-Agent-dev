@@ -5,6 +5,8 @@
 
 ## 产品运行
 
+**09-24 连续空间两次验证：** run44/45均GLM订阅`glm-5.3-flash`、medium，分别797.71/531.59秒，均1次主调用，无子模型或回退；CLI估算分别$1.6945456/$1.304232（非账单）。通用复核与开发明确反馈恢复分开报告，见[本程记录](../logs/worklog/2026-09-24_reconstruction_continuous_space.md)。
+
 **09-24 sm25追加实跑：** run41/42/43主调用继续GLM订阅`glm-5.3-flash`；run43另实际调用一次同GLM的只读局部门弧复核，240.81秒超时、无完整结果，主模型继续。run43主调用894.39秒，CLI部分估算$1.4622016，子费用回执不完整、总额未知；全部调用结束，无Claude/DeepSeek/付费API回退。详见[run43](../logs/experiments/2026-09-24_sm25_local_plan_glm_run43/README.md)。
 
 **09-24 当前实际组合：** 还原实验run34–40的主调用均为GLM订阅`glm-5.3-flash`（medium），没有局部子模型调用或Claude/DeepSeek回退；run38–40实际回执也已核对。现有BIM实验入口的`--provider glm`将主任务`sonnet`和局部读图`haiku`两个角色别名都映射到同一`glm-5.3-flash`，不是实际Sonnet＋Haiku混用。几何量测/变换/围合/宿主/显示由确定性代码承担。开发助手的实现与生成后的独立评价另计，不充当生产侧隐藏高档模型；具体实跑用量仍以各run回执为准。

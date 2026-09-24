@@ -1,0 +1,201 @@
+{
+  "mode": "saved_draft_recovery_not_cold_start",
+  "candidate": "candidate_01",
+  "actual_model": "glm-5.3-flash",
+  "elapsed_seconds": 531.59,
+  "estimated_main_cost_usd_not_bill": 1.304232,
+  "subscription_invocations": 1,
+  "cost_receipts_complete": true,
+  "detail_runs": [],
+  "frozen_input_runtime_verified": true,
+  "source_display_replay_exact": true,
+  "selected_geometry_unchanged_from_plan_origin": true,
+  "revisions": [
+    {
+      "draft": "draft_001",
+      "revision": {
+        "file": "plan_revisions/revision_002.json",
+        "sha256": "0e2c714b594297e41baf55ffecdb409f9fbc3c84c9385423f41bd4ae74376716",
+        "parent_draft_id": "resume",
+        "parent_plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830"
+      },
+      "unchanged_counts": {
+        "openings": 31,
+        "space_seeds": 14,
+        "partitions": 16
+      },
+      "targets": [
+        {
+          "field": "partitions",
+          "id": "P_corr_north_w"
+        },
+        {
+          "field": "partitions",
+          "id": "P_corr_north_e"
+        },
+        {
+          "field": "openings",
+          "id": "PASS_corr_s"
+        },
+        {
+          "field": "unresolved",
+          "id": null
+        }
+      ]
+    }
+  ],
+  "declaration_delta_from_resume": {
+    "partitions": {
+      "added": [
+        "P_corr_north_e"
+      ],
+      "removed": [],
+      "changed": [
+        "P_corr_north_w"
+      ],
+      "unchanged": [
+        "P_AB",
+        "P_RB_east",
+        "P_corr_south",
+        "P_meet_12",
+        "P_meet_east",
+        "P_meet_top",
+        "P_mid_34",
+        "P_mid_east",
+        "P_rooms_south",
+        "P_strip_1",
+        "P_strip_2",
+        "P_strip_3",
+        "P_strip_4",
+        "P_strip_5",
+        "P_strip_6",
+        "P_strip_west"
+      ]
+    },
+    "openings": {
+      "added": [],
+      "removed": [
+        "PASS_corr_s"
+      ],
+      "changed": [],
+      "unchanged": [
+        "D_A",
+        "D_B",
+        "D_C1",
+        "D_C2",
+        "D_M3",
+        "D_M4",
+        "D_O1",
+        "D_O2",
+        "D_O3",
+        "D_O4",
+        "D_O5",
+        "D_O6",
+        "D_O7",
+        "D_lobby_west",
+        "D_main_entr",
+        "D_west_entr",
+        "W_E1",
+        "W_E2",
+        "W_E3",
+        "W_E4",
+        "W_E5",
+        "W_E6",
+        "W_E7",
+        "W_MW1",
+        "W_MW2",
+        "W_N1",
+        "W_S1",
+        "W_S2",
+        "W_top1",
+        "W_top2",
+        "W_top3"
+      ]
+    },
+    "space_seeds": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "unchanged": [
+        "corridor_open",
+        "meeting_1",
+        "meeting_2",
+        "mid_office_N",
+        "mid_office_S",
+        "office_1",
+        "office_2",
+        "office_3",
+        "office_4",
+        "office_5",
+        "office_6",
+        "office_7",
+        "room_A",
+        "room_B"
+      ]
+    }
+  },
+  "counts": {
+    "spaces": 14,
+    "openings": 31,
+    "connections": 16,
+    "unsupported": 0,
+    "unbuilt_openings": 0
+  },
+  "opening_kinds": {
+    "door": 16,
+    "window": 15
+  },
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "view_image": 4,
+    "view_pixel_profile": 9,
+    "revise_plan_bim": 2,
+    "build_plan_bim": 1,
+    "view_plan_wall_support": 1,
+    "pixel_profile": 3,
+    "finish_bim": 1
+  },
+  "transported_image_count": 16,
+  "model_tool_calls": {
+    "mcp__bim__inputs": 1,
+    "mcp__bim__get_bim_reference": 1,
+    "mcp__bim__view_image": 6,
+    "mcp__bim__inspect_plan_draft": 1,
+    "mcp__bim__view_pixel_profile": 9,
+    "mcp__bim__revise_plan_bim": 2,
+    "mcp__bim__view_plan_wall_support": 1,
+    "mcp__bim__pixel_profile": 4,
+    "mcp__bim__finish_bim": 1
+  },
+  "exact_saved_feedback_images": 12,
+  "comparisons": {
+    "original": {
+      "partition_status": "severe",
+      "matched_spaces": 14,
+      "positions_matched": 31,
+      "hosts_matched": 31,
+      "door_connections_matched": 16,
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    },
+    "declared_frame": {
+      "partition_status": "severe",
+      "matched_spaces": 14,
+      "positions_matched": 31,
+      "hosts_matched": 31,
+      "door_connections_matched": 16,
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    }
+  },
+  "gt_status": {
+    "raw_3d": "severe",
+    "plan_only_8cm": "severe"
+  },
+  "limitations": [
+    "Explicit old-draft recovery, not autonomous cold start or multi-floor validation.",
+    "Existing developer original reference reused only after generation. GT F1 evaluation only.",
+    "No browser WebGL interaction test; height assumptions and reference-plane residuals remain separately reportable."
+  ]
+}
