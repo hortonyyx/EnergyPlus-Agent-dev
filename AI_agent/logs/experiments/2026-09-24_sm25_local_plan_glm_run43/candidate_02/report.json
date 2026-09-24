@@ -1,0 +1,88 @@
+{
+  "agent_assumptions": [
+    "No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.",
+    "All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.",
+    "Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.",
+    "Door operating states unknown; swing arcs give hinge side only.",
+    "Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 98,
+    "connections": 17,
+    "openings": 32,
+    "spaces": 15,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "c522162b5e1ef7355c4528390d48285caac3f3854f0b0060a6f7d4c0da6411b7",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "7444f6fc2735adf8c69990fcb36c0ddda90e7d2c05282bf003002f5b2b0ddf7b",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "7b6de100f2ec0eeb38de39406531bd40da7594149a67abcdd80877a433e96247",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "f92a32ca0af7a22b1a93f1a6f7aaadafe6b8a3f8546265a2ad237160078cca4f",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "b0e915ba65e05f2846b891dbb8c36e0676c0485b5c4dfbfa58d452363e16e195",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "38beb082411576b05ce026e574e22d4896e392c057e2e4e40ae4b9b116d9f555",
+      "revision": {
+        "file": "plan_revisions/revision_004.json",
+        "parent_draft_id": "draft_001",
+        "parent_plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65",
+        "sha256": "4a28ffdb199d5b01dfb45da2fdf7ce35a4a244597e2ee1eeb39c82aa27d53fdc"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "c8d1bed230ba67597bd06239402038f3c87884defbc74d20c017a8143a15e86a",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Open passage PASS_corr_s at y957 x697-789 declared explicitly after wall-support and pixel review confirmed the ink gap x695-790; the vertical corridor and bottom-wing corridor are one continuous open space.",
+    "Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.",
+    "Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.",
+    "Caller-supplied pixel-to-metre calibration was reused; it is consistent with the 25000x20000 mm overall dimension annotations but was not independently re-derived.",
+    "No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 894.39,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 640460,
+    "stop_reason": "end_turn",
+    "session_id": "ee1cf3e5-e4eb-4b27-8086-24bbd3c55863",
+    "total_cost_usd": 1.4622016000000002,
+    "usage": {
+      "input_tokens": 149982,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1159168,
+      "output_tokens": 31522,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 149982,
+        "outputTokens": 31522,
+        "cacheReadInputTokens": 1159168,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 1.4622016000000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 20,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "**Delivered: candidate_02** (viewer: `candidate_02/viewer.html`) — a lightweight single-floor source BIM of the supplied plan, built from the recovered pixel declaration after independent verification and two evidence-backed corrections.\n\n## What I did\n1. **Reproduced the recovery declaration unchanged** → compiled as candidate_01 (15 spaces, 30 openings), giving a baseline for diffing.\n2. **Independently verified partitions** with `view_plan_wall_support` over all 17 declared partitions: every unsupported span was either a declared door span (exact match) or a 3–14 px wall-junction overlap at segment ends — no phantom or missing walls.\n3. **Independently checked opening coverage**: a colour-connected overview of all cyan aperture ink (27 regions ≥80 px) mapped 1:1 onto the declared windows/doors; crops of the east-lobby south wall and west/east facades found no further marks.\n\n## Errors found in the saved declaration and fixed (draft_003 → candidate_02)\n- **Missing door**: the original has a clear cyan door (leaf + swing arc) in the bottom-wing **west exterior wall**, jambs measured y1000–1035 (grey wall ink runs y955–999 / y1036–1064). Added as `D_lobby_west` (≈0.78 m, west entrance to the bottom-wing lobby); it was absent from the declaration.\n- **Broken corridor connectivity**: the declared wall `P_corr_north_w` spanned x513–975 with **no aperture**, but the original has a verified ink gap at x695–790 where the vertical corridor continues into the bottom-wing corridor. As declared, the two corridor halves were sealed from each other in the compiled BIM. Added explicit open passage `PASS_corr_s` (x697–789, y957) — connections rose 15 → 17 and all spaces are now reachable.\n- Updated the wall's evidence refs and the unresolved notes accordingly; all other 30 openings, 17 partitions and 14 seeds were preserved untouched via local revision.\n\n## Result\n15 spaces (2 north offices, 7-office east strip, 2 middle offices, 2 meeting rooms, continuous corridor/lobby), 32 openings (16 doors, 1 passage, 15 windows), 17 connections, source self-consistency pass. Final source plan and original overlay were inspected and align with the drawing.\n\n## Assumptions / remaining limitations (honest)\n- **All opening heights are assumptions** (doors 2.1 m, windows 0.9/2.7 m, ceiling 3.0 m, z=0): no elevation or other floor was supplied; height coverage reports all 32 openings unchecked/image-unlinked.\n- The **pixel-to-metre calibration was reused** from the declaration; it is consistent with the 25000×20000 mm dimension annotations but was not independently re-derived.\n- `W_N1` is modelled as one continuous ~8 m glazed band; internal mullions unresolved. Interior partition thicknesses (~120 mm) are below drawing line width.\n- One `review_detail` cross-check timed out with no answer; opening coverage rests on my pixel-region/profile evidence instead.\n- The corridor/lobby (`F1_S13`) role is unseeded (derived ID), and door swing states remain unknown. No other floors or elevations were in scope.",
+    "ttft_ms": 5078,
+    "type": "result",
+    "duration_ms": 891005,
+    "uuid": "9b835e01-b514-4a42-b91d-8dd2ee4d149e",
+    "ttft_stream_ms": 4804,
+    "time_to_request_ms": 54,
+    "first_content_frame_ms": 4804,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

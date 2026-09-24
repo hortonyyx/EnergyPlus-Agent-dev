@@ -1,0 +1,81 @@
+{
+  "agent_assumptions": [
+    "No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.",
+    "All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.",
+    "Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.",
+    "Door operating states unknown; swing arcs give hinge side only.",
+    "Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 98,
+    "connections": 15,
+    "openings": 30,
+    "spaces": 15,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "fb6bddef9cd161979dda1d7b883f1e0709713e0ef79c05a9a44687da20104a43",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "7444f6fc2735adf8c69990fcb36c0ddda90e7d2c05282bf003002f5b2b0ddf7b",
+    "mode": "saved_plan_recovery",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "5d2b4779175a09db90b461cf35437433db4f23b11bcc68b736b59a1e4bc058a1",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "8dfc7891ef5f8d9cf90e32c177b56d3a58473d56788a5126ab6a9ffaa8c6acc1",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "3bff8dd364c0d348d1d91fd863237cc37f5f14f6092b2d2029a937c8b2d6fceb",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "bd574129cfa432a9ee4849471b6fdd36cf4d4ac0de9de64c74dd34c28a231c6c",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "P_corr_north_w declared on its measured north face line y957 (faces 957/969) so it closes at the strip ring corner; the corridor polygon therefore includes that 12px wall band on its north side.",
+    "The original shows no ink at x698-790 on this wall where the vertical corridor continues south into the bottom-wing corridor; the corridor is one continuous open space, so no aperture object was invented. Check in wall-support review.",
+    "Cyan window band W_N1 drawn as one continuous ~8 m glazed band; any mullions within it were not resolved.",
+    "Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

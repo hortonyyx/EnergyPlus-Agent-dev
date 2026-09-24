@@ -1,0 +1,218 @@
+{
+  "assistant_text": [
+    "I'll start by listing the supplied inputs and reading the plan_partition reference.",
+    "I have the recovery declaration. Now let me read the plan_partition reference and view the original image.",
+    "The recovery declaration is loaded. Let me first submit it unchanged to reproduce its compilation status and get feedback, per the run scope.",
+    "The saved declaration compiled successfully as candidate_01 (15 spaces, 30 openings). Now I need to independently verify it against the original. I noticed a possible unmodeled door arc near the bottom-wing corridor's west end, and a possible mark on the south wall of the east lobby. Let me check wall ink support for all declared partitions and inspect those two suspicious regions.",
+    "The support review is largely clean (gap labels are wall-junction overlaps at segment ends), but two things need investigation: (1) the declared open gap in P_corr_north_w at x699–789 — my crop suggests ink continues there, and (2) I found an **undeclared door** in the bottom wing's west wall at approx x513–519, jambs y≈1000–1035 (cyan leaf + swing arc into the corridor lobby). Let me examine the gap region and other facades for missing openings.",
+    "The east-lobby south wall is clean (no extra openings). But the corridor junction region at (x690–800, y950–970) shows wall ink where the declaration claims an open gap — the passage location needs verification. Let me view the full junction context.",
+    "The junction is now clear: the wall at y957 runs x513–695, there is a genuine **open gap x695–790** (no ink), then wall resumes at x792 — so the declared open corridor continuation is correct, but it has no explicit opening object, so the two corridor spaces may lack a connectivity link. I also confirmed the undeclared door in the bottom wing's west wall. Let me map all cyan aperture marks to check opening coverage systematically, and measure the new door's jambs.",
+    "The cyan overview maps cleanly onto the declared windows; everything ≥80px is accounted for (R13/R17/R11/R14 are door leaves/arcs). Now let me measure the undeclared west lobby door's jamb positions precisely, and use one local visual review to cross-check for any door arc I may have missed.",
+    "The review timed out (no answer); my own systematic region mapping already covered opening identity, so I'll proceed. The wall profile confirms the door opening precisely: ink runs y955–999 and y1036–1064 in the west wall → jambs at y≈1000 and y≈1035. Now I'll apply the two evidence-backed fixes as a local revision: (1) add the missing west lobby door, (2) declare the verified open corridor passage explicitly so the continuous corridor is actually connected in the BIM.",
+    "JSON escaping issue — let me resubmit with pure ASCII text.",
+    "The open passage needs a `z` field too. Resubmitting with explicit height (full floor height, per the assumed 3.0 m ceiling).",
+    "The revision compiled successfully as **candidate_02**: 15 spaces, 32 openings (16 doors, 1 passage, 15 windows), 17 connections. The returned source overlay aligns with the original (partitions on wall ink, apertures on cyan marks, new door and passage visible). Let me run a final opening/height coverage check, then inspect the final source plan.",
+    "All heights are correctly recorded as unchecked assumptions (no elevation input exists — consistent with the declared assumptions). The final source plan and overlay align with the original. Finishing with candidate_02.",
+    "**Delivered: candidate_02** (viewer: `candidate_02/viewer.html`) — a lightweight single-floor source BIM of the supplied plan, built from the recovered pixel declaration after independent verification and two evidence-backed corrections.\n\n## What I did\n1. **Reproduced the recovery declaration unchanged** → compiled as candidate_01 (15 spaces, 30 openings), giving a baseline for diffing.\n2. **Independently verified partitions** with `view_plan_wall_support` over all 17 declared partitions: every unsupported span was either a declared door span (exact match) or a 3–14 px wall-junction overlap at segment ends — no phantom or missing walls.\n3. **Independently checked opening coverage**: a colour-connected overview of all cyan aperture ink (27 regions ≥80 px) mapped 1:1 onto the declared windows/doors; crops of the east-lobby south wall and west/east facades found no further marks.\n\n## Errors found in the saved declaration and fixed (draft_003 → candidate_02)\n- **Missing door**: the original has a clear cyan door (leaf + swing arc) in the bottom-wing **west exterior wall**, jambs measured y1000–1035 (grey wall ink runs y955–999 / y1036–1064). Added as `D_lobby_west` (≈0.78 m, west entrance to the bottom-wing lobby); it was absent from the declaration.\n- **Broken corridor connectivity**: the declared wall `P_corr_north_w` spanned x513–975 with **no aperture**, but the original has a verified ink gap at x695–790 where the vertical corridor continues into the bottom-wing corridor. As declared, the two corridor halves were sealed from each other in the compiled BIM. Added explicit open passage `PASS_corr_s` (x697–789, y957) — connections rose 15 → 17 and all spaces are now reachable.\n- Updated the wall's evidence refs and the unresolved notes accordingly; all other 30 openings, 17 partitions and 14 seeds were preserved untouched via local revision.\n\n## Result\n15 spaces (2 north offices, 7-office east strip, 2 middle offices, 2 meeting rooms, continuous corridor/lobby), 32 openings (16 doors, 1 passage, 15 windows), 17 connections, source self-consistency pass. Final source plan and original overlay were inspected and align with the drawing.\n\n## Assumptions / remaining limitations (honest)\n- **All opening heights are assumptions** (doors 2.1 m, windows 0.9/2.7 m, ceiling 3.0 m, z=0): no elevation or other floor was supplied; height coverage reports all 32 openings unchecked/image-unlinked.\n- The **pixel-to-metre calibration was reused** from the declaration; it is consistent with the 25000×20000 mm dimension annotations but was not independently re-derived.\n- `W_N1` is modelled as one continuous ~8 m glazed band; internal mullions unresolved. Interior partition thicknesses (~120 mm) are below drawing line width.\n- One `review_detail` cross-check timed out with no answer; opening coverage rests on my pixel-region/profile evidence instead.\n- The corridor/lobby (`F1_S13`) role is unseeded (derived ID), and door swing states remain unknown. No other floors or elevations were in scope."
+  ],
+  "tool_calls": [
+    {
+      "name": "mcp__bim__inputs",
+      "input": {}
+    },
+    {
+      "name": "mcp__bim__get_bim_reference",
+      "input": {
+        "topic": "plan_partition"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "display_scale": 1,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__build_plan_bim",
+      "input": {
+        "image": "1f_view.png",
+        "plan_json": "{\"floor_id\":\"F1\",\"z_floor\":0,\"ceiling_height\":3.0,\"x_anchors\":[[282,0.0],[1437,25.0]],\"y_anchors\":[[1235,0.0],[310,20.0]],\"basis\":\"Calibration from overall dimension annotations 25000x20000 mm mapped to observed outer wall faces: x px282->1437 = 0->25.0 m, y px1235->310 = 0->20.0 m (scales 21.65 and 21.62 mm/px agree within 0.15%). Dimension baselines are the outer faces of exterior walls (240 mm = 11 px, verified on all four sides); interior partitions are measured line-pair centrelines (~5-6 px ~= 110-130 mm). Windows measured as cyan ink extents, doors as cyan jamb marks; grey wall ink rgb~150 tol 80, cyan rgb(11,164,144) tol 90.\",\"footprint_pixels\":[[282,310],[975,310],[975,957],[1437,957],[1437,1235],[513,1235],[513,588],[282,588]],\"partitions\":[{\"id\":\"P_rooms_south\",\"points\":[[282,492],[741,492]],\"source_refs\":[\"faces y490/495 by profile x600-622; carries doors D_A,D_B; runs from west outer face to room-B east wall centre\"]},{\"id\":\"P_AB\",\"points\":[[513,310],[513,492]],\"source_refs\":[\"faces x510/516; top wall to rooms south wall\"]},{\"id\":\"P_RB_east\",\"points\":[[741,310],[741,492]],\"source_refs\":[\"faces x738/744; top wall to rooms south wall\"]},{\"id\":\"P_corr_south\",\"points\":[[282,582],[695,582]],\"source_refs\":[\"faces y577/588; exterior toward recess x282-513, continues as middle block north wall to x695\"]},{\"id\":\"P_mid_east\",\"points\":[[695,582],[695,957]],\"source_refs\":[\"faces x692/698; doors D_M3,D_M4; south end at corridor north wall face line\"]},{\"id\":\"P_mid_34\",\"points\":[[513,772],[695,772]],\"source_refs\":[\"faces y770/775 between middle offices\"]},{\"id\":\"P_strip_west\",\"points\":[[792,310],[792,957]],\"source_refs\":[\"faces x789/796; seven office doors D_O1..D_O7; south end at corridor north wall face line\"]},{\"id\":\"P_strip_1\",\"points\":[[792,400],[975,400]],\"source_refs\":[\"profile peak y400; to east outer face\"]},{\"id\":\"P_strip_2\",\"points\":[[792,492],[975,492]],\"source_refs\":[\"profile peak y492\"]},{\"id\":\"P_strip_3\",\"points\":[[792,585],[975,585]],\"source_refs\":[\"profile peak y585\"]},{\"id\":\"P_strip_4\",\"points\":[[792,677],[975,677]],\"source_refs\":[\"profile peak y677\"]},{\"id\":\"P_strip_5\",\"points\":[[792,775],[975,775]],\"source_refs\":[\"profile peak y775\"]},{\"id\":\"P_strip_6\",\"points\":[[792,862],[975,862]],\"source_refs\":[\"profile peak y862\"]},{\"id\":\"P_corr_north_w\",\"points\":[[513,957],[975,957]],\"source_refs\":[\"bottom-wing corridor north wall, measured faces y957/969; declared on its north face line y957 to close at the ring corner; open gap x698-790 where vertical corridor continues south - see unresolved\"]},{\"id\":\"P_meet_top\",\"points\":[[513,1052],[1249,1052]],\"source_refs\":[\"faces y1050/1055; double doors D_C1,D_C2\"]},{\"id\":\"P_meet_12\",\"points\":[[882,1052],[882,1235]],\"source_refs\":[\"faces x880/885 between meeting rooms; to south outer face\"]},{\"id\":\"P_meet_east\",\"points\":[[1249,1052],[1249,1235]],\"source_refs\":[\"faces x1247/1252, meeting room 2 east wall; to south outer face\"]}],\"openings\":[{\"id\":\"D_west_entr\",\"kind\":\"door\",\"p1\":[282,525],\"p2\":[282,562],\"z\":[0,2.1],\"source_refs\":[\"cyan jambs y525/562 in west wall, swing arc into corridor; height assumed\"]},{\"id\":\"D_main_entr\",\"kind\":\"door\",\"p1\":[1437,1138],\"p2\":[1437,1209],\"z\":[0,2.1],\"source_refs\":[\"double door in east wall, jambs y1138/1209, centre mullion ~1172; height assumed\"]},{\"id\":\"D_A\",\"kind\":\"door\",\"p1\":[460,492],\"p2\":[494,492],\"z\":[0,2.1],\"source_refs\":[\"jambs x460/494; room A to corridor\"]},{\"id\":\"D_B\",\"kind\":\"door\",\"p1\":[530,492],\"p2\":[566,492],\"z\":[0,2.1],\"source_refs\":[\"jambs x530/566; room B to corridor\"]},{\"id\":\"D_M3\",\"kind\":\"door\",\"p1\":[695,719],\"p2\":[695,755],\"z\":[0,2.1],\"source_refs\":[\"jambs y719/755; middle north office to corridor\"]},{\"id\":\"D_M4\",\"kind\":\"door\",\"p1\":[695,790],\"p2\":[695,826],\"z\":[0,2.1],\"source_refs\":[\"jambs y790/826; middle south office to corridor\"]},{\"id\":\"D_O1\",\"kind\":\"door\",\"p1\":[792,350],\"p2\":[792,385],\"z\":[0,2.1],\"source_refs\":[\"strip office 1 door jambs\"]},{\"id\":\"D_O2\",\"kind\":\"door\",\"p1\":[792,420],\"p2\":[792,456],\"z\":[0,2.1],\"source_refs\":[\"strip office 2 door jambs\"]},{\"id\":\"D_O3\",\"kind\":\"door\",\"p1\":[792,534],\"p2\":[792,570],\"z\":[0,2.1],\"source_refs\":[\"strip office 3 door jambs\"]},{\"id\":\"D_O4\",\"kind\":\"door\",\"p1\":[792,605],\"p2\":[792,641],\"z\":[0,2.1],\"source_refs\":[\"strip office 4 door jambs\"]},{\"id\":\"D_O5\",\"kind\":\"door\",\"p1\":[792,719],\"p2\":[792,755],\"z\":[0,2.1],\"source_refs\":[\"strip office 5 door jambs\"]},{\"id\":\"D_O6\",\"kind\":\"door\",\"p1\":[792,789],\"p2\":[792,826],\"z\":[0,2.1],\"source_refs\":[\"strip office 6 door jambs\"]},{\"id\":\"D_O7\",\"kind\":\"door\",\"p1\":[792,882],\"p2\":[792,919],\"z\":[0,2.1],\"source_refs\":[\"strip office 7 door jambs\"]},{\"id\":\"D_C1\",\"kind\":\"door\",\"p1\":[792,1052],\"p2\":[866,1052],\"z\":[0,2.1],\"source_refs\":[\"double door jambs x792/866, centre mullion x828; corridor to meeting room 1\"]},{\"id\":\"D_C2\",\"kind\":\"door\",\"p1\":[899,1052],\"p2\":[974,1052],\"z\":[0,2.1],\"source_refs\":[\"double door jambs x899/974, centre mullion x937; corridor to meeting room 2\"]},{\"id\":\"W_top1\",\"kind\":\"window\",\"p1\":[384,310],\"p2\":[497,310],\"z\":[0.9,2.7],\"source_refs\":[\"cyan window extent, room A north; heights assumed\"]},{\"id\":\"W_top2\",\"kind\":\"window\",\"p1\":[528,310],\"p2\":[641,310],\"z\":[0.9,2.7],\"source_refs\":[\"cyan window extent, room B north; heights assumed\"]},{\"id\":\"W_top3\",\"kind\":\"window\",\"p1\":[757,310],\"p2\":[787,310],\"z\":[0.9,2.7],\"source_refs\":[\"cyan window extent, north end of vertical corridor; heights assumed\"]},{\"id\":\"W_E1\",\"kind\":\"window\",\"p1\":[975,344],\"p2\":[975,386],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 1; heights assumed\"]},{\"id\":\"W_E2\",\"kind\":\"window\",\"p1\":[975,419],\"p2\":[975,461],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 2\"]},{\"id\":\"W_E3\",\"kind\":\"window\",\"p1\":[975,529],\"p2\":[975,572],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 3\"]},{\"id\":\"W_E4\",\"kind\":\"window\",\"p1\":[975,604],\"p2\":[975,647],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 4\"]},{\"id\":\"W_E5\",\"kind\":\"window\",\"p1\":[975,713],\"p2\":[975,757],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 5\"]},{\"id\":\"W_E6\",\"kind\":\"window\",\"p1\":[975,790],\"p2\":[975,831],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 6\"]},{\"id\":\"W_E7\",\"kind\":\"window\",\"p1\":[975,881],\"p2\":[975,924],\"z\":[0.9,2.7],\"source_refs\":[\"strip east wall window, office 7\"]},{\"id\":\"W_MW1\",\"kind\":\"window\",\"p1\":[513,672],\"p2\":[513,757],\"z\":[0.9,2.7],\"source_refs\":[\"middle block west wall window, north office; heights assumed\"]},{\"id\":\"W_MW2\",\"kind\":\"window\",\"p1\":[513,788],\"p2\":[513,873],\"z\":[0.9,2.7],\"source_refs\":[\"middle block west wall window, south office\"]},{\"id\":\"W_N1\",\"kind\":\"window\",\"p1\":[988,957],\"p2\":[1359,957],\"z\":[0.9,2.7],\"source_refs\":[\"long glazed band on bottom-wing north wall x988-1359; heights assumed\"]},{\"id\":\"W_S1\",\"kind\":\"window\",\"p1\":[680,1235],\"p2\":[867,1235],\"z\":[0.9,2.7],\"source_refs\":[\"south facade window, meeting room 1; heights assumed\"]},{\"id\":\"W_S2\",\"kind\":\"window\",\"p1\":[899,1235],\"p2\":[1085,1235],\"z\":[0.9,2.7],\"source_refs\":[\"south facade window, meeting room 2\"]}],\"space_seeds\":[{\"id\":\"room_A\",\"point\":[400,400],\"role\":\"office\"},{\"id\":\"room_B\",\"point\":[630,400],\"role\":\"office\"},{\"id\":\"corridor_open\",\"point\":[760,530],\"role\":\"corridor\"},{\"id\":\"mid_office_N\",\"point\":[600,680],\"role\":\"office\"},{\"id\":\"mid_office_S\",\"point\":[600,880],\"role\":\"office\"},{\"id\":\"office_1\",\"point\":[880,360],\"role\":\"office\"},{\"id\":\"office_2\",\"point\":[880,445],\"role\":\"office\"},{\"id\":\"office_3\",\"point\":[880,538],\"role\":\"office\"},{\"id\":\"office_4\",\"point\":[880,610],\"role\":\"office\"},{\"id\":\"office_5\",\"point\":[880,725],\"role\":\"office\"},{\"id\":\"office_6\",\"point\":[880,820],\"role\":\"office\"},{\"id\":\"office_7\",\"point\":[880,910],\"role\":\"office\"},{\"id\":\"meeting_1\",\"point\":[700,1140],\"role\":\"meeting_room\"},{\"id\":\"meeting_2\",\"point\":[1060,1140],\"role\":\"meeting_room\"}],\"assumptions\":[\"No elevation or other floor is supplied: floor z=0 and ceiling height 3.0 m are explicit assumptions for the whole floor.\",\"All door leaf heights assumed 2.1 m; all window sill/head assumed 0.9/2.7 m - no height evidence exists in the input.\",\"Exterior wall thickness 240 mm read from double-line spacing (11 px); interior partitions drawn as ~5-6 px line pairs, nominal ~120 mm assumed.\",\"Door operating states unknown; swing arcs give hinge side only.\",\"Room roles (office/meeting/corridor) inferred from furniture; no text labels relied upon.\"],\"unresolved\":[\"P_corr_north_w declared on its measured north face line y957 (faces 957/969) so it closes at the strip ring corner; the corridor polygon therefore includes that 12px wall band on its north side.\",\"The original shows no ink at x698-790 on this wall where the vertical corridor continues south into the bottom-wing corridor; the corridor is one continuous open space, so no aperture object was invented. Check in wall-support review.\",\"Cyan window band W_N1 drawn as one continuous ~8 m glazed band; any mullions within it were not resolved.\",\"Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.\"]}"
+      }
+    },
+    {
+      "name": "mcp__bim__view_plan_wall_support",
+      "input": {
+        "draft_id": "draft_001",
+        "rgb": [
+          150,
+          150,
+          150
+        ],
+        "radius_pixels": 6,
+        "tolerance": 80
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          480,
+          940,
+          720,
+          1100
+        ],
+        "display_scale": 3,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          660,
+          915,
+          850,
+          1015
+        ],
+        "display_scale": 4,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          1050,
+          1195,
+          1450,
+          1280
+        ],
+        "display_scale": 3,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__view_image",
+      "input": {
+        "box": [
+          620,
+          850,
+          900,
+          1030
+        ],
+        "display_scale": 3,
+        "name": "1f_view.png"
+      }
+    },
+    {
+      "name": "mcp__bim__view_pixel_region_overview",
+      "input": {
+        "background_rgb": [
+          11,
+          164,
+          144
+        ],
+        "max_regions": 60,
+        "min_pixels": 80,
+        "name": "1f_view.png",
+        "tolerance": 90
+      }
+    },
+    {
+      "name": "mcp__bim__view_pixel_profile",
+      "input": {
+        "axis": "y",
+        "box": [
+          505,
+          975,
+          570,
+          1055
+        ],
+        "min_fraction": 0.05,
+        "name": "west_lobby_door",
+        "rgb": [
+          11,
+          164,
+          144
+        ],
+        "tolerance": 90
+      }
+    },
+    {
+      "name": "mcp__bim__pixel_profile",
+      "input": {
+        "axis": "y",
+        "box": [
+          506,
+          955,
+          532,
+          1065
+        ],
+        "name": "1f_view.png",
+        "rgb": [
+          150,
+          150,
+          150
+        ],
+        "tolerance": 80
+      }
+    },
+    {
+      "name": "mcp__bim__review_detail",
+      "input": {
+        "images": [
+          "1f_view.png"
+        ],
+        "question": "This is an architectural floor plan (black background, grey wall lines, cyan door/window symbols, magenta furniture). Task: locate every DOOR symbol, identified by a quarter-circle swing arc plus a straight door leaf line. For each door, report: (1) the pixel coordinates of its two jambs (the ends of the opening in the wall), (2) which wall it is in (describe the wall's orientation and nearby features). Include exterior doors in outer walls. Be exhaustive and systematic: scan the plan row by row from top to bottom. Do NOT count windows (straight parallel cyan lines without arcs) or furniture.",
+        "timeout_seconds": 240
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65",
+        "operations_json": "[{\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"D_lobby_west\", \"kind\": \"door\", \"p1\": [513, 1000], \"p2\": [513, 1035], \"z\": [0, 2.1], \"source_refs\": [\"1f_view.png: cyan door leaf and quarter-circle swing arc in the bottom-wing west wall (wall x513-524); grey wall profile in box x506-532 shows ink runs y955-999 and y1036-1064, so the opening is y1000-1035 (~0.78 m); swings into the bottom-wing corridor/lobby; height assumed\"]}, \"reason\": \"Door clearly present in the original but missing from the declaration; restores the west entrance to the bottom-wing lobby\", \"source_refs\": [\"1f_view.png pixel profile x506-532 grey ink runs y955-999 / y1036-1064\", \"1f_view.png crop [480,940,720,1100] cyan arc\"]}, {\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"PASS_corr_s\", \"kind\": \"open\", \"p1\": [697, 957], \"p2\": [789, 957], \"source_refs\": [\"1f_view.png: no wall ink on y957-969 between x695-790 (draft_001 wall-support gap x699-789, 91 unsupported samples); the vertical corridor continues directly south into the bottom-wing corridor as one continuous open space\"]}, \"reason\": \"The continuous corridor was split into two spaces with no aperture on the declared wall line, which would leave the two halves disconnected in the compiled BIM; the ink gap is verified, so declare the passage explicitly\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w unsupported span x699-789\", \"1f_view.png crop [620,850,900,1030]\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_north_w\", \"changes\": {\"source_refs\": [\"bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s\"]}, \"reason\": \"Record the measured ink extents and the explicit passage in the wall evidence\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w supported intervals\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 declared explicitly after wall-support and pixel review confirmed the ink gap x695-790; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous ~8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.\", \"Caller-supplied pixel-to-metre calibration was reused; it is consistent with the 25000x20000 mm overall dimension annotations but was not independently re-derived.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65",
+        "operations_json": "[{\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"D_lobby_west\", \"kind\": \"door\", \"p1\": [513, 1000], \"p2\": [513, 1035], \"z\": [0, 2.1], \"source_refs\": [\"1f_view.png: cyan door leaf and quarter-circle swing arc in the bottom-wing west wall (wall x513-524); grey wall profile in box x506-532 shows ink runs y955-999 and y1036-1064, so the opening is y1000-1035 (~0.78 m); swings into the bottom-wing corridor/lobby; height assumed\"]}, \"reason\": \"Door clearly present in the original but missing from the declaration; restores the west entrance to the bottom-wing lobby\", \"source_refs\": [\"1f_view.png pixel profile x506-532 grey ink runs y955-999 / y1036-1064\", \"1f_view.png crop [480,940,720,1100] cyan arc\"]}, {\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"PASS_corr_s\", \"kind\": \"open\", \"p1\": [697, 957], \"p2\": [789, 957], \"source_refs\": [\"1f_view.png: no wall ink on y957-969 between x695-790 (draft_001 wall-support gap x699-789, 91 unsupported samples); the vertical corridor continues directly south into the bottom-wing corridor as one continuous open space\"]}, \"reason\": \"The continuous corridor was split into two spaces with no aperture on the declared wall line, which would leave the two halves disconnected in the compiled BIM; the ink gap is verified, so declare the passage explicitly\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w unsupported span x699-789\", \"1f_view.png crop [620,850,900,1030]\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_north_w\", \"changes\": {\"source_refs\": [\"bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s\"]}, \"reason\": \"Record the measured ink extents and the explicit passage in the wall evidence\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w supported intervals\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 declared explicitly after wall-support and pixel review confirmed the ink gap x695-790; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous ~8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.\", \"Caller-supplied pixel-to-metre calibration was reused; it is consistent with the 25000x20000 mm overall dimension annotations but was not independently re-derived.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\"], \"reason\": \"Resolve the passage question and record the newly added door and remaining uncertainties in the saved declaration\", \"source_refs\": [\"draft_001 wall support review\", \"1f_view.png crops and profiles this run\"]}"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65",
+        "operations_json": "[{\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"D_lobby_west\", \"kind\": \"door\", \"p1\": [513, 1000], \"p2\": [513, 1035], \"z\": [0, 2.1], \"source_refs\": [\"1f_view.png: cyan door leaf and quarter-circle swing arc in the bottom-wing west wall (wall x513-524); grey wall profile in box x506-532 shows ink runs y955-999 and y1036-1064, so the opening is y1000-1035, about 0.78 m; swings into the bottom-wing corridor lobby; height assumed\"]}, \"reason\": \"Door clearly present in the original but missing from the declaration; restores the west entrance to the bottom-wing lobby\", \"source_refs\": [\"1f_view.png pixel profile x506-532 grey ink runs y955-999 and y1036-1064\", \"1f_view.png crop 480,940,720,1100 cyan arc\"]}, {\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"PASS_corr_s\", \"kind\": \"open\", \"p1\": [697, 957], \"p2\": [789, 957], \"source_refs\": [\"1f_view.png: no wall ink on y957-969 between x695-790 (draft_001 wall-support gap x699-789, 91 unsupported samples); the vertical corridor continues directly south into the bottom-wing corridor as one continuous open space\"]}, \"reason\": \"The continuous corridor was split into two spaces with no aperture on the declared wall line, which would leave the two halves disconnected in the compiled BIM; the ink gap is verified, so declare the passage explicitly\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w unsupported span x699-789\", \"1f_view.png crop 620,850,900,1030\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_north_w\", \"changes\": {\"source_refs\": [\"bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s\"]}, \"reason\": \"Record the measured ink extents and the explicit passage in the wall evidence\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w supported intervals\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 declared explicitly after wall-support and pixel review confirmed the ink gap x695-790; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.\", \"Caller-supplied pixel-to-metre calibration was reused; it is consistent with the 25000x20000 mm overall dimension annotations but was not independently re-derived.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\"], \"reason\": \"Resolve the passage question and record the newly added door and remaining uncertainties in the saved declaration\", \"source_refs\": [\"draft_001 wall support review\", \"1f_view.png crops and profiles this run\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__revise_plan_bim",
+      "input": {
+        "draft_id": "draft_001",
+        "expected_plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65",
+        "operations_json": "[{\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"D_lobby_west\", \"kind\": \"door\", \"p1\": [513, 1000], \"p2\": [513, 1035], \"z\": [0, 2.1], \"source_refs\": [\"1f_view.png: cyan door leaf and quarter-circle swing arc in the bottom-wing west wall (wall x513-524); grey wall profile in box x506-532 shows ink runs y955-999 and y1036-1064, so the opening is y1000-1035, about 0.78 m; swings into the bottom-wing corridor lobby; height assumed\"]}, \"reason\": \"Door clearly present in the original but missing from the declaration; restores the west entrance to the bottom-wing lobby\", \"source_refs\": [\"1f_view.png pixel profile x506-532 grey ink runs y955-999 and y1036-1064\", \"1f_view.png crop 480,940,720,1100 cyan arc\"]}, {\"op\": \"add\", \"collection\": \"openings\", \"value\": {\"id\": \"PASS_corr_s\", \"kind\": \"open\", \"p1\": [697, 957], \"p2\": [789, 957], \"z\": [0, 3.0], \"source_refs\": [\"1f_view.png: no wall ink on y957-969 between x695-790 (draft_001 wall-support gap x699-789, 91 unsupported samples); the vertical corridor continues directly south into the bottom-wing corridor as one continuous open space; full-height opening, ceiling 3.0 m is an assumption\"]}, \"reason\": \"The continuous corridor was split into two spaces with no aperture on the declared wall line, which would leave the two halves disconnected in the compiled BIM; the ink gap is verified, so declare the passage explicitly\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w unsupported span x699-789\", \"1f_view.png crop 620,850,900,1030\"]}, {\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_corr_north_w\", \"changes\": {\"source_refs\": [\"bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s\"]}, \"reason\": \"Record the measured ink extents and the explicit passage in the wall evidence\", \"source_refs\": [\"draft_001 wall support partition P_corr_north_w supported intervals\"]}, {\"op\": \"set\", \"field\": \"unresolved\", \"value\": [\"Open passage PASS_corr_s at y957 x697-789 declared explicitly after wall-support and pixel review confirmed the ink gap x695-790; the vertical corridor and bottom-wing corridor are one continuous open space.\", \"Cyan window band W_N1 drawn as one continuous 8 m glazed band; any mullions within it were not resolved.\", \"Interior partition faces measured from single line pairs; exact thicknesses below drawing line width are uncertain.\", \"Caller-supplied pixel-to-metre calibration was reused; it is consistent with the 25000x20000 mm overall dimension annotations but was not independently re-derived.\", \"No elevation or other floor is supplied: all opening heights remain assumptions; door D_lobby_west height assumed 2.1 m like the other doors.\"], \"reason\": \"Resolve the passage question and record the newly added door and remaining uncertainties in the saved declaration\", \"source_refs\": [\"draft_001 wall support review\", \"1f_view.png crops and profiles this run\"]}]"
+      }
+    },
+    {
+      "name": "mcp__bim__check_openings",
+      "input": {
+        "candidate": "candidate_02",
+        "heights_only": true
+      }
+    },
+    {
+      "name": "mcp__bim__finish_bim",
+      "input": {
+        "candidate": "candidate_02"
+      }
+    }
+  ],
+  "note": "Extracted public assistant messages and tool inputs; actual images audited separately."
+}

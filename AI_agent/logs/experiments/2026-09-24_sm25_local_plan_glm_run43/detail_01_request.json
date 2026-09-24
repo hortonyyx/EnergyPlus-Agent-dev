@@ -1,0 +1,19 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "haiku",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": true,
+  "timeout_seconds": 239.95823860168457,
+  "exploratory_opus": false,
+  "effort": null,
+  "observation_source": {
+    "run": "detail_01",
+    "input_sha256": "901c9377ffcacb3d84603cea3b56df4c69fe5d59a50028f630e99218b5d0a5ab",
+    "images": {
+      "1f_view.png": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+    }
+  },
+  "prompt": "Images: ['1f_view.png']\nQuestion: This is an architectural floor plan (black background, grey wall lines, cyan door/window symbols, magenta furniture). Task: locate every DOOR symbol, identified by a quarter-circle swing arc plus a straight door leaf line. For each door, report: (1) the pixel coordinates of its two jambs (the ends of the opening in the wall), (2) which wall it is in (describe the wall's orientation and nearby features). Include exterior doors in outer walls. Be exhaustive and systematic: scan the plan row by row from top to bottom. Do NOT count windows (straight parallel cyan lines without arcs) or furniture.",
+  "system_prompt": "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; For line evidence, compare both profile axes; peak support at a junction is not a whole wall's extent or thickness. Inspect beyond both ends and trace adjoining space boundaries before calling an endpoint free. do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
+}
