@@ -368,6 +368,8 @@ python scripts/tool_scripts/diagnose_source_checkpoint.py --out AI_agent/logs/ex
 
 当前由共同源出口和Voimatalo开发装配实际验证，尚未做Sonnet迁移或EP贯通。按标高筛选的通用楼层视图可能不包含从更低处开始的连续空间；核源体或实际高度剖切，不用补源楼板修显示。契约见[共同模型](../design/model.md)，可重放实例见[本次探路](../logs/experiments/2026-09-15_voimatalo_developer_walkthrough/README.md)。
 
+09-25已修二维源平面、原图回叠与 `check_source_space_relation` 的楼层选择：包括该层显式引用的贯通空间，按实际高度筛门窗；同高不同源分组的附属翼连接门保留。三项反馈不再只看空间自身的 `floor_id`，也不会为显示核心而改变源几何；这不等于所有三维查看器/后端筛选都已更换。
+
 ## 水平边界的明确开敞或未知（09-16）
 
 `source_enclosure_input_v1.boundaries` 沿用 `boundary_id`、`condition: open|unknown`、`scope: whole|partial` 和依据字段；水平partial顶点使用与父面相同Z的三维坐标。上下体块接触时，只在实际交叠区域声明开敞，且上下两侧均须对应；较大底层顶面用partial、较小上层底面可用whole，不能将未接触的外露屋盖一并去掉。未知不当成敞开，不产生连通。
