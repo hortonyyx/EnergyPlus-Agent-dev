@@ -1,0 +1,78 @@
+{
+  "mode": "saved_draft_recovery_without_developer_error_location_not_cold_start",
+  "candidate": "candidate_01",
+  "actual_model": "glm-5.3-flash",
+  "elapsed_seconds": 351.63,
+  "subscription_invocations": 1,
+  "cost_receipts_complete": true,
+  "estimated_main_cost_usd_not_bill": 0.8571392000000001,
+  "frozen_inputs_verified": true,
+  "implementation_hashes_verified": true,
+  "modules_frozen_by_setup_manifest_only": [
+    "src/agent/geometry/source_space_relations.py"
+  ],
+  "source_display_replay_exact": true,
+  "local_revisions_replayed": [],
+  "space_relation_reviews_replayed": [
+    {
+      "file": "space_relation_reviews/review_001.json",
+      "candidate": "candidate_01",
+      "conflict_count": 0,
+      "unassessed_count": 0,
+      "sample_count": 6
+    }
+  ],
+  "final_space_relation_status": {
+    "status": "consistent_with_supplied_samples",
+    "sample_count": 6,
+    "conflict_count": 0,
+    "unassessed_count": 0,
+    "stale_review_count": 0,
+    "conflicts": [],
+    "coverage": "caller_selected_point_pairs_only",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "counts": {
+    "spaces": 15,
+    "openings": 32,
+    "connections": 17,
+    "unsupported": 0,
+    "unbuilt_openings": 0
+  },
+  "opening_kinds": {
+    "door": 16,
+    "open": 1,
+    "window": 15
+  },
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "view_image": 5,
+    "build_plan_bim": 1,
+    "check_source_space_relation": 1,
+    "view_plan_wall_support": 1,
+    "view_pixel_region_overview": 1,
+    "finish_bim": 1
+  },
+  "transported_image_count": 9,
+  "original_comparison": {
+    "partition_status": "severe",
+    "matched_spaces": 14,
+    "positions_matched": 31,
+    "hosts_matched": 26,
+    "door_connections_matched": 12,
+    "unmatched_reference": [],
+    "unmatched_actual": [
+      "PASS_corr_s"
+    ]
+  },
+  "gt_status": {
+    "raw_3d": "severe",
+    "plan_only_8cm": "severe"
+  },
+  "limitations": [
+    "Saved failed draft supplied; not independent cold-start or multi-floor verification.",
+    "Sampled caller observations do not establish entire-plan fidelity.",
+    "Height assumptions and dimensional residuals remain separately reportable."
+  ]
+}

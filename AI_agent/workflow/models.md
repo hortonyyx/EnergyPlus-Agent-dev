@@ -7,6 +7,10 @@
 
 **09-25 当前授权：** 用户确认 Claude 家族额度恢复，工作模型可由负责人按任务选择 Claude 或 GLM 的既有订阅通道，替代09-23本轮仅GLM的安排。实际型号、子调用、用量及任何切换均留回执；产品常规 Sonnet 级上限保留，开发负责人使用 Astra/Opus 5.5 不等于提高产品运行上限。不得自动切到未授权付费 API 或 DeepSeek。
 
+**09-25 已完成旧稿对照：** run46实际 `glm-5.3-flash`，351.63秒，CLI估算$0.8571392；run47请求Sonnet、实际 `claude-sonnet-5`，67.86秒，CLI估算$0.6653064。均medium、1800秒预算、1次主调用、无子调用/回退，估算不是订阅账单。输入/方法相同，GLM未修错拆、Sonnet恢复主要空间关系；只比较本次旧稿任务，不外推总体模型优劣。开发负责人Opus另以Claude Code和 `claude-opus-5-5` / xhigh执行独立开发工作包，与产品模型实验分开记录。见[统一记录](../logs/worklog/2026-09-25_dual_manager_development.md)。
+
+**09-25 原图冷启动及独立重复：** run48/49均实际 `claude-sonnet-5` / medium、2400秒预算，分别158.51/154.00秒、CLI估算$0.6225032/$0.6205138；各1次主调用，无子模型/回退。本轮run46–49四次产品调用CLI估算合计$2.7654626（非账单）。两次首层主要拓扑正确，尺寸/高度限制仍保留，详见[重复记录](../logs/experiments/2026-09-25_sm25_relation_repeat_setup/README.md)。
+
 **09-24 连续空间两次验证：** run44/45均GLM订阅`glm-5.3-flash`、medium，分别797.71/531.59秒，均1次主调用，无子模型或回退；CLI估算分别$1.6945456/$1.304232（非账单）。通用复核与开发明确反馈恢复分开报告，见[本程记录](../logs/worklog/2026-09-24_reconstruction_continuous_space.md)。
 
 **09-24 sm25追加实跑：** run41/42/43主调用继续GLM订阅`glm-5.3-flash`；run43另实际调用一次同GLM的只读局部门弧复核，240.81秒超时、无完整结果，主模型继续。run43主调用894.39秒，CLI部分估算$1.4622016，子费用回执不完整、总额未知；全部调用结束，无Claude/DeepSeek/付费API回退。详见[run43](../logs/experiments/2026-09-24_sm25_local_plan_glm_run43/README.md)。

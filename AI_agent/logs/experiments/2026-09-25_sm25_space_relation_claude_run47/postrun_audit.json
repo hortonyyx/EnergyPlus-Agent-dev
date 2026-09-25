@@ -1,0 +1,199 @@
+{
+  "mode": "saved_draft_recovery_without_developer_error_location_not_cold_start",
+  "candidate": "candidate_02",
+  "actual_model": "claude-sonnet-5",
+  "elapsed_seconds": 67.86,
+  "subscription_invocations": 1,
+  "cost_receipts_complete": true,
+  "estimated_main_cost_usd_not_bill": 0.6653064,
+  "frozen_inputs_verified": true,
+  "implementation_hashes_verified": true,
+  "modules_frozen_by_setup_manifest_only": [
+    "src/agent/geometry/source_space_relations.py"
+  ],
+  "source_display_replay_exact": true,
+  "local_revisions_replayed": [
+    {
+      "draft": "draft_001",
+      "changes": [
+        {
+          "operation_index": 0,
+          "field": "ceiling_height",
+          "id": null,
+          "before": 3.0,
+          "after": 3.0,
+          "reason": "no-op compile of recovered declaration",
+          "source_refs": [
+            "resume plan"
+          ]
+        }
+      ]
+    },
+    {
+      "draft": "draft_002",
+      "changes": [
+        {
+          "operation_index": 0,
+          "field": "partitions",
+          "id": "P_corr_north_w",
+          "before": {
+            "id": "P_corr_north_w",
+            "points": [
+              [
+                513,
+                957
+              ],
+              [
+                975,
+                957
+              ]
+            ],
+            "source_refs": [
+              "bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s"
+            ]
+          },
+          "after": {
+            "id": "P_corr_north_w",
+            "points": [
+              [
+                513,
+                957
+              ],
+              [
+                695,
+                957
+              ]
+            ],
+            "source_refs": [
+              "bottom-wing corridor north wall, measured faces y957/969; verified grey ink x527-687 and x798-952; declared on its north face line y957 to close at the ring corner; the verified open gap x695-790 is declared as the passage PASS_corr_s"
+            ]
+          },
+          "reason": "wall has no ink between x695-792; corridor is one continuous space",
+          "source_refs": [
+            "1f_view.png crop x490-1010,y930-1010: gap in wall"
+          ]
+        },
+        {
+          "operation_index": 1,
+          "field": "partitions",
+          "id": "P_corr_north_e",
+          "before": null,
+          "after": {
+            "id": "P_corr_north_e",
+            "points": [
+              [
+                792,
+                957
+              ],
+              [
+                975,
+                957
+              ]
+            ],
+            "source_refs": [
+              "1f_view.png: grey wall ink x798-952 at y957-969, east of gap"
+            ]
+          },
+          "reason": "retain real wall portion east of gap",
+          "source_refs": [
+            "1f_view.png"
+          ]
+        },
+        {
+          "operation_index": 2,
+          "field": "openings",
+          "id": "PASS_corr_s",
+          "before": {
+            "id": "PASS_corr_s",
+            "kind": "open",
+            "p1": [
+              697,
+              957
+            ],
+            "p2": [
+              789,
+              957
+            ],
+            "z": [
+              0,
+              3.0
+            ],
+            "source_refs": [
+              "1f_view.png: no wall ink on y957-969 between x695-790 (draft_001 wall-support gap x699-789, 91 unsupported samples); the vertical corridor continues directly south into the bottom-wing corridor as one continuous open space; full-height opening, ceiling 3.0 m is an assumption"
+            ]
+          },
+          "after": null,
+          "reason": "no separating wall exists there; spaces merge, passage redundant",
+          "source_refs": [
+            "1f_view.png"
+          ]
+        }
+      ]
+    }
+  ],
+  "space_relation_reviews_replayed": [
+    {
+      "file": "space_relation_reviews/review_001.json",
+      "candidate": "candidate_01",
+      "conflict_count": 1,
+      "unassessed_count": 0,
+      "sample_count": 7
+    },
+    {
+      "file": "space_relation_reviews/review_002.json",
+      "candidate": "candidate_02",
+      "conflict_count": 0,
+      "unassessed_count": 0,
+      "sample_count": 5
+    }
+  ],
+  "final_space_relation_status": {
+    "status": "consistent_with_supplied_samples",
+    "sample_count": 5,
+    "conflict_count": 0,
+    "unassessed_count": 0,
+    "stale_review_count": 1,
+    "conflicts": [],
+    "coverage": "caller_selected_point_pairs_only",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "counts": {
+    "spaces": 14,
+    "openings": 31,
+    "connections": 16,
+    "unsupported": 0,
+    "unbuilt_openings": 0
+  },
+  "opening_kinds": {
+    "door": 16,
+    "window": 15
+  },
+  "tools": {
+    "inputs": 1,
+    "view_image": 1,
+    "get_bim_reference": 1,
+    "build_plan_bim": 2,
+    "revise_plan_bim": 2,
+    "check_source_space_relation": 2,
+    "finish_bim": 1
+  },
+  "transported_image_count": 5,
+  "original_comparison": {
+    "partition_status": "severe",
+    "matched_spaces": 14,
+    "positions_matched": 31,
+    "hosts_matched": 31,
+    "door_connections_matched": 16,
+    "unmatched_reference": [],
+    "unmatched_actual": []
+  },
+  "gt_status": {
+    "raw_3d": "severe",
+    "plan_only_8cm": "severe"
+  },
+  "limitations": [
+    "Saved failed draft supplied; not independent cold-start or multi-floor verification.",
+    "Sampled caller observations do not establish entire-plan fidelity.",
+    "Height assumptions and dimensional residuals remain separately reportable."
+  ]
+}

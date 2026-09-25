@@ -21,6 +21,8 @@
 
 源空间连续性与开口连通要分开核对：全高敞开通道仍保持两侧两个源空间。原图无物理分隔的连续走廊应撤掉虚构墙段并移除其虚构开口，代码重新围合；真实墙中的门/通道继续保留。run45实际完成这种局部修订并保持其他13房间和31门窗，但由开发明确指出错误，不能计自主发现。
 
+`check_source_space_relation(candidate, image, floor_id, observations_json)` 可把模型从原图提出的关系与当前源空间归属对照。观察列表每项含 `id`、两个原图像素 `points`、`expected`（`same_space` / `separate_spaces` / `uncertain`）和图证 `evidence`；点应选在空间内部。使用 `build_plan_bim` 或 `overlay_candidate` 已登记的同图/同层标定，返回实际空间ID及直接门/敞口连接。边界、模型范围外或重叠点不判一致；结果只验证所报采样关系，不认证图意、标定或全层。修改候选后重查，`finish_bim` 的 `space_relation_review` 区分当前采样、冲突和旧源/旧标定结果。实现和真实实验范围见[09-25设置](../logs/experiments/2026-09-25_sm25_space_relation_setup/README.md)。
+
 编译前还保存`draft_view.png/json`：原始像素墙线/门窗带ID和端点叠回原图，侧车绑定原JSON/图像散列并列出不能画的项目。失败时MCP实际返回这张声明草图与原错误；成功仍返回原有源图，草图仅留档。草图明确`draft_only`、保真未评价，不创建候选/源标定，不补线或裁门。JSON解析失败则保留原文并明确无法画图；不能把草图当成已建房间或修复成功。
 
 09-20开口宿主失败另附`opening_host_failure.png/json`：左干净原图、右完整错误声明的放大局部对照，MCP在整图后实际返回第二张图，并直接携带裁框、面板位置、倍率、坐标公式与原图/方案散列。只按报错开口端点定位，不认定正确宿主，也不裁短开口；其他错误维持原反馈。真实失败重放和未验证效果见[本次记录](../logs/experiments/2026-09-20_opening_failure_feedback/README.md)。

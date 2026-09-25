@@ -1,0 +1,241 @@
+{
+  "candidate": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/candidate_04",
+  "source_validation": {
+    "findings": [
+      {
+        "boundary_ids": [
+          "space/F1_open/wall/0",
+          "space/F1_open/wall/11",
+          "space/F1_services_s/wall/1",
+          "space/F2_open/wall/0",
+          "space/F2_open/wall/11",
+          "space/F2_services_s/wall/1",
+          "space/F3_open/wall/0",
+          "space/F3_open/wall/11",
+          "space/F3_services_s/wall/1",
+          "space/F4_open/wall/0",
+          "space/F4_open/wall/11",
+          "space/F4_services_s/wall/1",
+          "space/F5_open/wall/0",
+          "space/F5_open/wall/11",
+          "space/F5_services_s/wall/1",
+          "space/F6_open/wall/0",
+          "space/F6_open/wall/11",
+          "space/F6_services_s/wall/1",
+          "space/F7_open/wall/0",
+          "space/F7_open/wall/11",
+          "space/F7_services_s/wall/1",
+          "space/F8_open/wall/15",
+          "space/F8_open/wall/2",
+          "space/F8_services_s/wall/1"
+        ],
+        "code": "source.enclosure_unknown",
+        "message": "Unknown enclosure remains unresolved and is not treated as open.",
+        "severity": "warning"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance",
+      "unknown enclosure conditions"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "warning"
+  },
+  "source_export_replay": {
+    "status": "pass",
+    "stored_digest": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+    "calculated_digest": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+    "replayed_digest": "757c3e8318c03ceb79e095f90314ff64f37643b68f6d8f16397254ee4fac03bb",
+    "exact_json": true,
+    "exact_source_model_bytes": true,
+    "source_file_sha256": "3659b3da662d7897406c3fef3bca4ecb59592dfaef1c96730423b6151da6de54",
+    "replayed_source_file_sha256": "3659b3da662d7897406c3fef3bca4ecb59592dfaef1c96730423b6151da6de54",
+    "temporary_directory_removed_after_check": true
+  },
+  "positive_volume_overlap": {
+    "status": "pass",
+    "overlaps": []
+  },
+  "baseline_windows": {
+    "count": 287,
+    "missing": [],
+    "changed_kind_or_geometry": [],
+    "rehosted": [],
+    "interpretation": "Room splits may legitimately rehost preserved windows."
+  },
+  "baseline_external_door_geometry_changes": [],
+  "declared_not_built": [],
+  "built_not_declared": [],
+  "unbuilt_openings": [],
+  "unsupported": [],
+  "connectivity": {
+    "unreachable_nonroof_spaces": [],
+    "roof_spaces_excluded": [
+      "ROOF_N_BASE_enclosure",
+      "ROOF_N_enclosure",
+      "ROOF_STACK_enclosure",
+      "ROOF_S_enclosure",
+      "ROOF_enclosure"
+    ],
+    "interpretation": "Declared door/open connectivity only; not proof of actual unseen layout."
+  },
+  "continuous_cores": [
+    {
+      "id": "CORE_N_continuous",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        27.8
+      ],
+      "expected_end_levels": [
+        0.0,
+        27.8
+      ],
+      "floor_connections": {
+        "F1": [
+          "D_F1_CORE_N"
+        ],
+        "F2": [
+          "D_F2_CORE_N"
+        ],
+        "F3": [
+          "D_F3_CORE_N"
+        ],
+        "F4": [
+          "D_F4_CORE_N"
+        ],
+        "F5": [
+          "D_F5_CORE_N"
+        ],
+        "F6": [
+          "D_F6_CORE_N"
+        ],
+        "F7": [
+          "D_F7_CORE_N"
+        ],
+        "F8": [
+          "D_F8_CORE_N"
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "CORE_S_continuous",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        27.8
+      ],
+      "expected_end_levels": [
+        0.0,
+        27.8
+      ],
+      "floor_connections": {
+        "F1": [
+          "D_F1_CORE_S"
+        ],
+        "F2": [
+          "D_F2_CORE_S"
+        ],
+        "F3": [
+          "D_F3_CORE_S"
+        ],
+        "F4": [
+          "D_F4_CORE_S"
+        ],
+        "F5": [
+          "D_F5_CORE_S"
+        ],
+        "F6": [
+          "D_F6_CORE_S"
+        ],
+        "F7": [
+          "D_F7_CORE_S"
+        ],
+        "F8": [
+          "D_F8_CORE_S"
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "status": "pass"
+    }
+  ],
+  "baseline_continuous_ids_missing": [],
+  "space_counts_by_floor": {
+    "ANNEX": 1,
+    "CORE_N": 1,
+    "CORE_S": 1,
+    "F1": 3,
+    "F2": 3,
+    "F3": 3,
+    "F4": 3,
+    "F5": 3,
+    "F6": 3,
+    "F7": 3,
+    "F8": 3,
+    "ROOF_N_BASE": 1,
+    "ROOF_N": 1,
+    "ROOF_STACK": 1,
+    "ROOF_S": 1,
+    "ROOF": 1
+  },
+  "space_roles": {
+    "annex_merged_hypothesis": 1,
+    "vertical_circulation_hypothesis": 2,
+    "commercial_open_hypothesis": 1,
+    "service_and_lobby_hypothesis": 16,
+    "office_open_hypothesis": 7,
+    "roof_enclosure_simplified": 5
+  },
+  "opening_kinds": {
+    "door": 34,
+    "window": 287
+  },
+  "scope": "Technical checks only. Interior plausibility, missing-content coverage and user acceptance require visual review.",
+  "technical_checks_pass": true
+}

@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 2400,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 158.51,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 146759,
+    "stop_reason": "end_turn",
+    "session_id": "9e9018d4-bc7a-446a-b2d5-1ef2846dfe87",
+    "total_cost_usd": 0.6225031999999999,
+    "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 100550,
+      "cache_read_input_tokens": 357086,
+      "output_tokens": 14885,
+      "output_tokens_details": {
+        "thinking_tokens": 9556
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 100550,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 928,
+          "cache_read_input_tokens": 107590,
+          "cache_creation_input_tokens": 8735,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 8735
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 18,
+        "outputTokens": 14885,
+        "cacheReadInputTokens": 357086,
+        "cacheCreationInputTokens": 100550,
+        "webSearchRequests": 0,
+        "costUSD": 0.6225031999999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 9556,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 11,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_01`, a single-floor plan of 14 spaces and 31 openings. Its geometry passes the internal consistency checks, but drawing fidelity has not been evaluated.\n\n**What it contains**\n- **Footprint:** an orthogonal L/stepped outline, 25 m × 20 m.\n- **Top-left rooms:** two offices, A and B.\n- **East strip:** seven 2 m-wide offices, each with its own door and window.\n- **Middle wing:** two offices.\n- **Meeting rooms:** two rooms at the bottom, each with a double door.\n- **Circulation:** one open circulation space that includes the corridor band, the north-south corridor and the lower foyer. I kept it as one space because the drawing shows no wall dividing it.\n- **Openings:** 16 doors (including the two exterior doors on the left and the exterior double door on the right) and 15 windows. The long window on the east wing's north face is one of the 15.\n\n**Calibration:** I used the 25000 mm and 20000 mm outer-face dimensions, mapped to x 282–1438 px and y 311–1235 px. Perimeter walls sit on the outer faces and partitions on wall centrelines. The calibration is from two anchors per axis and has not been independently verified.\n\n**Checks run**\n- **Space relations:** six same-space and separate-space samples from the original all agree with the source (corridor continuous, A vs B, mid1 vs mid2, meet1 vs meet2, office vs corridor).\n- **Wall-support review:** wall-support colour matches along most partition paths. The unsupported spans that remain are:\n  - the three wall lines at y≈588 (middle offices' north wall), y≈963 (middle offices' south wall) and y≈958 (east offices' south wall), where the drawn wall lines sit about 0.1–0.2 m from my centreline;\n  - short stretches at wall corners.\n- **Door and window positions:** these came from my visual reading of the drawing and were not measured with profiles.\n\n**Assumptions and limits**\n- **Vertical heights:** ceiling is 3 m, doors 0–2.1 m and windows 0.9–2.4 m. All are assumed, with no image evidence.\n- **Meeting-room pier:** the 720 mm double-line zone between the two meeting rooms is modelled as one wall at x=883.\n- **Wall thickness and door state:** wall thickness is not modelled, and door swing states are unknown.\n- **Room roles:** only room A, room B, the circulation space and the two meeting rooms have roles. The seven east offices and the two middle offices have unknown roles.\n- **Not reviewed:** a formal opening review, dimension-chain endpoint checks and elevation checks. Opening positions were not compared against separate measured evidence.",
+    "ttft_ms": 1607,
+    "type": "result",
+    "duration_ms": 154884,
+    "uuid": "9b80403f-bb52-4a5a-a4ce-a08bb5138fbc",
+    "ttft_stream_ms": 1432,
+    "time_to_request_ms": 61,
+    "first_content_frame_ms": 1432,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

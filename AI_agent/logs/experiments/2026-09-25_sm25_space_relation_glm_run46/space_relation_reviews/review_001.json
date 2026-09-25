@@ -1,0 +1,304 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "f89e1994a3dc20471f4ffc06932cbc61eea4745ab70ed4e9e4b1f41094c0ea3d",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        282.0,
+        0.0
+      ],
+      [
+        1437.0,
+        25.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        1235.0,
+        0.0
+      ],
+      [
+        310.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs_corr_west_to_vertical",
+      "expected": "same_space",
+      "evidence": "original shows the corridor below rooms A/B running continuously east from the west wall and turning south into the vertical corridor; no partition between these points",
+      "points": [
+        {
+          "pixel": [
+            400.0,
+            535.0
+          ],
+          "world_xy_m": [
+            2.554112554112554,
+            15.135135135135137
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_open",
+          "interior_space_ids": [
+            "corridor_open"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            760.0,
+            530.0
+          ],
+          "world_xy_m": [
+            10.346320346320343,
+            15.243243243243246
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_open",
+          "interior_space_ids": [
+            "corridor_open"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs_corr_vertical_same",
+      "expected": "same_space",
+      "evidence": "original vertical corridor strip x~695-792 is continuous from the north wall to the bottom-wing junction",
+      "points": [
+        {
+          "pixel": [
+            760.0,
+            400.0
+          ],
+          "world_xy_m": [
+            10.346320346320343,
+            18.054054054054056
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_open",
+          "interior_space_ids": [
+            "corridor_open"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            760.0,
+            900.0
+          ],
+          "world_xy_m": [
+            10.346320346320343,
+            7.243243243243246
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_open",
+          "interior_space_ids": [
+            "corridor_open"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs_corr_to_wing",
+      "expected": "separate_spaces",
+      "evidence": "original shows grey wall ink at y~957 on both sides (x517-697 and x790-952) of a ~2 m gap x697-790 with no door leaf; the two corridor parts connect only through that open gap",
+      "points": [
+        {
+          "pixel": [
+            760.0,
+            900.0
+          ],
+          "world_xy_m": [
+            10.346320346320343,
+            7.243243243243246
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_open",
+          "interior_space_ids": [
+            "corridor_open"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            850.0,
+            1000.0
+          ],
+          "world_xy_m": [
+            12.294372294372291,
+            5.081081081081084
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S13",
+          "interior_space_ids": [
+            "F1_S13"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "PASS_corr_s",
+          "space_ids": [
+            "F1_S13",
+            "corridor_open"
+          ],
+          "kind": "open",
+          "state": "open"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs_office23",
+      "expected": "separate_spaces",
+      "evidence": "original shows a full divider line between east strip offices 2 and 3 at y~492",
+      "points": [
+        {
+          "pixel": [
+            880.0,
+            445.0
+          ],
+          "world_xy_m": [
+            12.943722943722943,
+            17.08108108108108
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_2",
+          "interior_space_ids": [
+            "office_2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            880.0,
+            538.0
+          ],
+          "world_xy_m": [
+            12.943722943722943,
+            15.070270270270273
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_3",
+          "interior_space_ids": [
+            "office_3"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs_meeting12",
+      "expected": "separate_spaces",
+      "evidence": "original shows a partition between meeting rooms 1 and 2 at x~882",
+      "points": [
+        {
+          "pixel": [
+            840.0,
+            1140.0
+          ],
+          "world_xy_m": [
+            12.077922077922075,
+            2.054054054054056
+          ],
+          "status": "inside_one_space",
+          "space_id": "meeting_1",
+          "interior_space_ids": [
+            "meeting_1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            920.0,
+            1140.0
+          ],
+          "world_xy_m": [
+            13.809523809523807,
+            2.054054054054056
+          ],
+          "status": "inside_one_space",
+          "space_id": "meeting_2",
+          "interior_space_ids": [
+            "meeting_2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs_meeting1_span",
+      "expected": "same_space",
+      "evidence": "original meeting room 1 is one open room with a single conference table; no internal partition",
+      "points": [
+        {
+          "pixel": [
+            560.0,
+            1080.0
+          ],
+          "world_xy_m": [
+            6.017316017316017,
+            3.351351351351351
+          ],
+          "status": "inside_one_space",
+          "space_id": "meeting_1",
+          "interior_space_ids": [
+            "meeting_1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            840.0,
+            1200.0
+          ],
+          "world_xy_m": [
+            12.077922077922075,
+            0.7567567567567579
+          ],
+          "status": "inside_one_space",
+          "space_id": "meeting_1",
+          "interior_space_ids": [
+            "meeting_1"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_01",
+  "image": "1f_view.png",
+  "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "f52a4f347a4505c7a665a89315f3389728d2ba292ae740588abb06bbd5fe31d3",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1601
+}

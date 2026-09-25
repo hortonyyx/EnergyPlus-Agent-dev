@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 2400,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 154.0,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 144132,
+    "stop_reason": "end_turn",
+    "session_id": "eb87b7f3-b269-4e0a-b454-07eb4c0a4c75",
+    "total_cost_usd": 0.6205137999999999,
+    "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 98416,
+      "cache_read_input_tokens": 426969,
+      "output_tokens": 14142,
+      "output_tokens_details": {
+        "thinking_tokens": 8976
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 98416,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 913,
+          "cache_read_input_tokens": 105483,
+          "cache_creation_input_tokens": 8708,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 8708
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 18,
+        "outputTokens": 14142,
+        "cacheReadInputTokens": 426969,
+        "cacheCreationInputTokens": 98416,
+        "webSearchRequests": 0,
+        "costUSD": 0.6205137999999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 8976,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 11,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_01`, a single-floor BIM with 14 spaces and 31 openings (16 doors, 15 windows). The drawing fidelity has not been independently verified. The geometry passed the internal consistency checks, and the overlay on the original plan matches by eye.\n\n**Spaces**\n- **Small rooms:** two offices at the top-left, two offices in the middle-left, and seven small rooms along the east side.\n- **Meeting rooms:** two rooms at the bottom, separated by a thin partition.\n- **Circulation:** one continuous L-shaped space. It runs from the left corridor down between the middle offices and the east rooms, along the strip above the meeting rooms, and out to the east end. I did not add any dividing walls to it.\n\n**Openings**\n- **Doors:** the 16 doors include three exterior ones (left of the corridor, the left wall at mid-height, and the east wall by meeting room B) and two double doors into the meeting rooms.\n- **Windows:** the 15 windows are on the exterior walls: north, east, west and south.\n\n**Checks**\n- **Calibration:** 25000 mm across x and 20000 mm across y, taken between the outer-face dimension ticks (about 46.2 px/m). The outer perimeter follows those faces. Interior partitions follow the drawn wall centre lines.\n- **Space ownership:** all 6 sampled point pairs matched the plan. They covered the two top offices, the corridor turn, two adjacent east rooms, the strip above the meeting rooms, and the area east of meeting room B.\n- **Wall support:** most unsupported stretches were short ends where paths meet the perimeter, or door and window spans. Three longer stretches (about 170 px each) are the bottom of the middle offices, the bottom of the last east room, and the top of the middle offices. I looked at the top of the middle offices in the original. The wall is a double line 11 px thick, and my path sits about 3.5 px (roughly 0.08 m) off its centre. I did not correct this or look at the other two in the original.\n\n**Assumptions and unverified scope**\n- Heights are assumed, since only one plan was supplied. The ceiling is 3 m, doors are 0–2.1 m and windows 0.9–2.1 m. None of these is tied to image evidence.\n- Door states are unknown, and door spans are approximate readings from the swing arcs.\n- Wall thickness is not modelled, and room uses are not assigned.\n- The calibration rests on two anchors per axis I chose. Nothing checks it independently.\n- I did not review the openings one by one against the original, so the opening inventory is unreviewed.\n\nThe saved model is `candidate_01/source_model.json`, with a viewer at `candidate_01/viewer.html`.",
+    "ttft_ms": 1291,
+    "type": "result",
+    "duration_ms": 150397,
+    "uuid": "67eb2fa2-6d8f-480e-895c-02f94a0402eb",
+    "ttft_stream_ms": 1133,
+    "time_to_request_ms": 69,
+    "first_content_frame_ms": 1133,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

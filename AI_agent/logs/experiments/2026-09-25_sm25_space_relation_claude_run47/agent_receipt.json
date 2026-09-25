@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 67.86,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 55683,
+    "stop_reason": "end_turn",
+    "session_id": "733d5182-d07b-413c-97c7-2d4ba1acc4de",
+    "total_cost_usd": 0.6653064,
+    "usage": {
+      "input_tokens": 20,
+      "cache_creation_input_tokens": 124739,
+      "cache_read_input_tokens": 576552,
+      "output_tokens": 5100,
+      "output_tokens_details": {
+        "thinking_tokens": 1824
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 124739,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 933,
+          "cache_read_input_tokens": 113926,
+          "cache_creation_input_tokens": 10813,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 10813
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 20,
+        "outputTokens": 5100,
+        "cacheReadInputTokens": 576552,
+        "cacheCreationInputTokens": 124739,
+        "webSearchRequests": 0,
+        "costUSD": 0.6653064,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1824,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 11,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_02`, a single-floor source BIM with 14 spaces and 31 openings. It is internally consistent, but I have not verified it against the drawing: calibration is caller-supplied and drawing fidelity is \"not_evaluated\".\n\n**What I changed**\n- The saved plan compiled unchanged (`candidate_01`, 15 spaces).\n- A sample check then failed: the vertical corridor and the bottom-wing corridor came out as separate spaces. The original shows no wall ink between x≈697 and x≈790 at y≈957.\n- I split that wall into a west piece (x513–695) and an east piece (x792–975). I also removed the passage `PASS_corr_s`, which only connected two spaces that should be one.\n- The corridor, the bottom-wing lobby and the area east of meeting room 2 are now one space, `corridor_open`. That matches the open corridor I read on the plan, but I did not check the lobby extent as closely as the corridor gap.\n- All other partitions, doors and windows are unchanged from the saved plan.\n\n**Checks**\nFive sample pairs on `candidate_02` gave no conflicts:\n- Vertical corridor and bottom-wing corridor are the same space.\n- Room A and room B are separate.\n- The two middle offices are separate.\n- The two meeting rooms are separate.\n- Office 7 and the bottom-wing corridor are separate.\n\nI rechecked the corridor gap, the 7-office strip and the overall layout against the original by eye. I did not check every door position or window extent.\n\n**Unresolved**\n- **Heights:** none are linked to drawing evidence. Floor z=0, ceiling 3.0 m, doors 2.1 m and windows 0.9–2.7 m are assumptions. No elevations were supplied or examined.\n- **Calibration:** the pixel-to-metre anchors come from the drawing's overall 25 m × 20 m dimensions. They were cross-checked against the dimension chains by the earlier attempt, but I did not independently confirm them.\n- **Wall planes and thickness:**\n  - The recess edge along y≈582 is regularised onto the wall centreline, about 0.13 m shallow.\n  - Interior wall thicknesses are nominal.\n  - Perimeter walls sit on the outer face, interior dividers on measured centrelines.\n- **Windows and doors:**\n  - The long north-wing window is one 8 m band, and I did not resolve any mullions.\n  - Door states are unknown.\n- **Roles:** room roles were inferred from furniture.\n- **Notes:** the saved unresolved notes still mention the removed `PASS_corr_s`. They are stale, and I did not edit them.\n\nThe viewer is at `candidate_02/viewer.html` and the source model at `candidate_02/source_model.json`.",
+    "ttft_ms": 1249,
+    "type": "result",
+    "duration_ms": 64524,
+    "uuid": "e4866611-c8c1-48d0-8b7c-8a6178e490db",
+    "ttft_stream_ms": 1179,
+    "time_to_request_ms": 69,
+    "first_content_frame_ms": 1179,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "previous_candidate": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-24_sm25_continuous_space_glm_run44/candidate_03",
+  "selected_candidate": "candidate_01",
+  "old_spaces": 15,
+  "new_spaces": 15,
+  "unchanged_room_polygons": [
+    "F1_S13",
+    "corridor_open",
+    "meeting_1",
+    "meeting_2",
+    "mid_office_N",
+    "mid_office_S",
+    "office_1",
+    "office_2",
+    "office_3",
+    "office_4",
+    "office_5",
+    "office_6",
+    "office_7",
+    "room_A",
+    "room_B"
+  ],
+  "preserved_original_door_window_geometry": [
+    "D_A",
+    "D_B",
+    "D_C1",
+    "D_C2",
+    "D_M3",
+    "D_M4",
+    "D_O1",
+    "D_O2",
+    "D_O3",
+    "D_O4",
+    "D_O5",
+    "D_O6",
+    "D_O7",
+    "D_lobby_west",
+    "D_main_entr",
+    "D_west_entr",
+    "W_E1",
+    "W_E2",
+    "W_E3",
+    "W_E4",
+    "W_E5",
+    "W_E6",
+    "W_E7",
+    "W_MW1",
+    "W_MW2",
+    "W_N1",
+    "W_S1",
+    "W_S2",
+    "W_top1",
+    "W_top2",
+    "W_top3"
+  ],
+  "missing_or_changed_original_door_window_geometry": [],
+  "removed_openings": [],
+  "new_openings": [],
+  "topology_findings": {
+    "original": [
+      {
+        "code": "extra_source_space",
+        "severity": "severe",
+        "reference_ids": [],
+        "candidate_ids": [
+          "corridor_open"
+        ],
+        "message": "Candidate space has no one-to-one reference counterpart.",
+        "floor_id": "F1",
+        "area_m2": 42.848717777302014
+      },
+      {
+        "code": "source_space_split",
+        "severity": "severe",
+        "reference_ids": [
+          "C"
+        ],
+        "candidate_ids": [
+          "F1_S13",
+          "corridor_open"
+        ],
+        "message": "Multiple candidate source spaces substantially cover one reference space.",
+        "floor_id": "F1",
+        "overlaps": [
+          {
+            "candidate_id": "F1_S13",
+            "intersection_area_m2": 53.18580164994205,
+            "candidate_coverage_fraction": 0.930111654566546
+          },
+          {
+            "candidate_id": "corridor_open",
+            "intersection_area_m2": 42.18477351795822,
+            "candidate_coverage_fraction": 0.9845049211788667
+          }
+        ]
+      }
+    ],
+    "raw_3d": [
+      {
+        "code": "extra_source_space",
+        "severity": "severe",
+        "reference_ids": [],
+        "candidate_ids": [
+          "corridor_open"
+        ],
+        "message": "Candidate space has no one-to-one reference counterpart.",
+        "floor_id": "F1",
+        "area_m2": 42.848717777302014
+      },
+      {
+        "code": "source_space_split",
+        "severity": "severe",
+        "reference_ids": [
+          "F1-z0"
+        ],
+        "candidate_ids": [
+          "F1_S13",
+          "corridor_open"
+        ],
+        "message": "Multiple candidate source spaces substantially cover one reference space.",
+        "floor_id": "F1",
+        "overlaps": [
+          {
+            "candidate_id": "F1_S13",
+            "intersection_area_m2": 56.006767976847996,
+            "candidate_coverage_fraction": 0.9794446264575104
+          },
+          {
+            "candidate_id": "corridor_open",
+            "intersection_area_m2": 42.77176713262901,
+            "candidate_coverage_fraction": 0.9982041319165502
+          }
+        ]
+      }
+    ],
+    "plan_only_8cm": [
+      {
+        "code": "extra_source_space",
+        "severity": "severe",
+        "reference_ids": [],
+        "candidate_ids": [
+          "corridor_open"
+        ],
+        "message": "Candidate space has no one-to-one reference counterpart.",
+        "floor_id": "F1",
+        "area_m2": 42.848717777302014
+      },
+      {
+        "code": "source_space_split",
+        "severity": "severe",
+        "reference_ids": [
+          "F1-z0"
+        ],
+        "candidate_ids": [
+          "F1_S13",
+          "corridor_open"
+        ],
+        "message": "Multiple candidate source spaces substantially cover one reference space.",
+        "floor_id": "F1",
+        "overlaps": [
+          {
+            "candidate_id": "F1_S13",
+            "intersection_area_m2": 56.006767976847996,
+            "candidate_coverage_fraction": 0.9794446264575104
+          },
+          {
+            "candidate_id": "corridor_open",
+            "intersection_area_m2": 42.77176713262901,
+            "candidate_coverage_fraction": 0.9982041319165502
+          }
+        ]
+      }
+    ]
+  },
+  "note": "Independent after-generation comparison; no expected count or geometry supplied to the model."
+}

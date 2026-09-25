@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 351.63,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 337356,
+    "stop_reason": "end_turn",
+    "session_id": "39d618b5-0929-434f-bc44-888ee87b5c23",
+    "total_cost_usd": 0.8571392000000001,
+    "usage": {
+      "input_tokens": 105794,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 390016,
+      "output_tokens": 17798,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 105794,
+        "outputTokens": 17798,
+        "cacheReadInputTokens": 390016,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.8571392000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 14,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "The BIM is delivered. Final report:\n\n## Delivered: candidate_01 — lightweight source BIM of 1f_view.png (single floor F1)\n\n**Recovery path**: The saved pixel declaration (bound to 1f_view.png) was submitted unchanged via `build_plan_bim`; contrary to its \"not compiled\" status, it compiled successfully (15 spaces, 96 boundaries, 32 openings, 17 connections, geometry self-consistency pass). I then independently verified it against the original rather than trusting it.\n\n**Independent verification performed**\n1. **Partition support** (`view_plan_wall_support`, grey rgb~150 tol 80, ±4 px): all 17 declared partitions have ink support along their full extents except declared apertures and wall-end junction artifacts (walls drawn to neighbours' inner faces). One flag — P_corr_s showing 0/183 supported samples — was resolved by zooming the original: the wall is real, drawn as two thin faces at y≈576/587 (centreline ≈582 as declared); the ±4 px strip fell in the hollow gap between the face lines. No revision was justified.\n2. **Aperture coverage** (cyan-region overview + zoomed crops): every cyan region ≥60 px maps 1:1 to a declared opening (W_N1 band, W_S1/S2, W_top1–3, W_E1–7, W_MW1/2, and door-arc symbols for D_A, D_B, D_O2, D_O7, D_C1/C2). Thin fragmented arcs for D_west_entr, D_lobby_west, D_M3/M4, D_main_entr were visually confirmed in zoomed crops. No unexplained cyan mark remains; no invented opening found.\n3. **Connectivity / space ownership** (`check_source_space_relation`, 6 observations): all consistent — the L-corridor is one space (west leg + vertical leg); offices 2/3 and meeting 1/2 are correctly separated by their partitions; the vertical corridor and bottom-wing corridor are **separate spaces joined only by the real ~2 m open gap PASS_corr_s** (ink absence at y957, x697–790 verified visually and by the support profile). This matches the original's continuous-look but wall-flanked junction.\n4. **Final inspection**: the returned source plan view and original overlay show magenta boundaries aligned with the drawn walls and apertures.\n\n**Assumptions (recorded in the BIM)**\n- Floor z=0, ceiling 3.0 m; all door heights 2.1 m and window sill/head 0.9/2.7 m are explicit assumptions — no elevation exists in the input, so **all 32 opening heights are unchecked against image evidence** (height_coverage: no_image_evidence_linked).\n- Exterior walls 240 mm from double-line spacing; interior partitions nominal ~120 mm from ~5–6 px line pairs.\n- Room roles inferred from furniture; door open/closed states unknown; calibration is caller-supplied (cross-checked against the drawing's dimension chains within ~2–3 px but not independently re-derived by me).\n\n**Known regularizations / remaining discrepancies**\n- The recess south edge and P_corr_s share one representative plane at the wall centreline y582 (true faces y≈576/587) — the footprint edge is ~0.13 m shallow by declaration.\n- W_N1 is modelled as one continuous ~8 m glazed band; internal mullions unresolved.\n- East office divider centrelines may be ~0.05 m off; interior partition thicknesses below line width are uncertain.\n- Drawing fidelity is not evaluated by the tools; these checks prove internal consistency plus sampled agreement with the original, not certified fidelity.",
+    "ttft_ms": 5344,
+    "type": "result",
+    "duration_ms": 348757,
+    "uuid": "82ba7d70-3608-407f-9391-2b328caa8151",
+    "ttft_stream_ms": 5164,
+    "time_to_request_ms": 60,
+    "first_content_frame_ms": 5164,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
