@@ -13,6 +13,9 @@ def source(*, merged=False, kind='open'):
                   {'id': 'left', 'floor_id': 'F1', 'polygon': [[0,0],[5,0],[5,10],[0,10]]},
                   {'id': 'right', 'floor_id': 'F1', 'polygon': [[5,0],[10,0],[10,10],[5,10]]}])
     result = {'floors': [{'id': 'F1'}], 'spaces': spaces,
+              'openings': [] if merged else [{'id': 'link', 'kind': kind,
+                  'space_ids': ['left', 'right'],
+                  'vertices': [[5,4,0.5], [5,6,0.5], [5,6,2.5], [5,4,2.5]]}],
               'connections': [] if merged else [{'opening_id': 'link', 'kind': kind,
                   'state': 'open', 'space_ids': ['left', 'right']}]}
     result['source_model_sha256'] = _digest(result)
