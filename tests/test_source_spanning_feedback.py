@@ -87,9 +87,41 @@ def test_unreferenced_core_is_not_silently_added_to_a_storey():
     _, plan = render_source_plan(source, "F2")
     overlay = _overlay(source, "F2")
     assert plan["space_ids"] == ["f2_room"]
-    assert plan["opening_ids"] == []
+    # The room's physical door still belongs on its plan, even when the core
+    # is absent from that storey's declared space inventory.
+    assert plan["opening_ids"] == ["f2_core_door"]
     assert [row["id"] for row in overlay["projected_spaces"]] == ["f2_room"]
-    assert overlay["projected_openings"] == []
+    assert [row["id"] for row in overlay["projected_openings"]] == ["f2_core_door"]
+
+
+def test_same_level_annex_connection_remains_visible_on_both_floor_group_plans():
+    source = _source(f2_references_core=False)
+    source["floors"] = [
+        {"id": "MAIN", "z_floor": 0, "height": 3},
+        {"id": "ANNEX", "z_floor": 0, "height": 3},
+    ]
+    source["spaces"] = [
+        {"id": "main", "floor_id": "MAIN", "z_floor": 0, "height": 3,
+         "polygon": [[0, 0], [2, 0], [2, 10], [0, 10]]},
+        {"id": "annex", "floor_id": "ANNEX", "z_floor": 0, "height": 3,
+         "polygon": [[2, 0], [10, 0], [10, 10], [2, 10]]},
+    ]
+    source["openings"] = [
+        {"id": "annex_door", "kind": "door", "space_ids": ["main", "annex"],
+         "vertices": [[2, 4, 0.5], [2, 6, 0.5], [2, 6, 2.5], [2, 4, 2.5]]},
+    ]
+    source["connections"] = [
+        {"opening_id": "annex_door", "kind": "door", "space_ids": ["main", "annex"]},
+    ]
+    source["source_model_sha256"] = _digest({key: value for key, value in source.items()
+                                               if key != "source_model_sha256"})
+    for floor_id, space_id in [("MAIN", "main"), ("ANNEX", "annex")]:
+        _, plan = render_source_plan(source, floor_id)
+        overlay = _overlay(source, floor_id)
+        assert plan["space_ids"] == [space_id]
+        assert plan["opening_ids"] == ["annex_door"]
+        assert [row["id"] for row in overlay["projected_spaces"]] == [space_id]
+        assert [row["id"] for row in overlay["projected_openings"]] == ["annex_door"]
 
 
 def test_relation_connections_use_the_requested_storeys_opening_height():

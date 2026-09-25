@@ -41,13 +41,13 @@ def select_source_floor(source: dict, floor_id: str) -> tuple[dict, list[dict]]:
 
 
 def select_source_floor_openings(source: dict, floor: dict, spaces: list[dict]) -> list[dict]:
-    """Return openings fully owned by selected spaces and intersecting this floor's z span."""
+    """Return openings touching a selected space and intersecting this floor's z span."""
     ids = {row["id"] for row in spaces}
     floor_interval = _vertical_interval(floor)
     selected = []
     for opening in source["openings"]:
         owners = opening["space_ids"]
-        if not owners or not set(owners).issubset(ids):
+        if not ids.intersection(owners):
             continue
         if floor_interval is not None:
             heights = [float(vertex[2]) for vertex in opening["vertices"]]
