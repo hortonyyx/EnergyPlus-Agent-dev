@@ -1,0 +1,152 @@
+{
+  "requested_model": "claude-opus-5-5",
+  "effort": "xhigh",
+  "channel": "existing Claude subscription; no API or fallback",
+  "started_at": "2026-09-25T07:40:24.455187+00:00",
+  "worktree": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925",
+  "branch": "dev/opus-voimatalo-20260925",
+  "base_commit": "f7e8d5eff8e6b37366271ff6665bf1fc3ba68843",
+  "prompt_sha256": "ebcf98981fed5e6a73153c70dd32090e4bdc578f356cf49f327b50b74be179b8",
+  "timeout_seconds": 3600,
+  "command": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-opus-5-5",
+    "--effort",
+    "xhigh",
+    "--tools",
+    "Bash,Edit,Write,Read,Grep,Glob,Agent,TodoWrite",
+    "--allowedTools",
+    "Bash,Edit,Write,Read,Grep,Glob,Agent,TodoWrite",
+    "--permission-mode",
+    "dontAsk",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--setting-sources",
+    "",
+    "--settings",
+    "{\"disableAllHooks\":true}",
+    "--disable-slash-commands",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--append-system-prompt",
+    "用户已授权本工作包。严格遵守任务文件边界；只在当前工作树的获派目录写入。项目文档、main合并/推送和最终用户沟通由Astra负责。不得调用付费API或DeepSeek，不读取或输出凭据，不改共享Python安装。"
+  ],
+  "pid": 5234,
+  "returncode": 1,
+  "elapsed_seconds": 3204.52,
+  "actual_model": "claude-opus-5-5",
+  "session_id": "5ee7b771-2cdc-4a88-a6bb-190dd0efeebe",
+  "result": {
+    "duration_api_ms": 3240142,
+    "stop_reason": "stop_sequence",
+    "session_id": "5ee7b771-2cdc-4a88-a6bb-190dd0efeebe",
+    "total_cost_usd": 16.114304399999998,
+    "usage": {
+      "input_tokens": 218,
+      "cache_creation_input_tokens": 469375,
+      "cache_read_input_tokens": 29238850,
+      "output_tokens": 218971,
+      "output_tokens_details": {
+        "thinking_tokens": 132349
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 469375,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 780,
+          "cache_read_input_tokens": 468631,
+          "cache_creation_input_tokens": 6493,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 6493
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 218,
+        "outputTokens": 218971,
+        "cacheReadInputTokens": 29238850,
+        "cacheCreationInputTokens": 469375,
+        "webSearchRequests": 0,
+        "costUSD": 13.983062000000002,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 132349,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 102,
+        "outputTokens": 71661,
+        "cacheReadInputTokens": 4916867,
+        "cacheCreationInputTokens": 172422,
+        "webSearchRequests": 0,
+        "costUSD": 2.1312423999999996,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 52573,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "api_error",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 1,
+      "requested": {
+        "background": 1,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 1,
+      "max_depth": 1,
+      "spawned_by_subagents": 0,
+      "completed": 1,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {
+        "general-purpose": 1
+      }
+    },
+    "is_error": true,
+    "num_turns": 128,
+    "subtype": "success",
+    "api_error_status": 429,
+    "result": "You've hit your monthly spend limit · raise it at claude.ai/settings/usage?from=cc_cli_limit_message · your session limit resets 11:50am (UTC)",
+    "type": "result",
+    "duration_ms": 3197377,
+    "uuid": "93f02f44-592e-4e3e-90bf-783de2baf6ce",
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

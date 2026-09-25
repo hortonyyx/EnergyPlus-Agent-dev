@@ -10,3 +10,10 @@
 - 订阅环境沿用已登录身份，移除 API/第三方路由环境变量；禁用额外 MCP、项目设置和 hooks，显式允许读写、Shell 与内置子代理。使用现有 Python，并将模块路径指向本工作树，不运行依赖同步，避免改动共享 editable 安装。
 
 运行状态与集成结果由 [统一交接](../../worklog/2026-09-25_dual_manager_development.md) 更新；原始资产和旧实验未覆写。
+
+
+本轮已实际交付[Voimatalo新候选](../2026-09-25_voimatalo_opus_development/README.md)，工作包全部修改限于该实验目录。Opus自行派1次实际Sonnet 5独立复核，completed=1；Astra管理合并，并另派Sol修共享跨层反馈。
+
+会话3204.52秒后在收尾时返回额度限制，退出码1、is_error=true；`opus_receipt.json`的subtype虽为success，不能据此称正常完成。候选、最终修订和15组技术检查已保存，Astra接手补齐交接与提交。CLI总估算$16.1143044含子调用，非订阅账单；不推断账户长期额度或自动重试时间。
+
+`opus_stream.jsonl.gz`由[归档脚本](archive_opus.py)无损压缩已脱敏流，`opus_stream_archive.json`记录摘要、用量和中断原因，`opus_response.md`保留终止文本。最终源以[final_audit](opus_candidate_01_final_audit.json)为准；此前integration_audit保留早期源版本的独立检查。技术通过不替代用户对推断布局与缺失补全的验收。
