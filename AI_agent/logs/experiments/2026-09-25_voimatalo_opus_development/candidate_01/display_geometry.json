@@ -69049,7 +69049,7 @@
       "corrections": [],
       "method": "agent_geometry_proposal",
       "notes": "Opus 5.5 developer revision: interior organisation and completion are explicit hypotheses constrained by observed openings; actual internal layout is unknown.",
-      "proposal_sha256": "f6fe4f5b87f3cf28e255b6cb4e7e92e0c29cb8e6d8c5bd32e79c444b1a576a79",
+      "proposal_sha256": "ac2b6d649078fba9443ebc7f3779ca2235ddeb30e85bdbb1ce1da5d2a989919b",
       "provenance": {
         "aperture_input_metadata": {
           "completion_actions": {
@@ -100817,7 +100817,7 @@
             "AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/evidence_01/sections.png"
           ]
         },
-        "plan_sha256": "865e46bf2c51904887390b8a1998f46b8c3049c1e5ecc40e48bde17eb85ddad2",
+        "plan_sha256": "31457ba956a7157a7ea3dec4155497944151c4270033c3563bd992add0e5974a",
         "prior_context": "Developer has seen previous candidates and the user rejection; no independent cold-start claim.",
         "product_model_calls": 0,
         "skipped_connection_pairs": [
@@ -100895,7 +100895,7 @@
         "space_evidence": {
           "ANNEX_hall": "Observed low courtyard mass with two window rows; one tall commercial hall (no inferred mezzanine). M-roundel signage on its courtyard glazing and on the street shopfront suggests a shared commercial/public use, not asserted. Internal subdivision unknown.",
           "CORE_N_continuous": "Stair and lift core in the inner corner under the northern raised roof mass; hosts the observed narrow corner windows on the set-back courtyard segment. Stair/lift detail and landing doors are inferred.",
-          "CORE_S_continuous": "Lift/service core in the windowless courtyard-side band under the southern raised roof mass (lift machine-room reading), behind a partially scanned glazed column and the scan hole of a cropped projecting volume. Continues into the set-back F8 landing through an open contact. Lift count, shafts and any secondary stair are not modelled.",
+          "CORE_S_continuous": "South lift/service core: the only assumed lift location in the south cluster (lift count not modelled), in the windowless courtyard-side band under the southern raised roof mass (lift machine-room reading), behind a partially scanned glazed column and the scan hole of a cropped projecting volume. Continues into the set-back F8 landing through an open contact. Shafts and any secondary stair are not modelled.",
           "F1_back_s": "Ground-floor service/storage at the courtyard side of the south end, reached from the entrance hall. Use unknown.",
           "F1_entry_s": "Main office entrance hall at the dark south-west street bay (bright sign above) and lift lobby leading to the south lift core; the main stair rises from here (open contact with STAIR_S above). Entrance position is an inference from texture, not an observed door.",
           "F1_lobby_n": "North entrance lobby from the north street front to the north core. The ground-floor north facade is absent from the scan; the entrance is an inferred completion, not an observation.",
@@ -100972,7 +100972,7 @@
           "ROOF_STACK_enclosure": "roof/sections.json z33 contour and roof/south_box.png. Stack outline/height regularised; interior function unknown, logical base open to underlying envelope.",
           "ROOF_S_enclosure": "roof/south_box.png and sections z29/30.5/31.5. Southern raised mass formerly missing beneath the stack. Rounded/tapered cap simplified as prism, no internal room inferred.",
           "ROOF_enclosure": "roof/sections.json z27.9 traces and roof/top.png. Curved roof simplified to low envelope; footprint approximate, top is a representative level, not a surveyed flat roof.",
-          "STAIR_S_stair_hall": "Main stair hall behind the street glazing composition (inventoried tall bay y -32.34..-27.97 with two bands per storey, plus the measured adjacent glazed column y -27.90..-26.09). Starts above the F1 entrance hall (open contact) and ends under the set-back F8 landing (open contact); flights/landings not modelled; may also hold a lift. Inferred from facade texture, not observed inside."
+          "STAIR_S_stair_hall": "Main stair hall behind the street glazing composition (inventoried tall bay y -32.34..-27.97 with two bands per storey, plus the measured adjacent glazed column y -27.90..-26.09). Starts above the F1 entrance hall (open contact) and ends under the set-back F8 landing (open contact); flights/landings not modelled. Stair only: the south lifts are assumed in CORE_S. Inferred from facade texture, not observed inside."
         },
         "space_roles": {
           "ANNEX_hall": "annex_commercial_hall_hypothesis",
@@ -101060,10 +101060,12 @@
       "unresolved": [
         "真实内部隔墙、单间划分、柱网、走廊宽度与门位没有任何内部资料；本方案只保证与外部观测约束相容。",
         "西南沿街高玻璃竖带也可解释为大窗房间，主入口也可能在别处；若用户否定楼梯判断，可把STAIR_S改回办公端间，其余布局不变。",
-        "南核内电梯数量、次楼梯、烟囱/通风竖井（屋顶烟囱在走廊线附近）未建模；内院侧南端多格玻璃列（≈-27.8..-26.1）只部分扫到，未入窗清单，所在墙段保留未知。",
+        "南端电梯只假设在南核一处（台数未建模）；次楼梯、烟囱/通风竖井（屋顶烟囱在走廊线附近）未建模；内院侧南端多格玻璃列（≈-27.8..-26.1）只部分扫到，未入窗清单，所在墙段保留未知。",
         "内院被裁凸出体（y≈-26..-21.8）的真实深度与用途未知，未补体量；短翼内院东端（x>15.3）扫描洞未补窗。",
         "北面首层店面/入口及西南主入口为补全推断；首层内院面、退台两端开口、屋盖曲面及残缺窗下沿仍未知。",
-        "贴邻山墙在源BIM中只能表示为无窗实体墙；邻楼贴邻条件需要公共围护词汇（见PUBLIC_INTERFACE_NOTES.md）。"
+        "贴邻山墙在源BIM中只能表示为无窗实体墙；邻楼贴邻条件需要公共围护词汇（见PUBLIC_INTERFACE_NOTES.md）。",
+        "办公带、零售大厅、卫生间/服务间是合并表达，不是逐间房间或逐间温区；给排水、人流或逐间热分析前需要按用户选定档位细分。屋盖五部件是外壳几何部件，不是可达的使用空间。",
+        "贴邻山墙目前只能存成无窗实体墙；在运行 EnergyPlus 等后端前必须按绝热/邻楼边界处理，否则两端房间负荷会被当作外墙失真（公共条件需求见 PUBLIC_INTERFACE_NOTES.md）。"
       ]
     },
     "mesh_frame": {
@@ -118960,7 +118962,7 @@
       "schema_version": "source_enclosure_applied_v1"
     },
     "source_geometry_sha256": "77c274d30eb131ed9d6cdc9bc48dc31d8ee451b397a6e593c098d7449a615abf",
-    "source_model_sha256": "8ca4755997be3c9097ba71a3d436e56e82e92e72665e454a351e017ab638c21b",
+    "source_model_sha256": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc",
     "spaces": [
       {
         "floor_id": "ANNEX",

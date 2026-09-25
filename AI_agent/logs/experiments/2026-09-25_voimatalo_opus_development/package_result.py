@@ -82,7 +82,7 @@ def main():
 
     (output / 'overlay.html').write_text(OLD['build_overlay_viewer'](source, display, OLD['DEFAULT_RAW_VIEWER'].resolve()), encoding='utf-8')
     style = ('<style>body{font:16px/1.6 system-ui;margin:24px;color:#233b4c;max-width:1500px}a{color:#116b7a}'
-             'main{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px}figure{margin:0;'
+             'main{display:grid;grid-template-columns:repeat(auto-fit,minmax(640px,1fr));gap:16px}figure{margin:0;'
              'border:1px solid #cdd5dc;padding:10px}img{width:100%}iframe{width:100%;height:820px;border:1px solid #cdd5dc}'
              'table{border-collapse:collapse}td,th{border:1px solid #cdd5dc;padding:4px 8px;vertical-align:top}</style>')
     (output / 'observations.html').write_text(
@@ -111,7 +111,7 @@ def main():
         'new_observations': rel(args.new_observations.resolve() / 'manifest.json', output),
     }
     rows = [
-        ('观测（原网格/纹理，沿用）', '外壳、八层标高、退台与屋盖五部件；287组窗坐标不变；西侧店面玻璃与玻璃店门；两短端扫描系统性缺失与相邻屋面剪影；南端沿街高玻璃竖带（每层两道横带）；无窗沿街带；南北屋顶凸起；内院被裁凸出体的扫描洞'),
+        ('观测（原网格/纹理）', '沿用：外壳、八层标高、退台与屋盖五部件、287组窗坐标、西侧店面玻璃与玻璃店门。本轮新看/新量：两短端扫描系统性缺失与相邻屋面剪影；南端沿街玻璃组（每层两道横带）及其旁8组此前未入清单的沿街窗；南北屋顶凸起；内院被裁凸出体的扫描洞与部分可见的多格玻璃列'),
         ('推断（本轮新增，均可调整）', '双面走廊办公组织：L形走廊连通南北两端交通组；南端主楼梯间（高玻璃竖带后）+西南主入口、电梯/服务核、卫生间；北端转角楼梯电梯核+服务间；西北角会议/大办公室；首层零售、门厅、后勤；北面首层店面窗5组与3处门、西南主入口门；两短端判为无窗贴邻山墙'),
         ('简化（本档合并）', '同侧连续单间办公室合并为一个办公带；首层零售租户合并；附属低体一个大厅；每对空间一扇代表门；楼梯梯段/电梯井不建实体；屋盖棱柱近似'),
         ('仍未知（保留为未知或未建）', '真实内部隔墙与门位；内院被裁凸出体的深度/用途；短翼内院东端扫描洞；退台两端开口；首层内院缺面；内院南端多格玻璃竖带与暗槽的语义'),
