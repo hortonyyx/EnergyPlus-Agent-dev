@@ -11,6 +11,7 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 
 from src.agent.geometry.source_model import _digest
+from src.agent.geometry.source_floor_selection import select_source_floor, select_source_floor_openings
 from src.agent.reading.cv_toolbox.tools import _load_rgb, px_m_calibrator
 
 
@@ -287,7 +288,6 @@ def render_source_overlay(
         raise ValueError("unknown source floor_id")
 
     spaces_by_id: dict[str, dict] = {}
-    selected_spaces: list[dict] = []
     for space in spaces:
         if not isinstance(space, dict) or not isinstance(space.get("id"), str) or not space["id"]:
             raise ValueError("source space requires a nonempty id")
@@ -296,8 +296,8 @@ def render_source_overlay(
         if space.get("floor_id") not in floor_ids:
             raise ValueError("source space references unknown floor")
         spaces_by_id[space["id"]] = space
-        if space["floor_id"] == floor_id:
-            selected_spaces.append(space)
+    floor, selected_spaces = select_source_floor(source, floor_id)
+    selected_opening_ids = {row["id"] for row in select_source_floor_openings(source, floor, selected_spaces)}
 
     def project(point: tuple[float, float]) -> tuple[float, float]:
         return ((point[0] - x_offset) / x_slope, (point[1] - y_offset) / y_slope)
@@ -345,10 +345,7 @@ def render_source_overlay(
         space_ids = opening.get("space_ids")
         if not isinstance(space_ids, list) or not space_ids or any(sid not in spaces_by_id for sid in space_ids):
             raise ValueError(f"source opening {opening['id']} has invalid space_ids")
-        opening_floors = {spaces_by_id[sid]["floor_id"] for sid in space_ids}
-        if len(opening_floors) != 1:
-            raise ValueError(f"source opening {opening['id']} spans multiple floors")
-        if floor_id not in opening_floors:
+        if opening["id"] not in selected_opening_ids:
             continue
         endpoints = [project(point) for point in _unique_endpoints(
             _plan_points(opening.get("vertices"), name=f"opening {opening['id']} vertices"))]

@@ -7,20 +7,20 @@ from __future__ import annotations
 
 from shapely.geometry import Point, Polygon
 
+from src.agent.geometry.source_floor_selection import select_source_floor, select_source_floor_openings
 from src.agent.geometry.source_image_overlay import _axis_anchors, _number, _source_hash
 
 
 def review_space_relations(source, *, floor_id, image_size, x_anchors, y_anchors,
                            observations):
     source_hash = _source_hash(source)
-    if floor_id not in {row['id'] for row in source['floors']}:
-        raise ValueError('unknown source floor_id')
+    floor, selected_spaces = select_source_floor(source, floor_id)
+    visible_opening_ids = {row['id'] for row in select_source_floor_openings(source, floor, selected_spaces)}
     sx, ox, ax = _axis_anchors(x_anchors, axis='x', size=image_size[0])
     sy, oy, ay = _axis_anchors(y_anchors, axis='y', size=image_size[1])
     if not isinstance(observations, list) or not 1 <= len(observations) <= 32:
         raise ValueError('observations must contain 1 to 32 sampled relationships')
-    polygons = [(row['id'], Polygon(row['polygon'])) for row in source['spaces']
-                if row['floor_id'] == floor_id]
+    polygons = [(row['id'], Polygon(row['polygon'])) for row in selected_spaces]
     if any(not polygon.is_valid or polygon.is_empty for _, polygon in polygons):
         raise ValueError('source has invalid space polygons')
     # Numerical boundary ambiguity only, not a new geometry acceptance tolerance.
@@ -73,7 +73,8 @@ def review_space_relations(source, *, floor_id, image_size, x_anchors, y_anchors
         connections = [] if actual != 'separate_spaces' else [
             {key: connection.get(key) for key in ('opening_id', 'space_ids', 'kind', 'state')}
             for connection in source.get('connections', [])
-            if set(connection.get('space_ids', [])) == set(owners)]
+            if set(connection.get('space_ids', [])) == set(owners)
+            and connection.get('opening_id') in visible_opening_ids]
         consistency = ('not_assessed' if expected == 'uncertain' or actual == 'indeterminate'
                        else 'consistent_with_supplied_expectation' if actual == expected
                        else 'conflicts_with_supplied_expectation')

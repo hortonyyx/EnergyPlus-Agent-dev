@@ -2,12 +2,13 @@
 from PIL import Image, ImageDraw
 from shapely.geometry import Polygon
 
+from src.agent.geometry.source_floor_selection import select_source_floor, select_source_floor_openings
 from src.agent.geometry.source_image_overlay import _source_hash
 
 
 def render_source_plan(source: dict, floor_id: str):
     source_hash = _source_hash(source)
-    rooms = [space for space in source["spaces"] if space["floor_id"] == floor_id]
+    floor, rooms = select_source_floor(source, floor_id)
     if not rooms:
         raise ValueError("unknown floor_id")
     points = [point for space in rooms for point in space["polygon"]]
@@ -26,8 +27,7 @@ def render_source_plan(source: dict, floor_id: str):
         draw.polygon(ring, fill=(220 + (index * 11) % 30, 225, 235), outline="black", width=3)
         point = Polygon(space["polygon"]).representative_point()
         draw.text(convert((point.x, point.y)), space["id"], fill="black", anchor="mm")
-    ids = {space["id"] for space in rooms}
-    openings = [opening for opening in source["openings"] if ids.intersection(opening["space_ids"])]
+    openings = select_source_floor_openings(source, floor, rooms)
     for opening in openings:
         points = list(dict.fromkeys(tuple(vertex[:2]) for vertex in opening["vertices"]))
         draw.line([convert(point) for point in points],

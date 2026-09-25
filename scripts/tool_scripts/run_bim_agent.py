@@ -2330,6 +2330,8 @@ def run_experiment(args):
                                  "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
                                  "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
                                  "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
+                                 "src/agent/geometry/source_floor_selection.py":digest(ROOT/"src/agent/geometry/source_floor_selection.py"),
+                                 "src/agent/geometry/source_space_relations.py":digest(ROOT/"src/agent/geometry/source_space_relations.py"),
                                  "src/agent/geometry/source_elevation_view.py":digest(ROOT/"src/agent/geometry/source_elevation_view.py"),
                                  "src/agent/geometry/source_plan_view.py":digest(ROOT/"src/agent/geometry/source_plan_view.py"),
                                  "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
