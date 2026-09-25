@@ -1,0 +1,148 @@
+{
+  "mesh_path": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+  "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+  "coordinate_frame": "BIM-local right-handed Z-up metres",
+  "source_coordinate_transform": {
+    "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+    "y_up_to_z_up": "[X, -Z, Y]",
+    "y_up_to_z_up_matrix": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "yaw_degrees_counterclockwise_about_positive_z": 14.887066917997172,
+    "yaw_matrix": [
+      [
+        0.9664340959661831,
+        -0.25691465149739207,
+        0.0
+      ],
+      [
+        0.25691465149739207,
+        0.9664340959661831,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "vertex_count": 8242,
+  "face_count": 12520,
+  "scene_instance_count": 1,
+  "selected_vertex_count": 8242,
+  "selected_face_count": 12520,
+  "bounds": [
+    [
+      -14.597717588816785,
+      -34.39398983081385,
+      0.0
+    ],
+    [
+      20.03043407465869,
+      26.887443828732383,
+      34.27320098876953
+    ]
+  ],
+  "selection_bounds": null,
+  "selection_method": "all faces",
+  "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+  "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint.",
+  "camera": {
+    "projection": "orthographic",
+    "eye": [
+      60.0,
+      -70.0,
+      30.0
+    ],
+    "target": [
+      0.0,
+      -24.0,
+      14.0
+    ],
+    "eye_target_distance_m": 77.27871634544663,
+    "forward_from_eye": [
+      -0.7764104120440051,
+      0.5952479825670706,
+      -0.207042776545068
+    ],
+    "screen_right": [
+      0.6084315436571356,
+      0.793606361291916,
+      -0.0
+    ],
+    "screen_up": [
+      -0.16431046452570663,
+      0.12597135613637508,
+      0.9783318908634784
+    ],
+    "up_reference": "+Z",
+    "top_view_fallback": "When the view direction is parallel to Z, +Y is used as the stable up reference; otherwise BIM +Z is used."
+  },
+  "view_span_m": {
+    "width": 30.0,
+    "height": 34.0
+  },
+  "resolution_px": {
+    "width": 1235,
+    "height": 1400
+  },
+  "pixel_center_mapping": {
+    "formula": "plane_xyz(row,col)=top_left+col*column_step+row*row_step; surface_xyz additionally advances along camera forward to the visible triangle",
+    "top_left_pixel_center_plane_xyz": [
+      -11.910365996490683,
+      -33.7544730735826,
+      30.619762400290075
+    ],
+    "column_step_world_xyz": [
+      0.014779713611104509,
+      0.01927788731883197,
+      -0.0
+    ],
+    "row_step_world_xyz": [
+      0.003990396995624304,
+      -0.003059304363311966,
+      -0.023759488778113045
+    ],
+    "pixel_width_m": 0.024291497975708502,
+    "pixel_height_m": 0.024285714285714285,
+    "pixel_coordinates": "zero-based [column, row] with image origin at top-left"
+  },
+  "rasterizer": {
+    "texture_interpolation": "barycentric UV, glTF REPEAT wrap, nearest texture pixel",
+    "texture_v_mapping": "PIL image rows are the vertical inverse of glTF UV",
+    "depth_test": "nearest positive distance along camera forward",
+    "material_display": "unlit, double-sided geometric observation; sRGB base-color texture is decoded to linear RGB, multiplied by baseColorFactor, and encoded back to sRGB; this is not PBR-lighting or backface-culling faithful",
+    "candidate_faces_overlapping_view": 5101,
+    "visible_pixel_count": 1448130
+  },
+  "artifacts": {
+    "png": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/observations/court_southeast_oblique.png",
+    "metadata_json": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/observations/court_southeast_oblique.json",
+    "pixel_buffer_npz": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/observations/court_southeast_oblique.npz",
+    "pixel_buffer_layout": "sorted flat pixel indices with compact world XYZ and global face IDs"
+  }
+}
