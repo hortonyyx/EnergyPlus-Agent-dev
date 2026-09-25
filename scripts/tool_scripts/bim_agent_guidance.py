@@ -118,7 +118,16 @@ two already separate spaces; it NEVER merges them. Where the original shows one
 continuous space, remove the invented separating path portion and rebuild its
 boundary, rather than adding a passage across that invented division. Preserve
 the real wall portions and all unrelated rooms/openings.
-It returns the actual source overlaid on the same original using your anchors.
+After building, select a few consequential same-space AND separate-space observations
+from the original plan. Use check_source_space_relation with two well-inside original
+pixel points, your expected relationship and original-image evidence. It reports actual
+source space IDs and connections using your registered calibration. A door/open connection
+between different IDs does not satisfy a same-space observation. Recheck contradictory
+observations, point placement and calibration against the original, then correct the
+partition or observation as justified before spending effort on small dimension residuals.
+Repeat relevant samples on the revised candidate: old-source reviews become stale.
+These are sampled consistency checks, not whole-floor fidelity approval.
+The plan builder returns the actual source overlaid on the same original using your anchors.
 If compilation fails, its draft overlay shows the submitted pixel paths and
 apertures, not a constructed or verified BIM. Compare the numbered paths with
 the original before revising them. Closing a polygon is not evidence for a wall:

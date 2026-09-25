@@ -75,6 +75,54 @@ def _error_text(result) -> str:
     return "\n".join(getattr(row, "text", "") for row in result.content)
 
 
+def test_space_relation_stdio_uses_current_source_and_registered_calibration(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        plan = dict(floor_id='F1', z_floor=0, ceiling_height=3,
+            x_anchors=[[0,0],[11,11]], y_anchors=[[0,7],[7,0]], basis='synthetic',
+            footprint_pixels=[[1,1],[10,1],[10,6],[1,6]],
+            partitions=[dict(id='wall',points=[[5,1],[5,6]],source_refs=['synthetic'])],
+            openings=[dict(id='door',kind='door',p1=[5,3],p2=[5,4],z=[0,2],source_refs=['synthetic'])],
+            assumptions=[],unresolved=[])
+        observations = [dict(id='hall',points=[[3,2],[8,2]],expected='same_space',evidence='synthetic observation')]
+        async with _server_session(run, readonly=False) as session:
+            first = _json_result(await session.call_tool('build_plan_bim', dict(image='plan.png',plan_json=json.dumps(plan))))
+            assert first['source_geometry_ready']
+            candidate = first['candidate']
+            path = run/candidate/'source_model.json'
+            unchanged = path.read_bytes()
+            args = dict(candidate=candidate,image='plan.png',floor_id='F1',observations_json=json.dumps(observations))
+            checked = _json_result(await session.call_tool('check_source_space_relation', args))
+            assert checked['conflict_count'] == 1
+            assert checked['observations'][0]['direct_connections'][0]['opening_id'] == 'door'
+            assert checked['calibration_sha256'] == digest(run/checked['calibration_file'])
+            assert json.loads((run/checked['review_file']).read_text()) == checked
+            assert path.read_bytes() == unchanged
+            first_delivery = _json_result(await session.call_tool('finish_bim', {'candidate':candidate}))
+            assert first_delivery['space_relation_review']['conflict_count'] == 1
+            observations[0]['expected'] = 'separate_spaces'
+            await session.call_tool('check_source_space_relation', {**args,'observations_json':json.dumps(observations)})
+            second_delivery = _json_result(await session.call_tool('finish_bim', {'candidate':candidate}))
+            assert second_delivery['space_relation_review']['sample_count'] == 1
+            assert second_delivery['space_relation_review']['status'] == 'consistent_with_supplied_samples'
+            plan['partitions'] = []
+            plan['openings'] = []
+            second = _json_result(await session.call_tool('build_plan_bim', dict(image='plan.png',plan_json=json.dumps(plan))))
+            assert second['source_geometry_ready']
+            stale = _json_result(await session.call_tool('finish_bim', {'candidate':second['candidate']}))
+            assert stale['space_relation_review']['status'] == 'not_reviewed'
+            assert stale['space_relation_review']['stale_review_count'] == 2
+            observations[0]['expected'] = 'same_space'
+            repaired = _json_result(await session.call_tool('check_source_space_relation', {
+                **args,'candidate':second['candidate'],'observations_json':json.dumps(observations)}))
+            assert repaired['observations'][0]['actual_relation'] == 'same_space'
+            invalid = await session.call_tool('check_source_space_relation', {**args,'image':'../plan.png'})
+            assert invalid.isError
+        async with _server_session(run, readonly=True) as session:
+            assert 'check_source_space_relation' not in {t.name for t in (await session.list_tools()).tools}
+    asyncio.run(scenario())
+
+
 def test_plan_wall_support_stdio_reads_saved_paths_and_preserves_source(tmp_path):
     async def scenario():
         from PIL import ImageDraw

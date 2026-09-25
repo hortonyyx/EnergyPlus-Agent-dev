@@ -574,6 +574,7 @@ class Toolkit:
                   "generation_status": generation_status or {"state":"in_progress"},
                   **summarize_delivery(source, reviews)}
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
+        result["space_relation_review"] = self.space_relation_status(source)
         claim_state = self.claims().status()
         from src.agent.execution.bim_claim_state import project
         current_claims = project(self.claims(), candidate)
@@ -1064,6 +1065,61 @@ class Toolkit:
                 raise ValueError(f"invalid overlay calibration identity: {path.name}")
             latest[(image, floor_id)] = (path, record)
         return list(latest.values())
+
+    def check_space_relations(self, candidate, image, floor_id, observations_json):
+        from src.agent.geometry.source_space_relations import review_space_relations
+        self.image_path(image)
+        calibrations = [(path, row) for path, row in self.registered_calibrations()
+                        if (row['image'], row['floor_id']) == (image, floor_id)]
+        if not calibrations:
+            raise ValueError('register this image/floor calibration with overlay_candidate or build_plan_bim first')
+        path, calibration = calibrations[0]
+        if calibration['image_sha256'] != self.manifest['images'][image]['sha256']:
+            raise ValueError('calibration original image changed')
+        source = json.loads((self.candidate_path(candidate) / 'source_model.json').read_text())
+        report = review_space_relations(source, floor_id=floor_id,
+            image_size=self.manifest['images'][image]['size'],
+            x_anchors=calibration['x_anchors'], y_anchors=calibration['y_anchors'],
+            observations=json.loads(observations_json))
+        folder = self.run / 'space_relation_reviews'
+        folder.mkdir(exist_ok=True)
+        target = folder / f'review_{len(list(folder.glob("review_*.json"))) + 1:03d}.json'
+        result = {**report, 'candidate': candidate, 'image': image,
+                  'image_sha256': self.manifest['images'][image]['sha256'],
+                  'calibration_file': str(path.relative_to(self.run)),
+                  'calibration_sha256': digest(path),
+                  'review_file': str(target.relative_to(self.run)),
+                  'remaining_seconds': self.remaining_seconds()}
+        dump(target, result)
+        self.log('check_source_space_relation', result)
+        return result
+
+    def space_relation_status(self, source):
+        """Keep sampled expectations tied to the current source and calibration."""
+        calibrations = {(row['image'], row['floor_id']): digest(path)
+                        for path, row in self.registered_calibrations()}
+        latest, stale_count = {}, 0
+        for path in sorted((self.run / 'space_relation_reviews').glob('review_*.json')):
+            report = json.loads(path.read_text())
+            pair = (report['image'], report['floor_id'])
+            if (report['source_model_sha256'] != source['source_model_sha256']
+                    or report['calibration_sha256'] != calibrations.get(pair)
+                    or report['image_sha256'] != self.manifest['images'].get(pair[0], {}).get('sha256')):
+                stale_count += 1
+                continue
+            self.image_path(pair[0])
+            for row in report['observations']:
+                latest[(*pair, row['id'])] = {**row, 'review_file': str(path.relative_to(self.run))}
+        conflicts = [row for row in latest.values() if row['consistency'] == 'conflicts_with_supplied_expectation']
+        unassessed = sum(row['consistency'] == 'not_assessed' for row in latest.values())
+        status = ('not_reviewed' if not latest else 'observations_require_follow_up' if conflicts or unassessed
+                  else 'consistent_with_supplied_samples')
+        return {'status': status, 'sample_count': len(latest), 'conflict_count': len(conflicts),
+                'unassessed_count': unassessed, 'stale_review_count': stale_count,
+                'conflicts': [{'id': row['id'], 'expected': row['expected'],
+                               'actual_relation': row['actual_relation'], 'review_file': row['review_file']}
+                              for row in conflicts],
+                'coverage': 'caller_selected_point_pairs_only', 'drawing_fidelity': 'not_evaluated'}
 
     def _save_calibration(self, *, candidate, image, floor_id, x_anchors, y_anchors, basis, metadata):
         """Append an explicit calibration. Later records supersede only the same pair."""
@@ -1977,6 +2033,21 @@ def serve(run: Path, readonly=False):
                 'page_is_partial':True}
             toolkit.log('read_candidate_items', {k:v for k,v in result.items() if k!='items'})
             return result
+
+        @server.tool()
+        def check_source_space_relation(candidate: str, image: str, floor_id: str,
+                                        observations_json: str) -> dict:
+            """Compare original-plan observations with actual source space ownership.
+            observations_json is a list of {id, points:[[original_px_x,original_px_y],
+            [original_px_x,original_px_y]], expected:"same_space"|"separate_spaces"|
+            "uncertain", evidence:"what the original shows"}. Pick points well inside
+            the observed spaces. Uses the latest registered image/floor calibration;
+            first build_plan_bim or overlay_candidate if none exists. Returns actual
+            space IDs and any direct door/open connection; connected does NOT mean the
+            same space. Saves a source/calibration-bound review. Never edits geometry
+            or certifies drawing truth. Recheck after revisions before finish_bim.
+            """
+            return toolkit.check_space_relations(candidate, image, floor_id, observations_json)
 
         @server.tool()
         def check_openings(candidate: str, review_json: str = "", heights_only: bool = False) -> dict:

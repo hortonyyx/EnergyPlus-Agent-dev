@@ -1,0 +1,181 @@
+{
+  "mode": "developer_only_historical_replay_not_model_generation",
+  "reports": {
+    "2026-09-24_sm25_continuous_space_glm_run44": {
+      "source_file": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-24_sm25_continuous_space_glm_run44/candidate_03/source_model.json",
+      "source_file_sha256": "3d8bef8865072172ce24a029ab88eef50e181238d1f3fbb9e4c983dea2cdc8e7",
+      "calibration_file": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-24_sm25_continuous_space_glm_run44/overlay_calibrations/calibration_002.json",
+      "calibration_sha256": "0ae6b81c835ea6e45fdc17615cce43ec672bbfb5b9e4d8c9f8b9c27ab9485a77",
+      "report": {
+        "schema_version": "source_space_relation_review_v1",
+        "source_model_sha256": "28e4b8032b4ee4c81d304d3b56f2b19654e029d5680ccc5f3950b9580336e87a",
+        "floor_id": "F1",
+        "calibration": {
+          "x_anchors": [
+            [
+              282.0,
+              0.0
+            ],
+            [
+              1437.0,
+              25.0
+            ]
+          ],
+          "y_anchors": [
+            [
+              1235.0,
+              0.0
+            ],
+            [
+              310.0,
+              20.0
+            ]
+          ]
+        },
+        "calibration_unverified": true,
+        "drawing_fidelity": "not_evaluated",
+        "coverage": "caller_selected_point_pairs_only",
+        "observations": [
+          {
+            "id": "historical_continuous_space",
+            "expected": "same_space",
+            "evidence": "Developer historical audit of the original continuous floor-plan region.",
+            "points": [
+              {
+                "pixel": [
+                  745.0,
+                  900.0
+                ],
+                "world_xy_m": [
+                  10.021645021645021,
+                  7.243243243243246
+                ],
+                "status": "inside_one_space",
+                "space_id": "corridor_open",
+                "interior_space_ids": [
+                  "corridor_open"
+                ],
+                "boundary_space_ids": []
+              },
+              {
+                "pixel": [
+                  745.0,
+                  1000.0
+                ],
+                "world_xy_m": [
+                  10.021645021645021,
+                  5.081081081081084
+                ],
+                "status": "inside_one_space",
+                "space_id": "F1_S13",
+                "interior_space_ids": [
+                  "F1_S13"
+                ],
+                "boundary_space_ids": []
+              }
+            ],
+            "actual_relation": "separate_spaces",
+            "direct_connections": [
+              {
+                "opening_id": "PASS_corr_s",
+                "space_ids": [
+                  "F1_S13",
+                  "corridor_open"
+                ],
+                "kind": "open",
+                "state": "open"
+              }
+            ],
+            "consistency": "conflicts_with_supplied_expectation"
+          }
+        ],
+        "conflict_count": 1,
+        "unassessed_count": 0,
+        "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity."
+      }
+    },
+    "2026-09-24_sm25_partition_feedback_glm_run45": {
+      "source_file": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-24_sm25_partition_feedback_glm_run45/candidate_01/source_model.json",
+      "source_file_sha256": "63644f8c03ab2d0ba7acc04200542b11b36a97271a626e164b7ad10b8a136baa",
+      "calibration_file": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-24_sm25_partition_feedback_glm_run45/overlay_calibrations/calibration_001.json",
+      "calibration_sha256": "b20919a34ca3ba7c74a2b2ea374cbbb757d50df7ad8c1c35eecdd92bb90fbcc2",
+      "report": {
+        "schema_version": "source_space_relation_review_v1",
+        "source_model_sha256": "8946775ff611cbe41def52f1a0aaa7d0f489d046a4ec2eda2f5ba43aaddd43c0",
+        "floor_id": "F1",
+        "calibration": {
+          "x_anchors": [
+            [
+              282.0,
+              0.0
+            ],
+            [
+              1437.0,
+              25.0
+            ]
+          ],
+          "y_anchors": [
+            [
+              1235.0,
+              0.0
+            ],
+            [
+              310.0,
+              20.0
+            ]
+          ]
+        },
+        "calibration_unverified": true,
+        "drawing_fidelity": "not_evaluated",
+        "coverage": "caller_selected_point_pairs_only",
+        "observations": [
+          {
+            "id": "historical_continuous_space",
+            "expected": "same_space",
+            "evidence": "Developer historical audit of the original continuous floor-plan region.",
+            "points": [
+              {
+                "pixel": [
+                  745.0,
+                  900.0
+                ],
+                "world_xy_m": [
+                  10.021645021645021,
+                  7.243243243243246
+                ],
+                "status": "inside_one_space",
+                "space_id": "corridor_open",
+                "interior_space_ids": [
+                  "corridor_open"
+                ],
+                "boundary_space_ids": []
+              },
+              {
+                "pixel": [
+                  745.0,
+                  1000.0
+                ],
+                "world_xy_m": [
+                  10.021645021645021,
+                  5.081081081081084
+                ],
+                "status": "inside_one_space",
+                "space_id": "corridor_open",
+                "interior_space_ids": [
+                  "corridor_open"
+                ],
+                "boundary_space_ids": []
+              }
+            ],
+            "actual_relation": "same_space",
+            "direct_connections": [],
+            "consistency": "consistent_with_supplied_expectation"
+          }
+        ],
+        "conflict_count": 0,
+        "unassessed_count": 0,
+        "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity."
+      }
+    }
+  }
+}
