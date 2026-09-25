@@ -1,0 +1,1628 @@
+{
+  "schema": "voimatalo_0925_validation_v1",
+  "overall": "pass",
+  "candidate": "AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/candidate_01",
+  "source_model_sha256": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc",
+  "baseline": "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/candidate_04",
+  "validator_sha256": "f94ce8ea15d29ed8bb5d675710cb87177af727e88059bf4738f5174dfd2cefa1",
+  "checks": {
+    "source_replay": {
+      "status": "pass",
+      "stored_digest": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc",
+      "calculated_digest": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc",
+      "replayed_digest": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc",
+      "exact_json": true,
+      "exact_source_model_bytes": true,
+      "source_file_sha256": "be87ea324485f36c16310bb9712e4fac959b78390d936b378443e6f7ca83e8d5",
+      "replayed_source_file_sha256": "be87ea324485f36c16310bb9712e4fac959b78390d936b378443e6f7ca83e8d5",
+      "temporary_directory_removed_after_check": true
+    },
+    "assembly_replay": {
+      "status": "pass",
+      "returncode": 0,
+      "stderr_tail": "",
+      "files": {
+        "source_model.json": {
+          "exact_bytes": true,
+          "sha256": "be87ea324485f36c16310bb9712e4fac959b78390d936b378443e6f7ca83e8d5"
+        },
+        "proposal.json": {
+          "exact_bytes": true,
+          "sha256": "ac2b6d649078fba9443ebc7f3779ca2235ddeb30e85bdbb1ce1da5d2a989919b"
+        },
+        "opening_mapping.json": {
+          "exact_bytes": true,
+          "sha256": "c466b00531165f82f8782264eb2932d1e0c26d8138d5339843e92bbe35f0aa7f"
+        },
+        "report.json": {
+          "exact_bytes": true,
+          "sha256": "8014f4cb1fad7162ce54bbde428aec307df97b02c28740e24b5f429dbc268549"
+        }
+      },
+      "command": [
+        "python",
+        "assemble_candidate.py",
+        "--plan",
+        "AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/case_plan_v2.json",
+        "--out",
+        "<temporary>"
+      ]
+    },
+    "no_overlap": {
+      "status": "pass",
+      "overlaps": []
+    },
+    "shell_unchanged": {
+      "status": "pass",
+      "floors": [
+        {
+          "floor_id": "F1",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F2",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F3",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F4",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F5",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F6",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F7",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "F8",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "ANNEX",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "ROOF",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "ROOF_N_BASE",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "ROOF_N",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "ROOF_S",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        },
+        {
+          "floor_id": "ROOF_STACK",
+          "footprint_symmetric_difference_m2": 0.0,
+          "z_and_height_equal": true
+        }
+      ],
+      "interpretation": "Storey outlines, levels, annex and roof parts identical to candidate_04; changes are interior and openings only."
+    },
+    "window_retention": {
+      "status": "pass",
+      "baseline_window_count": 287,
+      "candidate_window_count": 300,
+      "missing_old_window_ids": [],
+      "geometry_changed_old_window_ids": [],
+      "rehosted_old_window_count": 278,
+      "added_measured_window_ids": [
+        "west_band_narrow_F6",
+        "west_band_narrow_F7",
+        "west_band_wide_F2",
+        "west_band_wide_F3",
+        "west_band_wide_F4",
+        "west_band_wide_F5",
+        "west_band_wide_F6",
+        "west_band_wide_F7"
+      ],
+      "added_inferred_window_ids": [
+        "north_F1_inferred_B00",
+        "north_F1_inferred_B02",
+        "north_F1_inferred_B05",
+        "north_F1_inferred_B06",
+        "north_F1_inferred_B07"
+      ],
+      "added_unexplained": [],
+      "interpretation": "Every candidate_04 window keeps identical vertices; owner space changes are expected re-hosting."
+    },
+    "openings_built": {
+      "status": "pass",
+      "declared": 388,
+      "built": 388,
+      "declared_not_built": [],
+      "unbuilt_openings": [],
+      "windows": 300,
+      "doors": 88,
+      "exterior_doors": [
+        "D_entry_annex",
+        "D_entry_west",
+        "D_main_entry_sw",
+        "D_north_lobby",
+        "D_north_shop_ne",
+        "D_north_shop_w"
+      ],
+      "windows_all_single_exterior_host": true
+    },
+    "partitions_on_piers": {
+      "status": "pass",
+      "partition_ends_checked": 77,
+      "conflicts": [],
+      "interpretation": "Inferred partitions meet the facade in window piers; no observed window is crossed."
+    },
+    "continuous_spaces": {
+      "status": "pass",
+      "continuous_spaces": [
+        {
+          "space_id": "STAIR_S_stair_hall",
+          "horizontal_boundaries": 2,
+          "z_values_m": [
+            5.6,
+            25.25
+          ],
+          "referenced_by_storeys": [
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7"
+          ],
+          "status": "pass"
+        },
+        {
+          "space_id": "CORE_S_continuous",
+          "horizontal_boundaries": 2,
+          "z_values_m": [
+            0.0,
+            25.25
+          ],
+          "referenced_by_storeys": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7"
+          ],
+          "status": "pass"
+        },
+        {
+          "space_id": "CORE_N_continuous",
+          "horizontal_boundaries": 2,
+          "z_values_m": [
+            0.0,
+            27.8
+          ],
+          "referenced_by_storeys": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8"
+          ],
+          "status": "pass"
+        }
+      ],
+      "declared_open_contacts": [
+        {
+          "pair": [
+            "F1_entry_s",
+            "STAIR_S_stair_hall"
+          ],
+          "open_connection_present": true
+        },
+        {
+          "pair": [
+            "F8_stair_landing_s",
+            "STAIR_S_stair_hall"
+          ],
+          "open_connection_present": true
+        },
+        {
+          "pair": [
+            "CORE_S_continuous",
+            "F8_core_s_landing"
+          ],
+          "open_connection_present": true
+        }
+      ],
+      "interpretation": "Only bottom/top horizontal boundaries: no intermediate slabs inside stair/core volumes."
+    },
+    "open_contact_display": {
+      "status": "pass",
+      "sides": [
+        {
+          "space_id": "F1_entry_s",
+          "boundary_id": "space/F1_entry_s/ceiling",
+          "contact_area_m2": 26.015,
+          "missing_open_m2": 0.0,
+          "open_outside_contact_m2": 0.0,
+          "physical_display_inside_contact_m2": 0.0
+        },
+        {
+          "space_id": "STAIR_S_stair_hall",
+          "boundary_id": "space/STAIR_S_stair_hall/floor",
+          "contact_area_m2": 26.015,
+          "missing_open_m2": 0.0,
+          "open_outside_contact_m2": 0.0,
+          "physical_display_inside_contact_m2": 0.0
+        },
+        {
+          "space_id": "STAIR_S_stair_hall",
+          "boundary_id": "space/STAIR_S_stair_hall/ceiling",
+          "contact_area_m2": 23.7,
+          "missing_open_m2": 0.0,
+          "open_outside_contact_m2": 0.0,
+          "physical_display_inside_contact_m2": 0.0
+        },
+        {
+          "space_id": "F8_stair_landing_s",
+          "boundary_id": "space/F8_stair_landing_s/floor",
+          "contact_area_m2": 23.7,
+          "missing_open_m2": 0.0,
+          "open_outside_contact_m2": 0.0,
+          "physical_display_inside_contact_m2": 0.0
+        },
+        {
+          "space_id": "CORE_S_continuous",
+          "boundary_id": "space/CORE_S_continuous/ceiling",
+          "contact_area_m2": 36.05,
+          "missing_open_m2": 0.0,
+          "open_outside_contact_m2": 0.0,
+          "physical_display_inside_contact_m2": 0.0
+        },
+        {
+          "space_id": "F8_core_s_landing",
+          "boundary_id": "space/F8_core_s_landing/floor",
+          "contact_area_m2": 36.05,
+          "missing_open_m2": 0.0,
+          "open_outside_contact_m2": 0.0,
+          "physical_display_inside_contact_m2": 0.0
+        }
+      ]
+    },
+    "roof_interfaces": {
+      "status": "pass",
+      "roof_space_ids": [
+        "ROOF_N_BASE_enclosure",
+        "ROOF_N_enclosure",
+        "ROOF_STACK_enclosure",
+        "ROOF_S_enclosure",
+        "ROOF_enclosure"
+      ],
+      "roof_to_roof_shared_pairs": [
+        {
+          "lower_space_id": "ROOF_N_BASE_enclosure",
+          "upper_space_id": "ROOF_N_enclosure",
+          "z_m": 31.0,
+          "shared_area_m2": 65.0
+        },
+        {
+          "lower_space_id": "ROOF_S_enclosure",
+          "upper_space_id": "ROOF_STACK_enclosure",
+          "z_m": 31.6,
+          "shared_area_m2": 3.299999999999999
+        },
+        {
+          "lower_space_id": "ROOF_enclosure",
+          "upper_space_id": "ROOF_N_BASE_enclosure",
+          "z_m": 28.6,
+          "shared_area_m2": 217.77000000000004
+        },
+        {
+          "lower_space_id": "ROOF_enclosure",
+          "upper_space_id": "ROOF_S_enclosure",
+          "z_m": 28.6,
+          "shared_area_m2": 67.76
+        }
+      ],
+      "roof_open_interface_sides": [
+        {
+          "space_id": "ROOF_N_BASE_enclosure",
+          "boundary_id": "space/ROOF_N_BASE_enclosure/ceiling",
+          "geometry_type": "ceiling",
+          "z_m": 31.0,
+          "expected_shared_open_area_m2": 65.0,
+          "declared_open_area_m2": 65.0,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "mixed",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_N_enclosure",
+          "boundary_id": "space/ROOF_N_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 31.0,
+          "expected_shared_open_area_m2": 65.0,
+          "declared_open_area_m2": 65.0,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_S_enclosure",
+          "boundary_id": "space/ROOF_S_enclosure/ceiling",
+          "geometry_type": "ceiling",
+          "z_m": 31.6,
+          "expected_shared_open_area_m2": 3.299999999999999,
+          "declared_open_area_m2": 3.299999999999999,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "mixed",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_STACK_enclosure",
+          "boundary_id": "space/ROOF_STACK_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 31.6,
+          "expected_shared_open_area_m2": 3.299999999999999,
+          "declared_open_area_m2": 3.299999999999999,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_enclosure",
+          "boundary_id": "space/ROOF_enclosure/ceiling",
+          "geometry_type": "ceiling",
+          "z_m": 28.6,
+          "expected_shared_open_area_m2": 285.53000000000003,
+          "declared_open_area_m2": 285.53000000000003,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "mixed",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_N_BASE_enclosure",
+          "boundary_id": "space/ROOF_N_BASE_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 28.6,
+          "expected_shared_open_area_m2": 217.77000000000004,
+          "declared_open_area_m2": 217.77,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        },
+        {
+          "space_id": "ROOF_S_enclosure",
+          "boundary_id": "space/ROOF_S_enclosure/floor",
+          "geometry_type": "floor",
+          "z_m": 28.6,
+          "expected_shared_open_area_m2": 67.76,
+          "declared_open_area_m2": 67.76,
+          "missing_open_area_m2": 0.0,
+          "open_area_outside_roof_contact_m2": 0.0,
+          "physical_display_area_inside_open_contact_m2": 0.0,
+          "boundary_enclosure": "open",
+          "status": "pass"
+        }
+      ],
+      "main_to_roof_physical_slab_hypothesis_contacts": [
+        {
+          "main_space_id": "CORE_N_continuous",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 42.91,
+          "main_boundary_id": "space/CORE_N_continuous/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_core_s_landing",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 36.050000000000004,
+          "main_boundary_id": "space/F8_core_s_landing/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_corridor",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 174.11999999999998,
+          "main_boundary_id": "space/F8_corridor/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_office_c",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 158.62,
+          "main_boundary_id": "space/F8_office_c/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_office_e",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 55.15000000000002,
+          "main_boundary_id": "space/F8_office_e/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_office_n",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 88.00000000000004,
+          "main_boundary_id": "space/F8_office_n/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_office_nw",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 41.360000000000014,
+          "main_boundary_id": "space/F8_office_nw/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_office_se",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 15.450000000000001,
+          "main_boundary_id": "space/F8_office_se/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_office_w",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 139.59499999999997,
+          "main_boundary_id": "space/F8_office_w/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_service_n",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 26.645000000000003,
+          "main_boundary_id": "space/F8_service_n/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_stair_landing_s",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 19.43,
+          "main_boundary_id": "space/F8_stair_landing_s/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        },
+        {
+          "main_space_id": "F8_wc_s",
+          "roof_space_id": "ROOF_enclosure",
+          "z_m": 27.8,
+          "shared_area_m2": 14.069999999999997,
+          "main_boundary_id": "space/F8_wc_s/ceiling",
+          "roof_boundary_id": "space/ROOF_enclosure/floor",
+          "remains_physical_in_source_and_display": true,
+          "status": "pass"
+        }
+      ],
+      "interpretation": "Roof-volume contacts must be open on both source sides and absent from physical display parts; exposed roof outside those contacts remains physical. Main-storey-to-roof contacts remain the explicitly inferred physical slab."
+    },
+    "reachability": {
+      "status": "pass",
+      "unreachable_usable_space_ids": [],
+      "open_contacts_used": [
+        [
+          "CORE_S_continuous",
+          "F8_core_s_landing"
+        ],
+        [
+          "F1_entry_s",
+          "STAIR_S_stair_hall"
+        ],
+        [
+          "F8_stair_landing_s",
+          "STAIR_S_stair_hall"
+        ]
+      ],
+      "upper_storey_corridor_vertical_routes": {
+        "F2": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ],
+        "F3": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ],
+        "F4": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ],
+        "F5": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ],
+        "F6": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ],
+        "F7": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ],
+        "F8": [
+          "CORE_N_continuous",
+          "CORE_S_continuous",
+          "STAIR_S_stair_hall"
+        ]
+      },
+      "every_upper_storey_has_two_vertical_routes": true,
+      "interpretation": "Declared, partly inferred door/open-contact graph; not real-plan evidence."
+    },
+    "dimensions": {
+      "status": "pass",
+      "problems": [],
+      "narrow_alcoves": [
+        {
+          "space_id": "F8_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 63.1,
+          "widest_part_m": 4.1,
+          "area_narrower_than_rule_m2": 6.08
+        }
+      ],
+      "spaces": [
+        {
+          "space_id": "ANNEX_hall",
+          "role": "annex_commercial_hall_hypothesis",
+          "area_m2": 377.8,
+          "widest_part_m": 12.3,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "CORE_N_continuous",
+          "role": "vertical_circulation_hypothesis",
+          "area_m2": 45.3,
+          "widest_part_m": 6.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "CORE_S_continuous",
+          "role": "vertical_circulation_lift_core_hypothesis",
+          "area_m2": 42.4,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F1_back_s",
+          "role": "back_of_house_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F1_entry_s",
+          "role": "entrance_stair_hall_hypothesis",
+          "area_m2": 55.1,
+          "widest_part_m": 4.3,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F1_lobby_n",
+          "role": "entrance_lobby_hypothesis",
+          "area_m2": 40.4,
+          "widest_part_m": 4.3,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F1_retail_ne",
+          "role": "retail_hall_hypothesis",
+          "area_m2": 270.1,
+          "widest_part_m": 14.9,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F1_retail_w",
+          "role": "retail_hall_hypothesis",
+          "area_m2": 676.3,
+          "widest_part_m": 14.5,
+          "area_narrower_than_rule_m2": -0.0
+        },
+        {
+          "space_id": "F1_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 185.6,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 186.3,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 119.2,
+          "widest_part_m": 8.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.9,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 73.5,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 245.0,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F2_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 25.4,
+          "widest_part_m": 4.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 185.6,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 186.3,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 119.2,
+          "widest_part_m": 8.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.9,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 73.5,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 245.0,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F3_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 25.4,
+          "widest_part_m": 4.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 185.6,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 186.3,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 119.2,
+          "widest_part_m": 8.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.9,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 73.5,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 245.0,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F4_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 25.4,
+          "widest_part_m": 4.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 185.6,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 186.3,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 119.2,
+          "widest_part_m": 8.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.9,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 73.5,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 245.0,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F5_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 25.4,
+          "widest_part_m": 4.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 185.6,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 186.3,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 119.2,
+          "widest_part_m": 8.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.9,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 73.5,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 245.0,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F6_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 25.4,
+          "widest_part_m": 4.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 185.6,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 186.3,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 119.2,
+          "widest_part_m": 8.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.9,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 73.5,
+          "widest_part_m": 7.0,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 30.9,
+          "widest_part_m": 5.1,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 245.0,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F7_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 25.4,
+          "widest_part_m": 4.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_core_s_landing",
+          "role": "stair_landing_hypothesis",
+          "area_m2": 36.1,
+          "widest_part_m": 5.15,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_corridor",
+          "role": "office_corridor_hypothesis",
+          "area_m2": 178.7,
+          "widest_part_m": 2.4,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_office_c",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 158.6,
+          "widest_part_m": 5.15,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_office_e",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 63.1,
+          "widest_part_m": 4.1,
+          "area_narrower_than_rule_m2": 6.08
+        },
+        {
+          "space_id": "F8_office_n",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 104.2,
+          "widest_part_m": 4.8,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_office_nw",
+          "role": "corner_office_or_meeting_hypothesis",
+          "area_m2": 46.1,
+          "widest_part_m": 4.8,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_office_se",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 16.5,
+          "widest_part_m": 3.2,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_office_w",
+          "role": "office_zone_merged_cells_hypothesis",
+          "area_m2": 163.8,
+          "widest_part_m": 3.95,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_service_n",
+          "role": "service_wc_hypothesis",
+          "area_m2": 26.6,
+          "widest_part_m": 3.65,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_stair_landing_s",
+          "role": "stair_landing_hypothesis",
+          "area_m2": 23.7,
+          "widest_part_m": 3.95,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "F8_wc_s",
+          "role": "service_wc_hypothesis",
+          "area_m2": 16.6,
+          "widest_part_m": 3.95,
+          "area_narrower_than_rule_m2": 0.0
+        },
+        {
+          "space_id": "STAIR_S_stair_hall",
+          "role": "vertical_circulation_stair_hypothesis",
+          "area_m2": 47.8,
+          "widest_part_m": 6.05,
+          "area_narrower_than_rule_m2": 0.0
+        }
+      ],
+      "rule": "every usable space has a part at least 2.4 m wide (corridors 2.0 m); narrower alcoves are listed, not failed"
+    },
+    "enclosure": {
+      "status": "pass",
+      "old_unknown_boundary_count": 24,
+      "new_unknown_boundary_count": 15,
+      "new_unknown_boundary_ids": [
+        "space/CORE_S_continuous/wall/1",
+        "space/F1_retail_ne/wall/2",
+        "space/F2_office_e/wall/0",
+        "space/F3_office_e/wall/0",
+        "space/F4_office_e/wall/0",
+        "space/F5_office_e/wall/0",
+        "space/F6_office_e/wall/0",
+        "space/F7_office_e/wall/0",
+        "space/F8_core_s_landing/wall/1",
+        "space/F8_corridor/wall/0",
+        "space/F8_corridor/wall/3",
+        "space/F8_office_e/wall/3",
+        "space/F8_office_n/wall/1",
+        "space/F8_office_se/wall/0",
+        "space/F8_stair_landing_s/wall/0"
+      ],
+      "party_wall_boundary_count": 34,
+      "party_walls_with_openings": [],
+      "every_region_has_reason": true,
+      "boundary_kinds": {
+        "physical": 512,
+        "virtual": 6,
+        "unknown": 6
+      }
+    },
+    "browser": {
+      "status": "pass",
+      "source_hash": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc",
+      "modes": {
+        "input": {
+          "rawVisible": true,
+          "bimVisible": false,
+          "sourceHash": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc"
+        },
+        "overlay": {
+          "rawVisible": true,
+          "bimVisible": true,
+          "sourceHash": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc"
+        },
+        "bim": {
+          "rawVisible": false,
+          "bimVisible": true,
+          "sourceHash": "56b6a912c292fa2458cd127e8b4e51591d0b2f12f7e0619c630960fb04aacedc"
+        }
+      },
+      "rotation_verified": true,
+      "floor_selection_exercised": true,
+      "exploded_view_exercised": true,
+      "frame_vertex_mapping_verified": true,
+      "verified_input_vertices": 8242,
+      "maximum_allowed_absolute_error_m": 3e-06,
+      "observation_image_count": 20,
+      "expected_observation_image_count": 20,
+      "all_observation_images_loaded": true,
+      "errors": [],
+      "external_requests": [],
+      "screenshots": [
+        "bim.png",
+        "input.png",
+        "observations.png",
+        "overlay.png",
+        "rotated_floor.png"
+      ]
+    },
+    "result_links": {
+      "status": "pass",
+      "links": [
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "overlay.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/overlay.html",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "observations.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/observations.html",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../../2026-09-16_voimatalo_completion/result_04/index.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-16_voimatalo_completion/result_04/index.html",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../candidate_01/source_model.json",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/candidate_01/source_model.json",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../candidate_01/report.json",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/candidate_01/report.json",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../case_plan_v2.json",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/case_plan_v2.json",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../validation/candidate_01_validation.md",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/validation/candidate_01_validation.md",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "../README.md",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/README.md",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "plans/plan_compare_z1.5.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/plans/plan_compare_z1.5.png",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "img",
+          "target": "plans/plan_compare_z1.5.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/plans/plan_compare_z1.5.png",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "plans/plan_compare_z14.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/plans/plan_compare_z14.png",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "img",
+          "target": "plans/plan_compare_z14.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/plans/plan_compare_z14.png",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "a",
+          "target": "plans/plan_compare_z26.5.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/plans/plan_compare_z26.5.png",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "img",
+          "target": "plans/plan_compare_z26.5.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/plans/plan_compare_z26.5.png",
+          "exists": true
+        },
+        {
+          "page": "index.html",
+          "element": "iframe",
+          "target": "overlay.html",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/overlay.html",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_top.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_top.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_top.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_top.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_street.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_street.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_street.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_street.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_courtyard.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_courtyard.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_courtyard.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_courtyard.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_west.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_west.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_west.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_west.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_north.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_north.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_north.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_north.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_court_long.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_court_long.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_court_long.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_court_long.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/primary_court_short.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_court_short.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/primary_court_short.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/primary_court_short.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/new_west_south.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_west_south.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/new_west_south.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_west_south.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/new_court_long_south.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_court_long_south.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/new_court_long_south.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_court_long_south.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/new_court_short_corner.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_court_short_corner.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/new_court_short_corner.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_court_short_corner.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/new_south_end.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_south_end.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/new_south_end.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_south_end.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/new_east_end.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_east_end.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/new_east_end.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/new_east_end.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_2.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_2.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_2.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_2.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_10.4.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_10.4.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_10.4.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_10.4.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_26.3.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_26.3.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_26.3.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_26.3.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_28.2.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_28.2.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_28.2.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_28.2.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_29.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_29.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_29.8.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_29.8.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_30.1.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_30.1.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_30.1.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_30.1.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_31.55.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_31.55.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_31.55.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_31.55.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "a",
+          "target": "feedback/section_32.9.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_32.9.png",
+          "exists": true
+        },
+        {
+          "page": "observations.html",
+          "element": "img",
+          "target": "feedback/section_32.9.png",
+          "resolved": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260925/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/result_01/feedback/section_32.9.png",
+          "exists": true
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,837 @@
+{
+  "schema": "voimatalo_developer_case_decisions_v2",
+  "mode": "Opus 5.5 development revision of the 09-16 candidate_04 plan. Developer has seen all prior candidates and the user's rejection; not a cold start and not a working-model result.",
+  "parent": {
+    "plan": "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/case_plan.json",
+    "plan_sha256": "ae535e6957b9cba497f2a3b16f890422c31ff540ff273329469ade94ccc3d43c",
+    "apertures": "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/assembly_observations_04.json",
+    "apertures_sha256": "1149821f6460872c41a214433d883f0cb36f40c545330f3d7d67af123488d224",
+    "kept_unchanged": [
+      "mesh_frame",
+      "shell",
+      "storey_levels_m",
+      "attic_outline",
+      "roof_volumes",
+      "additional_openings",
+      "all 287 inventoried window rectangles",
+      "D_entry_west / D_entry_annex geometry"
+    ]
+  },
+  "interior_scheme": {
+    "summary": "Double-loaded office floors: one continuous L-shaped corridor linking two circulation clusters at the ends of the L. South cluster = main stair hall behind the street glazing composition above the south-west entrance bay, WC/service rooms behind the street band that has only narrow top-storey windows, and a lift/service core on the courtyard side under the southern roof head. North cluster = stair+lift core in the inner corner under the northern roof head, with an interior WC/service room. Office bands (merged cellular offices) on both sides of the corridor; a corner room at the two nonstandard north-west window columns. Ground floor = main office entrance hall at the south-west bay, street retail, north lobby from the (unscanned) north street front, back-of-house; courtyard annex kept as one commercial hall.",
+    "principles": [
+      "Every partition that meets an exterior wall lands in an observed window pier; window hosting fails otherwise, and no observed window was moved or clipped.",
+      "Two separated vertical circulation clusters at the two ends of the L give every office band two escape directions; the corridor is the minimum circulation connecting them.",
+      "Cores sit where both facades are windowless and where the raised roof masses (lift machine / stair heads) stand, not at arbitrary positions.",
+      "Office bands are declared groups of cellular offices merged at this moderate detail level; they are not claimed to be open plan and are not split by orientation or per window.",
+      "Continuous vertical spaces have no intermediate slabs; where a stair continues into a storey space the horizontal contact is declared open on both sides."
+    ],
+    "grid_m": {
+      "long_corridor_x": [
+        -7.65,
+        -5.25
+      ],
+      "long_corridor_basis": "Centred in the 14.5 m long-wing depth (6.05 m office bands each side). The attic storey (-11.6..-0.1) still contains it. Interior column lines unknown.",
+      "short_corridor_y": [
+        16.8,
+        19.2
+      ],
+      "short_corridor_basis": "North edge 19.2 lies in both the street pier 18.70..19.46 (F2-F7) and the attic west-face pier 19.01..19.57 (F8). Leaves 7.0 m north and 8.0 m courtyard-side bands in the 17.4 m deep short wing.",
+      "south_stair_hall": [
+        -13.7,
+        -33.4,
+        -7.65,
+        -25.5
+      ],
+      "south_stair_basis": "Street glazing composition y -32.34..-26.09 on F2-F7: the inventoried tall bay (two horizontal bands per storey, half-landing signature) plus the newly measured adjacent glazed column; directly above the dark south-west ground bay with a bright sign (entrance reading). North edge -25.5 lies in the wall between that column and the narrow top-storey window column (-25.08..-24.21).",
+      "north_core": [
+        -1.6,
+        9.5,
+        4.6,
+        16.8
+      ],
+      "north_core_basis": "Inner corner: set-back courtyard segment x 0.8..4.6 with one narrow window per storey and blank wall; northern raised roof mass x -3.5..6.5, y 10..16.5 stands over it. Continuous 0-27.8 m as in candidate_04, now enlarged to hold stair and lifts.",
+      "north_service_x": [
+        -5.25,
+        -1.6
+      ],
+      "north_service_basis": "Windowless interior pocket between the long-wing courtyard band (ends at y 9.5) and the north core.",
+      "corner_room_east_x": -3.2,
+      "corner_room_basis": "Pier -3.59..-2.87 on the north facade; the room holds the two nonstandard large north window columns plus one standard column and two street columns.",
+      "court_short_scan_hole_x": [
+        15.3,
+        19.5
+      ],
+      "court_short_scan_hole_basis": "court_short pixel buffer: first hits behind the facade (y≈26) for x>15.3 at every storey height; facade trace in all sections ends at x≈15.3.",
+      "south_wc_band_y": [
+        -25.5,
+        -21.3
+      ],
+      "south_wc_basis": "Street facade between the stair glazing and the first office window (-21.14) has only the narrow top-storey windows; small-window/windowless reading = WC/service.",
+      "south_lift_core": [
+        -5.25,
+        -28.3,
+        0.8,
+        -21.3
+      ],
+      "south_lift_core_basis": "Courtyard facade has no inventoried window from -28.98 to -17.85; a partially scanned multi-pane glazed column (≈-27.8..-26.1, holes on some storeys) and the scan hole of a cropped projecting volume (-25.9..-21.8) follow. South edge -28.3 lies in the observed white pier -28.9..-28.0 so the glazed column stays inside the core wall. Under the southern raised roof mass (y -28.5..-20.8)."
+    }
+  },
+  "continuous_spaces": [
+    {
+      "key": "STAIR_S",
+      "cell": "stair_hall",
+      "rect": [
+        -13.7,
+        -33.4,
+        -7.65,
+        -25.5
+      ],
+      "z": [
+        5.6,
+        25.25
+      ],
+      "floors": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "role": "vertical_circulation_stair_hypothesis",
+      "evidence": "Main stair hall behind the street glazing composition (inventoried tall bay y -32.34..-27.97 with two bands per storey, plus the measured adjacent glazed column y -27.90..-26.09). Starts above the F1 entrance hall (open contact) and ends under the set-back F8 landing (open contact); flights/landings not modelled. Stair only: the south lifts are assumed in CORE_S. Inferred from facade texture, not observed inside."
+    },
+    {
+      "key": "CORE_S",
+      "cell": "continuous",
+      "rect": [
+        -5.25,
+        -28.3,
+        0.8,
+        -21.3
+      ],
+      "z": [
+        0.0,
+        25.25
+      ],
+      "floors": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "role": "vertical_circulation_lift_core_hypothesis",
+      "evidence": "South lift/service core: the only assumed lift location in the south cluster (lift count not modelled), in the windowless courtyard-side band under the southern raised roof mass (lift machine-room reading), behind a partially scanned glazed column and the scan hole of a cropped projecting volume. Continues into the set-back F8 landing through an open contact. Shafts and any secondary stair are not modelled."
+    },
+    {
+      "key": "CORE_N",
+      "cell": "continuous",
+      "rect": [
+        -1.6,
+        9.5,
+        4.6,
+        16.8
+      ],
+      "z": [
+        0.0,
+        27.8
+      ],
+      "floors": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "role": "vertical_circulation_hypothesis",
+      "evidence": "Stair and lift core in the inner corner under the northern raised roof mass; hosts the observed narrow corner windows on the set-back courtyard segment. Stair/lift detail and landing doors are inferred."
+    }
+  ],
+  "floor_layouts": {
+    "F1": [
+      {
+        "key": "entry_s",
+        "rects": [
+          [
+            -13.7,
+            -33.4,
+            -7.65,
+            -29.1
+          ],
+          [
+            -7.65,
+            -33.4,
+            -5.25,
+            -21.3
+          ]
+        ],
+        "role": "entrance_stair_hall_hypothesis",
+        "evidence": "Main office entrance hall at the dark south-west street bay (bright sign above) and lift lobby leading to the south lift core; the main stair rises from here (open contact with STAIR_S above). Entrance position is an inference from texture, not an observed door."
+      },
+      {
+        "key": "back_s",
+        "rects": [
+          [
+            -5.25,
+            -33.4,
+            0.8,
+            -28.3
+          ]
+        ],
+        "role": "back_of_house_hypothesis",
+        "evidence": "Ground-floor service/storage at the courtyard side of the south end, reached from the entrance hall. Use unknown."
+      },
+      {
+        "key": "retail_w",
+        "polygon": [
+          [
+            -13.7,
+            -29.1
+          ],
+          [
+            -7.65,
+            -29.1
+          ],
+          [
+            -7.65,
+            -21.3
+          ],
+          [
+            0.8,
+            -21.3
+          ],
+          [
+            0.8,
+            9.5
+          ],
+          [
+            -5.25,
+            9.5
+          ],
+          [
+            -5.25,
+            16.8
+          ],
+          [
+            -0.85,
+            16.8
+          ],
+          [
+            -0.85,
+            26.2
+          ],
+          [
+            -13.7,
+            26.2
+          ]
+        ],
+        "role": "retail_hall_hypothesis",
+        "evidence": "Street retail behind the observed continuous shopfront groups GW01-GW12 and the observed glass shop door D_entry_west. Tenancy subdivision unknown and merged; a known large commercial ground floor is kept rather than cut per shop window."
+      },
+      {
+        "key": "service_n",
+        "rects": [
+          [
+            -5.25,
+            9.5,
+            -1.6,
+            16.8
+          ]
+        ],
+        "role": "service_wc_hypothesis",
+        "evidence": "Windowless interior pocket beside the north core; ground-floor WC/service reading."
+      },
+      {
+        "key": "lobby_n",
+        "rects": [
+          [
+            -0.85,
+            16.8,
+            3.45,
+            26.2
+          ]
+        ],
+        "role": "entrance_lobby_hypothesis",
+        "evidence": "North entrance lobby from the north street front to the north core. The ground-floor north facade is absent from the scan; the entrance is an inferred completion, not an observation."
+      },
+      {
+        "key": "retail_ne",
+        "polygon": [
+          [
+            3.45,
+            16.8
+          ],
+          [
+            4.6,
+            16.8
+          ],
+          [
+            4.6,
+            8.8
+          ],
+          [
+            19.5,
+            8.8
+          ],
+          [
+            19.5,
+            26.2
+          ],
+          [
+            3.45,
+            26.2
+          ]
+        ],
+        "role": "retail_hall_hypothesis",
+        "evidence": "Ground floor of the short wing facing the north street; commercial use from the public record of street-level commerce. Frontage openings are inferred (scan missing)."
+      }
+    ],
+    "typical": {
+      "floors": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "clip_to_storey_outline": true,
+      "zones": [
+        {
+          "key": "corridor",
+          "rects": [
+            [
+              -7.65,
+              -33.4,
+              -5.25,
+              16.8
+            ],
+            [
+              -7.65,
+              16.8,
+              19.5,
+              19.2
+            ]
+          ],
+          "role": "office_corridor_hypothesis",
+          "evidence": "Continuous L-shaped corridor linking the south stair hall, south lift core, north core and every office band. Width 2.4 m assumed."
+        },
+        {
+          "key": "office_se",
+          "rects": [
+            [
+              -5.25,
+              -33.4,
+              0.8,
+              -28.3
+            ]
+          ],
+          "role": "office_zone_merged_cells_hypothesis",
+          "evidence": "South-east end office room(s) with the two observed courtyard windows per storey."
+        },
+        {
+          "key": "wc_s",
+          "rects": [
+            [
+              -13.7,
+              -25.5,
+              -7.65,
+              -21.3
+            ]
+          ],
+          "role": "service_wc_hypothesis",
+          "evidence": "WC/service rooms behind the street band that has only the narrow top-storey windows (F6-F7) between the stair glazing and the office band."
+        },
+        {
+          "key": "office_w",
+          "rects": [
+            [
+              -13.7,
+              -21.3,
+              -7.65,
+              19.2
+            ]
+          ],
+          "role": "office_zone_merged_cells_hypothesis",
+          "evidence": "Street-side office band: cellular offices along the corridor, individual partitions (at window piers, 3.1 m module) merged at this detail level. Not an open-plan claim."
+        },
+        {
+          "key": "office_c",
+          "rects": [
+            [
+              -5.25,
+              -21.3,
+              0.8,
+              9.5
+            ]
+          ],
+          "role": "office_zone_merged_cells_hypothesis",
+          "evidence": "Courtyard-side office band of the long wing; cellular offices merged at this detail level. The courtyard dark slot y -20.9..-19.1 stays unclassified."
+        },
+        {
+          "key": "service_n",
+          "rects": [
+            [
+              -5.25,
+              9.5,
+              -1.6,
+              16.8
+            ]
+          ],
+          "role": "service_wc_hypothesis",
+          "evidence": "Windowless interior pocket beside the north core; WC/service reading."
+        },
+        {
+          "key": "office_nw",
+          "rects": [
+            [
+              -13.7,
+              19.2,
+              -3.2,
+              26.2
+            ]
+          ],
+          "role": "corner_office_or_meeting_hypothesis",
+          "evidence": "North-west corner room holding the two nonstandard large north window columns (F2-F7); larger meeting/management room reading. Could also be further subdivided."
+        },
+        {
+          "key": "office_n",
+          "rects": [
+            [
+              -3.2,
+              19.2,
+              19.5,
+              26.2
+            ]
+          ],
+          "role": "office_zone_merged_cells_hypothesis",
+          "evidence": "North-street office band of the short wing; cellular offices merged at this detail level."
+        },
+        {
+          "key": "office_e",
+          "rects": [
+            [
+              4.6,
+              8.8,
+              19.5,
+              16.8
+            ]
+          ],
+          "role": "office_zone_merged_cells_hypothesis",
+          "evidence": "Courtyard-side office band of the short wing (8.0 m deep; may contain an internal storage strip). Cellular offices merged."
+        },
+        {
+          "key": "stair_landing_s",
+          "rects": [
+            [
+              -13.7,
+              -33.4,
+              -7.65,
+              -25.5
+            ]
+          ],
+          "only_floors": [
+            "F8"
+          ],
+          "role": "stair_landing_hypothesis",
+          "evidence": "Top landing of the main stair inside the set-back attic outline; open contact to STAIR_S below."
+        },
+        {
+          "key": "core_s_landing",
+          "rects": [
+            [
+              -5.25,
+              -28.3,
+              0.8,
+              -21.3
+            ]
+          ],
+          "only_floors": [
+            "F8"
+          ],
+          "role": "stair_landing_hypothesis",
+          "evidence": "Top lift/stair landing of the south core inside the set-back attic outline; open contact to CORE_S below."
+        }
+      ]
+    }
+  },
+  "annex": {
+    "key": "hall",
+    "role": "annex_commercial_hall_hypothesis",
+    "evidence": "Observed low courtyard mass with two window rows; one tall commercial hall (no inferred mezzanine). M-roundel signage on its courtyard glazing and on the street shopfront suggests a shared commercial/public use, not asserted. Internal subdivision unknown."
+  },
+  "connections": {
+    "F1": [
+      [
+        "entry_s",
+        "CORE_S"
+      ],
+      [
+        "entry_s",
+        "back_s"
+      ],
+      [
+        "service_n",
+        "retail_w"
+      ],
+      [
+        "lobby_n",
+        "CORE_N"
+      ],
+      [
+        "retail_w",
+        "ANNEX_hall"
+      ]
+    ],
+    "typical": [
+      [
+        "corridor",
+        "CORE_S"
+      ],
+      [
+        "corridor",
+        "CORE_N"
+      ],
+      [
+        "corridor",
+        "STAIR_S"
+      ],
+      [
+        "corridor",
+        "office_se"
+      ],
+      [
+        "corridor",
+        "wc_s"
+      ],
+      [
+        "corridor",
+        "office_w"
+      ],
+      [
+        "corridor",
+        "office_c"
+      ],
+      [
+        "corridor",
+        "service_n"
+      ],
+      [
+        "corridor",
+        "office_nw"
+      ],
+      [
+        "corridor",
+        "office_n"
+      ],
+      [
+        "corridor",
+        "office_e"
+      ],
+      [
+        "corridor",
+        "stair_landing_s"
+      ],
+      [
+        "corridor",
+        "core_s_landing"
+      ]
+    ],
+    "note": "One representative door per declared pair, 0.95 m x 2.1 m at the middle of the longest shared edge. Pairs whose space does not exist on a storey are skipped (e.g. STAIR_S on F8, landings on F2-F7)."
+  },
+  "entrance_space_overrides": {
+    "D_entry_west": "F1_retail_w",
+    "D_entry_annex": "ANNEX_hall"
+  },
+  "inferred_exterior_doors": [
+    {
+      "id": "D_main_entry_sw",
+      "space": "F1_entry_s",
+      "plane_key": "west",
+      "axis": 0,
+      "span_m": [
+        -32.23,
+        -30.43
+      ],
+      "z_m": [
+        0.0,
+        2.8
+      ],
+      "basis": "Inferred main office entrance inside the unclassified south-west ground bay y -33.16..-29.49 (dark recess, bright sign above; 09-16 opening_actions kept it unbuilt). Centred 1.8 m double door; actual leaf/threshold unknown.",
+      "source_refs": [
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_west_annotated.png",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_west_bright.png"
+      ]
+    },
+    {
+      "id": "D_north_shop_w",
+      "space": "F1_retail_w",
+      "plane_key": "north",
+      "axis": 1,
+      "span_m": [
+        -8.215,
+        -6.415
+      ],
+      "z_m": [
+        0.0,
+        2.8
+      ],
+      "basis": "Inferred shop entrance in north ground bay B01 (north ground facade absent from scan).",
+      "source_refs": [
+        "observations/manifest.json",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_north.png"
+      ]
+    },
+    {
+      "id": "D_north_lobby",
+      "space": "F1_lobby_n",
+      "plane_key": "north",
+      "axis": 1,
+      "span_m": [
+        0.355,
+        2.255
+      ],
+      "z_m": [
+        0.0,
+        2.8
+      ],
+      "basis": "Inferred north office entrance in bay B03 leading to the north core (north ground facade absent from scan).",
+      "source_refs": [
+        "observations/manifest.json",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_north.png"
+      ]
+    },
+    {
+      "id": "D_north_shop_ne",
+      "space": "F1_retail_ne",
+      "plane_key": "north",
+      "axis": 1,
+      "span_m": [
+        4.715,
+        6.515
+      ],
+      "z_m": [
+        0.0,
+        2.8
+      ],
+      "basis": "Inferred shop entrance in north ground bay B04 (north ground facade absent from scan).",
+      "source_refs": [
+        "observations/manifest.json",
+        "AI_agent/logs/experiments/2026-09-16_voimatalo_completion/openings/ground_north.png"
+      ]
+    }
+  ],
+  "inferred_windows": {
+    "basis": "North ground floor (z<6.5 m) is absent from the single-building scan (north.npz first hits land on the annex or the back wall). The north facade is a street front: same dark cladding as the west street facade, unlike the white courtyard render; public record states street-level commerce. Shopfront bays reuse the observed west ground rhythm (3.65 m glazing, 4.31 m pitch, z 0.35-5.20) mirrored from the north-west corner; bays B01/B03/B04 carry the inferred doors instead. Positions are completion hypotheses, not observations.",
+    "rows": [
+      {
+        "id": "north_F1_inferred_B00",
+        "view": "north",
+        "plane_key": "north",
+        "span_m": [
+          -13.45,
+          -9.8
+        ],
+        "z_m": [
+          0.35,
+          5.2
+        ]
+      },
+      {
+        "id": "north_F1_inferred_B02",
+        "view": "north",
+        "plane_key": "north",
+        "span_m": [
+          -4.83,
+          -1.18
+        ],
+        "z_m": [
+          0.35,
+          5.2
+        ]
+      },
+      {
+        "id": "north_F1_inferred_B05",
+        "view": "north",
+        "plane_key": "north",
+        "span_m": [
+          8.1,
+          11.75
+        ],
+        "z_m": [
+          0.35,
+          5.2
+        ]
+      },
+      {
+        "id": "north_F1_inferred_B06",
+        "view": "north",
+        "plane_key": "north",
+        "span_m": [
+          12.41,
+          16.06
+        ],
+        "z_m": [
+          0.35,
+          5.2
+        ]
+      },
+      {
+        "id": "north_F1_inferred_B07",
+        "view": "north",
+        "plane_key": "north",
+        "span_m": [
+          16.72,
+          19.1
+        ],
+        "z_m": [
+          0.35,
+          5.2
+        ]
+      }
+    ]
+  },
+  "enclosure": {
+    "open_horizontal_contacts": [
+      {
+        "lower": "F1_entry_s",
+        "upper": "STAIR_S_stair_hall",
+        "reason": "Main stair rises from the entrance hall; no slab at the stair foot."
+      },
+      {
+        "lower": "STAIR_S_stair_hall",
+        "upper": "F8_stair_landing_s",
+        "reason": "Main stair continues to the set-back top landing."
+      },
+      {
+        "lower": "CORE_S_continuous",
+        "upper": "F8_core_s_landing",
+        "reason": "South lift/stair core continues to the set-back top landing."
+      }
+    ],
+    "unknown_wall_regions": [
+      {
+        "space": "CORE_S_continuous",
+        "plane": [
+          "x",
+          0.8
+        ],
+        "along": [
+          -27.9,
+          -21.8
+        ],
+        "z": [
+          0.0,
+          25.25
+        ],
+        "reason": "Courtyard face of the south core: a multi-pane glazed column (≈-27.8..-26.1) is visible only on some storeys (others are scan holes), followed by the scan hole of a cropped projecting volume (first hits on the back of the street wall for y -25.9..-21.8 at all heights; section kinks towards x≈2.3 at y≈-21.8). Openings not inventoried; contact condition unknown, not a free blank facade and not an open passage."
+      },
+      {
+        "space": "F8_core_s_landing",
+        "plane": [
+          "x",
+          -0.1
+        ],
+        "along": [
+          -26.0,
+          -21.8
+        ],
+        "z": [
+          25.25,
+          27.8
+        ],
+        "reason": "Same courtyard scan hole continues at attic height (25.53 m section gap)."
+      },
+      {
+        "space": "F1_retail_ne",
+        "plane": [
+          "y",
+          8.8
+        ],
+        "along": [
+          13.1,
+          19.5
+        ],
+        "z": [
+          0.0,
+          5.6
+        ],
+        "reason": "Courtyard ground facade east of the annex is absent from the scan."
+      },
+      {
+        "space_pattern": "F{2..7}_office_e",
+        "plane": [
+          "y",
+          8.8
+        ],
+        "along": [
+          15.3,
+          19.5
+        ],
+        "z": "storey",
+        "reason": "court_short facade is absent from the scan for x>15.3 at every storey; possibly occluded by an adjoining courtyard wing. Window continuation not inferred."
+      }
+    ],
+    "unknown_attic_ends": {
+      "south_y": -31.5,
+      "east_x": 18.5,
+      "reason": "Set-back attic end walls stand above the neighbouring roofs; scan evidence insufficient to decide openings (unchanged from candidate_04)."
+    },
+    "party_walls": {
+      "south_y": -33.4,
+      "east_x": 19.5,
+      "storeys": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "representation": "physical source wall without openings; recorded in provenance.party_wall_inference because the enclosure schema has no adjacent-building condition",
+      "reason": "Both short ends are systematically missing from the scan up to ~22-26 m while every street/courtyard face is captured; the south end shows an adjoining roof silhouette (missing region peaks ≈26.5 m mid-width, ≈22-23.5 m at the edges) and a blank light upper strip, the east end shows only a dark blank strip above ≈25 m. Reading: fire/party walls against neighbouring buildings of a perimeter block, windowless. This replaces the 09-16 'unknown' for these walls; attic ends stay unknown.",
+      "source_refs": [
+        "observations/south_end_grid.png",
+        "observations/east_end_grid.png",
+        "AI_agent/logs/experiments/2026-09-15_voimatalo_developer_walkthrough/evidence_01/sections.png"
+      ]
+    }
+  },
+  "assumptions": [
+    "Opus 5.5 开发修订：在09-16冻结外壳/楼层/开口之上重做内部组织与缺失补全；已看过旧候选及用户退回意见，不是冷启动或工作模型成绩。",
+    "楼层标高、外壳、屋盖五部件、原287组窗坐标全部沿用candidate_04；所有新隔墙在碰到外墙处都落在已观测窗间墙内，未移动或裁剪任何窗。",
+    "本轮新量测并加入8组此前未入清单的沿街窗（楼梯间旁玻璃列F2-F7、卫生间窄窗F6-F7），方法与阈值见observations/west_band_windows.json；其余新增开口均标为补全推断。",
+    "标准层按双面走廊办公推断：长翼14.5 m进深取居中2.4 m走廊，短翼17.4 m进深在北侧7.0 m/内院侧8.0 m之间设走廊；走廊连通南北两端交通组。实际柱网、走廊位置和宽度未被观测。",
+    "南端交通组：沿街玻璃组合（旧清单高玻璃竖带，每层两道横带像楼梯平台；以及本轮新量出的相邻玻璃列）判为主楼梯间，其正下方首层西南暗色门洞＋亮色招牌判为主入口；其北侧只有顶两层窄窗的沿街带判为卫生间/服务；内院侧南屋顶凸起下方判为电梯/服务核，外侧是部分可见的多格玻璃列和被裁内院凸出体的扫描洞。均为纹理推断。",
+    "北端交通组：内院转角退后段（每层单窄窗）及北屋顶凸起下方为楼梯+电梯核，与旁边无窗的内部服务间一起；首层北面扫描缺失，按街面推断北入口门厅。",
+    "办公带是同侧连续单间办公室在本档的合并表达，不是开放办公声明；单间隔墙可按3.1 m窗间墙模数继续细分。西北角两列非标准大窗所在房间单列为角部会议/大办公室。",
+    "首层：观测到的沿街店面与玻璃店门归零售大厅，租户划分未知并合并；主入口门厅、后勤、北门厅按推断；北面首层店面窗与三处门为补全推断，非观测。附属低体仍为一个商业大厅，与零售大厅之间假设一门。",
+    "两短端（南y=-33.4、东x=19.5）F1-F7按扫描系统性缺失与相邻屋面剪影判为无窗贴邻山墙（实体墙），不再标未知；退台两端、内院被裁凸出体接触面、短翼内院东端扫描洞及首层内院缺面保留未知。",
+    "连续竖向空间无中间楼板；主楼梯从入口厅升起、在退台层落到平台，南核同样通到退台平台，这三处水平接触显式双侧敞开。",
+    "所有门均为每对空间一扇代表性连接，尺寸与位置为方案假设。"
+  ],
+  "unresolved": [
+    "真实内部隔墙、单间划分、柱网、走廊宽度与门位没有任何内部资料；本方案只保证与外部观测约束相容。",
+    "西南沿街高玻璃竖带也可解释为大窗房间，主入口也可能在别处；若用户否定楼梯判断，可把STAIR_S改回办公端间，其余布局不变。",
+    "南端电梯只假设在南核一处（台数未建模）；次楼梯、烟囱/通风竖井（屋顶烟囱在走廊线附近）未建模；内院侧南端多格玻璃列（≈-27.8..-26.1）只部分扫到，未入窗清单，所在墙段保留未知。",
+    "内院被裁凸出体（y≈-26..-21.8）的真实深度与用途未知，未补体量；短翼内院东端（x>15.3）扫描洞未补窗。",
+    "北面首层店面/入口及西南主入口为补全推断；首层内院面、退台两端开口、屋盖曲面及残缺窗下沿仍未知。",
+    "贴邻山墙在源BIM中只能表示为无窗实体墙；邻楼贴邻条件需要公共围护词汇（见PUBLIC_INTERFACE_NOTES.md）。",
+    "办公带、零售大厅、卫生间/服务间是合并表达，不是逐间房间或逐间温区；给排水、人流或逐间热分析前需要按用户选定档位细分。屋盖五部件是外壳几何部件，不是可达的使用空间。",
+    "贴邻山墙目前只能存成无窗实体墙；在运行 EnergyPlus 等后端前必须按绝热/邻楼边界处理，否则两端房间负荷会被当作外墙失真（公共条件需求见 PUBLIC_INTERFACE_NOTES.md）。"
+  ],
+  "extra_observed_windows": {
+    "path": "AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/observations/west_band_windows.json",
+    "sha256": "1285be9f956a61dc475d711e1535eecbc63ad5a3fb232d2fdf17f18d679c4fb5",
+    "note": "8 street-facade windows measured on 09-25 (stair-hall glazed column F2-F7, narrow WC column F6-F7); not in the 09-15/09-16 inventory."
+  }
+}
