@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 377.66,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 308547,
+    "stop_reason": "end_turn",
+    "session_id": "bb5e8ff1-e651-4d65-a5c5-7dbb02317946",
+    "total_cost_usd": 1.2322210000000002,
+    "usage": {
+      "input_tokens": 26,
+      "cache_creation_input_tokens": 191348,
+      "cache_read_input_tokens": 1148735,
+      "output_tokens": 23703,
+      "output_tokens_details": {
+        "thinking_tokens": 11409
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 191348,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1019,
+          "cache_read_input_tokens": 187543,
+          "cache_creation_input_tokens": 3805,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3805
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 26,
+        "outputTokens": 23703,
+        "cacheReadInputTokens": 1148735,
+        "cacheCreationInputTokens": 191348,
+        "webSearchRequests": 0,
+        "costUSD": 1.2322210000000002,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 11409,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 39,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I built and saved the whole building as `candidate_04`, a two-storey office block 15 m × 8 m, and finished it. Geometry checks pass, but that only shows it is internally consistent, not that it matches the drawings. The saved candidate's notes are not reconciled: I did not run `replace_note`. It still lists the same assumptions and unresolved items twice, once per floor.\n\n**What was built**\n- **Floors:** Floor 1 is at z 0–3.0 m and floor 2 at z 3.0–6.6 m. The 3.0 m and 3.6 m storey heights come from the elevation dimensions.\n- **Method:** I built each plan from pixel wall and opening declarations (`build_plan_bim`) and combined them with `assemble_plan_bim`. Both plans share one origin, the south-west outer corner, and the same scale.\n- **Floor 1 (7 spaces):** A full-length corridor lies between three north offices and three south rooms, split at x = 5 and 10 m. There are 6 internal doors, a west double entrance door (1.5 m wide) and a south-west door. There are 7 exterior windows.\n- **Floor 2 (7 spaces):** A corridor lies between two north meeting rooms and four south offices. It has 6 internal doors and 8 windows, including the west and east corridor windows.\n- **Corridors:** Each corridor is kept as one continuous space.\n- **Not invented:** No stair or vertical link is drawn in the plans, so I added none.\n\n**Checks**\n- **Overlays:** The source overlay on each original plan lines up with the drawn walls and openings.\n- **Space relations:** I sampled 6 same-space and separate-space pairs with `check_source_space_relation`, 3 per floor. All were consistent with my reading of the plans.\n\n**Exterior heights**\n- **Coverage:** All 17 exterior openings (8 on floor 1, 9 on floor 2) now take their heights from the elevations. I recorded these as adopted image-axis claims and applied them.\n- **Rounding:** The applied values carry about 0.01–0.03 m of pixel rounding, for example 1.007–2.605 instead of 1.0–2.6.\n- **Floors kept separate:** Floor 1 and floor 2 heights are separate claims, and none was copied from the other floor.\n\n**Assumptions and limits**\n- **Internal door heights:** The 12 internal doors are assumed at 2.1 m tall, so their heights are not image-linked.\n- **Walls and swings:** Partitions are centre lines with no wall thickness. Door swings and open/closed states are unknown.\n- **Scale:** The pixel-to-metre calibration is mine, taken from the 15000 mm and 8000 mm outer-face dimensions. It was not independently checked.\n- **Openings:** No full opening-by-opening review was run (`check_openings` was used only for height coverage).\n- **Not modelled:** Furniture, dimension text and room uses beyond simple roles were not modelled.\n\nThe viewer is at `candidate_04/viewer.html`.",
+    "ttft_ms": 6792,
+    "type": "result",
+    "duration_ms": 373250,
+    "uuid": "861f9b79-a1c0-4f20-a68c-cd2aa360a1f3",
+    "ttft_stream_ms": 6567,
+    "time_to_request_ms": 108,
+    "first_content_frame_ms": 6567,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,544 @@
+{
+  "floors": [
+    {
+      "mode": "developer_original_image_interpretation_evaluation_only",
+      "recorded_epoch": 1790169185.58908,
+      "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+      "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "image_size": [
+        2133,
+        1345
+      ],
+      "input_to_working_model": false,
+      "basis": "Before first candidate: original full plan, isolated original crops and RGB scans; not generated geometry or GT.",
+      "calibration": {
+        "x_anchors": [
+          [
+            425,
+            0
+          ],
+          [
+            1816,
+            15
+          ]
+        ],
+        "y_anchors": [
+          [
+            346,
+            8
+          ],
+          [
+            1087,
+            0
+          ]
+        ],
+        "basis": "Original overall labels 15000 mm across top, 8000 mm at left, at outer dimension extension endpoints. No fit to candidate."
+      },
+      "spaces": {
+        "NW": [
+          650,
+          450
+        ],
+        "NC": [
+          1100,
+          450
+        ],
+        "NE": [
+          1550,
+          450
+        ],
+        "C": [
+          1100,
+          720
+        ],
+        "SW": [
+          650,
+          950
+        ],
+        "SC": [
+          1100,
+          950
+        ],
+        "SE": [
+          1550,
+          950
+        ]
+      },
+      "apertures": [
+        {
+          "id": "N-W",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 357,
+          "span_pixels": [
+            540,
+            763
+          ],
+          "hosts": [
+            "NW"
+          ]
+        },
+        {
+          "id": "N-C",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 357,
+          "span_pixels": [
+            1010,
+            1231
+          ],
+          "hosts": [
+            "NC"
+          ]
+        },
+        {
+          "id": "N-E",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 357,
+          "span_pixels": [
+            1479,
+            1700
+          ],
+          "hosts": [
+            "NE"
+          ]
+        },
+        {
+          "id": "S-W",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1076,
+          "span_pixels": [
+            745,
+            855
+          ],
+          "hosts": [
+            "SW"
+          ]
+        },
+        {
+          "id": "S-C",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1076,
+          "span_pixels": [
+            1010,
+            1231
+          ],
+          "hosts": [
+            "SC"
+          ]
+        },
+        {
+          "id": "S-E",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1076,
+          "span_pixels": [
+            1479,
+            1700
+          ],
+          "hosts": [
+            "SE"
+          ]
+        },
+        {
+          "id": "E-C",
+          "kind": "window",
+          "axis": "y",
+          "cross_pixel": 1805,
+          "span_pixels": [
+            661,
+            773
+          ],
+          "hosts": [
+            "C"
+          ]
+        },
+        {
+          "id": "door-NW",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 624,
+          "span_pixels": [
+            772,
+            855
+          ],
+          "hosts": [
+            "NW",
+            "C"
+          ]
+        },
+        {
+          "id": "door-NC",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 624,
+          "span_pixels": [
+            922,
+            1006
+          ],
+          "hosts": [
+            "NC",
+            "C"
+          ]
+        },
+        {
+          "id": "door-NE",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 624,
+          "span_pixels": [
+            1385,
+            1469
+          ],
+          "hosts": [
+            "NE",
+            "C"
+          ]
+        },
+        {
+          "id": "door-SW",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 810,
+          "span_pixels": [
+            772,
+            855
+          ],
+          "hosts": [
+            "SW",
+            "C"
+          ]
+        },
+        {
+          "id": "door-SC",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 810,
+          "span_pixels": [
+            922,
+            1006
+          ],
+          "hosts": [
+            "SC",
+            "C"
+          ]
+        },
+        {
+          "id": "door-SE",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 810,
+          "span_pixels": [
+            1385,
+            1469
+          ],
+          "hosts": [
+            "SE",
+            "C"
+          ]
+        },
+        {
+          "id": "door-W",
+          "kind": "door",
+          "axis": "y",
+          "cross_pixel": 436,
+          "span_pixels": [
+            647,
+            787
+          ],
+          "hosts": [
+            "C"
+          ]
+        },
+        {
+          "id": "door-S",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 1076,
+          "span_pixels": [
+            476,
+            560
+          ],
+          "hosts": [
+            "SW"
+          ]
+        }
+      ],
+      "tolerance": {
+        "along_m": 0.06,
+        "internal_cross_m": 0.07,
+        "external_cross_m": 0.16,
+        "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+      },
+      "limits": [
+        "Manual interpretation is not an automated semantic judge.",
+        "Region seeds check connectivity and spatial identity, not full room shape; partition comparison is separate.",
+        "All heights, materials, upper floor and unseen facades excluded."
+      ]
+    },
+    {
+      "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+      "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "calibration": {
+        "x_anchors": [
+          [
+            427,
+            0
+          ],
+          [
+            1813,
+            15
+          ]
+        ],
+        "y_anchors": [
+          [
+            331,
+            8
+          ],
+          [
+            1071,
+            0
+          ]
+        ],
+        "basis": "Original 15000/8000 mm overall extension endpoints; no candidate fitting."
+      },
+      "spaces": {
+        "NW": [
+          700,
+          450
+        ],
+        "NE": [
+          1450,
+          450
+        ],
+        "C": [
+          1100,
+          700
+        ],
+        "S1": [
+          550,
+          950
+        ],
+        "S2": [
+          950,
+          950
+        ],
+        "S3": [
+          1250,
+          950
+        ],
+        "S4": [
+          1650,
+          950
+        ]
+      },
+      "apertures": [
+        {
+          "id": "window-NW",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 342.5,
+          "span_pixels": [
+            607,
+            940
+          ],
+          "hosts": [
+            "NW"
+          ]
+        },
+        {
+          "id": "window-NE",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 342.5,
+          "span_pixels": [
+            1300,
+            1633
+          ],
+          "hosts": [
+            "NE"
+          ]
+        },
+        {
+          "id": "window-S1",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1059.5,
+          "span_pixels": [
+            629,
+            740
+          ],
+          "hosts": [
+            "S1"
+          ]
+        },
+        {
+          "id": "window-S2",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1059.5,
+          "span_pixels": [
+            807,
+            918
+          ],
+          "hosts": [
+            "S2"
+          ]
+        },
+        {
+          "id": "window-S3",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1059.5,
+          "span_pixels": [
+            1322,
+            1433
+          ],
+          "hosts": [
+            "S3"
+          ]
+        },
+        {
+          "id": "window-S4",
+          "kind": "window",
+          "axis": "x",
+          "cross_pixel": 1059.5,
+          "span_pixels": [
+            1500,
+            1611
+          ],
+          "hosts": [
+            "S4"
+          ]
+        },
+        {
+          "id": "window-W",
+          "kind": "window",
+          "axis": "y",
+          "cross_pixel": 438,
+          "span_pixels": [
+            645,
+            757
+          ],
+          "hosts": [
+            "C"
+          ]
+        },
+        {
+          "id": "window-E",
+          "kind": "window",
+          "axis": "y",
+          "cross_pixel": 1802,
+          "span_pixels": [
+            645,
+            757
+          ],
+          "hosts": [
+            "C"
+          ]
+        },
+        {
+          "id": "door-NW",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 608.5,
+          "span_pixels": [
+            1003,
+            1086
+          ],
+          "hosts": [
+            "NW",
+            "C"
+          ]
+        },
+        {
+          "id": "door-NE",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 608.5,
+          "span_pixels": [
+            1152,
+            1236
+          ],
+          "hosts": [
+            "NE",
+            "C"
+          ]
+        },
+        {
+          "id": "door-S1",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 793.5,
+          "span_pixels": [
+            657,
+            741
+          ],
+          "hosts": [
+            "S1",
+            "C"
+          ]
+        },
+        {
+          "id": "door-S2",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 793.5,
+          "span_pixels": [
+            807,
+            891
+          ],
+          "hosts": [
+            "S2",
+            "C"
+          ]
+        },
+        {
+          "id": "door-S3",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 793.5,
+          "span_pixels": [
+            1350,
+            1434
+          ],
+          "hosts": [
+            "S3",
+            "C"
+          ]
+        },
+        {
+          "id": "door-S4",
+          "kind": "door",
+          "axis": "x",
+          "cross_pixel": 793.5,
+          "span_pixels": [
+            1500,
+            1584
+          ],
+          "hosts": [
+            "S4",
+            "C"
+          ]
+        }
+      ],
+      "tolerance": {
+        "along_m": 0.06,
+        "internal_cross_m": 0.07,
+        "external_cross_m": 0.16,
+        "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+      }
+    }
+  ],
+  "prior_f1_reference_sha256": "00614a4de2e069d6157f7bc10ec8c30807d9ec826003fd7afa0dc2b22087b6ae",
+  "isolation": "Developer original-image review only, not model input. F2 recorded during generation before inspecting candidates.",
+  "basis": "F2 full original viewed, cyan components and original grayscale wall edges inspected; representative midlines and visible jambs.",
+  "limits": [
+    "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+    "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+    "No door height, operating state, material or vertical circulation claim."
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "cf3f986c4584a6700f24797dab940a350ddadf5cf409aa990ac77e2b7ae16ffb",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        426.9,
+        0.0
+      ],
+      [
+        1812.5,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        331.5,
+        8.0
+      ],
+      [
+        1070.8,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corr_one",
+      "expected": "same_space",
+      "evidence": "open corridor",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.8739174364896076,
+            4.0124442039767345
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:CORR",
+          "interior_space_ids": [
+            "F2:CORR"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1700.0,
+            700.0
+          ],
+          "world_xy_m": [
+            13.782116050808314,
+            4.0124442039767345
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:CORR",
+          "interior_space_ids": [
+            "F2:CORR"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "N1_N2",
+      "expected": "separate_spaces",
+      "evidence": "partition at x=7.5",
+      "points": [
+        {
+          "pixel": [
+            800.0,
+            470.0
+          ],
+          "world_xy_m": [
+            4.0390444572748265,
+            6.501284999323684
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:N1",
+          "interior_space_ids": [
+            "F2:N1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1450.0,
+            470.0
+          ],
+          "world_xy_m": [
+            11.07570727482679,
+            6.501284999323684
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:N2",
+          "interior_space_ids": [
+            "F2:N2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "S2_S3",
+      "expected": "separate_spaces",
+      "evidence": "centre partition x=7.5 south",
+      "points": [
+        {
+          "pixel": [
+            946.0,
+            930.0
+          ],
+          "world_xy_m": [
+            5.619587182448036,
+            1.5236034086297838
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:S2",
+          "interior_space_ids": [
+            "F2:S2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1293.0,
+            930.0
+          ],
+          "world_xy_m": [
+            9.376082563510392,
+            1.5236034086297838
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:S3",
+          "interior_space_ids": [
+            "F2:S3"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "a3c65a5210242a68e70cb7fa0506cc31259921ff10481097539574d7f6231327",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 2633
+}

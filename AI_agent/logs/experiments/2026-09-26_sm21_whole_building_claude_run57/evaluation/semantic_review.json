@@ -1,0 +1,52 @@
+{
+  "candidate": "candidate_04",
+  "reviewer": "Developer post-generation, no feedback supplied to model",
+  "source_sha256": "cf3f986c4584a6700f24797dab940a350ddadf5cf409aa990ac77e2b7ae16ffb",
+  "source_original_plan_overlays_visually_reviewed": [
+    "evaluation/original_1f_view.png",
+    "evaluation/original_2f_view.png"
+  ],
+  "qualitative": "Both full-length corridors preserved; F1 three north and three south spaces; F2 two north and four south spaces. All plan apertures correspond.",
+  "partition_status": "minor",
+  "max_boundary_hausdorff_m": 0.0028410000000000935,
+  "min_iou": 0.9982415000000001,
+  "floor_heights": [
+    {
+      "id": "F1",
+      "z_floor": 0.0,
+      "height": 3.0
+    },
+    {
+      "id": "F2",
+      "z_floor": 3.0,
+      "height": 3.6
+    }
+  ],
+  "max_exterior_z_endpoint_error_m": 0.02480211099999996,
+  "original_apertures": {
+    "position": 29,
+    "host": 29,
+    "door_connections": 14
+  },
+  "image_height_claims": 10,
+  "current_height_claims": 10,
+  "internal_heights": "12 internal doors assumed 2.1m above each floor; not image-linked, allowed but not measured.",
+  "model_current_relation_samples": {
+    "status": "consistent_with_supplied_samples",
+    "sample_count": 6,
+    "conflict_count": 0,
+    "unassessed_count": 0,
+    "stale_review_count": 0,
+    "conflicts": [],
+    "coverage": "caller_selected_point_pairs_only",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "notes": "No obsolete pending-elevation/placeholder-height statement found. Repeated per-floor assumptions/unresolved notes remain; model explicitly admitted it did not run replace_note. Full requested note reconciliation was not completed.",
+  "limitations": [
+    "Single sm21 whole-building cold start; independent repeat remains next.",
+    "No dedicated source-elevation rendering, full wall-path support or complete model-run aperture review; original elevations viewed and claims applied.",
+    "Room-use labels, door operation and vertical circulation not independently verified; no stairs invented.",
+    "Very small GT partition residual is not millimetre drawing accuracy; metric choices and regularization affect it.",
+    "No user approval, EnergyPlus or product functional-role/concurrency result."
+  ]
+}

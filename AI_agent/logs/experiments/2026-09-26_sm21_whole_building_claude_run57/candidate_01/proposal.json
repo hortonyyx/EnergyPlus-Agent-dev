@@ -1,0 +1,656 @@
+{
+  "assumptions": [
+    "Internal door heights 2.1 assumed; floor 1 height 3.0 from elevations",
+    "Partitions drawn as centre lines; wall thickness not applied",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "N1",
+            "polygon": [
+              [
+                0.0,
+                5.00027
+              ],
+              [
+                4.998202,
+                5.00027
+              ],
+              [
+                4.998202,
+                8.0
+              ],
+              [
+                0.0,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: north corridor wall",
+              "1f_view: north partition x=5"
+            ],
+            "x": [
+              0.0,
+              4.998202
+            ],
+            "y": [
+              5.00027,
+              8.0
+            ]
+          },
+          {
+            "id": "N2",
+            "polygon": [
+              [
+                4.998202,
+                5.00027
+              ],
+              [
+                9.997483,
+                5.00027
+              ],
+              [
+                9.997483,
+                8.0
+              ],
+              [
+                4.998202,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: north corridor wall",
+              "1f_view: north partition x=5",
+              "1f_view: north partition x=10"
+            ],
+            "x": [
+              4.998202,
+              9.997483
+            ],
+            "y": [
+              5.00027,
+              8.0
+            ]
+          },
+          {
+            "id": "N3",
+            "polygon": [
+              [
+                9.997483,
+                5.00027
+              ],
+              [
+                15.0,
+                5.00027
+              ],
+              [
+                15.0,
+                8.0
+              ],
+              [
+                9.997483,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: north corridor wall",
+              "1f_view: north partition x=10"
+            ],
+            "x": [
+              9.997483,
+              15.0
+            ],
+            "y": [
+              5.00027,
+              8.0
+            ]
+          },
+          {
+            "id": "CORR",
+            "polygon": [
+              [
+                0.0,
+                2.99973
+              ],
+              [
+                15.0,
+                2.99973
+              ],
+              [
+                15.0,
+                5.00027
+              ],
+              [
+                0.0,
+                5.00027
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: north corridor wall",
+              "1f_view: south corridor wall"
+            ],
+            "x": [
+              0.0,
+              15.0
+            ],
+            "y": [
+              2.99973,
+              5.00027
+            ]
+          },
+          {
+            "id": "S1",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.998202,
+                0.0
+              ],
+              [
+                4.998202,
+                2.99973
+              ],
+              [
+                0.0,
+                2.99973
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: south corridor wall",
+              "1f_view: south partition x=5"
+            ],
+            "x": [
+              0.0,
+              4.998202
+            ],
+            "y": [
+              0.0,
+              2.99973
+            ]
+          },
+          {
+            "id": "S2",
+            "polygon": [
+              [
+                4.998202,
+                0.0
+              ],
+              [
+                9.997483,
+                0.0
+              ],
+              [
+                9.997483,
+                2.99973
+              ],
+              [
+                4.998202,
+                2.99973
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: south corridor wall",
+              "1f_view: south partition x=5",
+              "1f_view: south partition x=10"
+            ],
+            "x": [
+              4.998202,
+              9.997483
+            ],
+            "y": [
+              0.0,
+              2.99973
+            ]
+          },
+          {
+            "id": "S3",
+            "polygon": [
+              [
+                9.997483,
+                0.0
+              ],
+              [
+                15.0,
+                0.0
+              ],
+              [
+                15.0,
+                2.99973
+              ],
+              [
+                9.997483,
+                2.99973
+              ]
+            ],
+            "role": "meeting",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: south corridor wall",
+              "1f_view: south partition x=10"
+            ],
+            "x": [
+              9.997483,
+              15.0
+            ],
+            "y": [
+              0.0,
+              2.99973
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      15.0
+    ],
+    "footprint_y": [
+      0.0,
+      8.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D-N1",
+        "kind": "door",
+        "other_space_id": "N1",
+        "p1": [
+          3.758631,
+          5.00027
+        ],
+        "p2": [
+          4.618455,
+          5.00027
+        ],
+        "source_refs": [
+          "1f_view door gap; height assumed"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-N2",
+        "kind": "door",
+        "other_space_id": "N2",
+        "p1": [
+          5.377949,
+          5.00027
+        ],
+        "p2": [
+          6.228064,
+          5.00027
+        ],
+        "source_refs": [
+          "1f_view door gap; height assumed"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-N3",
+        "kind": "door",
+        "other_space_id": "N3",
+        "p1": [
+          10.36752,
+          5.00027
+        ],
+        "p2": [
+          11.278049,
+          5.00027
+        ],
+        "source_refs": [
+          "1f_view door gap; height assumed"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-S1",
+        "kind": "door",
+        "other_space_id": "S1",
+        "p1": [
+          3.758631,
+          2.99973
+        ],
+        "p2": [
+          4.618455,
+          2.99973
+        ],
+        "source_refs": [
+          "1f_view door gap; height assumed"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-S2",
+        "kind": "door",
+        "other_space_id": "S2",
+        "p1": [
+          5.377949,
+          2.99973
+        ],
+        "p2": [
+          6.228064,
+          2.99973
+        ],
+        "source_refs": [
+          "1f_view door gap; height assumed"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-S3",
+        "kind": "door",
+        "other_space_id": "S3",
+        "p1": [
+          10.36752,
+          2.99973
+        ],
+        "p2": [
+          11.278049,
+          2.99973
+        ],
+        "source_refs": [
+          "1f_view door gap; height assumed"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-W",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          3.249527
+        ],
+        "p2": [
+          0.0,
+          4.750473
+        ],
+        "source_refs": [
+          "1f_view west double door 1500; West_view door height 2.1"
+        ],
+        "space_id": "CORR",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-SW",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.539413,
+          0.0
+        ],
+        "p2": [
+          1.439154,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view + South_view door x0.54-1.44, height 2.1"
+        ],
+        "space_id": "S1",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W-N1",
+        "kind": "window",
+        "p1": [
+          1.239571,
+          8.0
+        ],
+        "p2": [
+          3.638881,
+          8.0
+        ],
+        "room": "N1",
+        "source_refs": [
+          "1f_view; North_view sill1000 h1600"
+        ],
+        "span": [
+          1.239571,
+          3.638881
+        ],
+        "width_m": 2.39931,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W-N2",
+        "kind": "window",
+        "p1": [
+          6.298188,
+          8.0
+        ],
+        "p2": [
+          8.697497,
+          8.0
+        ],
+        "room": "N2",
+        "source_refs": [
+          "1f_view; North_view"
+        ],
+        "span": [
+          6.298188,
+          8.697497
+        ],
+        "width_m": 2.399309,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W-N3",
+        "kind": "window",
+        "p1": [
+          11.356804,
+          8.0
+        ],
+        "p2": [
+          13.758271,
+          8.0
+        ],
+        "room": "N3",
+        "source_refs": [
+          "1f_view; North_view"
+        ],
+        "span": [
+          11.356804,
+          13.758271
+        ],
+        "width_m": 2.401467,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W-S1",
+        "kind": "window",
+        "p1": [
+          3.439298,
+          0.0
+        ],
+        "p2": [
+          4.638953,
+          0.0
+        ],
+        "room": "S1",
+        "source_refs": [
+          "1f_view; South_view small window sill1500 h600"
+        ],
+        "span": [
+          3.439298,
+          4.638953
+        ],
+        "width_m": 1.199655,
+        "z": [
+          1.5,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W-S2",
+        "kind": "window",
+        "p1": [
+          6.298188,
+          0.0
+        ],
+        "p2": [
+          8.697497,
+          0.0
+        ],
+        "room": "S2",
+        "source_refs": [
+          "1f_view; South_view sill1000 h1600"
+        ],
+        "span": [
+          6.298188,
+          8.697497
+        ],
+        "width_m": 2.399309,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W-S3",
+        "kind": "window",
+        "p1": [
+          11.356804,
+          0.0
+        ],
+        "p2": [
+          13.758271,
+          0.0
+        ],
+        "room": "S3",
+        "source_refs": [
+          "1f_view; South_view"
+        ],
+        "span": [
+          11.356804,
+          13.758271
+        ],
+        "width_m": 2.401467,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W-E",
+        "kind": "window",
+        "p1": [
+          15.0,
+          3.399838
+        ],
+        "p2": [
+          15.0,
+          4.600162
+        ],
+        "room": "CORR",
+        "source_refs": [
+          "1f_view; East_view lower window 1000-2800"
+        ],
+        "span": [
+          3.399838,
+          4.600162
+        ],
+        "width_m": 1.200324,
+        "z": [
+          1.0,
+          2.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Door swing/state unknown",
+    "Partition thickness at door stubs not modelled",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
