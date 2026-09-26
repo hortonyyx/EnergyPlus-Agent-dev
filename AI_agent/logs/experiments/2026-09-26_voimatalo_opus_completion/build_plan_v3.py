@@ -115,8 +115,11 @@ def main():
     plan['assumptions'].append(
         '09-26：南核院面多格玻璃竖列按可见部分补为F2–F7逐层推断窗（跨度取可见框内，窗台/窗顶沿用同层已观测院面窗）；首层该段仍未知。')
     plan['unresolved'] = [u for u in plan['unresolved'] if '内院被裁凸出体' not in u and '南端电梯只假设' not in u]
+    # Coordinator correction: inherited backend text was not an EP validation.
+    plan['unresolved'] = [u for u in plan['unresolved'] if '负荷会被当作外墙失真' not in u]
+    plan['unresolved'].append('贴邻山墙的实际相邻条件及后端映射未验证；不能自动一律设为室外或绝热。本轮没有运行EnergyPlus，也未评估负荷影响。')
     plan['unresolved'] += [
-        '内院塔体：位置、宽度、全高由残留确定；深度1.7 m只在≈1.6–2.1 m范围内有约束，顶部≈25.3–26 m；用途（电梯井/卫生间叠层/管井）与外墙开口未观测，按电梯读法无窗。电梯台数未建模，次楼梯只在南核中预留，未建梯段。',
+        '内院塔体：位置、宽度与高度范围由残留约束，完整体量仍为补全假设；深度1.7 m只在≈1.6–2.1 m范围内有约束，顶部≈25.3–26 m；用途（电梯井/卫生间叠层/管井）与外墙开口未观测，按电梯读法无窗。电梯台数未建模，次楼梯只在南核中预留，未建梯段。',
         '南核院面玻璃竖列的逐层窗高按邻窗推断；首层同段和退台层塔顶以上的扫描洞仍未知。短翼内院东端扫描洞（x>15.3）本轮未处理。',
     ]
     plan['revision_from_v2'] = {
@@ -126,7 +129,7 @@ def main():
         'changed_unknown_regions': ['CORE_S_continuous x=0.8: along -27.9..-21.8 z 0..25.25 -> along -27.9..-25.9 z 0..5.6',
                                     'F8_core_s_landing: reason text only'],
         'changed_storey_footprints': 'F1-F7 footprints = frozen shell + tower rectangle (7.14 m² each); F8, annex and roof parts unchanged',
-        'changed_text': ['CORE_S evidence', 'connections.note', 'assumptions (+2)', 'unresolved (-2/+2)'],
+        'changed_text': ['CORE_S evidence', 'connections.note', 'assumptions (+2)', 'unresolved (-2/+2)', 'Astra: remove inherited unverified EP-load/adiabatic assertion; clarify residual-derived volume uncertainty'],
         'unchanged': 'shell, storeys, roof parts, all other spaces/zones, all 300 windows and 88 doors of candidate_01',
         'tower_observations': tower_obs,
     }
