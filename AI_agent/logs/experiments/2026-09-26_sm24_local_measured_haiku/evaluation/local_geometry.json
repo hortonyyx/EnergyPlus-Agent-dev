@@ -1,0 +1,150 @@
+{
+  "condition": "measured",
+  "source_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "polygon_valid": true,
+  "vertex_count": 4,
+  "iou": 0.891869521560965,
+  "boundary_hausdorff_pixels": 53.08483775994799,
+  "complete_room_boundary_within_tolerance": false,
+  "door_count": 2,
+  "doors": [
+    {
+      "reference": "interior",
+      "actual_id": "D1",
+      "endpoint_hausdorff_pixels": 206.68151828356594,
+      "within_tolerance": false,
+      "destination_match": true
+    },
+    {
+      "reference": "exterior",
+      "actual_id": "D2",
+      "endpoint_hausdorff_pixels": 48.16637831516918,
+      "within_tolerance": false,
+      "destination_match": false
+    }
+  ],
+  "door_self_consistency": [
+    {
+      "id": "D1",
+      "on_own_room_boundary": false
+    },
+    {
+      "id": "D2",
+      "on_own_room_boundary": true
+    }
+  ],
+  "complete_door_geometry_match": false,
+  "tools": {
+    "inputs": 1,
+    "view_image": 16,
+    "view_pixel_region_overview": 2,
+    "view_pixel_profile": 7,
+    "view_pixel_region": 1
+  },
+  "tool_usage_condition_met": true,
+  "cited_measurements": [
+    {
+      "record": "profile_001",
+      "normalized_id": "profile_001",
+      "exists": true,
+      "use": "Horizontal wall profile at y=600-700; identified left wall (C01 peak at x=397) and right wall group (C03-C05 peaks at x=602-612); confirmed room is bounded at x≈397 on left and x≈607 on right"
+    },
+    {
+      "record": "profile_002",
+      "normalized_id": "profile_002",
+      "exists": true,
+      "use": "Vertical wall profile at x=350-650; identified top boundary (C01 peak at y=700) and bottom boundary (C02 peak at y=874); confirmed room height spans from y≈700 to y≈874"
+    },
+    {
+      "record": "profile_004",
+      "normalized_id": "profile_004",
+      "exists": true,
+      "use": "Horizontal wall profile at y=680-720 (top boundary zone); confirmed continuous walls at x≈397 and x≈604-612 with full support across this level"
+    },
+    {
+      "record": "profile_005",
+      "normalized_id": "profile_005",
+      "exists": true,
+      "use": "Horizontal wall profile at y=850-900 (bottom boundary zone); confirmed continuous walls at x≈397 and x≈602-612 with support intervals [850-876]"
+    },
+    {
+      "record": "profile_006",
+      "normalized_id": "profile_006",
+      "exists": true,
+      "use": "Vertical wall profile at x=390-410 (left wall); identified support intervals showing wall presence with gaps indicating door openings; cross-axis profile confirmed x≈398 wall position"
+    },
+    {
+      "record": "profile_007",
+      "normalized_id": "profile_007",
+      "exists": true,
+      "use": "Vertical wall profile at x=600-620 (right wall); identified continuous wall support from y≈672 to y≈876 with no door openings; confirmed right wall runs without interruption"
+    }
+  ],
+  "tool_usage_limit": "Only tool-access restriction / presence of saved numeric evidence is checked; complete method compliance and correct use of evidence require semantic review.",
+  "semantic_reasoning_review": "See separate evaluation/semantic_review.json when completed; numerical checks do not review prose.",
+  "reference": {
+    "image": "1f_view.png",
+    "room_polygon_pixels": [
+      [
+        400,
+        753
+      ],
+      [
+        459.5,
+        753
+      ],
+      [
+        459.5,
+        698.5
+      ],
+      [
+        607.5,
+        698.5
+      ],
+      [
+        607.5,
+        874
+      ],
+      [
+        400,
+        874
+      ]
+    ],
+    "doors": [
+      {
+        "id": "interior",
+        "p1": [
+          559,
+          698.5
+        ],
+        "p2": [
+          592,
+          698.5
+        ],
+        "destination": "interior"
+      },
+      {
+        "id": "exterior",
+        "p1": [
+          413,
+          874
+        ],
+        "p2": [
+          445,
+          874
+        ],
+        "destination": "exterior"
+      }
+    ],
+    "pixel_tolerance": 6,
+    "minimum_iou": 0.92,
+    "basis": "Development review of the original image plus saved x/y profiles; representative wall-band midlines. Reference is not supplied to either model.",
+    "qualitative_reference": "Six-turn stepped room, two boundary doors; no partition continuing the east-middle room's west wall through the open circulation above this room.",
+    "limitations": [
+      "One development-selected room; not a whole-building GT.",
+      "Developer has historical case context. Exact pixel reference is approximate, not surveyed geometry.",
+      "Numerical correspondence does not establish the correctness of the explanatory prose."
+    ]
+  },
+  "generation_already_finished": true
+}

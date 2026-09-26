@@ -1,0 +1,99 @@
+{
+  "condition": "visual",
+  "source_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "polygon_valid": true,
+  "vertex_count": 6,
+  "iou": 0.25207826747720363,
+  "boundary_hausdorff_pixels": 316.23171883920816,
+  "complete_room_boundary_within_tolerance": false,
+  "door_count": 1,
+  "doors": [
+    {
+      "reference": "interior",
+      "actual_id": "D1",
+      "endpoint_hausdorff_pixels": 299.12079499760625,
+      "within_tolerance": false,
+      "destination_match": true
+    }
+  ],
+  "door_self_consistency": [
+    {
+      "id": "D1",
+      "on_own_room_boundary": true
+    }
+  ],
+  "complete_door_geometry_match": false,
+  "tools": {
+    "inputs": 1,
+    "view_image": 5
+  },
+  "tool_usage_condition_met": true,
+  "cited_measurements": [],
+  "tool_usage_limit": "Only tool-access restriction / presence of saved numeric evidence is checked; complete method compliance and correct use of evidence require semantic review.",
+  "semantic_reasoning_review": "See separate evaluation/semantic_review.json when completed; numerical checks do not review prose.",
+  "reference": {
+    "image": "1f_view.png",
+    "room_polygon_pixels": [
+      [
+        400,
+        753
+      ],
+      [
+        459.5,
+        753
+      ],
+      [
+        459.5,
+        698.5
+      ],
+      [
+        607.5,
+        698.5
+      ],
+      [
+        607.5,
+        874
+      ],
+      [
+        400,
+        874
+      ]
+    ],
+    "doors": [
+      {
+        "id": "interior",
+        "p1": [
+          559,
+          698.5
+        ],
+        "p2": [
+          592,
+          698.5
+        ],
+        "destination": "interior"
+      },
+      {
+        "id": "exterior",
+        "p1": [
+          413,
+          874
+        ],
+        "p2": [
+          445,
+          874
+        ],
+        "destination": "exterior"
+      }
+    ],
+    "pixel_tolerance": 6,
+    "minimum_iou": 0.92,
+    "basis": "Development review of the original image plus saved x/y profiles; representative wall-band midlines. Reference is not supplied to either model.",
+    "qualitative_reference": "Six-turn stepped room, two boundary doors; no partition continuing the east-middle room's west wall through the open circulation above this room.",
+    "limitations": [
+      "One development-selected room; not a whole-building GT.",
+      "Developer has historical case context. Exact pixel reference is approximate, not surveyed geometry.",
+      "Numerical correspondence does not establish the correctness of the explanatory prose."
+    ]
+  },
+  "generation_already_finished": true
+}

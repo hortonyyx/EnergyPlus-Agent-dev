@@ -1,0 +1,101 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_05",
+    "objects": [
+      {
+        "id": "F1:D_exit_e",
+        "kind": "opening"
+      },
+      {
+        "id": "F1:D_exit_w",
+        "kind": "opening"
+      },
+      {
+        "id": "F1:D_nw_w",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West elevation exterior doors: labels 200 below, 2100 high, 1300 above in 3600 storey: z 0.2 to 2.3 m. East double door drawn with same base/height by pixel scale (approximate).",
+    "sources": [
+      {
+        "box": [
+          850.0,
+          600.0,
+          1800.0,
+          860.0
+        ],
+        "image": "West_view.png"
+      },
+      {
+        "box": [
+          340.0,
+          620.0,
+          500.0,
+          810.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [
+      "East door height measured from pixels only, no dimension label"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          0.2,
+          2.3
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "6355905e30938b24c93b1d6d589e88d1a929684070d13a2c4402dc94f36d3dd5",
+  "resolved_values": {
+    "z": [
+      0.2,
+      2.3
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        850.0,
+        600.0,
+        1800.0,
+        860.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    },
+    {
+      "box": [
+        340.0,
+        620.0,
+        500.0,
+        810.0
+      ],
+      "image": "East_view.png",
+      "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "size": [
+        2059,
+        1232
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

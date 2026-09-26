@@ -1,0 +1,110 @@
+{
+  "requested_model": "haiku",
+  "requested_role": "haiku",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": true,
+  "timeout_seconds": 900,
+  "exploratory_opus": false,
+  "effort": null,
+  "returncode": 0,
+  "elapsed_seconds": 323.77,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "result": {
+    "duration_api_ms": 314552,
+    "stop_reason": "end_turn",
+    "session_id": "48402c6b-69da-4bb0-a8b2-862d4889319c",
+    "total_cost_usd": 0.2683955,
+    "usage": {
+      "input_tokens": 162,
+      "cache_creation_input_tokens": 45588,
+      "cache_read_input_tokens": 490975,
+      "output_tokens": 25592,
+      "output_tokens_details": {
+        "thinking_tokens": 19199
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 45588,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 8,
+          "output_tokens": 7279,
+          "cache_read_input_tokens": 45588,
+          "cache_creation_input_tokens": 0,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 162,
+        "outputTokens": 25592,
+        "cacheReadInputTokens": 490975,
+        "cacheCreationInputTokens": 45588,
+        "webSearchRequests": 0,
+        "costUSD": 0.2683955,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 19199,
+        "canonicalModel": "claude-haiku-4-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 26,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Perfect! Now I have a clear view of the complete room. I can see:\n1. The rectangular desk room with the long desk arrangement\n2. White walls on left, top, and bottom\n3. Gray wall on the right\n4. Cyan door swing arcs at bottom-left and top-right\n5. Clear room boundaries forming a rectangle\n\nBased on all my measurements and visual inspection, I can now provide the complete room trace with exact coordinates.\n\n## Final Analysis\n\n**Room Boundary**: The room is a rectangle bounded by:\n- **Left wall** (profile_001): x = 402, running full height\n- **Top wall** (profile_003): y = 696, with wall support at x=[592-603]\n- **Right wall** (profile_005): x = 603, running full height with continuous support y=[690-876]\n- **Bottom wall** (profile_004): y = 869, with wall segments at x=[395-402], [404-411], [447-459]\n\n**Door Openings**:\n1. **D1 (Bottom-left)**: \n   - Left jamb at x=410 (within support interval [404-411] from profile_006)\n   - Right jamb at x=447 (within support interval [447-459] from profile_006)\n   - Wall position: y=869\n   - Destination: INTERIOR (cyan swing arc indicates access to conference room)\n\n2. **D2 (Top-right)**:\n   - Located at top-right corner area\n   - Right wall position: x=603\n   - Top wall position: y=696\n   - Small opening visible in profile_005 cross-axis data\n   - Destination: EXTERIOR (based on green boundary lines beyond the gray wall)\n\n**Circulation Outside Interior Door**:\nThe interior door (D1) at the bottom opens into the conference room. From there, circulation continues:\n- The room's **upper boundary** (top wall at y=696) is an **actual wall** separating it from another interior space above\n- The room's **left boundary** (left wall at x=402) is an **actual wall** separating it from the conference room\n- The room's **right boundary** (right wall at x=603) is an **actual wall** with a door opening (D2) connecting to the exterior/adjacent space\n- All boundaries are fully enclosed by actual walls; there are no open continuations\n\n```json\n{\n  \"image\": \"1f_view.png\",\n  \"room_polygon_pixels\": [[402, 696], [603, 696], [603, 869], [402, 869]],\n  \"doors\": [\n    {\n      \"id\": \"D1\",\n      \"p1\": [410, 869],\n      \"p2\": [447, 869],\n      \"destination\": \"interior\",\n      \"evidence\": \"Bottom wall opening at y=869; cyan door swing arc indicates access to adjacent conference room (interior); wall support intervals from profile_006 show left jamb within [404-411] and right jamb within [447-459]\"\n    },\n    {\n      \"id\": \"D2\",\n      \"p1\": [603, 696],\n      \"p2\": [603, 705],\n      \"destination\": \"exterior\",\n      \"evidence\": \"Top-right corner area at junction of top wall (y=696) and right wall (x=603); cyan arc indicates door opening rightward; green boundary lines beyond wall indicate exterior or exterior-facing circulation\"\n    }\n  ],\n  \"boundary_reasoning\": \"Room traces as rectangular perimeter: left wall at x=402 (profile_001 peak) runs from y=696 to y=869; top wall at y=696 (profile_005 C01 peak) runs from x=402 to x=603 (profile_003 supports); right wall at x=603 (profile_005 continuous support, profile_003 strong peak) runs from y=696 to y=869; bottom wall at y=869 (profile_004 strong peak) returns to x=402. Two doors pierce the wall envelope: D1 creates gap in bottom wall between jamb supports, D2 opens from top-right corner junction. All four sides are bounded by drawn walls with no open continuations.\",\n  \"circulation_reasoning\": \"Interior door D1 (bottom) provides primary circulation access from conference room area. Exiting D1, circulation enters conference room which occupies leftward space. The room's upper boundary (top wall at y=696) is a complete drawn wall, not an open continuation, separating the desk room from interior space above (visible with furniture structures in y=550-600 range). Left boundary (left wall x=402) is a complete drawn wall separating desk room from conference room. Right boundary (right wall x=603) is a complete drawn wall except for door opening D2, which connects to exterior or exterior-facing adjacent space (indicated by green building boundary lines visible beyond). Room is fully enclosed by wall structure on all sides.\",\n  \"measurements_used\": [\n    {\n      \"record\": \"region_001 (R05)\",\n      \"use\": \"Floor region bbox [403, 702, 602, 869] confirmed interior floor extent, established room width (approximately x=402-603) and height (approximately y=700-869)\"\n    },\n    {\n      \"record\": \"profile_001 (left_wall_profile)\",\n      \"use\": \"Detected left wall at x=402 with strong support peaks at y=755, y=869, y=878; confirmed left wall position and vertical continuity\"\n    },\n    {\n      \"record\": \"profile_003 (top_wall_profile)\",\n      \"use\": \"Detected wall peaks at x=402, 457, 603, 611 with support at y=[695-709]; identified top wall centerline at y≈696-702 and right wall junction at x=603\"\n    },\n    {\n      \"record\": \"profile_004 (bottom_wall_profile)\",\n      \"use\": \"Detected bottom wall at y=869 with support intervals [395-402], [404-411], [447-459] indicating left jamb at x≈410 and right jamb at x≈447 for bottom door opening; confirmed right wall position x=603\"\n    },\n    {\n      \"record\": \"profile_005 (right_wall_profile)\",\n      \"use\": \"Confirmed right wall at x=603 with continuous support from y=690-876; detected secondary peak at x=611 with gap y=697-699 suggesting exterior wall beyond desk room\"\n    },\n    {\n      \"record\": \"profile_006 (bottom_door_area_profile)\",\n      \"use\": \"Detailed measurement of bottom door jambs showing support intervals [404-411] for left jamb and [447-459] for right jamb; confirmed door opening width approximately 37 pixels\"\n    },\n    {\n      \"record\": \"profile_007 (top_right_corner_profile)\",\n      \"use\": \"Detected dual wall peaks at x=603 (continuous) and x=611 (with 2-pixel gap at y=697-699); confirmed top-right corner location and presence of door opening D2\"\n    }\n  ],\n  \"uncertainties\": [\n    \"Exact y-coordinate of top wall: profile shows support band at y=[695-709], chosen y=696 based on profile_005 peak location, but wall centerline could be at y=700-702\",\n    \"Exact extent of top-right door (D2): profile shows 2-pixel gap at x=611, y=697-699, but visible cyan arc suggests larger opening; estimated D2 as y=696-705 based on visual arc size, but could extend to y=710\",\n    \"D2 destination classification: identified as 'exterior' based on green boundary lines and cyan arc direction, but could be interior circulation space; drawing does not show explicit exterior wall marking at x=603\",\n    \"Intermediate wall peaks in profiles (x=457 at top, x=414-425 at bottom): likely represent door jambs or pilasters, not room perimeter, but exact structural meaning remains unclear from drawing alone\"\n  ]\n}\n```",
+    "ttft_ms": 3081,
+    "type": "result",
+    "duration_ms": 319272,
+    "uuid": "da925737-5c07-4253-b92d-f3a6c61797b4",
+    "ttft_stream_ms": 1109,
+    "time_to_request_ms": 45,
+    "first_content_frame_ms": 1109,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

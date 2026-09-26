@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 527.89,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 399627,
+    "stop_reason": "end_turn",
+    "session_id": "23e8404d-0865-459e-95b6-fc1c5c6d9cc6",
+    "total_cost_usd": 1.8147054,
+    "usage": {
+      "input_tokens": 30,
+      "cache_creation_input_tokens": 257494,
+      "cache_read_input_tokens": 2271247,
+      "output_tokens": 33042,
+      "output_tokens_details": {
+        "thinking_tokens": 14550
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 257494,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 871,
+          "cache_read_input_tokens": 270074,
+          "cache_creation_input_tokens": 3753,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3753
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 30,
+        "outputTokens": 33042,
+        "cacheReadInputTokens": 2271247,
+        "cacheCreationInputTokens": 257494,
+        "webSearchRequests": 0,
+        "costUSD": 1.8147054,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 14550,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 36,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I built and saved the two-storey BIM as `candidate_05` and finished it. Geometry checks pass, but drawing fidelity is not evaluated.\n\n**What was built**\n- **Assembly:** 1F sits at z=0 and 2F at z=3.6 m, on one shared XY origin. That origin is the south-west corner of the 25 × 20 m bounding box. Both plans use the 25000 × 20000 dimension chains as scale. The elevations show 3.6 m storeys and a 7.2 m total height.\n- **Ground floor:** 14 spaces, 16 doors and 15 windows. The open circulation is kept as one space. It runs from the west corridor down the north–south passage into the band under the east offices.\n- **Upper floor:** 15 spaces, 14 doors and 16 windows. The circulation is one space again. I drew no stair or other vertical link, because none appears in the inputs.\n- **Space checks:** Four sample checks on the ground floor match the original: the two north-west offices are separate, the corridor is continuous, and the two meeting rooms are separate. I did not run any on the upper floor.\n\n**Heights**\n- **Elevation-linked:** 34 exterior openings have heights read from the elevation dimension labels and recorded as adopted claims: all exterior windows on both floors plus the three ground-floor west and east exterior doors. All six claims are confirmed against the unchanged geometry.\n- **Window families:** Ground-floor windows are 1.0–2.6 m, the south large windows 1.0–2.8 m and the north long window 1.0–3.2 m. Upper-floor windows are 4.6–6.2 m, and the large west and north windows are 4.6–6.8 m.\n- **Exterior doors:** These sit at 0.2–2.3 m. The west-door values come from the labels. The east double door is scaled from pixels only, with no label.\n- **Assumed:** The 27 interior doors (13 on the ground floor, 14 on the upper floor) are still an assumed 2.1 m height with no elevation evidence.\n\n**Limitations**\n- Wall thickness is not modelled. Walls are single centre planes traced from the displayed drawing, and door and window endpoints are approximate.\n- Calibration was supplied by me from the dimension chains and was not independently verified.\n- Window widths are approximate except where I corrected them from the west elevation.\n- Each window height comes from its family's dimension chain, not a per-window measurement.\n- The plan drawings show doors and windows only as symbols, so the interior door inventory follows the visible door swings.\n\n`candidate_05/viewer.html` is the viewable model.",
+    "ttft_ms": 2507,
+    "type": "result",
+    "duration_ms": 522384,
+    "uuid": "d6b6f932-cd99-4816-8121-b89003a12399",
+    "ttft_stream_ms": 2278,
+    "time_to_request_ms": 68,
+    "first_content_frame_ms": 2278,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

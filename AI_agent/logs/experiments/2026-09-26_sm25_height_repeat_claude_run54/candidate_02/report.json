@@ -1,0 +1,76 @@
+{
+  "agent_assumptions": [
+    "Heights are placeholders pending elevations",
+    "Circulation corridors kept as one space",
+    "No stair drawn on 2F plan; no vertical circulation invented",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 96,
+    "connections": 14,
+    "openings": 30,
+    "spaces": 15,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "b826312e5b7ea1f1dc3d0cebc0549f9016dcf908f89b7a65c422e92905792f0b",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "0e9f631799d0628725579cd2098184061e35bfa854bc06085000d6f45ab06a2b",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_002/compilation.json",
+      "compilation_sha256": "f19a8845a3981da9f9209583ea2f1a4ca67920e5a38c5d65bfdedd08f06bc96f",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_002/draft_view.png",
+        "image_sha256": "1a4e42b0b92d29022f54b849274a3312e33c47c75e6de132c6bf8e94724ccd3e",
+        "metadata_file": "plan_drafts/draft_002/draft_view.json",
+        "metadata_sha256": "c0f433607151671e5e5612ee35b570117ee67e95394da51e3dbafa779d9be662",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "plan_file": "plan_drafts/draft_002/plan.json",
+      "plan_sha256": "2f4c515a690e176511452539317c4d6a5f2ff136dcff0f41bf38f39c0b4fc90e"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "3e521ee1dada7a83ae75f002b4b79a3b4c746d82537ff456886ca50456b1f90e",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Wall thickness not modelled; endpoints approximate",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

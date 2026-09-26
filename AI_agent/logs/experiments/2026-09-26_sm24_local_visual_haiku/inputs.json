@@ -1,0 +1,29 @@
+{
+  "images": {
+    "1f_view.png": {
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "size": [
+        790,
+        1111
+      ]
+    }
+  },
+  "scope": "Inspect the single room containing the long rectangular desk near the\nbottom-right corner of 1f_view.png. Identify its COMPLETE physical boundary, each\nturn, and all door apertures on that boundary. Trace the room rather than the desk.\nAlso describe how the circulation immediately outside its interior door continues\naround the room's upper boundary; distinguish an actual wall from an open continuation.\nUse the full original and self-selected clean/magnified crops. All coordinates in\nyour final answer MUST be ORIGINAL pixels (x right, y down). Pick one representative\nline through each drawn wall band, close the logical room boundary across actual\ndoor gaps, and do not draw both wall faces as separate partitions. No guessed metric\nconversion is needed. You have no generated geometry, previous observations, correct\ncounts, reference outlines or evaluation. The developer selected this local subject;\nthis is not whole-building reconstruction. Do not ask another model.\n\nReturn ONLY one JSON object, optionally in a json code fence, using this schema:\n{\"image\":\"1f_view.png\",\"room_polygon_pixels\":[[x,y],...],\n \"doors\":[{\"id\":\"D1\",\"p1\":[x,y],\"p2\":[x,y],\"destination\":\"interior_or_exterior\",\n \"evidence\":\"original location and visible jamb/swing evidence\"}],\n \"boundary_reasoning\":\"explain full boundary and turns\",\n \"circulation_reasoning\":\"describe complete nearby open continuation or separation\",\n \"measurements_used\":[{\"record\":\"saved profile/region id if any\",\"use\":\"how it changed or supported the interpretation\"}],\n \"uncertainties\":[\"actual remaining uncertainties\"]}.\nVertices must run in cyclic order, without repeating the starting point. Door\nendpoints are the two wall jambs, not hinge-to-leaf-tip. Do not fabricate tool IDs.\nGeometry validity, colour components or matching pixels do not certify wall identity.\n\nFor this controlled direct-view condition, use inputs and view_image only.\nDo not call numeric pixel/profile/region/trace/mapping/reference tools. Estimate\noriginal-pixel coordinates from direct original views and explicitly label them\nvisual estimates. This restriction concerns observation method, not the answer.",
+  "provider": "claude",
+  "input_mode": "controlled_local_observation",
+  "observation_condition": "visual",
+  "deadline_epoch": 1790428800.087981,
+  "only_input": "One original PNG plus developer-selected local subject and observation method. No candidate/GT/reference answer.",
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "b1ba21568ed211ec1300c27893db162bd8b39c86e864c25c6a0f50b2c96c390a",
+    "scripts/tool_scripts/bim_agent_guidance.py": "6b473391693925afa7c62d971a881c5a3e9b33164b54619bedd8c428ed4ce552",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4",
+    "src/agent/execution/subscription_json.py": "24a2a2f767a65e81a826ea00e859f4837f6ba4c6af1113c65868d23b50ff4ff5"
+  },
+  "comparison_limits": [
+    "Method instructions differ; tool access is not server-enforced.",
+    "Check actual actions for compliance; one pair is not statistical/causal proof.",
+    "Development-selected local subject, not autonomous whole-building generation."
+  ]
+}

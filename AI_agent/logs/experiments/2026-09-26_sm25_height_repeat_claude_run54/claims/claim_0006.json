@@ -1,0 +1,95 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_05",
+    "objects": [
+      {
+        "id": "F2:W_conf",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_long",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Upper-floor large windows on West (4320 wide) and North (8000 wide): labels 400 top, 2200 high, 1000 sill relative to floor level z=3.6: absolute 4.6 to 6.8 m.",
+    "sources": [
+      {
+        "box": [
+          1000.0,
+          330.0,
+          1500.0,
+          600.0
+        ],
+        "image": "West_view.png"
+      },
+      {
+        "box": [
+          300.0,
+          250.0,
+          1200.0,
+          600.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          4.6,
+          6.8
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0006",
+  "parent_proposal_sha256": "6355905e30938b24c93b1d6d589e88d1a929684070d13a2c4402dc94f36d3dd5",
+  "resolved_values": {
+    "z": [
+      4.6,
+      6.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        1000.0,
+        330.0,
+        1500.0,
+        600.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    },
+    {
+      "box": [
+        300.0,
+        250.0,
+        1200.0,
+        600.0
+      ],
+      "image": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "size": [
+        2690,
+        1276
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

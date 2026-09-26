@@ -1,0 +1,110 @@
+{
+  "requested_model": "haiku",
+  "requested_role": "haiku",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": true,
+  "timeout_seconds": 900,
+  "exploratory_opus": false,
+  "effort": null,
+  "returncode": 0,
+  "elapsed_seconds": 225.05,
+  "actual_model": "claude-haiku-4-5-20251001",
+  "result": {
+    "duration_api_ms": 218410,
+    "stop_reason": "end_turn",
+    "session_id": "0c2c2329-fec3-470a-b514-61a7027862d8",
+    "total_cost_usd": 0.079431,
+    "usage": {
+      "input_tokens": 50,
+      "cache_creation_input_tokens": 17617,
+      "cache_read_input_tokens": 51120,
+      "output_tokens": 7807,
+      "output_tokens_details": {
+        "thinking_tokens": 6358
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 17617,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 8,
+          "output_tokens": 3190,
+          "cache_read_input_tokens": 14508,
+          "cache_creation_input_tokens": 3109,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3109
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 50,
+        "outputTokens": 7807,
+        "cacheReadInputTokens": 51120,
+        "cacheCreationInputTokens": 17617,
+        "webSearchRequests": 0,
+        "costUSD": 0.079431,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 6358,
+        "canonicalModel": "claude-haiku-4-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 7,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Based on my analysis of the floor plan, I can identify the room containing the long rectangular table (the large 8-chair oval/rectangular meeting table visible in the center-left area). Let me provide the detailed observations:\n\nThe room is clearly bounded by walls visible as gray/white and cyan lines. The large rectangular meeting table with 8 chairs (4 on each long side, 2 on each short end) is positioned in the lower-center area. \n\nKey observations:\n- **Top boundary**: Horizontal gray wall at approximately y=410 with a door opening\n- **Right boundary**: Cyan vertical wall at approximately x=610-620\n- **Bottom boundary**: Gray horizontal wall at approximately y=880-890  \n- **Left boundary**: White/gray vertical wall at approximately x=330-340\n\nThe door opening at the top shows a swing arc indicating it opens inward (to the right) into the room from an upper circulation corridor. The jambs are located at approximately x=480 (left) and x=570 (right).\n\nThe circulation above the door (y < 410) continues left and right around the room's upper boundary. The visible cyan wall segments extending upward on both sides of the door opening indicate this is a defined interior circulation corridor/hallway, not an open free-plan space—the walls separate the corridor from the meeting room.\n\n```json\n{\n  \"image\": \"1f_view.png\",\n  \"room_polygon_pixels\": [[330, 410], [480, 410], [570, 410], [610, 410], [610, 880], [330, 880]],\n  \"doors\": [\n    {\n      \"id\": \"D1\",\n      \"p1\": [480, 410],\n      \"p2\": [570, 410],\n      \"destination\": \"interior\",\n      \"evidence\": \"Door swing arc visible in plan view at top wall opening (y≈410). Arc curves rightward into room, indicating inward swing from upper circulation corridor. Jambs clearly marked at x≈480 (left) and x≈570 (right) where wall is interrupted.\"\n    }\n  ],\n  \"boundary_reasoning\": \"Complete rectangular room boundary traced clockwise: (1) Left wall at x≈330 runs from y=410 to y=880 (white/gray line, representative centerline); (2) Top wall at y≈410 runs from x=330 to x=610, with door opening interrupting the span from x=480 to x=570; (3) Right wall at x≈610 runs from y=410 to y=880 (cyan colored wall); (4) Bottom wall at y≈880 runs from x=330 to x=610 (gray line). All four corners are 90-degree right angles. Room encloses the large 8-chair oval-rectangular meeting table. Door opening spans approximately 90 pixels at top boundary.\",\n  \"circulation_reasoning\": \"The door D1 at the top wall provides access to an interior circulation corridor that lies above the room boundary (y<410). This corridor continues left and right around the room's upper perimeter. The continuation is NOT open free-plan; cyan wall segments are visible extending upward on both the left and right sides of the door opening, indicating the corridor is bounded by defined walls. The room boundary wall and door opening thus create a clear separation between the meeting room interior and the exterior circulation hallway.\",\n  \"measurements_used\": [],\n  \"uncertainties\": [\n    \"Wall thickness inferred from plan representation—coordinates represent representative centerline of drawn wall bands, not exact outer/inner faces\",\n    \"Door swing direction and arc curvature interpreted from graphical swing symbol; direction confirmed from visible arc orientation\",\n    \"Exact dimensions of door width and jamb positions estimated visually from plan scale—could vary by ±5-10 pixels with higher-resolution verification\"\n  ]\n}\n```",
+    "ttft_ms": 8310,
+    "type": "result",
+    "duration_ms": 219212,
+    "uuid": "8698429e-c1dc-432b-bc56-1a7c53054fe2",
+    "ttft_stream_ms": 6926,
+    "time_to_request_ms": 476,
+    "first_content_frame_ms": 6926,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

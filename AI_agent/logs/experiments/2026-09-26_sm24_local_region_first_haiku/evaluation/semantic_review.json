@@ -1,0 +1,18 @@
+{
+  "reviewer": "Codex development review after generation; no live feedback",
+  "target_identification": "correct floor-region selection",
+  "full_boundary": "failed",
+  "doors": "failed",
+  "circulation": "failed",
+  "findings": [
+    "Selected overview R05 and region_001 are the intended floor background; saved contour actually contains the reentrant corner.",
+    "Despite explicit instruction, final answer replaces this contour with a rectangle and cites its bounding box as room extent.",
+    "D1 south opening endpoints are near the actual aperture but destination is reversed to interior.",
+    "D2 incorrectly uses the east wall with 9px length; actual north interior door is horizontal with about33px width.",
+    "Green dimension lines are not building/exterior boundaries; written exterior-door evidence is mistaken.",
+    "All seven cited records exist; explanatory parenthetic labels are normalized only for lookup, not accepted as tool-created semantic labels."
+  ],
+  "tool_evidence": "Correct region selected and returned, but its contour was not retained or correctly interpreted. Seven profiles do not fix this semantic failure.",
+  "method_compliance": "Tool-use requirement satisfied, complete-contour instruction violated; not a successful transfer.",
+  "basis": "Original, saved exact contour/profiles, verbatim response and post-generation geometry audit"
+}

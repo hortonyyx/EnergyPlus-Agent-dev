@@ -1,0 +1,156 @@
+{
+  "condition": "region_first",
+  "source_image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "polygon_valid": true,
+  "vertex_count": 4,
+  "iou": 0.8458832238741094,
+  "boundary_hausdorff_pixels": 57.0,
+  "complete_room_boundary_within_tolerance": false,
+  "door_count": 2,
+  "doors": [
+    {
+      "reference": "interior",
+      "actual_id": "D2",
+      "endpoint_hausdorff_pixels": 44.0,
+      "within_tolerance": false,
+      "destination_match": false
+    },
+    {
+      "reference": "exterior",
+      "actual_id": "D1",
+      "endpoint_hausdorff_pixels": 5.830951894845301,
+      "within_tolerance": true,
+      "destination_match": false
+    }
+  ],
+  "door_self_consistency": [
+    {
+      "id": "D1",
+      "on_own_room_boundary": true
+    },
+    {
+      "id": "D2",
+      "on_own_room_boundary": true
+    }
+  ],
+  "complete_door_geometry_match": false,
+  "tools": {
+    "view_image": 9,
+    "view_pixel_region_overview": 1,
+    "view_pixel_region": 1,
+    "inputs": 1,
+    "view_pixel_profile": 7
+  },
+  "tool_usage_condition_met": true,
+  "cited_measurements": [
+    {
+      "record": "region_001 (R05)",
+      "normalized_id": "region_001",
+      "exists": true,
+      "use": "Floor region bbox [403, 702, 602, 869] confirmed interior floor extent, established room width (approximately x=402-603) and height (approximately y=700-869)"
+    },
+    {
+      "record": "profile_001 (left_wall_profile)",
+      "normalized_id": "profile_001",
+      "exists": true,
+      "use": "Detected left wall at x=402 with strong support peaks at y=755, y=869, y=878; confirmed left wall position and vertical continuity"
+    },
+    {
+      "record": "profile_003 (top_wall_profile)",
+      "normalized_id": "profile_003",
+      "exists": true,
+      "use": "Detected wall peaks at x=402, 457, 603, 611 with support at y=[695-709]; identified top wall centerline at y≈696-702 and right wall junction at x=603"
+    },
+    {
+      "record": "profile_004 (bottom_wall_profile)",
+      "normalized_id": "profile_004",
+      "exists": true,
+      "use": "Detected bottom wall at y=869 with support intervals [395-402], [404-411], [447-459] indicating left jamb at x≈410 and right jamb at x≈447 for bottom door opening; confirmed right wall position x=603"
+    },
+    {
+      "record": "profile_005 (right_wall_profile)",
+      "normalized_id": "profile_005",
+      "exists": true,
+      "use": "Confirmed right wall at x=603 with continuous support from y=690-876; detected secondary peak at x=611 with gap y=697-699 suggesting exterior wall beyond desk room"
+    },
+    {
+      "record": "profile_006 (bottom_door_area_profile)",
+      "normalized_id": "profile_006",
+      "exists": true,
+      "use": "Detailed measurement of bottom door jambs showing support intervals [404-411] for left jamb and [447-459] for right jamb; confirmed door opening width approximately 37 pixels"
+    },
+    {
+      "record": "profile_007 (top_right_corner_profile)",
+      "normalized_id": "profile_007",
+      "exists": true,
+      "use": "Detected dual wall peaks at x=603 (continuous) and x=611 (with 2-pixel gap at y=697-699); confirmed top-right corner location and presence of door opening D2"
+    }
+  ],
+  "tool_usage_limit": "Only tool-access restriction / presence of saved numeric evidence is checked; complete method compliance and correct use of evidence require semantic review.",
+  "semantic_reasoning_review": "See separate evaluation/semantic_review.json when completed; numerical checks do not review prose.",
+  "reference": {
+    "image": "1f_view.png",
+    "room_polygon_pixels": [
+      [
+        400,
+        753
+      ],
+      [
+        459.5,
+        753
+      ],
+      [
+        459.5,
+        698.5
+      ],
+      [
+        607.5,
+        698.5
+      ],
+      [
+        607.5,
+        874
+      ],
+      [
+        400,
+        874
+      ]
+    ],
+    "doors": [
+      {
+        "id": "interior",
+        "p1": [
+          559,
+          698.5
+        ],
+        "p2": [
+          592,
+          698.5
+        ],
+        "destination": "interior"
+      },
+      {
+        "id": "exterior",
+        "p1": [
+          413,
+          874
+        ],
+        "p2": [
+          445,
+          874
+        ],
+        "destination": "exterior"
+      }
+    ],
+    "pixel_tolerance": 6,
+    "minimum_iou": 0.92,
+    "basis": "Development review of the original image plus saved x/y profiles; representative wall-band midlines. Reference is not supplied to either model.",
+    "qualitative_reference": "Six-turn stepped room, two boundary doors; no partition continuing the east-middle room's west wall through the open circulation above this room.",
+    "limitations": [
+      "One development-selected room; not a whole-building GT.",
+      "Developer has historical case context. Exact pixel reference is approximate, not surveyed geometry.",
+      "Numerical correspondence does not establish the correctness of the explanatory prose."
+    ]
+  },
+  "generation_already_finished": true
+}

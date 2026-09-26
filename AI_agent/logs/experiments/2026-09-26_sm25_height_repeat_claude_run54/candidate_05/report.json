@@ -1,0 +1,66 @@
+{
+  "agent_assumptions": [
+    "Wall planes approximated from displayed drawing; heights assumed pending elevations",
+    "Circulation corridors kept as one space",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Heights are placeholders pending elevations",
+    "Circulation corridors kept as one space",
+    "No stair drawn on 2F plan; no vertical circulation invented",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 30,
+    "openings": 61,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "6355905e30938b24c93b1d6d589e88d1a929684070d13a2c4402dc94f36d3dd5",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "0e9f631799d0628725579cd2098184061e35bfa854bc06085000d6f45ab06a2b",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "4a55931b8c8d2bfd9cc8513342619ebf0fdbfd4ebd5ec2806a02862322504731"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "4c86948b6a14489a57099406f679b21d11e1ef6ab00b09a49593b3eb58875ea9",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact wall thickness not modelled; window/door endpoints approximate",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Wall thickness not modelled; endpoints approximate",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
