@@ -12,6 +12,12 @@ import hashlib
 import json
 import math
 from collections import Counter
+from types import SimpleNamespace
+
+from shapely.errors import GEOSException
+from shapely.ops import unary_union
+
+from src.agent.geometry.source_bim import EPS, _on_wall
 
 
 _SOURCE_TO_REVIEW_KIND = {"door": "door", "window": "window", "open": "passage"}
@@ -240,6 +246,48 @@ def _facade_for_boundary(boundary: object, space: object) -> tuple[str | None, s
     return None, "host_direction_unsupported"
 
 
+def _wall_exposure(boundary: dict, relations: list[dict]):
+    """Return wall area not shared with another space, in along-wall/Z space.
+
+    A boundary relation may cover only part of the wall's length or height.
+    Invalid/missing contact patches make exposure unknown rather than exterior.
+    The source kernel's coplanarity check and EPS are used only for numerical
+    geometry, never to enlarge a drawing opening or erase a physical contact.
+    """
+    wall = SimpleNamespace(vertices=boundary.get("vertices"))
+    try:
+        parent = _on_wall(wall.vertices, wall)
+        if parent is None or not parent.is_valid or parent.area <= EPS ** 2:
+            raise ValueError("invalid wall area")
+        patches = []
+        for relation in relations:
+            regions = relation.get("regions")
+            if not isinstance(regions, list) or not regions:
+                raise ValueError("missing contact regions")
+            for region in regions:
+                if not isinstance(region, dict) or not isinstance(region.get("holes"), list):
+                    raise ValueError("invalid contact region")
+                patch = _on_wall(region.get("vertices"), wall)
+                if patch is None or not patch.is_valid or patch.area <= EPS ** 2:
+                    raise ValueError("invalid contact region")
+                for hole_vertices in region["holes"]:
+                    hole = _on_wall(hole_vertices, wall)
+                    if hole is None or not hole.is_valid or hole.area <= EPS ** 2:
+                        raise ValueError("invalid contact hole")
+                    if not patch.buffer(EPS).covers(hole):
+                        raise ValueError("contact hole outside region")
+                    patch = patch.difference(hole)
+                if patch.area <= EPS ** 2 or not patch.is_valid or not parent.buffer(EPS).covers(patch):
+                    raise ValueError("contact region outside wall")
+                patches.append(patch)
+        if boundary.get("adjacent_space_ids") and not relations:
+            raise ValueError("missing contact relation")
+        contact = unary_union(patches)
+        return parent.difference(contact), contact, None
+    except (KeyError, TypeError, ValueError, AttributeError, IndexError, GEOSException):
+        return None, None, "contact_geometry_unavailable"
+
+
 def facade_inventory(source: dict) -> dict:
     """Expose source-derived exterior-facade scope without guessing from images.
 
@@ -256,23 +304,43 @@ def facade_inventory(source: dict) -> dict:
         row.get("id"): row for row in raw_boundaries
         if isinstance(row, dict) and isinstance(row.get("id"), str) and row["id"]
     }
-    related_boundaries = {
-        boundary_id for relation in source.get("boundary_relations", [])
-        if isinstance(relation, dict) and isinstance(relation.get("boundary_ids"), list)
-        for boundary_id in relation["boundary_ids"] if isinstance(boundary_id, str)
-    }
+    raw_relations = source.get("boundary_relations")
+    relations_valid = isinstance(raw_relations, list) and all(
+        isinstance(relation, dict) and isinstance(relation.get("boundary_ids"), list)
+        and len(relation["boundary_ids"]) == 2
+        and all(isinstance(bid, str) for bid in relation["boundary_ids"])
+        for relation in raw_relations
+    )
+    by_boundary: dict[str, list[dict]] = {}
+    if relations_valid:
+        for relation in raw_relations:
+            for boundary_id in relation["boundary_ids"]:
+                by_boundary.setdefault(boundary_id, []).append(relation)
     source_spaces = {
         row.get("id"): row for row in source.get("spaces", [])
         if isinstance(row, dict) and isinstance(row.get("id"), str) and row["id"]
     }
     exterior_boundaries: dict[tuple[str, str], list[str]] = {}
     unsupported_exterior_boundaries: dict[str, list[dict]] = {}
+    exposure: dict[str, tuple[object, object, str | None]] = {}
     for boundary_id, boundary in boundaries.items():
-        if boundary_id in related_boundaries or boundary.get("geometry_type") != "wall":
+        if boundary.get("geometry_type") != "wall":
             continue
         space_id = boundary.get("space_id")
         space = spaces.get(space_id)
         if space is None:
+            continue
+        exposed, contact, exposure_reason = (
+            _wall_exposure(boundary, by_boundary.get(boundary_id, []))
+            if relations_valid else (None, None, "contact_geometry_unavailable")
+        )
+        exposure[boundary_id] = exposed, contact, exposure_reason
+        if exposure_reason is not None:
+            unsupported_exterior_boundaries.setdefault(space["floor_id"], []).append({
+                "boundary_id": boundary_id, "reason": exposure_reason,
+            })
+            continue
+        if exposed.area <= EPS ** 2:
             continue
         facade, reason = _facade_for_boundary(boundary, source_spaces.get(space_id))
         if facade is not None:
@@ -299,16 +367,29 @@ def facade_inventory(source: dict) -> dict:
                 result["reason"] = "unknown_host_boundary"
             elif boundary.get("space_id") not in opening["space_ids"]:
                 result["reason"] = "host_space_mismatch"
-            elif host_id in related_boundaries:
-                result["reason"] = "host_not_exterior"
             else:
-                facade, reason = _facade_for_boundary(boundary, source_spaces.get(boundary.get("space_id")))
-                result["facade"] = facade
-                if reason is not None:
-                    result["reason"] = reason
-                elif host_id not in exterior_boundaries.get((opening["floor_id"], facade), []):
-                    result["facade"] = None
-                    result["reason"] = "host_not_exterior"
+                exposed, contact, exposure_reason = exposure.get(
+                    host_id, (None, None, "contact_geometry_unavailable"))
+                if exposure_reason is not None:
+                    result["reason"] = exposure_reason
+                else:
+                    try:
+                        aperture = _on_wall(opening["vertices"], SimpleNamespace(vertices=boundary["vertices"]))
+                    except (KeyError, TypeError, ValueError, AttributeError, IndexError):
+                        aperture = None
+                    if (aperture is None or not aperture.is_valid or aperture.area <= EPS ** 2
+                            or contact.intersection(aperture).area > EPS ** 2
+                            or not exposed.buffer(EPS).covers(aperture)):
+                        result["reason"] = "host_not_exterior"
+                    else:
+                        facade, reason = _facade_for_boundary(
+                            boundary, source_spaces.get(boundary.get("space_id")))
+                        if reason is not None:
+                            result["reason"] = reason
+                        elif host_id not in exterior_boundaries.get((opening["floor_id"], facade), []):
+                            result["reason"] = "host_not_exterior"
+                        else:
+                            result["facade"] = facade
         classifications[opening_id] = result
 
     by_floor = []

@@ -2,8 +2,8 @@ import copy
 
 import pytest
 
-from src.agent.correction.schema import CorrectedGeometry
-from src.agent.geometry.opening_review import opening_inventory, review_openings
+from src.agent.correction.schema import CorrectedGeometry, FootprintRing
+from src.agent.geometry.opening_review import facade_inventory, opening_inventory, review_openings
 from src.agent.geometry.source_bim import build_source_bim
 from src.agent.geometry.source_model import _digest
 
@@ -22,6 +22,48 @@ def _source():
         ],
     })
     return build_source_bim(geom)
+
+
+def _partly_shared_wall_source():
+    """A's north wall contacts B on x=0..2 and is exposed on x=2..6."""
+    geom = CorrectedGeometry.model_validate({
+        "schema_version": "2", "footprint_x": [0, 6], "footprint_y": [0, 4],
+        "floors": [{"name": "F1", "z_floor": 0, "ceiling_height": 3, "cells": [
+            {"id": "A", "x": [0, 6], "y": [0, 2]},
+            {"id": "B", "x": [0, 2], "y": [2, 4]},
+        ]}],
+        "windows": [{"id": "NW", "floor": "F1", "facade": "North",
+                     "span": [3, 5], "z": [1, 2], "room": "A"}],
+        "openings": [{"id": "D", "kind": "door", "space_id": "A",
+                      "other_space_id": "B", "p1": [0.5, 2], "p2": [1.5, 2],
+                      "z": [0, 2], "source_refs": ["test:shared-door"]}],
+    })
+    geom.floors[0].footprint = FootprintRing.model_validate({
+        "vertices": [[0, 0], [6, 0], [6, 2], [2, 2], [2, 4], [0, 4]],
+    })
+    return build_source_bim(geom, capability_profile="orthogonal_polygon")
+
+
+def _partly_shared_height_source():
+    """The full wall length contacts B below z=1.5, then faces outdoors."""
+    geom = CorrectedGeometry.model_validate({
+        "schema_version": "2", "footprint_x": [0, 4], "footprint_y": [0, 4],
+        "floors": [
+            {"name": "TALL", "z_floor": 0, "ceiling_height": 3,
+             "cells": [{"id": "A", "x": [0, 4], "y": [0, 2]}]},
+            {"name": "SHORT", "z_floor": 0, "ceiling_height": 1.5,
+             "cells": [{"id": "B", "x": [0, 4], "y": [2, 4]}]},
+        ],
+        "windows": [{"id": "HIGH", "floor": "TALL", "facade": "North",
+                     "span": [1, 3], "z": [2, 2.8], "room": "A"}],
+    })
+    geom.floors[0].footprint = FootprintRing.model_validate({
+        "vertices": [[0, 0], [4, 0], [4, 2], [0, 2]],
+    })
+    geom.floors[1].footprint = FootprintRing.model_validate({
+        "vertices": [[0, 2], [4, 2], [4, 4], [0, 4]],
+    })
+    return build_source_bim(geom, capability_profile="orthogonal_polygon")
 
 
 def _images():
@@ -147,6 +189,91 @@ def test_facade_mark_cannot_claim_an_interior_door():
     }]), _images())
     assert {row["code"] for row in report["findings"]} >= {
         "mark_facade_mismatch", "unaccounted_model_opening"}
+
+
+def test_partial_contact_wall_keeps_exposed_window_and_height_facade_scope():
+    from src.agent.execution.bim_height_coverage import height_coverage
+
+    source = _partly_shared_wall_source()
+    assert source["validation"]["status"] == "pass"
+    before = copy.deepcopy(source)
+    inventory = facade_inventory(source)
+    assert inventory["opening_classifications"]["NW"]["facade"] == "North"
+    assert inventory["opening_classifications"]["D"]["reason"] == "not_exterior"
+    north = next(row for row in inventory["floors"][0]["facades"] if row["facade"] == "North")
+    assert north["opening_ids"] == ["NW"]
+    assert "space/A/wall/2" in north["exterior_boundary_ids"]
+    report = review_openings(source, _facade_review("North", marks=[{
+        "mark_id": "north-recess", "box": [1, 2, 10, 12], "opening_ids": ["NW"],
+        "space_ids": ["A"], "basis": "visible", "note": "exposed part of wall",
+    }]), _images())
+    assert report["model_opening_ids"] == ["NW"]
+    assert report["findings"] == []
+
+    class EmptyClaimStore:
+        def candidate(self, identity):
+            return {"geometry": {"windows": [{"id": "NW"}], "openings": []}}, source
+
+        def status(self):
+            return {"claims": []}
+
+    coverage = height_coverage(EmptyClaimStore(), "candidate",
+                               current_state={"candidate": "candidate", "claims": []})
+    north_coverage = next(row for row in coverage["floors"][0]["facades"] if row["facade"] == "North")
+    assert north_coverage["actual_opening_ids"] == ["NW"]
+    assert north_coverage["unchecked_height_opening_ids"] == ["NW"]
+    assert source == before
+
+
+def test_vertical_partial_contact_classifies_only_the_exposed_height():
+    source = _partly_shared_height_source()
+    assert source["validation"]["status"] == "pass"
+    assert facade_inventory(source)["opening_classifications"]["HIGH"]["facade"] == "North"
+    # A synthetic corrupted source may claim an aperture below the short
+    # neighbour's roof is outdoors; the actual contact region must win.
+    low = copy.deepcopy(next(row for row in source["openings"] if row["id"] == "HIGH"))
+    low["id"] = "FALSE_LOW"
+    for vertex in low["vertices"]:
+        vertex[2] -= 2.0
+    source["openings"].append(low)
+    source["source_model_sha256"] = _digest({k: v for k, v in source.items()
+                                              if k != "source_model_sha256"})
+    classified = facade_inventory(source)["opening_classifications"]
+    assert classified["HIGH"]["facade"] == "North"
+    assert classified["FALSE_LOW"]["facade"] is None
+    assert classified["FALSE_LOW"]["reason"] == "host_not_exterior"
+
+
+def test_fully_shared_interior_wall_rejects_false_exterior_claim():
+    source = _source()
+    door = next(row for row in source["openings"] if row["id"] == "D1")
+    door["exterior"] = True
+    door["space_ids"] = ["A"]
+    source["source_model_sha256"] = _digest({k: v for k, v in source.items()
+                                              if k != "source_model_sha256"})
+    classified = facade_inventory(source)["opening_classifications"]["D1"]
+    assert classified["facade"] is None
+    assert classified["reason"] == "host_not_exterior"
+
+
+def test_missing_contact_regions_fail_closed_in_facade_inventory():
+    source = _partly_shared_wall_source()
+    host_id = next(row["host_boundary_id"] for row in source["openings"] if row["id"] == "NW")
+    relation = next(row for row in source["boundary_relations"] if host_id in row["boundary_ids"])
+    for incomplete in ("regions_missing", "relation_missing"):
+        damaged = copy.deepcopy(source)
+        if incomplete == "regions_missing":
+            next(row for row in damaged["boundary_relations"]
+                 if host_id in row["boundary_ids"])["regions"] = []
+        else:
+            damaged["boundary_relations"] = [row for row in damaged["boundary_relations"]
+                                             if row["boundary_ids"] != relation["boundary_ids"]]
+        damaged["source_model_sha256"] = _digest({k: v for k, v in damaged.items()
+                                                   if k != "source_model_sha256"})
+        inventory = facade_inventory(damaged)
+        assert inventory["opening_classifications"]["NW"]["facade"] is None
+        assert inventory["opening_classifications"]["NW"]["reason"] == "contact_geometry_unavailable"
+        assert {row["boundary_id"] for row in inventory["floors"][0]["unsupported_exterior_boundaries"]} >= {host_id}
 
 
 @pytest.mark.parametrize("mutate", [
