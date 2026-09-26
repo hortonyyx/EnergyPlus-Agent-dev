@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 2400,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 333.84,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 291703,
+    "stop_reason": "end_turn",
+    "session_id": "87558ee6-a5aa-4c0f-9c9c-8c938bb11cb2",
+    "total_cost_usd": 1.4015142,
+    "usage": {
+      "input_tokens": 32,
+      "cache_creation_input_tokens": 214218,
+      "cache_read_input_tokens": 1352591,
+      "output_tokens": 27406,
+      "output_tokens_details": {
+        "thinking_tokens": 18600
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 214218,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1016,
+          "cache_read_input_tokens": 194815,
+          "cache_creation_input_tokens": 19403,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 19403
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 32,
+        "outputTokens": 27406,
+        "cacheReadInputTokens": 1352591,
+        "cacheCreationInputTokens": 214218,
+        "webSearchRequests": 0,
+        "costUSD": 1.4015142,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 18600,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 21,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and saved `candidate_04` as the two-floor building. It has 29 spaces (14 on F1, 15 on F2) and 61 openings. The source geometry checks pass. That shows internal consistency only, not fidelity to the drawings.\n\n**Floors and heights**\n- **Floor levels:** F1 has its base at z=0 and F2 at z=3.6. Both storeys are 3.6 m high, from the 3600 + 3600 = 7200 dimensions on every elevation.\n- **F1 plan:** I kept the saved footprint and partitions unchanged; they overlay the 1F plan well. I only edited heights.\n- **F2 plan:** I traced it fresh from `2f_view.png`, not copied from F1. It has three top rooms, one large meeting room in place of F1's two mid rooms, and five offices where F1 has seven. The wing holds five rooms instead of two meeting rooms. The corridor forms one continuous space.\n- **Common XY frame:** both floors use the same 25 m × 20 m calibration.\n\n**Opening heights**\nThese come from the elevation dimension strings, floor-relative, with F2 shifted by 3.6 m in the assembly.\n\n| Opening family | z on F1 (m) | z on F2 (m) |\n|---|---|---|\n| Most windows | 1.0–2.6 | 4.6–6.2 |\n| South wing windows | 1.0–2.8 | 4.6–6.2 |\n| North long 8000 window (WE) | 1.0–3.2 | 4.6–6.8 |\n| West large window, meeting room (F2 only) | – | 4.6–6.8 |\n| Exterior doors | 0.2–2.3 | none |\n\n**Checks I ran**\n- **South elevation:** the source view matches the drawn window spans and heights on both floors.\n- **Space relations:** five sampled pairs on F2, and none conflicted. They were: top corridor and N-S corridor are one space; meeting room, wing rooms, rooms A/B and offices 4/5 are separate spaces.\n- **Not done:** I did not run `view_plan_wall_support`, and I did not view the North, East or West source elevations.\n\n**Assumed or unverified**\n- Interior door heights of 2.1 m are assumptions.\n- The East double door's 0.2–2.3 height is scaled from the drawing, not read from a dimension.\n- The saved F1 plan was not re-verified against the original beyond the overlay.\n- Calibration is my own and not independently verified. Wall thickness is not modelled. Door swing states are unknown, and the meeting-room dividing pier on F1 is a single wall.\n- No stair or lift appears on either plan, so there is no vertical circulation.\n- Room uses are mostly unknown. The tool reports no opening height linked to image evidence, because I entered the elevation values by hand. That does not mean the heights are unchecked against the drawings.\n\nTwo build attempts were wasted: `candidate_01` is a placeholder footprint, and the first F2 draft failed on dangling walls before I fixed it.",
+    "ttft_ms": 1659,
+    "type": "result",
+    "duration_ms": 325639,
+    "uuid": "a927c1e2-f747-4296-b6fa-fa07fa1c586f",
+    "ttft_stream_ms": 1615,
+    "time_to_request_ms": 115,
+    "first_content_frame_ms": 1615,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

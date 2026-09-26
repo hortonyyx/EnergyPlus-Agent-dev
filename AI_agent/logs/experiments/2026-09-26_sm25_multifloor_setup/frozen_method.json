@@ -1,0 +1,29 @@
+{
+  "scope": "Extend the supplied previously generated first-floor pixel declaration into one inspectable two-floor building using the original plans and elevations. The saved first floor is an editable starting point, not truth; its vertical heights were assumptions when only that plan was available. Focus on floor identity, distinct upstairs physical spaces/door connections, common XY coordinates, and elevation-supported floor/opening heights. Preserve sound first-floor plan geometry instead of manually rewriting it. No other saved building, successful observation, correct object count or GT is supplied.\nRead reconstruction, plan_partition, plan_assembly and the height/evidence portions of claims as needed. Use original annotations and suitable crops/measurements to establish each floor's base, height and the opening height families on each facade. Distinguish floor-relative from world-absolute z. Set or locally revise the pixel declarations from evidence, compile the new upstairs plan with build_plan_bim, and combine the saved drafts using assemble_plan_bim. Its explicit z_floor places a floor but does not change its ceiling height or opening dimensions. A saved resume draft can be inspected and assembled directly, or locally revised first. Reassembling from drafts does not carry later candidate edits, so review the actual final candidate.\nKeep complete physical spaces intact, distinguish furniture and door swings from walls, and do not copy a downstairs partition just because floor extents match. After an initial upstairs submission, use view_plan_wall_support and original crops to check full wall paths and their adjacent spaces; choose important same/separate space samples from the original and compare to actual source ownership. Source consistency is not image truth. Check final source plans/overlays and actual elevations, original opening inventories and plan-to-elevation identities. When source heights match observations confirm them; otherwise make evidence-bound local corrections. Use focused lower-cost review_detail only if a small unresolved visual question benefits from it. Unobserved internal door heights may be explicit assumptions. Do not silently omit floors/openings or add imaginary vertical circulation. Deliver the best inspected candidate with an honest account of observed/assumed/unverified content. This is a saved-first-floor extension experiment, not a whole-building cold start.",
+  "mode": "saved_F1_plan_extension_to_two_floors",
+  "seed_sha256": "53ea6f094837939d07db9f42979a02b33707862c908bb1a06cc6aa7c0fb0a8b2",
+  "image_sha256": {
+    "1f_view.png": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "2f_view.png": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+    "East_view.png": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+    "North_view.png": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+    "South_view.png": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+    "West_view.png": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac"
+  },
+  "provider": "claude",
+  "role": "sonnet",
+  "effort": "medium",
+  "timeout_seconds": 2400,
+  "included": [
+    "six original PNGs",
+    "run48 F1 pixel declaration"
+  ],
+  "excluded": [
+    "GT",
+    "evaluation",
+    "other saved source",
+    "building declaration",
+    "correct counts"
+  ],
+  "developer_participation": "Generic task and saved F1 starting draft; no F2 answer or local defect hint."
+}

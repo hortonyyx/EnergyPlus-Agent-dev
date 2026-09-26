@@ -1,0 +1,74 @@
+{
+  "agent_assumptions": [
+    "Door heights assumed; north/west window heights assumed from 2F elevation family; 720mm-thick walls modelled as single centrelines",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 96,
+    "connections": 14,
+    "openings": 30,
+    "spaces": 15,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f16cc90dbb3ca343ad65644b6440c5c97586847107185f65dfcf89c42e7ec1dd",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "19409aaba385f72f57530c7ff2fa88ffbbe23c1cf7fd416959128daa9ce4aae2",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "e41abb771e7cb5809c20eb70c70b63001f806db92487ac31fbea9a978f6b7bc2",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "4ba8f88aa93d9f516d0c3e89ed3a511a446627004f6c0c10aa3c8820f83772ee",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "a3edd952d9fcdd988594a98824ba18a5bf2b8427e5ace7ad47832824bc0cb331",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "54ef27161a46550427ed9235b6b2d4d0b92ccf0a96eeb6dfbac604f0c58e8be1"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "559a7884e75ffe7fc14671f6fbfd5d164f0a99c7b00d1e04c4b80f14985b90ed",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "No vertical circulation (stairs) is drawn in either plan; none modelled",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

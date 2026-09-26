@@ -1,0 +1,94 @@
+{
+  "mode": "post_generation_facade_classifier_fix_diagnostic",
+  "candidate": "candidate_04",
+  "source_model_sha256": "2caf95a2cca4ad6eeb1764cb50027d20c3707d6aabe772bf32e1d0046445902e",
+  "old_delivery_sha256": "622ef37a92e5e8f490d9c6b5199ffdd191cbd6bcff88113eac1125c467a7bb9f",
+  "frozen_postrun_audit_sha256": "b90a2c94fba8bf7e7990a4f1fbbaa057d50a276c2c0c8fff45b806846c0c062f",
+  "fixed_opening_review_sha256": "9946c59a4277522fc7a80ac2b792abf76dffe7f1addb38db528457ff4840a56b",
+  "changed_classifications": [
+    {
+      "opening_id": "F1:WE",
+      "before": {
+        "opening_id": "F1:WE",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "host_not_exterior"
+      },
+      "after": {
+        "opening_id": "F1:WE",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "North"
+      }
+    },
+    {
+      "opening_id": "F2:WE",
+      "before": {
+        "opening_id": "F2:WE",
+        "kind": "window",
+        "floor_id": "F2",
+        "facade": null,
+        "reason": "host_not_exterior"
+      },
+      "after": {
+        "opening_id": "F2:WE",
+        "kind": "window",
+        "floor_id": "F2",
+        "facade": "North"
+      }
+    }
+  ],
+  "old_vs_fixed_height_facade_scopes": [
+    {
+      "floor_id": "F1",
+      "facade": "North",
+      "before_opening_ids": [
+        "F1:WA",
+        "F1:WB",
+        "F1:WC"
+      ],
+      "after_opening_ids": [
+        "F1:WA",
+        "F1:WB",
+        "F1:WC",
+        "F1:WE"
+      ]
+    },
+    {
+      "floor_id": "F2",
+      "facade": "North",
+      "before_opening_ids": [
+        "F2:WA",
+        "F2:WB",
+        "F2:WC"
+      ],
+      "after_opening_ids": [
+        "F2:WA",
+        "F2:WB",
+        "F2:WC",
+        "F2:WE"
+      ]
+    }
+  ],
+  "independent_source_exposed_edge_disagreements": [],
+  "north_elevation_image": "evaluation/facade_fixed_north.png",
+  "north_elevation_image_sha256": "849fd157c4930783ed7b299bf1f29552e5b6f584a0fe1bd01f32f852a22309db",
+  "north_elevation_projected_opening_ids": [
+    "F1:WA",
+    "F1:WB",
+    "F1:WC",
+    "F1:WE",
+    "F2:WA",
+    "F2:WB",
+    "F2:WC",
+    "F2:WE"
+  ],
+  "source_geometry_changed": false,
+  "delivery_overwritten": false,
+  "gt_opening_diagnostic_file": "evaluation/final_opening_diagnostic.json",
+  "note": "The prior delivery remains frozen. This postrun projection fixes only classification; GT height residuals in final_opening_diagnostic remain unchanged.",
+  "gt_exterior_opening_match_count": 34,
+  "gt_unmatched_reference_opening_ids": [],
+  "gt_height_out_of_judge_tolerance": []
+}

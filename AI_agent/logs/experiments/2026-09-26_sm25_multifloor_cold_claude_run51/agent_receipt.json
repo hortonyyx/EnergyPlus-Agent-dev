@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 551.18,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 482565,
+    "stop_reason": "end_turn",
+    "session_id": "0859008f-e715-4d89-a36c-be260cebb3b2",
+    "total_cost_usd": 1.3668862,
+    "usage": {
+      "input_tokens": 22,
+      "cache_creation_input_tokens": 177633,
+      "cache_read_input_tokens": 857379,
+      "output_tokens": 32719,
+      "output_tokens_details": {
+        "thinking_tokens": 22343
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 177633,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 915,
+          "cache_read_input_tokens": 174691,
+          "cache_creation_input_tokens": 19062,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 19062
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 24,
+        "outputTokens": 32727,
+        "cacheReadInputTokens": 959521,
+        "cacheCreationInputTokens": 211916,
+        "webSearchRequests": 0,
+        "costUSD": 1.3668862,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 22343,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 15,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected candidate_03 and recorded it with `finish_bim`. It is a two-floor model of the whole building. The source geometry passes the internal consistency check, but that does not establish fidelity to the drawings.\n\n**What was built**\n- **Floors:** F1 sits at z 0 and F2 at z 3.6. Each storey is 3.6 m, from the 7200 total in the elevations. The footprint is an L/U shape of 25 × 20 m, with the origin at the south-west outer corner. Both plans were calibrated from the 25000 and 20000 outer-face dimensions.\n- **F1:** 14 spaces, one continuous circulation space and 13 rooms. The rooms are two offices at the top-left, seven 2 m rooms along the east side, two offices in the middle, and two meeting rooms. The circulation space includes both corridor arms and the east-end strip. It has 16 doors and 15 windows, including three exterior doors.\n- **F2:** 15 spaces. Three rooms sit along the north side, and the fourth room is the tall meeting room in the middle. Five rooms run along the east side and five along the south side. One continuous corridor serves them. It has 14 doors and 16 windows, and there is no exterior door.\n- **Space checks:** I sampled four relations on F1. The corridor turn and the vertical-to-horizontal corridor join read as one space, and the two meeting rooms and the two middle offices read as separate spaces. All four were consistent with the plan. F2 was not sampled, and no other relations were checked.\n- **Height coverage:** the 61 openings have zero image-linked height claims. No height claims were recorded, so none of the heights below is counted as image-evidenced.\n\n**Heights**\n- **Read from the elevations:** window sill and head values on the east and south facades, and the F1 east double door. F1 east windows run z 1.0–2.6, F1 south windows z 1.0–2.8, and F2 windows z 4.6–6.2. The F1 east double door is about 2.28 m high and 1.6 m wide.\n- **Assumed:** interior doors are 2.1 m high, and exterior west doors are 2.3 m high. North and west window heights follow the east and south pattern. I did not open the North or West elevations.\n\n**Assumptions and limits**\n- The walls with 720 mm thickness are modelled as single centrelines, and the partitions use centrelines read from the drawn double lines.\n- The F1 and F2 calibrations were supplied by me and not independently verified.\n- The drawings show no stairs, so no vertical circulation is modelled.\n- No opening review or facade review was run.\n- Door swing states are unknown.\n\nThe viewer and source model are in `candidate_03/`. The viewer was still generating when `finish_bim` returned.",
+    "ttft_ms": 1603,
+    "type": "result",
+    "duration_ms": 539120,
+    "uuid": "1b02d4f3-04f4-45ae-ba58-9c859bac3a78",
+    "ttft_stream_ms": 1498,
+    "time_to_request_ms": 133,
+    "first_content_frame_ms": 1499,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

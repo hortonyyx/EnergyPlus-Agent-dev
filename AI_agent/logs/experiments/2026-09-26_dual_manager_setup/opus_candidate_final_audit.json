@@ -1,0 +1,1970 @@
+{
+  "candidate": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260926/AI_agent/logs/experiments/2026-09-26_voimatalo_opus_completion/candidate_02",
+  "source_sha256": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+  "baseline": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/candidate_01/source_model.json",
+  "floor_access_method": "aperture-height-filtered graph to a local floor space; continuous core peers allowed",
+  "source_validation": {
+    "findings": [
+      {
+        "boundary_ids": [
+          "space/CORE_S_continuous/wall/1",
+          "space/F1_retail_ne/wall/2",
+          "space/F2_office_e/wall/0",
+          "space/F3_office_e/wall/0",
+          "space/F4_office_e/wall/0",
+          "space/F5_office_e/wall/0",
+          "space/F6_office_e/wall/0",
+          "space/F7_office_e/wall/0",
+          "space/F8_core_s_landing/wall/1",
+          "space/F8_corridor/wall/0",
+          "space/F8_corridor/wall/3",
+          "space/F8_office_e/wall/3",
+          "space/F8_office_n/wall/1",
+          "space/F8_office_se/wall/0",
+          "space/F8_stair_landing_s/wall/0"
+        ],
+        "code": "source.enclosure_unknown",
+        "message": "Unknown enclosure remains unresolved and is not treated as open.",
+        "severity": "warning"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance",
+      "unknown enclosure conditions"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "warning"
+  },
+  "source_export_replay": {
+    "status": "pass",
+    "stored_digest": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+    "calculated_digest": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+    "replayed_digest": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+    "exact_json": true,
+    "exact_source_model_bytes": true,
+    "source_file_sha256": "cc0dfe06caf8ff2d77e03dc2ac46d9bfb6d4958fbd8779969ea4ee7bd693607a",
+    "replayed_source_file_sha256": "cc0dfe06caf8ff2d77e03dc2ac46d9bfb6d4958fbd8779969ea4ee7bd693607a",
+    "temporary_directory_removed_after_check": true
+  },
+  "positive_volume_overlap": {
+    "status": "pass",
+    "overlaps": []
+  },
+  "baseline_windows": {
+    "count": 300,
+    "missing": [],
+    "changed_kind_or_geometry": [],
+    "rehosted": [],
+    "interpretation": "Room splits may legitimately rehost preserved windows."
+  },
+  "baseline_external_door_geometry_changes": [],
+  "declared_not_built": [],
+  "built_not_declared": [],
+  "unbuilt_openings": [],
+  "unsupported": [],
+  "connectivity": {
+    "unreachable_nonroof_spaces": [],
+    "roof_spaces_excluded": [
+      "ROOF_N_BASE_enclosure",
+      "ROOF_N_enclosure",
+      "ROOF_STACK_enclosure",
+      "ROOF_S_enclosure",
+      "ROOF_enclosure"
+    ],
+    "interpretation": "Declared door/open connectivity only; not proof of actual unseen layout."
+  },
+  "continuous_cores": [
+    {
+      "id": "CORE_N_continuous",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        27.8
+      ],
+      "expected_end_levels": [
+        0.0,
+        27.8
+      ],
+      "floor_connections": {
+        "F1": [
+          {
+            "space_id": "F1_lobby_n",
+            "opening_path": [
+              "D_F1_lobby_n_CORE_N"
+            ]
+          }
+        ],
+        "F2": [
+          {
+            "space_id": "F2_corridor",
+            "opening_path": [
+              "D_F2_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F2_office_se",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F2_wc_s",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F2_office_w",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F2_office_c",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F2_service_n",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_nw",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F2_office_n",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_e",
+            "opening_path": [
+              "D_F2_corridor_CORE_N",
+              "D_F2_corridor_office_e"
+            ]
+          }
+        ],
+        "F3": [
+          {
+            "space_id": "F3_corridor",
+            "opening_path": [
+              "D_F3_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F3_office_se",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F3_wc_s",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F3_office_w",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F3_office_c",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F3_service_n",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_nw",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F3_office_n",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_e",
+            "opening_path": [
+              "D_F3_corridor_CORE_N",
+              "D_F3_corridor_office_e"
+            ]
+          }
+        ],
+        "F4": [
+          {
+            "space_id": "F4_corridor",
+            "opening_path": [
+              "D_F4_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F4_office_se",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F4_wc_s",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F4_office_w",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F4_office_c",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F4_service_n",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_nw",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F4_office_n",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_e",
+            "opening_path": [
+              "D_F4_corridor_CORE_N",
+              "D_F4_corridor_office_e"
+            ]
+          }
+        ],
+        "F5": [
+          {
+            "space_id": "F5_corridor",
+            "opening_path": [
+              "D_F5_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F5_office_se",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F5_wc_s",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F5_office_w",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F5_office_c",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F5_service_n",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_nw",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F5_office_n",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_e",
+            "opening_path": [
+              "D_F5_corridor_CORE_N",
+              "D_F5_corridor_office_e"
+            ]
+          }
+        ],
+        "F6": [
+          {
+            "space_id": "F6_corridor",
+            "opening_path": [
+              "D_F6_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F6_office_se",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F6_wc_s",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F6_office_w",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F6_office_c",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F6_service_n",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_nw",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F6_office_n",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_e",
+            "opening_path": [
+              "D_F6_corridor_CORE_N",
+              "D_F6_corridor_office_e"
+            ]
+          }
+        ],
+        "F7": [
+          {
+            "space_id": "F7_corridor",
+            "opening_path": [
+              "D_F7_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F7_office_se",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F7_wc_s",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F7_office_w",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F7_office_c",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F7_service_n",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_nw",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F7_office_n",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_e",
+            "opening_path": [
+              "D_F7_corridor_CORE_N",
+              "D_F7_corridor_office_e"
+            ]
+          }
+        ],
+        "F8": [
+          {
+            "space_id": "F8_corridor",
+            "opening_path": [
+              "D_F8_corridor_CORE_N"
+            ]
+          },
+          {
+            "space_id": "F8_office_se",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F8_wc_s",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F8_office_w",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F8_office_c",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F8_service_n",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F8_office_nw",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F8_office_n",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F8_office_e",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_office_e"
+            ]
+          },
+          {
+            "space_id": "F8_stair_landing_s",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_stair_landing_s"
+            ]
+          },
+          {
+            "space_id": "F8_core_s_landing",
+            "opening_path": [
+              "D_F8_corridor_CORE_N",
+              "D_F8_corridor_core_s_landing"
+            ]
+          }
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "CORE_S_continuous",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        25.25
+      ],
+      "expected_end_levels": [
+        0.0,
+        25.25
+      ],
+      "floor_connections": {
+        "F1": [
+          {
+            "space_id": "F1_entry_s",
+            "opening_path": [
+              "D_F1_entry_s_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F1_back_s",
+            "opening_path": [
+              "D_F1_entry_s_CORE_S",
+              "D_F1_entry_s_back_s"
+            ]
+          }
+        ],
+        "F2": [
+          {
+            "space_id": "F2_corridor",
+            "opening_path": [
+              "D_F2_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F2_office_se",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F2_wc_s",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F2_office_w",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F2_office_c",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F2_service_n",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_nw",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F2_office_n",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_e",
+            "opening_path": [
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_e"
+            ]
+          }
+        ],
+        "F3": [
+          {
+            "space_id": "F3_corridor",
+            "opening_path": [
+              "D_F3_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F3_office_se",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F3_wc_s",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F3_office_w",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F3_office_c",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F3_service_n",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_nw",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F3_office_n",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_e",
+            "opening_path": [
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_e"
+            ]
+          }
+        ],
+        "F4": [
+          {
+            "space_id": "F4_corridor",
+            "opening_path": [
+              "D_F4_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F4_office_se",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F4_wc_s",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F4_office_w",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F4_office_c",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F4_service_n",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_nw",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F4_office_n",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_e",
+            "opening_path": [
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_e"
+            ]
+          }
+        ],
+        "F5": [
+          {
+            "space_id": "F5_corridor",
+            "opening_path": [
+              "D_F5_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F5_office_se",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F5_wc_s",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F5_office_w",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F5_office_c",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F5_service_n",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_nw",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F5_office_n",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_e",
+            "opening_path": [
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_e"
+            ]
+          }
+        ],
+        "F6": [
+          {
+            "space_id": "F6_corridor",
+            "opening_path": [
+              "D_F6_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F6_office_se",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F6_wc_s",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F6_office_w",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F6_office_c",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F6_service_n",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_nw",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F6_office_n",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_e",
+            "opening_path": [
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_e"
+            ]
+          }
+        ],
+        "F7": [
+          {
+            "space_id": "F7_corridor",
+            "opening_path": [
+              "D_F7_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F7_office_se",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F7_wc_s",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F7_office_w",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F7_office_c",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F7_service_n",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_nw",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F7_office_n",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_e",
+            "opening_path": [
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_e"
+            ]
+          }
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "STAIR_S_stair_hall",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        5.6,
+        25.25
+      ],
+      "expected_end_levels": [
+        5.6,
+        25.25
+      ],
+      "floor_connections": {
+        "F2": [
+          {
+            "space_id": "F2_corridor",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S"
+            ]
+          },
+          {
+            "space_id": "F2_office_se",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F2_wc_s",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F2_office_w",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F2_office_c",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F2_service_n",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_nw",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F2_office_n",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_e",
+            "opening_path": [
+              "D_F2_corridor_STAIR_S",
+              "D_F2_corridor_office_e"
+            ]
+          }
+        ],
+        "F3": [
+          {
+            "space_id": "F3_corridor",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S"
+            ]
+          },
+          {
+            "space_id": "F3_office_se",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F3_wc_s",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F3_office_w",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F3_office_c",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F3_service_n",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_nw",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F3_office_n",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_e",
+            "opening_path": [
+              "D_F3_corridor_STAIR_S",
+              "D_F3_corridor_office_e"
+            ]
+          }
+        ],
+        "F4": [
+          {
+            "space_id": "F4_corridor",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S"
+            ]
+          },
+          {
+            "space_id": "F4_office_se",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F4_wc_s",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F4_office_w",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F4_office_c",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F4_service_n",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_nw",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F4_office_n",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_e",
+            "opening_path": [
+              "D_F4_corridor_STAIR_S",
+              "D_F4_corridor_office_e"
+            ]
+          }
+        ],
+        "F5": [
+          {
+            "space_id": "F5_corridor",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S"
+            ]
+          },
+          {
+            "space_id": "F5_office_se",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F5_wc_s",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F5_office_w",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F5_office_c",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F5_service_n",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_nw",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F5_office_n",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_e",
+            "opening_path": [
+              "D_F5_corridor_STAIR_S",
+              "D_F5_corridor_office_e"
+            ]
+          }
+        ],
+        "F6": [
+          {
+            "space_id": "F6_corridor",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S"
+            ]
+          },
+          {
+            "space_id": "F6_office_se",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F6_wc_s",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F6_office_w",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F6_office_c",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F6_service_n",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_nw",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F6_office_n",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_e",
+            "opening_path": [
+              "D_F6_corridor_STAIR_S",
+              "D_F6_corridor_office_e"
+            ]
+          }
+        ],
+        "F7": [
+          {
+            "space_id": "F7_corridor",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S"
+            ]
+          },
+          {
+            "space_id": "F7_office_se",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F7_wc_s",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F7_office_w",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F7_office_c",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F7_service_n",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_nw",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F7_office_n",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_e",
+            "opening_path": [
+              "D_F7_corridor_STAIR_S",
+              "D_F7_corridor_office_e"
+            ]
+          }
+        ]
+      },
+      "covered_floor_ids": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "spanning_floor_references": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "TOWER_C_lift_tower",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        25.25
+      ],
+      "expected_end_levels": [
+        0.0,
+        25.25
+      ],
+      "floor_connections": {
+        "F1": [
+          {
+            "space_id": "F1_entry_s",
+            "opening_path": [
+              "D_F1_CORE_S_TOWER_C",
+              "D_F1_entry_s_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F1_back_s",
+            "opening_path": [
+              "D_F1_CORE_S_TOWER_C",
+              "D_F1_entry_s_CORE_S",
+              "D_F1_entry_s_back_s"
+            ]
+          }
+        ],
+        "F2": [
+          {
+            "space_id": "F2_corridor",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F2_office_se",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F2_wc_s",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F2_office_w",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F2_office_c",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F2_service_n",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_nw",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F2_office_n",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F2_office_e",
+            "opening_path": [
+              "D_F2_CORE_S_TOWER_C",
+              "D_F2_corridor_CORE_S",
+              "D_F2_corridor_office_e"
+            ]
+          }
+        ],
+        "F3": [
+          {
+            "space_id": "F3_corridor",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F3_office_se",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F3_wc_s",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F3_office_w",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F3_office_c",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F3_service_n",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_nw",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F3_office_n",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F3_office_e",
+            "opening_path": [
+              "D_F3_CORE_S_TOWER_C",
+              "D_F3_corridor_CORE_S",
+              "D_F3_corridor_office_e"
+            ]
+          }
+        ],
+        "F4": [
+          {
+            "space_id": "F4_corridor",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F4_office_se",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F4_wc_s",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F4_office_w",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F4_office_c",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F4_service_n",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_nw",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F4_office_n",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F4_office_e",
+            "opening_path": [
+              "D_F4_CORE_S_TOWER_C",
+              "D_F4_corridor_CORE_S",
+              "D_F4_corridor_office_e"
+            ]
+          }
+        ],
+        "F5": [
+          {
+            "space_id": "F5_corridor",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F5_office_se",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F5_wc_s",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F5_office_w",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F5_office_c",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F5_service_n",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_nw",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F5_office_n",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F5_office_e",
+            "opening_path": [
+              "D_F5_CORE_S_TOWER_C",
+              "D_F5_corridor_CORE_S",
+              "D_F5_corridor_office_e"
+            ]
+          }
+        ],
+        "F6": [
+          {
+            "space_id": "F6_corridor",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F6_office_se",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F6_wc_s",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F6_office_w",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F6_office_c",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F6_service_n",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_nw",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F6_office_n",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F6_office_e",
+            "opening_path": [
+              "D_F6_CORE_S_TOWER_C",
+              "D_F6_corridor_CORE_S",
+              "D_F6_corridor_office_e"
+            ]
+          }
+        ],
+        "F7": [
+          {
+            "space_id": "F7_corridor",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S"
+            ]
+          },
+          {
+            "space_id": "F7_office_se",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_se"
+            ]
+          },
+          {
+            "space_id": "F7_wc_s",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_wc_s"
+            ]
+          },
+          {
+            "space_id": "F7_office_w",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_w"
+            ]
+          },
+          {
+            "space_id": "F7_office_c",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_c"
+            ]
+          },
+          {
+            "space_id": "F7_service_n",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_service_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_nw",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_nw"
+            ]
+          },
+          {
+            "space_id": "F7_office_n",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_n"
+            ]
+          },
+          {
+            "space_id": "F7_office_e",
+            "opening_path": [
+              "D_F7_CORE_S_TOWER_C",
+              "D_F7_corridor_CORE_S",
+              "D_F7_corridor_office_e"
+            ]
+          }
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "status": "pass"
+    }
+  ],
+  "baseline_continuous_ids_missing": [],
+  "space_counts_by_floor": {
+    "ANNEX": 1,
+    "CORE_N": 1,
+    "CORE_S": 1,
+    "F1": 6,
+    "F2": 9,
+    "F3": 9,
+    "F4": 9,
+    "F5": 9,
+    "F6": 9,
+    "F7": 9,
+    "F8": 11,
+    "ROOF_N_BASE": 1,
+    "ROOF_N": 1,
+    "ROOF_STACK": 1,
+    "ROOF_S": 1,
+    "ROOF": 1,
+    "STAIR_S": 1,
+    "TOWER_C": 1
+  },
+  "space_roles": {
+    "annex_commercial_hall_hypothesis": 1,
+    "vertical_circulation_hypothesis": 1,
+    "vertical_circulation_lift_core_hypothesis": 1,
+    "back_of_house_hypothesis": 1,
+    "entrance_stair_hall_hypothesis": 1,
+    "entrance_lobby_hypothesis": 1,
+    "retail_hall_hypothesis": 2,
+    "service_wc_hypothesis": 15,
+    "office_corridor_hypothesis": 7,
+    "office_zone_merged_cells_hypothesis": 35,
+    "corner_office_or_meeting_hypothesis": 7,
+    "stair_landing_hypothesis": 2,
+    "roof_enclosure_simplified": 5,
+    "vertical_circulation_stair_hypothesis": 1,
+    "vertical_circulation_lift_shaft_tower_hypothesis": 1
+  },
+  "opening_kinds": {
+    "door": 95,
+    "window": 306
+  },
+  "scope": "Technical checks only. Interior plausibility, missing-content coverage and user acceptance require visual review.",
+  "technical_checks_pass": true
+}

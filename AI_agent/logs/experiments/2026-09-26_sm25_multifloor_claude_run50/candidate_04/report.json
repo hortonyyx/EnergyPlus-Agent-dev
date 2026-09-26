@@ -1,0 +1,71 @@
+{
+  "agent_assumptions": [
+    "Storey height 3.6 m and exterior opening z from elevations; interior door heights 2.1 m assumed",
+    "Meeting-room dividing pier (720mm zone) modelled as a single wall at x=883",
+    "Roles beyond obvious are unknown",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Storey height 3.6 m from elevations; exterior window z from elevations; interior door heights 2.1 m assumed",
+    "Wall centreline partitions at measured pixel positions; wall thickness not modelled",
+    "Room uses unknown except obvious",
+    "Draft z is floor-relative; z_floor applied on assembly",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 30,
+    "openings": 61,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "77e577c348fad73fed6f97a8d209027a6fe26e1a3530b39ceac75e6fc79c9e85",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "5f2c7df9a06bb90d4db81d1e355ba5afec785d3e4e1f999993ec57cc7785731d",
+    "mode": "saved_plan_recovery",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "bf00a7aaaa8436845194d5060df52e4320db52b30b3a6bbd391654e170eaf134"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "2caf95a2cca4ad6eeb1764cb50027d20c3707d6aabe772bf32e1d0046445902e",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Door swing states unknown",
+    "Exact wall thickness not modelled",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Door swing states unknown",
+    "No stair/lift visible on either plan; no vertical circulation modelled",
+    "Calibration caller-supplied",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

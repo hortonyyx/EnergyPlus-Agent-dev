@@ -1,0 +1,331 @@
+{
+  "candidate": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-voimatalo-20260926/AI_agent/logs/experiments/2026-09-26_voimatalo_opus_completion/candidate_02",
+  "source_validation": {
+    "findings": [
+      {
+        "boundary_ids": [
+          "space/CORE_S_continuous/wall/1",
+          "space/F1_retail_ne/wall/2",
+          "space/F2_office_e/wall/0",
+          "space/F3_office_e/wall/0",
+          "space/F4_office_e/wall/0",
+          "space/F5_office_e/wall/0",
+          "space/F6_office_e/wall/0",
+          "space/F7_office_e/wall/0",
+          "space/F8_core_s_landing/wall/1",
+          "space/F8_corridor/wall/0",
+          "space/F8_corridor/wall/3",
+          "space/F8_office_e/wall/3",
+          "space/F8_office_n/wall/1",
+          "space/F8_office_se/wall/0",
+          "space/F8_stair_landing_s/wall/0"
+        ],
+        "code": "source.enclosure_unknown",
+        "message": "Unknown enclosure remains unresolved and is not treated as open.",
+        "severity": "warning"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance",
+      "unknown enclosure conditions"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "warning"
+  },
+  "source_export_replay": {
+    "status": "pass",
+    "stored_digest": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+    "calculated_digest": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+    "replayed_digest": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703",
+    "exact_json": true,
+    "exact_source_model_bytes": true,
+    "source_file_sha256": "cc0dfe06caf8ff2d77e03dc2ac46d9bfb6d4958fbd8779969ea4ee7bd693607a",
+    "replayed_source_file_sha256": "cc0dfe06caf8ff2d77e03dc2ac46d9bfb6d4958fbd8779969ea4ee7bd693607a",
+    "temporary_directory_removed_after_check": true
+  },
+  "positive_volume_overlap": {
+    "status": "pass",
+    "overlaps": []
+  },
+  "baseline_windows": {
+    "count": 300,
+    "missing": [],
+    "changed_kind_or_geometry": [],
+    "rehosted": [],
+    "interpretation": "Room splits may legitimately rehost preserved windows."
+  },
+  "baseline_external_door_geometry_changes": [],
+  "declared_not_built": [],
+  "built_not_declared": [],
+  "unbuilt_openings": [],
+  "unsupported": [],
+  "connectivity": {
+    "unreachable_nonroof_spaces": [],
+    "roof_spaces_excluded": [
+      "ROOF_N_BASE_enclosure",
+      "ROOF_N_enclosure",
+      "ROOF_STACK_enclosure",
+      "ROOF_S_enclosure",
+      "ROOF_enclosure"
+    ],
+    "interpretation": "Declared door/open connectivity only; not proof of actual unseen layout."
+  },
+  "continuous_cores": [
+    {
+      "id": "CORE_N_continuous",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        27.8
+      ],
+      "expected_end_levels": [
+        0.0,
+        27.8
+      ],
+      "floor_connections": {
+        "F1": [
+          "D_F1_lobby_n_CORE_N"
+        ],
+        "F2": [
+          "D_F2_corridor_CORE_N"
+        ],
+        "F3": [
+          "D_F3_corridor_CORE_N"
+        ],
+        "F4": [
+          "D_F4_corridor_CORE_N"
+        ],
+        "F5": [
+          "D_F5_corridor_CORE_N"
+        ],
+        "F6": [
+          "D_F6_corridor_CORE_N"
+        ],
+        "F7": [
+          "D_F7_corridor_CORE_N"
+        ],
+        "F8": [
+          "D_F8_corridor_CORE_N"
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "CORE_S_continuous",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        25.25
+      ],
+      "expected_end_levels": [
+        0.0,
+        25.25
+      ],
+      "floor_connections": {
+        "F1": [
+          "D_F1_entry_s_CORE_S"
+        ],
+        "F2": [
+          "D_F2_corridor_CORE_S"
+        ],
+        "F3": [
+          "D_F3_corridor_CORE_S"
+        ],
+        "F4": [
+          "D_F4_corridor_CORE_S"
+        ],
+        "F5": [
+          "D_F5_corridor_CORE_S"
+        ],
+        "F6": [
+          "D_F6_corridor_CORE_S"
+        ],
+        "F7": [
+          "D_F7_corridor_CORE_S"
+        ]
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "STAIR_S_stair_hall",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        5.6,
+        25.25
+      ],
+      "expected_end_levels": [
+        5.6,
+        25.25
+      ],
+      "floor_connections": {
+        "F2": [
+          "D_F2_corridor_STAIR_S"
+        ],
+        "F3": [
+          "D_F3_corridor_STAIR_S"
+        ],
+        "F4": [
+          "D_F4_corridor_STAIR_S"
+        ],
+        "F5": [
+          "D_F5_corridor_STAIR_S"
+        ],
+        "F6": [
+          "D_F6_corridor_STAIR_S"
+        ],
+        "F7": [
+          "D_F7_corridor_STAIR_S"
+        ]
+      },
+      "covered_floor_ids": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "spanning_floor_references": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "TOWER_C_lift_tower",
+      "present": true,
+      "horizontal_boundary_count": 2,
+      "horizontal_levels": [
+        0.0,
+        25.25
+      ],
+      "expected_end_levels": [
+        0.0,
+        25.25
+      ],
+      "floor_connections": {
+        "F1": [],
+        "F2": [],
+        "F3": [],
+        "F4": [],
+        "F5": [],
+        "F6": [],
+        "F7": []
+      },
+      "covered_floor_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "spanning_floor_references": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "status": "fail"
+    }
+  ],
+  "baseline_continuous_ids_missing": [],
+  "space_counts_by_floor": {
+    "ANNEX": 1,
+    "CORE_N": 1,
+    "CORE_S": 1,
+    "F1": 6,
+    "F2": 9,
+    "F3": 9,
+    "F4": 9,
+    "F5": 9,
+    "F6": 9,
+    "F7": 9,
+    "F8": 11,
+    "ROOF_N_BASE": 1,
+    "ROOF_N": 1,
+    "ROOF_STACK": 1,
+    "ROOF_S": 1,
+    "ROOF": 1,
+    "STAIR_S": 1,
+    "TOWER_C": 1
+  },
+  "space_roles": {
+    "annex_commercial_hall_hypothesis": 1,
+    "vertical_circulation_hypothesis": 1,
+    "vertical_circulation_lift_core_hypothesis": 1,
+    "back_of_house_hypothesis": 1,
+    "entrance_stair_hall_hypothesis": 1,
+    "entrance_lobby_hypothesis": 1,
+    "retail_hall_hypothesis": 2,
+    "service_wc_hypothesis": 15,
+    "office_corridor_hypothesis": 7,
+    "office_zone_merged_cells_hypothesis": 35,
+    "corner_office_or_meeting_hypothesis": 7,
+    "stair_landing_hypothesis": 2,
+    "roof_enclosure_simplified": 5,
+    "vertical_circulation_stair_hypothesis": 1,
+    "vertical_circulation_lift_shaft_tower_hypothesis": 1
+  },
+  "opening_kinds": {
+    "door": 95,
+    "window": 306
+  },
+  "scope": "Technical checks only. Interior plausibility, missing-content coverage and user acceptance require visual review.",
+  "technical_checks_pass": false,
+  "baseline": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-25_voimatalo_opus_development/candidate_01/source_model.json",
+  "source_sha256": "6e2b46888cac11fdcb6748a2806602b393b9f46901d9bbdaf44ba03fb4194703"
+}
