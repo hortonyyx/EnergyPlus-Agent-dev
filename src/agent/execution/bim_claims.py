@@ -233,7 +233,18 @@ class ClaimStore:
         inventory = objects(proposal, source)
         for ref in claim["objects"]:
             if (ref["kind"], ref["id"]) not in inventory:
-                raise ValueError("claim object does not exist in candidate")
+                same_id = [{"kind": kind, "id": identity}
+                           for kind, identity in sorted(inventory) if identity == ref["id"]]
+                detail = ("The same exact id exists as " + json.dumps(same_id) +
+                          ". Use the matching kind/id explicitly; no automatic rebinding."
+                          if same_id else
+                          "Inspect the current candidate's exact object IDs before retrying.")
+                raise ValueError(
+                    "claim object does not exist in candidate " + repr(claim["candidate"]) +
+                    ": " + json.dumps(ref) + ". " + detail +
+                    " Claim kinds use proposal collections: window for geometry.windows; "
+                    "opening for geometry.openings (doors/passages), even though the source "
+                    "BIM lists both in openings.")
         mapping = claim["value_targets"]
         if mapping is not None:
             if set(mapping) != set(claim["values"]):

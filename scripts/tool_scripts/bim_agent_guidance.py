@@ -704,7 +704,10 @@ not automatically independent: observation_mode is caller-reported, and review
 of a shown hypothesis does not count as an independent corroboration.
 
 objects kinds: opening (geometry.openings), window (geometry.windows), space,
-boundary (exact source boundary ID). Values have named fields and three types:
+boundary (exact source boundary ID). The source BIM's unified openings list also
+contains windows, but claim references still use kind=window for those windows
+and kind=opening for doors/passages. Keep the actual ID; do not add a type prefix.
+Values have named fields and three types:
 - literal: {"type":"literal", "value":0.18, "unit":"m"}; also a two-number
   vector/interval. Use the true basis (including declared/inference), not a fake scan.
 - dimension_chain: as above; code uses map_dimension_chain, returns the selected
