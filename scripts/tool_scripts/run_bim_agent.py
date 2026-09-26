@@ -561,6 +561,41 @@ class Toolkit:
         deadline = self.manifest.get("deadline_epoch")
         return max(0, round(deadline - time.time())) if deadline else None
 
+    def input_view_status(self):
+        """Report direct original-image returns, never inferred visual review."""
+        images = self.manifest.get("images", {})
+        views = {name: [] for name in images}
+        log = self.run / "tools.jsonl"
+        for line in log.read_text().splitlines() if log.exists() else []:
+            event = json.loads(line)
+            if event.get("action") != "view_image":
+                continue
+            data = event["data"]
+            name = data.get("name")
+            # Older logs without a bound image hash remain uncounted.
+            if name not in images or data.get("image_sha256") != images[name]["sha256"]:
+                continue
+            views[name].append(data["box_original_pixels"])
+        rows = []
+        for name, info in sorted(images.items()):
+            whole = [0, 0, *info["size"]]
+            full = sum(box == whole for box in views[name])
+            rows.append({"image": name, "image_sha256": info["sha256"],
+                         "full_view_count": full, "crop_view_count": len(views[name]) - full,
+                         "status": "full_view_returned" if full else
+                                   "crop_only_returned" if views[name] else "no_direct_view_record"})
+        return {"schema_version": "input_direct_view_status_v1", "images": rows,
+                "no_direct_view_images": [row["image"] for row in rows
+                                          if row["status"] == "no_direct_view_record"],
+                "crop_only_images": [row["image"] for row in rows
+                                     if row["status"] == "crop_only_returned"],
+                "drawing_fidelity": "not_evaluated", "delivery_blocked": False,
+                "note": "Only this run's hash-bound view_image returns are counted. Other image tools, "
+                        "workers and prior runs are outside this scope. A returned image is not proof "
+                        "of examination, complete coverage, correct interpretation or applied heights. "
+                        "Use supplied relevant elevations to check each floor's opening heights; "
+                        "do not transfer a typical height to an unexamined opening family."}
+
     def delivery(self, candidate, *, selection_origin, generation_status=None):
         """Build the handoff from saved source/check records, never model prose."""
         from src.agent.geometry.bim_delivery import summarize_delivery
@@ -575,6 +610,7 @@ class Toolkit:
                   **summarize_delivery(source, reviews)}
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
         result["space_relation_review"] = self.space_relation_status(source)
+        result["input_view_status"] = self.input_view_status()
         claim_state = self.claims().status()
         from src.agent.execution.bim_claim_state import project
         current_claims = project(self.claims(), candidate)
@@ -623,6 +659,15 @@ class Toolkit:
             '零个已建开口不证明图纸没有开口。</p><table>'
             '<tr><th>楼层</th><th>立面</th><th>已建</th><th>高度图像依据已关联</th>'
             f'<th>高度尚未关联图像依据</th></tr>{height_rows}</table>')
+        view_labels = {"full_view_returned": "已返回整图", "crop_only_returned": "仅返回局部",
+                       "no_direct_view_record": "无直接看图记录"}
+        input_rows = ''.join(
+            f'<tr><td>{html.escape(row["image"])}</td><td>{view_labels[row["status"]]}</td></tr>'
+            for row in result['input_view_status']['images'])
+        input_table = ('<h2>本次原图直接查看记录</h2><p>仅统计本次直接看图工具的返回；'
+            '其他图像工具、局部模型和前次运行不计入。返回整图不等于已检查全图或读图正确，'
+            '也不等于高度已落实到模型。</p><table><tr><th>原图</th><th>返回范围</th></tr>'
+            f'{input_rows}</table>' if input_rows else '')
         notes = "".join(f'<li>{html.escape(s)}</li>' for s in result["generation"]["unresolved"])
         notes += "".join(f'<li>{html.escape(row["id"])}：{html.escape(note)}</li>'
                          for row in current_claims["claims"] if row["state"] != "retracted"
@@ -729,7 +774,7 @@ class Toolkit:
             '<a href="delivery.json">检查记录</a></p>'
             '<table><tr><th>楼层</th><th>类别</th><th>已建数量</th><th>原图观察回查</th></tr>'
             f'{rows}</table><p>{len(result["stale_reviews"])} 份旧源回查未用于当前候选。</p>'
-            f'{facade_table}{height_table}'
+            f'{input_table}{facade_table}{height_table}'
             f'<h2>尚未解决</h2><ul>{notes or "<li>模型未填写；仍需结合上表判断未核查范围。</li>"}</ul>'
             f'<details><summary>模型采用的假设</summary><ul>{assumptions}</ul></details>'
             '<h2>当前候选的观察结论</h2><p>以下核对实际参数和宿主是否仍保留，不代表原图判断已经验证。</p>'
@@ -983,7 +1028,8 @@ class Toolkit:
         report = export_source_proposal(proposal, self.run/candidate, provenance=provenance)
         if operations is not None:
             dump(self.run/candidate/"operations.json", operations)
-        result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report}
+        result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report,
+                  "input_view_status": self.input_view_status()}
         if plan_assembly is not None:
             result["plan_assembly"] = plan_assembly
         if plan_input is not None:
@@ -1385,7 +1431,8 @@ class Toolkit:
                 pic, grid = coordinate_grid_view(pic, region)
             data = io.BytesIO(); pic.save(data, "PNG")
         actual_scale = [pic.width / crop_size[0], pic.height / crop_size[1]]
-        metadata = {"name": name, "original_size": original_size, "coordinate_grid": grid,
+        metadata = {"name": name, "image_sha256": digest(self.image_path(name)),
+                    "original_size": original_size, "coordinate_grid": grid,
                     "box_original_pixels": region, "returned_size": list(pic.size),
                     "display_scale_requested": display_scale,
                     "display_scale_actual": actual_scale,
@@ -1703,7 +1750,8 @@ def serve(run: Path, readonly=False):
     def inputs() -> dict:
         """List admitted original images, native mesh, building declaration and scope."""
         toolkit.log("inputs", {})
-        return {**toolkit.manifest, "remaining_seconds": toolkit.remaining_seconds()}
+        return {**toolkit.manifest, "input_view_status": toolkit.input_view_status(),
+                "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
     def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True,
@@ -2128,6 +2176,7 @@ def serve(run: Path, readonly=False):
                 result = {"candidate": candidate, "review_file": str(target.relative_to(run)), **report}
                 dump(target, {**result, "observations": observations})
             result["remaining_seconds"] = toolkit.remaining_seconds()
+            result["input_view_status"] = toolkit.input_view_status()
             toolkit.log("check_openings", result)
             return result
 

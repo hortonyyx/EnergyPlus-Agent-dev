@@ -173,6 +173,15 @@ origin; viewing a facade alone covers no opening heights. Confirm matching
 heights before revising others; report any heights still unlinked to image
 observations. Examine the supplied views relevant to unresolved
 geometry, and record any views or regions left unexamined.
+inputs, build results, check_openings and finish_bim include input_view_status:
+it counts only this run's direct view_image returns bound to the admitted image
+hash. A full view returned is not a completed review, and crop-only does not
+cover the remaining image. Other tools/workers and prior runs are outside that
+report. Use it to notice relevant supplied drawings you have not directly viewed.
+Compare each floor and distinct opening-height family with its relevant elevation;
+do not extend one facade's typical height to another facade without evidence.
+Combine this access reminder with height_coverage and actual source elevations:
+looking at an original does not itself update or confirm any saved opening.
 
 If an opening fails to attach, check the original wall path, adjoining spaces,
 aperture marks and source host's plan/absolute-height bounds. An incorrect room
