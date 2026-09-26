@@ -398,24 +398,91 @@ def cost_receipt_summary(run: Path):
 
 def delivery_tool_reply(result: dict) -> dict:
     """Keep full reports on disk; avoid losing a large handoff to CLI truncation."""
+    from collections import Counter
+
+    # The subscription client pretty-prints structured tool results. Measuring
+    # only dense JSON underestimated run53's actual response by almost 30k chars.
+    def fits(value):
+        return len(json.dumps(value, ensure_ascii=False, indent=2)) <= 18000
+
     reply = {k:v for k,v in result.items() if k != 'opening_inventory'}
     if 'height_coverage' in reply:
         from src.agent.execution.bim_height_coverage import compact_height_coverage
         reply['height_coverage'] = compact_height_coverage(reply['height_coverage'])
-    if len(json.dumps(reply, ensure_ascii=False)) <= 20000:
+    if fits(reply):
         return reply
-    from collections import Counter
     large = {'facade_inventory', 'opening_review_scopes', 'facade_review_scopes',
-             'current_reviews', 'stale_reviews'}
+             'current_reviews', 'stale_reviews', 'current_claim_state',
+             'source_image_feedback', 'space_relation_review'}
     compact = {k:v for k,v in reply.items() if k not in large}
+    state = result.get('current_claim_state', {})
+    compact['current_claim_summary'] = {
+        'state_counts': dict(Counter(row['state'] for row in state.get('claims', []))),
+        'claims_with_missing_bindings': [row['id'] for row in state.get('claims', [])
+                                        if row.get('missing_bindings')],
+        'inherited_observation_count': len(state.get('inherited_observations', [])),
+        'drawing_fidelity': 'not_evaluated',
+    }
+    height = result.get('height_coverage')
+    if height is not None:
+        compact['height_coverage'] = {key: height[key] for key in
+            ('candidate', 'summary', 'drawing_fidelity', 'delivery_blocked', 'note') if key in height}
+        compact['height_coverage']['floor_facade_summary'] = [{
+            'floor_id': floor['floor_id'], 'facade': scope.get('facade'),
+            'opening_count': len(scope['actual_opening_ids']),
+            'image_linked_count': len(scope['image_evidence_linked_opening_ids']),
+            'unchecked_count': len(scope['unchecked_height_opening_ids']),
+        } for floor in height.get('floors', [])
+            for scope in [*floor['facades'], floor['non_facade']]]
+    projection = result.get('source_image_feedback', {})
+    compact['source_image_feedback_summary'] = {key + '_count': len(projection.get(key, [])) for key in (
+        'current_source_projections', 'old_source_projections', 'projection_errors',
+        'registered_calibration_uncovered_floors', 'floors_without_registered_views')}
+    relations = result.get('space_relation_review', {})
+    compact['space_relation_review_summary'] = {key: value for key, value in relations.items()
+                                               if not isinstance(value, (dict, list))}
     compact.update(response_compacted=True, full_delivery_report='delivery.json',
                    omitted_detail_fields=sorted(large | {'opening_inventory'}),
+                   detail_note='Full nested evidence remains in delivery.json. Height endpoints and IDs '
+                               'are available from check_openings(heights_only=true); claim_status(candidate) '
+                               'contains current bindings. Summarized counts are not fidelity approval.',
                    review_scope_status_counts={key:dict(Counter(
                        row['review_status'] for row in result.get(key, [])))
                        for key in ['opening_review_scopes', 'facade_review_scopes']},
                    current_review_count=len(result.get('current_reviews', [])),
                    stale_review_count=len(result.get('stale_reviews', [])))
-    return compact
+    if fits(compact):
+        return compact
+    # Even a long user note or hundreds of floors must not hide the actual
+    # completion/uncertainty state behind a transport error.
+    minimal = {key: compact[key] for key in (
+        'candidate', 'viewer', 'source_model', 'source_model_sha256', 'counts',
+        'selection_origin', 'drawing_fidelity', 'response_compacted',
+        'full_delivery_report', 'review_scope_status_counts', 'current_review_count',
+        'stale_review_count', 'source_image_feedback_summary', 'space_relation_review_summary',
+    ) if key in compact}
+    minimal.update(detail_level='counts_only', more_details_omitted=True,
+        generation_state=result.get('generation_status', {}).get('state'),
+        source_validation_status=(result.get('source_validation') or {}).get('status'),
+        source_validation_finding_count=len((result.get('source_validation') or {}).get('findings', [])),
+        assumption_count=len(result.get('assumptions', [])),
+        unresolved_count=len(result.get('generation', {}).get('unresolved', [])),
+        adopted_unapplied_claim_count=len(result.get('adopted_unapplied_claims', [])),
+        claim_state_counts=compact['current_claim_summary']['state_counts'],
+        claims_with_missing_bindings_count=len(compact['current_claim_summary']['claims_with_missing_bindings']),
+        failed_claim_application_count=sum(row.get('status') == 'failed'
+                                           for row in result.get('claim_applications', [])))
+    if height is not None:
+        summary = height['summary']
+        minimal['height_coverage'] = {'summary': {key: summary[key] for key in
+            ('total_count', 'image_linked_count', 'non_image_linked_count')},
+            'unchecked_count': len(summary['unchecked_height_opening_ids']),
+            'drawing_fidelity': 'not_evaluated'}
+    views = result.get('input_view_status', {})
+    minimal['input_view_summary'] = {
+        'no_direct_view_count': len(views.get('no_direct_view_images', [])),
+        'crop_only_count': len(views.get('crop_only_images', []))}
+    return minimal
 
 
 class Toolkit:
