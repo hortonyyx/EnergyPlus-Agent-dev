@@ -1,0 +1,60 @@
+{
+  "agent_assumptions": [
+    "Wall centrelines from drawn double-line walls; partitions of 720 thickness modelled as single path; door heights and non-south/east window heights assumed",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Door heights assumed; north/west window heights assumed from 2F elevation family; 720mm-thick walls modelled as single centrelines",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 190,
+    "connections": 30,
+    "openings": 61,
+    "spaces": 29,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-26_sm25_multifloor_cold_claude_run51/candidate_03"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "cbb5fa38614801c2591790b9fbe9ae8372a6a4407c6c41fc4b25a3a7a39984a0",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Opening z on north/west walls not verified against North/West elevations",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "No vertical circulation (stairs) is drawn in either plan; none modelled",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

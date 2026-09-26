@@ -1,0 +1,110 @@
+[
+  {
+    "op": "update_window",
+    "id": "F1:F1-NW4",
+    "changes": {
+      "z": [
+        1.0,
+        3.2
+      ]
+    },
+    "reason": "North elevation large window 1000/2200/400",
+    "source_refs": [
+      "claim:claim_0004:caa4476984423d611dd90b518d2428997eb85faba36b1959cf8c3db895bc2589"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F2:F2-NW4",
+    "changes": {
+      "z": [
+        4.6,
+        6.8
+      ]
+    },
+    "reason": "North elevation large window upper storey",
+    "source_refs": [
+      "claim:claim_0005:d534650d6511c42174be6c8dbe5129589a49c49ba799f4dbd46f41a0bc5bb83c"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F2:F2-WW1",
+    "changes": {
+      "z": [
+        4.6,
+        6.8
+      ]
+    },
+    "reason": "West elevation large window upper storey",
+    "source_refs": [
+      "claim:claim_0005:d534650d6511c42174be6c8dbe5129589a49c49ba799f4dbd46f41a0bc5bb83c"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "F1:F1-XD1",
+    "changes": {
+      "z": [
+        0.2,
+        2.3
+      ]
+    },
+    "reason": "West elevation door 200 above ground, 2100 high",
+    "source_refs": [
+      "claim:claim_0006:ab27c10349939abab088a267769b7d17111c58aac9f0dd1f8b7a28a09c9d86f4"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "F1:F1-XD2",
+    "changes": {
+      "z": [
+        0.2,
+        2.3
+      ]
+    },
+    "reason": "West elevation door",
+    "source_refs": [
+      "claim:claim_0006:ab27c10349939abab088a267769b7d17111c58aac9f0dd1f8b7a28a09c9d86f4"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "F1:F1-XD3",
+    "changes": {
+      "z": [
+        0.184337349,
+        2.298795181
+      ]
+    },
+    "reason": "East elevation door pixel measurement",
+    "source_refs": [
+      "claim:claim_0007:aa1db42106da018bf6be0f39933aae7383092cc027dfc61d4dd9e0900af05f4f"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Door heights assumed; north/west window heights assumed from 2F elevation family; 720mm-thick walls modelled as single centrelines",
+    "replacement": [
+      "Exterior window heights (all facades) and the three exterior ground-floor doors are image-linked to elevations; internal door heights remain assumed; 720mm-thick walls modelled as single centrelines"
+    ],
+    "reason": "Elevation chains read",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "unresolved",
+    "old": "Opening z on north/west walls not verified against North/West elevations",
+    "replacement": [
+      "East door XD3 height is pixel-measured (no annotation); internal door heights unchecked; horizontal positions unchecked in this pass"
+    ],
+    "reason": "North/West elevations now read",
+    "source_refs": [
+      "claim_0004"
+    ]
+  }
+]

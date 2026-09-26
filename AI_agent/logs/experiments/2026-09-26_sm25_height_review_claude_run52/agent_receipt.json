@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 2400,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 123.82,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 106000,
+    "stop_reason": "end_turn",
+    "session_id": "7f893e52-e336-4f07-885f-c89fbf1c77df",
+    "total_cost_usd": 0.7599706,
+    "usage": {
+      "input_tokens": 26,
+      "cache_creation_input_tokens": 118465,
+      "cache_read_input_tokens": 851743,
+      "output_tokens": 11571,
+      "output_tokens_details": {
+        "thinking_tokens": 3323
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 118465,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 892,
+          "cache_read_input_tokens": 128499,
+          "cache_creation_input_tokens": 1109,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1109
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 26,
+        "outputTokens": 11571,
+        "cacheReadInputTokens": 851743,
+        "cacheCreationInputTokens": 118465,
+        "webSearchRequests": 0,
+        "costUSD": 0.7599706,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 3323,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 32,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and recorded `candidate_01` with finish_bim. I corrected the exterior opening heights that differed from the elevations and changed no plan geometry, hosts or connections. Source validation passes, but drawing fidelity is not evaluated. finish_bim reported its generation state as \"in_progress\" when I called it. I did not look at the finish output for the final coverage or claim state.\n\n**Image-linked heights.** Each is a located claim with an explicit floor origin (ground floor z=0, upper floor z=3.6). Except the East door XD3, the values come from the elevations' vertical dimension chains.\n- **Confirmed unchanged (claims 1–3):**\n  - Ground-floor small windows on East, West and North: z 1.0–2.6. This is the 1000/1600/1000 chain.\n  - Ground-floor South windows SW1 and SW2: z 1.0–2.8. This is the 1000/1800/800 chain.\n  - Upper-floor small windows on East, North and South, plus West window F2-WW2: z 4.6–6.2.\n- **Corrected (claims 4–7):**\n  - F1-NW4 (8 m North window): z 1.0–3.2, previously 1.0–2.6.\n  - F2-NW4 (8 m North window) and F2-WW1 (4.3 m West window): z 4.6–6.8, previously 4.6–6.2.\n  - Ground-floor West doors XD1 and XD2: z 0.2–2.3, previously 0–2.3. The West elevation dimensions (200/2100/1300) put the door sill 0.2 m above ground.\n  - East door XD3: z 0.184–2.299, previously 0–2.28. This one is pixel-measured against the storey lines, with no annotation, so it carries about ±0.05 m.\n\n**Notes.** I replaced the two obsolete notes that said the north/west window heights were assumed and unverified. I kept the other assumptions and unresolved items.\n\n**Assumed or unchecked.**\n- All 27 interior doors (F1-D, E, M and O; F2-D, F, MD and S) keep their assumed heights of 0–2.1 m on the ground floor and 3.6–5.7 m upstairs. Nothing in the elevations covers them.\n- XD1 and XD2 share one claim, on the assumption that both West doors match the annotated chain. The West view draws them the same.\n- Horizontal positions and spans were not rechecked in this pass.\n- I did not view `1f_view.png` or `2f_view.png`, and I did not compare the elevations against the plans.\n- Only the North elevation of the revised candidate was inspected. I did not view the East, South or West source elevations after the revision.",
+    "ttft_ms": 3317,
+    "type": "result",
+    "duration_ms": 119422,
+    "uuid": "7e7ef3f4-b443-47b0-932d-80e69950e024",
+    "ttft_stream_ms": 2967,
+    "time_to_request_ms": 68,
+    "first_content_frame_ms": 2967,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

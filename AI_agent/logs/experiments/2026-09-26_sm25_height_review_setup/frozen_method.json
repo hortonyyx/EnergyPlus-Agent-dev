@@ -1,0 +1,27 @@
+{
+  "scope": "Review and, where the supplied original drawings justify it, correct the saved\nwhole-building candidate's exterior opening heights. This is a bounded continuation,\nnot a new plan reconstruction. Preserve all floor/space geometry, opening inventories,\nhorizontal positions, hosts and connections. Internal door heights without evidence\nmay remain explicit assumptions. Work directly with the supplied originals and the\ntools; do not call review_detail or delegate this experiment.\n\nRead reconstruction and claims. Use input_view_status as a reminder of direct original\nviews and check_openings(heights_only=true) to inspect each floor/facade's actual\nheights and linked evidence. Independently identify the relevant supplied elevations\nand match each distinct opening family to its plan identity; no proposed height or\nclaimed typical family in the saved draft is an observation. Establish each floor's\nabsolute elevation origin and use the original annotations/pixels to resolve height\nfamilies. Record located image claims with computable values. Confirm matching\nheights before revising differing heights via claim references on the same parent.\nPreserve uncertainty where evidence is incomplete and replace only obsolete notes.\n\nInspect actual source elevations after revision and the current height coverage.\nDeliver the best checked candidate using finish_bim. State exactly which heights are\nimage-linked, assumed, deferred or still unchecked. Returned images and current claim\nbindings do not certify that the original was read correctly. You are not supplied\nGT, evaluation results, a list/count of errors, desired heights or previous reviews.",
+  "mode": "saved_candidate_exterior_height_review",
+  "seed_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+  "image_sha256": {
+    "1f_view.png": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "2f_view.png": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+    "East_view.png": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+    "North_view.png": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+    "South_view.png": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+    "West_view.png": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac"
+  },
+  "provider": "claude",
+  "role": "sonnet",
+  "effort": "medium",
+  "timeout_seconds": 2400,
+  "withheld": [
+    "GT",
+    "evaluation",
+    "error identities/counts",
+    "target heights",
+    "old reviews"
+  ],
+  "developer_participation": "Height scope and generic method only; no local answers or live intervention.",
+  "development_agents": "Astra only",
+  "runtime_delegation": "prohibited by experiment scope"
+}

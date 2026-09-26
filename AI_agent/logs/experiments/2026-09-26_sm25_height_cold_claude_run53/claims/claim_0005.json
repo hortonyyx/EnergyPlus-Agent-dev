@@ -1,0 +1,95 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F2:W2_n4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W2_w1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Upper band on North (8000 window) and West (4320 window): 1000 sill / 2200 height / 400 head above floor at 3.6 => z 4.6-6.8.",
+    "sources": [
+      {
+        "box": [
+          150.0,
+          180.0,
+          700.0,
+          350.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          150.0,
+          220.0,
+          400.0,
+          420.0
+        ],
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          4.6,
+          6.8
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "3f4417573a0493c7be1ec0ecf5f8bfae70506f63dae821cc066aa19b5becd6be",
+  "resolved_values": {
+    "z": [
+      4.6,
+      6.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        150.0,
+        180.0,
+        700.0,
+        350.0
+      ],
+      "image": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "size": [
+        2690,
+        1276
+      ]
+    },
+    {
+      "box": [
+        150.0,
+        220.0,
+        400.0,
+        420.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

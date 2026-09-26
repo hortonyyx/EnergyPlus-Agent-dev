@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-26 单人还原续推：** 用户本轮指定仅Astra推进，无开发子代理或Opus工作包；run52/53均通过原Claude订阅实际`claude-sonnet-5`/medium，每次1主调用、无子模型/回退，正常结束。分别123.82/459.07秒，CLI估算$0.7599706/$2.0026676，合计$2.7626382，非实际账单且不含Codex开发用量。没有DeepSeek或付费API。本轮调用与限制见[交接](../logs/worklog/2026-09-26_reconstruction_height_review.md)。单人安排仅本轮，不修改既有长期协作授权。
+
 **09-26 本轮已完成：** 用户授权双路续推后统一收工。开发负责人Opus 5.5通过本机Claude Code订阅实际执行`claude-opus-5-5`/xhigh，1529.76秒、67轮，无子调用，正常退出；CLI估算$4.701103。产品run50/51均实际`claude-sonnet-5`/medium，333.84/551.18秒，各1次主调用、无子模型/回退，估算$1.4015142/$1.3668862。本轮三次Claude CLI估算合计$7.4695034，非订阅账单，未包含Codex开发用量。Astra统筹，GPT-6 Sol负责窄组合器、审计及反馈修复；全部任务结束，无付费API或DeepSeek回退。见[统一交接](../logs/worklog/2026-09-26_dual_manager_multifloor_completion.md)。
 
 2026-09-25 更新：Astra 与 Opus 5.5 同为最高档开发负责人，各自按需选派子代理；模型家族不绑定研发路线，由 Astra 统一面向用户并统筹集成。用户确认 Claude 额度恢复，工作模型可按任务选择 Claude 或 GLM。保留 DeepSeek 事先明确同意及订阅/付费边界，不引入必派工或强制跨家族复审链。

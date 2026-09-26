@@ -1,0 +1,101 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:D_west1",
+        "kind": "opening"
+      },
+      {
+        "id": "F1:D_west2",
+        "kind": "opening"
+      },
+      {
+        "id": "F1:D_east",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West view door dims 200 bottom / 2100 height => z 0.2-2.3; East door read from pixels at same family (approximate, not dimensioned).",
+    "sources": [
+      {
+        "box": [
+          1400.0,
+          450.0,
+          1600.0,
+          600.0
+        ],
+        "image": "West_view.png"
+      },
+      {
+        "box": [
+          250.0,
+          480.0,
+          380.0,
+          630.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [
+      "East door height not dimensioned; visually estimated"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          0.2,
+          2.3
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0006",
+  "parent_proposal_sha256": "3f4417573a0493c7be1ec0ecf5f8bfae70506f63dae821cc066aa19b5becd6be",
+  "resolved_values": {
+    "z": [
+      0.2,
+      2.3
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        1400.0,
+        450.0,
+        1600.0,
+        600.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    },
+    {
+      "box": [
+        250.0,
+        480.0,
+        380.0,
+        630.0
+      ],
+      "image": "East_view.png",
+      "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "size": [
+        2059,
+        1232
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -1,0 +1,188 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "39e12859f456c1211a4406f88a70c3953684212877e79f869a2e4ea81192aa63",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        240.8,
+        0.0
+      ],
+      [
+        1388.1,
+        25.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        1257.9,
+        0.0
+      ],
+      [
+        341.5,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "r3_vs_corridor",
+      "expected": "separate_spaces",
+      "evidence": "open office r3 has wall on its south side with door",
+      "points": [
+        {
+          "pixel": [
+            830.0,
+            430.0
+          ],
+          "world_xy_m": [
+            12.838839013335658,
+            18.068529026625928
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_S03",
+          "interior_space_ids": [
+            "F2:F2_S03"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            500.0,
+            570.0
+          ],
+          "world_xy_m": [
+            5.648043231935849,
+            15.013094718463554
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_S04",
+          "interior_space_ids": [
+            "F2:F2_S04"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F2:D2_o3",
+          "space_ids": [
+            "F2:F2_S03",
+            "F2:F2_S04"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "corr_vs_lower",
+      "expected": "same_space",
+      "evidence": "open circulation continues around conference room to lower hallway",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            570.0
+          ],
+          "world_xy_m": [
+            5.648043231935849,
+            15.013094718463554
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_S04",
+          "interior_space_ids": [
+            "F2:F2_S04"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1000.0,
+            1030.0
+          ],
+          "world_xy_m": [
+            16.543188355268892,
+            4.973810563072895
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_S04",
+          "interior_space_ids": [
+            "F2:F2_S04"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "conf_vs_corr",
+      "expected": "separate_spaces",
+      "evidence": "conference room walls with double door",
+      "points": [
+        {
+          "pixel": [
+            560.0,
+            800.0
+          ],
+          "world_xy_m": [
+            6.955460646735815,
+            9.993452640768226
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_S06",
+          "interior_space_ids": [
+            "F2:F2_S06"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            700.0,
+            800.0
+          ],
+          "world_xy_m": [
+            10.006101281269068,
+            9.993452640768226
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_S04",
+          "interior_space_ids": [
+            "F2:F2_S04"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F2:D2_c",
+          "space_ids": [
+            "F2:F2_S04",
+            "F2:F2_S06"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "2f_view.png",
+  "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+  "calibration_file": "overlay_calibrations/calibration_005.json",
+  "calibration_sha256": "9e4ea11c12b74468af1a630bbe3b1102d8ec81aa41c05dd28c609670a1b3def4",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 2555
+}

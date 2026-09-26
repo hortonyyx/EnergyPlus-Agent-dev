@@ -1,0 +1,1374 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "seed",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "F1:F1-NW4",
+      "changes": {
+        "z": {
+          "claim": "claim_0004",
+          "value": "z"
+        }
+      },
+      "reason": "North elevation large window 1000/2200/400"
+    },
+    {
+      "op": "update_window",
+      "id": "F2:F2-NW4",
+      "changes": {
+        "z": {
+          "claim": "claim_0005",
+          "value": "z"
+        }
+      },
+      "reason": "North elevation large window upper storey"
+    },
+    {
+      "op": "update_window",
+      "id": "F2:F2-WW1",
+      "changes": {
+        "z": {
+          "claim": "claim_0005",
+          "value": "z"
+        }
+      },
+      "reason": "West elevation large window upper storey"
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:F1-XD1",
+      "changes": {
+        "z": {
+          "claim": "claim_0006",
+          "value": "z"
+        }
+      },
+      "reason": "West elevation door 200 above ground, 2100 high"
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:F1-XD2",
+      "changes": {
+        "z": {
+          "claim": "claim_0006",
+          "value": "z"
+        }
+      },
+      "reason": "West elevation door"
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:F1-XD3",
+      "changes": {
+        "z": {
+          "claim": "claim_0007",
+          "value": "z"
+        }
+      },
+      "reason": "East elevation door pixel measurement"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Door heights assumed; north/west window heights assumed from 2F elevation family; 720mm-thick walls modelled as single centrelines",
+      "replacement": [
+        "Exterior window heights (all facades) and the three exterior ground-floor doors are image-linked to elevations; internal door heights remain assumed; 720mm-thick walls modelled as single centrelines"
+      ],
+      "reason": "Elevation chains read",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Opening z on north/west walls not verified against North/West elevations",
+      "replacement": [
+        "East door XD3 height is pixel-measured (no annotation); internal door heights unchecked; horizontal positions unchecked in this pass"
+      ],
+      "reason": "North/West elevations now read",
+      "source_refs": [
+        "claim_0004"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0004",
+    "claim_0005",
+    "claim_0006",
+    "claim_0007"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F1:F1-NW4"
+          ]
+        ],
+        "claim_id": "claim_0004",
+        "value_field": "z",
+        "resolved_value": [
+          1.0,
+          3.2
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 0.0,
+            "direction": 1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.0,
+                "start_m": 0.0,
+                "end_m": 1.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.2,
+                "start_m": 1.0,
+                "end_m": 3.2,
+                "span_m": [
+                  1.0,
+                  3.2
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 0.4,
+                "start_m": 3.2,
+                "end_m": 3.6,
+                "span_m": [
+                  3.2,
+                  3.6
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.6,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 1,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F2:F2-NW4"
+          ]
+        ],
+        "claim_id": "claim_0005",
+        "value_field": "z",
+        "resolved_value": [
+          4.6,
+          6.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 3.6,
+            "direction": 1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.0,
+                "start_m": 3.6,
+                "end_m": 4.6,
+                "span_m": [
+                  3.6,
+                  4.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.2,
+                "start_m": 4.6,
+                "end_m": 6.8,
+                "span_m": [
+                  4.6,
+                  6.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 0.4,
+                "start_m": 6.8,
+                "end_m": 7.2,
+                "span_m": [
+                  6.8,
+                  7.2
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 7.2,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 2,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F2:F2-WW1"
+          ]
+        ],
+        "claim_id": "claim_0005",
+        "value_field": "z",
+        "resolved_value": [
+          4.6,
+          6.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 3.6,
+            "direction": 1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.0,
+                "start_m": 3.6,
+                "end_m": 4.6,
+                "span_m": [
+                  3.6,
+                  4.6
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.2,
+                "start_m": 4.6,
+                "end_m": 6.8,
+                "span_m": [
+                  4.6,
+                  6.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 0.4,
+                "start_m": 6.8,
+                "end_m": 7.2,
+                "span_m": [
+                  6.8,
+                  7.2
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 7.2,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 3,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:F1-XD1"
+          ]
+        ],
+        "claim_id": "claim_0006",
+        "value_field": "z",
+        "resolved_value": [
+          0.2,
+          2.3
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 0.0,
+            "direction": 1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.2,
+                "start_m": 0.0,
+                "end_m": 0.2,
+                "span_m": [
+                  0.0,
+                  0.2
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.1,
+                "start_m": 0.2,
+                "end_m": 2.3,
+                "span_m": [
+                  0.2,
+                  2.3
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.3,
+                "start_m": 2.3,
+                "end_m": 3.6,
+                "span_m": [
+                  2.3,
+                  3.6
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.6,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 4,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:F1-XD2"
+          ]
+        ],
+        "claim_id": "claim_0006",
+        "value_field": "z",
+        "resolved_value": [
+          0.2,
+          2.3
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 0.0,
+            "direction": 1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 0.2,
+                "start_m": 0.0,
+                "end_m": 0.2,
+                "span_m": [
+                  0.0,
+                  0.2
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.1,
+                "start_m": 0.2,
+                "end_m": 2.3,
+                "span_m": [
+                  0.2,
+                  2.3
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.3,
+                "start_m": 2.3,
+                "end_m": 3.6,
+                "span_m": [
+                  2.3,
+                  3.6
+                ]
+              }
+            ],
+            "total_m": 3.6,
+            "end_m": 3.6,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      },
+      {
+        "operation_index": 5,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:F1-XD3"
+          ]
+        ],
+        "claim_id": "claim_0007",
+        "value_field": "z",
+        "resolved_value": [
+          0.184337349,
+          2.298795181
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            802.3,
+            536.7,
+            788.7,
+            632.7
+          ],
+          "metre_anchors": [
+            0.0,
+            3.6
+          ],
+          "metres_per_pixel": -0.013554216867469885,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      }
+    ],
+    "claims": {
+      "claim_0004": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "F1:F1-NW4",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "North elevation large 8000-wide window, lower storey: dims 1000 sill, 2200 window, 400 head; origin ground z=0.",
+            "sources": [
+              {
+                "box": [
+                  300.0,
+                  570.0,
+                  1300.0,
+                  900.0
+                ],
+                "image": "North_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "direction": 1,
+                "lengths": [
+                  1000.0,
+                  2200.0,
+                  400.0
+                ],
+                "origin_m": 0.0,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": 1,
+                "end_m": 3.6,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 0.0,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 1.0,
+                    "index": 0,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 0.0
+                  },
+                  {
+                    "end_m": 3.2,
+                    "index": 1,
+                    "length_m": 2.2,
+                    "span_m": [
+                      1.0,
+                      3.2
+                    ],
+                    "start_m": 1.0
+                  },
+                  {
+                    "end_m": 3.6,
+                    "index": 2,
+                    "length_m": 0.4,
+                    "span_m": [
+                      3.2,
+                      3.6
+                    ],
+                    "start_m": 3.2
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0004",
+          "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+          "resolved_values": {
+            "z": [
+              1.0,
+              3.2
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                300.0,
+                570.0,
+                1300.0,
+                900.0
+              ],
+              "image": "North_view.png",
+              "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+              "size": [
+                2690,
+                1276
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0004",
+          "disposition": "adopted",
+          "id": "decision_0004",
+          "reason": "North chain"
+        }
+      },
+      "claim_0005": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "F2:F2-NW4",
+                "kind": "window"
+              },
+              {
+                "id": "F2:F2-WW1",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "Upper-storey large windows (North 8000 wide; West 4320 wide): dims 1000 sill, 2200 window, 400 head within upper 3600; origin z=3.6 floor 2 level.",
+            "sources": [
+              {
+                "box": [
+                  300.0,
+                  250.0,
+                  1300.0,
+                  580.0
+                ],
+                "image": "North_view.png"
+              },
+              {
+                "box": [
+                  300.0,
+                  300.0,
+                  1500.0,
+                  590.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "direction": 1,
+                "lengths": [
+                  1000.0,
+                  2200.0,
+                  400.0
+                ],
+                "origin_m": 3.6,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": 1,
+                "end_m": 7.2,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 3.6,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 4.6,
+                    "index": 0,
+                    "length_m": 1.0,
+                    "span_m": [
+                      3.6,
+                      4.6
+                    ],
+                    "start_m": 3.6
+                  },
+                  {
+                    "end_m": 6.8,
+                    "index": 1,
+                    "length_m": 2.2,
+                    "span_m": [
+                      4.6,
+                      6.8
+                    ],
+                    "start_m": 4.6
+                  },
+                  {
+                    "end_m": 7.2,
+                    "index": 2,
+                    "length_m": 0.4,
+                    "span_m": [
+                      6.8,
+                      7.2
+                    ],
+                    "start_m": 6.8
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0005",
+          "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+          "resolved_values": {
+            "z": [
+              4.6,
+              6.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                300.0,
+                250.0,
+                1300.0,
+                580.0
+              ],
+              "image": "North_view.png",
+              "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+              "size": [
+                2690,
+                1276
+              ]
+            },
+            {
+              "box": [
+                300.0,
+                300.0,
+                1500.0,
+                590.0
+              ],
+              "image": "West_view.png",
+              "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+              "size": [
+                2353,
+                1295
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0005",
+          "disposition": "adopted",
+          "id": "decision_0005",
+          "reason": "North/West chains"
+        }
+      },
+      "claim_0006": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "F1:F1-XD1",
+                "kind": "opening"
+              },
+              {
+                "id": "F1:F1-XD2",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "West elevation ground-floor doors: chain 200 (door bottom above ground line), 2100 door, 1300 above to 3600 storey line; origin ground z=0.",
+            "sources": [
+              {
+                "box": [
+                  350.0,
+                  600.0,
+                  2353.0,
+                  880.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [
+              "Assumes both west doors share the annotated 200/2100 family; the two doors in West_view are drawn identically."
+            ],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "direction": 1,
+                "lengths": [
+                  200.0,
+                  2100.0,
+                  1300.0
+                ],
+                "origin_m": 0.0,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": 1,
+                "end_m": 3.6,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 0.0,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 0.2,
+                    "index": 0,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.0
+                  },
+                  {
+                    "end_m": 2.3,
+                    "index": 1,
+                    "length_m": 2.1,
+                    "span_m": [
+                      0.2,
+                      2.3
+                    ],
+                    "start_m": 0.2
+                  },
+                  {
+                    "end_m": 3.6,
+                    "index": 2,
+                    "length_m": 1.3,
+                    "span_m": [
+                      2.3,
+                      3.6
+                    ],
+                    "start_m": 2.3
+                  }
+                ],
+                "total_m": 3.6
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0006",
+          "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+          "resolved_values": {
+            "z": [
+              0.2,
+              2.3
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                350.0,
+                600.0,
+                2353.0,
+                880.0
+              ],
+              "image": "West_view.png",
+              "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+              "size": [
+                2353,
+                1295
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0006",
+          "disposition": "adopted",
+          "id": "decision_0006",
+          "reason": "West door chain"
+        }
+      },
+      "claim_0007": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "seed",
+            "objects": [
+              {
+                "id": "F1:F1-XD3",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "East elevation door has no height dimension; measured pixels against storey scale: ground line y=802.3 (z=0) and floor-2 line y=536.7 (z=3.6). Door bottom y=788.7, top y=632.7.",
+            "sources": [
+              {
+                "box": [
+                  300.0,
+                  580.0,
+                  520.0,
+                  820.0
+                ],
+                "image": "East_view.png"
+              }
+            ],
+            "unresolved": [
+              "Pixel-measured, no annotation; +-0.05 m."
+            ],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    802.3,
+                    0.0
+                  ],
+                  [
+                    536.7,
+                    3.6
+                  ]
+                ],
+                "axis": "y",
+                "image": "East_view.png",
+                "pixels": [
+                  788.7,
+                  632.7
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                3.6
+              ],
+              "metres_per_pixel": -0.013554216867469885,
+              "pixels": [
+                802.3,
+                536.7,
+                788.7,
+                632.7
+              ]
+            }
+          },
+          "id": "claim_0007",
+          "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+          "resolved_values": {
+            "z": [
+              0.184337349,
+              2.298795181
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                300.0,
+                580.0,
+                520.0,
+                820.0
+              ],
+              "image": "East_view.png",
+              "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+              "size": [
+                2059,
+                1232
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0007",
+          "disposition": "adopted",
+          "id": "decision_0007",
+          "reason": "pixel measurement, consistent with west door"
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "F1:F1-NW4",
+      "changes": {
+        "z": [
+          1.0,
+          3.2
+        ]
+      },
+      "reason": "North elevation large window 1000/2200/400",
+      "source_refs": [
+        "claim:claim_0004:caa4476984423d611dd90b518d2428997eb85faba36b1959cf8c3db895bc2589"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F2:F2-NW4",
+      "changes": {
+        "z": [
+          4.6,
+          6.8
+        ]
+      },
+      "reason": "North elevation large window upper storey",
+      "source_refs": [
+        "claim:claim_0005:d534650d6511c42174be6c8dbe5129589a49c49ba799f4dbd46f41a0bc5bb83c"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F2:F2-WW1",
+      "changes": {
+        "z": [
+          4.6,
+          6.8
+        ]
+      },
+      "reason": "West elevation large window upper storey",
+      "source_refs": [
+        "claim:claim_0005:d534650d6511c42174be6c8dbe5129589a49c49ba799f4dbd46f41a0bc5bb83c"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:F1-XD1",
+      "changes": {
+        "z": [
+          0.2,
+          2.3
+        ]
+      },
+      "reason": "West elevation door 200 above ground, 2100 high",
+      "source_refs": [
+        "claim:claim_0006:ab27c10349939abab088a267769b7d17111c58aac9f0dd1f8b7a28a09c9d86f4"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:F1-XD2",
+      "changes": {
+        "z": [
+          0.2,
+          2.3
+        ]
+      },
+      "reason": "West elevation door",
+      "source_refs": [
+        "claim:claim_0006:ab27c10349939abab088a267769b7d17111c58aac9f0dd1f8b7a28a09c9d86f4"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:F1-XD3",
+      "changes": {
+        "z": [
+          0.184337349,
+          2.298795181
+        ]
+      },
+      "reason": "East elevation door pixel measurement",
+      "source_refs": [
+        "claim:claim_0007:aa1db42106da018bf6be0f39933aae7383092cc027dfc61d4dd9e0900af05f4f"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Door heights assumed; north/west window heights assumed from 2F elevation family; 720mm-thick walls modelled as single centrelines",
+      "replacement": [
+        "Exterior window heights (all facades) and the three exterior ground-floor doors are image-linked to elevations; internal door heights remain assumed; 720mm-thick walls modelled as single centrelines"
+      ],
+      "reason": "Elevation chains read",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Opening z on north/west walls not verified against North/West elevations",
+      "replacement": [
+        "East door XD3 height is pixel-measured (no annotation); internal door heights unchecked; horizontal positions unchecked in this pass"
+      ],
+      "reason": "North/West elevations now read",
+      "source_refs": [
+        "claim_0004"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "67ca03bfae7bee2e4d49d7219dd2ced44bf5e66ecc0aaf8a2ec6d6ab52b6a9b9",
+  "geometry_after_sha256": "23e748cc006ee75c112dbc56d380ff2d1feecdff8c4b170885b6b7ee8b02403c",
+  "changes": [
+    {
+      "kind": "opening",
+      "id": "F1:F1-XD1",
+      "before": {
+        "id": "F1:F1-XD1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          15.37029
+        ],
+        "p2": [
+          0.0,
+          14.560416
+        ],
+        "space_id": "F1:F1_S02",
+        "z": [
+          0.0,
+          2.3
+        ]
+      },
+      "after": {
+        "id": "F1:F1-XD1",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          15.37029
+        ],
+        "p2": [
+          0.0,
+          14.560416
+        ],
+        "space_id": "F1:F1_S02",
+        "z": [
+          0.2,
+          2.3
+        ]
+      }
+    },
+    {
+      "kind": "opening",
+      "id": "F1:F1-XD2",
+      "before": {
+        "id": "F1:F1-XD2",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          5.0,
+          5.049805
+        ],
+        "p2": [
+          5.0,
+          4.350368
+        ],
+        "space_id": "F1:F1_S02",
+        "z": [
+          0.0,
+          2.3
+        ]
+      },
+      "after": {
+        "id": "F1:F1-XD2",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          5.0,
+          5.049805
+        ],
+        "p2": [
+          5.0,
+          4.350368
+        ],
+        "space_id": "F1:F1_S02",
+        "z": [
+          0.2,
+          2.3
+        ]
+      }
+    },
+    {
+      "kind": "opening",
+      "id": "F1:F1-XD3",
+      "before": {
+        "id": "F1:F1-XD3",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          25.0,
+          2.139454
+        ],
+        "p2": [
+          25.0,
+          0.539194
+        ],
+        "space_id": "F1:F1_S02",
+        "z": [
+          0.0,
+          2.28
+        ]
+      },
+      "after": {
+        "id": "F1:F1-XD3",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          25.0,
+          2.139454
+        ],
+        "p2": [
+          25.0,
+          0.539194
+        ],
+        "space_id": "F1:F1_S02",
+        "z": [
+          0.184337349,
+          2.298795181
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F1:F1-NW4",
+      "before": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:F1-NW4",
+        "kind": "window",
+        "p1": [
+          15.281142,
+          6.000433
+        ],
+        "p2": [
+          23.300173,
+          6.000433
+        ],
+        "room": "F1:F1_S02",
+        "span": [
+          15.281142,
+          23.300173
+        ],
+        "width_m": 8.019031,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:F1-NW4",
+        "kind": "window",
+        "p1": [
+          15.281142,
+          6.000433
+        ],
+        "p2": [
+          23.300173,
+          6.000433
+        ],
+        "room": "F1:F1_S02",
+        "span": [
+          15.281142,
+          23.300173
+        ],
+        "width_m": 8.019031,
+        "z": [
+          1.0,
+          3.2
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F2:F2-NW4",
+      "before": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:F2-NW4",
+        "kind": "window",
+        "p1": [
+          15.279232,
+          5.999564
+        ],
+        "p2": [
+          23.298429,
+          5.999564
+        ],
+        "room": "F2:F2_S04",
+        "span": [
+          15.279232,
+          23.298429
+        ],
+        "width_m": 8.019197,
+        "z": [
+          4.6,
+          6.2
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:F2-NW4",
+        "kind": "window",
+        "p1": [
+          15.279232,
+          5.999564
+        ],
+        "p2": [
+          23.298429,
+          5.999564
+        ],
+        "room": "F2:F2_S04",
+        "span": [
+          15.279232,
+          23.298429
+        ],
+        "width_m": 8.019197,
+        "z": [
+          4.6,
+          6.8
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F2:F2-WW1",
+      "before": {
+        "facade": "West",
+        "floor": "F2",
+        "id": "F2:F2-WW1",
+        "kind": "window",
+        "p1": [
+          5.0,
+          12.160453
+        ],
+        "p2": [
+          5.0,
+          7.839547
+        ],
+        "room": "F2:F2_S06",
+        "span": [
+          7.839547,
+          12.160453
+        ],
+        "width_m": 4.320906,
+        "z": [
+          4.6,
+          6.2
+        ]
+      },
+      "after": {
+        "facade": "West",
+        "floor": "F2",
+        "id": "F2:F2-WW1",
+        "kind": "window",
+        "p1": [
+          5.0,
+          12.160453
+        ],
+        "p2": [
+          5.0,
+          7.839547
+        ],
+        "room": "F2:F2_S06",
+        "span": [
+          7.839547,
+          12.160453
+        ],
+        "width_m": 4.320906,
+        "z": [
+          4.6,
+          6.8
+        ]
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_01",
+  "source_model_sha256": "7cbbdd6404a5d03f07d9a513005b93491abc65dd0f4c5f54efe2cc3fc2a0df1c",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

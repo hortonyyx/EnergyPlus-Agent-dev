@@ -1,0 +1,119 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F1:F1-SW1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-SW2",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South elevation lower row: chain 1000 sill,1800 window,800 head to 3600; measured from ground z=0 upward.",
+    "sources": [
+      {
+        "box": [
+          40.0,
+          560.0,
+          400.0,
+          830.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              2.8,
+              3.6
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        40.0,
+        560.0,
+        400.0,
+        830.0
+      ],
+      "image": "South_view.png",
+      "sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+      "size": [
+        2437,
+        1263
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

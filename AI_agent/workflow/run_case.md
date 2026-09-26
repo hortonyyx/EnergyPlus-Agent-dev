@@ -54,6 +54,10 @@ python scripts/tool_scripts/run_bim_agent.py run \
 
 已观察且原值正确时，在修改其他对象之前调用 `confirm_claims(candidate, operations_json)`：格式与带 claim 引用的门窗/共享墙修改相同，每个参数都须引用已采纳观察；只要会改变几何便拒绝。确认保存到 `claims/confirmation_*.json`，无需新建候选。 联合改形可在 `reshape_spaces.spaces[].polygon[][]` 用 `{"claim":"claim_0001","value":"wall_x"}` 引用标量观察，旧的固定坐标保持数值；每个变化坐标重复出现时都须引用。观察的 `value_targets` 须包含全部 value 字段，只列该值实际对应的对象，辅助量测用空列表；未传则沿用每值对应全部对象。`claim_status(candidate)` 现在返回当前候选及父链的状态投影；省略 candidate 仍返回运行历史。对象或宿主后续改变会使旧检查待复核，另一分支不继承应用成功。`check_openings(candidate, heights_only=true)` 和交付的 `height_coverage` 按楼层/立面显示实际开口高度依据；图像 `z` 绑定与推断/声明分开，未覆盖范围保留。检查计数/平面对应或生成立面图不算高度已核。
 
+`inputs`、建模回执、`check_openings`及交付另含`input_view_status`，显示本次与输入hash绑定的`view_image`整图/局部返回记录；其他图像工具、局部模型、历史运行和无hash旧记录不计入。无直接记录只是选取下一张相关原图的提醒，不代表其他手段从未观察；已返回也不证明识读正确。结合逐层`height_coverage`与源立面决定是否确认/修订，不按文件名自动认定原图方位，不阻断带明确假设的交付。
+
+`finish_bim`完整报告仍保存到`delivery.json`/HTML；模型工具回执按缩进JSON体积压缩，优先保留当前观察状态、高度覆盖、未决/失败与投影数量。极大报告退为明确标注的数量摘要，不能从省略明细推断没有问题；高度对象与端点可再用`check_openings(heights_only=true)`，当前观察绑定用`claim_status(candidate)`查询。此修复针对真实run53最终回执超过通道限制的失败，原实验保持当时未读到完整结果的事实。
+
 更新过时说明可在同一 `revise_bim` 加 `{"op":"replace_note","field":"assumptions","old":"原文","replacement":["新文"],"reason":"替代理由","source_refs":["claim_0001"]}`；field 也可为 unresolved。原文须精确且唯一匹配，空 replacement 表示有理由地撤销该条；代码不判断新文的语义真伪。替代后的说明进入新源，旧文保留在审计。交付显示当前观察状态、未决项和替代历史，不能仅在模型最终回答中说明源假设已过时。
 
 09-13 已把实际局部截止时间写入子清单后再计算摘要：取240秒上限与父任务剩余时间（预留45秒收尾）中较短者，拷图耗时也计入。子任务的 `inputs` / `view_image` 现在可显示递减剩余时间；只读提示提醒及时交付并标明未核范围。此前局部观察即使有外层超时，工具仍显示 null，见[真实反例与修复](../logs/worklog/2026-09-13_reconstruction_partition_and_reading.md)。随后两墙局部返工已实际收到剩时并在215.94秒结束，但修正观察仍不可用；这不证明时间反馈使识读可靠，见[后续实跑](../logs/worklog/2026-09-13_reconstruction_annotation_recovery.md)。

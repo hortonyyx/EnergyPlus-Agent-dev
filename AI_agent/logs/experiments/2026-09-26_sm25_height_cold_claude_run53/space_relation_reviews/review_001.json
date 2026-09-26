@@ -1,0 +1,356 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "39e12859f456c1211a4406f88a70c3953684212877e79f869a2e4ea81192aa63",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        282.4,
+        0.0
+      ],
+      [
+        1439.6,
+        25.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        1234.6,
+        0.0
+      ],
+      [
+        310.8,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corr_top_vs_vertical",
+      "expected": "same_space",
+      "evidence": "open corridor turns south with no wall between",
+      "points": [
+        {
+          "pixel": [
+            421.0,
+            542.0
+          ],
+          "world_xy_m": [
+            2.994296577946769,
+            14.994587573067765
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            745.0,
+            773.0
+          ],
+          "world_xy_m": [
+            9.993950916004152,
+            9.993505087681317
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "vertical_vs_lower",
+      "expected": "same_space",
+      "evidence": "corridor continues to lower hallway",
+      "points": [
+        {
+          "pixel": [
+            745.0,
+            773.0
+          ],
+          "world_xy_m": [
+            9.993950916004152,
+            9.993505087681317
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1116.0,
+            1004.0
+          ],
+          "world_xy_m": [
+            18.008987210508128,
+            4.9924226022948694
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "lower_vs_vestibule",
+      "expected": "same_space",
+      "evidence": "no wall between hallway and east vestibule beside conference 2",
+      "points": [
+        {
+          "pixel": [
+            1116.0,
+            1004.0
+          ],
+          "world_xy_m": [
+            18.008987210508128,
+            4.9924226022948694
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1347.0,
+            1142.0
+          ],
+          "world_xy_m": [
+            22.999481507086074,
+            2.0047629357003665
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "office1_vs_corridor",
+      "expected": "separate_spaces",
+      "evidence": "wall with door",
+      "points": [
+        {
+          "pixel": [
+            398.0,
+            403.0
+          ],
+          "world_xy_m": [
+            2.4974075354303507,
+            18.003896947391212
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S01",
+          "interior_space_ids": [
+            "F1:F1_S01"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            421.0,
+            542.0
+          ],
+          "world_xy_m": [
+            2.994296577946769,
+            14.994587573067765
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F1:D_o1",
+          "space_ids": [
+            "F1:F1_S01",
+            "F1:F1_S02"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "conf1_vs_conf2",
+      "expected": "separate_spaces",
+      "evidence": "thick wall between",
+      "points": [
+        {
+          "pixel": [
+            699.0,
+            1143.0
+          ],
+          "world_xy_m": [
+            9.000172830971312,
+            1.9831132279714225
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S13",
+          "interior_space_ids": [
+            "F1:F1_S13"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1069.0,
+            1143.0
+          ],
+          "world_xy_m": [
+            16.99360525406153,
+            1.9831132279714225
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S14",
+          "interior_space_ids": [
+            "F1:F1_S14"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "wing1_vs_corridor",
+      "expected": "separate_spaces",
+      "evidence": "wing office wall with door",
+      "points": [
+        {
+          "pixel": [
+            884.0,
+            357.0
+          ],
+          "world_xy_m": [
+            12.996889042516422,
+            18.99978350292271
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S04",
+          "interior_space_ids": [
+            "F1:F1_S04"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            745.0,
+            400.0
+          ],
+          "world_xy_m": [
+            9.993950916004152,
+            18.068846070578047
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S02",
+          "interior_space_ids": [
+            "F1:F1_S02"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F1:D_w1",
+          "space_ids": [
+            "F1:F1_S02",
+            "F1:F1_S04"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "office1_vs_office2",
+      "expected": "separate_spaces",
+      "evidence": "wall between",
+      "points": [
+        {
+          "pixel": [
+            398.0,
+            403.0
+          ],
+          "world_xy_m": [
+            2.4974075354303507,
+            18.003896947391212
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S01",
+          "interior_space_ids": [
+            "F1:F1_S01"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            620.0,
+            403.0
+          ],
+          "world_xy_m": [
+            7.2934669892844814,
+            18.003896947391212
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:F1_S03",
+          "interior_space_ids": [
+            "F1:F1_S03"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "1f_view.png",
+  "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "312407dca2cc8958b7a5f2cb443acdc7ca069ac2a6f3ea6dcf284fccc47f2b56",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 2560
+}

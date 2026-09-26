@@ -1,0 +1,160 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:W_n1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_n2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_n3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e4",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e5",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e6",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_e7",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_w1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_w2",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Elevation vertical dimension chains 1000/1600/1000 on North, East, West views for the lower storey (z=0 at ground line, lower band 3600): sill 1.0 m, head 2.6 m absolute.",
+    "sources": [
+      {
+        "box": [
+          1400.0,
+          250.0,
+          1600.0,
+          800.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          1400.0,
+          250.0,
+          1600.0,
+          800.0
+        ],
+        "image": "West_view.png"
+      },
+      {
+        "box": [
+          2200.0,
+          250.0,
+          2690.0,
+          850.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [
+      "Sill/head pixel edges not profiled; relies on annotated dimension chain"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          1.0,
+          2.6
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "3f4417573a0493c7be1ec0ecf5f8bfae70506f63dae821cc066aa19b5becd6be",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        1400.0,
+        250.0,
+        1600.0,
+        800.0
+      ],
+      "image": "East_view.png",
+      "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "size": [
+        2059,
+        1232
+      ]
+    },
+    {
+      "box": [
+        1400.0,
+        250.0,
+        1600.0,
+        800.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    },
+    {
+      "box": [
+        2200.0,
+        250.0,
+        2690.0,
+        850.0
+      ],
+      "image": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "size": [
+        2690,
+        1276
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

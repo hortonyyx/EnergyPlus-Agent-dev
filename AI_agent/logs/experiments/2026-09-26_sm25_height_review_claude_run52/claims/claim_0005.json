@@ -1,0 +1,142 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F2:F2-NW4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:F2-WW1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Upper-storey large windows (North 8000 wide; West 4320 wide): dims 1000 sill, 2200 window, 400 head within upper 3600; origin z=3.6 floor 2 level.",
+    "sources": [
+      {
+        "box": [
+          300.0,
+          250.0,
+          1300.0,
+          580.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          300.0,
+          300.0,
+          1500.0,
+          590.0
+        ],
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2200.0,
+          400.0
+        ],
+        "origin_m": 3.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 7.2,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.6,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.6,
+              4.6
+            ],
+            "start_m": 3.6
+          },
+          {
+            "end_m": 6.8,
+            "index": 1,
+            "length_m": 2.2,
+            "span_m": [
+              4.6,
+              6.8
+            ],
+            "start_m": 4.6
+          },
+          {
+            "end_m": 7.2,
+            "index": 2,
+            "length_m": 0.4,
+            "span_m": [
+              6.8,
+              7.2
+            ],
+            "start_m": 6.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+  "resolved_values": {
+    "z": [
+      4.6,
+      6.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        300.0,
+        250.0,
+        1300.0,
+        580.0
+      ],
+      "image": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "size": [
+        2690,
+        1276
+      ]
+    },
+    {
+      "box": [
+        300.0,
+        300.0,
+        1500.0,
+        590.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

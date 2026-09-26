@@ -1,0 +1,95 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F1:F1-XD3",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East elevation door has no height dimension; measured pixels against storey scale: ground line y=802.3 (z=0) and floor-2 line y=536.7 (z=3.6). Door bottom y=788.7, top y=632.7.",
+    "sources": [
+      {
+        "box": [
+          300.0,
+          580.0,
+          520.0,
+          820.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [
+      "Pixel-measured, no annotation; +-0.05 m."
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            802.3,
+            0.0
+          ],
+          [
+            536.7,
+            3.6
+          ]
+        ],
+        "axis": "y",
+        "image": "East_view.png",
+        "pixels": [
+          788.7,
+          632.7
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        0.0,
+        3.6
+      ],
+      "metres_per_pixel": -0.013554216867469885,
+      "pixels": [
+        802.3,
+        536.7,
+        788.7,
+        632.7
+      ]
+    }
+  },
+  "id": "claim_0007",
+  "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+  "resolved_values": {
+    "z": [
+      0.184337349,
+      2.298795181
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        300.0,
+        580.0,
+        520.0,
+        820.0
+      ],
+      "image": "East_view.png",
+      "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "size": [
+        2059,
+        1232
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

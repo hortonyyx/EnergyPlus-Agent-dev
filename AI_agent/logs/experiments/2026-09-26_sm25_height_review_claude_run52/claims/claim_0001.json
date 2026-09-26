@@ -1,0 +1,205 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F1:F1-EW1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-EW2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-EW3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-EW4",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-EW5",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-EW6",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-EW7",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-WW1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-WW2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-NW1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-NW2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:F1-NW3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Ground-floor small windows in East, West and North elevations carry vertical chain 1000/1600/1000 within the 3600 storey; origin is ground floor level z=0 (bottom of elevation), chain runs upward from ground.",
+    "sources": [
+      {
+        "box": [
+          1800.0,
+          540.0,
+          2059.0,
+          820.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          1850.0,
+          590.0,
+          2353.0,
+          870.0
+        ],
+        "image": "West_view.png"
+      },
+      {
+        "box": [
+          2250.0,
+          250.0,
+          2690.0,
+          860.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.6,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              2.6,
+              3.6
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "5f2cf96f9f4584f43212f6807221c9f37ed4aaf1f2530e5c552faaf801d19498",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        1800.0,
+        540.0,
+        2059.0,
+        820.0
+      ],
+      "image": "East_view.png",
+      "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "size": [
+        2059,
+        1232
+      ]
+    },
+    {
+      "box": [
+        1850.0,
+        590.0,
+        2353.0,
+        870.0
+      ],
+      "image": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "size": [
+        2353,
+        1295
+      ]
+    },
+    {
+      "box": [
+        2250.0,
+        250.0,
+        2690.0,
+        860.0
+      ],
+      "image": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "size": [
+        2690,
+        1276
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

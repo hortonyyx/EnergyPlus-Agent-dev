@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 459.07,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 417346,
+    "stop_reason": "end_turn",
+    "session_id": "991d8267-cbe3-4eb4-8d36-276f0414c5d2",
+    "total_cost_usd": 2.0026675999999997,
+    "usage": {
+      "input_tokens": 38,
+      "cache_creation_input_tokens": 252904,
+      "cache_read_input_tokens": 2792528,
+      "output_tokens": 43247,
+      "output_tokens_details": {
+        "thinking_tokens": 26454
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 252904,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1060,
+          "cache_read_input_tokens": 268596,
+          "cache_creation_input_tokens": 641,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 641
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 38,
+        "outputTokens": 43247,
+        "cacheReadInputTokens": 2792528,
+        "cacheCreationInputTokens": 252904,
+        "webSearchRequests": 0,
+        "costUSD": 2.0026675999999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 26454,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 34,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I've built and saved the whole-building candidate as `candidate_04` and called `finish_bim` on it. That call's output was too large to return (about 72k characters), so I did not read the finish report. I haven't seen its final coverage summary or whether it flags anything.\n\nThe candidate has two floors assembled from the saved plan drafts, on a shared origin at the building's south-west corner. The footprint is 25 m × 20 m and each storey is 3.6 m. F1 is at z 0 and F2 at z 3.6.\n\n**Spaces**\n- **F1** has 14 spaces:\n  - Two north-west offices.\n  - Two west-side rooms.\n  - Seven small offices along the east wing.\n  - Two conference rooms.\n  - One continuous circulation space: the corridor that turns south, the lower hallway and the south-east vestibule.\n- **F2** has 15 spaces:\n  - Two north-west offices and one open office.\n  - One conference room.\n  - Five east-wing offices.\n  - Five south rooms.\n  - One continuous circulation space.\n- **Openings:** 61 in total, 30 doors and 31 windows. Window and door positions come from the plan swings and the elevation dimension chains.\n\n**Checks**\n- Ten sampled same-space and separate-space pairs across F1 and F2 all matched the source spaces, with no conflicts. That covers only the pairs I chose, not the whole floors.\n- The East elevation rendered from the source lines up with the original East view.\n- Height claims for the exterior families are recorded and confirmed against the elevation dimension chains (claim_0001 to claim_0006, 34 items):\n\n| Family | Absolute z (m) |\n|---|---|\n| F1 windows (north, east, west) | 1.0–2.6 |\n| F1 north 8000 window | 1.0–3.2 |\n| F1 south windows | 1.0–2.8 |\n| F1 exterior doors | 0.2–2.3 |\n| F2 windows | 4.6–6.2 |\n| F2 north 8000 window and west 4320 window | 4.6–6.8 |\n\n**Not verified or assumed**\n- **Calibration:** it comes from my own reading of the dimension chains and was never independently checked.\n- **East door:** its height is only visually estimated.\n- **Interior doors:** all 27 are assumed at 2.1 m high (0–2.1 on F1, 3.6–5.7 on F2). Their widths were read from the swing symbols, and door states are unknown.\n- **Wall thickness:** not modelled. The 720 mm thick walls between the two F1 conference rooms and between the F2 south rooms are drawn as single midplane walls.\n- **F2 conference room:** its west wall is drawn at x = 5.0, where the plan shows about 5.1–5.2.\n- **Plan positions:** the drawn positions were not compared pixel by pixel with the originals beyond the overlays.\n- **Stairs:** none are shown in the plans, so no vertical circulation is modelled.\n- **Unexamined:** I did not view the F1 north-west door swing details or the full F2 door positions at high zoom.\n- **Not delegated:** `review_detail` was not used, per the scope.",
+    "ttft_ms": 1738,
+    "type": "result",
+    "duration_ms": 454691,
+    "uuid": "f01bc02a-6807-4628-95e8-f2e0aca5c31d",
+    "ttft_stream_ms": 1465,
+    "time_to_request_ms": 90,
+    "first_content_frame_ms": 1465,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
