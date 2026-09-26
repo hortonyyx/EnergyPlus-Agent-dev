@@ -1,0 +1,195 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "WN",
+        "kind": "window"
+      },
+      {
+        "id": "XD_N",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view vertical chains from ground: window 1000,2400,1100; door 200,2400,1900.",
+    "sources": [
+      {
+        "box": [
+          0.0,
+          300.0,
+          2890.0,
+          1200.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": {
+      "door": [
+        {
+          "id": "XD_N",
+          "kind": "opening"
+        }
+      ],
+      "large": [
+        {
+          "id": "WN",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "door": {
+        "direction": 1,
+        "lengths": [
+          200.0,
+          2400.0,
+          1900.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "large": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2400.0,
+          1100.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "door": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 0.2,
+            "index": 0,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 0.2
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "large": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 3.4,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 3.4
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "3f9761f22144464980982b2d02cea259614f195a41b214c25d82d0bedb1bd17d",
+  "resolved_values": {
+    "door": [
+      0.2,
+      2.6
+    ],
+    "large": [
+      1.0,
+      3.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0.0,
+        300.0,
+        2890.0,
+        1200.0
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

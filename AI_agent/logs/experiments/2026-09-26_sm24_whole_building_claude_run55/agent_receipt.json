@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 297.27,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 283286,
+    "stop_reason": "end_turn",
+    "session_id": "f3378e4e-dba5-4dfb-94cb-54ea5a0bfdba",
+    "total_cost_usd": 0.7913144,
+    "usage": {
+      "input_tokens": 26,
+      "cache_creation_input_tokens": 110284,
+      "cache_read_input_tokens": 797082,
+      "output_tokens": 19071,
+      "output_tokens_details": {
+        "thinking_tokens": 8288
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 110284,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 761,
+          "cache_read_input_tokens": 107345,
+          "cache_creation_input_tokens": 2939,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 2939
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 26,
+        "outputTokens": 19071,
+        "cacheReadInputTokens": 797082,
+        "cacheCreationInputTokens": 110284,
+        "webSearchRequests": 0,
+        "costUSD": 0.7913144,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 8288,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 41,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I built and saved **candidate_01**, a single-floor BIM (F1, z = 0 to 4.5 m). It has 8 spaces and 21 openings, and geometry checks pass. I have not verified drawing fidelity.\n\nOnly one plan (`1f_view.png`) was supplied, so there is no assembly step and I did not invent an upper floor. The plan is calibrated from its 10000 × 20000 mm outer dimensions, with x east and y up on the plan.\n\n**Spaces:**\n- one open north room;\n- three west rooms (W1, W2, W3);\n- two east rooms (E1, E2);\n- an L-shaped SE room;\n- one continuous circulation space, kept as one space, that runs up the middle and widens near the east door.\n\n**Openings:**\n- **Exterior doors:** three, on the north, south and east walls.\n- **Windows:** eleven, at 1.0–2.8 m and 1.0–3.4 m sill-to-head.\n- **Interior doors:** seven.\n\nI matched plan and elevation positions by their dimension chains, on all four facades.\n\n**Checks:**\n- I sampled five same-space and separate-space pairs (corridor, SE room, west vs. SE, north room, E1/E2). All matched the source ownership.\n- Nine height claims for the 14 exterior openings were adopted and confirmed against the source. These come from the vertical dimension chains: the 1000/1800/1700 mm and 1000/2400/1100 mm window families, and the 200/2400/1900 mm door family. Each facade's heights are linked to its own elevation, with the floor at z = 0 as origin.\n\n**Assumptions and limits:**\n- The seven interior door heights (0–2.1 m) are assumed, not observed.\n- Door swings and door states are not modelled; states stay unknown.\n- Wall thickness is not modelled. Perimeter walls are traced at the outer faces and partitions at the drawn midplanes.\n- Pixel positions come from my own reading of the drawing. I did not run wall-support profiles or check the wall path against the plan pixels, and I did not run a pass on opening plan positions.\n- The notes saved in the BIM carry no obsolete pending-elevation text, so no note replacement was needed.\n\nThe viewer is at `candidate_01/viewer.html`.",
+    "ttft_ms": 5284,
+    "type": "result",
+    "duration_ms": 292095,
+    "uuid": "e30013bf-58bd-426e-aff4-78e7fceced31",
+    "ttft_stream_ms": 4515,
+    "time_to_request_ms": 1386,
+    "first_content_frame_ms": 4516,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

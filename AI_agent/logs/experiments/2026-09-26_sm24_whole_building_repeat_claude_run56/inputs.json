@@ -1,0 +1,96 @@
+{
+  "images": {
+    "1f_view.png": {
+      "size": [
+        790,
+        1111
+      ],
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+    },
+    "East_view.png": {
+      "size": [
+        2639,
+        931
+      ],
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8"
+    },
+    "North_view.png": {
+      "size": [
+        2890,
+        1651
+      ],
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a"
+    },
+    "South_view.png": {
+      "size": [
+        2434,
+        1457
+      ],
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766"
+    },
+    "West_view.png": {
+      "size": [
+        2580,
+        993
+      ],
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+    }
+  },
+  "scope": "Reconstruct one inspectable lightweight BIM for the whole building in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts or GT are supplied. Read reconstruction, plan_partition and plan_assembly. Establish a common XY origin/direction and scale from each plan's dimension annotations and their endpoints. Independently interpret each floor's complete physical spaces and door connections. Use pixel wall/opening declarations with build_plan_bim for each distinct floor. If there are multiple distinct floors, use assemble_plan_bim to combine explicitly placed saved drafts without manually copying room vertices or changing aperture dimensions. For a single floor, deliver its candidate directly; do not invent another floor merely to use assembly. Determine floor levels, storey heights and opening height families using elevation evidence, and keep floor-relative versus absolute z unambiguous. Do not silently copy one floor's plan to another.\nPrioritize correct partitions, shape, opening inventory/hosts and connectivity. Keep real open circulation as one physical space. Inspect the clean original alongside saved full wall-path support and both adjoining complete spaces; use crops/profiles or a narrow review_detail task when an unresolved visual question benefits from it. Sample key same/separate relations and check actual source ownership, investigating conflicts against the original. Geometry validity and consistency with your own observations do not establish fidelity. Correct substantive discrepancies and preserve every unexamined limitation.\nFor the final whole-building candidate, inspect each source plan and its original-image overlay plus actual source elevations. Match plan opening identities with elevation positions and heights for each floor separately. Use record_claim/confirm/apply where suitable to preserve image-supported heights as distinct from assumptions; a viewed elevation alone covers no height items. Unobserved internal door heights may remain explicit assumptions. Do not invent vertical circulation absent from the input. Deliver the best inspected whole-building candidate and a truthful account of observed, assumed and unverified content. Reassembly uses the listed drafts, so include every intended floor and do not expect later candidate-only edits to survive it.\nFor this experiment work directly through the deterministic/visual tools without\nreview_detail or other delegation. Use input_view_status to notice relevant supplied\nviews with no direct view record; it is access feedback, not image understanding.\nBefore delivery, use check_openings(heights_only=true) and current source elevations\nto inspect the exterior height families separately on each floor. Record located\nimage claims and confirm/apply their heights on the actual whole-building candidate;\nreport any remaining unlinked heights without pretending that returned pictures\nalone constitute review. Read the claims reference when using those operations.\nPreserve physical plan partitions and opening connections while resolving heights.\nNo error identities/counts, target heights or previous run results are supplied.\nBefore final delivery reconcile assumptions and unresolved notes with the ACTUAL saved\ncandidate and confirmed evidence. Replace obsolete pending-elevation or placeholder\nstatements when their issue has been resolved; retain genuinely unverified or assumed\nitems. Do not merely claim in the final answer that old source notes were updated.\nNo previous case's geometry, counts, measurements or local observation is supplied.",
+  "provider": "claude",
+  "input_mode": "original_images_agent_experiment",
+  "exploratory_opus": false,
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "deadline_epoch": 1790438098.6372254,
+  "implementation_sha256": {
+    "scripts/tool_scripts/run_bim_agent.py": "b1ba21568ed211ec1300c27893db162bd8b39c86e864c25c6a0f50b2c96c390a",
+    "scripts/tool_scripts/bim_agent_guidance.py": "6b473391693925afa7c62d971a881c5a3e9b33164b54619bedd8c428ed4ce552",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "src/agent/execution/bim_claims.py": "deb2905a8f5f209a4061d61fa1e3c94ac1e3a4a169ebe89d79a9edbc5a8fecfb",
+    "src/agent/execution/bim_claim_state.py": "bea4afc788bf4c447575b6cc52afe3a2a508234225d4a978635104ec25e38ee4",
+    "src/agent/execution/bim_height_coverage.py": "983545c55abc9de3fa32f6388ecd84eaf407e9ab97a1fb9f9a7f2b870d40747e",
+    "src/agent/geometry/component_attributes.py": "c6084c54e07c7eb17d1a8c86442276d70fcbf11c61d872ee21823f4643468be6",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "1438214451cd077c8cfb696a0c40fc4866cabcdba4db3571ea715123eac3631d",
+    "src/agent/geometry/proposal_edits.py": "b44662abc1226f93304ae54ebf73f1b6931afd3bd07e184c12242f8e8d34dcc3",
+    "src/agent/geometry/opening_review.py": "9946c59a4277522fc7a80ac2b792abf76dffe7f1addb38db528457ff4840a56b",
+    "src/agent/geometry/bim_delivery.py": "465cac46c8cfa5741fe4d7bb77f12575cb17a3fd7d7c88518ef3554353cded65",
+    "src/agent/geometry/source_image_overlay.py": "fc7d24707461cebd490ff63f9c4bcd01635158f54e507d396ed55a8ffcc572ab",
+    "src/agent/geometry/source_floor_selection.py": "ee390e2aa37d958619f60e7d0e8cf055e8f387911fd58c8e471d1fbec7cfe82f",
+    "src/agent/geometry/source_space_relations.py": "97601df4bb9e9fa5af0279aa6e1373ab17a926bd33aed0f409d36115c382c2e5",
+    "src/agent/geometry/source_elevation_view.py": "58eb73e3f9feded2bd887354842505e6abbc5c5410f08a3965dccbca50e587cc",
+    "src/agent/geometry/source_plan_view.py": "9a535f1decb0df714b3444929a308f2efc7ea74543418a3c5f893585b1618373",
+    "src/agent/geometry/source_bim.py": "8bf537099d3a53c42a52ca4b0c8b5ee0713ef8b17fd08bfc163ee0757b717f49",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "320242868487701b7260e2c57306e613b3f7661ab762c56aa3ebd0dbb9a90f8b",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "6dc64a1301b9f050b8f3cc30849a27aa88159bc6768dfbf65ba5782651d689d3",
+    "src/agent/geometry/plan_assembly.py": "d46c27628f390ac4fa54f0311972b60591af40d963b94a2c1288ece910408048",
+    "src/agent/geometry/plan_revision.py": "9ec61ac7afbd8216da1ab218ec2366fb2063c4796e176824c934e43c1660d40d",
+    "src/agent/geometry/plan_wall_support.py": "f52d85d13bd6cd157f37122e32780ab3e4883134386d21465d1d7cf62c7256b8",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "authorized original PNG images, user scope, and optional saved generated proposal; no building declaration and no GT/evaluation"
+}

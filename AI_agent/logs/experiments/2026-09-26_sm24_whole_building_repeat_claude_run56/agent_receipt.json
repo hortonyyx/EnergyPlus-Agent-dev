@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 212.68,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 200002,
+    "stop_reason": "end_turn",
+    "session_id": "f49ca56b-6d33-4c9c-be19-1cdd71cd648d",
+    "total_cost_usd": 0.7330727999999999,
+    "usage": {
+      "input_tokens": 28,
+      "cache_creation_input_tokens": 98679,
+      "cache_read_input_tokens": 867004,
+      "output_tokens": 16490,
+      "output_tokens_details": {
+        "thinking_tokens": 6558
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 98679,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 845,
+          "cache_read_input_tokens": 111864,
+          "cache_creation_input_tokens": 3148,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3148
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 28,
+        "outputTokens": 16490,
+        "cacheReadInputTokens": 867004,
+        "cacheCreationInputTokens": 98679,
+        "webSearchRequests": 0,
+        "costUSD": 0.7330727999999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 6558,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 30,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I built and saved the whole building as one single-floor candidate, `candidate_02`. It has 8 spaces, 10 doors and 11 windows, and it passes the source-geometry self-consistency checks. Those checks don't establish fidelity to the drawings.\n\n**Layout**\n- The floor is 10 m × 20 m, with the storey height taken as 4.5 m from the elevations.\n- The plan is a north room across the full width, three rooms (A, B and C) on the west side, two rooms (E and F) on the east side, and an L-shaped room (L) at the south-east.\n- The hall is one continuous space. It is a corridor about 1.6 m wide with an open area to the east near the east door.\n- Room L sits south of the hall and is closed off from it by the step wall.\n- There are 7 interior doors connecting rooms to the hall and 3 exterior doors.\n- I sampled four same-space and separate-space relations against the original plan, and all four matched. The samples were run on `candidate_01`, and the later note-only revision left the geometry unchanged, so they now count as stale.\n\n**Heights**\n- **Exterior windows:** sills are at 1.0 m, and heads are at 2.8 m (small windows) or 3.4 m (the 4.8 m-wide windows).\n- **Exterior doors:** they run from 0.2 m to 2.6 m.\n- **Linking to the elevations:** I recorded, adopted and confirmed these heights against the dimension chains in the four elevations. All 14 exterior openings are image-linked.\n- **West elevation check:** I compared the source West elevation with the drawing and it matches.\n- **Other elevations:** I viewed the North, East and South drawings, but I did not view the source renders for those facades.\n\n**Assumptions and limits**\n- **Unlinked doors:** the 7 interior doors have an assumed height of 0–2.1 m. No elevation shows them.\n- **Room uses:** these are unknown.\n- **Door state:** door swing and open/closed state are unknown.\n- **Calibration:** the scale comes from the overall 10 m and 20 m dimensions. The two axes differ by about 0.4%, which is slightly over the tool's limit.\n- **Wall placement:** perimeter walls are traced at the outer faces and partitions at their drawn centre lines. Wall thickness is not modelled.\n- **Not done:** I did not run a full wall-support check on the plan.\n- **Vertical circulation:** none was invented, since the input doesn't show any.\n\nThe viewer is at `candidate_02/viewer.html`.",
+    "ttft_ms": 5516,
+    "type": "result",
+    "duration_ms": 207296,
+    "uuid": "c49bdfb8-4f3b-4911-b047-023ac0d18a1d",
+    "ttft_stream_ms": 5515,
+    "time_to_request_ms": 634,
+    "first_content_frame_ms": 5516,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "WE1",
+        "kind": "window"
+      },
+      {
+        "id": "WE2",
+        "kind": "window"
+      },
+      {
+        "id": "WE3",
+        "kind": "window"
+      },
+      {
+        "id": "XD_E",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East_view vertical chains from ground: small 1000,1800,1700; large 1000,2400,1100; door 200,2400,1900.",
+    "sources": [
+      {
+        "box": [
+          0.0,
+          200.0,
+          2639.0,
+          700.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": {
+      "door": [
+        {
+          "id": "XD_E",
+          "kind": "opening"
+        }
+      ],
+      "large": [
+        {
+          "id": "WE3",
+          "kind": "window"
+        }
+      ],
+      "small": [
+        {
+          "id": "WE1",
+          "kind": "window"
+        },
+        {
+          "id": "WE2",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "door": {
+        "direction": 1,
+        "lengths": [
+          200.0,
+          2400.0,
+          1900.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "large": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2400.0,
+          1100.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "small": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          1700.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "door": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 0.2,
+            "index": 0,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 0.2
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "large": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 3.4,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 3.4
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "small": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0004",
+  "parent_proposal_sha256": "3f9761f22144464980982b2d02cea259614f195a41b214c25d82d0bedb1bd17d",
+  "resolved_values": {
+    "door": [
+      0.2,
+      2.6
+    ],
+    "large": [
+      1.0,
+      3.4
+    ],
+    "small": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0.0,
+        200.0,
+        2639.0,
+        700.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

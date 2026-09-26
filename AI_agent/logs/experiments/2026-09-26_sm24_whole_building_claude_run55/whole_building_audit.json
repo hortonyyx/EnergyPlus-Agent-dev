@@ -1,0 +1,178 @@
+{
+  "candidate": "candidate_01",
+  "actual_model": "claude-sonnet-5",
+  "elapsed_seconds": 297.27,
+  "cli_estimated_usd_not_bill": 0.7913144,
+  "source_display_replay_exact": true,
+  "implementation_and_inputs_verified": true,
+  "counts": {
+    "floors": 1,
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10
+  },
+  "kinds": {
+    "door": 10,
+    "window": 11
+  },
+  "original_plan": {
+    "mode": "post_generation_developer_audit",
+    "candidate": "candidate_01",
+    "source_replay_exact": true,
+    "display_replay_exact": true,
+    "runtime_hashes_match": true,
+    "runtime_hash_source": "current_repository",
+    "input_contents": {
+      "original_png_images": {
+        "included": true,
+        "count": 5
+      },
+      "building_declaration": {
+        "included": false
+      },
+      "saved_generated_proposal": {
+        "included": false
+      },
+      "ground_truth_or_evaluation": {
+        "included": false
+      }
+    },
+    "counts": {
+      "spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 11
+      },
+      "connections": 10,
+      "unsupported": 0,
+      "unbuilt_openings": 0
+    },
+    "partition_status": "severe",
+    "partition_topology_findings": [
+      {
+        "code": "internal_partition_boundary_changed",
+        "severity": "severe",
+        "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+        "floor_id": "F1",
+        "missing_length_m": 5.792878209259836,
+        "extra_length_m": 5.739999995999998,
+        "missing_wkt": "MULTILINESTRING ((4.171780999 12.999999999999996, 0.020000001 12.999999999999996), (5.819999999999997 3.4728782122598396, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.211781000999999 3.4400000000000013))",
+        "extra_wkt": "MULTILINESTRING ((5.799999998999997 3.489011, 4.200000000999999 3.489011), (0.020000001 13.021978, 4.159999999 13.021978))"
+      }
+    ],
+    "original_partition_status": "minor",
+    "original_partition_matched_count": 8,
+    "original_aperture_count": 21,
+    "matched_apertures": 21,
+    "position_matches": 20,
+    "host_matches": 21,
+    "door_connections_matched": 10,
+    "max_aperture_endpoint_error_m": 0.11109454945054864,
+    "viewer_has_no_remote_scripts": true,
+    "limits": [
+      "Manual original-image interpretation, not an automatic semantic judge.",
+      "GT diagnosis remains independent, unmodified and post-generation only.",
+      "Original partition comparison uses explicit zero-thickness representative walls; small offsets remain measured.",
+      "All heights, materials, unseen elevations and full-building acceptance excluded.",
+      "One bounded cold start does not establish repeatability or whole-building autonomy.",
+      "No browser WebGL interaction was tested in this audit."
+    ]
+  },
+  "strict_gt_partition_status": "severe",
+  "strict_gt_matched_spaces": 8,
+  "space_identity_findings": [],
+  "matched_exterior": 14,
+  "all_parameters_and_host_match": 14,
+  "height_mismatches": [],
+  "unmatched_reference": [],
+  "unmatched_built_exterior": [],
+  "height_coverage": {
+    "total_count": 21,
+    "image_linked_count": 14,
+    "non_image_linked_count": 0,
+    "unchecked_height_opening_ids": [
+      "D_C_N",
+      "D_E1",
+      "D_E2",
+      "D_SE",
+      "D_W1",
+      "D_W2",
+      "D_W3"
+    ]
+  },
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 1,
+        "crop_view_count": 2,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      }
+    ],
+    "no_direct_view_images": [],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound view_image returns are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior door heights 2.1 m assumed; exterior heights from elevations",
+    "Storey height 4.5 m from elevations",
+    "Door swings not modelled; door states unknown",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Wall thicknesses not modelled distinctly",
+    "No upper floor or vertical circulation in inputs",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "transported_images": 9,
+  "finish_results": [
+    {
+      "characters": 6930,
+      "parseable_summary": true,
+      "detached_output_notice": false
+    }
+  ],
+  "limits": [
+    "Single cross-case execution, not repeated success on this whole-building scope.",
+    "No internal door height evidence is created by plan matching.",
+    "Original-pixel estimates and GT tolerances are independent diagnostics, not surveyed accuracy.",
+    "Assumption/evidence consistency requires manual semantic review; no EP or human approval."
+  ]
+}

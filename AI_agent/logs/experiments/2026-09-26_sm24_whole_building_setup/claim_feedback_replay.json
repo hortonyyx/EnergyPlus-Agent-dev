@@ -1,0 +1,37 @@
+{
+  "source_run": "2026-09-26_sm24_whole_building_claude_run55",
+  "rejected_objects": [
+    {
+      "kind": "opening",
+      "id": "W_S1"
+    },
+    {
+      "kind": "opening",
+      "id": "W_S2"
+    }
+  ],
+  "actual_wrong_kind_mcp_error": "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_S1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_S1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings.",
+  "actual_missing_id_mcp_error": "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"window\", \"id\": \"nonexistent-feedback-check\"}. Inspect the current candidate's exact object IDs before retrying. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings.",
+  "correct_explicit_objects": [
+    {
+      "kind": "window",
+      "id": "W_S1"
+    },
+    {
+      "kind": "window",
+      "id": "W_S2"
+    }
+  ],
+  "correct_claim_resolved_values": {
+    "z": [
+      1.0,
+      2.8
+    ]
+  },
+  "rejected_claims_not_saved": true,
+  "no_automatic_rebinding": true,
+  "source_and_proposal_unchanged": true,
+  "original_run_unchanged": true,
+  "model_calls": 0,
+  "scope": "Post-generation current-code MCP replay; not evidence that a live model will use the new feedback correctly."
+}

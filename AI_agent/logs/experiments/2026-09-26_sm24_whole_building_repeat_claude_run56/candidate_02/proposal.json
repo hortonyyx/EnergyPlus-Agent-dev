@@ -1,0 +1,894 @@
+{
+  "assumptions": [
+    "Storey height 4.5 m from elevations; interior door heights 2.1 assumed; single floor, ground z=0; plan pixel scale from 10000x20000 mm overall dims; wall thickness not modelled from drawn thickness",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": [
+          "Room uses unknown; door swing/state unknown; interior door heights (0-2.1 m) are assumptions with no elevation evidence; exterior door/window heights are linked to elevation dimension chains."
+        ],
+        "before": "Room uses unknown; door swing/state unknown; exterior door 0.2 m threshold offset read from elevation",
+        "field": "unresolved",
+        "operation": "replace_note",
+        "reason": "Exterior heights now tied to adopted elevation claims",
+        "source_refs": [
+          "claim_0001",
+          "claim_0002",
+          "claim_0003",
+          "claim_0004"
+        ]
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "north",
+            "polygon": [
+              [
+                0.0,
+                15.955983
+              ],
+              [
+                10.0,
+                15.955983
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                0.0,
+                20.0
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: wall under north room, incl. double door to corridor"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              15.955983,
+              20.0
+            ]
+          },
+          {
+            "id": "roomA",
+            "polygon": [
+              [
+                0.0,
+                13.03989
+              ],
+              [
+                4.191781,
+                13.03989
+              ],
+              [
+                4.191781,
+                15.955983
+              ],
+              [
+                0.0,
+                15.955983
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: wall under north room, incl. double door to corridor",
+              "1f_view: wall between rooms A and B",
+              "1f_view: corridor west wall continuing to south wall"
+            ],
+            "x": [
+              0.0,
+              4.191781
+            ],
+            "y": [
+              13.03989,
+              15.955983
+            ]
+          },
+          {
+            "id": "hall",
+            "polygon": [
+              [
+                4.191781,
+                3.43879
+              ],
+              [
+                5.780822,
+                3.43879
+              ],
+              [
+                5.780822,
+                4.951857
+              ],
+              [
+                10.0,
+                4.951857
+              ],
+              [
+                10.0,
+                8.033012
+              ],
+              [
+                5.780822,
+                8.033012
+              ],
+              [
+                5.780822,
+                15.955983
+              ],
+              [
+                4.191781,
+                15.955983
+              ]
+            ],
+            "role": "circulation",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: wall under north room, incl. double door to corridor",
+              "1f_view: corridor west wall continuing to south wall",
+              "1f_view: corridor east wall",
+              "1f_view: south wall of F",
+              "1f_view: L-room west jog",
+              "1f_view: L-room step",
+              "1f_view: L-room north wall with door"
+            ],
+            "x": [
+              4.191781,
+              10.0
+            ],
+            "y": [
+              3.43879,
+              15.955983
+            ]
+          },
+          {
+            "id": "roomE",
+            "polygon": [
+              [
+                5.780822,
+                13.975241
+              ],
+              [
+                10.0,
+                13.975241
+              ],
+              [
+                10.0,
+                15.955983
+              ],
+              [
+                5.780822,
+                15.955983
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: wall under north room, incl. double door to corridor",
+              "1f_view: corridor east wall",
+              "1f_view: wall between E and F"
+            ],
+            "x": [
+              5.780822,
+              10.0
+            ],
+            "y": [
+              13.975241,
+              15.955983
+            ]
+          },
+          {
+            "id": "roomF",
+            "polygon": [
+              [
+                5.780822,
+                8.033012
+              ],
+              [
+                10.0,
+                8.033012
+              ],
+              [
+                10.0,
+                13.975241
+              ],
+              [
+                5.780822,
+                13.975241
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: corridor east wall",
+              "1f_view: wall between E and F",
+              "1f_view: south wall of F"
+            ],
+            "x": [
+              5.780822,
+              10.0
+            ],
+            "y": [
+              8.033012,
+              13.975241
+            ]
+          },
+          {
+            "id": "roomB",
+            "polygon": [
+              [
+                0.0,
+                8.033012
+              ],
+              [
+                4.191781,
+                8.033012
+              ],
+              [
+                4.191781,
+                13.03989
+              ],
+              [
+                0.0,
+                13.03989
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: wall between rooms A and B",
+              "1f_view: wall between B and conference room",
+              "1f_view: corridor west wall continuing to south wall"
+            ],
+            "x": [
+              0.0,
+              4.191781
+            ],
+            "y": [
+              8.033012,
+              13.03989
+            ]
+          },
+          {
+            "id": "roomC",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.191781,
+                0.0
+              ],
+              [
+                4.191781,
+                8.033012
+              ],
+              [
+                0.0,
+                8.033012
+              ]
+            ],
+            "role": "meeting",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: wall between B and conference room",
+              "1f_view: corridor west wall continuing to south wall"
+            ],
+            "x": [
+              0.0,
+              4.191781
+            ],
+            "y": [
+              0.0,
+              8.033012
+            ]
+          },
+          {
+            "id": "roomL",
+            "polygon": [
+              [
+                4.191781,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.951857
+              ],
+              [
+                5.780822,
+                4.951857
+              ],
+              [
+                5.780822,
+                3.43879
+              ],
+              [
+                4.191781,
+                3.43879
+              ]
+            ],
+            "role": "room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view: corridor west wall continuing to south wall",
+              "1f_view: L-room west jog",
+              "1f_view: L-room step",
+              "1f_view: L-room north wall with door"
+            ],
+            "x": [
+              4.191781,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.951857
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_N_hall",
+        "kind": "door",
+        "other_space_id": "north",
+        "p1": [
+          4.356164,
+          15.955983
+        ],
+        "p2": [
+          5.616438,
+          15.955983
+        ],
+        "source_refs": [
+          "1f_view: double door north room-corridor; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_A",
+        "kind": "door",
+        "other_space_id": "roomA",
+        "p1": [
+          4.191781,
+          14.250344
+        ],
+        "p2": [
+          4.191781,
+          13.370014
+        ],
+        "source_refs": [
+          "1f_view door; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_B",
+        "kind": "door",
+        "other_space_id": "roomB",
+        "p1": [
+          4.191781,
+          12.654746
+        ],
+        "p2": [
+          4.191781,
+          11.774415
+        ],
+        "source_refs": [
+          "1f_view door; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_C",
+        "kind": "door",
+        "other_space_id": "roomC",
+        "p1": [
+          4.191781,
+          7.702889
+        ],
+        "p2": [
+          4.191781,
+          6.767538
+        ],
+        "source_refs": [
+          "1f_view door; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_E",
+        "kind": "door",
+        "other_space_id": "roomE",
+        "p1": [
+          5.780822,
+          15.268226
+        ],
+        "p2": [
+          5.780822,
+          14.360385
+        ],
+        "source_refs": [
+          "1f_view door; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_F",
+        "kind": "door",
+        "other_space_id": "roomF",
+        "p1": [
+          5.780822,
+          13.645117
+        ],
+        "p2": [
+          5.780822,
+          12.737276
+        ],
+        "source_refs": [
+          "1f_view door; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_L",
+        "kind": "door",
+        "other_space_id": "roomL",
+        "p1": [
+          8.547945,
+          4.951857
+        ],
+        "p2": [
+          9.424658,
+          4.951857
+        ],
+        "source_refs": [
+          "1f_view door; height assumed"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "XD_N",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.547945,
+          20.0
+        ],
+        "p2": [
+          2.136986,
+          20.0
+        ],
+        "source_refs": [
+          "1f_view double exterior door; North_view door z 0.2-2.6"
+        ],
+        "space_id": "north",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "XD_S",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.547945,
+          0.0
+        ],
+        "p2": [
+          5.452055,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view; South_view door 0.2-2.6"
+        ],
+        "space_id": "roomL",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "XD_E",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.290234
+        ],
+        "p2": [
+          10.0,
+          5.694635
+        ],
+        "source_refs": [
+          "1f_view double; East_view door 0.2-2.6"
+        ],
+        "space_id": "hall",
+        "z": [
+          0.2,
+          2.6
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "WN",
+        "kind": "window",
+        "p1": [
+          4.657534,
+          20.0
+        ],
+        "p2": [
+          9.452055,
+          20.0
+        ],
+        "room": "north",
+        "source_refs": [
+          "North_view 4800 window sill 1.0 head 3.4"
+        ],
+        "span": [
+          4.657534,
+          9.452055
+        ],
+        "width_m": 4.794521,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "WS1",
+        "kind": "window",
+        "p1": [
+          0.547945,
+          0.0
+        ],
+        "p2": [
+          2.027397,
+          0.0
+        ],
+        "room": "roomC",
+        "source_refs": [
+          "South_view 1500 window 1.0-2.8"
+        ],
+        "span": [
+          0.547945,
+          2.027397
+        ],
+        "width_m": 1.479452,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "WS2",
+        "kind": "window",
+        "p1": [
+          7.945205,
+          0.0
+        ],
+        "p2": [
+          9.452055,
+          0.0
+        ],
+        "room": "roomL",
+        "source_refs": [
+          "South_view 1500 window 1.0-2.8"
+        ],
+        "span": [
+          7.945205,
+          9.452055
+        ],
+        "width_m": 1.50685,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW1",
+        "kind": "window",
+        "p1": [
+          0.0,
+          19.449794
+        ],
+        "p2": [
+          0.0,
+          17.964237
+        ],
+        "room": "north",
+        "source_refs": [
+          "West_view 1500 window"
+        ],
+        "span": [
+          17.964237,
+          19.449794
+        ],
+        "width_m": 1.485557,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW2",
+        "kind": "window",
+        "p1": [
+          0.0,
+          15.570839
+        ],
+        "p2": [
+          0.0,
+          14.387895
+        ],
+        "room": "roomA",
+        "source_refs": [
+          "West_view 1200 window"
+        ],
+        "span": [
+          14.387895,
+          15.570839
+        ],
+        "width_m": 1.182944,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW3",
+        "kind": "window",
+        "p1": [
+          0.0,
+          12.654746
+        ],
+        "p2": [
+          0.0,
+          11.141678
+        ],
+        "room": "roomB",
+        "source_refs": [
+          "West_view 1500 window"
+        ],
+        "span": [
+          11.141678,
+          12.654746
+        ],
+        "width_m": 1.513068,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW4",
+        "kind": "window",
+        "p1": [
+          0.0,
+          9.931224
+        ],
+        "p2": [
+          0.0,
+          8.418157
+        ],
+        "room": "roomB",
+        "source_refs": [
+          "West_view 1500 window"
+        ],
+        "span": [
+          8.418157,
+          9.931224
+        ],
+        "width_m": 1.513067,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "WW5",
+        "kind": "window",
+        "p1": [
+          0.0,
+          5.337001
+        ],
+        "p2": [
+          0.0,
+          0.550206
+        ],
+        "room": "roomC",
+        "source_refs": [
+          "West_view 4800 window 1.0-3.4"
+        ],
+        "span": [
+          0.550206,
+          5.337001
+        ],
+        "width_m": 4.786795,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "WE1",
+        "kind": "window",
+        "p1": [
+          10.0,
+          19.449794
+        ],
+        "p2": [
+          10.0,
+          17.964237
+        ],
+        "room": "north",
+        "source_refs": [
+          "East_view 1500 window"
+        ],
+        "span": [
+          17.964237,
+          19.449794
+        ],
+        "width_m": 1.485557,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "WE2",
+        "kind": "window",
+        "p1": [
+          10.0,
+          15.570839
+        ],
+        "p2": [
+          10.0,
+          14.387895
+        ],
+        "room": "roomE",
+        "source_refs": [
+          "East_view 1200 window"
+        ],
+        "span": [
+          14.387895,
+          15.570839
+        ],
+        "width_m": 1.182944,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "WE3",
+        "kind": "window",
+        "p1": [
+          10.0,
+          13.645117
+        ],
+        "p2": [
+          10.0,
+          8.830812
+        ],
+        "room": "roomF",
+        "source_refs": [
+          "East_view 4800 window 1.0-3.4"
+        ],
+        "span": [
+          8.830812,
+          13.645117
+        ],
+        "width_m": 4.814305,
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Room uses unknown; door swing/state unknown; interior door heights (0-2.1 m) are assumptions with no elevation evidence; exterior door/window heights are linked to elevation dimension chains.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

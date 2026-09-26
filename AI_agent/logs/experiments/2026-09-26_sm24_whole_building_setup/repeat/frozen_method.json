@@ -1,0 +1,30 @@
+{
+  "scope": "Reconstruct one inspectable lightweight BIM for the whole building in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts or GT are supplied. Read reconstruction, plan_partition and plan_assembly. Establish a common XY origin/direction and scale from each plan's dimension annotations and their endpoints. Independently interpret each floor's complete physical spaces and door connections. Use pixel wall/opening declarations with build_plan_bim for each distinct floor. If there are multiple distinct floors, use assemble_plan_bim to combine explicitly placed saved drafts without manually copying room vertices or changing aperture dimensions. For a single floor, deliver its candidate directly; do not invent another floor merely to use assembly. Determine floor levels, storey heights and opening height families using elevation evidence, and keep floor-relative versus absolute z unambiguous. Do not silently copy one floor's plan to another.\nPrioritize correct partitions, shape, opening inventory/hosts and connectivity. Keep real open circulation as one physical space. Inspect the clean original alongside saved full wall-path support and both adjoining complete spaces; use crops/profiles or a narrow review_detail task when an unresolved visual question benefits from it. Sample key same/separate relations and check actual source ownership, investigating conflicts against the original. Geometry validity and consistency with your own observations do not establish fidelity. Correct substantive discrepancies and preserve every unexamined limitation.\nFor the final whole-building candidate, inspect each source plan and its original-image overlay plus actual source elevations. Match plan opening identities with elevation positions and heights for each floor separately. Use record_claim/confirm/apply where suitable to preserve image-supported heights as distinct from assumptions; a viewed elevation alone covers no height items. Unobserved internal door heights may remain explicit assumptions. Do not invent vertical circulation absent from the input. Deliver the best inspected whole-building candidate and a truthful account of observed, assumed and unverified content. Reassembly uses the listed drafts, so include every intended floor and do not expect later candidate-only edits to survive it.\nFor this experiment work directly through the deterministic/visual tools without\nreview_detail or other delegation. Use input_view_status to notice relevant supplied\nviews with no direct view record; it is access feedback, not image understanding.\nBefore delivery, use check_openings(heights_only=true) and current source elevations\nto inspect the exterior height families separately on each floor. Record located\nimage claims and confirm/apply their heights on the actual whole-building candidate;\nreport any remaining unlinked heights without pretending that returned pictures\nalone constitute review. Read the claims reference when using those operations.\nPreserve physical plan partitions and opening connections while resolving heights.\nNo error identities/counts, target heights or previous run results are supplied.\nBefore final delivery reconcile assumptions and unresolved notes with the ACTUAL saved\ncandidate and confirmed evidence. Replace obsolete pending-elevation or placeholder\nstatements when their issue has been resolved; retain genuinely unverified or assumed\nitems. Do not merely claim in the final answer that old source notes were updated.\nNo previous case's geometry, counts, measurements or local observation is supplied.",
+  "mode": "original_images_only_whole_building_cross_case",
+  "image_sha256": {
+    "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+    "North_view.png": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+    "South_view.png": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+    "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+  },
+  "provider": "claude",
+  "role": "sonnet",
+  "effort": "medium",
+  "timeout_seconds": 3000,
+  "withheld": [
+    "previous generated plans/BIM",
+    "calibration",
+    "GT",
+    "building declaration",
+    "prior Haiku observations",
+    "developer local references",
+    "correct counts/heights"
+  ],
+  "developer_participation": "Generic task/tool instructions only; no local answer or live intervention.",
+  "scope_changes_from_run54": [
+    "Assembly conditional on multiple floors, otherwise direct delivery.",
+    "Explicit final source assumptions/unresolved-note reconciliation."
+  ],
+  "runtime_delegation": "prohibited by experiment scope; later role/concurrency design remains open"
+}

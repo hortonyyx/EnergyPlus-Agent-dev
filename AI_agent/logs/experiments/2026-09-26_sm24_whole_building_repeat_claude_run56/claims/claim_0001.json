@@ -1,0 +1,203 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "WS1",
+        "kind": "window"
+      },
+      {
+        "id": "WS2",
+        "kind": "window"
+      },
+      {
+        "id": "XD_S",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South_view vertical dimension chains (ground 0 upward): window 1000 sill,1800 height,1700 above; door 200,2400,1900 to 4500 top.",
+    "sources": [
+      {
+        "box": [
+          0.0,
+          280.0,
+          2434.0,
+          1020.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": {
+      "door": [
+        {
+          "id": "XD_S",
+          "kind": "opening"
+        }
+      ],
+      "small": [
+        {
+          "id": "WS1",
+          "kind": "window"
+        },
+        {
+          "id": "WS2",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "door": {
+        "direction": 1,
+        "lengths": [
+          200.0,
+          2400.0,
+          1900.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "small": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          1700.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "door": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 0.2,
+            "index": 0,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 0.2
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "small": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "3f9761f22144464980982b2d02cea259614f195a41b214c25d82d0bedb1bd17d",
+  "resolved_values": {
+    "door": [
+      0.2,
+      2.6
+    ],
+    "small": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0.0,
+        280.0,
+        2434.0,
+        1020.0
+      ],
+      "image": "South_view.png",
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "size": [
+        2434,
+        1457
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}
