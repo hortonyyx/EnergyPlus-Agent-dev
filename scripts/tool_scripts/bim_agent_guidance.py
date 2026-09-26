@@ -192,6 +192,7 @@ Parameter details are available through get_bim_reference(topic):
 - reconstruction: drawing observation, bounded wall evidence and source comparison.
 - geometry: build_bim JSON schema, nonrectangular rooms and coordinate conventions.
 - plan_partition: optional build_plan_bim from pixel walls/openings, single floor.
+- plan_assembly: combine saved pixel drafts into explicit floors with ID and z mapping.
 - edits: revise_bim operations, supported scopes and examples.
 - claims: located claims, parameter references, actual application and thickness attributes.
 - wall_dimensions: optional wall-face offsets and dimension endpoint conversions.
@@ -416,6 +417,36 @@ Successful source export returns its actual plan and original overlay; anchors
 are registered for later revise_bim. Inspect the images before claiming accuracy.
 Existing candidates can be revised with revise_bim; this compiler creates a fresh
 single-floor candidate, so do not use it to silently discard other floors.
+For several distinct plans, use assemble_plan_bim after reviewing each draft;
+read plan_assembly. It retains each plan and places it at an explicit base level.
+""",
+    'plan_assembly': """Combine distinct saved pixel-plan drafts into one building:
+assemble_plan_bim(floors_json) takes a JSON list of 2–32 explicit items:
+[{"draft_id":"draft_001","expected_plan_sha256":"<from inspect_plan_draft>",
+  "floor_id":"F1","z_floor":0,"evidence":"original elevation base annotation"},
+ {"draft_id":"draft_002","expected_plan_sha256":"<from inspect_plan_draft>",
+  "floor_id":"F2","z_floor":3,"evidence":"original elevation storey annotation"}].
+Use inspect_plan_draft for the exact hash; an explicitly supplied resume plan is
+also admitted as draft_id=resume. Every listed draft is recompiled against its
+bound original image. IDs become floor_id:original_id, including opening hosts.
+XY, partitions, aperture dimensions and ceiling_height stay unchanged. Only
+floor base and every absolute opening z move by the same declared difference.
+Establish a common XY origin and direction from each plan's evidence BEFORE
+assembly; this tool does not align plans. Distinct upstairs partitions/openings
+must come from that floor's own drawing, not an unexamined downstairs copy.
+To change a layer's height first use revise_plan_bim set ceiling_height; opening
+z pairs must still fit and need separate, justified edits if they change. An
+upper draft can already use its final absolute z, or use local z with base zero;
+never add the floor base twice. Heights/evidence are caller declarations, not
+verified image truth. Use elevation annotations, original crops and measurement
+tools to match floor identity and opening height families, then inspect actual
+source elevations and plan overlays. Report any unobserved internal door height
+as an explicit assumption. Assembly does not infer stairs, merge vertical spaces,
+or create vertical connections. For genuinely continuous spaces use the shared
+geometry representation explicitly instead of stacking rooms with false slabs.
+Include ALL intended floors when reassembling revised drafts. New assembly
+rebuilds from those drafts and does not carry later candidate-only edits. Treat
+each assembly as a new candidate; recheck the final source, not old sample results.
 """,
     'geometry': """Geometry adapter input is a JSON string containing:
 {"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],

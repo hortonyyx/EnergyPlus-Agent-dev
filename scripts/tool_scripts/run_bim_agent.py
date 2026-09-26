@@ -913,8 +913,51 @@ class Toolkit:
         dump(draft / "result.json", result)
         return result
 
+    def assemble_plans(self, floors_json):
+        """Recompile bound pixel drafts and combine their explicitly placed floors."""
+        from src.agent.geometry.plan_assembly import assemble_plan_proposals
+        from src.agent.geometry.plan_partition import compile_plan_partition
+        if self.readonly:
+            raise ValueError("floor assembly is available only to the coordinator")
+        floors = json.loads(floors_json)
+        if not isinstance(floors, list) or not 2 <= len(floors) <= 32:
+            raise ValueError("supply 2–32 explicit floor declarations")
+        items, bindings, calibrations = [], [], []
+        for row in floors:
+            required = {"draft_id", "expected_plan_sha256", "floor_id", "z_floor", "evidence"}
+            if not isinstance(row, dict) or set(row) != required:
+                raise ValueError(f"each floor requires exactly {sorted(required)}")
+            if not isinstance(row["evidence"], str) or not row["evidence"].strip():
+                raise ValueError("each floor needs image evidence or an explicit placement assumption")
+            saved = self.inspect_plan(row["draft_id"])
+            if saved["plan_sha256"] != row["expected_plan_sha256"]:
+                raise ValueError("stale plan hash; inspect each intended draft before assembly")
+            plan, image = saved["declaration"], saved["image"]
+            with PILImage.open(self.image_path(image)) as original:
+                proposal, compilation = compile_plan_partition(plan, image_size=original.size, image_name=image)
+            items.append(dict(proposal=proposal, floor_id=row["floor_id"], z_floor=row["z_floor"],
+                              source_ref=row["evidence"]))
+            bindings.append(dict(**row, image=image, image_sha256=digest(self.image_path(image)),
+                                 original_floor_id=plan["floor_id"], original_z_floor=plan["z_floor"],
+                                 ceiling_height=plan["ceiling_height"], compilation=compilation))
+            calibrations.append(dict(image=image, floor_id=row["floor_id"],
+                **{key: plan[key] for key in ("x_anchors", "y_anchors", "basis")}))
+        proposal = assemble_plan_proposals(items)
+        folder = self.run / "plan_assemblies"
+        folder.mkdir(exist_ok=True)
+        path = folder / f"assembly_{len(list(folder.glob('assembly_*.json'))) + 1:03d}.json"
+        dump(path, {"floors": bindings, "operation": "namespace_ids_and_translate_z_only",
+                    "height_policy": "preserve_declared_heights; revise a draft explicitly to change them"})
+        binding = {"file": str(path.relative_to(self.run)), "sha256": digest(path)}
+        result = self.build(proposal, action="assemble_plan_bim", plan_assembly=binding,
+                            assembly_calibrations=calibrations)
+        self.log("assemble_plan_bim", {"assembly": binding, "candidate": result.get("candidate"),
+                                      "error": result.get("error")})
+        return result
+
     def build(self, proposal, *, action="build_bim", parent=None, operations=None,
-              plan_input=None, calibration=None, claim_application=None):
+              plan_input=None, calibration=None, claim_application=None,
+              plan_assembly=None, assembly_calibrations=None):
         from src.agent.execution.source_proposal import export_source_proposal
         if isinstance(proposal, dict) and 'mesh_frame' in proposal:
             from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
@@ -935,10 +978,14 @@ class Toolkit:
             provenance["plan_input"] = plan_input
         if claim_application is not None:
             provenance["claim_application"] = claim_application
+        if plan_assembly is not None:
+            provenance["plan_assembly"] = plan_assembly
         report = export_source_proposal(proposal, self.run/candidate, provenance=provenance)
         if operations is not None:
             dump(self.run/candidate/"operations.json", operations)
         result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report}
+        if plan_assembly is not None:
+            result["plan_assembly"] = plan_assembly
         if plan_input is not None:
             result["plan_input"] = plan_input
             result["plan_compilation"] = json.loads(
@@ -951,6 +998,8 @@ class Toolkit:
             if calibration is not None:
                 self._save_calibration(candidate=candidate, image=plan_input["image"],
                                        metadata=report, **calibration)
+            for registered in assembly_calibrations or []:
+                self._save_calibration(candidate=candidate, metadata=report, **registered)
             projections, errors = self.project_registered_calibrations(candidate, action)
             result["source_image_projections"] = projections
             result["projection_errors"] = errors
@@ -2171,6 +2220,18 @@ def serve(run: Path, readonly=False):
             return candidate_result(toolkit.build_plan(image, plan_json))
 
         @server.tool()
+        def assemble_plan_bim(floors_json: str) -> CallToolResult:
+            """Assemble 2–32 saved pixel plans without rewriting their rooms or openings.
+            Read get_bim_reference('plan_assembly'). Each explicit item contains draft_id,
+            expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,
+            namespaces IDs and translates all opening z values by the floor-base change.
+            No height scaling, plan alignment, floor copying or inferred vertical connection.
+            For layer height or aperture changes first revise that draft explicitly.
+            Returns actual source views/overlays for every included floor.
+            """
+            return candidate_result(toolkit.assemble_plans(floors_json))
+
+        @server.tool()
         def build_parametric_bim(plan_json: str) -> CallToolResult:
             """Expand model-declared floor templates and window rows, then build source BIM.
             Read get_bim_reference('parametric') first. Never infers or trims geometry.
@@ -2341,6 +2402,7 @@ def run_experiment(args):
                                  "src/agent/geometry/profile_observation_binding.py":digest(ROOT/"src/agent/geometry/profile_observation_binding.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
+                                 "src/agent/geometry/plan_assembly.py":digest(ROOT/"src/agent/geometry/plan_assembly.py"),
                                  "src/agent/geometry/plan_revision.py":digest(ROOT/"src/agent/geometry/plan_revision.py"),
                                  "src/agent/geometry/plan_wall_support.py":digest(ROOT/"src/agent/geometry/plan_wall_support.py"),
                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),

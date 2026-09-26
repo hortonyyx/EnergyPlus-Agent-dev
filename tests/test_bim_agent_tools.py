@@ -75,6 +75,54 @@ def _error_text(result) -> str:
     return "\n".join(getattr(row, "text", "") for row in result.content)
 
 
+def test_assemble_plans_stdio_keeps_both_floors_and_binds_originals(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        _add_image(run, 'upstairs.png')
+        plan = dict(floor_id='local', z_floor=0, ceiling_height=3,
+            x_anchors=[[0,0],[11,11]], y_anchors=[[0,7],[7,0]], basis='synthetic shared frame',
+            footprint_pixels=[[1,1],[10,1],[10,6],[1,6]],
+            partitions=[dict(id='wall',points=[[5,1],[5,6]],source_refs=['synthetic'])],
+            openings=[dict(id='door',kind='door',p1=[5,3],p2=[5,4],z=[0,2],source_refs=['synthetic'])],
+            assumptions=[],unresolved=[])
+        async with _server_session(run, readonly=False) as session:
+            rows = []
+            for i, image in enumerate(['plan.png', 'upstairs.png'], 1):
+                result = _json_result(await session.call_tool('build_plan_bim',
+                    dict(image=image, plan_json=json.dumps(plan))))
+                assert result['source_geometry_ready']
+                rows.append(dict(draft_id=f'draft_{i:03d}',
+                    expected_plan_sha256=result['plan_input']['plan_sha256'],
+                    floor_id=f'F{i}', z_floor=3*(i-1), evidence='synthetic storey annotation'))
+            stale = [dict(r) for r in rows]
+            stale[1]['expected_plan_sha256'] = '0'*64
+            assert (await session.call_tool('assemble_plan_bim', {'floors_json':json.dumps(stale)})).isError
+            result = _json_result(await session.call_tool('assemble_plan_bim', {'floors_json':json.dumps(rows)}))
+            assert result['source_geometry_ready']
+            candidate = result['candidate']
+            source = json.loads((run/candidate/'source_model.json').read_text())
+            assert {f['id'] for f in source['floors']} == {'F1', 'F2'}
+            assert len(source['spaces']) == 4 and len(source['connections']) == 2
+            doors = {o['id']:o for o in source['openings']}
+            assert {v[2] for v in doors['F2:door']['vertices']} == {3,5}
+            binding = source['generation']['provenance']['plan_assembly']
+            assert digest(run/binding['file']) == binding['sha256']
+            mapped = {r['floor_id'] for r in result['source_image_projections']}
+            assert {'F1','F2'} <= mapped
+            assert {r['floor_id'] for r in result['source_plan_views']} == {'F1','F2'}
+            queried = _json_result(await session.call_tool('check_source_space_relation',
+                dict(candidate=candidate,image='upstairs.png',floor_id='F2', observations_json=json.dumps([
+                    dict(id='rooms',points=[[3,2],[8,2]],expected='separate_spaces',evidence='synthetic')]))))
+            assert queried['conflict_count'] == 0
+            assert queried['observations'][0]['direct_connections'][0]['opening_id'] == 'F2:door'
+            # Both bound image bytes and hashes are checked before an assembly.
+            Image.new('RGB',(12,8),'black').save(run/'images/upstairs.png')
+            assert (await session.call_tool('assemble_plan_bim', {'floors_json':json.dumps(rows)})).isError
+        async with _server_session(run, readonly=True) as session:
+            assert 'assemble_plan_bim' not in {t.name for t in (await session.list_tools()).tools}
+    asyncio.run(scenario())
+
+
 def test_space_relation_stdio_uses_current_source_and_registered_calibration(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)
