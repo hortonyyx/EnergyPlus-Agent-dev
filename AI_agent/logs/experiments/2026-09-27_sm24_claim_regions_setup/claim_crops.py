@@ -50,7 +50,7 @@ def audit(run):
         original_hashes_verified=True, semantic_status='requires_manual_review',
         note='Saved original regions only. Correction and image understanding are reviewed separately.'))
 
-    returned, calls = [], {}
+    returned, failed_returns, calls = [], [], {}
     for stream in sorted(run.glob('*_stream.jsonl.gz')):
         for line in gzip.decompress(stream.read_bytes()).splitlines():
             event = json.loads(line)
@@ -62,7 +62,11 @@ def audit(run):
                 if block.get('type') != 'tool_result' or not tool.endswith(('record_claim', 'view_claim_evidence')):
                     continue
                 parts = block.get('content', [])
-                assert isinstance(parts, list) and not block.get('is_error'), block
+                if block.get('is_error'):
+                    failed_returns.append(dict(stream=stream.name, tool=tool,
+                        tool_use_id=block['tool_use_id'], error=parts))
+                    continue  # Failed calls are not successful image returns.
+                assert isinstance(parts, list), block
                 pictures, metadata, structured_previews = [], [], []
                 for part in parts:
                     if part.get('type') == 'image':
@@ -97,6 +101,7 @@ def audit(run):
                         source_index=meta['source_index'], returned_size=list(actual.size), pixels_exact=True))
     assert returned, 'No actual claim previews arrived in the model stream'
     dump(run / 'evaluation/claim_transport_audit.json', dict(returned=returned,
+        failed_returns=failed_returns,
         image_count=len(returned), actual_transport_pixels_match_saved_regions=True,
         note='Deterministic image-content check only, not annotation recognition or adoption acceptance.'))
 

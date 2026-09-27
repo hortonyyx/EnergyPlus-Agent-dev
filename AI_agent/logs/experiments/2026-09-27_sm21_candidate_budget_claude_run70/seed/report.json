@@ -1,0 +1,70 @@
+{
+  "agent_assumptions": [
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "door heights assumed 2.1m (2.2m for main double door) pending elevation check",
+    "south bottom-left small recess/jog near entry simplified to straight exterior wall with single door opening, omitting a minor ~1.1x1.4m wall notch visible in the original",
+    "bottom-room corridor doors D_S1/D_S2/D_S3 positions assumed mirrored from north side; not independently pixel-verified",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "door heights assumed 2.1m pending elevation check",
+    "O3/O4 corridor door widths taken directly from measured wall-line gaps; may include drawing symbol artifacts not purely door width",
+    "corrected an earlier calibration error where the top exterior wall y-pixel was misread at 221 instead of the correct ~323, which had caused a 13% x/y scale mismatch; this draft supersedes draft_002/candidate_02",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "35fbddd89f0c046765b7494209ad0264d124874f80d0ee935230186ae4e32076",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "35fbddd89f0c046765b7494209ad0264d124874f80d0ee935230186ae4e32076",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-27_sm21_current_tools_claude_run69/candidate_06"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "4b3a900883d0e6dd723dac1d241fe7bf9c0cbb260ecdcc87205a7a96d110f51f",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "small wall jog/recess at bottom-left entry area not modeled as separate notch",
+    "exact pixel confirmation of south-side corridor doors pending",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "z_floor (storey base elevation) for F2 not yet set; will be assigned during plan_assembly after elevation review",
+    "exact door leaf width vs measured gap for O3/O4 not independently cross-checked with a door swing arc",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

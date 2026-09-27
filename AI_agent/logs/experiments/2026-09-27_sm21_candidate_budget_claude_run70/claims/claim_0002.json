@@ -1,0 +1,119 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F1:WS1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:WS2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:WS3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South elevation vertical dimension chain for the ground-floor (F1, 3000mm story) window band reads top-down 600,900,1500 summing to 3000mm. Segment 1 (the 900mm window) gives absolute sill=1.5m, head=2.4m from F1 floor at z=0.",
+    "sources": [
+      {
+        "view_id": "view_0016"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          600.0,
+          900.0,
+          1500.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.4,
+            "index": 0,
+            "length_m": 0.6,
+            "span_m": [
+              2.4,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.5,
+            "index": 1,
+            "length_m": 0.9,
+            "span_m": [
+              1.5,
+              2.4
+            ],
+            "start_m": 2.4
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.5,
+            "span_m": [
+              0.0,
+              1.5
+            ],
+            "start_m": 1.5
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "35fbddd89f0c046765b7494209ad0264d124874f80d0ee935230186ae4e32076",
+  "resolved_values": {
+    "height": [
+      1.5,
+      2.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        180,
+        300,
+        600
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0016",
+      "view_sha256": "2aceac6a56b99730060db07ce879c78e27fac9937bf96e95f50995fed237e0a7"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

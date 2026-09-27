@@ -1,0 +1,28 @@
+[
+  {
+    "op": "update_opening",
+    "id": "F1:D_west",
+    "changes": {
+      "z": [
+        0.0,
+        2.15
+      ]
+    },
+    "reason": "Apply the West-elevation pixel-measured door height. claim_0005 image_axis measurement gave head=2.15m, sill=-0.057m; the negative sill is snapped to the physical floor level (0.0m) as line-thickness measurement noise while keeping the measured head height, since a below-floor sill is not a valid host boundary.",
+    "source_refs": [
+      "claim_0005"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Elevations were reviewed for door heights: North/South/East/West elevations show door outlines but no numeric height dimension labels (only widths/positions). Door heights (2.1m typical, main South door 2.2m, West facade full-height glazed double door) remain explicit assumptions, not image-measured.",
+    "replacement": [
+      "Elevations show door outlines but no numeric height dimension LABELS for any door (only widths/positions). However, the West facade double-door outline was independently pixel-measured against the West elevation's own calibrated 6600/3600/3000mm dimension chain (claim_0005): measured head=2.15m, sill=-0.057m (snapped to 0.0m as line-thickness noise), giving height ~2.15m for F1:D_west, superseding the earlier generic 2.1m assumption for that specific door. All other door heights (2.1m typical, main South door D_main 2.1m, and all interior corridor doors on F1/F2) remain explicit assumptions with no image dimension label to measure against."
+    ],
+    "reason": "claim_0005 provides an actual pixel measurement for the West door height, distinguishing it from the remaining unmeasured door assumptions.",
+    "source_refs": [
+      "claim_0005"
+    ]
+  }
+]

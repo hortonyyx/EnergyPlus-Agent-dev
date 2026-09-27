@@ -1,0 +1,69 @@
+{
+  "parent_draft_id": "draft_004",
+  "parent_plan_sha256": "5aae31919c680b2808c2f95316e6767ec48e46435304469ab99825b79e398424",
+  "operations_json": "[{\"op\":\"set\",\"field\":\"ceiling_height\",\"value\":3.6,\"reason\":\"East/North/South/West elevations show F2 storey height 3600mm (dimension chain 6600=3600+3000, with F1=3000 matching plan-derived assumption); correcting placeholder 3.0m\",\"source_refs\":[\"North_view.png: left dimension 6600 split into 3600 (upper/F2) and 3000 (lower/F1)\",\"South_view.png: same 6600/3600/3000 split confirmed\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "ceiling_height",
+      "id": null,
+      "before": 3.0,
+      "after": 3.6,
+      "reason": "East/North/South/West elevations show F2 storey height 3600mm (dimension chain 6600=3600+3000, with F1=3000 matching plan-derived assumption); correcting placeholder 3.0m",
+      "source_refs": [
+        "North_view.png: left dimension 6600 split into 3600 (upper/F2) and 3000 (lower/F1)",
+        "South_view.png: same 6600/3600/3000 split confirmed"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P_M12",
+      "P_O12",
+      "P_O23",
+      "P_O34",
+      "P_CorrTop",
+      "P_CorrBot"
+    ],
+    "openings": [
+      "WN_M1",
+      "WN_M2",
+      "WS_O1",
+      "WS_O2",
+      "WS_O3",
+      "WS_O4",
+      "W_west",
+      "W_east",
+      "D_M1",
+      "D_M2",
+      "D_O1",
+      "D_O2",
+      "D_O3",
+      "D_O4"
+    ],
+    "space_seeds": [
+      "M1",
+      "M2",
+      "O1",
+      "O2",
+      "O3",
+      "O4",
+      "CORR"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "openings",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

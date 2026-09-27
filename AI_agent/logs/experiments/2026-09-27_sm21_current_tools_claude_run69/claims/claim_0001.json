@@ -1,0 +1,92 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_06",
+    "objects": [
+      {
+        "id": "F1:D_west",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West_view.png elevation shows the F1 storey spanning y=400px(z=3.0m, F1 ceiling/F2 floor)=600px(z=0.0m, ground floor level), calibrated from the explicit '3000' mm dimension labels flanking that span. The cyan double-door frame (F1:D_west, west facade main double door) has its head/top cyan ink peak at y=440px and its sill/bottom cyan ink peak at y=561px (measured via view_pixel_profile on rgb(0,255,255), profile_001, candidates C01 peak=440 and C05 peak=561). This gives an observed door z-interval of about [0.585m,2.4m] above floor, i.e. a ~1.8m tall leaf mounted with an approx 0.6m sill/threshold zone, OR (more likely reading the small ~90mm gap between the bottom cyan frame ink and the floor hatch line as just a drawn threshold/line-weight artifact) an effective full door z=[0.0m,2.4m]. Either reading contradicts the candidate's current placeholder z=[0.0,2.1]; recorded here as located elevation evidence for future correction since the build/revise candidate budget (6) is exhausted in this run and this value could not be applied to geometry.",
+    "sources": [
+      {
+        "view_id": "view_0052"
+      }
+    ],
+    "unresolved": [
+      "~90mm gap between measured cyan sill ink (y=561) and floor hatch line (~y=566-568) not resolved as sill offset vs line-weight artifact",
+      "not applied to candidate_06 geometry due to exhausted candidate build/revise budget"
+    ],
+    "value_targets": null,
+    "values": {
+      "z_interval_measured": {
+        "anchors": [
+          [
+            400,
+            3.0
+          ],
+          [
+            600,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "West_view.png",
+        "pixels": [
+          561.0,
+          440.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z_interval_measured": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        3.0,
+        0.0
+      ],
+      "metres_per_pixel": -0.015,
+      "pixels": [
+        400,
+        600,
+        561.0,
+        440.0
+      ]
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "35fbddd89f0c046765b7494209ad0264d124874f80d0ee935230186ae4e32076",
+  "resolved_values": {
+    "z_interval_measured": [
+      0.585,
+      2.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        550,
+        400,
+        670,
+        570
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ],
+      "view_id": "view_0052",
+      "view_sha256": "2b78954e5cc7e0e73498d2db9b2d0bc44202f650b8a2b5814826c9bb79503271"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

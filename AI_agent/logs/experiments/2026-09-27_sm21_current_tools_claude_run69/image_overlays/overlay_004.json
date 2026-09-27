@@ -1,0 +1,582 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "effb4186c938c893d17b2275e64e8c07c222bf496abcbf747f897f40b1b22db5",
+  "floor_id": "F2",
+  "basis": "2f_view.png: calibrated from outer wall face corner pixels re-measured at all 4 corners (top-left ~427,323; bottom-left ~428,1072; matches 8000mm dimension line ticks at y~330/1083) matched to overall 15000x8000mm labels; corrects an earlier misread top-wall y. Representative plane = exterior outer face for perimeter, centerline for interior partitions/corridor walls from color-region pixel evidence and left dimension chain 3000/400/1200/400/3000.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1815.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        1072.0,
+        0.0
+      ],
+      [
+        323.0,
+        8.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.01079136690647482,
+      "y": -0.010680907877169559
+    },
+    "pixels_per_world_metre": {
+      "x": 92.66666666666666,
+      "y": -93.625
+    },
+    "axis_px_per_m": {
+      "x": 92.66666666666667,
+      "y": 93.625
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 92.66666666666667,
+        "y_px_per_m": 93.625,
+        "relative_deviation": 0.010288526056810505,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=92.6666667 px/m and y=93.625 px/m disagree by 1.028853%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "x",
+        "dimension_ref": "caller_x_anchors",
+        "span_px": 1390.0,
+        "value_m": 15.0,
+        "residual_px": -3.1833910034602013,
+        "residual_m": -0.03427464421429097
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "y",
+        "dimension_ref": "caller_y_anchors",
+        "span_px": 749.0,
+        "value_m": 8.0,
+        "residual_px": 5.9688581314878775,
+        "residual_m": 0.06426495790179557
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "CORR",
+      "pixel_polygon": [
+        [
+          425.0,
+          772.4
+        ],
+        [
+          1815.0,
+          772.4
+        ],
+        [
+          1815.0,
+          622.6
+        ],
+        [
+          425.0,
+          622.6
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "M1",
+      "pixel_polygon": [
+        [
+          425.0,
+          622.6
+        ],
+        [
+          1120.0,
+          622.6
+        ],
+        [
+          1120.0,
+          323.0
+        ],
+        [
+          425.0,
+          323.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "M2",
+      "pixel_polygon": [
+        [
+          1120.0,
+          622.6
+        ],
+        [
+          1815.0,
+          622.6
+        ],
+        [
+          1815.0,
+          323.0
+        ],
+        [
+          1120.0,
+          323.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O1",
+      "pixel_polygon": [
+        [
+          425.0,
+          1072.0
+        ],
+        [
+          774.299957,
+          1072.0
+        ],
+        [
+          774.299957,
+          772.4
+        ],
+        [
+          425.0,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O2",
+      "pixel_polygon": [
+        [
+          774.299957,
+          1072.0
+        ],
+        [
+          1120.0,
+          1072.0
+        ],
+        [
+          1120.0,
+          772.4
+        ],
+        [
+          774.299957,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O3",
+      "pixel_polygon": [
+        [
+          1120.0,
+          1072.0
+        ],
+        [
+          1472.300041,
+          1072.0
+        ],
+        [
+          1472.300041,
+          772.4
+        ],
+        [
+          1120.0,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "O4",
+      "pixel_polygon": [
+        [
+          1472.300041,
+          1072.0
+        ],
+        [
+          1815.0,
+          1072.0
+        ],
+        [
+          1815.0,
+          772.4
+        ],
+        [
+          1472.300041,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_M1",
+      "kind": "door",
+      "space_ids": [
+        "CORR",
+        "M1"
+      ],
+      "pixel_endpoints": [
+        [
+          1002.999993,
+          622.6
+        ],
+        [
+          1114.000019,
+          622.6
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_M2",
+      "kind": "door",
+      "space_ids": [
+        "CORR",
+        "M2"
+      ],
+      "pixel_endpoints": [
+        [
+          1125.999981,
+          622.6
+        ],
+        [
+          1237.000007,
+          622.6
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O1",
+      "kind": "door",
+      "space_ids": [
+        "CORR",
+        "O1"
+      ],
+      "pixel_endpoints": [
+        [
+          656.999989,
+          772.4
+        ],
+        [
+          741.000005,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O2",
+      "kind": "door",
+      "space_ids": [
+        "CORR",
+        "O2"
+      ],
+      "pixel_endpoints": [
+        [
+          806.999985,
+          772.4
+        ],
+        [
+          891.000002,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O3",
+      "kind": "door",
+      "space_ids": [
+        "CORR",
+        "O3"
+      ],
+      "pixel_endpoints": [
+        [
+          1125.999981,
+          772.4
+        ],
+        [
+          1179.999999,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_O4",
+      "kind": "door",
+      "space_ids": [
+        "CORR",
+        "O4"
+      ],
+      "pixel_endpoints": [
+        [
+          1477.999967,
+          772.4
+        ],
+        [
+          1599.000023,
+          772.4
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "WN_M1",
+      "kind": "window",
+      "space_ids": [
+        "M1"
+      ],
+      "pixel_endpoints": [
+        [
+          607.000021,
+          323.0
+        ],
+        [
+          940.000004,
+          323.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "WN_M2",
+      "kind": "window",
+      "space_ids": [
+        "M2"
+      ],
+      "pixel_endpoints": [
+        [
+          1299.999996,
+          323.0
+        ],
+        [
+          1632.999979,
+          323.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "WS_O1",
+      "kind": "window",
+      "space_ids": [
+        "O1"
+      ],
+      "pixel_endpoints": [
+        [
+          629.99998,
+          1072.0
+        ],
+        [
+          740.000039,
+          1072.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "WS_O2",
+      "kind": "window",
+      "space_ids": [
+        "O2"
+      ],
+      "pixel_endpoints": [
+        [
+          806.999985,
+          1072.0
+        ],
+        [
+          918.000011,
+          1072.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "WS_O3",
+      "kind": "window",
+      "space_ids": [
+        "O3"
+      ],
+      "pixel_endpoints": [
+        [
+          1322.999955,
+          1072.0
+        ],
+        [
+          1433.000015,
+          1072.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "WS_O4",
+      "kind": "window",
+      "space_ids": [
+        "O4"
+      ],
+      "pixel_endpoints": [
+        [
+          1499.999961,
+          1072.0
+        ],
+        [
+          1610.999986,
+          1072.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_east",
+      "kind": "window",
+      "space_ids": [
+        "CORR"
+      ],
+      "pixel_endpoints": [
+        [
+          1815.0,
+          742.400022
+        ],
+        [
+          1815.0,
+          629.900035
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_west",
+      "kind": "window",
+      "space_ids": [
+        "CORR"
+      ],
+      "pixel_endpoints": [
+        [
+          425.0,
+          742.400022
+        ],
+        [
+          425.0,
+          629.900035
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "2f_view.png",
+      "floor_id": "F2",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "candidate_04",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "trigger_action": "build_plan_bim",
+  "automatic_projection": true,
+  "reused_calibration": {
+    "calibration_id": "calibration_004",
+    "calibration_file": "overlay_calibrations/calibration_004.json",
+    "registered_by_candidate": "candidate_04",
+    "registered_source_model_sha256": "effb4186c938c893d17b2275e64e8c07c222bf496abcbf747f897f40b1b22db5",
+    "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "x_anchors": [
+      [
+        425,
+        0
+      ],
+      [
+        1815,
+        15
+      ]
+    ],
+    "y_anchors": [
+      [
+        1072,
+        0
+      ],
+      [
+        323,
+        8
+      ]
+    ],
+    "basis": "2f_view.png: calibrated from outer wall face corner pixels re-measured at all 4 corners (top-left ~427,323; bottom-left ~428,1072; matches 8000mm dimension line ticks at y~330/1083) matched to overall 15000x8000mm labels; corrects an earlier misread top-wall y. Representative plane = exterior outer face for perimeter, centerline for interior partitions/corridor walls from color-region pixel evidence and left dimension chain 3000/400/1200/400/3000."
+  },
+  "overlay_image": "image_overlays/overlay_004.png",
+  "original_size": [
+    2182,
+    1319
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2182,
+    1319
+  ],
+  "returned_size": [
+    1600,
+    967
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.36375,
+    1.3640124095139607
+  ],
+  "remaining_seconds": 1638
+}

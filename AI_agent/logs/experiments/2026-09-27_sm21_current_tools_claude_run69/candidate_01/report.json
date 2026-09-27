@@ -1,0 +1,79 @@
+{
+  "agent_assumptions": [
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "door heights assumed 2.1m (2.2m for main double door) pending elevation check",
+    "south bottom-left small recess/jog near entry simplified to straight exterior wall with single door opening, omitting a minor ~1.1x1.4m wall notch visible in the original",
+    "bottom-room corridor doors D_S1/D_S2/D_S3 positions assumed mirrored from north side; not independently pixel-verified",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "99eb0158b971c8829a690cc9e3ba1a8dc193580697383167b878887ddd310c84",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "f345b228930de036976318a1e52baec7f84745df303b5a5ffe8f72c8f5ed8182",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "fb43725a6d5ca24cea57c20613c91b78ce9b9b93b38bc2d1e791990cb7dc92d8",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "86be78063a36bb4d5e17fd87b60589531d081da4080f705da62dac2acf3678f1",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "d4b1c0a0aabcd9ff6fa561d4c2b843a7c6cfaaa428a7ec64f65cbe9af03893e0",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "8a151727768dfffc38f4f9621472bdafbb2717af60e3829c1e5bbc40ad961f19"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "7ae51a12a13c89b95b5454406dd3ca7a04583dfd99418b6a623ac6dfde91a1b1",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "small wall jog/recess at bottom-left entry area not modeled as separate notch",
+    "exact pixel confirmation of south-side corridor doors pending",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

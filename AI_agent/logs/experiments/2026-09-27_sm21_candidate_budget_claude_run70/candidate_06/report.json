@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "Elevations show door outlines but no numeric height dimension LABELS for any door (only widths/positions). However, the West facade double-door outline was independently pixel-measured against the West elevation's own calibrated 6600/3600/3000mm dimension chain (claim_0005): measured head=2.15m, sill=-0.057m (snapped to 0.0m as line-thickness noise), giving height ~2.15m for F1:D_west, superseding the earlier generic 2.1m assumption for that specific door. All other door heights (2.1m typical, main South door D_main 2.1m, and all interior corridor doors on F1/F2) remain explicit assumptions with no image dimension label to measure against.",
+    "south bottom-left small recess/jog near entry simplified to straight exterior wall with single door opening, omitting a minor ~1.1x1.4m wall notch visible in the original",
+    "bottom-room corridor doors D_S1/D_S2/D_S3 positions assumed mirrored from north side; not independently pixel-verified",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "O3/O4 corridor door widths taken directly from measured wall-line gaps; may include drawing symbol artifacts not purely door width",
+    "corrected an earlier calibration error where the top exterior wall y-pixel was misread at 221 instead of the correct ~323, which had caused a 13% x/y scale mismatch; this draft supersedes draft_002/candidate_02",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5548da8bd1074a0c45cbd8246a563938c079e01c0dfe872b4ce5ab7917f738d1",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0011.json",
+      "parent_candidate": "candidate_04",
+      "parent_proposal_sha256": "6cb86f1f59f36268d112932f1c06f5b4f83963646c2fde1f90b8f91bf960dbbb"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "cae7af4a05678b0fc4c4880054890e13fff525dc7f0cc66c78db8e2fbba5bdec",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "6cb86f1f59f36268d112932f1c06f5b4f83963646c2fde1f90b8f91bf960dbbb"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e351bb2bda1a0d16ef68c476b270165373e9b6b58da12eb80936c2234aa9272f",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "small wall jog/recess at bottom-left entry area not modeled as separate notch",
+    "exact pixel confirmation of south-side corridor doors pending",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "z_floor (storey base elevation) for F2 not yet set; will be assigned during plan_assembly after elevation review",
+    "exact door leaf width vs measured gap for O3/O4 not independently cross-checked with a door swing arc",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

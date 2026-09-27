@@ -1,0 +1,110 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:D_west",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West elevation vertical dimension chain gives calibrated pixel-to-metre scale: green ticks at pixel y=182 (top of building, absolute z=6.6m) and y=560 (ground, z=0.0m) bound the labeled 6600mm/3600mm/3000mm chain (verified 3600 and 3000 segments match labels within 12mm of scale). The cyan double-door outline on this facade spans pixel y=436.75 (head) to y=563.25 (sill/threshold) at x=608. Applying the same calibration to these door pixels gives head z=2.15m and sill z=-0.06m (snapped to 0.0m floor level, within pixel-line-width tolerance), i.e. door height ~2.2m, superseding the generic 2.1m assumption for this specific West facade door.",
+    "sources": [
+      {
+        "view_id": "view_0030"
+      },
+      {
+        "view_id": "view_0031"
+      }
+    ],
+    "unresolved": [
+      "sill pixel gave -0.06m instead of exactly 0.0m; attributed to frame line thickness and snapped to floor level"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            182,
+            6.6
+          ],
+          [
+            560,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "West_view.png",
+        "pixels": [
+          563.25,
+          436.75
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        6.6,
+        0.0
+      ],
+      "metres_per_pixel": -0.01746031746031746,
+      "pixels": [
+        182,
+        560,
+        563.25,
+        436.75
+      ]
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "6cb86f1f59f36268d112932f1c06f5b4f83963646c2fde1f90b8f91bf960dbbb",
+  "resolved_values": {
+    "z": [
+      -0.056746032,
+      2.151984127
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        850,
+        150,
+        1077,
+        580
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ],
+      "view_id": "view_0030",
+      "view_sha256": "0f650bc710075dcd3add70a535f6e772a057a69dd8e269ea12308128fe8a5607"
+    },
+    {
+      "box": [
+        550,
+        410,
+        670,
+        570
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ],
+      "view_id": "view_0031",
+      "view_sha256": "2629975747c7a95d093dc48240f7a63f5ae8a42dc3502954ac1421f00ac44588"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

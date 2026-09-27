@@ -1,0 +1,29 @@
+[
+  {
+    "op": "update_opening",
+    "id": "F1:D_west",
+    "changes": {
+      "z": [
+        -0.056746032,
+        2.151984127
+      ]
+    },
+    "reason": "Apply the West-elevation pixel-measured door height (~2.2m), replacing the generic 2.1m default assumption for this specific door.",
+    "source_refs": [
+      "claim_0005",
+      "claim:claim_0005:2d06d2680b583c001916dc62088ad6ce04a400fbb5488a26b9552fbd4e64f581"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Elevations were reviewed for door heights: North/South/East/West elevations show door outlines but no numeric height dimension labels (only widths/positions). Door heights (2.1m typical, main South door 2.2m, West facade full-height glazed double door) remain explicit assumptions, not image-measured.",
+    "replacement": [
+      "Elevations show door outlines but no numeric height dimension LABELS for any door (only widths/positions). However, the West facade double-door outline was independently pixel-measured against the West elevation's own calibrated 6600/3600/3000mm dimension chain (claim_0005), giving height ~2.2m (F1:D_west), which supersedes the earlier generic 2.1m assumption for that door. All other door heights (2.1m typical, main South door D_main 2.1m, and all interior corridor doors on F1/F2) remain explicit assumptions with no image dimension label to measure against."
+    ],
+    "reason": "claim_0005 provides an actual pixel measurement for the West door height, distinguishing it from the remaining unmeasured door assumptions.",
+    "source_refs": [
+      "claim_0005"
+    ]
+  }
+]

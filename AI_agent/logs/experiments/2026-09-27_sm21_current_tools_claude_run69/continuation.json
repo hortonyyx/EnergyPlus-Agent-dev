@@ -1,0 +1,25 @@
+{
+  "max_rounds": 2,
+  "turns": [
+    {
+      "name": "continuation_01",
+      "before_candidate": "candidate_06",
+      "after_candidate": "candidate_06",
+      "decision": {
+        "turn": "continuation_01",
+        "candidate": "candidate_06",
+        "source_model_sha256": "5663a5eac7f733042cc4538a738ac5fc2d62f5e5fccd1ed29cdbec39344e68b2",
+        "decision": "stop",
+        "reason": "This turn I executed one concrete feasible action: measured F1:D_west's actual head/sill elevation ink on West_view.png (view_pixel_profile: cyan top peak y=440, bottom peak y=561, calibrated from the drawing's explicit 3000mm F1-height dimension labels, y=400->z=3.0m, y=600->z=0.0m), recorded it as claim_0001 (image_axis, resolved z≈[0.585,2.4]m) and adopted it, since this contradicts the candidate's current placeholder z=[0,2.1] for that opening. I confirmed via claim_status/prior claim_applications history that candidate_06 is the 6th and final allowed build/revise output (application_0003 already failed with 'candidate budget exhausted'), so revise_bim/confirm_claims cannot apply this or any other geometry/height/role correction in this run - confirm_claims would also reject it as an actual geometric change, not a no-op. No further build_bim/revise_bim/set_space_role action is executable in-scope this run. Remaining unresolved items (F2 exterior window height family, 14 unrecorded room-use roles, F1 south-side mirrored doors, the small entry recess) are documented in the saved candidate's assumptions/unresolved notes and in claim_0001, but cannot be corrected further without exceeding the hard 6-candidate cap. Delivering candidate_06 as-is is the most useful truthful outcome.",
+        "next_action": "",
+        "drawing_fidelity": "not_evaluated",
+        "task_completion": "model_judgment_only"
+      },
+      "persisted_source_or_evidence_changed": true,
+      "response_completed": true
+    }
+  ],
+  "stop_reason": "model_stop",
+  "task_completion": "not_certified",
+  "drawing_fidelity": "not_evaluated"
+}

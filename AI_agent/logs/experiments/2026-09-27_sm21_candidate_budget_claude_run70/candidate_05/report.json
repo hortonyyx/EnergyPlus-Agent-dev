@@ -1,0 +1,294 @@
+{
+  "agent_assumptions": [
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "Elevations show door outlines but no numeric height dimension LABELS for any door (only widths/positions). However, the West facade double-door outline was independently pixel-measured against the West elevation's own calibrated 6600/3600/3000mm dimension chain (claim_0005), giving height ~2.2m (F1:D_west), which supersedes the earlier generic 2.1m assumption for that door. All other door heights (2.1m typical, main South door D_main 2.1m, and all interior corridor doors on F1/F2) remain explicit assumptions with no image dimension label to measure against.",
+    "south bottom-left small recess/jog near entry simplified to straight exterior wall with single door opening, omitting a minor ~1.1x1.4m wall notch visible in the original",
+    "bottom-room corridor doors D_S1/D_S2/D_S3 positions assumed mirrored from north side; not independently pixel-verified",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "ceiling_height assumed 3.0m pending elevation check",
+    "window sill/head heights assumed 0.9-2.1m pending elevation check",
+    "O3/O4 corridor door widths taken directly from measured wall-line gaps; may include drawing symbol artifacts not purely door width",
+    "corrected an earlier calibration error where the top exterior wall y-pixel was misread at 221 instead of the correct ~323, which had caused a 13% x/y scale mismatch; this draft supersedes draft_002/candidate_02",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 13,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 1,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "20ea1b610c5e22931703758bb911dd26c7f717036e10eaaa83d2a0a86fa6cc94",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0005",
+          "computation": {
+            "axis": "y",
+            "calibration": "caller_interpreted_not_verified",
+            "measurement_bindings": [],
+            "method": "image_axis",
+            "metre_anchors": [
+              6.6,
+              0.0
+            ],
+            "metres_per_pixel": -0.01746031746031746,
+            "pixels": [
+              182,
+              560,
+              563.25,
+              436.75
+            ]
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            -0.056746032,
+            2.151984127
+          ],
+          "targets": [
+            [
+              "opening",
+              "F1:D_west"
+            ]
+          ],
+          "value_field": "z"
+        }
+      ],
+      "claims": {
+        "claim_0005": {
+          "decision": {
+            "claim_id": "claim_0005",
+            "disposition": "adopted",
+            "id": "decision_0005",
+            "reason": "Calibration cross-checked against two independent labeled dimensions (3600 and 3000mm segments matched within 12mm); door pixel measurement is a real object outline in the elevation, giving a credible ~2.2m height distinct from the generic 2.1m assumption."
+          },
+          "record": {
+            "claim": {
+              "basis": "pixels",
+              "candidate": "candidate_04",
+              "objects": [
+                {
+                  "id": "F1:D_west",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "West elevation vertical dimension chain gives calibrated pixel-to-metre scale: green ticks at pixel y=182 (top of building, absolute z=6.6m) and y=560 (ground, z=0.0m) bound the labeled 6600mm/3600mm/3000mm chain (verified 3600 and 3000 segments match labels within 12mm of scale). The cyan double-door outline on this facade spans pixel y=436.75 (head) to y=563.25 (sill/threshold) at x=608. Applying the same calibration to these door pixels gives head z=2.15m and sill z=-0.06m (snapped to 0.0m floor level, within pixel-line-width tolerance), i.e. door height ~2.2m, superseding the generic 2.1m assumption for this specific West facade door.",
+              "sources": [
+                {
+                  "view_id": "view_0030"
+                },
+                {
+                  "view_id": "view_0031"
+                }
+              ],
+              "unresolved": [
+                "sill pixel gave -0.06m instead of exactly 0.0m; attributed to frame line thickness and snapped to floor level"
+              ],
+              "value_targets": null,
+              "values": {
+                "z": {
+                  "anchors": [
+                    [
+                      182,
+                      6.6
+                    ],
+                    [
+                      560,
+                      0.0
+                    ]
+                  ],
+                  "axis": "y",
+                  "image": "West_view.png",
+                  "pixels": [
+                    563.25,
+                    436.75
+                  ],
+                  "reduction": null,
+                  "type": "image_axis"
+                }
+              }
+            },
+            "computations": {
+              "z": {
+                "axis": "y",
+                "calibration": "caller_interpreted_not_verified",
+                "measurement_bindings": [],
+                "method": "image_axis",
+                "metre_anchors": [
+                  6.6,
+                  0.0
+                ],
+                "metres_per_pixel": -0.01746031746031746,
+                "pixels": [
+                  182,
+                  560,
+                  563.25,
+                  436.75
+                ]
+              }
+            },
+            "id": "claim_0005",
+            "parent_proposal_sha256": "6cb86f1f59f36268d112932f1c06f5b4f83963646c2fde1f90b8f91bf960dbbb",
+            "resolved_values": {
+              "z": [
+                -0.056746032,
+                2.151984127
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  850,
+                  150,
+                  1077,
+                  580
+                ],
+                "image": "West_view.png",
+                "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                "size": [
+                  1077,
+                  773
+                ],
+                "view_id": "view_0030",
+                "view_sha256": "0f650bc710075dcd3add70a535f6e772a057a69dd8e269ea12308128fe8a5607"
+              },
+              {
+                "box": [
+                  550,
+                  410,
+                  670,
+                  570
+                ],
+                "image": "West_view.png",
+                "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                "size": [
+                  1077,
+                  773
+                ],
+                "view_id": "view_0031",
+                "view_sha256": "2629975747c7a95d093dc48240f7a63f5ae8a42dc3502954ac1421f00ac44588"
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0010.json",
+      "parent_candidate": "candidate_04",
+      "parent_proposal_sha256": "6cb86f1f59f36268d112932f1c06f5b4f83963646c2fde1f90b8f91bf960dbbb"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "cae7af4a05678b0fc4c4880054890e13fff525dc7f0cc66c78db8e2fbba5bdec",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "6cb86f1f59f36268d112932f1c06f5b4f83963646c2fde1f90b8f91bf960dbbb"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            -0.056746032,
+            2.151984127
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                -0.056746032,
+                2.151984127
+              ],
+              "below_floor_m": 0.056746032,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1:CORR",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "F1:D_west",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "9efc987da22ac7911b8849bdd590903c70bbee35ea13ea21b33fcb5a3b99a44b",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            -0.056746032,
+            2.151984127
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                -0.056746032,
+                2.151984127
+              ],
+              "below_floor_m": 0.056746032,
+              "expected_z_bounds_m": [
+                0.0,
+                3.0
+              ],
+              "floor_id": "F1",
+              "side": "space",
+              "space_id": "F1:CORR",
+              "within_declared_space_z_bounds": false
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "F1:D_west",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "small wall jog/recess at bottom-left entry area not modeled as separate notch",
+    "exact pixel confirmation of south-side corridor doors pending",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "z_floor (storey base elevation) for F2 not yet set; will be assigned during plan_assembly after elevation review",
+    "exact door leaf width vs measured gap for O3/O4 not independently cross-checked with a door swing arc",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

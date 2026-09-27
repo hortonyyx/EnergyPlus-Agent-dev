@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 527.17,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 462290,
+    "stop_reason": "end_turn",
+    "session_id": "1c5aa4f7-9705-412d-9749-118c2de22a24",
+    "total_cost_usd": 2.1157912,
+    "usage": {
+      "input_tokens": 68,
+      "cache_creation_input_tokens": 262894,
+      "cache_read_input_tokens": 3772646,
+      "output_tokens": 30955,
+      "output_tokens_details": {
+        "thinking_tokens": 15047
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 262894,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1018,
+          "cache_read_input_tokens": 257604,
+          "cache_creation_input_tokens": 5290,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 5290
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 68,
+        "outputTokens": 30955,
+        "cacheReadInputTokens": 3772646,
+        "cacheCreationInputTokens": 262894,
+        "webSearchRequests": 0,
+        "costUSD": 2.1157912,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 15047,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 56,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "**Delivery: candidate_04**\n\n**What was done this run**\n- Started from the saved `seed` candidate (2-floor building, 15.0×8.0 m footprint, F1 z=0–3.0m, F2 z=3.0–6.6m) and inspected it against both plan originals (1f_view.png, 2f_view.png) and all four elevations.\n- Verified physical partitions/connectivity by overlaying the source geometry on the originals and running `check_source_space_relation` samples (corridor continuity, all room-to-room and room-to-corridor separations) — all consistent with the drawings on both floors. No partition changes were needed.\n- Measured actual window sill/head heights from the North/South/East/West elevation dimension chains (previously only assumed) and applied them as image-supported claims:\n  - F1 north windows: 1.6–2.6 m; F1 south windows: 1.5–2.4 m; F1 east window: 1.0–2.8 m (each facade has a distinct height family).\n  - F2 windows (all four facades, identical): 4.0–5.8 m absolute.\n  - Confirmed storey heights (F1=3.0 m, F2=3.6 m) match elevation totals.\n  - Checked elevations for door heights: outlines exist but no numeric height labels anywhere, so door heights (2.1 m typical, 2.2 m main door, full-height glazed door on West) remain explicit assumptions — this is now stated accurately instead of \"pending.\"\n- Assigned room uses for all 14 previously \"unrecorded\" spaces from furniture/layout evidence (corridors observed; offices, two conference rooms, two enclosed rooms, and a small dining room inferred with stated assumptions). 0 remain unknown.\n- Re-checked `claim_status`: all 4 height claims are `applied_current` with no missing bindings.\n\n**Unresolved / honestly unverified**\n- Plan pixel-to-metre calibration for the overlay comparisons was my own rough corner estimate (not the original CAD's own dimension-chain closure); overlay showed ~2.3% x/y cross-axis disagreement, so absolute positions have a few-percent uncertainty though partitions/topology matched visually.\n- A small (~0.5×0.15 m) entry-wall notch near the south-west door is simplified to a straight wall (pre-existing seed limitation, confirmed still present on the original but not modeled as a separate jog).\n- South-side corridor doors (D_S1–D_S3) positions were mirrored from the north side, not independently re-verified pixel-by-pixel this run.\n- All interior door heights (F1/F2) and the two exterior door heights remain assumptions — no dimension labels exist on any elevation for them.\n- Room-use assignments are inferred from furniture, not text labels (documented per-room in role_evidence/assumptions).\n\nFinal candidate **candidate_04** has been selected via `finish_bim`, viewer at `candidate_04/viewer.html`, source model at `candidate_04/source_model.json`, and full audit trail in `delivery.json`.",
+    "ttft_ms": 4755,
+    "type": "result",
+    "duration_ms": 519845,
+    "uuid": "cc0f2c16-0bb8-419c-b5e9-094b7aaab9bf",
+    "ttft_stream_ms": 3686,
+    "time_to_request_ms": 64,
+    "first_content_frame_ms": 3686,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

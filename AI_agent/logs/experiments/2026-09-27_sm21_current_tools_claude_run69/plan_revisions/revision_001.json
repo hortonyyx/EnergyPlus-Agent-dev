@@ -1,0 +1,103 @@
+{
+  "parent_draft_id": "draft_002",
+  "parent_plan_sha256": "0b96d865c10cfa2a6772e5773695d42ef7e898d655331553ec18721c853343c4",
+  "operations_json": "[{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_O4\",\"changes\":{\"p1\":[1478,728.6]},\"reason\":\"avoid opening endpoint exactly coinciding with P_O34 partition T-junction, which produced an ambiguous host; shift 6px inward while preserving observed door span from original gap\",\"source_refs\":[\"2f_view.png: door office4 to corridor, observed gap x=1472-1599 adjacent to partition3\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "openings",
+      "id": "D_O4",
+      "before": {
+        "id": "D_O4",
+        "kind": "door",
+        "p1": [
+          1472,
+          728.6
+        ],
+        "p2": [
+          1599,
+          728.6
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: door office4 to corridor, observed gap x=1472-1599 adjacent to partition3"
+        ]
+      },
+      "after": {
+        "id": "D_O4",
+        "kind": "door",
+        "p1": [
+          1478,
+          728.6
+        ],
+        "p2": [
+          1599,
+          728.6
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: door office4 to corridor, observed gap x=1472-1599 adjacent to partition3"
+        ]
+      },
+      "reason": "avoid opening endpoint exactly coinciding with P_O34 partition T-junction, which produced an ambiguous host; shift 6px inward while preserving observed door span from original gap",
+      "source_refs": [
+        "2f_view.png: door office4 to corridor, observed gap x=1472-1599 adjacent to partition3"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P_M12",
+      "P_O12",
+      "P_O23",
+      "P_O34",
+      "P_CorrTop",
+      "P_CorrBot"
+    ],
+    "openings": [
+      "WN_M1",
+      "WN_M2",
+      "WS_O1",
+      "WS_O2",
+      "WS_O3",
+      "WS_O4",
+      "W_west",
+      "W_east",
+      "D_M1",
+      "D_M2",
+      "D_O1",
+      "D_O2",
+      "D_O3"
+    ],
+    "space_seeds": [
+      "M1",
+      "M2",
+      "O1",
+      "O2",
+      "O3",
+      "O4",
+      "CORR"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

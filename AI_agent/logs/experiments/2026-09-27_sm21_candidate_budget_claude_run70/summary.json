@@ -1,0 +1,152 @@
+{
+  "input_mode": "saved_candidate_recovery",
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 6
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "building_input_sha256": null,
+  "candidate_results": [
+    {
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 84,
+        "connections": 14,
+        "openings": 29,
+        "spaces": 14,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_02",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 84,
+        "connections": 14,
+        "openings": 29,
+        "spaces": 14,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_03",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 84,
+        "connections": 14,
+        "openings": 29,
+        "spaces": 14,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_04",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 84,
+        "connections": 14,
+        "openings": 29,
+        "spaces": 14,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_05",
+      "status": "severe",
+      "source_geometry_ready": false,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 84,
+        "connections": 13,
+        "openings": 28,
+        "spaces": 14,
+        "unbuilt_openings": 1,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_06",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 84,
+        "connections": 14,
+        "openings": 29,
+        "spaces": 14,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    }
+  ],
+  "agent_response_completed": true,
+  "has_viewable_candidate": true,
+  "elapsed_seconds": 755.63,
+  "drawing_fidelity": "not_evaluated",
+  "continuation": {
+    "max_rounds": 2,
+    "turns": [
+      {
+        "name": "continuation_01",
+        "before_candidate": "candidate_04",
+        "after_candidate": "candidate_06",
+        "decision": {
+          "turn": "continuation_01",
+          "candidate": "candidate_06",
+          "source_model_sha256": "e351bb2bda1a0d16ef68c476b270165373e9b6b58da12eb80936c2234aa9272f",
+          "decision": "stop",
+          "reason": "This turn measured the West facade double-door height directly from the West elevation's own labeled dimension chain (6600/3600/3000mm, cross-checked to within 12mm), converting an assumed 2.1m default into an image-supported ~2.15m value (claim_0005, adopted and applied to candidate_06 with source_refs; source_validation=pass, 0 unbuilt openings). The superseded assumption note was replaced with accurate text distinguishing this measured door from the remaining unmeasured doors. Remaining unchecked items (13 interior/main doors on F1/F2 with no numeric height labels anywhere in the elevations, the south-side mirrored corridor doors, and the minor entry wall notch) are genuine input limitations — no elevation in this drawing set carries a door height label except via the same pixel-outline method already applied to the one facade where the door is clearly isolated and calibrated (West). Attempting to also pixel-measure the interior doors is not feasible since they appear only in plan, not in any elevation, and the main/typical exterior doors on other elevations lack an isolated, unobstructed outline with a nearby calibrated dimension chain of the same quality checked here. No further useful, feasible, bounded action remains within scope; further micro-precision passes (e.g., re-deriving the same 2.15m to more decimal places) would not change fidelity. Selecting candidate_06 as final.",
+          "next_action": "",
+          "drawing_fidelity": "not_evaluated",
+          "task_completion": "model_judgment_only"
+        },
+        "persisted_source_or_evidence_changed": true,
+        "response_completed": true
+      }
+    ],
+    "stop_reason": "model_stop",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "opening_reviews": [],
+  "delivery": {
+    "candidate": "candidate_06",
+    "selection_origin": "agent_selected",
+    "report": "delivery.json",
+    "viewer": "delivery.html"
+  },
+  "subscription_invocations": 2,
+  "estimated_cost_usd": 2.7876655999999995,
+  "cost_receipts_complete": true,
+  "reported_partial_cost_usd": 2.7876655999999995,
+  "not_evaluated": [
+    "independent GT comparison",
+    "human approval",
+    "EnergyPlus"
+  ],
+  "estimated_cost_note": "CLI estimates are not subscription bills"
+}
