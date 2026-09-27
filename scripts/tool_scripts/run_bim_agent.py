@@ -111,6 +111,22 @@ def _profile_axis(mask, box, axis, min_fraction):
     return counts, minimum_count, support_length, runs
 
 
+def _profile_support_peaks(counts, offset):
+    """Retain every positive local maximum plateau, without smoothing or ranking."""
+    peaks = []
+    start = 0
+    for end in range(1, len(counts) + 1):
+        if end < len(counts) and counts[end] == counts[start]:
+            continue
+        count = int(counts[start])
+        left = int(counts[start - 1]) if start else 0
+        right = int(counts[end]) if end < len(counts) else 0
+        if count > 0 and count > left and count > right:
+            peaks.append({"pixels": [start + offset, end - 1 + offset], "count": count})
+        start = end
+    return peaks
+
+
 def coordinate_grid_view(pic, region):
     """Label original pixels on a disposable model view, keeping its affine frame."""
     if min(pic.size) < 100:
@@ -1670,9 +1686,22 @@ class Toolkit:
             if count == 0 and start is not None:
                 peak = start + int(counts[start:i].argmax())
                 runs.append({"pixels": [start+offset, i-1+offset], "peak": peak+offset,
-                             "max_count": int(counts[peak])})
+                             "max_count": int(counts[peak]),
+                             "support_peaks": _profile_support_peaks(counts[start:i], start + offset)})
                 start = None
-        result = {"axis": axis, "runs": runs, "matching_pixels": int(mask.sum())}
+        result = {"axis": axis, "runs": runs, "matching_pixels": int(mask.sum()),
+                  "name": name, "box_original_pixels": list(box),
+                  "support_length": mask.shape[0] if axis == "x" else mask.shape[1],
+                  "coordinate_system": "original image pixels; interval endpoints inclusive",
+                  "evidence_note": "pixels spans any positive color support, including connected "
+                      "lines, text and arrow tips; its ends are not measured dimension or object endpoints. "
+                      "peak is only the FIRST global maximum in the run. support_peaks lists every "
+                      "positive local maximum plateau with its count, including weaker peaks, in "
+                      "original coordinates; no smoothing, threshold or endpoint selection is applied. "
+                      "A plateau is higher than both adjacent counts (zero outside the run). "
+                      "Peaks can include noise and do not identify ticks, walls or openings. Inspect "
+                      "the original crop or use view_pixel_profile with the same input image name and "
+                      "a chosen min_fraction before adopting coordinates."}
         diagnostic = _empty_profile_diagnostics(
             pixels, rgb, counts, 1, mask.shape[0] if axis == "x" else mask.shape[1])
         if diagnostic is not None:

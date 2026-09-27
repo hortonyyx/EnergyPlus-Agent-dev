@@ -470,6 +470,49 @@ def test_view_image_opt_in_display_scale_preserves_original_pixels_and_caps_outp
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("axis", ["x", "y"])
+@pytest.mark.parametrize("readonly", [True, False])
+def test_pixel_profile_preserves_equal_and_weaker_peaks_inside_connected_ink(tmp_path, axis, readonly):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        path = run / "images/plan.png"
+        pic = Image.new("RGB", (18, 18), "white")
+        # A connected line extends past two equally supported bands. Extent,
+        # first argmax, and the complete set of maxima are different facts.
+        for along in range(4, 14):
+            for across in range(5, 10) if along in (6, 7, 11) else (7,):
+                xy = (along, across) if axis == "x" else (across, along)
+                pic.putpixel(xy, (0, 0, 0))
+        # A weaker local peak must also survive, rather than assuming both
+        # dimension ticks always have exactly the same antialiased support.
+        for across in (5, 6):
+            pic.putpixel((9, across) if axis == "x" else (across, 9), (0, 0, 0))
+        pic.save(path)
+        before = digest(path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["plan.png"].update(size=list(pic.size), sha256=before)
+        (run / "inputs.json").write_text(json.dumps(manifest))
+        box = [3, 4, 15, 11] if axis == "x" else [4, 3, 11, 15]
+        async with _server_session(run, readonly=readonly) as session:
+            reply = await session.call_tool("pixel_profile", dict(
+                name="plan.png", box=box, axis=axis, rgb=[0, 0, 0], tolerance=0))
+            result = _json_result(reply)
+            assert result["runs"] == [{"pixels": [4, 13], "peak": 6, "max_count": 5,
+                                       "support_peaks": [{"pixels": [6, 7], "count": 5},
+                                                         {"pixels": [9, 9], "count": 3},
+                                                         {"pixels": [11, 11], "count": 5}]}]
+            assert result["matching_pixels"] == 24
+            assert result["support_length"] == 7
+            assert result["name"] == "plan.png" and result["box_original_pixels"] == box
+            assert "not measured dimension" in result["evidence_note"]
+            assert "including weaker peaks" in result["evidence_note"]
+        assert digest(path) == before
+        record = json.loads((run / "tools.jsonl").read_text().splitlines()[-1])
+        assert record["data"]["result"] == result and record["readonly"] is readonly
+
+    asyncio.run(scenario())
+
+
 def test_view_pixel_profile_filters_sparse_strokes_and_reports_unbridged_peak_support(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)
