@@ -656,6 +656,29 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
     asyncio.run(scenario())
 
 
+def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        async with _server_session(run, readonly=False) as session:
+            built = _json_result(await session.call_tool("build_bim", {"proposal_json": _two_floor_proposal()}))
+            original = json.loads((run / built["candidate"] / "source_model.json").read_text())
+            revised = _json_result(await session.call_tool("revise_bim", {
+                "candidate": built["candidate"], "operations_json": json.dumps([{
+                    "op": "set_space_role", "space_id": "left", "role": "conference/meeting/multipurpose",
+                    "basis": "inferred", "assumptions": ["No room label; furniture-based interpretation"],
+                    "source_refs": ["synthetic.png: table at [10,20,30,40]"], "reason": "Review function",
+                }])}))
+            updated = json.loads((run / revised["candidate"] / "source_model.json").read_text())
+            room = next(s for s in updated["spaces"] if s["id"] == "left")
+            assert room["role_evidence"]["basis"] == "inferred"
+            assert "Conference_Meeting_Multipurpose" in updated["public_names"]["spaces"]["left"]
+            for key in ("floors", "boundaries", "openings", "connections", "opening_hosts"):
+                assert updated[key] == original[key]
+            assert original == json.loads((run / built["candidate"] / "source_model.json").read_text())
+
+    asyncio.run(scenario())
+
+
 def test_wall_reference_stdio_calculation_persistence_and_feedback(tmp_path):
     from tests.test_wall_reference import reference, dimension
 

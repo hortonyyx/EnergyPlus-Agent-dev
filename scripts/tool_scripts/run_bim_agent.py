@@ -2304,6 +2304,7 @@ def serve(run: Path, readonly=False):
             """Apply local edits/reflection with code and save a new checked BIM.
             See get_bim_reference("edits") for operations. Prior candidates stay unchanged.
             Opening changes/removals and shared-wall moves require a reason and source_refs.
+            set_space_role assigns catalog use and its evidence, preserving geometry.
             """
             return candidate_result(toolkit.revise(candidate, operations_json))
 
@@ -2492,6 +2493,8 @@ def run_experiment(args):
                              },
                              "deadline_epoch": time.time() + args.timeout,
                              "implementation_sha256": {
+                                 "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),
+                                 "src/agent/geometry/source_model.py":digest(ROOT/"src/agent/geometry/source_model.py"),
                                  "src/agent/roles.py":digest(ROOT/"src/agent/roles.py"),
                                  "src/agent/data/room_types.json":digest(ROOT/"src/agent/data/room_types.json"),
                                  "src/agent/geometry/source_naming.py":digest(ROOT/"src/agent/geometry/source_naming.py"),

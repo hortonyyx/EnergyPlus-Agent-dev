@@ -42,6 +42,51 @@ def _without_audit(geometry):
     return result
 
 
+def test_room_function_edit_and_withdrawal_preserve_geometry_and_other_evidence():
+    proposal = _proposal()
+    cell = proposal["geometry"]["floors"][0]["cells"][0]
+    cell.update(source_refs=["plan: wall trace"], assumptions=["wall plane simplified"])
+    before = copy.deepcopy(proposal)
+    op = {"op": "set_space_role", "space_id": "left", "role": "meeting",
+          "basis": "inferred", "source_refs": ["plan: long table at pixels [1,2,3,4]"],
+          "assumptions": ["No text label; use inferred from furniture"], "reason": "Review room use"}
+    revised = apply_proposal_edits(proposal, [op])
+    changed = revised["geometry"]["floors"][0]["cells"][0]
+    assert changed["role"] == "conference/meeting/multipurpose"
+    assert changed["role_evidence"]["basis"] == "inferred"
+    assert changed["source_refs"] == cell["source_refs"]
+    assert changed["assumptions"] == cell["assumptions"]
+    source = build_source_bim(ensure_corrected_geometry(revised["geometry"]), capability_profile="orthogonal_polygon")
+    original = build_source_bim(ensure_corrected_geometry(proposal["geometry"]), capability_profile="orthogonal_polygon")
+    for key in ("boundaries", "openings", "connections", "floors", "opening_hosts", "boundary_relations"):
+        assert source[key] == original[key]
+    for space, old in zip(source["spaces"], original["spaces"]):
+        assert {k: v for k, v in space.items() if k not in {"role", "role_evidence"}} == {
+            k: v for k, v in old.items() if k not in {"role", "role_evidence"}}
+    restored = apply_proposal_edits(revised, [{**op, "role": "unknown", "basis": "unknown",
+        "source_refs": ["plan: furniture interpretation ambiguous"], "assumptions": []}])
+    restored_cell = restored["geometry"]["floors"][0]["cells"][0]
+    assert restored_cell["role"] == "unknown"
+    assert restored_cell["role_evidence"]["source_refs"] == ["plan: furniture interpretation ambiguous"]
+    assert restored["geometry"]["corrections"][-1]["before"]["role_evidence"] == changed["role_evidence"]
+    assert proposal == before
+
+
+@pytest.mark.parametrize("patch", [
+    {"role": "office_inferred"}, {"basis": "observed", "role": "unknown"},
+    {"basis": "unknown"}, {"assumptions": []}, {"source_refs": []},
+    {"space_id": "missing"}, {"polygon": [[0, 0], [1, 0], [1, 1]]},
+])
+def test_invalid_room_function_edit_never_changes_input(patch):
+    proposal = _proposal()
+    before = copy.deepcopy(proposal)
+    operation = {"op": "set_space_role", "space_id": "left", "role": "office", "basis": "inferred",
+                 "source_refs": ["plan: desks"], "assumptions": ["Use inferred"], "reason": "Review use"}
+    with pytest.raises(ValueError):
+        apply_proposal_edits(proposal, [{**operation, **patch}])
+    assert proposal == before
+
+
 def _rectangular_wall_proposal():
     return {
         "geometry": {

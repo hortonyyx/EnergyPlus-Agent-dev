@@ -68,6 +68,31 @@ def test_invalid_opening_still_exports_candidate_with_severe_finding(tmp_path):
     assert (out / "viewer.html").exists()
 
 
+def test_room_observations_and_function_basis_survive_export_without_becoming_wall_evidence(tmp_path):
+    proposal = _proposal()
+    cell = proposal["geometry"]["floors"][0]["cells"][1]
+    cell.update(role="office", source_refs=["plan: room boundary at [300,100]"],
+                assumptions=["Geometry uses representative wall planes"], role_evidence={
+                    "role": "office", "basis": "inferred", "source_refs": ["plan: desks at [400,200]"],
+                    "assumptions": ["Furniture supports office use; <unconfirmed>"]})
+    before = copy.deepcopy(proposal)
+    target = tmp_path / "with_evidence"
+    assert export_source_proposal(proposal, target)["source_geometry_ready"]
+    source = json.loads((target / "source_model.json").read_text())
+    room = next(s for s in source["spaces"] if s["id"] == "room")
+    assert room["source_refs"] == ["correction:floor/F1/cell/room", *cell["source_refs"]]
+    assert room["assumptions"] == cell["assumptions"]
+    assert room["role_evidence"] == cell["role_evidence"]
+    assert all("desks" not in str(b["source_refs"]) for b in source["boundaries"])
+    display = json.loads((target / "display_geometry.json").read_text())
+    assert display["source_model"]["spaces"] == source["spaces"]
+    assert json.loads((target / "proposal.json").read_text()) == before == proposal
+    # A retained evidence record cannot silently certify a different new role.
+    cell["role"] = "storage"
+    failed = export_source_proposal(proposal, tmp_path / "mismatch")
+    assert failed["status"] == "error" and "role" in failed["error"]
+
+
 def test_conflicting_window_kinds_are_reported_together_without_retyping(tmp_path):
     proposal = _proposal()
     for kind in ("door", "passage", None):

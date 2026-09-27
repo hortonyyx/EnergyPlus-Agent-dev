@@ -59,6 +59,12 @@ use unknown when evidence is insufficient or no listed function fits. Never crea
 new roles or append inferred/mixed labels; put original labels and uncertainty in
 source_refs/assumptions. Names of floors, rooms, walls, windows, doors and openings
 are generated deterministically; use your stable internal IDs for tool references.
+After physical spaces exist, review their uses against the original input, rather
+than leaving every room unknown simply because the pixel compiler defaults to it.
+Furniture can support an explicitly inferred use, never an observed text label.
+For an existing candidate, read edits and use set_space_role to assign or withdraw
+a use with its located basis, without rebuilding walls/openings. Unknown remains
+appropriate for ambiguous rooms; state why. Review stale global use notes as well.
 Read get_bim_reference('naming') for public display names and CCW wall numbering.
 For drawing reconstruction, read get_bim_reference('reconstruction') for a
 measurement-to-source method, including calibration, wall junctions and opening
@@ -489,6 +495,9 @@ The current tool supports orthogonal floors; explicitly report unsupported
 geometry. The example numbers/counts are unrelated to the supplied drawings.
 """,
     'edits': """revise_bim takes candidate plus an operations_json list. Operations include:
+{"op":"set_space_role","space_id":"F1_left","role":"office",
+ "basis":"inferred","assumptions":["Furniture suggests office; no use label supplied"],
+ "reason":"Review existing room function","source_refs":["plan.png: desk symbols in room interior, original pixels [20,30,80,90]"]};
 {"op":"reflect","axis":"y","reason":"explain the chosen frame change"};
 {"op":"update_window","id":"W1","changes":{"span":[1,2]},
  "reason":"explain","source_refs":["image: observation or explicit assumption"]};
@@ -505,6 +514,14 @@ geometry. The example numbers/counts are unrelated to the supplied drawings.
  "z":[0,2.1],"state":"unknown","assumptions":["height assumed"]},
  "reason":"new door observed","source_refs":["plan: door and both hosts"]};
 {"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
+set_space_role only changes the selected room's catalog role and role_evidence;
+it preserves all geometry, IDs, openings, connections and geometry source notes.
+Read room_types first. basis is observed for explicit input labels/declarations,
+inferred for a justified interpretation (requires nonempty assumptions), or
+unknown paired with role=unknown. source_refs must locate the evidence or explain
+its insufficiency. A later assignment replaces the active role_evidence and keeps
+the old value in the edit history. Normal export updates public names and colors.
+It does not establish drawing truth. Reconcile obsolete global notes explicitly.
 add_opening preserves all existing objects; it supports doors/open apertures and
 requires a new ID. World z is absolute, including on upper floors. Normal source
 validation rejects wrong/ambiguous hosts, overlaps or out-of-floor heights.

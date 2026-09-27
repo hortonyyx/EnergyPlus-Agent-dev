@@ -462,12 +462,15 @@ _APP_JS = r"""
       ['名称',objectName(u.name)],['所属面',objectName(u.parent)],['所属楼层',floorName(u.floor)],['所属房间',spaceName(u.zone)],['源开口 ID',u.sourceId],['连通',spaceName(u.spaceId)+' ↔ '+(u.otherSpaceId?spaceName(u.otherSpaceId):'室外')],
       ['开闭状态',({open:'开放',closed:'关闭',unknown:'未确定'})[u.state]],['面积',u.area.toFixed(2)+' m²']]);
     if(mode==='zone'){ const r=roleOf(u.zone), sid=(SOURCE_MAP.zones||{})[u.zone]||u.zone, space=SOURCE_SPACES[sid],
-      enclosureEvidence=space&&(space.enclosure_evidence||{});
+      enclosureEvidence=space&&(space.enclosure_evidence||{}), roleEvidence=space&&space.role_evidence;
       return '<div class="hh">zone</div>'+kv([['名称',spaceName(u.zone)],['所属楼层',floorName(u.floor)],['功能',roleLabel(r)||'—'],
+        ['功能判定',roleEvidence&&({observed:'图文明确',inferred:'推断',unknown:'待判定'})[roleEvidence.basis]],
+        ['功能依据',roleEvidence&&evidenceText(roleEvidence.source_refs)],
+        ['功能假设',roleEvidence&&evidenceText(roleEvidence.assumptions)],
         ['源空间 ID',(SOURCE_MAP.zones||{})[u.zone]],['空间开敞性',space&&enclosureLabel(space.exposure||space.enclosure)],
         ['证据类型',enclosureEvidence&&enclosureEvidence.evidence_kind],
-        ['来源',space&&evidenceText(enclosureEvidence.source_refs||space.source_refs)],
-        ['假设',space&&evidenceText(enclosureEvidence.assumptions||space.assumptions)],
+        ['来源',space&&evidenceText([...(space.source_refs||[]),...(enclosureEvidence.source_refs||[])])],
+        ['假设',space&&evidenceText([...(space.assumptions||[]),...(enclosureEvidence.assumptions||[])])],
         ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']]); }
     // Area of the selected visible fragment: wall apertures are cut out;
     // windows remain separate child surfaces and are not subtracted here.

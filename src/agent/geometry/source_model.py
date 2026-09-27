@@ -56,10 +56,17 @@ def source_primitives(geom: CorrectedGeometry, *, polygon_builder=_cell_polygon)
             z0 = float(floor.z_floor)
             z1 = z0 + float(floor.ceiling_height)
             ref = f"correction:floor/{quote(floor_id, safe='')}/cell/{quote(cell.id, safe='')}"
-            spaces.append(SourceSpace(
+            space = SourceSpace(
                 id=cell.id, floor_id=floor_id, polygon=ring, z_floor=z0,
-                height=z1-z0, role=cell.role, source_refs=[ref],
-            ))
+                height=z1-z0, role=cell.role,
+                source_refs=getattr(cell, "source_refs", []),
+                assumptions=getattr(cell, "assumptions", []),
+                role_evidence=getattr(cell, "role_evidence", None),
+            )
+            # The correction pointer is traceability, not a replacement for the
+            # input's actual drawing observations and explicit hypotheses.
+            space.source_refs = list(dict.fromkeys([ref, *space.source_refs]))
+            spaces.append(space)
             rows = []
             for index, (a, b) in enumerate(zip(ring, ring[1:] + ring[:1])):
                 rows.append((f"wall/{index}", "wall", [

@@ -11,7 +11,7 @@ from shapely.ops import unary_union
 
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.correction.cell_geometry import cell_polygon
-from src.agent.correction.schema import Window, WallOpening
+from src.agent.correction.schema import RoomRoleEvidence, Window, WallOpening
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
@@ -188,6 +188,30 @@ def _remove_opening(geometry: dict, operation: dict) -> dict:
     geometry["openings"].remove(row)
     return {"operation": name, "id": identity, "reason": reason, "source_refs": refs,
             "before": before, "after": None}
+
+
+def _set_space_role(geometry: dict, operation: dict) -> dict:
+    """Change use and its basis without replacing any physical room geometry."""
+    name = "set_space_role"
+    _require_fields(operation, {"op", "space_id", "role", "basis", "assumptions",
+                                "reason", "source_refs"}, operation=name)
+    identity = _nonblank_string(operation.get("space_id"), field="space_id", operation=name)
+    reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
+    role = _nonblank_string(operation.get("role"), field="role", operation=name)
+    evidence = RoomRoleEvidence.model_validate({
+        "role": role, "basis": operation.get("basis"),
+        "source_refs": _source_refs(operation.get("source_refs"), operation=name),
+        "assumptions": _notes(operation.get("assumptions"), field="assumptions"),
+    }).model_dump(mode="json")
+    cells = [cell for floor in geometry.get("floors", []) for cell in floor.get("cells", [])]
+    row = _find(cells, identity, operation=name)
+    before = copy.deepcopy(row)
+    row["role"] = evidence["role"]
+    # Preserve geometry sources/assumptions; replace only the current use basis.
+    # Previous function assignments remain in the normal edit audit history.
+    row["role_evidence"] = evidence
+    return {"operation": name, "space_id": identity, "reason": reason,
+            "source_refs": evidence["source_refs"], "before": before, "after": copy.deepcopy(row)}
 
 
 def _add_opening(geometry: dict, operation: dict) -> dict:
@@ -637,6 +661,8 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
             audit = _update(geometry, operation, target="window")
         elif name == "update_opening":
             audit = _update(geometry, operation, target="opening")
+        elif name == "set_space_role":
+            audit = _set_space_role(geometry, operation)
         elif name == "add_opening":
             audit = _add_opening(geometry, operation)
         elif name == "resolve_unbuilt_observation":

@@ -208,6 +208,28 @@ class Cell(BaseModel):
     polygon: list[list[float]] | None = None  # exterior ring, CCW, not closed
 
 
+class RoomRoleEvidence(BaseModel):
+    """Current function assignment basis, separate from room geometry evidence."""
+
+    model_config = ConfigDict(extra="forbid")
+    role: str
+    basis: Literal["observed", "inferred", "unknown"]
+    source_refs: list[str] = Field(min_length=1)
+    assumptions: list[str]
+
+    @model_validator(mode="after")
+    def validate_assignment(self):
+        from src.agent.roles import require_role
+        self.role = require_role(self.role)
+        if any(not ref.strip() for ref in self.source_refs):
+            raise ValueError("room role evidence requires nonblank source_refs")
+        if (self.role == "unknown") != (self.basis == "unknown"):
+            raise ValueError("unknown role and unknown evidence basis must be used together")
+        if self.basis == "inferred" and not any(note.strip() for note in self.assumptions):
+            raise ValueError("inferred room role requires an explicit assumption")
+        return self
+
+
 class SourceSpace(BaseModel):
     """Materialized source identity; independent of downstream zone numbering."""
 
@@ -219,6 +241,16 @@ class SourceSpace(BaseModel):
     height: float
     role: str
     source_refs: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    role_evidence: RoomRoleEvidence | None = None
+
+    @model_validator(mode="after")
+    def role_matches_evidence(self):
+        if self.role_evidence is not None:
+            from src.agent.roles import require_role
+            if require_role(self.role) != self.role_evidence.role:
+                raise ValueError("source room role does not match its saved role evidence")
+        return self
 
 
 class SourceBoundary(BaseModel):

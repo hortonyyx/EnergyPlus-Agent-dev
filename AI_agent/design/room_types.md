@@ -14,6 +14,12 @@ EnergyPlus `Space.Space Type` **没有预定义枚举**，默认空值归 Genera
 - 本表只用于功能分类、命名和显示，不自动套用负荷、时刻表、材料或 HVAC；原始上游文件中的参数引用仅用于溯源，未导入任何物性。
 - 注意上游限定：`multifamily` 指多户住宅**公共区域**，不是住户套内；`living quarters` 示例为消防站集体起居，`sleeping quarters` 为宿舍寝区。部分上游行带 `to be revised`，原注释保留。
 
+09-27 实跑后补充：仅列出功能表并不能保证工作模型会实际使用；sm24/run59仍全部unknown，未读表或逐房记录功能判断。新指引要求物理空间完成后回查功能，家具可支持明确标注的推断，证据不足仍保留unknown。功能推断不授权拆分实际开敞空间。
+
+已有候选可通过 `revise_bim` 的 `set_space_role` 局部修改功能。输入为 `space_id`、表内 `role`、`basis`（observed/inferred/unknown）、`source_refs`、`assumptions` 和 `reason`。unknown与unknown依据成对，推断须写明假设；操作只替换当前功能与 `role_evidence`，原几何、房间ID、门窗和连接保持。旧功能依据留在修订记录，几何来源／假设不被功能说明覆盖。直接源导出也校验已提供的 `role_evidence` 与功能相符。历史或初次草稿可没有该可选记录，不能据此补造证据。
+
+源房间现在同时保留草稿已有的 `source_refs` / `assumptions`，追加内部追溯指针，不再只留下correction路径。房间功能依据单独保存，不能传播为每面墙的图证。HTML点房间显示功能判定、依据及假设，并合并展示房间／围护已有说明；固定色表不变。这是文字依据的可查看增量，不是此前待讨论的全构件置信度视图。重导出旧稿会增加元数据并改变源hash，原归档不改写。
+
 | 标准代码（role） | 中文显示 | 固定颜色 | 上游 ID |
 |---|---|---|---|
 | `atrium` | 中庭 | `#afbddf` | 1 |
