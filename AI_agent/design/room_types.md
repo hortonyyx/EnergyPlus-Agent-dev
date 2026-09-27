@@ -2,6 +2,8 @@
 
 09-27 用户要求优先复用 EnergyPlus 生态既有类型表，工作模型从表中选，BIM HTML 按类型固定配色。
 
+同日用户进一步明确：**尽量选合理用途、尽量不标未知**。可按建筑语境、布局和家具作合理推断，后续用户可调整；本项目丐版BIM不追求细类用途的高精度，避免离谱错配，分类歧义不作为主要复核任务或交付阻塞。该取舍不降低物理空间、门窗和连接要求，也不等于已验证各类用途的仿真敏感性。
+
 EnergyPlus `Space.Space Type` **没有预定义枚举**，默认空值归 General；[官方 I/O Reference](https://bigladdersoftware.com/epx/docs/25-2/input-output-reference/group-thermal-zone-description-geometry.html#field-space-type)明确允许任意字符串。这里采用 OpenStudio(R) 标准库的一级空间功能表，完整保留 **61 个上游类别**，另有项目的 `unknown`（不属于上游）。不把它称为 EnergyPlus 内置表。
 
 上游固定到提交 `83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663`：[原始表](https://github.com/NatLabRockies/openstudio-standards/blob/83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663/lib/openstudio-standards/space_type/data/level_1_space_types.json)。上游 JSON 和许可证一起保存在 `src/agent/data/openstudio/`；唯一运行时表为 [room_types.json](../../src/agent/data/room_types.json)，其中同时保存原名、上游 ID/注释、中文显示名、命名 token、固定颜色及已知旧别名。中文、颜色和别名是项目定义，不冒称上游规范。新版本需显式更新，运行不联网拉表。
@@ -9,18 +11,20 @@ EnergyPlus `Space.Space Type` **没有预定义枚举**，默认空值归 Genera
 生成规则：
 
 - `get_bim_reference('room_types')` 返回该表；生成指引要求选表，导出校验拒绝表外功能。已知 `meeting`、`wc`、`stair` 等旧写法映射到标准项；原始 proposal 保留，源 BIM 写标准代码。
-- 缺少功能、证据不足或确实没有匹配类别时选 `unknown`，原图文字和推断写 `source_refs` / `assumptions`；禁止 `office_inferred` 等自行扩词。不另造 mixed 类，不因混合用途把实际开敞房间拆开。
+- 优先选择合理表内类型；相近用途难分时选较宽或最合理一项，注明推断，避免仅因无文字标签/非唯一解释就选 `unknown`。确实没有可辩护的候选时才保留 `unknown`，不禁止该值，也不由代码静默改成office。原图文字和推断写 `source_refs` / `assumptions`；禁止 `office_inferred` 等自行扩词。不另造 mixed 类，不因混合用途拆开实际开敞房间。
 - 源 BIM 记录表版本、SHA256 与来源；HTML 内嵌同表，色块和图例从这张表读取。未知灰色；无角色数据的历史纯几何查看保留原白色行为。
 - 本表只用于功能分类、命名和显示，不自动套用负荷、时刻表、材料或 HVAC；原始上游文件中的参数引用仅用于溯源，未导入任何物性。
 - 注意上游限定：`multifamily` 指多户住宅**公共区域**，不是住户套内；`living quarters` 示例为消防站集体起居，`sleeping quarters` 为宿舍寝区。部分上游行带 `to be revised`，原注释保留。
 
-09-27 实跑后补充：仅列出功能表并不能保证工作模型会实际使用；sm24/run59仍全部unknown，未读表或逐房记录功能判断。新指引要求物理空间完成后回查功能，家具可支持明确标注的推断，证据不足仍保留unknown。功能推断不授权拆分实际开敞空间。
+09-27 实跑后补充：仅列出功能表并不能保证工作模型会实际使用；sm24/run59仍全部unknown，未读表或逐房记录功能判断。用户本次澄清后，指引要求物理空间完成后做简要合理选型；家具或建筑语境可支持推断，不追求用途唯一真值。功能推断不授权拆分实际开敞空间。
 
 已有候选可通过 `revise_bim` 的 `set_space_role` 局部修改功能。输入为 `space_id`、表内 `role`、`basis`（observed/inferred/unknown）、`source_refs`、`assumptions` 和 `reason`。unknown与unknown依据成对，推断须写明假设；操作只替换当前功能与 `role_evidence`，原几何、房间ID、门窗和连接保持。旧功能依据留在修订记录，几何来源／假设不被功能说明覆盖。直接源导出也校验已提供的 `role_evidence` 与功能相符。历史或初次草稿可没有该可选记录，不能据此补造证据。
 
 源房间现在同时保留草稿已有的 `source_refs` / `assumptions`，追加内部追溯指针，不再只留下correction路径。房间功能依据单独保存，不能传播为每面墙的图证。HTML点房间显示功能判定、依据及假设，并合并展示房间／围护已有说明；固定色表不变。这是文字依据的可查看增量，不是此前待讨论的全构件置信度视图。重导出旧稿会增加元数据并改变源hash，原归档不改写。
 
 run61再次跳过整案功能复核后，候选构建／检查／交付的工具反馈新增 `room_use_review`：按当前源统计功能依据记录，区分明确、推断、已说明未知和没有结构化记录。返回至多20个未记录ID及分页指引，不提供用途答案、不修改模型、不禁止交付。普通source_refs内可能还有历史用途依据，故“没有结构化记录”不能直接说成“完全没有看过”；该反馈也不把已填满记录等同于语义判对。
+
+本次按新原则另列当前unknown ID（至多20个），提醒模型优先作合理选择；不把unknown自动记为几何错误，不强制零未知或唯一正确类型。历史run保留当时指引及评价，不反改旧输出；后续采用上述较低用途精度要求。
 
 | 标准代码（role） | 中文显示 | 固定颜色 | 上游 ID |
 |---|---|---|---|

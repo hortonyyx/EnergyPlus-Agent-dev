@@ -53,6 +53,8 @@ def test_room_use_feedback_distinguishes_explained_unknown_and_missing_records()
     ]}
     result = room_use_review(source)
     assert result["unrecorded_space_ids"] == ["blank", "old"]
+    assert result["unknown_space_ids"] == ["blank", "unclear"]
+    assert result["unknown_ids_truncated"] is False
     assert result["summary"] == dict(total_count=4, recorded_count=2, unrecorded_count=2,
                                      observed_count=0, inferred_count=1, unknown_count=1)
     assert result["delivery_blocked"] is False and result["drawing_fidelity"] == "not_evaluated"
@@ -60,6 +62,8 @@ def test_room_use_feedback_distinguishes_explained_unknown_and_missing_records()
     bounded = room_use_review(source)
     assert bounded["summary"]["unrecorded_count"] == 100
     assert len(bounded["unrecorded_space_ids"]) == 20 and bounded["unrecorded_ids_truncated"]
+    assert bounded["unknown_space_ids"] == [str(i) for i in range(20)]
+    assert bounded["unknown_ids_truncated"]
 
 
 def test_room_wall_window_shared_door_names():

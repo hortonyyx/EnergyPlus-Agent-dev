@@ -54,8 +54,13 @@ get_bim_reference('parametric') documents it. Full original images remain the
 visual evidence; no prior generated model is an observation.
 
 Work from the physical partition layout before assigning detailed room uses.
-Read get_bim_reference('room_types') before assigning roles. Select a listed code;
-use unknown when evidence is insufficient or no listed function fits. Never create
+Read get_bim_reference('room_types') before assigning roles. Prefer a reasonable
+listed use from building context, layout and furniture, even if it is inferred.
+Ambiguity between similar plausible uses should normally result in a best-fit
+choice or broader listed type with a brief assumption, not unknown. Exact room-use
+identification has modest priority for this lightweight BIM; users can revise it
+later. Avoid implausible mismatches and prolonged classification work. Reserve
+unknown for cases with no defensible listed choice. Never create
 new roles or append inferred/mixed labels; put original labels and uncertainty in
 source_refs/assumptions. Names of floors, rooms, walls, windows, doors and openings
 are generated deterministically; use your stable internal IDs for tool references.
@@ -63,8 +68,8 @@ After physical spaces exist, review their uses against the original input, rathe
 than leaving every room unknown simply because the pixel compiler defaults to it.
 Furniture can support an explicitly inferred use, never an observed text label.
 For an existing candidate, read edits and use set_space_role to assign or withdraw
-a use with its located basis, without rebuilding walls/openings. Unknown remains
-appropriate for ambiguous rooms; state why. Review stale global use notes as well.
+a use with its located basis, without rebuilding walls/openings. Review existing
+unknown uses for a plausible assignment. Review stale global use notes as well.
 Candidate feedback room_use_review lists rooms without a structured use-basis
 record. Resolve applicable items from original evidence before delivery or state
 their unexamined scope; it distinguishes explained unknown from absent records,
@@ -165,7 +170,8 @@ check_wall_dimensions also pages its host inventory and accepts floor_id.
 Partial pages are observations of a saved proposal, never full replacement input.
 Preserve reliable objects with local revisions.
 For a local dimensional revision, read get_bim_reference('claims'). Record your
-located interpretation and its computable value, decide whether to adopt it,
+located interpretation and its computable value, inspect the returned actual source
+crops for the cited labels and object context, decide whether to adopt it,
 then reference that value inside revise_bim. Code resolves saved measurements or
 dimension-chain arithmetic into the actual edit parameter. Do not recalculate
 the same coordinates in prose. This is currently an existing-candidate revision
@@ -521,7 +527,8 @@ geometry. The example numbers/counts are unrelated to the supplied drawings.
 set_space_role only changes the selected room's catalog role and role_evidence;
 it preserves all geometry, IDs, openings, connections and geometry source notes.
 Read room_types first. basis is observed for explicit input labels/declarations,
-inferred for a justified interpretation (requires nonempty assumptions), or
+inferred for a plausible interpretation, including a broad use from building context
+(requires nonempty assumptions). Prefer an inferred listed use over unknown; the fallback is
 unknown paired with role=unknown. source_refs must locate the evidence or explain
 its insufficiency. A later assignment replaces the active role_evidence and keeps
 the old value in the edit history. Normal export updates public names and colors.
@@ -728,6 +735,16 @@ origin, which physical extent they measure, and any frame assumptions.
 basis: annotation_and_pixels, pixels, visual_estimate, inference, declared.
 Use original image boxes; code binds actual source hashes. Image-based claims
 require sources; declared/inference may have none but must state the actual basis.
+record_claim returns clean crops for the first three saved source regions, plus
+unpreviewed_source_indices. Inspect the actual crops before adoption: the numbers,
+dimension endpoints and enough object context must be inside the referenced region.
+A broader region is fine; a window-only box does not locate a chain outside it.
+Use view_claim_evidence(claim_id, source_index, display_scale=1..8) to inspect any
+saved source or enlarge small labels. Indices are zero-based. Fractional boxes are
+enclosed in whole pixels; metadata shows both the claimed and rendered boxes.
+If the region is misplaced, record a new corrected claim and retract the obsolete
+one with decide_claim. Saved claims are immutable. Seeing a crop is not automatic
+OCR or independent verification, and confirmed arithmetic does not prove its labels.
 Record unexamined/conflicting evidence in unresolved. A direct observation is
 not automatically independent: observation_mode is caller-reported, and review
 of a shown hypothesis does not count as an independent corroboration.

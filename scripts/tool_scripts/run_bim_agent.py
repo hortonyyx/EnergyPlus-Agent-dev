@@ -1474,6 +1474,34 @@ class Toolkit:
             "drawing_fidelity": "not_evaluated",
         }
 
+    def view_claim_evidence(self, claim_id, source_index=0, display_scale=1.0):
+        """Render a saved reference, bound to its original bytes; never certify it."""
+        if self.readonly:
+            raise ValueError("saved claims are available only to the coordinator")
+        row = self.claims().read(claim_id)
+        if (not isinstance(source_index, int) or isinstance(source_index, bool)
+                or not 0 <= source_index < len(row["sources"])):
+            raise ValueError("source_index must select an existing zero-based claim source")
+        ref = row["sources"][source_index]
+        if digest(self.image_path(ref["image"])) != ref["sha256"]:
+            raise ValueError("claim original image changed")
+        # Enclose fractional references instead of rounding away narrow regions.
+        left, top, right, bottom = ref["box"]
+        box = [math.floor(left), math.floor(top), math.ceil(right), math.ceil(bottom)]
+        picture, raw_metadata = self.view(ref["image"], box, coordinate_grid=False,
+                                          display_scale=display_scale)
+        metadata = json.loads(raw_metadata)
+        if metadata["image_sha256"] != ref["sha256"] or metadata["original_size"] != ref["size"]:
+            raise ValueError("claim original image changed")
+        metadata.update(claim_id=claim_id, source_index=source_index,
+                        claimed_box_original_pixels=ref["box"],
+                        verification="not_independently_verified",
+                        interpretation="Inspect the actual crop for the cited labels, endpoints and object context. "
+                                       "If misplaced, record a corrected claim and retract the obsolete one.")
+        self.log("view_claim_evidence", metadata)
+        return CallToolResult(content=[picture.to_image_content(),
+            TextContent(type="text", text=json.dumps(metadata))], structuredContent=metadata)
+
     def view(self, name, box=None, coordinate_grid=True, display_scale=1.0):
         from mcp.server.fastmcp import Image
         if (not isinstance(display_scale, (int, float)) or isinstance(display_scale, bool)
@@ -2045,11 +2073,32 @@ def serve(run: Path, readonly=False):
             return toolkit.plan_wall_support(draft_id, rgb, tolerance, radius_pixels, minimum_ink_pixels)
 
         @server.tool()
-        def record_claim(claim_json: str) -> dict:
+        def record_claim(claim_json: str) -> CallToolResult:
             """Record a located interpretation and computable values for an existing candidate.
+            Returns actual clean crops of up to three saved source regions. Inspect them
+            before adoption; use view_claim_evidence for remaining sources or magnification.
             Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
             """
-            return toolkit.record_claim(claim_json)
+            row = toolkit.record_claim(claim_json)
+            content, previews = [], []
+            for index in range(min(3, len(row["sources"]))):
+                result = toolkit.view_claim_evidence(row["id"], index)
+                content.extend(result.content)
+                previews.append(result.structuredContent)
+            reply = {**row, "evidence_previews": previews,
+                     "unpreviewed_source_indices": list(range(3, len(row["sources"])))}
+            content.append(TextContent(type="text", text=json.dumps(reply)))
+            return CallToolResult(content=content, structuredContent=reply)
+
+        @server.tool()
+        def view_claim_evidence(claim_id: str, source_index: int = 0,
+                                display_scale: float = 1.0) -> CallToolResult:
+            """View one actual saved claim region, using its original image hash.
+            source_index is zero-based; display_scale 1..8 enlarges tiny annotations.
+            Fractional boxes are enclosed in whole pixels and both boxes are reported.
+            This shows evidence; it neither adopts nor independently verifies the claim.
+            """
+            return toolkit.view_claim_evidence(claim_id, source_index, display_scale)
 
         @server.tool()
         def decide_claim(claim_id: str, disposition: str, reason: str) -> dict:

@@ -1,5 +1,7 @@
 """Claims must feed actual edit parameters, not merely decorate arbitrary edits."""
 import asyncio
+import base64
+import io
 import json
 
 import pytest
@@ -181,7 +183,7 @@ def test_stdio_claim_tools_are_coordinator_only_and_feed_revise(tmp_path):
         run, _ = setup_run(tmp_path)
         async with _server_session(run, readonly=True) as session:
             names = {tool.name for tool in (await session.list_tools()).tools}
-            assert not names.intersection({"record_claim", "decide_claim", "claim_status", "revise_bim"})
+            assert not names.intersection({"record_claim", "view_claim_evidence", "decide_claim", "claim_status", "revise_bim"})
         async with _server_session(run, readonly=False) as session:
             row = _json_result(await session.call_tool("record_claim", {"claim_json": json.dumps(claim())}))
             _json_result(await session.call_tool("decide_claim", {"claim_id": row["id"], "disposition": "adopted", "reason": "source chain"}))
@@ -189,4 +191,78 @@ def test_stdio_claim_tools_are_coordinator_only_and_feed_revise(tmp_path):
             assert built["claim_application"]["status"] == "applied"
             status = _json_result(await session.call_tool("claim_status", {}))
             assert status["claims"][0]["applied_anywhere"]
+    asyncio.run(scenario())
+
+
+def test_stdio_claim_returns_exact_bounded_crops_and_can_view_remaining_source(tmp_path):
+    async def scenario():
+        run, _ = setup_run(tmp_path)
+        original = Image.new("RGB", (12, 8))
+        original.putdata([(x * 20, y * 30, 100) for y in range(8) for x in range(12)])
+        original.save(run / "images/plan.png")
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["plan.png"]["sha256"] = digest(run / "images/plan.png")
+        (run / "inputs.json").write_text(json.dumps(manifest))
+        refs = [{"image": "plan.png", "box": box} for box in
+                ([0, 0, 6, 8], [6, 0, 12, 8], [1.2, 2.3, 1.3, 2.4], [3, 4, 9, 8])]
+        async with _server_session(run, readonly=False) as session:
+            reply = await session.call_tool("record_claim", {"claim_json": json.dumps(claim(sources=refs))})
+            row = _json_result(reply)
+            assert row["unpreviewed_source_indices"] == [3]
+            assert [p["source_index"] for p in row["evidence_previews"]] == [0, 1, 2]
+            images = [part for part in reply.content if part.type == "image"]
+            assert len(images) == 3
+            for part, box, metadata in zip(images, ([0, 0, 6, 8], [6, 0, 12, 8], [1, 2, 2, 3]), row["evidence_previews"]):
+                actual = Image.open(io.BytesIO(base64.b64decode(part.data))).convert("RGB")
+                expected = original.crop(box)
+                assert actual.size == expected.size and actual.tobytes() == expected.tobytes()
+                assert metadata["box_original_pixels"] == box
+                assert metadata["coordinate_grid"] == {"shown": False}
+            assert row["evidence_previews"][2]["claimed_box_original_pixels"] == refs[2]["box"]
+            more = await session.call_tool("view_claim_evidence", {"claim_id": row["id"], "source_index": 3, "display_scale": 2})
+            metadata = _json_result(more)
+            assert metadata["returned_size"] == [12, 8]
+            actual = Image.open(io.BytesIO(base64.b64decode(more.content[0].data))).convert("RGB")
+            expected = original.crop(refs[3]["box"]).resize((12, 8), Image.Resampling.NEAREST)
+            assert actual.tobytes() == expected.tobytes()
+            saved = json.loads((run / "claims" / (row["id"] + ".json")).read_text())
+            assert "evidence_previews" not in saved and saved["claim"]["sources"] == refs
+            assert saved["verification"] == "not_independently_verified"
+    asyncio.run(scenario())
+
+
+def test_claim_preview_preserves_record_and_geometry_and_rejects_changed_original(tmp_path):
+    run, toolkit = setup_run(tmp_path)
+    row = toolkit.record_claim(json.dumps(claim()))
+    before = (run / "seed/source_model.json").read_bytes()
+    saved = (run / "claims" / (row["id"] + ".json")).read_bytes()
+    toolkit.view_claim_evidence(row["id"])
+    corrected = toolkit.record_claim(json.dumps(claim(sources=[{"image": "plan.png", "box": [1, 1, 10, 7]}])))
+    toolkit.decide_claim(row["id"], "retracted", "wrong located region")
+    toolkit.view_claim_evidence(corrected["id"])
+    assert (run / "seed/source_model.json").read_bytes() == before
+    assert (run / "claims" / (row["id"] + ".json")).read_bytes() == saved
+    assert toolkit.claims().status()["applications"] == []
+    with pytest.raises(ValueError, match="coordinator"):
+        Toolkit(run, readonly=True).view_claim_evidence(row["id"])
+    for index in (-1, 1, True):
+        with pytest.raises(ValueError, match="source_index"):
+            toolkit.view_claim_evidence(row["id"], index)
+    Image.new("RGB", (12, 8), "red").save(run / "images/plan.png")
+    with pytest.raises(ValueError, match="image changed"):
+        toolkit.view_claim_evidence(row["id"])
+    # Even re-admitting changed bytes cannot make an old claim refer to them.
+    toolkit.manifest["images"]["plan.png"]["sha256"] = digest(run / "images/plan.png")
+    with pytest.raises(ValueError, match="claim original image changed"):
+        toolkit.view_claim_evidence(row["id"])
+
+
+def test_stdio_inferred_claim_without_images_has_no_preview(tmp_path):
+    async def scenario():
+        run, _ = setup_run(tmp_path)
+        async with _server_session(run, readonly=False) as session:
+            reply = await session.call_tool("record_claim", {"claim_json": json.dumps(claim(basis="inference", sources=[]))})
+            row = _json_result(reply)
+            assert row["evidence_previews"] == [] and row["unpreviewed_source_indices"] == []
+            assert not any(part.type == "image" for part in reply.content)
     asyncio.run(scenario())
