@@ -1,0 +1,210 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "fa1460f6981d006f03c864eefce6e0c0cbeaa63d4b277ecfba5e3051edd7e2a0",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        427.0,
+        0.0
+      ],
+      [
+        1813.0,
+        15000.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        1071.0,
+        0.0
+      ],
+      [
+        331.0,
+        8000.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "chk1",
+      "expected": "separate_spaces",
+      "evidence": "meeting room 1 vs meeting room 2, separated by partition at x~1120",
+      "points": [
+        {
+          "pixel": [
+            770.0,
+            470.0
+          ],
+          "world_xy_m": [
+            3712.121212121212,
+            6497.2972972972975
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:meeting_1",
+          "interior_space_ids": [
+            "F2:meeting_1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1470.0,
+            470.0
+          ],
+          "world_xy_m": [
+            11287.878787878788,
+            6497.2972972972975
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:meeting_2",
+          "interior_space_ids": [
+            "F2:meeting_2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk2",
+      "expected": "separate_spaces",
+      "evidence": "small office A2 vs B2, separated by partition x~773",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            930.0
+          ],
+          "world_xy_m": [
+            1872.294372294372,
+            1524.324324324325
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:office_A2",
+          "interior_space_ids": [
+            "F2:office_A2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            950.0,
+            930.0
+          ],
+          "world_xy_m": [
+            5660.173160173161,
+            1524.324324324325
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:office_B2",
+          "interior_space_ids": [
+            "F2:office_B2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk3",
+      "expected": "same_space",
+      "evidence": "corridor is one continuous open space",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            700.0
+          ],
+          "world_xy_m": [
+            790.0432900432897,
+            4010.810810810811
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:corridor_2f",
+          "interior_space_ids": [
+            "F2:corridor_2f"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1700.0,
+            700.0
+          ],
+          "world_xy_m": [
+            13777.056277056277,
+            4010.810810810811
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:corridor_2f",
+          "interior_space_ids": [
+            "F2:corridor_2f"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk4",
+      "expected": "separate_spaces",
+      "evidence": "bottom office A2 vs top meeting room 1, separated by corridor",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            930.0
+          ],
+          "world_xy_m": [
+            1872.294372294372,
+            1524.324324324325
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:office_A2",
+          "interior_space_ids": [
+            "F2:office_A2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            770.0,
+            470.0
+          ],
+          "world_xy_m": [
+            3712.121212121212,
+            6497.2972972972975
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:meeting_1",
+          "interior_space_ids": [
+            "F2:meeting_1"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_03",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "77dc534a3496e53868d13e0326424a868485dfcb0e6d85aa7fc36c849132a639",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 2118
+}

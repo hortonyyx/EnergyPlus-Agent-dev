@@ -1,0 +1,110 @@
+{
+  "runs": [
+    {
+      "run": "2026-09-27_sm21_guidance_control_run71",
+      "variant": "current",
+      "candidate": "candidate_07",
+      "counts": {
+        "floors": 2,
+        "spaces": 14,
+        "boundaries": 84,
+        "openings": 29,
+        "connections": 14
+      },
+      "positions": 25,
+      "hosts": 29,
+      "door_connections": 14,
+      "strict_partition": "severe",
+      "matched_spaces": 14,
+      "exterior_parameters_match": 16,
+      "room_use": {
+        "total_count": 14,
+        "recorded_count": 14,
+        "unrecorded_count": 0,
+        "observed_count": 0,
+        "inferred_count": 14,
+        "unknown_count": 0
+      },
+      "tools": {
+        "inputs": 1,
+        "get_bim_reference": 5,
+        "view_image": 36,
+        "pixel_profile": 30,
+        "build_plan_bim": 2,
+        "record_claim": 4,
+        "view_claim_evidence": 4,
+        "decide_claim": 4,
+        "revise_bim": 4,
+        "claim_application": 5,
+        "assemble_plan_bim": 2,
+        "check_source_space_relation": 2,
+        "check_openings": 1,
+        "confirm_claims": 1,
+        "finish_bim": 1
+      },
+      "model": [
+        "claude-sonnet-5"
+      ],
+      "elapsed_seconds": 1057.56,
+      "estimated_usd_not_bill": 4.267225200000001
+    },
+    {
+      "run": "2026-09-27_sm21_guidance_ablation_run72",
+      "variant": "baseline_policy",
+      "candidate": "candidate_06",
+      "counts": {
+        "floors": 2,
+        "spaces": 14,
+        "boundaries": 84,
+        "openings": 28,
+        "connections": 13
+      },
+      "positions": 0,
+      "hosts": 2,
+      "door_connections": 0,
+      "strict_partition": "severe",
+      "matched_spaces": 2,
+      "exterior_parameters_match": 0,
+      "room_use": {
+        "total_count": 14,
+        "recorded_count": 14,
+        "unrecorded_count": 0,
+        "observed_count": 2,
+        "inferred_count": 12,
+        "unknown_count": 0
+      },
+      "tools": {
+        "inputs": 1,
+        "get_bim_reference": 6,
+        "view_image": 33,
+        "view_pixel_region_overview": 2,
+        "pixel_profile": 30,
+        "build_plan_bim": 3,
+        "revise_plan_bim": 1,
+        "assemble_plan_bim": 2,
+        "check_source_space_relation": 2,
+        "revise_bim": 3,
+        "claim_application": 4,
+        "check_openings": 2,
+        "map_dimension_chain": 2,
+        "record_claim": 3,
+        "view_claim_evidence": 5,
+        "decide_claim": 3,
+        "confirm_claims": 2,
+        "inspect_candidate": 1,
+        "finish_bim": 1
+      },
+      "model": [
+        "claude-sonnet-5"
+      ],
+      "elapsed_seconds": 1200.66,
+      "estimated_usd_not_bill": 4.7460638
+    }
+  ],
+  "total_calls": 2,
+  "total_elapsed_seconds": 2258.2200000000003,
+  "total_estimated_usd_not_bill": 9.013289,
+  "production_changes": 0,
+  "conclusion": "Removing the selected top-level guidance paragraphs did not restore historical whole-building quality. Do not adopt this ablation or attribute causality from one pair.",
+  "remaining": "Tool inventory, automatic feedback, on-demand references and their interaction with guidance not isolated; no unique regression cause proved."
+}

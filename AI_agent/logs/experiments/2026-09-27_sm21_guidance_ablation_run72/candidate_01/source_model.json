@@ -1,0 +1,2955 @@
+{
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior door heights (corridor-office doors) assumed 2.1m; no elevation evidence for interior doors.",
+    "East corridor window height assumed same family (sill1.0/head2.8) as other exterior windows lacking direct East elevation pixel measurement in this pass.",
+    "Wall representative plane: exterior footprint uses outer wall faces; interior partitions/corridor walls use observed centerlines.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "boundaries": [
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/corridor_1f/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f"
+      ],
+      "space_id": "corridor_1f",
+      "vertices": [
+        [
+          0.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/corridor_1f/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f"
+      ],
+      "space_id": "corridor_1f",
+      "vertices": [
+        [
+          0.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "room_A_bot",
+        "room_B_bot",
+        "room_C_bot"
+      ],
+      "counterpart_ids": [
+        "space/room_A_bot/wall/2",
+        "space/room_B_bot/wall/2",
+        "space/room_C_bot/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/corridor_1f/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f"
+      ],
+      "space_id": "corridor_1f",
+      "vertices": [
+        [
+          0.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/corridor_1f/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f"
+      ],
+      "space_id": "corridor_1f",
+      "vertices": [
+        [
+          15000.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "office_A_top",
+        "office_B_top",
+        "office_C_top"
+      ],
+      "counterpart_ids": [
+        "space/office_A_top/wall/0",
+        "space/office_B_top/wall/0",
+        "space/office_C_top/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/corridor_1f/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f"
+      ],
+      "space_id": "corridor_1f",
+      "vertices": [
+        [
+          15000.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/corridor_1f/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f"
+      ],
+      "space_id": "corridor_1f",
+      "vertices": [
+        [
+          0.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/office_A_top/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top"
+      ],
+      "space_id": "office_A_top",
+      "vertices": [
+        [
+          0.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          3.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          3.0
+        ],
+        [
+          0.0,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/office_A_top/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top"
+      ],
+      "space_id": "office_A_top",
+      "vertices": [
+        [
+          0.0,
+          8000.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          0.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "corridor_1f"
+      ],
+      "counterpart_ids": [
+        "space/corridor_1f/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_A_top/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top"
+      ],
+      "space_id": "office_A_top",
+      "vertices": [
+        [
+          0.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          0.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          3.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "office_B_top"
+      ],
+      "counterpart_ids": [
+        "space/office_B_top/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_A_top/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top"
+      ],
+      "space_id": "office_A_top",
+      "vertices": [
+        [
+          4992.810927,
+          5009.446694,
+          0.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/office_A_top/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top"
+      ],
+      "space_id": "office_A_top",
+      "vertices": [
+        [
+          4992.810927,
+          8000.0,
+          0.0
+        ],
+        [
+          0.0,
+          8000.0,
+          0.0
+        ],
+        [
+          0.0,
+          8000.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/office_A_top/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top"
+      ],
+      "space_id": "office_A_top",
+      "vertices": [
+        [
+          0.0,
+          8000.0,
+          0.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          0.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          0.0,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/office_B_top/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top"
+      ],
+      "space_id": "office_B_top",
+      "vertices": [
+        [
+          4992.810927,
+          5009.446694,
+          3.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          3.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/office_B_top/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top"
+      ],
+      "space_id": "office_B_top",
+      "vertices": [
+        [
+          4992.810927,
+          8000.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          0.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "corridor_1f"
+      ],
+      "counterpart_ids": [
+        "space/corridor_1f/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_B_top/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top"
+      ],
+      "space_id": "office_B_top",
+      "vertices": [
+        [
+          4992.810927,
+          5009.446694,
+          0.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          0.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          3.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "office_C_top"
+      ],
+      "counterpart_ids": [
+        "space/office_C_top/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_B_top/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top"
+      ],
+      "space_id": "office_B_top",
+      "vertices": [
+        [
+          9996.405464,
+          5009.446694,
+          0.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/office_B_top/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top"
+      ],
+      "space_id": "office_B_top",
+      "vertices": [
+        [
+          9996.405464,
+          8000.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "office_A_top"
+      ],
+      "counterpart_ids": [
+        "space/office_A_top/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_B_top/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top"
+      ],
+      "space_id": "office_B_top",
+      "vertices": [
+        [
+          4992.810927,
+          8000.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          0.0
+        ],
+        [
+          4992.810927,
+          5009.446694,
+          3.0
+        ],
+        [
+          4992.810927,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/office_C_top/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top"
+      ],
+      "space_id": "office_C_top",
+      "vertices": [
+        [
+          9996.405464,
+          5009.446694,
+          3.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          15000.0,
+          8000.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/office_C_top/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top"
+      ],
+      "space_id": "office_C_top",
+      "vertices": [
+        [
+          9996.405464,
+          8000.0,
+          0.0
+        ],
+        [
+          15000.0,
+          8000.0,
+          0.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "corridor_1f"
+      ],
+      "counterpart_ids": [
+        "space/corridor_1f/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_C_top/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top"
+      ],
+      "space_id": "office_C_top",
+      "vertices": [
+        [
+          9996.405464,
+          5009.446694,
+          0.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          3.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/office_C_top/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top"
+      ],
+      "space_id": "office_C_top",
+      "vertices": [
+        [
+          15000.0,
+          5009.446694,
+          0.0
+        ],
+        [
+          15000.0,
+          8000.0,
+          0.0
+        ],
+        [
+          15000.0,
+          8000.0,
+          3.0
+        ],
+        [
+          15000.0,
+          5009.446694,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/office_C_top/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top"
+      ],
+      "space_id": "office_C_top",
+      "vertices": [
+        [
+          15000.0,
+          8000.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          3.0
+        ],
+        [
+          15000.0,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "office_B_top"
+      ],
+      "counterpart_ids": [
+        "space/office_B_top/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/office_C_top/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top"
+      ],
+      "space_id": "office_C_top",
+      "vertices": [
+        [
+          9996.405464,
+          8000.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          0.0
+        ],
+        [
+          9996.405464,
+          5009.446694,
+          3.0
+        ],
+        [
+          9996.405464,
+          8000.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/room_A_bot/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot"
+      ],
+      "space_id": "room_A_bot",
+      "vertices": [
+        [
+          0.0,
+          0.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          3.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/room_A_bot/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot"
+      ],
+      "space_id": "room_A_bot",
+      "vertices": [
+        [
+          0.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/room_A_bot/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot"
+      ],
+      "space_id": "room_A_bot",
+      "vertices": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "room_B_bot"
+      ],
+      "counterpart_ids": [
+        "space/room_B_bot/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_A_bot/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot"
+      ],
+      "space_id": "room_A_bot",
+      "vertices": [
+        [
+          4992.810927,
+          0.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          0.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          3.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "corridor_1f"
+      ],
+      "counterpart_ids": [
+        "space/corridor_1f/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_A_bot/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot"
+      ],
+      "space_id": "room_A_bot",
+      "vertices": [
+        [
+          4992.810927,
+          3001.349528,
+          0.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/room_A_bot/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot"
+      ],
+      "space_id": "room_A_bot",
+      "vertices": [
+        [
+          0.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/room_B_bot/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot"
+      ],
+      "space_id": "room_B_bot",
+      "vertices": [
+        [
+          4992.810927,
+          0.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          3.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/room_B_bot/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot"
+      ],
+      "space_id": "room_B_bot",
+      "vertices": [
+        [
+          4992.810927,
+          3001.349528,
+          0.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/room_B_bot/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot"
+      ],
+      "space_id": "room_B_bot",
+      "vertices": [
+        [
+          4992.810927,
+          0.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "room_C_bot"
+      ],
+      "counterpart_ids": [
+        "space/room_C_bot/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_B_bot/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot"
+      ],
+      "space_id": "room_B_bot",
+      "vertices": [
+        [
+          9996.405464,
+          0.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          0.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          3.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "corridor_1f"
+      ],
+      "counterpart_ids": [
+        "space/corridor_1f/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_B_bot/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot"
+      ],
+      "space_id": "room_B_bot",
+      "vertices": [
+        [
+          9996.405464,
+          3001.349528,
+          0.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          0.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          3.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "room_A_bot"
+      ],
+      "counterpart_ids": [
+        "space/room_A_bot/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_B_bot/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot"
+      ],
+      "space_id": "room_B_bot",
+      "vertices": [
+        [
+          4992.810927,
+          3001.349528,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0,
+          3.0
+        ],
+        [
+          4992.810927,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/room_C_bot/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot"
+      ],
+      "space_id": "room_C_bot",
+      "vertices": [
+        [
+          9996.405464,
+          0.0,
+          3.0
+        ],
+        [
+          15000.0,
+          0.0,
+          3.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/room_C_bot/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot"
+      ],
+      "space_id": "room_C_bot",
+      "vertices": [
+        [
+          9996.405464,
+          3001.349528,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          15000.0,
+          0.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/room_C_bot/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot"
+      ],
+      "space_id": "room_C_bot",
+      "vertices": [
+        [
+          9996.405464,
+          0.0,
+          0.0
+        ],
+        [
+          15000.0,
+          0.0,
+          0.0
+        ],
+        [
+          15000.0,
+          0.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/room_C_bot/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot"
+      ],
+      "space_id": "room_C_bot",
+      "vertices": [
+        [
+          15000.0,
+          0.0,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          3.0
+        ],
+        [
+          15000.0,
+          0.0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "corridor_1f"
+      ],
+      "counterpart_ids": [
+        "space/corridor_1f/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_C_bot/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot"
+      ],
+      "space_id": "room_C_bot",
+      "vertices": [
+        [
+          15000.0,
+          3001.349528,
+          0.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          0.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          3.0
+        ],
+        [
+          15000.0,
+          3001.349528,
+          3.0
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "room_B_bot"
+      ],
+      "counterpart_ids": [
+        "space/room_B_bot/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/room_C_bot/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot"
+      ],
+      "space_id": "room_C_bot",
+      "vertices": [
+        [
+          9996.405464,
+          3001.349528,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0,
+          3.0
+        ],
+        [
+          9996.405464,
+          3001.349528,
+          3.0
+        ]
+      ]
+    }
+  ],
+  "boundary_relations": [
+    {
+      "boundary_ids": [
+        "space/corridor_1f/wall/0",
+        "space/room_A_bot/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14978.432781000001,
+          "holes": [],
+          "vertices": [
+            [
+              0.0,
+              3001.349528,
+              0.0
+            ],
+            [
+              0.0,
+              3001.349528,
+              3.0
+            ],
+            [
+              4992.810927,
+              3001.349528,
+              3.0
+            ],
+            [
+              4992.810927,
+              3001.349528,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "room_A_bot"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/corridor_1f/wall/0",
+        "space/room_B_bot/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 15010.783610999997,
+          "holes": [],
+          "vertices": [
+            [
+              4992.810927,
+              3001.349528,
+              0.0
+            ],
+            [
+              4992.810927,
+              3001.349528,
+              3.0
+            ],
+            [
+              9996.405464,
+              3001.349528,
+              3.0
+            ],
+            [
+              9996.405464,
+              3001.349528,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "room_B_bot"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/corridor_1f/wall/0",
+        "space/room_C_bot/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 15010.783608000002,
+          "holes": [],
+          "vertices": [
+            [
+              9996.405464,
+              3001.349528,
+              0.0
+            ],
+            [
+              9996.405464,
+              3001.349528,
+              3.0
+            ],
+            [
+              15000.0,
+              3001.349528,
+              3.0
+            ],
+            [
+              15000.0,
+              3001.349528,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "room_C_bot"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/corridor_1f/wall/2",
+        "space/office_A_top/wall/0"
+      ],
+      "regions": [
+        {
+          "area_m2": 14978.432781000001,
+          "holes": [],
+          "vertices": [
+            [
+              4992.810927,
+              5009.446694,
+              0.0
+            ],
+            [
+              4992.810927,
+              5009.446694,
+              3.0
+            ],
+            [
+              0.0,
+              5009.446694,
+              3.0
+            ],
+            [
+              0.0,
+              5009.446694,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "office_A_top"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/corridor_1f/wall/2",
+        "space/office_B_top/wall/0"
+      ],
+      "regions": [
+        {
+          "area_m2": 15010.783610999997,
+          "holes": [],
+          "vertices": [
+            [
+              9996.405464,
+              5009.446694,
+              0.0
+            ],
+            [
+              9996.405464,
+              5009.446694,
+              3.0
+            ],
+            [
+              4992.810927,
+              5009.446694,
+              3.0
+            ],
+            [
+              4992.810927,
+              5009.446694,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "office_B_top"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/corridor_1f/wall/2",
+        "space/office_C_top/wall/0"
+      ],
+      "regions": [
+        {
+          "area_m2": 15010.783608000002,
+          "holes": [],
+          "vertices": [
+            [
+              15000.0,
+              5009.446694,
+              0.0
+            ],
+            [
+              15000.0,
+              5009.446694,
+              3.0
+            ],
+            [
+              9996.405464,
+              5009.446694,
+              3.0
+            ],
+            [
+              9996.405464,
+              5009.446694,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "office_C_top"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/office_A_top/wall/1",
+        "space/office_B_top/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 8971.659918,
+          "holes": [],
+          "vertices": [
+            [
+              4992.810927,
+              5009.446694,
+              0.0
+            ],
+            [
+              4992.810927,
+              5009.446694,
+              3.0
+            ],
+            [
+              4992.810927,
+              8000.0,
+              3.0
+            ],
+            [
+              4992.810927,
+              8000.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "office_A_top",
+        "office_B_top"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/office_B_top/wall/1",
+        "space/office_C_top/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 8971.659918,
+          "holes": [],
+          "vertices": [
+            [
+              9996.405464,
+              5009.446694,
+              0.0
+            ],
+            [
+              9996.405464,
+              5009.446694,
+              3.0
+            ],
+            [
+              9996.405464,
+              8000.0,
+              3.0
+            ],
+            [
+              9996.405464,
+              8000.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "office_B_top",
+        "office_C_top"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/room_A_bot/wall/1",
+        "space/room_B_bot/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 9004.048584,
+          "holes": [],
+          "vertices": [
+            [
+              4992.810927,
+              0.0,
+              0.0
+            ],
+            [
+              4992.810927,
+              0.0,
+              3.0
+            ],
+            [
+              4992.810927,
+              3001.349528,
+              3.0
+            ],
+            [
+              4992.810927,
+              3001.349528,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "room_A_bot",
+        "room_B_bot"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/room_B_bot/wall/1",
+        "space/room_C_bot/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 9004.048584,
+          "holes": [],
+          "vertices": [
+            [
+              9996.405464,
+              0.0,
+              0.0
+            ],
+            [
+              9996.405464,
+              0.0,
+              3.0
+            ],
+            [
+              9996.405464,
+              3001.349528,
+              3.0
+            ],
+            [
+              9996.405464,
+              3001.349528,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "room_B_bot",
+        "room_C_bot"
+      ]
+    }
+  ],
+  "conflicts": [],
+  "connections": [
+    {
+      "exterior": true,
+      "kind": "door",
+      "opening_id": "D_west_entry",
+      "space_ids": [
+        "corridor_1f"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_A_top",
+      "space_ids": [
+        "corridor_1f",
+        "office_A_top"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_B_top",
+      "space_ids": [
+        "corridor_1f",
+        "office_B_top"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C_top",
+      "space_ids": [
+        "corridor_1f",
+        "office_C_top"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_A_bot",
+      "space_ids": [
+        "corridor_1f",
+        "room_A_bot"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_B_bot",
+      "space_ids": [
+        "corridor_1f",
+        "room_B_bot"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C_bot",
+      "space_ids": [
+        "corridor_1f",
+        "room_C_bot"
+      ],
+      "state": "unknown"
+    }
+  ],
+  "coordinate_system": {
+    "frame": "corrected building coordinates",
+    "north_axis": null,
+    "units": "m",
+    "up_axis": "Z"
+  },
+  "corrections": [],
+  "floors": [
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15000.0,
+          0.0
+        ],
+        [
+          15000.0,
+          8000.0
+        ],
+        [
+          0.0,
+          8000.0
+        ]
+      ],
+      "footprint_basis": "legacy_common_footprint",
+      "height": 3.0,
+      "id": "F1",
+      "name": "F1",
+      "z_floor": 0.0
+    }
+  ],
+  "generation": {
+    "corrections": [],
+    "method": "agent_geometry_proposal",
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "proposal_sha256": "b99232c6bdc0a337409e310c901d3c5e949aba19cf04eb351ae838b9c241c5ec",
+    "provenance": {
+      "generator": "claude subscription tool loop",
+      "input_manifest_sha256": "e2051da2f52d235ed02825e53d9488d6f41ed1f11a44dd1a6f3af715931774e8",
+      "mode": "original_images_agent_experiment",
+      "plan_input": {
+        "compilation_file": "plan_drafts/draft_002/compilation.json",
+        "compilation_sha256": "5d823530fb85f4a853ddfcd6394534aed2ec14b3d25134b64583adeac6c0f18a",
+        "draft_view": {
+          "draft_only": true,
+          "drawing_fidelity": "not_evaluated",
+          "image_file": "plan_drafts/draft_002/draft_view.png",
+          "image_sha256": "e616c0cb59a9e27e463a468e2d9a78ed575922fdd304f19a81dcc01e63d9347f",
+          "metadata_file": "plan_drafts/draft_002/draft_view.json",
+          "metadata_sha256": "4978760faba47acfc6f3a96534a81e61d8facd43b46657046ba57f5a13a8f89b",
+          "source_geometry_ready": false,
+          "unrenderable": [],
+          "unrenderable_count": 0
+        },
+        "image": "1f_view.png",
+        "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "plan_file": "plan_drafts/draft_002/plan.json",
+        "plan_sha256": "d8d7c22bd6d6341324d36e969f71396e811792be602c703d90ebe8fad2c0c2f8",
+        "revision": {
+          "file": "plan_revisions/revision_001.json",
+          "parent_draft_id": "draft_001",
+          "parent_plan_sha256": "b24a950c33bd1ec8b39fd8c4ed4490783ee878e09a3dc1ea2663c9f51e7c38a8",
+          "sha256": "8125bdcf8f98edf3a02e00e6d7a77903312fdebdd6a1cf9ce10ae16d1aa82edc"
+        }
+      }
+    },
+    "unresolved": [
+      "Exact door leaf swing direction/state not verified beyond presence.",
+      "Bottom-left room furniture (sofa+L-desk) suggests possible reception/manager office; classified as office/enclosed pending further evidence.",
+      "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+    ]
+  },
+  "opening_hosts": {
+    "D_A_bot": [
+      "space/corridor_1f/wall/0",
+      "space/room_A_bot/wall/2"
+    ],
+    "D_A_top": [
+      "space/corridor_1f/wall/2",
+      "space/office_A_top/wall/0"
+    ],
+    "D_B_bot": [
+      "space/corridor_1f/wall/0",
+      "space/room_B_bot/wall/2"
+    ],
+    "D_B_top": [
+      "space/corridor_1f/wall/2",
+      "space/office_B_top/wall/0"
+    ],
+    "D_C_bot": [
+      "space/corridor_1f/wall/0",
+      "space/room_C_bot/wall/2"
+    ],
+    "D_C_top": [
+      "space/corridor_1f/wall/2",
+      "space/office_C_top/wall/0"
+    ],
+    "D_west_entry": [
+      "space/corridor_1f/wall/3"
+    ],
+    "W_E_corr": [
+      "space/corridor_1f/wall/1"
+    ],
+    "W_N_A": [
+      "space/office_A_top/wall/2"
+    ],
+    "W_N_B": [
+      "space/office_B_top/wall/2"
+    ],
+    "W_N_C": [
+      "space/office_C_top/wall/2"
+    ],
+    "W_S_A": [
+      "space/room_A_bot/wall/0"
+    ],
+    "W_S_B": [
+      "space/room_B_bot/wall/0"
+    ],
+    "W_S_C": [
+      "space/room_C_bot/wall/0"
+    ]
+  },
+  "openings": [
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/corridor_1f/wall/0",
+      "id": "D_A_bot",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: door from corridor into bottom room A; height assumed"
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "room_A_bot"
+      ],
+      "vertices": [
+        [
+          3741.912293,
+          3001.349528,
+          0.0
+        ],
+        [
+          4636.951833,
+          3001.349528,
+          0.0
+        ],
+        [
+          4636.951833,
+          3001.349528,
+          2.1
+        ],
+        [
+          3741.912293,
+          3001.349528,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/corridor_1f/wall/2",
+      "id": "D_A_top",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: door from corridor into top office A; height assumed standard interior door, no elevation evidence for interior doors"
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "office_A_top"
+      ],
+      "vertices": [
+        [
+          3741.912293,
+          5009.446694,
+          0.0
+        ],
+        [
+          4636.951833,
+          5009.446694,
+          0.0
+        ],
+        [
+          4636.951833,
+          5009.446694,
+          2.1
+        ],
+        [
+          3741.912293,
+          5009.446694,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/corridor_1f/wall/0",
+      "id": "D_B_bot",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: door from corridor into bottom room B; height assumed"
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "room_B_bot"
+      ],
+      "vertices": [
+        [
+          5359.45363,
+          3001.349528,
+          0.0
+        ],
+        [
+          6254.49317,
+          3001.349528,
+          0.0
+        ],
+        [
+          6254.49317,
+          3001.349528,
+          2.1
+        ],
+        [
+          5359.45363,
+          3001.349528,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/corridor_1f/wall/2",
+      "id": "D_B_top",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: door from corridor into top office B; height assumed"
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "office_B_top"
+      ],
+      "vertices": [
+        [
+          5359.45363,
+          5009.446694,
+          0.0
+        ],
+        [
+          6254.49317,
+          5009.446694,
+          0.0
+        ],
+        [
+          6254.49317,
+          5009.446694,
+          2.1
+        ],
+        [
+          5359.45363,
+          5009.446694,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/corridor_1f/wall/0",
+      "id": "D_C_bot",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: door from corridor into bottom room C (round-table room); height assumed"
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "room_C_bot"
+      ],
+      "vertices": [
+        [
+          10352.264558,
+          3001.349528,
+          0.0
+        ],
+        [
+          11258.087707,
+          3001.349528,
+          0.0
+        ],
+        [
+          11258.087707,
+          3001.349528,
+          2.1
+        ],
+        [
+          10352.264558,
+          3001.349528,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/corridor_1f/wall/2",
+      "id": "D_C_top",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: door from corridor into top office C; height assumed"
+      ],
+      "space_ids": [
+        "corridor_1f",
+        "office_C_top"
+      ],
+      "vertices": [
+        [
+          10352.264558,
+          5009.446694,
+          0.0
+        ],
+        [
+          11258.087707,
+          5009.446694,
+          0.0
+        ],
+        [
+          11258.087707,
+          5009.446694,
+          2.1
+        ],
+        [
+          10352.264558,
+          5009.446694,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/corridor_1f/wall/3",
+      "id": "D_west_entry",
+      "kind": "door",
+      "source_refs": [
+        "1f_view.png: west wall double-door entrance into corridor; West_view.png shows matching double door, height measured ~2.1m from elevation pixels"
+      ],
+      "space_ids": [
+        "corridor_1f"
+      ],
+      "vertices": [
+        [
+          0.0,
+          4750.337382,
+          0.0
+        ],
+        [
+          0.0,
+          3249.662618,
+          0.0
+        ],
+        [
+          0.0,
+          3249.662618,
+          2.1
+        ],
+        [
+          0.0,
+          4750.337382,
+          2.1
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/corridor_1f/wall/1",
+      "id": "W_E_corr",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_E_corr"
+      ],
+      "space_ids": [
+        "corridor_1f"
+      ],
+      "vertices": [
+        [
+          15000.0,
+          3390.013495,
+          1.0
+        ],
+        [
+          15000.0,
+          4599.190283,
+          1.0
+        ],
+        [
+          15000.0,
+          4599.190283,
+          2.8
+        ],
+        [
+          15000.0,
+          3390.013495,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/office_A_top/wall/2",
+      "id": "W_N_A",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_N_A"
+      ],
+      "space_ids": [
+        "office_A_top"
+      ],
+      "vertices": [
+        [
+          1240.115025,
+          8000.0,
+          2.8
+        ],
+        [
+          3644.859813,
+          8000.0,
+          2.8
+        ],
+        [
+          3644.859813,
+          8000.0,
+          1.0
+        ],
+        [
+          1240.115025,
+          8000.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/office_B_top/wall/2",
+      "id": "W_N_B",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_N_B"
+      ],
+      "space_ids": [
+        "office_B_top"
+      ],
+      "vertices": [
+        [
+          6308.411215,
+          8000.0,
+          2.8
+        ],
+        [
+          8680.805176,
+          8000.0,
+          2.8
+        ],
+        [
+          8680.805176,
+          8000.0,
+          1.0
+        ],
+        [
+          6308.411215,
+          8000.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/office_C_top/wall/2",
+      "id": "W_N_C",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_N_C"
+      ],
+      "space_ids": [
+        "office_C_top"
+      ],
+      "vertices": [
+        [
+          11365.923796,
+          8000.0,
+          2.8
+        ],
+        [
+          13749.101366,
+          8000.0,
+          2.8
+        ],
+        [
+          13749.101366,
+          8000.0,
+          1.0
+        ],
+        [
+          11365.923796,
+          8000.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/room_A_bot/wall/0",
+      "id": "W_S_A",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_S_A"
+      ],
+      "space_ids": [
+        "room_A_bot"
+      ],
+      "vertices": [
+        [
+          3450.754853,
+          0.0,
+          1.0
+        ],
+        [
+          4626.168224,
+          0.0,
+          1.0
+        ],
+        [
+          4626.168224,
+          0.0,
+          2.8
+        ],
+        [
+          3450.754853,
+          0.0,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/room_B_bot/wall/0",
+      "id": "W_S_B",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_S_B"
+      ],
+      "space_ids": [
+        "room_B_bot"
+      ],
+      "vertices": [
+        [
+          6308.411215,
+          0.0,
+          1.0
+        ],
+        [
+          8680.805176,
+          0.0,
+          1.0
+        ],
+        [
+          8680.805176,
+          0.0,
+          2.8
+        ],
+        [
+          6308.411215,
+          0.0,
+          2.8
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/room_C_bot/wall/0",
+      "id": "W_S_C",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W_S_C"
+      ],
+      "space_ids": [
+        "room_C_bot"
+      ],
+      "vertices": [
+        [
+          11355.140187,
+          0.0,
+          1.0
+        ],
+        [
+          13759.884975,
+          0.0,
+          1.0
+        ],
+        [
+          13759.884975,
+          0.0,
+          2.8
+        ],
+        [
+          11355.140187,
+          0.0,
+          2.8
+        ]
+      ]
+    }
+  ],
+  "public_names": {
+    "boundaries": {
+      "space/corridor_1f/ceiling": "Z04_Ceiling",
+      "space/corridor_1f/floor": "Z04_Floor",
+      "space/corridor_1f/wall/0": "Z04_W1",
+      "space/corridor_1f/wall/1": "Z04_W2",
+      "space/corridor_1f/wall/2": "Z04_W3",
+      "space/corridor_1f/wall/3": "Z04_W4",
+      "space/office_A_top/ceiling": "Z01_Ceiling",
+      "space/office_A_top/floor": "Z01_Floor",
+      "space/office_A_top/wall/0": "Z01_W1",
+      "space/office_A_top/wall/1": "Z01_W2",
+      "space/office_A_top/wall/2": "Z01_W3",
+      "space/office_A_top/wall/3": "Z01_W4",
+      "space/office_B_top/ceiling": "Z02_Ceiling",
+      "space/office_B_top/floor": "Z02_Floor",
+      "space/office_B_top/wall/0": "Z02_W1",
+      "space/office_B_top/wall/1": "Z02_W2",
+      "space/office_B_top/wall/2": "Z02_W3",
+      "space/office_B_top/wall/3": "Z02_W4",
+      "space/office_C_top/ceiling": "Z03_Ceiling",
+      "space/office_C_top/floor": "Z03_Floor",
+      "space/office_C_top/wall/0": "Z03_W1",
+      "space/office_C_top/wall/1": "Z03_W2",
+      "space/office_C_top/wall/2": "Z03_W3",
+      "space/office_C_top/wall/3": "Z03_W4",
+      "space/room_A_bot/ceiling": "Z05_Ceiling",
+      "space/room_A_bot/floor": "Z05_Floor",
+      "space/room_A_bot/wall/0": "Z05_W1",
+      "space/room_A_bot/wall/1": "Z05_W2",
+      "space/room_A_bot/wall/2": "Z05_W3",
+      "space/room_A_bot/wall/3": "Z05_W4",
+      "space/room_B_bot/ceiling": "Z06_Ceiling",
+      "space/room_B_bot/floor": "Z06_Floor",
+      "space/room_B_bot/wall/0": "Z06_W1",
+      "space/room_B_bot/wall/1": "Z06_W2",
+      "space/room_B_bot/wall/2": "Z06_W3",
+      "space/room_B_bot/wall/3": "Z06_W4",
+      "space/room_C_bot/ceiling": "Z07_Ceiling",
+      "space/room_C_bot/floor": "Z07_Floor",
+      "space/room_C_bot/wall/0": "Z07_W1",
+      "space/room_C_bot/wall/1": "Z07_W2",
+      "space/room_C_bot/wall/2": "Z07_W3",
+      "space/room_C_bot/wall/3": "Z07_W4"
+    },
+    "direction_frame": "model XY: +X=E, +Y=N; not a geographic north assertion",
+    "floors": {
+      "F1": "F1"
+    },
+    "opening_sides": {
+      "D_A_bot": {
+        "space/corridor_1f/wall/0": "Z04_W1_Door1",
+        "space/room_A_bot/wall/2": "Z05_W3_Door1"
+      },
+      "D_A_top": {
+        "space/corridor_1f/wall/2": "Z04_W3_Door3",
+        "space/office_A_top/wall/0": "Z01_W1_Door1"
+      },
+      "D_B_bot": {
+        "space/corridor_1f/wall/0": "Z04_W1_Door2",
+        "space/room_B_bot/wall/2": "Z06_W3_Door1"
+      },
+      "D_B_top": {
+        "space/corridor_1f/wall/2": "Z04_W3_Door2",
+        "space/office_B_top/wall/0": "Z02_W1_Door1"
+      },
+      "D_C_bot": {
+        "space/corridor_1f/wall/0": "Z04_W1_Door3",
+        "space/room_C_bot/wall/2": "Z07_W3_Door1"
+      },
+      "D_C_top": {
+        "space/corridor_1f/wall/2": "Z04_W3_Door1",
+        "space/office_C_top/wall/0": "Z03_W1_Door1"
+      },
+      "D_west_entry": {
+        "space/corridor_1f/wall/3": "Z04_W4_Door1"
+      },
+      "W_E_corr": {
+        "space/corridor_1f/wall/1": "Z04_W2_Win1"
+      },
+      "W_N_A": {
+        "space/office_A_top/wall/2": "Z01_W3_Win1"
+      },
+      "W_N_B": {
+        "space/office_B_top/wall/2": "Z02_W3_Win1"
+      },
+      "W_N_C": {
+        "space/office_C_top/wall/2": "Z03_W3_Win1"
+      },
+      "W_S_A": {
+        "space/room_A_bot/wall/0": "Z05_W1_Win1"
+      },
+      "W_S_B": {
+        "space/room_B_bot/wall/0": "Z06_W1_Win1"
+      },
+      "W_S_C": {
+        "space/room_C_bot/wall/0": "Z07_W1_Win1"
+      }
+    },
+    "openings": {
+      "D_A_bot": "Z04_W1_Door1",
+      "D_A_top": "Z01_W1_Door1",
+      "D_B_bot": "Z04_W1_Door2",
+      "D_B_top": "Z02_W1_Door1",
+      "D_C_bot": "Z04_W1_Door3",
+      "D_C_top": "Z03_W1_Door1",
+      "D_west_entry": "Z04_W4_Door1",
+      "W_E_corr": "Z04_W2_Win1",
+      "W_N_A": "Z01_W3_Win1",
+      "W_N_B": "Z02_W3_Win1",
+      "W_N_C": "Z03_W3_Win1",
+      "W_S_A": "Z05_W1_Win1",
+      "W_S_B": "Z06_W1_Win1",
+      "W_S_C": "Z07_W1_Win1"
+    },
+    "scheme_version": "bim_names_v1",
+    "spaces": {
+      "corridor_1f": "Z04_F1_Corridor_N",
+      "office_A_top": "Z01_F1_Office_Enclosed_NW",
+      "office_B_top": "Z02_F1_Office_Enclosed_NW",
+      "office_C_top": "Z03_F1_Office_Enclosed_NE",
+      "room_A_bot": "Z05_F1_Office_Enclosed_SW",
+      "room_B_bot": "Z06_F1_Office_Enclosed_SW",
+      "room_C_bot": "Z07_F1_Conference_Meeting_Multipurpose_SE"
+    }
+  },
+  "room_type_catalog": {
+    "schema_version": "room_types_v1",
+    "sha256": "06137438aa8cee4e7a008a54dc07a468bee280e50e3a2f65aed5af7321125ee5",
+    "source": {
+      "commit": "83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663",
+      "license": "openstudio/LICENSE.md",
+      "name": "OpenStudio(R) standards — level 1 space types",
+      "path": "lib/openstudio-standards/space_type/data/level_1_space_types.json",
+      "repository": "https://github.com/NatLabRockies/openstudio-standards",
+      "retrieved_on": "2026-09-27",
+      "sha256": "e2a99276bf824fc38a5ae43720c5f447dbcfbccec41cb03c1fad88fb6eb16b25",
+      "url": "https://github.com/NatLabRockies/openstudio-standards/blob/83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663/lib/openstudio-standards/space_type/data/level_1_space_types.json"
+    }
+  },
+  "schema_version": "source_bim_v2",
+  "source_geometry_sha256": "eec08434bb9bf7fdaac975d99e1a0d9a48e548211081eca463412cf1a1688c6e",
+  "source_model_sha256": "9e6ba17e368dc3bad331ba956563e4cc23604ea1a67d8a93721fe557efc13a6f",
+  "spaces": [
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "corridor_1f",
+      "polygon": [
+        [
+          0.0,
+          3001.349528
+        ],
+        [
+          15000.0,
+          3001.349528
+        ],
+        [
+          15000.0,
+          5009.446694
+        ],
+        [
+          0.0,
+          5009.446694
+        ]
+      ],
+      "role": "corridor",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/corridor_1f",
+        "image:1f_view.png",
+        "1f_view.png: double-line wall between corridor and top-row rooms, with 3 door apertures declared separately",
+        "1f_view.png: double-line wall between corridor and bottom-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    },
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "office_A_top",
+      "polygon": [
+        [
+          0.0,
+          5009.446694
+        ],
+        [
+          4992.810927,
+          5009.446694
+        ],
+        [
+          4992.810927,
+          8000.0
+        ],
+        [
+          0.0,
+          8000.0
+        ]
+      ],
+      "role": "office/enclosed",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/office_A_top",
+        "image:1f_view.png",
+        "1f_view.png: thin vertical divider between top-row offices A/B, from north wall to corridor wall",
+        "1f_view.png: double-line wall between corridor and top-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    },
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "office_B_top",
+      "polygon": [
+        [
+          4992.810927,
+          5009.446694
+        ],
+        [
+          9996.405464,
+          5009.446694
+        ],
+        [
+          9996.405464,
+          8000.0
+        ],
+        [
+          4992.810927,
+          8000.0
+        ]
+      ],
+      "role": "office/enclosed",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/office_B_top",
+        "image:1f_view.png",
+        "1f_view.png: thin vertical divider between top-row offices A/B, from north wall to corridor wall",
+        "1f_view.png: thin vertical divider between top-row offices B/C",
+        "1f_view.png: double-line wall between corridor and top-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    },
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "office_C_top",
+      "polygon": [
+        [
+          9996.405464,
+          5009.446694
+        ],
+        [
+          15000.0,
+          5009.446694
+        ],
+        [
+          15000.0,
+          8000.0
+        ],
+        [
+          9996.405464,
+          8000.0
+        ]
+      ],
+      "role": "office/enclosed",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/office_C_top",
+        "image:1f_view.png",
+        "1f_view.png: thin vertical divider between top-row offices B/C",
+        "1f_view.png: double-line wall between corridor and top-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    },
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "room_A_bot",
+      "polygon": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4992.810927,
+          0.0
+        ],
+        [
+          4992.810927,
+          3001.349528
+        ],
+        [
+          0.0,
+          3001.349528
+        ]
+      ],
+      "role": "office/enclosed",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/room_A_bot",
+        "image:1f_view.png",
+        "1f_view.png: thin vertical divider between bottom-row rooms A/B",
+        "1f_view.png: double-line wall between corridor and bottom-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    },
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "room_B_bot",
+      "polygon": [
+        [
+          4992.810927,
+          0.0
+        ],
+        [
+          9996.405464,
+          0.0
+        ],
+        [
+          9996.405464,
+          3001.349528
+        ],
+        [
+          4992.810927,
+          3001.349528
+        ]
+      ],
+      "role": "office/enclosed",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/room_B_bot",
+        "image:1f_view.png",
+        "1f_view.png: thin vertical divider between bottom-row rooms A/B",
+        "1f_view.png: thin vertical divider between bottom-row rooms B/C",
+        "1f_view.png: double-line wall between corridor and bottom-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    },
+    {
+      "assumptions": [],
+      "floor_id": "F1",
+      "height": 3.0,
+      "id": "room_C_bot",
+      "polygon": [
+        [
+          9996.405464,
+          0.0
+        ],
+        [
+          15000.0,
+          0.0
+        ],
+        [
+          15000.0,
+          3001.349528
+        ],
+        [
+          9996.405464,
+          3001.349528
+        ]
+      ],
+      "role": "conference/meeting/multipurpose",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/F1/cell/room_C_bot",
+        "image:1f_view.png",
+        "1f_view.png: thin vertical divider between bottom-row rooms B/C",
+        "1f_view.png: double-line wall between corridor and bottom-row rooms, with 3 door apertures declared separately"
+      ],
+      "z_floor": 0.0
+    }
+  ],
+  "unbuilt_openings": [],
+  "unsupported": [],
+  "validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  }
+}

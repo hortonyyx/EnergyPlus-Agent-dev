@@ -1,0 +1,1187 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "2f_view.png",
+  "image_size": [
+    2182,
+    1319
+  ],
+  "floor_id": "F2",
+  "basis": "2f_view.png: overall 15000x8000 outer-wall-face dimension lines (x-run px428-1812=15000mm; y-run px345-1071=8000mm), matching gray wall-face pixel evidence. Top dimension chain 1950+3600+1889+[120gap]+1891+3600+1950=15000 shows a single partition at world x=7.5m for the top row (2 large rooms). Bottom dimension chain 2190+1200+360+360+1200+2190 (x2)=15000 shows partitions at world x=3.75,7.5,11.25 for the bottom row (4 small rooms). Left dimension 3000+400+1200+400+3000=8000 gives corridor interior between two 400mm walls at world y=3.0-5.0; wall thin-line evidence places representative corridor wall lines at pixel y=600(top) and y=798(bottom).",
+  "space_count": 7,
+  "space_mapping": [
+    {
+      "space_id": "top_room1",
+      "role": "meeting_room",
+      "pixel_polygon": [
+        [
+          428.0,
+          345.0
+        ],
+        [
+          1120.0,
+          345.0
+        ],
+        [
+          1120.0,
+          600.0
+        ],
+        [
+          428.0,
+          600.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          5.190083
+        ],
+        [
+          7.5,
+          5.190083
+        ],
+        [
+          7.5,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          7.5
+        ],
+        "y": [
+          5.190083,
+          8.0
+        ]
+      },
+      "partition_ids": [
+        "corridor_top",
+        "p_top_mid"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: single top-row partition at world x=7.5m, gray pier support px941-1299 at north wall band, jamb ticks at px1114/1125 on corridor wall",
+        "2f_view.png: corridor north wall, measured thin wall-line centerline y~595-605"
+      ],
+      "seed": {
+        "id": "top_room1",
+        "point_pixel": [
+          700.0,
+          470.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "top_room2",
+      "role": "meeting_room",
+      "pixel_polygon": [
+        [
+          1120.0,
+          345.0
+        ],
+        [
+          1812.0,
+          345.0
+        ],
+        [
+          1812.0,
+          600.0
+        ],
+        [
+          1120.0,
+          600.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          7.5,
+          5.190083
+        ],
+        [
+          15.0,
+          5.190083
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          7.5,
+          8.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          7.5,
+          15.0
+        ],
+        "y": [
+          5.190083,
+          8.0
+        ]
+      },
+      "partition_ids": [
+        "corridor_top",
+        "p_top_mid"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: single top-row partition at world x=7.5m, gray pier support px941-1299 at north wall band, jamb ticks at px1114/1125 on corridor wall",
+        "2f_view.png: corridor north wall, measured thin wall-line centerline y~595-605"
+      ],
+      "seed": {
+        "id": "top_room2",
+        "point_pixel": [
+          1500.0,
+          470.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "corridor2",
+      "role": "corridor",
+      "pixel_polygon": [
+        [
+          428.0,
+          600.0
+        ],
+        [
+          1812.0,
+          600.0
+        ],
+        [
+          1812.0,
+          798.0
+        ],
+        [
+          428.0,
+          798.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          3.008264
+        ],
+        [
+          15.0,
+          3.008264
+        ],
+        [
+          15.0,
+          5.190083
+        ],
+        [
+          0.0,
+          5.190083
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          3.008264,
+          5.190083
+        ]
+      },
+      "partition_ids": [
+        "corridor_bot",
+        "corridor_top"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: corridor north wall, measured thin wall-line centerline y~595-605",
+        "2f_view.png: corridor south wall, measured thin wall-line centerline y~793-803"
+      ],
+      "seed": {
+        "id": "corridor2",
+        "point_pixel": [
+          1100.0,
+          700.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "bot_room1",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          428.0,
+          798.0
+        ],
+        [
+          774.0,
+          798.0
+        ],
+        [
+          774.0,
+          1071.0
+        ],
+        [
+          428.0,
+          1071.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          3.75,
+          0.0
+        ],
+        [
+          3.75,
+          3.008264
+        ],
+        [
+          0.0,
+          3.008264
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          3.75
+        ],
+        "y": [
+          0.0,
+          3.008264
+        ]
+      },
+      "partition_ids": [
+        "corridor_bot",
+        "p_bot_1"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: bottom-row partition 1 at world x=3.75m, jamb ticks px768/779 on corridor wall",
+        "2f_view.png: corridor south wall, measured thin wall-line centerline y~793-803"
+      ],
+      "seed": {
+        "id": "bot_room1",
+        "point_pixel": [
+          600.0,
+          950.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "bot_room2",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          774.0,
+          798.0
+        ],
+        [
+          1120.0,
+          798.0
+        ],
+        [
+          1120.0,
+          1071.0
+        ],
+        [
+          774.0,
+          1071.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          3.75,
+          0.0
+        ],
+        [
+          7.5,
+          0.0
+        ],
+        [
+          7.5,
+          3.008264
+        ],
+        [
+          3.75,
+          3.008264
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          3.75,
+          7.5
+        ],
+        "y": [
+          0.0,
+          3.008264
+        ]
+      },
+      "partition_ids": [
+        "corridor_bot",
+        "p_bot_1",
+        "p_bot_2"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: bottom-row partition 1 at world x=3.75m, jamb ticks px768/779 on corridor wall",
+        "2f_view.png: bottom-row partition 2 at world x=7.5m (aligned with top partition), jamb ticks px1114/1125",
+        "2f_view.png: corridor south wall, measured thin wall-line centerline y~793-803"
+      ],
+      "seed": {
+        "id": "bot_room2",
+        "point_pixel": [
+          950.0,
+          950.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "bot_room3",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          1120.0,
+          798.0
+        ],
+        [
+          1466.0,
+          798.0
+        ],
+        [
+          1466.0,
+          1071.0
+        ],
+        [
+          1120.0,
+          1071.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          7.5,
+          0.0
+        ],
+        [
+          11.25,
+          0.0
+        ],
+        [
+          11.25,
+          3.008264
+        ],
+        [
+          7.5,
+          3.008264
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          7.5,
+          11.25
+        ],
+        "y": [
+          0.0,
+          3.008264
+        ]
+      },
+      "partition_ids": [
+        "corridor_bot",
+        "p_bot_2",
+        "p_bot_3"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: bottom-row partition 2 at world x=7.5m (aligned with top partition), jamb ticks px1114/1125",
+        "2f_view.png: bottom-row partition 3 at world x=11.25m, jamb ticks px1461/1472",
+        "2f_view.png: corridor south wall, measured thin wall-line centerline y~793-803"
+      ],
+      "seed": {
+        "id": "bot_room3",
+        "point_pixel": [
+          1290.0,
+          950.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "bot_room4",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          1466.0,
+          798.0
+        ],
+        [
+          1812.0,
+          798.0
+        ],
+        [
+          1812.0,
+          1071.0
+        ],
+        [
+          1466.0,
+          1071.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          11.25,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          3.008264
+        ],
+        [
+          11.25,
+          3.008264
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          11.25,
+          15.0
+        ],
+        "y": [
+          0.0,
+          3.008264
+        ]
+      },
+      "partition_ids": [
+        "corridor_bot",
+        "p_bot_3"
+      ],
+      "source_refs": [
+        "image:2f_view.png",
+        "2f_view.png: bottom-row partition 3 at world x=11.25m, jamb ticks px1461/1472",
+        "2f_view.png: corridor south wall, measured thin wall-line centerline y~793-803"
+      ],
+      "seed": {
+        "id": "bot_room4",
+        "point_pixel": [
+          1640.0,
+          950.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "p_top_mid",
+      "pixel_points": [
+        [
+          1120.0,
+          345.0
+        ],
+        [
+          1120.0,
+          600.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          7.5,
+          8.0
+        ],
+        [
+          7.5,
+          5.190083
+        ]
+      ],
+      "source_refs": [
+        "2f_view.png: single top-row partition at world x=7.5m, gray pier support px941-1299 at north wall band, jamb ticks at px1114/1125 on corridor wall"
+      ]
+    },
+    {
+      "partition_id": "p_bot_1",
+      "pixel_points": [
+        [
+          774.0,
+          798.0
+        ],
+        [
+          774.0,
+          1071.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          3.75,
+          3.008264
+        ],
+        [
+          3.75,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "2f_view.png: bottom-row partition 1 at world x=3.75m, jamb ticks px768/779 on corridor wall"
+      ]
+    },
+    {
+      "partition_id": "p_bot_2",
+      "pixel_points": [
+        [
+          1120.0,
+          798.0
+        ],
+        [
+          1120.0,
+          1071.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          7.5,
+          3.008264
+        ],
+        [
+          7.5,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "2f_view.png: bottom-row partition 2 at world x=7.5m (aligned with top partition), jamb ticks px1114/1125"
+      ]
+    },
+    {
+      "partition_id": "p_bot_3",
+      "pixel_points": [
+        [
+          1466.0,
+          798.0
+        ],
+        [
+          1466.0,
+          1071.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          11.25,
+          3.008264
+        ],
+        [
+          11.25,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "2f_view.png: bottom-row partition 3 at world x=11.25m, jamb ticks px1461/1472"
+      ]
+    },
+    {
+      "partition_id": "corridor_top",
+      "pixel_points": [
+        [
+          428.0,
+          600.0
+        ],
+        [
+          1812.0,
+          600.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          5.190083
+        ],
+        [
+          15.0,
+          5.190083
+        ]
+      ],
+      "source_refs": [
+        "2f_view.png: corridor north wall, measured thin wall-line centerline y~595-605"
+      ]
+    },
+    {
+      "partition_id": "corridor_bot",
+      "pixel_points": [
+        [
+          428.0,
+          798.0
+        ],
+        [
+          1812.0,
+          798.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          3.008264
+        ],
+        [
+          15.0,
+          3.008264
+        ]
+      ],
+      "source_refs": [
+        "2f_view.png: corridor south wall, measured thin wall-line centerline y~793-803"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "D2_top1",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "top_room1"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1001.0,
+        600.0
+      ],
+      "p2_pixel": [
+        1088.0,
+        600.0
+      ],
+      "p1_world_m": [
+        6.21026,
+        5.190083
+      ],
+      "p2_world_m": [
+        7.153179,
+        5.190083
+      ],
+      "width_m": 0.942919,
+      "z_absolute_m": [
+        3.0,
+        5.1
+      ],
+      "source_refs": [
+        "2f_view.png: double-door gap px1001-1088 at corridor north wall, serving top-left large room"
+      ]
+    },
+    {
+      "opening_id": "D2_top2",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "top_room2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1151.0,
+        600.0
+      ],
+      "p2_pixel": [
+        1238.0,
+        600.0
+      ],
+      "p1_world_m": [
+        7.835983,
+        5.190083
+      ],
+      "p2_world_m": [
+        8.778902,
+        5.190083
+      ],
+      "width_m": 0.942919,
+      "z_absolute_m": [
+        3.0,
+        5.1
+      ],
+      "source_refs": [
+        "2f_view.png: double-door gap px1151-1238 at corridor north wall, serving top-right large room"
+      ]
+    },
+    {
+      "opening_id": "D2_bot1",
+      "kind": "door",
+      "space_ids": [
+        "bot_room1",
+        "corridor2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        655.0,
+        798.0
+      ],
+      "p2_pixel": [
+        742.0,
+        798.0
+      ],
+      "p1_world_m": [
+        2.46026,
+        3.008264
+      ],
+      "p2_world_m": [
+        3.403179,
+        3.008264
+      ],
+      "width_m": 0.942919,
+      "z_absolute_m": [
+        3.0,
+        5.1
+      ],
+      "source_refs": [
+        "2f_view.png: door gap px655-742 at corridor south wall, room1"
+      ]
+    },
+    {
+      "opening_id": "D2_bot2",
+      "kind": "door",
+      "space_ids": [
+        "bot_room2",
+        "corridor2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        806.0,
+        798.0
+      ],
+      "p2_pixel": [
+        891.0,
+        798.0
+      ],
+      "p1_world_m": [
+        4.096821,
+        3.008264
+      ],
+      "p2_world_m": [
+        5.018064,
+        3.008264
+      ],
+      "width_m": 0.921243,
+      "z_absolute_m": [
+        3.0,
+        5.1
+      ],
+      "source_refs": [
+        "2f_view.png: door gap px806-891 at corridor south wall, room2"
+      ]
+    },
+    {
+      "opening_id": "D2_bot3",
+      "kind": "door",
+      "space_ids": [
+        "bot_room3",
+        "corridor2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1348.0,
+        798.0
+      ],
+      "p2_pixel": [
+        1435.0,
+        798.0
+      ],
+      "p1_world_m": [
+        9.971098,
+        3.008264
+      ],
+      "p2_world_m": [
+        10.914017,
+        3.008264
+      ],
+      "width_m": 0.942919,
+      "z_absolute_m": [
+        3.0,
+        5.1
+      ],
+      "source_refs": [
+        "2f_view.png: door gap px1348-1435 at corridor south wall, room3"
+      ]
+    },
+    {
+      "opening_id": "D2_bot4",
+      "kind": "door",
+      "space_ids": [
+        "bot_room4",
+        "corridor2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1498.0,
+        798.0
+      ],
+      "p2_pixel": [
+        1585.0,
+        798.0
+      ],
+      "p1_world_m": [
+        11.596821,
+        3.008264
+      ],
+      "p2_world_m": [
+        12.53974,
+        3.008264
+      ],
+      "width_m": 0.942919,
+      "z_absolute_m": [
+        3.0,
+        5.1
+      ],
+      "source_refs": [
+        "2f_view.png: door gap px1498-1585 at corridor south wall, room4"
+      ]
+    },
+    {
+      "opening_id": "W2_N1",
+      "kind": "window",
+      "space_ids": [
+        "top_room1"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        606.0,
+        345.0
+      ],
+      "p2_pixel": [
+        941.0,
+        345.0
+      ],
+      "p1_world_m": [
+        1.929191,
+        8.0
+      ],
+      "p2_world_m": [
+        5.559971,
+        8.0
+      ],
+      "width_m": 3.63078,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: north wall window gap px606-941, matches 3600mm label; height from elevation dimension chain"
+      ]
+    },
+    {
+      "opening_id": "W2_N2",
+      "kind": "window",
+      "space_ids": [
+        "top_room2"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        1299.0,
+        345.0
+      ],
+      "p2_pixel": [
+        1634.0,
+        345.0
+      ],
+      "p1_world_m": [
+        9.440029,
+        8.0
+      ],
+      "p2_world_m": [
+        13.070809,
+        8.0
+      ],
+      "width_m": 3.63078,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: north wall window gap px1299-1634, matches 3600mm label"
+      ]
+    },
+    {
+      "opening_id": "W2_S1",
+      "kind": "window",
+      "space_ids": [
+        "bot_room1"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        628.0,
+        1071.0
+      ],
+      "p2_pixel": [
+        742.0,
+        1071.0
+      ],
+      "p1_world_m": [
+        2.16763,
+        0.0
+      ],
+      "p2_world_m": [
+        3.403179,
+        0.0
+      ],
+      "width_m": 1.235549,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: south wall window gap px628-742, matches 1200mm label"
+      ]
+    },
+    {
+      "opening_id": "W2_S2",
+      "kind": "window",
+      "space_ids": [
+        "bot_room2"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        805.0,
+        1071.0
+      ],
+      "p2_pixel": [
+        919.0,
+        1071.0
+      ],
+      "p1_world_m": [
+        4.085983,
+        0.0
+      ],
+      "p2_world_m": [
+        5.321532,
+        0.0
+      ],
+      "width_m": 1.235549,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: south wall window gap px805-919, matches 1200mm label"
+      ]
+    },
+    {
+      "opening_id": "W2_S3",
+      "kind": "window",
+      "space_ids": [
+        "bot_room3"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        1321.0,
+        1071.0
+      ],
+      "p2_pixel": [
+        1435.0,
+        1071.0
+      ],
+      "p1_world_m": [
+        9.678468,
+        0.0
+      ],
+      "p2_world_m": [
+        10.914017,
+        0.0
+      ],
+      "width_m": 1.235549,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: south wall window gap px1321-1435"
+      ]
+    },
+    {
+      "opening_id": "W2_S4",
+      "kind": "window",
+      "space_ids": [
+        "bot_room4"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        1499.0,
+        1071.0
+      ],
+      "p2_pixel": [
+        1612.0,
+        1071.0
+      ],
+      "p1_world_m": [
+        11.607659,
+        0.0
+      ],
+      "p2_world_m": [
+        12.83237,
+        0.0
+      ],
+      "width_m": 1.224711,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: south wall window gap px1499-1612"
+      ]
+    },
+    {
+      "opening_id": "W2_west",
+      "kind": "window",
+      "space_ids": [
+        "corridor2"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        428.0,
+        646.0
+      ],
+      "p2_pixel": [
+        428.0,
+        756.0
+      ],
+      "p1_world_m": [
+        0.0,
+        4.683196
+      ],
+      "p2_world_m": [
+        0.0,
+        3.471074
+      ],
+      "width_m": 1.212122,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: cyan window hatch on west wall at corridor level, y646-756"
+      ]
+    },
+    {
+      "opening_id": "W2_east",
+      "kind": "window",
+      "space_ids": [
+        "corridor2"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        1812.0,
+        644.0
+      ],
+      "p2_pixel": [
+        1812.0,
+        758.0
+      ],
+      "p1_world_m": [
+        15.0,
+        4.705234
+      ],
+      "p2_world_m": [
+        15.0,
+        3.449036
+      ],
+      "width_m": 1.256198,
+      "z_absolute_m": [
+        4.0,
+        5.8
+      ],
+      "source_refs": [
+        "2f_view.png: window gap on east wall at corridor level, y644-758, mirrors west"
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        428.0,
+        345.0
+      ],
+      [
+        1812.0,
+        345.0
+      ],
+      [
+        1812.0,
+        1071.0
+      ],
+      [
+        428.0,
+        1071.0
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        15.0,
+        0.0
+      ],
+      [
+        15.0,
+        8.0
+      ],
+      [
+        0.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        428.0,
+        0.0
+      ],
+      [
+        1812.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        345.0,
+        8.0
+      ],
+      [
+        1071.0,
+        0.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.01083815028901734,
+      "y": -0.011019283746556474
+    },
+    "basis": "2f_view.png: overall 15000x8000 outer-wall-face dimension lines (x-run px428-1812=15000mm; y-run px345-1071=8000mm), matching gray wall-face pixel evidence. Top dimension chain 1950+3600+1889+[120gap]+1891+3600+1950=15000 shows a single partition at world x=7.5m for the top row (2 large rooms). Bottom dimension chain 2190+1200+360+360+1200+2190 (x2)=15000 shows partitions at world x=3.75,7.5,11.25 for the bottom row (4 small rooms). Left dimension 3000+400+1200+400+3000=8000 gives corridor interior between two 400mm walls at world y=3.0-5.0; wall thin-line evidence places representative corridor wall lines at pixel y=600(top) and y=798(bottom).",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "candidate_04",
+  "submitted_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_west_entry",
+      "changes": {
+        "z": {
+          "claim": "claim_0001",
+          "value": "height"
+        }
+      },
+      "reason": "Apply precisely measured West elevation pixel height for the main entrance door (refines prior 2.1m assumption to measured 2.10m)",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior door heights (corridor-office doors) assumed 2.1m; no elevation evidence for interior doors.",
+      "replacement": [
+        "Main west entrance door height (2.10m) confirmed by West_view.png pixel measurement against building outline anchors (claim_0001). Interior corridor-office door heights remain an explicit 2.1m assumption; no elevation evidence exists for interior doors."
+      ],
+      "reason": "Distinguish the now-measured exterior entrance door from still-assumed interior doors",
+      "source_refs": [
+        "claim_0001"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0001"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "e7b599750262e2520e557b929f377a57e43894885ba0358f8a58da17e8a40c20",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:D_west_entry"
+          ]
+        ],
+        "claim_id": "claim_0001",
+        "value_field": "height",
+        "resolved_value": [
+          0.0,
+          2.101578947
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            561,
+            181,
+            561.0,
+            440.0
+          ],
+          "metre_anchors": [
+            0.0,
+            6.6
+          ],
+          "metres_per_pixel": -0.017368421052631578,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      }
+    ],
+    "claims": {
+      "claim_0001": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "candidate_04",
+            "objects": [
+              {
+                "id": "F1:D_west_entry",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "West_view.png shows the ground-floor double door. Building outline top=181px(6.6m absolute), ground line=561px(0m); door leaf vertical extent measured 440px-561px. This gives absolute door height 0m to (561-440)/(561-181)*6.6=2.10m.",
+            "sources": [
+              {
+                "box": null,
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "anchors": [
+                  [
+                    561,
+                    0.0
+                  ],
+                  [
+                    181,
+                    6.6
+                  ]
+                ],
+                "axis": "y",
+                "image": "West_view.png",
+                "pixels": [
+                  561.0,
+                  440.0
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                6.6
+              ],
+              "metres_per_pixel": -0.017368421052631578,
+              "pixels": [
+                561,
+                181,
+                561.0,
+                440.0
+              ]
+            }
+          },
+          "id": "claim_0001",
+          "parent_proposal_sha256": "e7b599750262e2520e557b929f377a57e43894885ba0358f8a58da17e8a40c20",
+          "resolved_values": {
+            "height": [
+              0.0,
+              2.101578947
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                0,
+                0,
+                1077,
+                773
+              ],
+              "image": "West_view.png",
+              "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "size": [
+                1077,
+                773
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "West elevation pixel measurement confirms declared 2.1m door height"
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_west_entry",
+      "changes": {
+        "z": [
+          0.0,
+          2.101578947
+        ]
+      },
+      "reason": "Apply precisely measured West elevation pixel height for the main entrance door (refines prior 2.1m assumption to measured 2.10m)",
+      "source_refs": [
+        "claim_0001",
+        "claim:claim_0001:a263cfd82999c633385a972a705ab9f44dc31f747164ed3f1ca8234005697d1b"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior door heights (corridor-office doors) assumed 2.1m; no elevation evidence for interior doors.",
+      "replacement": [
+        "Main west entrance door height (2.10m) confirmed by West_view.png pixel measurement against building outline anchors (claim_0001). Interior corridor-office door heights remain an explicit 2.1m assumption; no elevation evidence exists for interior doors."
+      ],
+      "reason": "Distinguish the now-measured exterior entrance door from still-assumed interior doors",
+      "source_refs": [
+        "claim_0001"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "b5f54f979ab54374c21f64e1b10aee5f3c3225528dda4c1b2c2ab3269dc919bc",
+  "geometry_after_sha256": "17c7ca94c0acba88e1d21f779ab71cc6e440df57f1ea83a8dda202c7a3178020",
+  "changes": [
+    {
+      "kind": "opening",
+      "id": "F1:D_west_entry",
+      "before": {
+        "id": "F1:D_west_entry",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          4750.337382
+        ],
+        "p2": [
+          0.0,
+          3249.662618
+        ],
+        "space_id": "F1:corridor_1f",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      "after": {
+        "id": "F1:D_west_entry",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          4750.337382
+        ],
+        "p2": [
+          0.0,
+          3249.662618
+        ],
+        "space_id": "F1:corridor_1f",
+        "z": [
+          0.0,
+          2.101578947
+        ]
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_05",
+  "source_model_sha256": "f4d2a366e08838e2f98be6e0f562d13d272e05864a7b305a593617bf1edd9aaa",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

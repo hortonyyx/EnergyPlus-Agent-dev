@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "Interior door heights (corridor-to-room, 6 doors) assumed 2.1m leaf (z=[3.0,5.1]) as no interior door elevation was supplied; window heights measured from North_view.png elevation chain (sill 1.0m/head 2.8m relative to 2F floor, i.e. absolute 4.0-5.8m).",
+    "West/East corridor windows assumed same height family as the other 2F windows.",
+    "Walls modeled as zero-thickness representative centerlines; 400mm corridor wall thickness and other wall thicknesses not separately modeled as solids.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "610e2807a8389171fbeb103b769f2148d17e23d2448152ff5be0c488dee3a8f3",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "2dc506e2334192982786b94ae79b1c34e4bd813eca0631bf4389fa75dc3ca3c6",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_002/compilation.json",
+      "compilation_sha256": "2cb8a4fdf09aa75b1d0c1aacc57a588a51afbb9fd5e983e6c228b1833d9f8c71",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_002/draft_view.png",
+        "image_sha256": "05733c7a03ce9a4e64a86b2191853229ab8965a83d4854047e059bcbe316fbb0",
+        "metadata_file": "plan_drafts/draft_002/draft_view.json",
+        "metadata_sha256": "70091053137ccdc17e97a376af07b69d0641671f23c67eb32765f73ca742dc59",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_002/plan.json",
+      "plan_sha256": "7a59044fe897916a86d95f9225949b3189c66cae987d40f5fcf35b2c4741abba"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "fe1ef7431cacd034a6befcf9498cb46ae8af5d22b5e94d76e7b177e81f586ae7",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact per-window elevation distinction between corridor windows (east/west) and room windows (north/south) not independently confirmed beyond shared family assumption.",
+    "Small partition thickness (~120mm gap in top dimension chain) interpreted as wall crossing the window run; not independently confirmed.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

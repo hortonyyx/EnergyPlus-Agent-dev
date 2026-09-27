@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "Interior door heights assumed 2.1m, no elevation evidence for interior doors.",
+    "Exterior window family (sill1.0m/head2.8m AFL) applied uniformly across floors/facades based on consistent North/South/West elevation breakdowns; East assumed same family by visual similarity.",
+    "Wall representative plane: exterior footprint uses outer wall faces; interior partitions/corridor walls use observed centerlines snapped to footprint at boundary contact.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "cd2da19a1e2447c7e1180138ee2b372754318edea34ecebbe820b9b4a117e0c9",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "e2051da2f52d235ed02825e53d9488d6f41ed1f11a44dd1a6f3af715931774e8",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "4630ed04eee3d3b380dc7bf2a123d8ea6ea6171c523af11daeb8c9da825dab4a",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "82ed8cb5c1b4cd9bb0e18bee8171136dae254f3f0f51d6f33ba768961ac09f75",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "44841a778b024f29b1738753911150ec793ab0368cc9ad7383f5a8af266f71ba",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "a06de2ad5c8558f239e23149ea75b86dcf5181a03da1f591c528ec2a052ac935"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "6e45b1444a77f1d7ae895d30f29ea5698071d796f2e22d9429b7ab394cc2b371",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Small bottom-row rooms (desk+monitor+2 guest chairs) classified as office/enclosed; could alternatively be interpreted as small meeting/consulting rooms.",
+    "Door leaf swing/state not verified beyond presence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

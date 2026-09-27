@@ -1,0 +1,42 @@
+--- current
++++ baseline_policy
+@@ -58,17 +58,6 @@
+ new roles or append inferred/mixed labels; put original labels and uncertainty in
+ source_refs/assumptions. Names of floors, rooms, walls, windows, doors and openings
+ are generated deterministically; use your stable internal IDs for tool references.
+-After physical spaces exist, review their uses against the original input, rather
+-than leaving every room unknown simply because the pixel compiler defaults to it.
+-Furniture can support an explicitly inferred use, never an observed text label.
+-For an existing candidate, read edits and use set_space_role to assign or withdraw
+-a use with its located basis, without rebuilding walls/openings. Review existing
+-unknown uses for a plausible assignment. Review stale global use notes as well.
+-Candidate feedback room_use_review lists rooms without a structured use-basis
+-record. Resolve applicable items from original evidence before delivery or state
+-their unexamined scope; it distinguishes explained unknown from absent records,
+-not correct from incorrect interpretations. It never authorizes geometry changes.
+-Read get_bim_reference('naming') for public display names and CCW wall numbering.
+ For drawing reconstruction, read get_bim_reference('reconstruction') for a
+ measurement-to-source method, including calibration, wall junctions and opening
+ identity across views. It contains no case answers. Choose its applicable parts.
+@@ -167,20 +156,13 @@
+ Partial pages are observations of a saved proposal, never full replacement input.
+ Preserve reliable objects with local revisions.
+ For a local dimensional revision, read get_bim_reference('claims'). Record your
+-located interpretation and its computable value, inspect the returned actual source
+-crops for the cited labels and object context, decide whether to adopt it,
++located interpretation and its computable value, decide whether to adopt it,
+ then reference that value inside revise_bim. Code resolves saved measurements or
+ dimension-chain arithmetic into the actual edit parameter. Do not recalculate
+ the same coordinates in prose. This is currently an existing-candidate revision
+ capability, not a required representation for all first builds. Literal metric
+ estimates/inferences remain allowed when explicitly labelled. claim_status shows
+ adopted versus actually applied/failed; none of these proves drawing truth.
+-view_image returns a reusable view_id for exactly the region shown. Cite it as
+-sources:[{"view_id":"view_0001"}] rather than retyping image/crop coordinates.
+-When only a saved claim's source region is wrong, use replace_claim_sources with
+-the relevant view_ids and a reason. This preserves its objects and numbers, saves
+-a new claim and retracts the old one; inspect/adopt/confirm the new claim explicitly.
+-Merely looking at a wider view does not update a previously saved narrow reference.
+ If observed values already match, use confirm_claims with the same claim-referenced
+ operations instead of creating a no-op candidate. Before finish_bim, inspect
+ claim_status(candidate) and update obsolete assumption/unresolved text with

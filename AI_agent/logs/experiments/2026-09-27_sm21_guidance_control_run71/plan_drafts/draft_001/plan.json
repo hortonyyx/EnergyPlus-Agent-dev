@@ -1,0 +1,40 @@
+{"floor_id":"F1","z_floor":0,"ceiling_height":3.0,
+"x_anchors":[[419,0],[1821,15]],"y_anchors":[[340,8],[1093,0]],
+"basis":"1f_view.png: overall 15000x8000 dimension lines (x-run px419-1821=15000mm; y-run px340-1093=8000mm). Outer footprint uses outer wall face ticks. Interior partitions/corridor walls use single representative centerline per observed double-line wall; corridor walls at world y~3.0 and y~5.0 derived from left-side 3000/250/1500/250/3000 chain. Vertical partitions at world x=5.0 and x=10.0 derived from matching top(1240+2400+1300+[240 gap]+1240+2400+1240+[240gap]+1300+2400+1240=15000) and bottom(540+900+2000+1200+360+1300+2400+1300+1360+2400+1240=15000) dimension chains, both showing a partition boundary exactly at cumulative 5000 and 10000mm.",
+"footprint_pixels":[[419,340],[1821,340],[1821,1093],[419,1093]],
+"partitions":[
+ {"id":"p_ab_top","points":[[886,340],[886,622]],"source_refs":["1f_view.png: vertical partition pier between room A/B, north segment, gray fill support ~px764-1008 at top wall band"]},
+ {"id":"p_ab_bot","points":[[886,810],[886,1093]],"source_refs":["1f_view.png: vertical partition pier between room A/B, south segment"]},
+ {"id":"p_bc_top","points":[[1354,340],[1354,622]],"source_refs":["1f_view.png: vertical partition pier between room B/C, north segment, gray fill support ~px1231-1477 at top wall band"]},
+ {"id":"p_bc_bot","points":[[1354,810],[1354,1093]],"source_refs":["1f_view.png: vertical partition pier between room B/C, south segment"]},
+ {"id":"corridor_top","points":[[419,622],[1821,622]],"source_refs":["1f_view.png: corridor north wall, measured centerline via gray-fill profile at y~618-630"]},
+ {"id":"corridor_bot","points":[[419,810],[1821,810]],"source_refs":["1f_view.png: corridor south wall, measured centerline via gray-fill profile at y~793-804"]}
+],
+"openings":[
+ {"id":"D_A_top","kind":"door","p1":[771,622],"p2":[855,622],"z":[0,2.1],"source_refs":["1f_view.png: door arc, corridor wall gap px771-855 at y=622"]},
+ {"id":"D_B_top","kind":"door","p1":[922,622],"p2":[1005,622],"z":[0,2.1],"source_refs":["1f_view.png: door arc, corridor wall gap px922-1005 at y=622"]},
+ {"id":"D_C_top","kind":"door","p1":[1385,622],"p2":[1470,622],"z":[0,2.1],"source_refs":["1f_view.png: door arc, corridor wall gap px1385-1470 at y=622"]},
+ {"id":"D_A_bot","kind":"door","p1":[771,810],"p2":[855,810],"z":[0,2.1],"source_refs":["1f_view.png: door arc, corridor wall gap px771-855 at y=810, mirrored top pattern"]},
+ {"id":"D_B_bot","kind":"door","p1":[922,810],"p2":[1005,810],"z":[0,2.1],"source_refs":["1f_view.png: door arc, corridor wall gap px922-1005 at y=810"]},
+ {"id":"D_C_bot","kind":"door","p1":[1385,810],"p2":[1470,810],"z":[0,2.1],"source_refs":["1f_view.png: door arc, corridor wall gap px1385-1470 at y=810"]},
+ {"id":"D_west","kind":"door","p1":[419,646],"p2":[419,787],"z":[0,2.1],"source_refs":["1f_view.png: exterior door arc on west wall, gap px y646-787 measured via wall-face profile"]},
+ {"id":"D_south","kind":"door","p1":[474,1093],"p2":[558,1093],"z":[0,2.1],"source_refs":["1f_view.png: exterior main entrance door, south wall gap px474-558, matches 900mm dimension label"]},
+ {"id":"W_N_A","kind":"window","p1":[539,340],"p2":[764,340],"z":[0.9,2.1],"source_refs":["1f_view.png: north wall window gap px539-764, matches 2400mm label; height assumed"]},
+ {"id":"W_N_B","kind":"window","p1":[1008,340],"p2":[1231,340],"z":[0.9,2.1],"source_refs":["1f_view.png: north wall window gap px1008-1231; height assumed"]},
+ {"id":"W_N_C","kind":"window","p1":[1477,340],"p2":[1701,340],"z":[0.9,2.1],"source_refs":["1f_view.png: north wall window gap px1477-1701; height assumed"]},
+ {"id":"W_S_A","kind":"window","p1":[743,1093],"p2":[855,1093],"z":[0.9,2.1],"source_refs":["1f_view.png: south wall window gap px743-855, matches 1200mm label; height assumed"]},
+ {"id":"W_S_B","kind":"window","p1":[1008,1093],"p2":[1231,1093],"z":[0.9,2.1],"source_refs":["1f_view.png: south wall window gap px1008-1231; height assumed"]},
+ {"id":"W_S_C","kind":"window","p1":[1477,1093],"p2":[1702,1093],"z":[0.9,2.1],"source_refs":["1f_view.png: south wall window gap px1477-1702; height assumed"]},
+ {"id":"W_East","kind":"window","p1":[1821,660],"p2":[1821,773],"z":[0.9,2.1],"source_refs":["1f_view.png: east wall window gap serving corridor, px y660-773; height assumed"]}
+],
+"space_seeds":[
+ {"id":"room_A_top","point":[600,480],"role":"office"},
+ {"id":"room_B_top","point":[1100,480],"role":"office"},
+ {"id":"room_C_top","point":[1600,480],"role":"office"},
+ {"id":"corridor","point":[1100,716],"role":"corridor"},
+ {"id":"room_A_bot","point":[600,950],"role":"storage"},
+ {"id":"room_B_bot","point":[1100,950],"role":"office"},
+ {"id":"room_C_bot","point":[1600,950],"role":"meeting_room"}
+],
+"assumptions":["Ceiling height 3.0m assumed pending elevation check.","Window sill/head heights assumed 0.9-2.1m pending elevation check.","Door heights assumed 2.1m pending elevation confirmation.","Walls modeled as zero-thickness representative centerlines/faces; 240mm/250mm wall thickness labels not separately modeled as solids.","Room A-bottom furniture (closet, L-fixture) interpreted as storage/pantry use, not a separate plumbed room, since no partition separates them from the entry area."],
+"unresolved":["Exact room use for room_A_bot (closet+L-fixture) not verified beyond furniture inference.","Small double-tick dimension marks (~120mm each) at x=5000/10000 in the top chain interpreted as the partition wall thickness crossing the window run; not independently confirmed."]}

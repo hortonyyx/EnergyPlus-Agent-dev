@@ -1,0 +1,73 @@
+{
+  "agent_assumptions": [
+    "Main west entrance door height (2.10m) confirmed by West_view.png pixel measurement against building outline anchors (claim_0001). Interior corridor-office door heights remain an explicit 2.1m assumption; no elevation evidence exists for interior doors.",
+    "East facade window height confirmed by direct inspection: East_view.png shows the identical 800/1800/1000mm (upper floor) and 200/1800/1000mm (lower floor) dimension chain as North/South/West elevations, matching the applied F1 (1.0-2.8m) and F2 (4.0-5.8m) window z values.",
+    "Wall representative plane: exterior footprint uses outer wall faces; interior partitions/corridor walls use observed centerlines.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 2.1m, no elevation evidence for interior doors.",
+    "Wall representative plane: exterior footprint uses outer wall faces; interior partitions/corridor walls use observed centerlines snapped to footprint at boundary contact.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 13,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "7e3278c2688e560ff5d39d942098cefc5d683062fb0680121b744a82a6f14f92",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0004.json",
+      "parent_candidate": "candidate_05",
+      "parent_proposal_sha256": "c41e0b51f805c6a477d153afc57b13ac882d5acf5f91a1ac9fead331155416d3"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "e2051da2f52d235ed02825e53d9488d6f41ed1f11a44dd1a6f3af715931774e8",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "c41e0b51f805c6a477d153afc57b13ac882d5acf5f91a1ac9fead331155416d3"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "3535c712413c558b84c48afdaed29fd944443ffd7c42de08af3ab58c40629205",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact door leaf swing direction/state not verified beyond presence.",
+    "Bottom-left room furniture (sofa+L-desk) suggests possible reception/manager office; classified as office/enclosed pending further evidence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Small bottom-row rooms (desk+monitor+2 guest chairs) classified as office/enclosed; could alternatively be interpreted as small meeting/consulting rooms.",
+    "Door leaf swing/state not verified beyond presence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

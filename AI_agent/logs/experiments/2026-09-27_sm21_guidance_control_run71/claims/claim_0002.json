@@ -1,0 +1,137 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_05",
+    "objects": [
+      {
+        "id": "F1:W_N_A",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N_B",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N_C",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S_A",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S_B",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S_C",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_East",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "North_view.png right-side vertical dimension chain below the 2F/1F floor line (z=3.0m) reads top-down 400(ceiling-to-head)+1600(window leaf)+1000(sill-to-ground)=3000mm=1F floor height. Segment 1 (the 1600mm leaf) gives absolute head/sill z=1.0-2.6m. Applied uniformly to all 1F exterior windows.",
+    "sources": [
+      {
+        "view_id": "view_0031"
+      }
+    ],
+    "unresolved": [
+      "West/East elevations show the same corridor window family without a separate fine dimension chain; assumed to match this measured North/South family."
+    ],
+    "value_targets": null,
+    "values": {
+      "win1f_z": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "win1f_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "a5f7b15c1b3e84815c85ea6ed3589ab8f966cff20eb371694c770bef6a1d763a",
+  "resolved_values": {
+    "win1f_z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        190,
+        400,
+        290,
+        585
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0031",
+      "view_sha256": "9d53dd86a24143c7edf3bf678f4c2396bbf77267b8667b85c429459850e9adc1"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

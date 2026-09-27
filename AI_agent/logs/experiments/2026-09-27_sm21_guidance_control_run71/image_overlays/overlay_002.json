@@ -1,0 +1,600 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "38acc65b00e25c976dc661c69ad89cee4b2988e995df2831a992aa86a0c8f30c",
+  "floor_id": "F1",
+  "basis": "1f_view.png: overall 15000x8000 dimension lines (x-run px419-1821=15000mm; y-run px340-1093=8000mm). Outer footprint uses outer wall face ticks. Interior partitions/corridor walls use single representative centerline per observed double-line wall; corridor walls at world y~3.0 and y~5.0 derived from left-side 3000/250/1500/250/3000 chain. Vertical partitions at world x=5.0 and x=10.0 derived from matching top(1240+2400+1300+[240 gap]+1240+2400+1240+[240gap]+1300+2400+1240=15000) and bottom(540+900+2000+1200+360+1300+2400+1300+1360+2400+1240=15000) dimension chains, both showing a partition boundary exactly at cumulative 5000 and 10000mm.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        419.0,
+        0.0
+      ],
+      [
+        1821.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        340.0,
+        8.0
+      ],
+      [
+        1093.0,
+        0.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.010699001426533523,
+      "y": -0.010624169986719787
+    },
+    "pixels_per_world_metre": {
+      "x": 93.46666666666667,
+      "y": -94.125
+    },
+    "axis_px_per_m": {
+      "x": 93.46666666666667,
+      "y": 94.125
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 93.46666666666667,
+        "y_px_per_m": 94.125,
+        "relative_deviation": 0.007018790813380105,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=93.4666667 px/m and y=94.125 px/m disagree by 0.701879%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "x",
+        "dimension_ref": "caller_x_anchors",
+        "span_px": 1402.0,
+        "value_m": 15.0,
+        "residual_px": -2.186851211072735,
+        "residual_m": -0.02336068603533749
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "y",
+        "dimension_ref": "caller_y_anchors",
+        "span_px": 753.0,
+        "value_m": 8.0,
+        "residual_px": 4.100346020761208,
+        "residual_m": 0.04380128631625597
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "corridor",
+      "pixel_polygon": [
+        [
+          419.0,
+          810.00001
+        ],
+        [
+          1821.0,
+          810.00001
+        ],
+        [
+          1821.0,
+          622.000006
+        ],
+        [
+          419.0,
+          622.000006
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "room_A_bot",
+      "pixel_polygon": [
+        [
+          419.0,
+          1093.0
+        ],
+        [
+          886.000031,
+          1093.0
+        ],
+        [
+          886.000031,
+          810.00001
+        ],
+        [
+          419.0,
+          810.00001
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "room_A_top",
+      "pixel_polygon": [
+        [
+          419.0,
+          622.000006
+        ],
+        [
+          886.000031,
+          622.000006
+        ],
+        [
+          886.000031,
+          340.0
+        ],
+        [
+          419.0,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "room_B_bot",
+      "pixel_polygon": [
+        [
+          886.000031,
+          1093.0
+        ],
+        [
+          1353.999969,
+          1093.0
+        ],
+        [
+          1353.999969,
+          810.00001
+        ],
+        [
+          886.000031,
+          810.00001
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "room_B_top",
+      "pixel_polygon": [
+        [
+          886.000031,
+          622.000006
+        ],
+        [
+          1353.999969,
+          622.000006
+        ],
+        [
+          1353.999969,
+          340.0
+        ],
+        [
+          886.000031,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "room_C_bot",
+      "pixel_polygon": [
+        [
+          1353.999969,
+          1093.0
+        ],
+        [
+          1821.0,
+          1093.0
+        ],
+        [
+          1821.0,
+          810.00001
+        ],
+        [
+          1353.999969,
+          810.00001
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "room_C_top",
+      "pixel_polygon": [
+        [
+          1353.999969,
+          622.000006
+        ],
+        [
+          1821.0,
+          622.000006
+        ],
+        [
+          1821.0,
+          340.0
+        ],
+        [
+          1353.999969,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_A_bot",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "room_A_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          771.000047,
+          810.00001
+        ],
+        [
+          855.000035,
+          810.00001
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_A_top",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "room_A_top"
+      ],
+      "pixel_endpoints": [
+        [
+          771.000047,
+          622.000006
+        ],
+        [
+          855.000035,
+          622.000006
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_B_bot",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "room_B_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          922.000026,
+          810.00001
+        ],
+        [
+          1005.000015,
+          810.00001
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_B_top",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "room_B_top"
+      ],
+      "pixel_endpoints": [
+        [
+          922.000026,
+          622.000006
+        ],
+        [
+          1005.000015,
+          622.000006
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_C_bot",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "room_C_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          1384.999965,
+          810.00001
+        ],
+        [
+          1469.999953,
+          810.00001
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_C_top",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "room_C_top"
+      ],
+      "pixel_endpoints": [
+        [
+          1384.999965,
+          622.000006
+        ],
+        [
+          1469.999953,
+          622.000006
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_south",
+      "kind": "door",
+      "space_ids": [
+        "room_A_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          473.999993,
+          1093.0
+        ],
+        [
+          557.999981,
+          1093.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_west",
+      "kind": "door",
+      "space_ids": [
+        "corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          419.0,
+          645.999999
+        ],
+        [
+          419.0,
+          787.000002
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_East",
+      "kind": "window",
+      "space_ids": [
+        "corridor"
+      ],
+      "pixel_endpoints": [
+        [
+          1821.0,
+          773.000037
+        ],
+        [
+          1821.0,
+          659.999963
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_N_A",
+      "kind": "window",
+      "space_ids": [
+        "room_A_top"
+      ],
+      "pixel_endpoints": [
+        [
+          538.999984,
+          340.0
+        ],
+        [
+          763.999954,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_N_B",
+      "kind": "window",
+      "space_ids": [
+        "room_B_top"
+      ],
+      "pixel_endpoints": [
+        [
+          1008.000015,
+          340.0
+        ],
+        [
+          1230.999985,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_N_C",
+      "kind": "window",
+      "space_ids": [
+        "room_C_top"
+      ],
+      "pixel_endpoints": [
+        [
+          1477.000046,
+          340.0
+        ],
+        [
+          1701.000016,
+          340.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S_A",
+      "kind": "window",
+      "space_ids": [
+        "room_A_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          742.999957,
+          1093.0
+        ],
+        [
+          855.000035,
+          1093.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S_B",
+      "kind": "window",
+      "space_ids": [
+        "room_B_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          1008.000015,
+          1093.0
+        ],
+        [
+          1230.999985,
+          1093.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S_C",
+      "kind": "window",
+      "space_ids": [
+        "room_C_bot"
+      ],
+      "pixel_endpoints": [
+        [
+          1477.000046,
+          1093.0
+        ],
+        [
+          1702.000016,
+          1093.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "1f_view.png",
+      "floor_id": "F1",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "candidate_02",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "trigger_action": "revise_bim",
+  "automatic_projection": true,
+  "reused_calibration": {
+    "calibration_id": "calibration_001",
+    "calibration_file": "overlay_calibrations/calibration_001.json",
+    "registered_by_candidate": "candidate_01",
+    "registered_source_model_sha256": "76b55cf0a5f0d64e0060428cab8dc9c49f57f5b9e92d3a4ddb5968e233c665a4",
+    "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "x_anchors": [
+      [
+        419,
+        0
+      ],
+      [
+        1821,
+        15
+      ]
+    ],
+    "y_anchors": [
+      [
+        340,
+        8
+      ],
+      [
+        1093,
+        0
+      ]
+    ],
+    "basis": "1f_view.png: overall 15000x8000 dimension lines (x-run px419-1821=15000mm; y-run px340-1093=8000mm). Outer footprint uses outer wall face ticks. Interior partitions/corridor walls use single representative centerline per observed double-line wall; corridor walls at world y~3.0 and y~5.0 derived from left-side 3000/250/1500/250/3000 chain. Vertical partitions at world x=5.0 and x=10.0 derived from matching top(1240+2400+1300+[240 gap]+1240+2400+1240+[240gap]+1300+2400+1240=15000) and bottom(540+900+2000+1200+360+1300+2400+1300+1360+2400+1240=15000) dimension chains, both showing a partition boundary exactly at cumulative 5000 and 10000mm."
+  },
+  "overlay_image": "image_overlays/overlay_002.png",
+  "original_size": [
+    2133,
+    1345
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2133,
+    1345
+  ],
+  "returned_size": [
+    1600,
+    1009
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.333125,
+    1.3330029732408326
+  ],
+  "remaining_seconds": 2132
+}

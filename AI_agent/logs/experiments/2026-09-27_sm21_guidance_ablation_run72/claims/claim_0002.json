@@ -1,0 +1,154 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:W_N_A",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N_B",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N_C",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S_A",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S_B",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S_C",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_E_corr",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png and South_view.png both show the ground-floor window vertical dimension chain 1000(sill)/1800(window height)/200(head gap to slab) totaling 3000mm story height, measured from the F1 floor level (absolute 0m). This gives absolute sill=1.0m, head=2.8m for all F1 exterior windows including the plan-matched East corridor window.",
+    "sources": [
+      {
+        "box": null,
+        "image": "North_view.png"
+      },
+      {
+        "box": null,
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [
+      "East facade window height inferred from North/South family by visual similarity; East elevation not separately dimensioned for this exact family in this pass."
+    ],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          200.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              2.8,
+              3.0
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "e7b599750262e2520e557b929f377a57e43894885ba0358f8a58da17e8a40c20",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    },
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

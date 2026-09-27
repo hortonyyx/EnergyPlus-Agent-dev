@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1200.66,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1169099,
+    "stop_reason": "end_turn",
+    "session_id": "678922d5-6f9a-4794-865a-2ae7776a4899",
+    "total_cost_usd": 4.7460638,
+    "usage": {
+      "input_tokens": 132,
+      "cache_creation_input_tokens": 389142,
+      "cache_read_input_tokens": 11464609,
+      "output_tokens": 89631,
+      "output_tokens_details": {
+        "thinking_tokens": 62397
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 389142,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1478,
+          "cache_read_input_tokens": 396755,
+          "cache_creation_input_tokens": 4669,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4669
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 132,
+        "outputTokens": 89631,
+        "cacheReadInputTokens": 11464609,
+        "cacheCreationInputTokens": 389142,
+        "webSearchRequests": 0,
+        "costUSD": 4.7460638,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 62397,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 102,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Delivery Summary\n\n**Selected candidate: `candidate_06`** (finished via `finish_bim`).\n\n### What was built\nA two-floor office building reconstructed purely from `1f_view.png`, `2f_view.png`, and four elevations (`North/South/East/West_view.png`), no prior BIM or GT supplied.\n\n- **Footprint**: 15.0 m × 8.0 m rectangle, both floors, calibrated from each plan's own outer-wall pixel faces against its printed 15000/8000 mm dimensions.\n- **F1 (z=0–3.0 m)**: central corridor (1F) running full width, with 3 private offices to the north (office/enclosed) and 3 rooms to the south (2 offices + 1 round-table meeting room), each office/room with its own corridor door and one exterior window; a west-facade double door is the building's main entrance into the corridor; an east-facade window lights the corridor.\n- **F2 (z=3.0–6.6 m)**: same footprint, central corridor, 2 large conference rooms to the north (conference/meeting/multipurpose) and 4 small single-occupant offices to the south (desk+monitor+guest chairs), each with its own corridor door and window; corridor also lit by matching west/east windows.\n- Floor heights (3.0 m / 3.6 m) and all exterior opening height families were taken from the explicit vertical dimension chains repeated on North/South/East/West elevations (800‑1800‑1000 upper, 200‑1800‑1000 lower), cross-checked by direct pixel measurement on West_view.png.\n\n### Verified/confirmed\n- 5 same-space and 4 separate-space sampled checks (both floors) via `check_source_space_relation` all matched expectations against the originals — physical partitions and corridor continuity are consistent with the drawings.\n- All 16 exterior openings (both floors, all 4 facades) now carry **image-linked height claims**: F1 windows 1.0–2.8 m, F2 windows 4.0–5.8 m (dimension-chain claims from North/South/West, cross-verified against East_view.png, which shows the identical chain), and the F1 west entrance door 0–2.10 m (direct pixel measurement, claim applied, refining the initial 2.1 m assumption to 2.102 m).\n- 12 interior corridor↔room doors remain an explicit, clearly-noted **2.1 m assumption** — no elevation shows interior doors, so this is honestly unresolved height evidence, not fabricated.\n\n### Known limitations / unresolved (kept in saved notes)\n- Room-use assignments for the 3 F1 south rooms and 4 F2 south rooms are inferred from furniture (desk/sofa/monitor icons), not labelled in the drawings — plausible but not certain (e.g. the sofa+L-desk room could be a manager office/reception rather than a generic office).\n- Interior door swing/open-closed state is unknown (only presence/width was observed).\n- A West-view door-like mark also appears near x≈300–1700 mm on South_view.png that I could not conclusively resolve (possibly a corner wrap-around rendering of the same west door); I did not add a speculative extra opening for it — flagged here rather than guessed.\n- The plan-to-world calibration uses two anchor points per axis on each plan (outer wall faces vs. printed 15000/8000 overall dimensions); this is caller-supplied and not independently re-verified against every internal dimension label (small ~3–7 mm axis residuals were reported by the tool, consistent with drawing/pixel rounding).\n- Space-relation samples were taken on an earlier-geometry ancestor (candidate_03); geometry has not changed since (only heights/roles/notes), but this is a “stale but still applicable” review, not a fresh recheck on candidate_06 itself.\n- Assembly does not add stairs or any vertical connection between F1 and F2 (none shown in the input), per scope instructions.\n\nViewer/source model: `candidate_06/viewer.html`, `candidate_06/source_model.json`.",
+    "ttft_ms": 2140,
+    "type": "result",
+    "duration_ms": 1193795,
+    "uuid": "67d5d7fa-1703-4e52-b0de-fc3cbbc38fce",
+    "ttft_stream_ms": 1780,
+    "time_to_request_ms": 71,
+    "first_content_frame_ms": 1780,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

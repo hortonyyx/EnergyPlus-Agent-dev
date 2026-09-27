@@ -1,0 +1,205 @@
+{
+  "agent_assumptions": [
+    "Main west entrance door height (2.10m) confirmed by West_view.png pixel measurement against building outline anchors (claim_0001). Interior corridor-office door heights remain an explicit 2.1m assumption; no elevation evidence exists for interior doors.",
+    "East corridor window height assumed same family (sill1.0/head2.8) as other exterior windows lacking direct East elevation pixel measurement in this pass.",
+    "Wall representative plane: exterior footprint uses outer wall faces; interior partitions/corridor walls use observed centerlines.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 2.1m, no elevation evidence for interior doors.",
+    "Exterior window family (sill1.0m/head2.8m AFL) applied uniformly across floors/facades based on consistent North/South/West elevation breakdowns; East assumed same family by visual similarity.",
+    "Wall representative plane: exterior footprint uses outer wall faces; interior partitions/corridor walls use observed centerlines snapped to footprint at boundary contact.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 13,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "c41e0b51f805c6a477d153afc57b13ac882d5acf5f91a1ac9fead331155416d3",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "axis": "y",
+            "calibration": "caller_interpreted_not_verified",
+            "measurement_bindings": [],
+            "method": "image_axis",
+            "metre_anchors": [
+              0.0,
+              6.6
+            ],
+            "metres_per_pixel": -0.017368421052631578,
+            "pixels": [
+              561,
+              181,
+              561.0,
+              440.0
+            ]
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            0.0,
+            2.101578947
+          ],
+          "targets": [
+            [
+              "opening",
+              "F1:D_west_entry"
+            ]
+          ],
+          "value_field": "height"
+        }
+      ],
+      "claims": {
+        "claim_0001": {
+          "decision": {
+            "claim_id": "claim_0001",
+            "disposition": "adopted",
+            "id": "decision_0001",
+            "reason": "West elevation pixel measurement confirms declared 2.1m door height"
+          },
+          "record": {
+            "claim": {
+              "basis": "pixels",
+              "candidate": "candidate_04",
+              "objects": [
+                {
+                  "id": "F1:D_west_entry",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "West_view.png shows the ground-floor double door. Building outline top=181px(6.6m absolute), ground line=561px(0m); door leaf vertical extent measured 440px-561px. This gives absolute door height 0m to (561-440)/(561-181)*6.6=2.10m.",
+              "sources": [
+                {
+                  "box": null,
+                  "image": "West_view.png"
+                }
+              ],
+              "unresolved": [],
+              "value_targets": null,
+              "values": {
+                "height": {
+                  "anchors": [
+                    [
+                      561,
+                      0.0
+                    ],
+                    [
+                      181,
+                      6.6
+                    ]
+                  ],
+                  "axis": "y",
+                  "image": "West_view.png",
+                  "pixels": [
+                    561.0,
+                    440.0
+                  ],
+                  "reduction": null,
+                  "type": "image_axis"
+                }
+              }
+            },
+            "computations": {
+              "height": {
+                "axis": "y",
+                "calibration": "caller_interpreted_not_verified",
+                "measurement_bindings": [],
+                "method": "image_axis",
+                "metre_anchors": [
+                  0.0,
+                  6.6
+                ],
+                "metres_per_pixel": -0.017368421052631578,
+                "pixels": [
+                  561,
+                  181,
+                  561.0,
+                  440.0
+                ]
+              }
+            },
+            "id": "claim_0001",
+            "parent_proposal_sha256": "e7b599750262e2520e557b929f377a57e43894885ba0358f8a58da17e8a40c20",
+            "resolved_values": {
+              "height": [
+                0.0,
+                2.101578947
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  0,
+                  0,
+                  1077,
+                  773
+                ],
+                "image": "West_view.png",
+                "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                "size": [
+                  1077,
+                  773
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0002.json",
+      "parent_candidate": "candidate_04",
+      "parent_proposal_sha256": "e7b599750262e2520e557b929f377a57e43894885ba0358f8a58da17e8a40c20"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "e2051da2f52d235ed02825e53d9488d6f41ed1f11a44dd1a6f3af715931774e8",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "e7b599750262e2520e557b929f377a57e43894885ba0358f8a58da17e8a40c20"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f4d2a366e08838e2f98be6e0f562d13d272e05864a7b305a593617bf1edd9aaa",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact door leaf swing direction/state not verified beyond presence.",
+    "Bottom-left room furniture (sofa+L-desk) suggests possible reception/manager office; classified as office/enclosed pending further evidence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Small bottom-row rooms (desk+monitor+2 guest chairs) classified as office/enclosed; could alternatively be interpreted as small meeting/consulting rooms.",
+    "Door leaf swing/state not verified beyond presence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

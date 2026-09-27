@@ -1,0 +1,79 @@
+{
+  "agent_assumptions": [
+    "Ceiling height 3.0m assumed pending elevation check.",
+    "Window sill/head heights assumed 0.9-2.1m pending elevation check.",
+    "Door heights assumed 2.1m pending elevation confirmation.",
+    "Walls modeled as zero-thickness representative centerlines/faces; 240mm/250mm wall thickness labels not separately modeled as solids.",
+    "Room A-bottom furniture (closet, L-fixture) interpreted as storage/pantry use, not a separate plumbed room, since no partition separates them from the entry area.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "291d0b7fbb8e91319d4c7c5de0ecf5b05df1a9570e41505b7fdbd6ccdae6472a",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "2dc506e2334192982786b94ae79b1c34e4bd813eca0631bf4389fa75dc3ca3c6",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "60173f5f42cff83aea04567bc8da9527f35a2a2cb1b85bcc26512f3a2940cba1",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "0b710b25186c2c4c2d4c7897e7ee9244e154492d3e0f50211a21150f59a4da43",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "a08b0810a9050ca014e27e630ef36993e3d88fc3705c8a18cfc9069c0b51f9b9",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "b53669253b7dc2830fe25d87a0d1f388ff1d1a4649b802a4c24646628a4d1c44"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "76b55cf0a5f0d64e0060428cab8dc9c49f57f5b9e92d3a4ddb5968e233c665a4",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact room use for room_A_bot (closet+L-fixture) not verified beyond furniture inference.",
+    "Small double-tick dimension marks (~120mm each) at x=5000/10000 in the top chain interpreted as the partition wall thickness crossing the window run; not independently confirmed.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

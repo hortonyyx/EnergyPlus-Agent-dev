@@ -1,0 +1,731 @@
+{
+  "agent_assumptions": [
+    "Ceiling height 3.0m assumed pending elevation check.",
+    "1F window sill/head heights measured from North_view.png dimension chain: 1.0-2.6m absolute (claim_0002), applied uniformly across the 1F window family including the corridor east window (unresolved distinction noted).",
+    "Door heights assumed 2.1m pending elevation confirmation.",
+    "Walls modeled as zero-thickness representative centerlines/faces; 240mm/250mm wall thickness labels not separately modeled as solids.",
+    "Room A-bottom furniture (closet, L-fixture) interpreted as storage/pantry use, not a separate plumbed room, since no partition separates them from the entry area.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "2F exterior window heights measured from North_view.png elevation chain (claim_0003): absolute 4.0-5.8m, applied to all 8 exterior windows including east/west corridor windows (unresolved family-distinction noted). Interior door heights (12 corridor-to-room doors across both floors) and the west exterior corridor door (F1:D_west) remain explicit 2.1m assumptions; no elevation fine-dimension was available for these openings.",
+    "West/East corridor windows assumed same height family as the other 2F windows.",
+    "Walls modeled as zero-thickness representative centerlines; 400mm corridor wall thickness and other wall thicknesses not separately modeled as solids.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "8d216256743ed6c671083cfda97fe573481b88ce57b36bbd8ec90acd302ff6e8",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_N1"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 1,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_N2"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 2,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_S1"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 3,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_S2"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 4,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_S3"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 5,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_S4"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 6,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_east"
+            ]
+          ],
+          "value_field": "win2f_z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 3.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 6.6,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 5.8,
+                  "index": 0,
+                  "length_m": 0.8,
+                  "span_m": [
+                    5.8,
+                    6.6
+                  ],
+                  "start_m": 6.6
+                },
+                {
+                  "end_m": 4.0,
+                  "index": 1,
+                  "length_m": 1.8,
+                  "span_m": [
+                    4.0,
+                    5.8
+                  ],
+                  "start_m": 5.8
+                },
+                {
+                  "end_m": 3.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    3.0,
+                    4.0
+                  ],
+                  "start_m": 4.0
+                }
+              ],
+              "total_m": 3.6
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 7,
+          "parameter": "z",
+          "resolved_value": [
+            4.0,
+            5.8
+          ],
+          "targets": [
+            [
+              "window",
+              "F2:W2_west"
+            ]
+          ],
+          "value_field": "win2f_z"
+        }
+      ],
+      "claims": {
+        "claim_0003": {
+          "decision": {
+            "claim_id": "claim_0003",
+            "disposition": "adopted",
+            "id": "decision_0003",
+            "reason": "Matches expected 2F window family; consistent 3600mm floor-to-roof closure."
+          },
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_06",
+              "objects": [
+                {
+                  "id": "F2:W2_N1",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_N2",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_S1",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_S2",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_S3",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_S4",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_east",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2:W2_west",
+                  "kind": "window"
+                }
+              ],
+              "observation_mode": "direct",
+              "reason": "North_view.png right-side vertical dimension chain above the 2F/1F floor line reads top-down 800(roof-to-head)+1800(window leaf)+1000(sill-to-floor)=3600mm=2F floor-to-roof height, origin at roof z=6.6m absolute. Segment 1 (the 1800mm leaf) gives absolute head/sill z=4.0-5.8m. Applied uniformly to all 2F exterior windows.",
+              "sources": [
+                {
+                  "view_id": "view_0029"
+                }
+              ],
+              "unresolved": [
+                "East/West corridor windows on 2F assumed same family as North/South room windows; not independently distinguished."
+              ],
+              "value_targets": null,
+              "values": {
+                "win2f_z": {
+                  "direction": -1,
+                  "lengths": [
+                    800.0,
+                    1800.0,
+                    1000.0
+                  ],
+                  "origin_m": 6.6,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                }
+              }
+            },
+            "computations": {
+              "win2f_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 3.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 6.6,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 5.8,
+                      "index": 0,
+                      "length_m": 0.8,
+                      "span_m": [
+                        5.8,
+                        6.6
+                      ],
+                      "start_m": 6.6
+                    },
+                    {
+                      "end_m": 4.0,
+                      "index": 1,
+                      "length_m": 1.8,
+                      "span_m": [
+                        4.0,
+                        5.8
+                      ],
+                      "start_m": 5.8
+                    },
+                    {
+                      "end_m": 3.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        3.0,
+                        4.0
+                      ],
+                      "start_m": 4.0
+                    }
+                  ],
+                  "total_m": 3.6
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              }
+            },
+            "id": "claim_0003",
+            "parent_proposal_sha256": "c98df15ba492ff7b12090b3093853c92c01914a45bde340312aa1a9b60ba9fb7",
+            "resolved_values": {
+              "win2f_z": [
+                4.0,
+                5.8
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  0,
+                  190,
+                  290,
+                  585
+                ],
+                "image": "North_view.png",
+                "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                "size": [
+                  1354,
+                  812
+                ],
+                "view_id": "view_0029",
+                "view_sha256": "8c74460067ef13c1d2f7fb06f9f7f4e6ceaeaea24d9272c4708ec1968355dc2f"
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0005.json",
+      "parent_candidate": "candidate_06",
+      "parent_proposal_sha256": "c98df15ba492ff7b12090b3093853c92c01914a45bde340312aa1a9b60ba9fb7"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "2dc506e2334192982786b94ae79b1c34e4bd813eca0631bf4389fa75dc3ca3c6",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_06",
+    "parent_proposal_sha256": "c98df15ba492ff7b12090b3093853c92c01914a45bde340312aa1a9b60ba9fb7"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "aee3fb3b01965bcaa9ca216f15e8f622ecdc19f14a677a7029d7332af89686f5",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact room use for room_A_bot (closet+L-fixture) not verified beyond furniture inference.",
+    "Small double-tick dimension marks (~120mm each) at x=5000/10000 in the top chain interpreted as the partition wall thickness crossing the window run; not independently confirmed.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact per-window elevation distinction between corridor windows (east/west) and room windows (north/south) not independently confirmed beyond shared family assumption.",
+    "Small partition thickness (~120mm gap in top dimension chain) interpreted as wall crossing the window run; not independently confirmed.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

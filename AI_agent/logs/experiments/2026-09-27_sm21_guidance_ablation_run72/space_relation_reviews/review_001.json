@@ -1,0 +1,252 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "fa1460f6981d006f03c864eefce6e0c0cbeaa63d4b277ecfba5e3051edd7e2a0",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1816.0,
+        15000.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        1087.0,
+        0.0
+      ],
+      [
+        346.0,
+        8000.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "chk1",
+      "expected": "separate_spaces",
+      "evidence": "office A (top-left) vs round-table room (bottom-right), separated by corridor and partitions",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            450.0
+          ],
+          "world_xy_m": [
+            2426.3120057512588,
+            6877.19298245614
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_A_top",
+          "interior_space_ids": [
+            "F1:office_A_top"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1600.0,
+            950.0
+          ],
+          "world_xy_m": [
+            12670.740474478795,
+            1479.0823211875831
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room_C_bot",
+          "interior_space_ids": [
+            "F1:room_C_bot"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk2",
+      "expected": "separate_spaces",
+      "evidence": "office A vs office B, separated by vertical partition at x~888",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            450.0
+          ],
+          "world_xy_m": [
+            2426.3120057512588,
+            6877.19298245614
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_A_top",
+          "interior_space_ids": [
+            "F1:office_A_top"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1120.0,
+            450.0
+          ],
+          "world_xy_m": [
+            7494.608195542776,
+            6877.19298245614
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_B_top",
+          "interior_space_ids": [
+            "F1:office_B_top"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk3",
+      "expected": "same_space",
+      "evidence": "both points well inside the open corridor",
+      "points": [
+        {
+          "pixel": [
+            1100.0,
+            700.0
+          ],
+          "world_xy_m": [
+            7278.9360172537745,
+            4178.137651821862
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor_1f",
+          "interior_space_ids": [
+            "F1:corridor_1f"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            715.0
+          ],
+          "world_xy_m": [
+            7278.9360172537745,
+            4016.1943319838056
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor_1f",
+          "interior_space_ids": [
+            "F1:corridor_1f"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk4",
+      "expected": "same_space",
+      "evidence": "corridor is one continuous open space along its whole length",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            650.0
+          ],
+          "world_xy_m": [
+            808.7706685837529,
+            4717.948717948718
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor_1f",
+          "interior_space_ids": [
+            "F1:corridor_1f"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1700.0,
+            650.0
+          ],
+          "world_xy_m": [
+            13749.101365923796,
+            4717.948717948718
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor_1f",
+          "interior_space_ids": [
+            "F1:corridor_1f"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "chk5",
+      "expected": "separate_spaces",
+      "evidence": "top office A vs bottom room A, separated by corridor in between",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            450.0
+          ],
+          "world_xy_m": [
+            2426.3120057512588,
+            6877.19298245614
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_A_top",
+          "interior_space_ids": [
+            "F1:office_A_top"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            650.0,
+            950.0
+          ],
+          "world_xy_m": [
+            2426.3120057512588,
+            1479.0823211875831
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room_A_bot",
+          "interior_space_ids": [
+            "F1:room_A_bot"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_03",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_003.json",
+  "calibration_sha256": "4df25e707ead4b29f187aace2f08ec33e59ef9481ea29b52a6c5609c9d388f4c",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 2120
+}
