@@ -1,0 +1,1986 @@
+[
+  {
+    "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+    "archive_sha256": "e0e60b63d5a8e3d24c304fd892381d67d75a41c15e8193e3aa2ac8b5f1b2ce3b",
+    "scope": "primary invocation stream only; no inference about provider hidden context",
+    "tool_calls": 44,
+    "tool_replies": 44,
+    "first_ready_ordinal": 21,
+    "first_plan_input": {
+      "ordinal": 21,
+      "image": "1f_view.png",
+      "floor_id": "F1",
+      "x_anchors": [
+        [
+          426,
+          0
+        ],
+        [
+          1815,
+          15
+        ]
+      ],
+      "y_anchors": [
+        [
+          347,
+          8
+        ],
+        [
+          1087,
+          0
+        ]
+      ],
+      "basis": "Overall 15000x8000 dims; outer wall faces used as perimeter (gray band outer edges x426/1815, y347/1087). Interior thin partitions traced on centre of their double line. Origin SW outer corner, x east, y north."
+    },
+    "first_assembly_ordinal": 23,
+    "first_claim_attempt_ordinal": 26,
+    "added_tool_calls": [],
+    "reference_reads": [
+      {
+        "ordinal": 2,
+        "topic": "plan_partition",
+        "before_first_ready": true,
+        "reference_sha256": "56fd875db104f38ecd3fe90b123d76fe5ed9a3a75d0be6a6505ee4b3fc989abe",
+        "chars": 6069
+      },
+      {
+        "ordinal": 25,
+        "topic": "claims",
+        "before_first_ready": false,
+        "reference_sha256": "c58cad5e7a0e52c6cdec1d0c074f2fe69303a4de746415ab9053a0053051e3d0",
+        "chars": 10259
+      }
+    ],
+    "candidate_replies": [
+      {
+        "ordinal": 21,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_01",
+        "text_chars": 27298,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 0,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            10933
+          ],
+          [
+            "source_image_projections",
+            6525
+          ],
+          [
+            "opening_inventory",
+            6062
+          ],
+          [
+            "input_view_status",
+            1686
+          ],
+          [
+            "provenance",
+            1023
+          ],
+          [
+            "plan_input",
+            824
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 22,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_02",
+        "text_chars": 26944,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 0,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            10715
+          ],
+          [
+            "source_image_projections",
+            6388
+          ],
+          [
+            "opening_inventory",
+            5767
+          ],
+          [
+            "input_view_status",
+            1686
+          ],
+          [
+            "provenance",
+            1023
+          ],
+          [
+            "plan_input",
+            824
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 23,
+        "tool": "assemble_plan_bim",
+        "candidate": "candidate_03",
+        "text_chars": 28667,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 0,
+        "largest_fields": [
+          [
+            "source_image_projections",
+            13171
+          ],
+          [
+            "opening_inventory",
+            12034
+          ],
+          [
+            "input_view_status",
+            1686
+          ],
+          [
+            "source_plan_views",
+            1187
+          ],
+          [
+            "agent_assumptions",
+            587
+          ],
+          [
+            "provenance",
+            325
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_assembly",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 39,
+        "tool": "revise_bim",
+        "candidate": "candidate_04",
+        "text_chars": 31964,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 0,
+        "largest_fields": [
+          [
+            "source_image_projections",
+            13157
+          ],
+          [
+            "opening_inventory",
+            12034
+          ],
+          [
+            "claim_application",
+            3029
+          ],
+          [
+            "input_view_status",
+            1686
+          ],
+          [
+            "source_plan_views",
+            1187
+          ],
+          [
+            "agent_assumptions",
+            891
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      }
+    ],
+    "truncation_markers": [],
+    "call_counts": {
+      "inputs": 1,
+      "get_bim_reference": 2,
+      "view_image": 10,
+      "view_pixel_profile": 8,
+      "build_plan_bim": 2,
+      "assemble_plan_bim": 1,
+      "check_openings": 2,
+      "record_claim": 6,
+      "decide_claim": 6,
+      "confirm_claims": 1,
+      "revise_bim": 1,
+      "check_source_space_relation": 2,
+      "view_elevation_candidate": 1,
+      "finish_bim": 1
+    }
+  },
+  {
+    "run": "2026-09-27_sm21_current_tools_claude_run69",
+    "archive_sha256": "2f21cbd414c2d03ee8d022fec773151a46a2a688dfe064b50c73b24a94199b45",
+    "scope": "primary invocation stream only; no inference about provider hidden context",
+    "tool_calls": 95,
+    "tool_replies": 95,
+    "first_ready_ordinal": 33,
+    "first_plan_input": {
+      "ordinal": 33,
+      "image": "1f_view.png",
+      "floor_id": "F1",
+      "x_anchors": [
+        [
+          425,
+          0
+        ],
+        [
+          1815,
+          15
+        ]
+      ],
+      "y_anchors": [
+        [
+          1088,
+          0
+        ],
+        [
+          345,
+          8
+        ]
+      ],
+      "basis": "1f_view.png: calibrated from outer wall face corner pixels (top-left, top-right, bottom-left corners) matched to overall 15000x8000mm dimension labels; representative plane = exterior outer face for perimeter, centerline for interior partitions using labeled sub-dimension chains (top: 1240/2400/1300 repeated x3 bays; bottom: 540/900/2000/1200/360/1300/2400/1300/1360/2400/1240; left: 3000/250/1500/250/3000 for corridor)."
+    },
+    "first_assembly_ordinal": 86,
+    "first_claim_attempt_ordinal": null,
+    "added_tool_calls": [],
+    "reference_reads": [
+      {
+        "ordinal": 2,
+        "topic": "reconstruction",
+        "before_first_ready": true,
+        "reference_sha256": "48461214ab989e9b4defa4fdd7eb6ebeea8f645d7be1fea6b7f4371d2201f907",
+        "chars": 4920
+      },
+      {
+        "ordinal": 3,
+        "topic": "plan_partition",
+        "before_first_ready": true,
+        "reference_sha256": "56fd875db104f38ecd3fe90b123d76fe5ed9a3a75d0be6a6505ee4b3fc989abe",
+        "chars": 6069
+      },
+      {
+        "ordinal": 4,
+        "topic": "plan_assembly",
+        "before_first_ready": true,
+        "reference_sha256": "41f6265ded85574e0a561aa3a0fb4512a6276c185ee218256c3c02b428aa93f7",
+        "chars": 2111
+      },
+      {
+        "ordinal": 32,
+        "topic": "room_types",
+        "before_first_ready": true,
+        "reference_sha256": "893eb02ef58d29946ad3af8906d6da3edaabe2f1f289597f60e3b9140c9f477d",
+        "chars": 2947
+      },
+      {
+        "ordinal": 87,
+        "topic": "edits",
+        "before_first_ready": false,
+        "reference_sha256": "3e250249b414c909e90e3df41462625e7b79d1c70fb3658a3ae7b877b7b346d1",
+        "chars": 5437
+      }
+    ],
+    "candidate_replies": [
+      {
+        "ordinal": 33,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_01",
+        "text_chars": 31412,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1086,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            12864
+          ],
+          [
+            "source_image_projections",
+            7017
+          ],
+          [
+            "opening_inventory",
+            6067
+          ],
+          [
+            "input_view_status",
+            1767
+          ],
+          [
+            "room_use_review",
+            1086
+          ],
+          [
+            "provenance",
+            1023
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 52,
+        "tool": "revise_plan_bim",
+        "candidate": "candidate_02",
+        "text_chars": 32213,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1086,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            12303
+          ],
+          [
+            "source_image_projections",
+            7579
+          ],
+          [
+            "opening_inventory",
+            5666
+          ],
+          [
+            "input_view_status",
+            1768
+          ],
+          [
+            "provenance",
+            1281
+          ],
+          [
+            "room_use_review",
+            1086
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "plan_revision",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 60,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_03",
+        "text_chars": 31938,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1086,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            12604
+          ],
+          [
+            "source_image_projections",
+            7869
+          ],
+          [
+            "opening_inventory",
+            5666
+          ],
+          [
+            "input_view_status",
+            1768
+          ],
+          [
+            "room_use_review",
+            1086
+          ],
+          [
+            "provenance",
+            1023
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 85,
+        "tool": "revise_plan_bim",
+        "candidate": "candidate_04",
+        "text_chars": 32933,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1086,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            12604
+          ],
+          [
+            "source_image_projections",
+            7869
+          ],
+          [
+            "opening_inventory",
+            5666
+          ],
+          [
+            "input_view_status",
+            1688
+          ],
+          [
+            "provenance",
+            1281
+          ],
+          [
+            "room_use_review",
+            1086
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "plan_revision",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 86,
+        "tool": "assemble_plan_bim",
+        "candidate": "candidate_05",
+        "text_chars": 32692,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1174,
+        "largest_fields": [
+          [
+            "source_image_projections",
+            15144
+          ],
+          [
+            "opening_inventory",
+            11938
+          ],
+          [
+            "input_view_status",
+            1688
+          ],
+          [
+            "agent_assumptions",
+            1380
+          ],
+          [
+            "source_plan_views",
+            1203
+          ],
+          [
+            "room_use_review",
+            1174
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_assembly",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 91,
+        "tool": "revise_bim",
+        "candidate": "candidate_06",
+        "text_chars": 41492,
+        "truncation_marker": true,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1174,
+        "largest_fields": [
+          [
+            "source_image_projections",
+            15130
+          ],
+          [
+            "opening_inventory",
+            11914
+          ],
+          [
+            "claim_application",
+            9134
+          ],
+          [
+            "input_view_status",
+            1688
+          ],
+          [
+            "agent_assumptions",
+            1380
+          ],
+          [
+            "source_plan_views",
+            1203
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      }
+    ],
+    "truncation_markers": [
+      {
+        "ordinal": 91,
+        "tool": "revise_bim",
+        "text_chars": 41492,
+        "image_count": 4
+      }
+    ],
+    "call_counts": {
+      "inputs": 1,
+      "get_bim_reference": 5,
+      "view_image": 50,
+      "view_pixel_profile": 2,
+      "pixel_profile": 20,
+      "view_pixel_region_overview": 2,
+      "build_plan_bim": 3,
+      "inspect_plan_draft": 1,
+      "revise_plan_bim": 2,
+      "assemble_plan_bim": 1,
+      "revise_bim": 3,
+      "read_candidate_items": 2,
+      "claim_status": 1,
+      "inspect_candidate": 1,
+      "finish_bim": 1
+    }
+  },
+  {
+    "run": "2026-09-27_sm21_guidance_control_run71",
+    "archive_sha256": "b0f5f0528abbe1a0fcd7274022b156b2dd009201cec26f9657a4385ad9c9ea5f",
+    "scope": "primary invocation stream only; no inference about provider hidden context",
+    "tool_calls": 95,
+    "tool_replies": 95,
+    "first_ready_ordinal": 37,
+    "first_plan_input": {
+      "ordinal": 37,
+      "image": "1f_view.png",
+      "floor_id": "F1",
+      "x_anchors": [
+        [
+          419,
+          0
+        ],
+        [
+          1821,
+          15
+        ]
+      ],
+      "y_anchors": [
+        [
+          340,
+          8
+        ],
+        [
+          1093,
+          0
+        ]
+      ],
+      "basis": "1f_view.png: overall 15000x8000 dimension lines (x-run px419-1821=15000mm; y-run px340-1093=8000mm). Outer footprint uses outer wall face ticks. Interior partitions/corridor walls use single representative centerline per observed double-line wall; corridor walls at world y~3.0 and y~5.0 derived from left-side 3000/250/1500/250/3000 chain. Vertical partitions at world x=5.0 and x=10.0 derived from matching top(1240+2400+1300+[240 gap]+1240+2400+1240+[240gap]+1300+2400+1240=15000) and bottom(540+900+2000+1200+360+1300+2400+1300+1360+2400+1240=15000) dimension chains, both showing a partition boundary exactly at cumulative 5000 and 10000mm."
+    },
+    "first_assembly_ordinal": 81,
+    "first_claim_attempt_ordinal": 68,
+    "added_tool_calls": [],
+    "reference_reads": [
+      {
+        "ordinal": 2,
+        "topic": "reconstruction",
+        "before_first_ready": true,
+        "reference_sha256": "48461214ab989e9b4defa4fdd7eb6ebeea8f645d7be1fea6b7f4371d2201f907",
+        "chars": 4920
+      },
+      {
+        "ordinal": 3,
+        "topic": "plan_partition",
+        "before_first_ready": true,
+        "reference_sha256": "56fd875db104f38ecd3fe90b123d76fe5ed9a3a75d0be6a6505ee4b3fc989abe",
+        "chars": 6069
+      },
+      {
+        "ordinal": 4,
+        "topic": "plan_assembly",
+        "before_first_ready": true,
+        "reference_sha256": "41f6265ded85574e0a561aa3a0fb4512a6276c185ee218256c3c02b428aa93f7",
+        "chars": 2111
+      },
+      {
+        "ordinal": 70,
+        "topic": "claims",
+        "before_first_ready": false,
+        "reference_sha256": "5070564a9e3b5bd8aacdaa601e4d67ec5c5b228c13951fc35ad33553dfc7438f",
+        "chars": 12425
+      },
+      {
+        "ordinal": 76,
+        "topic": "edits",
+        "before_first_ready": false,
+        "reference_sha256": "3e250249b414c909e90e3df41462625e7b79d1c70fb3658a3ae7b877b7b346d1",
+        "chars": 5437
+      }
+    ],
+    "candidate_replies": [
+      {
+        "ordinal": 37,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_01",
+        "text_chars": 34390,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1138,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            13413
+          ],
+          [
+            "source_image_projections",
+            8777
+          ],
+          [
+            "opening_inventory",
+            6466
+          ],
+          [
+            "input_view_status",
+            1767
+          ],
+          [
+            "room_use_review",
+            1138
+          ],
+          [
+            "provenance",
+            1023
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 74,
+        "tool": "revise_bim",
+        "candidate": "candidate_02",
+        "text_chars": 43122,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1138,
+        "largest_fields": [
+          [
+            "claim_application",
+            16441
+          ],
+          [
+            "source_image_projections",
+            8773
+          ],
+          [
+            "provenance",
+            8525
+          ],
+          [
+            "opening_inventory",
+            6438
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "room_use_review",
+            1138
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 77,
+        "tool": "revise_bim",
+        "candidate": "candidate_03",
+        "text_chars": 28509,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 740,
+        "largest_fields": [
+          [
+            "claim_application",
+            8865
+          ],
+          [
+            "source_image_projections",
+            8773
+          ],
+          [
+            "opening_inventory",
+            6438
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "agent_assumptions",
+            831
+          ],
+          [
+            "room_use_review",
+            740
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 78,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_04",
+        "text_chars": 33595,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1133,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            12962
+          ],
+          [
+            "source_image_projections",
+            8541
+          ],
+          [
+            "opening_inventory",
+            6142
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "room_use_review",
+            1133
+          ],
+          [
+            "provenance",
+            1023
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 81,
+        "tool": "assemble_plan_bim",
+        "candidate": "candidate_05",
+        "text_chars": 36441,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1273,
+        "largest_fields": [
+          [
+            "source_image_projections",
+            17576
+          ],
+          [
+            "opening_inventory",
+            12813
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "source_plan_views",
+            1353
+          ],
+          [
+            "agent_assumptions",
+            1337
+          ],
+          [
+            "room_use_review",
+            1273
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_assembly",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 84,
+        "tool": "revise_bim",
+        "candidate": "candidate_06",
+        "text_chars": 70628,
+        "truncation_marker": true,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 743,
+        "largest_fields": [
+          [
+            "claim_application",
+            29374
+          ],
+          [
+            "source_image_projections",
+            17562
+          ],
+          [
+            "opening_inventory",
+            12785
+          ],
+          [
+            "provenance",
+            8456
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "agent_assumptions",
+            1489
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 94,
+        "tool": "revise_bim",
+        "candidate": "candidate_07",
+        "text_chars": 58943,
+        "truncation_marker": true,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 743,
+        "largest_fields": [
+          [
+            "source_image_projections",
+            17562
+          ],
+          [
+            "claim_application",
+            15290
+          ],
+          [
+            "opening_inventory",
+            12785
+          ],
+          [
+            "provenance",
+            9349
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "agent_assumptions",
+            1663
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      }
+    ],
+    "truncation_markers": [
+      {
+        "ordinal": 84,
+        "tool": "revise_bim",
+        "text_chars": 70628,
+        "image_count": 4
+      },
+      {
+        "ordinal": 94,
+        "tool": "revise_bim",
+        "text_chars": 58943,
+        "image_count": 4
+      }
+    ],
+    "call_counts": {
+      "inputs": 1,
+      "get_bim_reference": 5,
+      "view_image": 32,
+      "view_pixel_profile": 2,
+      "pixel_profile": 30,
+      "build_plan_bim": 2,
+      "record_claim": 6,
+      "decide_claim": 4,
+      "revise_bim": 5,
+      "inspect_plan_draft": 2,
+      "assemble_plan_bim": 1,
+      "check_source_space_relation": 2,
+      "check_openings": 1,
+      "confirm_claims": 1,
+      "finish_bim": 1
+    }
+  },
+  {
+    "run": "2026-09-27_sm21_guidance_ablation_run72",
+    "archive_sha256": "477d3e9cd5076d4b93e97931d462cec70c9d1e7c4522bee20a934f1dea4ad24a",
+    "scope": "primary invocation stream only; no inference about provider hidden context",
+    "tool_calls": 101,
+    "tool_replies": 101,
+    "first_ready_ordinal": 63,
+    "first_plan_input": {
+      "ordinal": 61,
+      "image": "1f_view.png",
+      "floor_id": "F1",
+      "x_anchors": [
+        [
+          425,
+          0
+        ],
+        [
+          1816,
+          15000
+        ]
+      ],
+      "y_anchors": [
+        [
+          1087,
+          0
+        ],
+        [
+          346,
+          8000
+        ]
+      ],
+      "basis": "1f_view.png: outer wall faces calibrated to overall 15000x8000mm footprint dimensions; y=0 at south(bottom) outer face, y=8000 at north(top) outer face, matching overall dimension chains."
+    },
+    "first_assembly_ordinal": 67,
+    "first_claim_attempt_ordinal": 83,
+    "added_tool_calls": [],
+    "reference_reads": [
+      {
+        "ordinal": 2,
+        "topic": "reconstruction",
+        "before_first_ready": true,
+        "reference_sha256": "48461214ab989e9b4defa4fdd7eb6ebeea8f645d7be1fea6b7f4371d2201f907",
+        "chars": 4920
+      },
+      {
+        "ordinal": 3,
+        "topic": "plan_partition",
+        "before_first_ready": true,
+        "reference_sha256": "56fd875db104f38ecd3fe90b123d76fe5ed9a3a75d0be6a6505ee4b3fc989abe",
+        "chars": 6069
+      },
+      {
+        "ordinal": 4,
+        "topic": "plan_assembly",
+        "before_first_ready": true,
+        "reference_sha256": "41f6265ded85574e0a561aa3a0fb4512a6276c185ee218256c3c02b428aa93f7",
+        "chars": 2111
+      },
+      {
+        "ordinal": 60,
+        "topic": "room_types",
+        "before_first_ready": true,
+        "reference_sha256": "893eb02ef58d29946ad3af8906d6da3edaabe2f1f289597f60e3b9140c9f477d",
+        "chars": 2947
+      },
+      {
+        "ordinal": 70,
+        "topic": "edits",
+        "before_first_ready": false,
+        "reference_sha256": "3e250249b414c909e90e3df41462625e7b79d1c70fb3658a3ae7b877b7b346d1",
+        "chars": 5437
+      },
+      {
+        "ordinal": 73,
+        "topic": "claims",
+        "before_first_ready": false,
+        "reference_sha256": "5070564a9e3b5bd8aacdaa601e4d67ec5c5b228c13951fc35ad33553dfc7438f",
+        "chars": 12425
+      }
+    ],
+    "candidate_replies": [
+      {
+        "ordinal": 63,
+        "tool": "revise_plan_bim",
+        "candidate": "candidate_01",
+        "text_chars": 33141,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1147,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            12736
+          ],
+          [
+            "opening_inventory",
+            6678
+          ],
+          [
+            "source_image_projections",
+            6588
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "provenance",
+            1281
+          ],
+          [
+            "room_use_review",
+            1147
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "plan_revision",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 64,
+        "tool": "build_plan_bim",
+        "candidate": "candidate_02",
+        "text_chars": 30809,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 2,
+        "expected_image_count": 2,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1135,
+        "largest_fields": [
+          [
+            "plan_compilation",
+            11994
+          ],
+          [
+            "opening_inventory",
+            6535
+          ],
+          [
+            "source_image_projections",
+            6466
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "room_use_review",
+            1135
+          ],
+          [
+            "provenance",
+            1023
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_compilation",
+          "plan_input",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 67,
+        "tool": "assemble_plan_bim",
+        "candidate": "candidate_03",
+        "text_chars": 32546,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 1284,
+        "largest_fields": [
+          [
+            "opening_inventory",
+            13401
+          ],
+          [
+            "source_image_projections",
+            13306
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "source_plan_views",
+            1352
+          ],
+          [
+            "room_use_review",
+            1284
+          ],
+          [
+            "agent_assumptions",
+            1200
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "plan_assembly",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 71,
+        "tool": "revise_bim",
+        "candidate": "candidate_04",
+        "text_chars": 47765,
+        "truncation_marker": true,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 743,
+        "largest_fields": [
+          [
+            "claim_application",
+            16550
+          ],
+          [
+            "opening_inventory",
+            13401
+          ],
+          [
+            "source_image_projections",
+            13292
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "source_plan_views",
+            1352
+          ],
+          [
+            "agent_assumptions",
+            1200
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 94,
+        "tool": "revise_bim",
+        "candidate": "candidate_05",
+        "text_chars": 39237,
+        "truncation_marker": true,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 743,
+        "largest_fields": [
+          [
+            "opening_inventory",
+            13417
+          ],
+          [
+            "source_image_projections",
+            13292
+          ],
+          [
+            "claim_application",
+            5179
+          ],
+          [
+            "provenance",
+            2420
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "agent_assumptions",
+            1352
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      },
+      {
+        "ordinal": 100,
+        "tool": "revise_bim",
+        "candidate": "candidate_06",
+        "text_chars": 35310,
+        "truncation_marker": false,
+        "complete_json_parsed": true,
+        "image_count": 4,
+        "expected_image_count": 4,
+        "expected_images_present_by_count": true,
+        "room_use_review_chars": 743,
+        "largest_fields": [
+          [
+            "opening_inventory",
+            13417
+          ],
+          [
+            "source_image_projections",
+            13292
+          ],
+          [
+            "claim_application",
+            3231
+          ],
+          [
+            "input_view_status",
+            1687
+          ],
+          [
+            "source_plan_views",
+            1352
+          ],
+          [
+            "agent_assumptions",
+            1276
+          ]
+        ],
+        "top_level_fields": [
+          "agent_assumptions",
+          "candidate",
+          "candidate_budget",
+          "claim_application",
+          "counts",
+          "drawing_fidelity",
+          "human_confirmation",
+          "input_view_status",
+          "mode",
+          "model_calls",
+          "not_evaluated",
+          "opening_inventory",
+          "opening_review",
+          "projection_errors",
+          "proposal_sha256",
+          "provenance",
+          "remaining_seconds",
+          "room_use_review",
+          "scope",
+          "solver_calls",
+          "source_geometry_ready",
+          "source_geometry_self_consistency",
+          "source_image_projections",
+          "source_model_sha256",
+          "source_plan_errors",
+          "source_plan_views",
+          "source_validation",
+          "status",
+          "unresolved"
+        ]
+      }
+    ],
+    "truncation_markers": [
+      {
+        "ordinal": 71,
+        "tool": "revise_bim",
+        "text_chars": 47765,
+        "image_count": 4
+      },
+      {
+        "ordinal": 94,
+        "tool": "revise_bim",
+        "text_chars": 39237,
+        "image_count": 4
+      }
+    ],
+    "call_counts": {
+      "inputs": 1,
+      "get_bim_reference": 6,
+      "view_image": 28,
+      "view_pixel_region_overview": 3,
+      "pixel_profile": 32,
+      "build_plan_bim": 2,
+      "inspect_plan_draft": 3,
+      "revise_plan_bim": 1,
+      "assemble_plan_bim": 1,
+      "check_source_space_relation": 2,
+      "revise_bim": 4,
+      "check_openings": 2,
+      "map_dimension_chain": 2,
+      "record_claim": 5,
+      "decide_claim": 3,
+      "confirm_claims": 3,
+      "claim_status": 1,
+      "inspect_candidate": 1,
+      "finish_bim": 1
+    }
+  }
+]
