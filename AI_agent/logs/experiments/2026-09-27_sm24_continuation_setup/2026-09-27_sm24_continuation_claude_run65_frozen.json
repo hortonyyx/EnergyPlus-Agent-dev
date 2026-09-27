@@ -1,0 +1,30 @@
+{
+  "scope": "Continue reconstructing the supplied target building from its saved\ngenerated proposal and original drawings. Inspect actual saved feedback, decide\nwhat useful in-scope work remains and execute it. Preserve reliable physical\nrooms, walls, openings, hosts and connections; choose local revisions when needed.\nDo not rebuild the whole plan merely to add evidence or room functions. Check\nphysical partition/connection fidelity, room uses and the exterior opening heights\nagainst relevant originals. Uses inferred from furniture must be marked inferred;\nambiguous uses and heights without evidence may remain explicitly unknown/assumed.\nUse the listed room catalog, located evidence, and confirmation or edits as\nappropriate. Reconcile obsolete source notes with actual completed work and\nretain real limitations. Choose the order and concrete follow-ups yourself;\nthere are no supplied target counts, local answers, GT or evaluation. A saved\nproposal is a previous model interpretation, not original evidence. Deliver a\nviewable candidate and accurately distinguish executed checks from pending work.\nWork directly through deterministic/visual tools; no review_detail or delegation.\nThis is saved-proposal recovery, not an independent cold start.\nBefore delivery, use check_openings(heights_only=true) and current source elevations\nto inspect the exterior height families separately on each floor. Record located\nimage claims and confirm/apply their heights on the actual whole-building candidate;\nreport any remaining unlinked heights without pretending that returned pictures\nalone constitute review. Read the claims reference when using those operations.\nPreserve physical plan partitions and opening connections while resolving heights.\nNo error identities/counts, target heights or previous run results are supplied.",
+  "mode": "saved_proposal_autonomous_continuation",
+  "image_sha256": {
+    "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+    "North_view.png": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+    "South_view.png": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+    "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+  },
+  "seed_proposal_sha256": "95538df3129cf03cbf59004e1752aad1869bc3537d7ec1c8579c7251af02f8c8",
+  "provider": "claude",
+  "role": "sonnet",
+  "effort": "medium",
+  "timeout_seconds": 1800,
+  "continuation_rounds": 2,
+  "shared_total_deadline": true,
+  "withheld": [
+    "GT",
+    "old evaluations",
+    "old claim/review files",
+    "developer room interpretations",
+    "local answer/count/height hints"
+  ],
+  "developer_participation": "Generic recovery task and bounded continuation machinery; no per-room directions or live intervention.",
+  "development_agents": "Astra only",
+  "runtime_delegation": "prohibited",
+  "explicit_height_records": true,
+  "scope_note": "With this flag, restore the verbatim generic height-record requirement from run62; no per-opening directions or values."
+}

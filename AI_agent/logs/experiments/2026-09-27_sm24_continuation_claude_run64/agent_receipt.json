@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 60.66,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 52791,
+    "stop_reason": "end_turn",
+    "session_id": "368b7720-ba13-4318-98e7-83010442542f",
+    "total_cost_usd": 0.3422264,
+    "usage": {
+      "input_tokens": 16,
+      "cache_creation_input_tokens": 58070,
+      "cache_read_input_tokens": 313172,
+      "output_tokens": 4728,
+      "output_tokens_details": {
+        "thinking_tokens": 1294
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 58070,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 722,
+          "cache_read_input_tokens": 71656,
+          "cache_creation_input_tokens": 3540,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3540
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 16,
+        "outputTokens": 4728,
+        "cacheReadInputTokens": 313172,
+        "cacheCreationInputTokens": 58070,
+        "webSearchRequests": 0,
+        "costUSD": 0.3422264,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1294,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 17,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_01`. It keeps the seed's geometry unchanged and adds room uses plus reconciled notes.\n\n**Executed checks**\n- **Overlay:** I overlaid the seed on `1f_view.png` using the 10 m × 20 m outer dimensions. The 8 spaces, walls, stepped SE room wall, doors and windows all line up with the plan. I saw no substantive discrepancy, so I made no geometry edits.\n- **Space relations:** I ran 4 sampled point-pair checks (3 separate-space, 1 same-space) and all agreed with the source. This is not a whole-floor fidelity check.\n- **Opening heights:** I compared the source opening heights against the North, South, East and West elevation labels. The exterior door at 0.2–2.6 m, the windows at 1.0–2.8 m and the large windows at 1.0–3.4 m all match. These are visual comparisons only: `check_openings` still reports no image-linked height claims for any of the 21 openings.\n- **Interior doors:** They stay at an assumed 2.1 m.\n\n**Room uses** (all inferred from furniture symbols, since the drawing has no text labels):\n\n| Space | Role |\n|---|---|\n| F1_S01 | office |\n| F1_S02 | office/enclosed |\n| F1_S06 | office/enclosed |\n| F1_S08 | office/enclosed |\n| F1_S07 | conference/meeting/multipurpose |\n| F1_S05 | conference/meeting/multipurpose (tentative; dining or training also plausible) |\n| F1_S03 | corridor |\n| F1_S04 | unknown (a cabinet-like symbol only; storage possible) |\n\nI also replaced the obsolete \"room uses not assigned\" note with the current assumptions and unresolved items.\n\n**Still open**\n- **Calibration:** The pixel-to-world calibration was supplied by me and is not independently verified.\n- **Doors:** I did not re-measure individual interior door positions or swings.\n- **Elevation-to-plan matching:** It rests on dimension chains only.\n- **Whole-drawing fidelity:** It remains not evaluated.",
+    "ttft_ms": 1465,
+    "type": "result",
+    "duration_ms": 54473,
+    "uuid": "bfcdb821-20cb-482d-bc56-e73db5b12929",
+    "ttft_stream_ms": 1197,
+    "time_to_request_ms": 58,
+    "first_content_frame_ms": 1197,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-27 有界续查节点：** Astra独立开发，sm24/run63–65实际全部`claude-sonnet-5`/medium/现有Claude订阅，分别2／2／3次串行主调用（同run续查），无子模型／回退，七次正常结束。三run合计289.57秒、CLI估算$1.5780044，非账单、不含开发用量；无DeepSeek、付费API、EP或开发子代理。99项不同相关离线测试最终通过。run65一次自主追加动作成立，但前两次停止与9处高度图证定位缺陷保留；方法/任务有变化不称冻结重复。见[节点交接](../logs/worklog/2026-09-27_reconstruction_continuation.md)。
+
 **09-27 用途节点：** Astra独立开发，run59/60/61/62均现有Claude订阅实际`claude-sonnet-5`/medium，分别145.17／44.05／153.30／121.13秒，每次1主调用、无子模型／回退，全部正常结束；CLI合计估算$1.9594994非账单、不含开发用量。三次原图冷启动与一次限定用途恢复分别报告；无DeepSeek、付费API、EP或开发子代理。新工具通过、用途推断合理性与整案自主执行分开，见[节点交接](../logs/worklog/2026-09-27_reconstruction_room_use.md)。
 
 **09-27 单人还原续推：** 用户本轮仍指定Astra独立开发，无开发子代理/Opus工作包。sm21独立重复run58实际`claude-sonnet-5`/medium，Claude现有订阅，310.58秒、CLI估算$1.6289102（非账单、不含开发用量），1主调用、无子模型或回退，正常结束。sm25全门窗核验及控制实验均离线，无额外模型调用、DeepSeek或付费API。三例各两次整栋结果仍为单Sonnet加确定性工具基线，不冒充功能分工/并发已实现。见[本轮交接](../logs/worklog/2026-09-27_reconstruction_repeat_and_inventory.md)。

@@ -1,0 +1,69 @@
+{
+  "agent_assumptions": [
+    "Single floor only; no upper floor or vertical circulation supplied",
+    "Interior door heights 2.1 m assumed; exterior door 0.2-2.6 m and window heights (1.0-2.8, 1.0-3.4 m) visually compared with North/South/East/West elevation dimension labels and found consistent, but not linked as claim-bound evidence",
+    "Room uses are inferred from furniture symbols; no text labels in drawing",
+    "Small dimension residuals from wall thickness not resolved",
+    "Plan spaces compiled deterministically from footprint and partition segments; no snapping or inferred partition"
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "3d1778a1e6d5140837bc191d5893cb26f03c97bf62a528d3e532959b1ec0babc",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "seed",
+      "parent_proposal_sha256": "95538df3129cf03cbf59004e1752aad1869bc3537d7ec1c8579c7251af02f8c8"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "9ce734caae863b0521a133372b97ed62030b80948130ca8f095562a5328e8dfc",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "95538df3129cf03cbf59004e1752aad1869bc3537d7ec1c8579c7251af02f8c8"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "979e5389e62a7ca6454a4c3aaa6bb8cf4e6f3878f404cb306867c2540d70f7e7",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Elevation openings matched to plan by dimension chains only",
+    "Pixel-to-world calibration supplied by caller, not independently verified",
+    "F1_S04 use unknown; F1_S05 use tentative",
+    "Interior door positions/swing not individually re-measured this pass"
+  ]
+}

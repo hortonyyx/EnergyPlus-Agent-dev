@@ -1,0 +1,112 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1714,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "role": "main_agent_continuation",
+  "continuation_turn": "continuation_01",
+  "returncode": 0,
+  "elapsed_seconds": 34.93,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 27281,
+    "stop_reason": "end_turn",
+    "session_id": "1bb44f08-7612-40d8-bef6-a867c5d618d4",
+    "total_cost_usd": 0.13774160000000002,
+    "usage": {
+      "input_tokens": 12,
+      "cache_creation_input_tokens": 20955,
+      "cache_read_input_tokens": 155688,
+      "output_tokens": 2276,
+      "output_tokens_details": {
+        "thinking_tokens": 269
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 20955,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 494,
+          "cache_read_input_tokens": 34453,
+          "cache_creation_input_tokens": 3628,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3628
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 12,
+        "outputTokens": 2276,
+        "cacheReadInputTokens": 155688,
+        "cacheCreationInputTokens": 20955,
+        "webSearchRequests": 0,
+        "costUSD": 0.13774160000000002,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 269,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 7,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I kept `candidate_01` as the delivered model and changed no geometry this turn. Drawing fidelity is still not evaluated, and the calibration I used is my own, not independently verified.\n\n**What I added:**\n- **Overlay:** I registered the source model on the floor plan (`1f_view.png`) using the 10 m × 20 m outer dimensions. The overlay shows the source room outlines and openings following the drawn walls, doors and windows.\n- **Space checks:** I ran 7 point-pair checks on the plan, three of them same-space and four separate-space, and all matched the source spaces. They cover:\n  - the open north room;\n  - the north room versus the small office below it;\n  - the two west offices;\n  - the west meeting room versus the south-east room;\n  - the east room's two tables;\n  - the continuous central corridor;\n  - the wall between the cabinet room and the table room.\n- **Coverage:** These 7 pairs are a sample only, not a whole-floor check.\n\n**Still open:**\n- Seven interior doors (DE1, DE2, DHall, DR, DW1, DW2, DW3) have an assumed 0–2.1 m height, with no elevation evidence.\n- Room uses are inferred from furniture only, and F1_S04 stays unknown.\n- I did not re-measure horizontal window and door spans against the elevations.\n- Door states are unknown, and the model has only the ground floor, so there is no vertical circulation.\n\nThe viewer is at `candidate_01/viewer.html`.",
+    "ttft_ms": 3526,
+    "type": "result",
+    "duration_ms": 28864,
+    "uuid": "66fe9d6b-0047-4e5e-820a-6343cc88385f",
+    "ttft_stream_ms": 1370,
+    "time_to_request_ms": 76,
+    "first_content_frame_ms": 1371,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "input_mode": "saved_candidate_recovery",
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "building_input_sha256": null,
+  "candidate_results": [
+    {
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 54,
+        "connections": 10,
+        "openings": 21,
+        "spaces": 8,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    }
+  ],
+  "agent_response_completed": true,
+  "has_viewable_candidate": true,
+  "elapsed_seconds": 78.47,
+  "drawing_fidelity": "not_evaluated",
+  "continuation": {
+    "max_rounds": 2,
+    "turns": [
+      {
+        "name": "continuation_01",
+        "before_candidate": "candidate_01",
+        "after_candidate": "candidate_01",
+        "decision": {
+          "turn": "continuation_01",
+          "candidate": "candidate_01",
+          "source_model_sha256": "f0a83707f2717b77f41f5c38781e80ae31778d13933338e16d239fba1740c81b",
+          "decision": "stop",
+          "reason": "The saved candidate_01 has valid source geometry and use-basis records for all 8 spaces. The remaining work is an overlay against 1f_view.png, same-space and separate-space relation checks, and height claims bound to measurements. None of that was done in this session. I have no verified pixel-to-metre calibration, and re-deriving one would be a large new effort in the remaining time. I am stopping without further edits and listing these items as unexamined.",
+          "next_action": "",
+          "drawing_fidelity": "not_evaluated",
+          "task_completion": "model_judgment_only"
+        },
+        "persisted_source_or_evidence_changed": false,
+        "response_completed": true
+      }
+    ],
+    "stop_reason": "model_stop",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "opening_reviews": [],
+  "delivery": {
+    "candidate": "candidate_01",
+    "selection_origin": "agent_selected",
+    "report": "delivery.json",
+    "viewer": "delivery.html"
+  },
+  "subscription_invocations": 2,
+  "estimated_cost_usd": 0.4323094,
+  "cost_receipts_complete": true,
+  "reported_partial_cost_usd": 0.4323094,
+  "not_evaluated": [
+    "independent GT comparison",
+    "human approval",
+    "EnergyPlus"
+  ],
+  "estimated_cost_note": "CLI estimates are not subscription bills"
+}

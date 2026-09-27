@@ -1,0 +1,112 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1737,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "role": "main_agent_continuation",
+  "continuation_turn": "continuation_01",
+  "returncode": 0,
+  "elapsed_seconds": 17.13,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 10097,
+    "stop_reason": "end_turn",
+    "session_id": "3c16cc5e-75f1-403f-aa0d-2f3dfd886683",
+    "total_cost_usd": 0.053087800000000004,
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 9320,
+      "cache_read_input_tokens": 39499,
+      "output_tokens": 790,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 9320,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 514,
+          "cache_read_input_tokens": 22373,
+          "cache_creation_input_tokens": 4073,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4073
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 4,
+        "outputTokens": 790,
+        "cacheReadInputTokens": 39499,
+        "cacheCreationInputTokens": 9320,
+        "webSearchRequests": 0,
+        "costUSD": 0.053087800000000004,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 0,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 3,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I made no new edits this turn. `finish_bim` re-selected `candidate_01`, and the viewer is at `candidate_01/viewer.html`. I recorded a stop decision on that basis, and drawing fidelity is still marked \"not evaluated\".\n\n**What the saved candidate covers**\n- **Geometry:** It has 8 spaces, 21 openings and 10 connections, and the source validation passes. In the earlier pass I overlaid it on `1f_view.png` and saw no substantive mismatch.\n- **Space relations:** 4 point-pair samples all agree with the source. They cover only the pairs I chose.\n- **Room uses:** Each of the 8 spaces has a recorded use basis. Seven uses are inferred from furniture symbols and one, `F1_S04`, stays unknown. `F1_S05` is tentative.\n- **Opening heights:** I compared them by eye with the four elevation drawings and found them consistent. None of the 21 openings has a height claim linked to the drawings, so this is a visual check only. Interior doors remain at an assumed 2.1 m.\n\n**Still open**\n- **Calibration:** The pixel-to-world calibration is my own and was not independently verified.\n- **Interior doors:** I did not re-measure their positions or swings.\n- **Elevation-to-plan matching:** It rests on dimension chains only.\n- **Reviews:** The opening and facade review scopes are all \"not reviewed\".\n\nI judged the remaining items to be small refinements, so I stopped rather than make edits with no new evidence behind them.",
+    "ttft_ms": 4483,
+    "type": "result",
+    "duration_ms": 11251,
+    "uuid": "625191c9-cce8-483d-84b0-0f61e8f8fc28",
+    "ttft_stream_ms": 2669,
+    "time_to_request_ms": 62,
+    "first_content_frame_ms": 2669,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

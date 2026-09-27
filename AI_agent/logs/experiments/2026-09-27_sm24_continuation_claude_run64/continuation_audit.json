@@ -1,0 +1,317 @@
+{
+  "candidate": "candidate_01",
+  "source_model_sha256": "979e5389e62a7ca6454a4c3aaa6bb8cf4e6f3878f404cb306867c2540d70f7e7",
+  "input_and_producer_hashes_verified": true,
+  "source_display_replay_exact": true,
+  "counts": {
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10
+  },
+  "preserved_vs_seed": {
+    "floors": true,
+    "boundaries": true,
+    "openings": true,
+    "connections": true,
+    "opening_hosts": true,
+    "boundary_relations": true,
+    "space_geometry": true
+  },
+  "continuation": {
+    "max_rounds": 2,
+    "turns": [
+      {
+        "name": "continuation_01",
+        "before_candidate": "candidate_01",
+        "after_candidate": "candidate_01",
+        "decision": {
+          "turn": "continuation_01",
+          "candidate": "candidate_01",
+          "source_model_sha256": "979e5389e62a7ca6454a4c3aaa6bb8cf4e6f3878f404cb306867c2540d70f7e7",
+          "decision": "stop",
+          "reason": "Geometry overlaid on the plan, sampled space relations consistent, room uses recorded with basis, notes reconciled. Remaining items (claim-bound height evidence, interior door re-measurement) are smaller refinements; the previous visual height comparison is recorded and no discrepancy was found. Stopping to avoid meaningless edits.",
+          "next_action": "",
+          "drawing_fidelity": "not_evaluated",
+          "task_completion": "model_judgment_only"
+        },
+        "persisted_source_or_evidence_changed": false,
+        "response_completed": true
+      }
+    ],
+    "stop_reason": "model_stop",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "invocations": 2,
+  "actual_models": [
+    "claude-sonnet-5",
+    "claude-sonnet-5"
+  ],
+  "elapsed_seconds": 77.79,
+  "estimated_usd_not_bill": 0.3953142,
+  "room_use": {
+    "source_model_sha256": "979e5389e62a7ca6454a4c3aaa6bb8cf4e6f3878f404cb306867c2540d70f7e7",
+    "summary": {
+      "total_count": 8,
+      "recorded_count": 8,
+      "unrecorded_count": 0,
+      "observed_count": 0,
+      "inferred_count": 7,
+      "unknown_count": 1
+    },
+    "unrecorded_space_ids": [],
+    "unrecorded_ids_truncated": false,
+    "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Explained unknown is a valid result.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "total_count": 21,
+    "image_linked_count": 0,
+    "non_image_linked_count": 0,
+    "unchecked_height_opening_ids": [
+      "DE",
+      "DE1",
+      "DE2",
+      "DHall",
+      "DN",
+      "DR",
+      "DS",
+      "DW1",
+      "DW2",
+      "DW3",
+      "WE1",
+      "WE2",
+      "WE3",
+      "WN",
+      "WS1",
+      "WS2",
+      "WW1",
+      "WW2",
+      "WW3",
+      "WW4",
+      "WW5"
+    ]
+  },
+  "roles": [
+    {
+      "id": "F1_S01",
+      "role": "office",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; L-shaped desk symbol suggests open office"
+        ],
+        "basis": "inferred",
+        "role": "office",
+        "source_refs": [
+          "1f_view.png: north room desk symbol, original pixels [450,165,585,250]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S02",
+      "role": "office/enclosed",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; long desk with two chairs suggests small office"
+        ],
+        "basis": "inferred",
+        "role": "office/enclosed",
+        "source_refs": [
+          "1f_view.png: room desk and chairs, pixels [260,300,400,410]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S03",
+      "role": "corridor",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; narrow through-space linking rooms and entrances, widening east and south"
+        ],
+        "basis": "inferred",
+        "role": "corridor",
+        "source_refs": [
+          "1f_view.png: central passage, pixels [400,300,610,760]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S04",
+      "role": "unknown",
+      "role_evidence": {
+        "assumptions": [
+          "Small room with cabinet-like symbol; use ambiguous (storage possible)"
+        ],
+        "basis": "unknown",
+        "role": "unknown",
+        "source_refs": [
+          "1f_view.png: pixels [460,300,605,370]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S05",
+      "role": "conference/meeting/multipurpose",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; two square tables each with four chairs suggest meeting/training or dining; meeting chosen tentatively"
+        ],
+        "basis": "inferred",
+        "role": "conference/meeting/multipurpose",
+        "source_refs": [
+          "1f_view.png: tables, pixels [460,375,605,585]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S06",
+      "role": "office/enclosed",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; two workstations with chairs suggest office"
+        ],
+        "basis": "inferred",
+        "role": "office/enclosed",
+        "source_refs": [
+          "1f_view.png: two workstations, pixels [255,410,400,585]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S07",
+      "role": "conference/meeting/multipurpose",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; large oval table with ten chairs suggests meeting room"
+        ],
+        "basis": "inferred",
+        "role": "conference/meeting/multipurpose",
+        "source_refs": [
+          "1f_view.png: conference table, pixels [255,590,400,870]"
+        ]
+      }
+    },
+    {
+      "id": "F1_S08",
+      "role": "office/enclosed",
+      "role_evidence": {
+        "assumptions": [
+          "No text label; single desk with two chairs suggests small office"
+        ],
+        "basis": "inferred",
+        "role": "office/enclosed",
+        "source_refs": [
+          "1f_view.png: desk, pixels [400,700,610,870]"
+        ]
+      }
+    }
+  ],
+  "source_assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Single floor only; no upper floor or vertical circulation supplied",
+    "Interior door heights 2.1 m assumed; exterior door 0.2-2.6 m and window heights (1.0-2.8, 1.0-3.4 m) visually compared with North/South/East/West elevation dimension labels and found consistent, but not linked as claim-bound evidence",
+    "Room uses are inferred from furniture symbols; no text labels in drawing",
+    "Small dimension residuals from wall thickness not resolved",
+    "Plan spaces compiled deterministically from footprint and partition segments; no snapping or inferred partition"
+  ],
+  "unresolved": [
+    "Elevation openings matched to plan by dimension chains only",
+    "Pixel-to-world calibration supplied by caller, not independently verified",
+    "F1_S04 use unknown; F1_S05 use tentative",
+    "Interior door positions/swing not individually re-measured this pass"
+  ],
+  "original_plan": {
+    "mode": "post_generation_developer_audit",
+    "candidate": "candidate_01",
+    "source_replay_exact": true,
+    "display_replay_exact": true,
+    "runtime_hashes_match": true,
+    "runtime_hash_source": "current_repository",
+    "input_contents": {
+      "original_png_images": {
+        "included": true,
+        "count": 5
+      },
+      "building_declaration": {
+        "included": false
+      },
+      "saved_generated_proposal": {
+        "included": true
+      },
+      "ground_truth_or_evaluation": {
+        "included": false
+      }
+    },
+    "counts": {
+      "spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 11
+      },
+      "connections": 10,
+      "unsupported": 0,
+      "unbuilt_openings": 0
+    },
+    "partition_status": "severe",
+    "partition_topology_findings": [
+      {
+        "code": "internal_partition_boundary_changed",
+        "severity": "severe",
+        "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+        "floor_id": "F1",
+        "missing_length_m": 35.03144298400001,
+        "extra_length_m": 35.06729998599999,
+        "missing_wkt": "MULTILINESTRING ((4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.040522999), (4.18 8.080523001, 4.18 12.992379999), (4.18 13.032380001, 4.18 15.935982999), (9.979999999 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 4.916836001), (5.819999999999997 4.876835999000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.250769000999999 3.4400000000000013), (4.210768999 3.4400000000000013, 4.18 3.4400000000000013), (5.819999999999997 8.080523001, 5.819999999999997 13.955240999), (5.819999999999997 13.995241001, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.935982999), (9.979999999 13.999999999999996, 5.819999999999997 13.999999999999996))",
+        "extra_wkt": "MULTILINESTRING ((4.230769 13.01238, 4.230769 15.919999998999995), (4.200000000999999 13.01238, 4.230769 13.01238), (5.769231 13.975241, 5.769231 15.919999998999995), (5.799999998999997 8.060523, 5.769231 8.060523), (5.769231 8.060523, 5.769231 13.975241), (4.230769 13.01238, 4.230769 8.060523), (4.230769 8.060523, 4.230769 3.52132), (4.230769 3.52132, 5.769231 3.52132), (5.769231 3.52132, 5.769231 4.896836), (5.769231 4.896836, 5.799999998999997 4.896836), (5.840000000999996 4.896836, 9.979999999 4.896836), (5.769231 13.975241, 5.799999998999997 13.975241), (5.840000000999996 13.975241, 9.979999999 13.975241), (4.200000000999999 8.060523, 4.230769 8.060523), (4.230769 0.020000001, 4.230769 3.419999999000001), (4.230769 3.4600000010000014, 4.230769 3.52132))"
+      }
+    ],
+    "original_partition_status": "severe",
+    "original_partition_matched_count": 8,
+    "original_aperture_count": 21,
+    "matched_apertures": 21,
+    "position_matches": 15,
+    "host_matches": 21,
+    "door_connections_matched": 10,
+    "max_aperture_endpoint_error_m": 0.24759258459422284,
+    "viewer_has_no_remote_scripts": true,
+    "limits": [
+      "Manual original-image interpretation, not an automatic semantic judge.",
+      "GT diagnosis remains independent, unmodified and post-generation only.",
+      "Original partition comparison uses explicit zero-thickness representative walls; small offsets remain measured.",
+      "All heights, materials, unseen elevations and full-building acceptance excluded.",
+      "One bounded cold start does not establish repeatability or whole-building autonomy.",
+      "No browser WebGL interaction was tested in this audit."
+    ]
+  },
+  "strict_partition": "severe",
+  "identity_findings": [],
+  "exterior_match_count": 14,
+  "tool_counts": {
+    "inputs": 1,
+    "inspect_candidate": 1,
+    "view_image": 5,
+    "view_candidate": 1,
+    "read_candidate_items": 1,
+    "get_bim_reference": 2,
+    "check_openings": 1,
+    "revise_bim": 1,
+    "claim_application": 1,
+    "overlay_candidate": 1,
+    "check_source_space_relation": 1,
+    "finish_bim": 2,
+    "record_work_review": 1
+  },
+  "transported_images": 8,
+  "limits": [
+    "Saved-proposal recovery with bounded main-agent follow-ups, not cold generation.",
+    "Structured roles and height bindings do not certify interpretation or image truth.",
+    "Existing seed geometry errors are not made correct by metadata review.",
+    "A model stop is not an independent verdict that all scope is complete."
+  ]
+}

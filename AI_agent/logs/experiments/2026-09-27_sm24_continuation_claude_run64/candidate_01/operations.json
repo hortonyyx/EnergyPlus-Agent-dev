@@ -1,0 +1,122 @@
+[
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S01",
+    "role": "office",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; L-shaped desk symbol suggests open office"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: north room desk symbol, original pixels [450,165,585,250]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S02",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; long desk with two chairs suggests small office"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: room desk and chairs, pixels [260,300,400,410]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S06",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; two workstations with chairs suggest office"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: two workstations, pixels [255,410,400,585]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S07",
+    "role": "conference/meeting/multipurpose",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; large oval table with ten chairs suggests meeting room"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: conference table, pixels [255,590,400,870]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S03",
+    "role": "corridor",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; narrow through-space linking rooms and entrances, widening east and south"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: central passage, pixels [400,300,610,760]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S04",
+    "role": "unknown",
+    "basis": "unknown",
+    "assumptions": [
+      "Small room with cabinet-like symbol; use ambiguous (storage possible)"
+    ],
+    "reason": "ambiguous use",
+    "source_refs": [
+      "1f_view.png: pixels [460,300,605,370]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S05",
+    "role": "conference/meeting/multipurpose",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; two square tables each with four chairs suggest meeting/training or dining; meeting chosen tentatively"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: tables, pixels [460,375,605,585]"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1_S08",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "No text label; single desk with two chairs suggests small office"
+    ],
+    "reason": "room use review",
+    "source_refs": [
+      "1f_view.png: desk, pixels [400,700,610,870]"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "Single floor only; no upper floor or vertical circulation supplied",
+      "Interior door heights 2.1 m assumed; exterior door 0.2-2.6 m and window heights (1.0-2.8, 1.0-3.4 m) visually compared with North/South/East/West elevation dimension labels and found consistent, but not linked as claim-bound evidence",
+      "Room uses are inferred from furniture symbols; no text labels in drawing",
+      "Small dimension residuals from wall thickness not resolved",
+      "Plan spaces compiled deterministically from footprint and partition segments; no snapping or inferred partition"
+    ],
+    "unresolved": [
+      "Elevation openings matched to plan by dimension chains only",
+      "Pixel-to-world calibration supplied by caller, not independently verified",
+      "F1_S04 use unknown; F1_S05 use tentative",
+      "Interior door positions/swing not individually re-measured this pass"
+    ]
+  }
+]

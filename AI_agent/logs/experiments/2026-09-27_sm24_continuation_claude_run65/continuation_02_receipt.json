@@ -1,0 +1,112 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1677,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "role": "main_agent_continuation",
+  "continuation_turn": "continuation_02",
+  "returncode": 0,
+  "elapsed_seconds": 13.28,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 6897,
+    "stop_reason": "end_turn",
+    "session_id": "654c38c9-d667-4be4-94c0-048f986bb0d2",
+    "total_cost_usd": 0.0525814,
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 9456,
+      "cache_read_input_tokens": 39547,
+      "output_tokens": 684,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 9456,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 412,
+          "cache_read_input_tokens": 22421,
+          "cache_creation_input_tokens": 4161,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4161
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 4,
+        "outputTokens": 684,
+        "cacheReadInputTokens": 39547,
+        "cacheCreationInputTokens": 9456,
+        "webSearchRequests": 0,
+        "costUSD": 0.0525814,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 0,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 3,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected `candidate_01` as the final model and changed no geometry this turn. I made no new geometry edits or measurements in this turn. Drawing fidelity is still not evaluated, and the pixel-to-world calibration is my own and not independently verified. The viewer is at `candidate_01/viewer.html`.\n\n- **Exterior heights:** All 14 exterior openings have heights tied to confirmed elevation claims. That covers 2 on the north, 3 on the south, 4 on the east and 5 on the west. I did not re-measure horizontal window and door spans against the elevations.\n- **Interior door heights:** The seven interior doors (DE1, DE2, DHall, DR, DW1, DW2, DW3) keep an assumed 2.1 m height, because no elevation shows them.\n- **Partitions:** 7 sample point pairs on the floor plan all matched the source spaces. They are a sample only, not a whole-floor check.\n- **Room uses:** All uses are inferred from furniture, and F1_S04 stays unknown.\n- **Scope limits:** Door states are unknown. The model has only the ground floor, so there is no vertical circulation.\n\nI recorded a stop decision because I found no further in-scope check that the available evidence could support.",
+    "ttft_ms": 2988,
+    "type": "result",
+    "duration_ms": 7885,
+    "uuid": "1b6982b6-65a1-4071-a742-1241be6842c5",
+    "ttft_stream_ms": 1407,
+    "time_to_request_ms": 68,
+    "first_content_frame_ms": 1407,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

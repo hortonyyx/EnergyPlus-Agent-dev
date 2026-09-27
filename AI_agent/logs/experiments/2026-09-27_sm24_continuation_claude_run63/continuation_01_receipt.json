@@ -1,0 +1,112 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1736,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "role": "main_agent_continuation",
+  "continuation_turn": "continuation_01",
+  "returncode": 0,
+  "elapsed_seconds": 16.05,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 9908,
+    "stop_reason": "end_turn",
+    "session_id": "48c9af4f-0d06-4a60-9c5b-e4434bffa557",
+    "total_cost_usd": 0.052259200000000006,
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 8993,
+      "cache_read_input_tokens": 39096,
+      "output_tokens": 846,
+      "output_tokens_details": {
+        "thinking_tokens": 110
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 8993,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 429,
+          "cache_read_input_tokens": 21970,
+          "cache_creation_input_tokens": 4149,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4149
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 4,
+        "outputTokens": 846,
+        "cacheReadInputTokens": 39096,
+        "cacheCreationInputTokens": 8993,
+        "webSearchRequests": 0,
+        "costUSD": 0.052259200000000006,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 110,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 3,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected `candidate_01` again and finished it without any further edits. This turn I only recorded a stop decision. I ran no overlay, no space-relation checks and no height binding. Drawing fidelity is still not evaluated.\n\n**Checked**\n- The source geometry passes its own consistency checks: 8 spaces, 21 openings and 10 connections, with none left unbuilt.\n- All 8 spaces have a recorded use basis. Seven uses are inferred from furniture and F1_S05 is left unknown.\n\n**Not done**\n- **Plan comparison:** There is no overlay against `1f_view.png` and no same-space or separate-space relation checks. Partitions and doors were compared with the plan by eye only.\n- **Opening heights:** None of the 21 openings has a height bound to a measured claim, so image-linked coverage is 0 of 21. The North, South, East and West elevations were compared by eye and looked consistent. Interior door heights of 2.1 m are assumed.\n- **Calibration:** The pixel-to-metre calibration was supplied earlier and has not been independently verified. Re-deriving it seemed too large a job for the time left.\n- **Other limits:** Elevation openings are matched to the plan by dimension chains only. Small dimension residuals from wall thickness are not resolved.",
+    "ttft_ms": 2731,
+    "type": "result",
+    "duration_ms": 10568,
+    "uuid": "123feab3-a475-4af1-bd44-3afea2101eac",
+    "ttft_stream_ms": 1366,
+    "time_to_request_ms": 75,
+    "first_content_frame_ms": 1366,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

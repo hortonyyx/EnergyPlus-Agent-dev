@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 62.42,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 53116,
+    "stop_reason": "end_turn",
+    "session_id": "9465ee60-935d-41a2-a71b-fc3c251a5b65",
+    "total_cost_usd": 0.3800502,
+    "usage": {
+      "input_tokens": 16,
+      "cache_creation_input_tokens": 70165,
+      "cache_read_input_tokens": 279491,
+      "output_tokens": 4346,
+      "output_tokens_details": {
+        "thinking_tokens": 1600
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 70165,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 651,
+          "cache_read_input_tokens": 66620,
+          "cache_creation_input_tokens": 3545,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3545
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 16,
+        "outputTokens": 4346,
+        "cacheReadInputTokens": 279491,
+        "cacheCreationInputTokens": 70165,
+        "webSearchRequests": 0,
+        "costUSD": 0.3800502,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1600,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 16,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_01`. It is the saved proposal with room uses added and the notes updated; no geometry was changed. Room uses are recorded for all 8 spaces, but wall and door positions were compared with the plan by eye only.\n\n- **Partitions and openings:** All 8 spaces (F1_S01–S08) are in the same layout as the plan (`1f_view.png`). That covers the north room, the central corridor with its stepped east wing, the west rooms, the east rooms and the south-east room. The 10 doors and 11 windows sit in the walls where the plan shows them. I found nothing substantive to correct, so I made no geometry edits.\n- **Room uses:** All are inferred from furniture, because the drawing has no text labels.\n  - **F1_S01 (north room):** lobby, low confidence.\n  - **F1_S02, F1_S06, F1_S08:** enclosed office.\n  - **F1_S07:** conference/meeting.\n  - **F1_S03:** corridor.\n  - **F1_S04:** storage.\n  - **F1_S05:** left unknown, because two tables with four chairs each could be meeting, dining or something else.\n- **Exterior opening heights:** I compared the South, North, East and West elevations with the source openings by eye, and they agree. Doors run 0.2–2.6 m, small windows 1.0–2.8 m, and the large windows 1.0–3.4 m. I only viewed the South source elevation, not the others. None of these heights are bound to measured claims, so height coverage reports 0 of 21 openings image-linked.\n- **Notes:** I replaced the old \"Room uses not assigned\" note with the current assumptions and unresolved items.\n\n**Not done:**\n- No overlay against the original plan and no same-space/separate-space relation checks were run.\n- The pixel-to-metre calibration is unverified.\n- Interior door heights of 2.1 m are assumed.\n- Drawing fidelity is not evaluated.",
+    "ttft_ms": 1997,
+    "type": "result",
+    "duration_ms": 54568,
+    "uuid": "8a56c390-635c-41bc-9d7c-7d7e30031301",
+    "ttft_stream_ms": 1724,
+    "time_to_request_ms": 68,
+    "first_content_frame_ms": 1724,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

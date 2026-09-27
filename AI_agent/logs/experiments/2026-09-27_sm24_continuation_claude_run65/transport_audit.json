@@ -1,0 +1,300 @@
+{
+  "turns": [
+    {
+      "turn": "agent",
+      "tools": {
+        "mcp__bim__inputs": 1,
+        "mcp__bim__check_openings": 2,
+        "mcp__bim__view_image": 5,
+        "mcp__bim__view_candidate": 1,
+        "mcp__bim__view_elevation_candidate": 1,
+        "mcp__bim__get_bim_reference": 3,
+        "mcp__bim__record_claim": 3,
+        "mcp__bim__decide_claim": 3,
+        "mcp__bim__confirm_claims": 1,
+        "mcp__bim__inspect_candidate": 1,
+        "mcp__bim__revise_bim": 2,
+        "mcp__bim__finish_bim": 1
+      },
+      "errors": [
+        {
+          "tool": "mcp__bim__revise_bim",
+          "text": "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, room role 'conference/meeting' is not in the room_types catalog; read get_bim_reference('room_types') and choose a listed code, or 'unknown' with evidence/assumptions. Do not suffix types with '_inferred'. [type=value_error, input_value={'role': 'conference/meet...ng use; no text label']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+        }
+      ],
+      "images": [
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            790,
+            1111
+          ],
+          "bytes": 102054
+        },
+        {
+          "tool": "mcp__bim__view_candidate",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 14670
+        },
+        {
+          "tool": "mcp__bim__view_elevation_candidate",
+          "size": [
+            1200,
+            800
+          ],
+          "bytes": 18524
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1600,
+            958
+          ],
+          "bytes": 74337
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1600,
+            914
+          ],
+          "bytes": 95944
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1600,
+            564
+          ],
+          "bytes": 49041
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1600,
+            616
+          ],
+          "bytes": 46944
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 14670
+        }
+      ],
+      "image_count": 8,
+      "all_images_decode": true,
+      "finishes": [
+        {
+          "tool": "mcp__bim__finish_bim",
+          "characters": 8698,
+          "candidate": "candidate_01",
+          "detached_output_notice": false,
+          "room_use_review": {
+            "source_model_sha256": "ec6f9a5c9a632a9350235f91907cb173113347624f3157ef819d64cf9cdadd99",
+            "summary": {
+              "total_count": 8,
+              "recorded_count": 8,
+              "unrecorded_count": 0,
+              "observed_count": 0,
+              "inferred_count": 7,
+              "unknown_count": 1
+            },
+            "unrecorded_space_ids": [],
+            "unrecorded_ids_truncated": false,
+            "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+            "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Explained unknown is a valid result.",
+            "drawing_fidelity": "not_evaluated",
+            "delivery_blocked": false
+          },
+          "height_summary": {
+            "total_count": 21,
+            "image_linked_count": 14,
+            "non_image_linked_count": 0,
+            "unchecked_height_opening_ids": [
+              "DE1",
+              "DE2",
+              "DHall",
+              "DR",
+              "DW1",
+              "DW2",
+              "DW3"
+            ]
+          }
+        }
+      ],
+      "decisions": [],
+      "archive": "agent_stream.jsonl.gz",
+      "original_bytes": 1563703,
+      "gzip_bytes": 812055,
+      "original_sha256": "47519666b8a67290b0bb47ead8befb0b8d86fd59971bef2b7918f1d11d6e5a8c",
+      "gzip_sha256": "72c24a2484bf4da7b6083d88d791d512c007dfd1020eb6665b0648043bb1a824",
+      "lossless_verified": true
+    },
+    {
+      "turn": "continuation_01",
+      "tools": {
+        "mcp__bim__view_image": 1,
+        "mcp__bim__record_work_review": 1,
+        "mcp__bim__check_source_space_relation": 2,
+        "mcp__bim__overlay_candidate": 1,
+        "mcp__bim__finish_bim": 1
+      },
+      "errors": [
+        {
+          "tool": "mcp__bim__check_source_space_relation",
+          "text": "Error executing tool check_source_space_relation: register this image/floor calibration with overlay_candidate or build_plan_bim first"
+        }
+      ],
+      "images": [
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            790,
+            1111
+          ],
+          "bytes": 102054
+        },
+        {
+          "tool": "mcp__bim__overlay_candidate",
+          "size": [
+            790,
+            1111
+          ],
+          "bytes": 94946
+        }
+      ],
+      "image_count": 2,
+      "all_images_decode": true,
+      "finishes": [
+        {
+          "tool": "mcp__bim__finish_bim",
+          "characters": 8718,
+          "candidate": "candidate_01",
+          "detached_output_notice": false,
+          "room_use_review": {
+            "source_model_sha256": "ec6f9a5c9a632a9350235f91907cb173113347624f3157ef819d64cf9cdadd99",
+            "summary": {
+              "total_count": 8,
+              "recorded_count": 8,
+              "unrecorded_count": 0,
+              "observed_count": 0,
+              "inferred_count": 7,
+              "unknown_count": 1
+            },
+            "unrecorded_space_ids": [],
+            "unrecorded_ids_truncated": false,
+            "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+            "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Explained unknown is a valid result.",
+            "drawing_fidelity": "not_evaluated",
+            "delivery_blocked": false
+          },
+          "height_summary": {
+            "total_count": 21,
+            "image_linked_count": 14,
+            "non_image_linked_count": 0,
+            "unchecked_height_opening_ids": [
+              "DE1",
+              "DE2",
+              "DHall",
+              "DR",
+              "DW1",
+              "DW2",
+              "DW3"
+            ]
+          }
+        }
+      ],
+      "decisions": [
+        {
+          "tool": "mcp__bim__record_work_review",
+          "characters": 529,
+          "candidate": "candidate_01",
+          "detached_output_notice": false,
+          "room_use_review": null,
+          "height_summary": null
+        }
+      ],
+      "archive": "continuation_01_stream.jsonl.gz",
+      "original_bytes": 610694,
+      "gzip_bytes": 399459,
+      "original_sha256": "9637b7486821567e6e3414a659f1f4231fd45feadf70db58d968b4dcde207ca2",
+      "gzip_sha256": "b208b319c4a9fc8f5fc4ffaa159fc629ff967c1b66d3ebd1b1e6c8d76eff9b77",
+      "lossless_verified": true
+    },
+    {
+      "turn": "continuation_02",
+      "tools": {
+        "mcp__bim__record_work_review": 1,
+        "mcp__bim__finish_bim": 1
+      },
+      "errors": [],
+      "images": [],
+      "image_count": 0,
+      "all_images_decode": true,
+      "finishes": [
+        {
+          "tool": "mcp__bim__finish_bim",
+          "characters": 8718,
+          "candidate": "candidate_01",
+          "detached_output_notice": false,
+          "room_use_review": {
+            "source_model_sha256": "ec6f9a5c9a632a9350235f91907cb173113347624f3157ef819d64cf9cdadd99",
+            "summary": {
+              "total_count": 8,
+              "recorded_count": 8,
+              "unrecorded_count": 0,
+              "observed_count": 0,
+              "inferred_count": 7,
+              "unknown_count": 1
+            },
+            "unrecorded_space_ids": [],
+            "unrecorded_ids_truncated": false,
+            "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+            "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Explained unknown is a valid result.",
+            "drawing_fidelity": "not_evaluated",
+            "delivery_blocked": false
+          },
+          "height_summary": {
+            "total_count": 21,
+            "image_linked_count": 14,
+            "non_image_linked_count": 0,
+            "unchecked_height_opening_ids": [
+              "DE1",
+              "DE2",
+              "DHall",
+              "DR",
+              "DW1",
+              "DW2",
+              "DW3"
+            ]
+          }
+        }
+      ],
+      "decisions": [
+        {
+          "tool": "mcp__bim__record_work_review",
+          "characters": 610,
+          "candidate": "candidate_01",
+          "detached_output_notice": false,
+          "room_use_review": null,
+          "height_summary": null
+        }
+      ],
+      "archive": "continuation_02_stream.jsonl.gz",
+      "original_bytes": 32636,
+      "gzip_bytes": 6532,
+      "original_sha256": "ec1efbc07b6acc027e471df8208c999671b7d477962c17d077c61f1ec5c1c712",
+      "gzip_sha256": "6aea38089c5f8dccb3457a886ad24721e702a10b66e2c8402c343b384f7fa29b",
+      "lossless_verified": true
+    }
+  ],
+  "image_count": 10,
+  "note": "Actual CLI replies, not just server logs. Transport/coverage is not semantic acceptance."
+}

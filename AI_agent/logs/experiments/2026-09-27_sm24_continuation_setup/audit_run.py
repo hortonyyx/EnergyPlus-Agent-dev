@@ -107,6 +107,10 @@ def audit(run):
     preserved['space_geometry'] = physical(seed) == physical(source)
     original = importlib.import_module('AI_agent.logs.experiments.2026-09-23_sm24_cold_plan_setup.audit_run')
     original.audit(run)
+    scope = load(run / 'evaluation/reference_scope.json')
+    scope.update(generation_input_note='Saved generated proposal and five original PNGs; this is recovery, not the historical audit script\'s cold-plan task.',
+        heights_acceptance='Plan audit excludes heights. Separate typed-GT z checks are in exterior_opening_diagnostic.json; binding coverage is not image truth.')
+    dump(run / 'evaluation/reference_scope.json', scope)
     from src.agent.judge.gt import load_gt_document
     partition = load(run / 'evaluation/partition.json')
     opening = shared._opening_diagnostic(source, load_gt_document('sm24_anchor'), partition)

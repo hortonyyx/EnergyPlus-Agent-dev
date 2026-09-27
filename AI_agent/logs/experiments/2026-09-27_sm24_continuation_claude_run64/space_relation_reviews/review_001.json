@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "979e5389e62a7ca6454a4c3aaa6bb8cf4e6f3878f404cb306867c2540d70f7e7",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        249.0,
+        0.0
+      ],
+      [
+        612.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        878.0,
+        0.0
+      ],
+      [
+        152.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "o1",
+      "expected": "separate_spaces",
+      "evidence": "conference room and SE office separated by central wall x~400",
+      "points": [
+        {
+          "pixel": [
+            330.0,
+            720.0
+          ],
+          "world_xy_m": [
+            2.231404958677687,
+            4.352617079889807
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S07",
+          "interior_space_ids": [
+            "F1_S07"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            500.0,
+            760.0
+          ],
+          "world_xy_m": [
+            6.914600550964187,
+            3.250688705234161
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S08",
+          "interior_space_ids": [
+            "F1_S08"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o2",
+      "expected": "separate_spaces",
+      "evidence": "wall at y~370 divides counter room from table room",
+      "points": [
+        {
+          "pixel": [
+            450.0,
+            330.0
+          ],
+          "world_xy_m": [
+            5.537190082644629,
+            15.09641873278237
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            520.0,
+            450.0
+          ],
+          "world_xy_m": [
+            7.465564738292012,
+            11.790633608815428
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S05",
+          "interior_space_ids": [
+            "F1_S05"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "DE2",
+          "space_ids": [
+            "F1_S03",
+            "F1_S05"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o3",
+      "expected": "separate_spaces",
+      "evidence": "wall y~410 between two west rooms",
+      "points": [
+        {
+          "pixel": [
+            330.0,
+            340.0
+          ],
+          "world_xy_m": [
+            2.231404958677687,
+            14.82093663911846
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S02",
+          "interior_space_ids": [
+            "F1_S02"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            330.0,
+            500.0
+          ],
+          "world_xy_m": [
+            2.231404958677687,
+            10.41322314049587
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S06",
+          "interior_space_ids": [
+            "F1_S06"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o4",
+      "expected": "same_space",
+      "evidence": "central hall continuous, no partition",
+      "points": [
+        {
+          "pixel": [
+            430.0,
+            350.0
+          ],
+          "world_xy_m": [
+            4.986225895316806,
+            14.545454545454547
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            430.0,
+            700.0
+          ],
+          "world_xy_m": [
+            4.986225895316806,
+            4.903581267217632
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_01",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "347fe1a9f9768c93bbd6be0e1d8b4d956187464ff734cebb56cf40aaaf7de401",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1748
+}

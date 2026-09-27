@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 85.1,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 77669,
+    "stop_reason": "end_turn",
+    "session_id": "78661a74-ab18-4195-b544-ac11210057ac",
+    "total_cost_usd": 0.5600578,
+    "usage": {
+      "input_tokens": 26,
+      "cache_creation_input_tokens": 83963,
+      "cache_read_input_tokens": 723419,
+      "output_tokens": 7947,
+      "output_tokens_details": {
+        "thinking_tokens": 1288
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 83963,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 806,
+          "cache_read_input_tokens": 97467,
+          "cache_creation_input_tokens": 3622,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3622
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 26,
+        "outputTokens": 7947,
+        "cacheReadInputTokens": 723419,
+        "cacheCreationInputTokens": 83963,
+        "webSearchRequests": 0,
+        "costUSD": 0.5600578,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1288,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 25,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_01`. It keeps the seed's plan partitions, openings and connections unchanged, and adds room uses and exterior height evidence. Drawing fidelity is still not evaluated. The source geometry check passes, but that only shows internal consistency.\n\n**What I checked:**\n- **Exterior heights:** All 14 exterior openings on the ground floor are now linked to elevation dimension chains: 11 windows and the North, South and East doors. Values are unchanged from the seed.\n  - The eight smaller windows (South, East, West) sit at z 1.0–2.8 m.\n  - The three larger windows (North, East, West) sit at z 1.0–3.4 m.\n  - The three exterior doors (North, South, East) sit at z 0.2–2.6 m.\n  - I recorded three claims, adopted them, and confirmed them against the seed with `confirm_claims`. They carry over to `candidate_01` as unchanged.\n- **Plan reading:** I viewed the floor plan and all four elevations in full. I compared the plan visually with the source plan view. No plan discrepancy was worth changing, so no partitions or openings were edited.\n\n**Room uses:** These were assigned from furniture only, with no text labels on the plan, so all are marked inferred.\n- Offices: F1_S01 and F1_S08.\n- Enclosed offices: F1_S02 and F1_S06.\n- Meeting rooms: F1_S05 and F1_S07.\n- Corridor: F1_S03.\n- Unknown: F1_S04, where only cabinet-like symbols are visible.\n\n**Notes:** I replaced two stale notes. One said room uses were not assigned. The other said the door and window heights came from the elevations without saying which were verified.\n\n**Not done or still open:**\n- Seven interior doors (DE1, DE2, DHall, DR, DW1, DW2, DW3) still have an assumed 0–2.1 m height with no elevation evidence.\n- The elevation checks covered heights only. I did not re-measure horizontal window or door spans against the elevations.\n- I did not run `check_source_space_relation` samples or overlay the source on the plan. The pixel-to-world calibration remains caller-supplied and unverified.\n- Door states are unknown, and the plan shows only the ground floor, so there is no vertical circulation.\n\nFiles are in `candidate_01`; the viewer is `candidate_01/viewer.html`.",
+    "ttft_ms": 3064,
+    "type": "result",
+    "duration_ms": 79633,
+    "uuid": "1fb8f12c-0cf8-4feb-b1fb-c458b5dbe1f8",
+    "ttft_stream_ms": 2791,
+    "time_to_request_ms": 66,
+    "first_content_frame_ms": 2791,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
