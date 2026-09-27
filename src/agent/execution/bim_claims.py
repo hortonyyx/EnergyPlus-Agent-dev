@@ -39,7 +39,8 @@ class ObjectRef(StrictModel):
 
 class ImageRef(StrictModel):
     image: str = Field(min_length=1)
-    box: list[float] = Field(min_length=4, max_length=4)
+    # A whole drawing is a valid source; precise crop coordinates are optional.
+    box: list[float] | None = Field(default=None, min_length=4, max_length=4)
 
 
 class LiteralValue(StrictModel):
@@ -169,10 +170,11 @@ class ClaimStore:
             path = self.toolkit.image_path(source["image"])
             with Image.open(path) as picture:
                 width, height = picture.size
-            left, top, right, bottom = source["box"]
+            box = source["box"] if source["box"] is not None else [0, 0, width, height]
+            left, top, right, bottom = box
             if not (0 <= left < right <= width and 0 <= top < bottom <= height):
                 raise ValueError("source box outside original image")
-            sources.append({**source, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            sources.append({**source, "box": box, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                             "size": [width, height]})
         return sources
 

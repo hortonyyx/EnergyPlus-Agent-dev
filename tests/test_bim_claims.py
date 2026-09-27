@@ -266,3 +266,22 @@ def test_stdio_inferred_claim_without_images_has_no_preview(tmp_path):
             assert row["evidence_previews"] == [] and row["unpreviewed_source_indices"] == []
             assert not any(part.type == "image" for part in reply.content)
     asyncio.run(scenario())
+
+
+def test_stdio_whole_image_reference_binds_original_extent_without_guessing_box(tmp_path):
+    async def scenario():
+        run, _ = setup_run(tmp_path)
+        async with _server_session(run, readonly=False) as session:
+            reply = await session.call_tool("record_claim", {"claim_json": json.dumps(
+                claim(sources=[{"image": "plan.png"}]))})
+            row = _json_result(reply)
+            assert row["claim"]["sources"][0]["box"] is None
+            assert row["sources"][0] == {"image": "plan.png", "box": [0, 0, 12, 8],
+                "size": [12, 8], "sha256": digest(run / "images/plan.png")}
+            assert row["resolved_values"]["height"] == [.3, 2.1]
+            assert row["evidence_previews"][0]["box_original_pixels"] == [0, 0, 12, 8]
+            actual = Image.open(io.BytesIO(base64.b64decode(reply.content[0].data))).convert("RGB")
+            with Image.open(run / "images/plan.png") as original:
+                assert actual.tobytes() == original.convert("RGB").tobytes()
+            assert row["verification"] == "not_independently_verified"
+    asyncio.run(scenario())

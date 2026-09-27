@@ -735,6 +735,11 @@ origin, which physical extent they measure, and any frame assumptions.
 basis: annotation_and_pixels, pixels, visual_estimate, inference, declared.
 Use original image boxes; code binds actual source hashes. Image-based claims
 require sources; declared/inference may have none but must state the actual basis.
+For a whole-drawing reference, use {"image":"elevation.png"} without box; code
+binds the full original extent and returns that image. Prefer this when dimensions
+and objects are far apart or you are unsure of exact crop coordinates. A narrow
+crop is optional, never a prerequisite for valid evidence. Explain which labels
+and object family support the value; a whole-image reference is not precise localization.
 record_claim returns clean crops for the first three saved source regions, plus
 unpreviewed_source_indices. Inspect the actual crops before adoption: the numbers,
 dimension endpoints and enough object context must be inside the referenced region.
