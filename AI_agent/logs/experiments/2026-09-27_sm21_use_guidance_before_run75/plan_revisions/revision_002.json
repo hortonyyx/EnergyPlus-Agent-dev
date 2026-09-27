@@ -1,0 +1,435 @@
+{
+  "parent_draft_id": "draft_002",
+  "parent_plan_sha256": "7e57f36feb4bf994dfcfe6ff616be589b4197bba14d65cf8a7846aa39368515b",
+  "operations_json": "[\n{\"op\":\"set\",\"field\":\"ceiling_height\",\"value\":3.6,\"reason\":\"North_view.png/South_view.png: upper-storey elevation zone measures 3600mm total (800 above window + 1800 window + 1000 below window), used as F2 storey height instead of the earlier 3.0m assumption\",\"source_refs\":[\"North_view.png dimension chain 3600 (upper zone)\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"WN1\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"North_view.png upper zone: sill 1000mm + window height 1800mm above F2 floor (z_floor=3.0) => absolute 4.0-5.8m\",\"source_refs\":[\"North_view.png dimension chain 800/1800/1000\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"WN2\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"same F2 north window family\",\"source_refs\":[\"North_view.png dimension chain\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"WS_o1\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"South_view.png upper zone matches same 800/1800/1000 breakdown as north\",\"source_refs\":[\"South_view.png dimension chain\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"WS_o2\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"same F2 south window family\",\"source_refs\":[\"South_view.png dimension chain\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"WS_o3\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"same F2 south window family\",\"source_refs\":[\"South_view.png dimension chain\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"WS_o4\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"same F2 south window family\",\"source_refs\":[\"South_view.png dimension chain\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_west_window\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"West_view.png upper zone window matches same family (800/1800/1000)\",\"source_refs\":[\"West_view.png dimension chain\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_east_window\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"East_view.png upper zone window matches same family\",\"source_refs\":[\"East_view.png dimension chain\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "ceiling_height",
+      "id": null,
+      "before": 3.0,
+      "after": 3.6,
+      "reason": "North_view.png/South_view.png: upper-storey elevation zone measures 3600mm total (800 above window + 1800 window + 1000 below window), used as F2 storey height instead of the earlier 3.0m assumption",
+      "source_refs": [
+        "North_view.png dimension chain 3600 (upper zone)"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "openings",
+      "id": "WN1",
+      "before": {
+        "id": "WN1",
+        "kind": "window",
+        "p1": [
+          606,
+          331
+        ],
+        "p2": [
+          941,
+          331
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: north facade wall-ink gap x606-941 under conference table 1, cyan hatch observed"
+        ]
+      },
+      "after": {
+        "id": "WN1",
+        "kind": "window",
+        "p1": [
+          606,
+          331
+        ],
+        "p2": [
+          941,
+          331
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: north facade wall-ink gap x606-941 under conference table 1, cyan hatch observed"
+        ]
+      },
+      "reason": "North_view.png upper zone: sill 1000mm + window height 1800mm above F2 floor (z_floor=3.0) => absolute 4.0-5.8m",
+      "source_refs": [
+        "North_view.png dimension chain 800/1800/1000"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "openings",
+      "id": "WN2",
+      "before": {
+        "id": "WN2",
+        "kind": "window",
+        "p1": [
+          1299,
+          331
+        ],
+        "p2": [
+          1634,
+          331
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: north facade wall-ink gap x1299-1634 under conference table 2"
+        ]
+      },
+      "after": {
+        "id": "WN2",
+        "kind": "window",
+        "p1": [
+          1299,
+          331
+        ],
+        "p2": [
+          1634,
+          331
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: north facade wall-ink gap x1299-1634 under conference table 2"
+        ]
+      },
+      "reason": "same F2 north window family",
+      "source_refs": [
+        "North_view.png dimension chain"
+      ]
+    },
+    {
+      "operation_index": 3,
+      "field": "openings",
+      "id": "WS_o1",
+      "before": {
+        "id": "WS_o1",
+        "kind": "window",
+        "p1": [
+          628,
+          1070
+        ],
+        "p2": [
+          742,
+          1070
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap x628-742 under office1 desk"
+        ]
+      },
+      "after": {
+        "id": "WS_o1",
+        "kind": "window",
+        "p1": [
+          628,
+          1070
+        ],
+        "p2": [
+          742,
+          1070
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap x628-742 under office1 desk"
+        ]
+      },
+      "reason": "South_view.png upper zone matches same 800/1800/1000 breakdown as north",
+      "source_refs": [
+        "South_view.png dimension chain"
+      ]
+    },
+    {
+      "operation_index": 4,
+      "field": "openings",
+      "id": "WS_o2",
+      "before": {
+        "id": "WS_o2",
+        "kind": "window",
+        "p1": [
+          805,
+          1070
+        ],
+        "p2": [
+          919,
+          1070
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap x805-919 under office2 desk"
+        ]
+      },
+      "after": {
+        "id": "WS_o2",
+        "kind": "window",
+        "p1": [
+          805,
+          1070
+        ],
+        "p2": [
+          919,
+          1070
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap x805-919 under office2 desk"
+        ]
+      },
+      "reason": "same F2 south window family",
+      "source_refs": [
+        "South_view.png dimension chain"
+      ]
+    },
+    {
+      "operation_index": 5,
+      "field": "openings",
+      "id": "WS_o3",
+      "before": {
+        "id": "WS_o3",
+        "kind": "window",
+        "p1": [
+          1321,
+          1070
+        ],
+        "p2": [
+          1435,
+          1070
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap near office3 desk, approximate from partial profile"
+        ]
+      },
+      "after": {
+        "id": "WS_o3",
+        "kind": "window",
+        "p1": [
+          1321,
+          1070
+        ],
+        "p2": [
+          1435,
+          1070
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap near office3 desk, approximate from partial profile"
+        ]
+      },
+      "reason": "same F2 south window family",
+      "source_refs": [
+        "South_view.png dimension chain"
+      ]
+    },
+    {
+      "operation_index": 6,
+      "field": "openings",
+      "id": "WS_o4",
+      "before": {
+        "id": "WS_o4",
+        "kind": "window",
+        "p1": [
+          1498,
+          1070
+        ],
+        "p2": [
+          1612,
+          1070
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap x1498-1612 under office4 desk"
+        ]
+      },
+      "after": {
+        "id": "WS_o4",
+        "kind": "window",
+        "p1": [
+          1498,
+          1070
+        ],
+        "p2": [
+          1612,
+          1070
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: south facade wall-ink gap x1498-1612 under office4 desk"
+        ]
+      },
+      "reason": "same F2 south window family",
+      "source_refs": [
+        "South_view.png dimension chain"
+      ]
+    },
+    {
+      "operation_index": 7,
+      "field": "openings",
+      "id": "W_west_window",
+      "before": {
+        "id": "W_west_window",
+        "kind": "window",
+        "p1": [
+          428,
+          644
+        ],
+        "p2": [
+          428,
+          758
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: west facade wall-ink gap y644-758 at corridor height, cyan hatch observed (window, not the ground-floor door)"
+        ]
+      },
+      "after": {
+        "id": "W_west_window",
+        "kind": "window",
+        "p1": [
+          428,
+          644
+        ],
+        "p2": [
+          428,
+          758
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: west facade wall-ink gap y644-758 at corridor height, cyan hatch observed (window, not the ground-floor door)"
+        ]
+      },
+      "reason": "West_view.png upper zone window matches same family (800/1800/1000)",
+      "source_refs": [
+        "West_view.png dimension chain"
+      ]
+    },
+    {
+      "operation_index": 8,
+      "field": "openings",
+      "id": "W_east_window",
+      "before": {
+        "id": "W_east_window",
+        "kind": "window",
+        "p1": [
+          1817,
+          650
+        ],
+        "p2": [
+          1817,
+          760
+        ],
+        "z": [
+          3.9,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: east facade cyan hatch at corridor height, matches F1 east window family"
+        ]
+      },
+      "after": {
+        "id": "W_east_window",
+        "kind": "window",
+        "p1": [
+          1817,
+          650
+        ],
+        "p2": [
+          1817,
+          760
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png: east facade cyan hatch at corridor height, matches F1 east window family"
+        ]
+      },
+      "reason": "East_view.png upper zone window matches same family",
+      "source_refs": [
+        "East_view.png dimension chain"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "space_seeds": [
+      "conf_room_west",
+      "conf_room_east",
+      "corridor2",
+      "office_1",
+      "office_2",
+      "office_3",
+      "office_4"
+    ],
+    "partitions": [
+      "corridor_north_wall",
+      "corridor_south_wall",
+      "conf_partition",
+      "office_partition_1",
+      "office_partition_2",
+      "office_partition_3"
+    ],
+    "openings": [
+      "D_N_west",
+      "D_N_east",
+      "D_S_o1",
+      "D_S_o2",
+      "D_S_o3",
+      "D_S_o4"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

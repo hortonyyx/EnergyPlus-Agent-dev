@@ -1,0 +1,807 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "1f_view.png",
+  "image_size": [
+    2133,
+    1345
+  ],
+  "floor_id": "F1",
+  "basis": "Outer wall faces measured via gray-ink pixel profiles (west x=424,east x=1817,north y=346,south y=1086) calibrated to overall 15000x8000mm dimension lines. Interior walls represented as single centerline strokes at measured ink rows (corridor walls y=618 and y=815 pixels). North/south zones are open-plan (no full-height partition found between desk bays: pixel profile at the exterior wall row showed only a weak partial nib at x~883-920, not a continuous wall), so each is modeled as one open room reached via two doors from the corridor plus a south exterior entrance door and a west exterior corridor door found as gaps in the gray wall ink.",
+  "space_count": 3,
+  "space_mapping": [
+    {
+      "space_id": "north_open_office",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          424.0,
+          346.0
+        ],
+        [
+          1817.0,
+          346.0
+        ],
+        [
+          1817.0,
+          618.0
+        ],
+        [
+          424.0,
+          618.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          5.059459
+        ],
+        [
+          15.0,
+          5.059459
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          5.059459,
+          8.0
+        ]
+      },
+      "partition_ids": [
+        "corridor_north_wall"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: gray wall ink row y=618, continuous 448-1792 except measured door gaps"
+      ],
+      "seed": {
+        "id": "north_open_office",
+        "point_pixel": [
+          700.0,
+          450.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "corridor",
+      "role": "corridor",
+      "pixel_polygon": [
+        [
+          424.0,
+          618.0
+        ],
+        [
+          1817.0,
+          618.0
+        ],
+        [
+          1817.0,
+          815.0
+        ],
+        [
+          424.0,
+          815.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          2.92973
+        ],
+        [
+          15.0,
+          2.92973
+        ],
+        [
+          15.0,
+          5.059459
+        ],
+        [
+          0.0,
+          5.059459
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          2.92973,
+          5.059459
+        ]
+      },
+      "partition_ids": [
+        "corridor_north_wall",
+        "corridor_south_wall"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: gray wall ink row y=618, continuous 448-1792 except measured door gaps",
+        "1f_view.png: gray wall ink row y=815, continuous 448-1791 except measured door gaps, matches y=618 pattern"
+      ],
+      "seed": {
+        "id": "corridor",
+        "point_pixel": [
+          700.0,
+          716.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "south_open_office",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          424.0,
+          815.0
+        ],
+        [
+          1817.0,
+          815.0
+        ],
+        [
+          1817.0,
+          1086.0
+        ],
+        [
+          424.0,
+          1086.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          2.92973
+        ],
+        [
+          0.0,
+          2.92973
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          0.0,
+          2.92973
+        ]
+      },
+      "partition_ids": [
+        "corridor_south_wall"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: gray wall ink row y=815, continuous 448-1791 except measured door gaps, matches y=618 pattern"
+      ],
+      "seed": {
+        "id": "south_open_office",
+        "point_pixel": [
+          700.0,
+          950.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "corridor_north_wall",
+      "pixel_points": [
+        [
+          424.0,
+          618.0
+        ],
+        [
+          1817.0,
+          618.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          5.059459
+        ],
+        [
+          15.0,
+          5.059459
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: gray wall ink row y=618, continuous 448-1792 except measured door gaps"
+      ]
+    },
+    {
+      "partition_id": "corridor_south_wall",
+      "pixel_points": [
+        [
+          424.0,
+          815.0
+        ],
+        [
+          1817.0,
+          815.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          2.92973
+        ],
+        [
+          15.0,
+          2.92973
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: gray wall ink row y=815, continuous 448-1791 except measured door gaps, matches y=618 pattern"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "WN1",
+      "kind": "window",
+      "space_ids": [
+        "north_open_office"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        539.0,
+        346.0
+      ],
+      "p2_pixel": [
+        762.0,
+        346.0
+      ],
+      "p1_world_m": [
+        1.238335,
+        8.0
+      ],
+      "p2_world_m": [
+        3.639627,
+        8.0
+      ],
+      "width_m": 2.401292,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: north facade cyan hatch under desk group 1; span from dimension chain 1240-3640mm"
+      ]
+    },
+    {
+      "opening_id": "WN2",
+      "kind": "window",
+      "space_ids": [
+        "north_open_office"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        998.0,
+        346.0
+      ],
+      "p2_pixel": [
+        1221.0,
+        346.0
+      ],
+      "p1_world_m": [
+        6.180905,
+        8.0
+      ],
+      "p2_world_m": [
+        8.582197,
+        8.0
+      ],
+      "width_m": 2.401292,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: north facade cyan hatch under desk group 2; span 6180-8580mm"
+      ]
+    },
+    {
+      "opening_id": "WN3",
+      "kind": "window",
+      "space_ids": [
+        "north_open_office"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        1457.0,
+        346.0
+      ],
+      "p2_pixel": [
+        1680.0,
+        346.0
+      ],
+      "p1_world_m": [
+        11.123475,
+        8.0
+      ],
+      "p2_world_m": [
+        13.524767,
+        8.0
+      ],
+      "width_m": 2.401292,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: north facade cyan hatch under desk group 3; span 11120-13520mm"
+      ]
+    },
+    {
+      "opening_id": "DS_entrance",
+      "kind": "door",
+      "space_ids": [
+        "south_open_office"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        474.0,
+        1086.0
+      ],
+      "p2_pixel": [
+        558.0,
+        1086.0
+      ],
+      "p1_world_m": [
+        0.538406,
+        0.0
+      ],
+      "p2_world_m": [
+        1.442929,
+        0.0
+      ],
+      "width_m": 0.904523,
+      "z_absolute_m": [
+        0.0,
+        2.7
+      ],
+      "source_refs": [
+        "1f_view.png: south facade door symbol near SW corner; dimension chain 540(pier)+900(door)"
+      ]
+    },
+    {
+      "opening_id": "WS1",
+      "kind": "window",
+      "space_ids": [
+        "south_open_office"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        1009.0,
+        1086.0
+      ],
+      "p2_pixel": [
+        1232.0,
+        1086.0
+      ],
+      "p1_world_m": [
+        6.299354,
+        0.0
+      ],
+      "p2_world_m": [
+        8.700646,
+        0.0
+      ],
+      "width_m": 2.401292,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: south facade cyan hatch; dimension chain span 6300-8700mm"
+      ]
+    },
+    {
+      "opening_id": "WS2",
+      "kind": "window",
+      "space_ids": [
+        "south_open_office"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        1479.0,
+        1086.0
+      ],
+      "p2_pixel": [
+        1702.0,
+        1086.0
+      ],
+      "p1_world_m": [
+        11.360373,
+        0.0
+      ],
+      "p2_world_m": [
+        13.761665,
+        0.0
+      ],
+      "width_m": 2.401292,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: south facade cyan hatch; dimension chain span 11360-13760mm"
+      ]
+    },
+    {
+      "opening_id": "W_west_door",
+      "kind": "door",
+      "space_ids": [
+        "corridor"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        424.0,
+        647.0
+      ],
+      "p2_pixel": [
+        424.0,
+        787.0
+      ],
+      "p1_world_m": [
+        0.0,
+        4.745946
+      ],
+      "p2_world_m": [
+        0.0,
+        3.232432
+      ],
+      "width_m": 1.513514,
+      "z_absolute_m": [
+        0.0,
+        2.7
+      ],
+      "source_refs": [
+        "1f_view.png: west facade gray-ink gap at corridor height x=424, y 646-787 with double-door arcs observed"
+      ]
+    },
+    {
+      "opening_id": "W_east_window",
+      "kind": "window",
+      "space_ids": [
+        "corridor"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        1817.0,
+        659.0
+      ],
+      "p2_pixel": [
+        1817.0,
+        774.0
+      ],
+      "p1_world_m": [
+        15.0,
+        4.616216
+      ],
+      "p2_world_m": [
+        15.0,
+        3.372973
+      ],
+      "width_m": 1.243243,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: east facade cyan hatch at corridor height, gray-ink gap y 659-774"
+      ]
+    },
+    {
+      "opening_id": "D_N_west",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "north_open_office"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        770.0,
+        618.0
+      ],
+      "p2_pixel": [
+        857.0,
+        618.0
+      ],
+      "p1_world_m": [
+        3.725772,
+        5.059459
+      ],
+      "p2_world_m": [
+        4.662599,
+        5.059459
+      ],
+      "width_m": 0.936827,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: gray-ink gap in corridor north wall x770-857, door arc observed"
+      ]
+    },
+    {
+      "opening_id": "D_N_east",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "north_open_office"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        920.0,
+        618.0
+      ],
+      "p2_pixel": [
+        1007.0,
+        618.0
+      ],
+      "p1_world_m": [
+        5.340991,
+        5.059459
+      ],
+      "p2_world_m": [
+        6.277818,
+        5.059459
+      ],
+      "width_m": 0.936827,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: gray-ink gap in corridor north wall x920-1007, door arc observed"
+      ]
+    },
+    {
+      "opening_id": "D_N_3",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "north_open_office"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1383.0,
+        618.0
+      ],
+      "p2_pixel": [
+        1471.0,
+        618.0
+      ],
+      "p1_world_m": [
+        10.326633,
+        5.059459
+      ],
+      "p2_world_m": [
+        11.274228,
+        5.059459
+      ],
+      "width_m": 0.947595,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: gray-ink gap in corridor north wall x1383-1471, door arc observed"
+      ]
+    },
+    {
+      "opening_id": "D_S_west",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "south_open_office"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        770.0,
+        815.0
+      ],
+      "p2_pixel": [
+        857.0,
+        815.0
+      ],
+      "p1_world_m": [
+        3.725772,
+        2.92973
+      ],
+      "p2_world_m": [
+        4.662599,
+        2.92973
+      ],
+      "width_m": 0.936827,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: gray-ink gap in corridor south wall x770-857, door arc observed, mirrors north wall"
+      ]
+    },
+    {
+      "opening_id": "D_S_east",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "south_open_office"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        920.0,
+        815.0
+      ],
+      "p2_pixel": [
+        1007.0,
+        815.0
+      ],
+      "p1_world_m": [
+        5.340991,
+        2.92973
+      ],
+      "p2_world_m": [
+        6.277818,
+        2.92973
+      ],
+      "width_m": 0.936827,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: gray-ink gap in corridor south wall x920-1007, door arc observed"
+      ]
+    },
+    {
+      "opening_id": "D_S_3",
+      "kind": "door",
+      "space_ids": [
+        "corridor",
+        "south_open_office"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1383.0,
+        815.0
+      ],
+      "p2_pixel": [
+        1471.0,
+        815.0
+      ],
+      "p1_world_m": [
+        10.326633,
+        2.92973
+      ],
+      "p2_world_m": [
+        11.274228,
+        2.92973
+      ],
+      "width_m": 0.947595,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: gray-ink gap in corridor south wall x1383-1471, door arc observed"
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        424.0,
+        346.0
+      ],
+      [
+        1817.0,
+        346.0
+      ],
+      [
+        1817.0,
+        1086.0
+      ],
+      [
+        424.0,
+        1086.0
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        15.0,
+        0.0
+      ],
+      [
+        15.0,
+        8.0
+      ],
+      [
+        0.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        424.0,
+        0.0
+      ],
+      [
+        1817.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        346.0,
+        8.0
+      ],
+      [
+        1086.0,
+        0.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.010768126346015794,
+      "y": -0.010810810810810811
+    },
+    "basis": "Outer wall faces measured via gray-ink pixel profiles (west x=424,east x=1817,north y=346,south y=1086) calibrated to overall 15000x8000mm dimension lines. Interior walls represented as single centerline strokes at measured ink rows (corridor walls y=618 and y=815 pixels). North/south zones are open-plan (no full-height partition found between desk bays: pixel profile at the exterior wall row showed only a weak partial nib at x~883-920, not a continuous wall), so each is modeled as one open room reached via two doors from the corridor plus a south exterior entrance door and a west exterior corridor door found as gaps in the gray wall ink.",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}

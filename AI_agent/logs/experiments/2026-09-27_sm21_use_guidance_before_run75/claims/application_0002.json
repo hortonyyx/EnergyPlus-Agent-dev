@@ -1,0 +1,268 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "candidate_06",
+  "submitted_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "F1:north_open_office",
+      "role": "office",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "1f_view.png shows 3 desk+chair groups (visible furniture) in one open room, typical office workstation layout",
+      "source_refs": [
+        "1f_view.png: desk/chair symbols in north zone"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:south_open_office",
+      "role": "office",
+      "basis": "inferred",
+      "assumptions": [
+        "Mixed furniture (built-in corner desks and a round table) suggests general office/workstation use; broad 'office' chosen over a narrower type given the mix"
+      ],
+      "reason": "1f_view.png shows corner workstation furniture (closet-like L-desks) and a round table in one open room",
+      "source_refs": [
+        "1f_view.png: L-shaped desk furniture and round table in south zone"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:corridor",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation band with no furniture, connecting all rooms and both exterior doors",
+      "source_refs": [
+        "1f_view.png: central band between the two office zones"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:conf_room_west",
+      "role": "conference/meeting/multipurpose",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "2f_view.png shows a large oval table with ~10 chairs, a conference-room furniture arrangement",
+      "source_refs": [
+        "2f_view.png: oval table with surrounding chairs, west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:conf_room_east",
+      "role": "conference/meeting/multipurpose",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "2f_view.png shows the same oval conference table arrangement, east room",
+      "source_refs": [
+        "2f_view.png: oval table with surrounding chairs, east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:corridor2",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation band with no furniture, connecting all F2 rooms",
+      "source_refs": [
+        "2f_view.png: central band between conference rooms and offices"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_1",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "2f_view.png shows an enclosed private room with desk, chairs and computer monitor",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_2",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "same enclosed private office furniture pattern",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_3",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "same enclosed private office furniture pattern",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_4",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "same enclosed private office furniture pattern",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_4"
+      ]
+    },
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "Wall representative plane: single centerline stroke at the measured ink row for each wall, not separate inner/outer faces; footprint uses outer wall faces.",
+        "F1 exterior window heights (WN1-3, WS1-2, W_east_window) confirmed via North/South/East_view.png dimension chain: sill 1.0m, head 2.6m above the F1 floor (claim_0001, confirmed).",
+        "F2 exterior window heights (WN1-2, WS_o1-4, W_east_window, W_west_window) confirmed via North/South/East/West_view.png dimension chain: sill 1.0m, head 2.8m above the F2 floor at z_floor=3.0 (claim_0002, confirmed).",
+        "F1 storey height 3.0m and F2 storey height 3.6m taken directly from the 6600mm total building-height elevation chain (3000+3600).",
+        "Exterior door heights (F1 south entrance and west corridor door) estimated at 2.7m from visual proportion in South_view.png/West_view.png (door rectangle nearly spans the full 3.0m storey); not from an explicit printed dimension label, so remains a visual estimate rather than a measured chain.",
+        "All interior corridor-to-room doors (F1 and F2) use an assumed standard height of 2.1m above their floor; no elevation shows interior door heights, so these remain explicit assumptions.",
+        "North/south exterior window horizontal spans were cross-checked against each elevation's own horizontal dimension chain and matched the plan-derived pixel spans within about 0.1m.",
+        "A small south-facing ventilation window implied by South_view.png's differently-worded right-side dimension chain (600/900/1500) for the F1 closet area was not modeled; the plan drawing's own dimension chain did not mark a separate window opening at that location, so it is left as an unresolved possible omission."
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_06",
+    "parent_proposal_sha256": "a5345773144480e523debb0bbe3d9428a498ee3dd5ded20785076c01925fa393",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "F1:north_open_office",
+      "role": "office",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "1f_view.png shows 3 desk+chair groups (visible furniture) in one open room, typical office workstation layout",
+      "source_refs": [
+        "1f_view.png: desk/chair symbols in north zone"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:south_open_office",
+      "role": "office",
+      "basis": "inferred",
+      "assumptions": [
+        "Mixed furniture (built-in corner desks and a round table) suggests general office/workstation use; broad 'office' chosen over a narrower type given the mix"
+      ],
+      "reason": "1f_view.png shows corner workstation furniture (closet-like L-desks) and a round table in one open room",
+      "source_refs": [
+        "1f_view.png: L-shaped desk furniture and round table in south zone"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:corridor",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation band with no furniture, connecting all rooms and both exterior doors",
+      "source_refs": [
+        "1f_view.png: central band between the two office zones"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:conf_room_west",
+      "role": "conference/meeting/multipurpose",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "2f_view.png shows a large oval table with ~10 chairs, a conference-room furniture arrangement",
+      "source_refs": [
+        "2f_view.png: oval table with surrounding chairs, west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:conf_room_east",
+      "role": "conference/meeting/multipurpose",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "2f_view.png shows the same oval conference table arrangement, east room",
+      "source_refs": [
+        "2f_view.png: oval table with surrounding chairs, east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:corridor2",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation band with no furniture, connecting all F2 rooms",
+      "source_refs": [
+        "2f_view.png: central band between conference rooms and offices"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_1",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "2f_view.png shows an enclosed private room with desk, chairs and computer monitor",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_2",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "same enclosed private office furniture pattern",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_3",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "same enclosed private office furniture pattern",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_4",
+      "role": "office/enclosed",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "same enclosed private office furniture pattern",
+      "source_refs": [
+        "2f_view.png: desk+chairs+monitor in office_4"
+      ]
+    },
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "Wall representative plane: single centerline stroke at the measured ink row for each wall, not separate inner/outer faces; footprint uses outer wall faces.",
+        "F1 exterior window heights (WN1-3, WS1-2, W_east_window) confirmed via North/South/East_view.png dimension chain: sill 1.0m, head 2.6m above the F1 floor (claim_0001, confirmed).",
+        "F2 exterior window heights (WN1-2, WS_o1-4, W_east_window, W_west_window) confirmed via North/South/East/West_view.png dimension chain: sill 1.0m, head 2.8m above the F2 floor at z_floor=3.0 (claim_0002, confirmed).",
+        "F1 storey height 3.0m and F2 storey height 3.6m taken directly from the 6600mm total building-height elevation chain (3000+3600).",
+        "Exterior door heights (F1 south entrance and west corridor door) estimated at 2.7m from visual proportion in South_view.png/West_view.png (door rectangle nearly spans the full 3.0m storey); not from an explicit printed dimension label, so remains a visual estimate rather than a measured chain.",
+        "All interior corridor-to-room doors (F1 and F2) use an assumed standard height of 2.1m above their floor; no elevation shows interior door heights, so these remain explicit assumptions.",
+        "North/south exterior window horizontal spans were cross-checked against each elevation's own horizontal dimension chain and matched the plan-derived pixel spans within about 0.1m.",
+        "A small south-facing ventilation window implied by South_view.png's differently-worded right-side dimension chain (600/900/1500) for the F1 closet area was not modeled; the plan drawing's own dimension chain did not mark a separate window opening at that location, so it is left as an unresolved possible omission."
+      ]
+    }
+  ],
+  "error": "set_notes: unresolved must be a list of strings"
+}

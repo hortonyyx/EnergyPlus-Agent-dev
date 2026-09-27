@@ -1,0 +1,137 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "522db5dc9207dcd1cae22c674ca43ff05d5ae03af126238492f0d90f9d354db7",
+  "operations_json": "[\n  {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"corridor_wall_upper\",\"changes\":{\"points\":[[425,623],[1817,623]]},\n   \"reason\":\"Extend corridor wall to meet footprint ring exactly, fixing polygonize dangle at inner-face endpoints\",\"source_refs\":[\"1f_view.png: wall centerline y=623 continues to outer wall faces at x=425/1817\"]},\n  {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"corridor_wall_lower\",\"changes\":{\"points\":[[425,804],[1817,804]]},\n   \"reason\":\"Extend corridor wall to meet footprint ring exactly, fixing polygonize dangle at inner-face endpoints\",\"source_refs\":[\"1f_view.png: wall centerline y=804 continues to outer wall faces at x=425/1817\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "corridor_wall_upper",
+      "before": {
+        "id": "corridor_wall_upper",
+        "points": [
+          [
+            447,
+            623
+          ],
+          [
+            1794,
+            623
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: pixel-profile wall-ink support at y=608-622 continuous except three door gaps; centerline y=623"
+        ]
+      },
+      "after": {
+        "id": "corridor_wall_upper",
+        "points": [
+          [
+            425,
+            623
+          ],
+          [
+            1817,
+            623
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: pixel-profile wall-ink support at y=608-622 continuous except three door gaps; centerline y=623"
+        ]
+      },
+      "reason": "Extend corridor wall to meet footprint ring exactly, fixing polygonize dangle at inner-face endpoints",
+      "source_refs": [
+        "1f_view.png: wall centerline y=623 continues to outer wall faces at x=425/1817"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "corridor_wall_lower",
+      "before": {
+        "id": "corridor_wall_lower",
+        "points": [
+          [
+            447,
+            804
+          ],
+          [
+            1794,
+            804
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: pixel-profile wall-ink support at y=795-805 continuous except three door gaps; centerline y=804"
+        ]
+      },
+      "after": {
+        "id": "corridor_wall_lower",
+        "points": [
+          [
+            425,
+            804
+          ],
+          [
+            1817,
+            804
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: pixel-profile wall-ink support at y=795-805 continuous except three door gaps; centerline y=804"
+        ]
+      },
+      "reason": "Extend corridor wall to meet footprint ring exactly, fixing polygonize dangle at inner-face endpoints",
+      "source_refs": [
+        "1f_view.png: wall centerline y=804 continues to outer wall faces at x=425/1817"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "openings": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5",
+      "D6",
+      "D_west_ext",
+      "D_south_main",
+      "W1",
+      "W2",
+      "W3",
+      "W4",
+      "W5",
+      "W6"
+    ],
+    "space_seeds": [
+      "top_left",
+      "top_mid",
+      "top_right",
+      "corridor",
+      "bottom_left",
+      "bottom_mid",
+      "bottom_right"
+    ],
+    "partitions": [
+      "partition_A_top",
+      "partition_A_bottom",
+      "partition_B_top",
+      "partition_B_bottom"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

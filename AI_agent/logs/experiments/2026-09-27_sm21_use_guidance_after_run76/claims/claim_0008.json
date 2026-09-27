@@ -1,0 +1,111 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_07",
+    "objects": [
+      {
+        "id": "F1:W4",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Re-recorded against candidate_07. South_view.png narrow-window chain 600+900+1500=3000mm; head=2.4m, sill=1.5m absolute.",
+    "sources": [
+      {
+        "view_id": "view_0037"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          600.0,
+          900.0,
+          1500.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.4,
+            "index": 0,
+            "length_m": 0.6,
+            "span_m": [
+              2.4,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.5,
+            "index": 1,
+            "length_m": 0.9,
+            "span_m": [
+              1.5,
+              2.4
+            ],
+            "start_m": 2.4
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.5,
+            "span_m": [
+              0.0,
+              1.5
+            ],
+            "start_m": 1.5
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0008",
+  "parent_proposal_sha256": "cd1a1013bbca3af64181f3e067ad74ff4ff0ce0dfd8d026acc829e7a48da12bf",
+  "resolved_values": {
+    "height": [
+      1.5,
+      2.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0037",
+      "view_sha256": "99102e0cd0ceb30ac0a5977b9248020aa4726ac76a4cb75ca6d7cc76a62cdb2e"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

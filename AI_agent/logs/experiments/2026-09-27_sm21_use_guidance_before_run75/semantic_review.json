@@ -1,0 +1,40 @@
+{
+  "mode": "post_generation_original_drawing_review",
+  "candidate": "candidate_07",
+  "source_model_sha256": "35b9a8ab59ab0aaee7a81b78fb7aad6fa06bf7542405159e9b42d21c078e51c6",
+  "physical_findings": [
+    "F1 north three rooms merged into one and south three rooms merged into one; four physical separating wall segments missing.",
+    "F1 southwest small south window absent.",
+    "F1 north center/east windows shifted by about 0.13/0.24 m."
+  ],
+  "height_findings": [
+    "F1 east window 1.0..2.6 m; printed east chain gives 1.0..2.8 m. Existing 0.3 m GT tolerance accepts this semantic error.",
+    "Two exterior doors 0..2.7 m; source labels visual-proportion assumption; GT is 0..2.1 m, consistent with drawn proportions but door heights are not directly dimensioned.",
+    "13 present windows have correct printed height family; one missing small window and one wrong east window out of 15 reference windows. F2 all eight windows correct. Internal doors assumed 2.1 m."
+  ],
+  "role_findings": [
+    "All ten emitted spaces have use records, but nine are labelled observed, including furniture-based offices/meeting rooms that should be explicitly inferred.",
+    "Uses broadly plausible for furniture; physical merging is the major error. Full record coverage does not mean correct interpretation."
+  ],
+  "host_metric_limit": {
+    "original_report_hosts": 28,
+    "original_report_connections": 14,
+    "merged_space_ids": [
+      "F1:north_open_office",
+      "F1:south_open_office"
+    ],
+    "hosts_with_distinct_reference_room_identity": 16,
+    "connections_with_distinct_reference_room_identity": 7,
+    "interpretation": "Existing seed-based opening matcher accepts several reference rooms mapping to one merged source. Preserve raw metrics, but they cannot certify topology; supplemental counts reject openings incident to such merged rooms and do not replace full partition audit."
+  },
+  "conclusion": "Not restored: major physical merges and missing opening.",
+  "input_reviewed": [
+    "1f_view.png",
+    "2f_view.png",
+    "South_view.png",
+    "North_view.png",
+    "East_view.png",
+    "West_view.png"
+  ],
+  "model_calls": 0
+}

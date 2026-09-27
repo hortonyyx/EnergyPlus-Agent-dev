@@ -80,7 +80,9 @@ def audit(run):
     receipts = [load(p) for p in run.glob("*_receipt.json")]
     assert len(receipts) == summary["subscription_invocations"] == 1
     assert all(r["actual_model"].startswith("claude-sonnet-") and r["provider"] == "claude" for r in receipts)
-    actions = [json.loads(line) for line in (run / "tools.jsonl").read_text().splitlines()]
+    # A quota rejection before any tool call legitimately has no tools.jsonl.
+    action_path = run / "tools.jsonl"
+    actions = [json.loads(line) for line in action_path.read_text().splitlines()] if action_path.is_file() else []
     assert not any(r["action"] == "review_detail" for r in actions)
     archive = importlib.import_module("AI_agent.logs.experiments.2026-09-27_sm24_continuation_setup.audit_run")
     archive.archive_streams(run)
@@ -88,6 +90,11 @@ def audit(run):
     dump(run / "guidance_exposure.json", seen)
     if not summary["agent_response_completed"] or not (run / "delivery.json").is_file():
         dump(run / "postrun_audit.json", {"status": "interrupted_or_no_delivery", "guidance_exposure": seen,
+             "input_and_producer_hashes_verified": True,
+             "summary_delivery": summary.get("delivery"),
+             "receipt_errors": [{"returncode": r.get("returncode"),
+                 "api_error_status": r.get("result", {}).get("api_error_status"),
+                 "message": r.get("result", {}).get("result")} for r in receipts],
              "limits": ["Generation failure retained; no retry or assumed quality scores."]})
         return
     if frozen["case"] == "sm21":

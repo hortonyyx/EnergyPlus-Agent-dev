@@ -1,0 +1,196 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_06",
+    "objects": [
+      {
+        "id": "F2:WN1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:WN2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:WS_o1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:WS_o2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:WS_o3",
+        "kind": "window"
+      },
+      {
+        "id": "F2:WS_o4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_east_window",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_west_window",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png/South_view.png upper zone (F2, 3600mm storey) dimension chain read top-down from roof: 800mm above window head, 1800mm window height, 1000mm below to F2 floor line. Read bottom-up from F2 floor (world z=3.0): 1000mm sill, 1800mm window, 800mm remainder to roof. Same family visually confirmed on East_view.png and West_view.png upper zones. Applies to all F2 exterior windows.",
+    "sources": [
+      {
+        "view_id": "view_0020"
+      },
+      {
+        "view_id": "view_0021"
+      },
+      {
+        "view_id": "view_0022"
+      },
+      {
+        "view_id": "view_0023"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 6.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 5.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 4.0
+          },
+          {
+            "end_m": 6.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 5.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "a5345773144480e523debb0bbe3d9428a498ee3dd5ded20785076c01925fa393",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        190,
+        300,
+        590
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0020",
+      "view_sha256": "b6a9fc2b3026551c3478e8d5f9a6f82f121b0b46eb68e85aaf1fada3e110a5c5"
+    },
+    {
+      "box": [
+        0,
+        190,
+        320,
+        580
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0021",
+      "view_sha256": "f81edb89124eb2fdf275109f0893eaa94c8d255849e8b71d909e8c290304f6fd"
+    },
+    {
+      "box": [
+        0,
+        190,
+        300,
+        570
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ],
+      "view_id": "view_0022",
+      "view_sha256": "7c79796b053cda230af9970d990f47a08464d95c67d9a8ad76ac5f164a2d3e6a"
+    },
+    {
+      "box": [
+        0,
+        190,
+        300,
+        570
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ],
+      "view_id": "view_0023",
+      "view_sha256": "d467067271574016bb75318412335cbe10340e763e55011e1086f9b43cce3d71"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

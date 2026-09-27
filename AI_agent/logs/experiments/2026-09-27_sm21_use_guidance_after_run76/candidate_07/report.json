@@ -1,0 +1,74 @@
+{
+  "agent_assumptions": [
+    "Ceiling height 3.0m assumed pending elevation cross-check",
+    "Door/window head and sill heights assumed (door 2.1m, window sill 0.9m/head 2.1m) pending elevation evidence",
+    "West exterior wide opening at corridor (D_west_ext) treated as a door of unknown state; could alternatively be a service/loading opening",
+    "South wall entrance recess/canopy geometry simplified to a flat wall plane with a door opening; the small facade step is not modeled",
+    "Bottom-left room's small closet/wardrobe furniture icon not modeled as partition",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "z_floor=3.0m (single storey height) assumed pending elevation cross-check",
+    "Ceiling height 3.0m assumed pending elevation cross-check",
+    "Door/window head and sill heights assumed (door 2.1m, window sill 0.9m/head 2.1m, corridor window sill 1.0m) pending elevation evidence",
+    "partition_bottom_2 (building centerline) assumed to have no doors; rooms 2 and 3 each access the corridor via their single observed door near the outer partitions",
+    "No vertical circulation (stair) is shown in either plan view; floors are stacked at z_floor=3.0 without an inferred stair connection",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 27,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "cd1a1013bbca3af64181f3e067ad74ff4ff0ce0dfd8d026acc829e7a48da12bf",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "584ca705a40776bf0b5148d475a59c8e2334ce9d0bc9a753b7616f24d2475259",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_002.json",
+      "sha256": "5d2a1e1a10b90f487aec672b9d07bdfa0e389f97cc7db382a1dd13cee9215afc"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "6c901e8c0ced43d73f8150b3e5cd487d7442ccec239331a3babedd73010d9b3f",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Right-side corridor duct/shaft hatch near x=1793-1817,y=618-804 not modeled as a separate space; treated as wall thickening",
+    "Interior door swing state (open/closed) unknown for all doors",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact partition/door pixel widths for the four bottom rooms were read from a single wide crop and mirrored by symmetry for rooms 3/4; not independently re-measured on that side",
+    "Interior door swing state (open/closed) unknown for all doors",
+    "No exterior ground-level entrance identified on this floor plan; access route (stair/lift) location is unresolved",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

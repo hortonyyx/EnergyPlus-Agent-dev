@@ -1,0 +1,71 @@
+{
+  "agent_assumptions": [
+    "Wall representative plane: single centerline stroke at measured ink row for each wall, not separate inner/outer faces.",
+    "Window sill/head heights assumed 0.9-2.1m and door heights assumed 0-2.1m pending elevation confirmation.",
+    "North/south exterior window spans taken from the drawing's own dimension-chain numbers (1240/2400/1300 repeating pattern), not independently pixel-measured for every jamb.",
+    "Ceiling height assumed 3.0m, not labelled in plan.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Wall representative plane: single centerline stroke at measured ink row for each wall.",
+    "Window/door heights assumed relative to F2 floor level (z_floor=3.0): windows 0.9-2.1m above floor (absolute 3.9-5.1m), doors 0-2.1m above floor (absolute 3.0-5.1m), pending elevation confirmation.",
+    "South office window WS_o3 span approximated from a partially-resolved profile row; other window spans measured from clear wall-ink gaps.",
+    "Ceiling height assumed 3.0m, matching F1.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 60,
+    "connections": 14,
+    "openings": 28,
+    "spaces": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "a5345773144480e523debb0bbe3d9428a498ee3dd5ded20785076c01925fa393",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "218df50d0ca07dbbee5bd8261b6d5088a0ab4905058674d93fb7657d1b5f094a",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_002.json",
+      "sha256": "f274fc1436841499da2551bc7a7d91c230b97a7f1db054aa4c5b905dc01b5e34"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "2669058195da92dfd1affefb19ff903dd05e12f42f24b38549b62bef2de09255",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact jamb pixel positions for exterior windows were derived from the printed dimension chain rather than individually profiled; minor (<0.3m) span error possible.",
+    "Door swing/open state not verified beyond symbol presence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "WS_o3 exact jamb pixels not fully profiled (estimated from adjacent pattern).",
+    "Door/window heights not yet cross-checked against elevation images.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

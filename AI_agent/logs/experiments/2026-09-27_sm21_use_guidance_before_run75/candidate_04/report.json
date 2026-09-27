@@ -1,0 +1,84 @@
+{
+  "agent_assumptions": [
+    "Wall representative plane: single centerline stroke at measured ink row for each wall, not separate inner/outer faces.",
+    "Window sill/head heights assumed 0.9-2.1m and door heights assumed 0-2.1m pending elevation confirmation.",
+    "North/south exterior window spans taken from the drawing's own dimension-chain numbers (1240/2400/1300 repeating pattern), not independently pixel-measured for every jamb.",
+    "Ceiling height assumed 3.0m, not labelled in plan.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 18,
+    "connections": 8,
+    "openings": 14,
+    "spaces": 3,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "43e38d01f77ab53d9378f93c7f9060153e46b12097d7be899ed5e1c4cc9d1017",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "218df50d0ca07dbbee5bd8261b6d5088a0ab4905058674d93fb7657d1b5f094a",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "936e7a372bbbfc96fe7580169c0a5d7ba7e9e08197c57ad84a481b595cefbae7",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "dd54a00137b0e8856c517c0c4495849e34f983eb954eab42ad027d17407dd3d6",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "01b40c383b9e9007ffdbbdd175e30ce312bb76fcce56b7ec1c7920b15f1ee3da",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "fb4fb69ed4aa7959e38eddde5628efdb0683af8b9932b2085cbae0de90264cf6",
+      "revision": {
+        "file": "plan_revisions/revision_001.json",
+        "parent_draft_id": "draft_001",
+        "parent_plan_sha256": "bcad680f5a23acc5c2cd752f597c049bb8b828b564f0020a9f6ab851eb2b6a78",
+        "sha256": "fac0e6cfdcb08619e8f79f21cc103ac968b7dcfa9aaa5caf854180fe7645952d"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "12a4551c827b1ed7eb43aa672fc3a53b2f0efb8ecf1c3d586493275c7e736fa4",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact jamb pixel positions for exterior windows were derived from the printed dimension chain rather than individually profiled; minor (<0.3m) span error possible.",
+    "Door swing/open state not verified beyond symbol presence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "ba079e9d7cf15d0823c3722b9a442ba102a0495ba0433193ae3d800735f83cf0",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        424.0,
+        0.0
+      ],
+      [
+        1817.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        346.0,
+        8.0
+      ],
+      [
+        1086.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs1",
+      "expected": "same_space",
+      "evidence": "1f_view.png north zone: desk group1 and desk group2 appear in one continuous room with no full-height wall between them, only a short door-frame nib at the corridor wall junction",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            450.0
+          ],
+          "world_xy_m": [
+            1.8951902368987792,
+            6.875675675675675
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:north_open_office",
+          "interior_space_ids": [
+            "F1:north_open_office"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            450.0
+          ],
+          "world_xy_m": [
+            7.279253409906676,
+            6.875675675675675
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:north_open_office",
+          "interior_space_ids": [
+            "F1:north_open_office"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs2",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png north desk group1 area vs south closet area, separated by the corridor band",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            450.0
+          ],
+          "world_xy_m": [
+            1.8951902368987792,
+            6.875675675675675
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:north_open_office",
+          "interior_space_ids": [
+            "F1:north_open_office"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            600.0,
+            950.0
+          ],
+          "world_xy_m": [
+            1.8951902368987792,
+            1.4702702702702695
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:south_open_office",
+          "interior_space_ids": [
+            "F1:south_open_office"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs3",
+      "expected": "same_space",
+      "evidence": "1f_view.png corridor is one continuous open band across the whole width",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.8951902368987792,
+            4.172972972972971
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor",
+          "interior_space_ids": [
+            "F1:corridor"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1400.0,
+            700.0
+          ],
+          "world_xy_m": [
+            10.509691313711414,
+            4.172972972972971
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor",
+          "interior_space_ids": [
+            "F1:corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs4",
+      "expected": "same_space",
+      "evidence": "1f_view.png south zone (closet, workstation, round table) has no full-height partitions between them",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            1046.0
+          ],
+          "world_xy_m": [
+            0.8183776022972005,
+            0.43243243243243157
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:south_open_office",
+          "interior_space_ids": [
+            "F1:south_open_office"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1600.0,
+            1046.0
+          ],
+          "world_xy_m": [
+            12.663316582914574,
+            0.43243243243243157
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:south_open_office",
+          "interior_space_ids": [
+            "F1:south_open_office"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_03",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_003.json",
+  "calibration_sha256": "da2abc3fb8232e2ea7818eae6e62f987b277a684ccaa78041dcc18af08cd3109",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 2101
+}

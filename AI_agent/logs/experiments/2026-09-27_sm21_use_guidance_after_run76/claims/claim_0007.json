@@ -1,0 +1,127 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_07",
+    "objects": [
+      {
+        "id": "F1:W1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W5",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W6",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Re-recorded against candidate_07. North_view.png F1 chain 400+1600+1000=3000mm; head=2.6m, sill=1.0m absolute (F1 floor=0).",
+    "sources": [
+      {
+        "view_id": "view_0036"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0007",
+  "parent_proposal_sha256": "cd1a1013bbca3af64181f3e067ad74ff4ff0ce0dfd8d026acc829e7a48da12bf",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0036",
+      "view_sha256": "a97fc8513c1c44ffd677cdf52255a2f3a51d8091720f8183088be09c446f0147"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

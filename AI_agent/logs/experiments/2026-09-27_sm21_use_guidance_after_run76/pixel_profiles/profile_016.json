@@ -1,0 +1,118 @@
+{
+  "name": "2f_view.png",
+  "profile_id": "profile_016",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "axis": "x",
+  "box_original_pixels": [
+    380,
+    600,
+    460,
+    650
+  ],
+  "rgb": [
+    128,
+    128,
+    128
+  ],
+  "tolerance": 40.0,
+  "min_fraction": 0.1,
+  "minimum_count": 5,
+  "support_length": 50,
+  "matching_pixels": 918,
+  "candidates": [
+    {
+      "id": "C01",
+      "pixels": [
+        428,
+        448
+      ],
+      "peak": 428,
+      "max_count": 45,
+      "max_fraction": 0.9,
+      "support_intervals_at_peak": [
+        [
+          600,
+          644
+        ]
+      ]
+    }
+  ],
+  "cross_axis_profile": {
+    "axis": "y",
+    "min_fraction": 0.1,
+    "minimum_count": 8,
+    "support_length": 80,
+    "runs": [
+      {
+        "pixels": [
+          600,
+          644
+        ],
+        "peak": 603,
+        "max_count": 22,
+        "max_fraction": 0.275,
+        "support_intervals_at_peak": [
+          [
+            428,
+            448
+          ],
+          [
+            450,
+            450
+          ]
+        ]
+      }
+    ],
+    "note": "Same exact mask and fraction, measured along the other axis. Compare long traces with local junction peaks; neither is a wall label. For bindable C IDs on this axis, request a profile using this axis."
+  },
+  "crop_context": {
+    "edge_support_intervals": {
+      "left": [],
+      "right": [],
+      "top": [
+        [
+          428,
+          448
+        ]
+      ],
+      "bottom": []
+    },
+    "suggested_view_box": [
+      348,
+      568,
+      492,
+      682
+    ],
+    "note": "Edge intervals are matching pixels on the crop border (right/bottom are exclusive box limits, so samples are at right-1/bottom-1). A crop edge is not an object endpoint. The suggested box is only an initial 32px context expansion; inspect further as needed to establish both endpoints and adjoining space boundaries. No continuation is inferred."
+  },
+  "profile_image": "pixel_profiles/profile_016.png",
+  "profile_record": "pixel_profiles/profile_016.json",
+  "profile_image_sha256": "8da2db51f20648cad16cc540c29d6653fa28d28da81a9b5df4e9cc67eca938a0",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      80,
+      50
+    ],
+    "mask_panel_combined_pixels": [
+      83,
+      0,
+      163,
+      50
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 2094,
+  "returned_size": [
+    163,
+    50
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}

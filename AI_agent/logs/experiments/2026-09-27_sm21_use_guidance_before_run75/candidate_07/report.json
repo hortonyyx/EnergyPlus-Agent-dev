@@ -1,0 +1,74 @@
+{
+  "agent_assumptions": [
+    "Wall representative plane: single centerline stroke at the measured ink row for each wall, not separate inner/outer faces; footprint uses outer wall faces.",
+    "F1 exterior window heights (WN1-3, WS1-2, W_east_window) confirmed via North/South/East_view.png dimension chain: sill 1.0m, head 2.6m above the F1 floor (claim_0001, confirmed).",
+    "F2 exterior window heights (WN1-2, WS_o1-4, W_east_window, W_west_window) confirmed via North/South/East/West_view.png dimension chain: sill 1.0m, head 2.8m above the F2 floor at z_floor=3.0 (claim_0002, confirmed).",
+    "F1 storey height 3.0m and F2 storey height 3.6m taken directly from the 6600mm total building-height elevation chain (3000+3600).",
+    "Exterior door heights (F1 south entrance and west corridor door) estimated at 2.7m from visual proportion in South_view.png/West_view.png (door rectangle nearly spans the full 3.0m storey); not from an explicit printed dimension label, so remains a visual estimate rather than a measured chain.",
+    "All interior corridor-to-room doors (F1 and F2) use an assumed standard height of 2.1m above their floor; no elevation shows interior door heights, so these remain explicit assumptions.",
+    "North/south exterior window horizontal spans were cross-checked against each elevation's own horizontal dimension chain and matched the plan-derived pixel spans within about 0.1m.",
+    "A small south-facing ventilation window implied by South_view.png's differently-worded right-side dimension chain (600/900/1500) for the F1 closet area was not modeled; the plan drawing's own dimension chain did not mark a separate window opening at that location, so it is left as an unresolved possible omission."
+  ],
+  "counts": {
+    "boundaries": 60,
+    "connections": 14,
+    "openings": 28,
+    "spaces": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "af84da8c2ee1b47044524384a3925cc54f401e6f185b6dd0f74824b986041565",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0003.json",
+      "parent_candidate": "candidate_06",
+      "parent_proposal_sha256": "a5345773144480e523debb0bbe3d9428a498ee3dd5ded20785076c01925fa393"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "218df50d0ca07dbbee5bd8261b6d5088a0ab4905058674d93fb7657d1b5f094a",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_06",
+    "parent_proposal_sha256": "a5345773144480e523debb0bbe3d9428a498ee3dd5ded20785076c01925fa393"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "35b9a8ab59ab0aaee7a81b78fb7aad6fa06bf7542405159e9b42d21c078e51c6",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact jamb pixel positions for exterior windows were derived from the plan's own printed dimension chain rather than individually profiled at every jamb; minor (<0.3m) span error is possible.",
+    "Door swing/open state is unknown beyond symbol presence for every door in the model.",
+    "A possible small south-facing closet ventilation window (see South_view.png) is not represented in the F1 south_open_office opening list.",
+    "Interior door heights (all corridor-to-room doors) are assumed at 2.1m, not read from any elevation.",
+    "Exterior entrance/corridor door heights (2.7m) are a visual-proportion estimate from South_view.png/West_view.png, not a printed dimension label.",
+    "Pixel-to-world calibration for both floor plans and all four elevations was performed by this agent from the plans' own dimension annotations and has not been independently cross-verified by a second method."
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "parent_draft_id": "draft_004",
+  "parent_plan_sha256": "1c615f03d9f4c5dacb267a4a79c5ca90697d956ae9d5bf5ed5a028876ed0e8c9",
+  "operations_json": "[\n  {\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_west_corridor\",\"changes\":{\"p1\":[428,646],\"p2\":[428,758]},\n   \"reason\":\"snap opening x to the exact footprint west-wall pixel (428) matching outer ring, fixing host lookup mismatch caused by 425 vs 428\",\"source_refs\":[\"2f_view.png: west wall outer face measured at x=428\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "openings",
+      "id": "W_west_corridor",
+      "before": {
+        "id": "W_west_corridor",
+        "kind": "window",
+        "p1": [
+          425,
+          646
+        ],
+        "p2": [
+          425,
+          758
+        ],
+        "z": [
+          4.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window hatch (straight panel, no swing arc) in west exterior wall at corridor, y=646-758; sill/head heights assumed"
+        ]
+      },
+      "after": {
+        "id": "W_west_corridor",
+        "kind": "window",
+        "p1": [
+          428,
+          646
+        ],
+        "p2": [
+          428,
+          758
+        ],
+        "z": [
+          4.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window hatch (straight panel, no swing arc) in west exterior wall at corridor, y=646-758; sill/head heights assumed"
+        ]
+      },
+      "reason": "snap opening x to the exact footprint west-wall pixel (428) matching outer ring, fixing host lookup mismatch caused by 425 vs 428",
+      "source_refs": [
+        "2f_view.png: west wall outer face measured at x=428"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "openings": [
+      "D_topL",
+      "D_topR",
+      "D_b1",
+      "D_b2",
+      "D_b3",
+      "D_b4",
+      "W_topL",
+      "W_topR",
+      "W_b1",
+      "W_b2",
+      "W_b3",
+      "W_b4"
+    ],
+    "space_seeds": [
+      "conf_left",
+      "conf_right",
+      "corridor2",
+      "office_b1",
+      "office_b2",
+      "office_b3",
+      "office_b4"
+    ],
+    "partitions": [
+      "corridor_wall_upper",
+      "corridor_wall_lower",
+      "partition_top_center",
+      "partition_bottom_1",
+      "partition_bottom_2",
+      "partition_bottom_3"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

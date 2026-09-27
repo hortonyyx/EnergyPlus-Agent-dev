@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1144.37,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1104033,
+    "stop_reason": "end_turn",
+    "session_id": "0b0ea5cf-8ba7-4753-a6b2-28f43d7b4a3e",
+    "total_cost_usd": 4.856546800000001,
+    "usage": {
+      "input_tokens": 114,
+      "cache_creation_input_tokens": 432323,
+      "cache_read_input_tokens": 10712184,
+      "output_tokens": 98459,
+      "output_tokens_details": {
+        "thinking_tokens": 69741
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 432323,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 877,
+          "cache_read_input_tokens": 427428,
+          "cache_creation_input_tokens": 4895,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4895
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 114,
+        "outputTokens": 98459,
+        "cacheReadInputTokens": 10712184,
+        "cacheCreationInputTokens": 432323,
+        "webSearchRequests": 0,
+        "costUSD": 4.856546800000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 69741,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 92,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Delivery Summary\n\n**Selected candidate: `candidate_07`** — a two-floor whole-building BIM (15.0m × 8.0m footprint), assembled from `1f_view.png` and `2f_view.png` with heights cross-checked against `North/South/East/West_view.png`.\n\n**Physical layout (from pixel-measured wall ink and door/window gaps, cross-checked against printed dimension chains):**\n- **F1 (z=0, storey height 3.0m):** one open north office (3 desk bays), one open south office (workstation/round-table area), and a central corridor — confirmed open-plan because the exterior-wall row showed only weak partial nibs (not full partitions) at the apparent \"room\" boundaries, unlike F2. Corridor connects to both zones via paired single doors, to the west facade via a door, and has an east window. South facade has the main entrance door. 3 north + 2 south + 1 east exterior windows.\n- **F2 (z=3.0, storey height 3.6m):** two enclosed conference rooms (full-height partition confirmed present at both the exterior-wall row and corridor-wall row) and four enclosed private offices (three confirmed full-height partitions), all served by a central corridor with 6 doors, plus north/south/east/west windows.\n- 8 same-space/separate-space samples against both original plans all matched expectations (open zones vs. partitioned zones).\n\n**Heights:** 14 of 28 openings (all exterior windows) have image-linked height claims (confirmed via elevation dimension chains: F1 windows sill 1.0/head 2.6m; F2 windows sill 1.0/head 2.8m relative to their floor). Storey heights (3.0m / 3.6m) came directly from the elevations' 6600mm total chain. The remaining 14 openings (all doors) are unchecked/assumed: F1 exterior south/west doors ≈2.7m from visual proportion only, all 12 interior corridor doors assumed 2.1m (no elevation evidence).\n\n**Known limitations (recorded in candidate notes/unresolved):**\n- A possible small south-facing closet ventilation window (seen in South_view.png with a differently-worded dimension set) is not modeled.\n- Interior door heights and the two \"tall\" exterior door heights are assumptions/visual estimates, not measured chains.\n- Wall thickness uses a single-centerline representative plane, not separate inner/outer faces.\n- Pixel→world calibration was self-derived from each drawing's own dimension annotations, not independently cross-verified by a second method.\n\n`finish_bim(candidate_07)` recorded this as the delivered candidate.",
+    "ttft_ms": 2103,
+    "type": "result",
+    "duration_ms": 1136287,
+    "uuid": "914bca47-ff6b-4efd-ab73-6c52d1cf35b4",
+    "ttft_stream_ms": 1049,
+    "time_to_request_ms": 190,
+    "first_content_frame_ms": 1049,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

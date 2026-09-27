@@ -1,0 +1,86 @@
+{
+  "agent_assumptions": [
+    "z_floor=3.0m (single storey height) assumed pending elevation cross-check",
+    "Ceiling height 3.0m assumed pending elevation cross-check",
+    "Door/window head and sill heights assumed (door 2.1m, window sill 0.9m/head 2.1m, corridor window sill 1.0m) pending elevation evidence",
+    "partition_bottom_2 (building centerline) assumed to have no doors; rooms 2 and 3 each access the corridor via their single observed door near the outer partitions",
+    "No vertical circulation (stair) is shown in either plan view; floors are stacked at z_floor=3.0 without an inferred stair connection",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 13,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "fb66f66e2243221db1264b8ed719e38b009c821c7e53ad3259eaef527b5d91a8",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "584ca705a40776bf0b5148d475a59c8e2334ce9d0bc9a753b7616f24d2475259",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_006/compilation.json",
+      "compilation_sha256": "ab92042c4d02d9ad3f1b5b32458bd0de437a7b9dcc5f940dff9ac2ee1bebff60",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_006/draft_view.png",
+        "image_sha256": "22ccf506d4a540c34192e6b77f9600ad750a142791b64e76c18d8287aab645e5",
+        "metadata_file": "plan_drafts/draft_006/draft_view.json",
+        "metadata_sha256": "e6fe933f8e1336e66ce0b2d87bf5808fe4879c557ad1fff2a1d5e4069e170525",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_006/plan.json",
+      "plan_sha256": "6e8966ba06fdfa33b707696b18f3300201c915a216416d7bde94c1895226b457",
+      "revision": {
+        "file": "plan_revisions/revision_004.json",
+        "parent_draft_id": "draft_005",
+        "parent_plan_sha256": "86fde32b54a0025d20000717b7626bbb7afdf14f4444d48313005fdec0e150a7",
+        "sha256": "09cddd35ac16250eeb8dd8e2e296639cc7713a39ae80d37bded00da9b5defa5f"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "01a99aab5811839ecee1a108e7c79e362ba1c6d4faa8a24d12abd484ea7f3a83",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact partition/door pixel widths for the four bottom rooms were read from a single wide crop and mirrored by symmetry for rooms 3/4; not independently re-measured on that side",
+    "Interior door swing state (open/closed) unknown for all doors",
+    "No exterior ground-level entrance identified on this floor plan; access route (stair/lift) location is unresolved",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

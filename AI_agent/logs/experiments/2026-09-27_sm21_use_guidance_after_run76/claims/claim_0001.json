@@ -1,0 +1,173 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W_topL",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_topR",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b3",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_west_corridor",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png (and consistently South_view.png/West_view.png) show the upper-storey (F2) height dimension chain, top-to-bottom: 800mm (roof/parapet to window head) + 1800mm (window height) + 1000mm (window sill to F2 floor line), totalling the 3600mm F2 storey height bracket. Walking from the F2 ceiling (3.6m local) downward gives head=2.8m, sill=1.0m local to the F2 floor. Applied uniformly to all F2 exterior windows since all three elevations show the identical 800/1800/1000 breakdown for the top storey.",
+    "sources": [
+      {
+        "view_id": "view_0036"
+      },
+      {
+        "view_id": "view_0037"
+      },
+      {
+        "view_id": "view_0039"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          800.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 3.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.8,
+            "index": 0,
+            "length_m": 0.8,
+            "span_m": [
+              2.8,
+              3.6
+            ],
+            "start_m": 3.6
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 2.8
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "41b9b0ec539af8a16bf77736421a8625a6bd9da0e4b8b65db8c6e0a758fd0136",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0036",
+      "view_sha256": "a97fc8513c1c44ffd677cdf52255a2f3a51d8091720f8183088be09c446f0147"
+    },
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0037",
+      "view_sha256": "99102e0cd0ceb30ac0a5977b9248020aa4726ac76a4cb75ca6d7cc76a62cdb2e"
+    },
+    {
+      "box": [
+        0,
+        0,
+        1077,
+        773
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ],
+      "view_id": "view_0039",
+      "view_sha256": "751f79c267be969bd7a5433d6af0b5c68cb882f4f7367c217797f2aeae77fb72"
+    }
+  ],
+  "verification": "not_independently_verified"
+}
