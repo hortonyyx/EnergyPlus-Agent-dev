@@ -25,6 +25,8 @@ def test_large_nested_evidence_keeps_actionable_status_under_transport_budget(tm
     assert reply['source_image_feedback_summary']['current_source_projections_count'] == 1
     assert reply['full_delivery_report'] == 'delivery.json'
     assert reply['drawing_fidelity'] == 'not_evaluated'
+    assert reply['room_use_review'] == before['room_use_review']
+    assert reply['room_use_review']['summary']['unrecorded_count'] > 0
     assert report == before
 
 
@@ -46,4 +48,6 @@ def test_extreme_notes_fall_back_to_counts_without_hiding_unresolved_failures(tm
     assert reply['assumption_count'] == reply['unresolved_count'] == 1
     assert reply['height_coverage']['unchecked_count'] == 2
     assert reply['drawing_fidelity'] == 'not_evaluated'
+    assert reply['room_use_review'] == before['room_use_review']
+    assert reply['room_use_review']['summary']['unrecorded_count'] > 0
     assert report == before
