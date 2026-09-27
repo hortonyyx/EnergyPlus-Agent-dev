@@ -37,6 +37,7 @@ def test_same_run_preserves_height_confirmation_across_use_edit_then_accepts_exp
         if kwargs["name"] != "agent":
             assert kwargs["receipt_context"]["role"] == "main_agent_continuation"
             assert "scope sentinel" in prompt and "Current saved delivery" in prompt
+            assert 'Shared candidate export budget: {"limit": 24' in prompt
             assert read(run / "work_turn.json")["active"]
         if kwargs["name"] == "continuation_01":
             record_work_review(toolkit, "seed", "continue", "Height evidence is in scope", "Confirm window")

@@ -493,6 +493,14 @@ class Toolkit:
         self.manifest = json.loads((self.run / "inputs.json").read_text())
         self.readonly = readonly
 
+    def candidate_budget(self):
+        # Missing values belong to historical six-candidate experiments.
+        limit = self.manifest.get("max_candidates", 6)
+        if type(limit) is not int or limit <= 0:
+            raise ValueError("max_candidates must be a positive integer")
+        used = len(list(self.run.glob("candidate_*")))
+        return {"limit": limit, "used": used, "remaining": max(0, limit - used)}
+
     def claims(self):
         from src.agent.execution.bim_claims import ClaimStore
         return ClaimStore(self)
@@ -1087,9 +1095,11 @@ class Toolkit:
             frame = validate_mesh_frame(proposal['mesh_frame'])
             if frame['mesh_sha256'] != self.manifest.get('mesh_input', {}).get('sha256'):
                 raise ValueError('candidate mesh_frame must refer to the admitted original mesh')
-        index = len(list(self.run.glob("candidate_*"))) + 1
-        if index > 6:
-            return {"error": "candidate budget exhausted; report saved partial results"}
+        budget = self.candidate_budget()
+        index = budget["used"] + 1
+        if budget["remaining"] == 0:
+            return {"error": "candidate budget exhausted; report saved partial results",
+                    "candidate_budget": budget, "remaining_seconds": self.remaining_seconds()}
         candidate = f"candidate_{index:02d}"
         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
                       "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
@@ -1107,6 +1117,7 @@ class Toolkit:
         if operations is not None:
             dump(self.run/candidate/"operations.json", operations)
         result = {"candidate": candidate, "remaining_seconds": self.remaining_seconds(), **report,
+                  "candidate_budget": self.candidate_budget(),
                   "input_view_status": self.input_view_status()}
         if plan_assembly is not None:
             result["plan_assembly"] = plan_assembly
@@ -1894,6 +1905,7 @@ def serve(run: Path, readonly=False):
         """List admitted original images, native mesh, building declaration and scope."""
         toolkit.log("inputs", {})
         return {**toolkit.manifest, "input_view_status": toolkit.input_view_status(),
+                "candidate_budget": toolkit.candidate_budget(),
                 "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
@@ -2516,7 +2528,8 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def build_bim(proposal_json: str) -> CallToolResult:
             """Build/check/save a candidate; get_bim_reference("geometry") describes proposal JSON.
-            Returns errors or actual geometry checks. Six immutable candidates maximum.
+            Returns errors or actual geometry checks. All exports share the quota
+            reported by inputs.candidate_budget, including floor builds and revisions.
             """
             return candidate_result(toolkit.build(json.loads(proposal_json)))
 
@@ -2557,6 +2570,9 @@ def serve(run: Path, readonly=False):
 
 
 def run_experiment(args):
+    max_candidates = getattr(args, "max_candidates", 24)
+    if type(max_candidates) is not int or max_candidates <= 0:
+        raise ValueError("max_candidates must be a positive integer")
     provider = getattr(args, "provider", "claude")
     continuation_rounds = getattr(args, "continuation_rounds", 0)
     if type(continuation_rounds) is not int or not 0 <= continuation_rounds <= 4:
@@ -2610,6 +2626,7 @@ def run_experiment(args):
         if not seed_path and not plan_recovery:
             generation_mode = 'native_mesh_agent_experiment'
     manifest = {"images":images,"scope":args.scope,"provider":provider,
+                             "max_candidates":max_candidates,
                              "continuation_rounds": continuation_rounds,
                              "input_mode": generation_mode,
                              "exploratory_opus": getattr(args, "exploratory_opus", False),
@@ -2802,6 +2819,8 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--max-candidates", type=int, default=24,
+                     help="Shared export quota for floor builds, assembly and revisions (default: 24)")
     run.add_argument("--continuation-rounds", type=int, choices=range(5), default=0,
                      help="Experimental bounded main-agent follow-ups within the SAME total deadline")
     run.add_argument("--provider", choices=("claude", "glm"), default="claude",

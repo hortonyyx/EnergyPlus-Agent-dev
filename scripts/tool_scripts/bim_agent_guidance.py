@@ -126,6 +126,9 @@ plus pixels is stronger evidence than pixels alone, then explicit inference.
 Uncertainty permits stated assumptions, not silent omission or invented evidence.
 
 Prioritize faithful physical partitions and openings over an early first draft.
+inputs.candidate_budget reports the shared export quota and remaining saves.
+Floor builds, assembly and revisions all consume that quota; a continuation
+does not reset it. Confirming unchanged values does not export a new candidate.
 Use the available budget to resolve consequential uncertainty and compare the
 actual saved source with the originals. For a single floor with a simple orthogonal footprint,
 build_plan_bim can derive complete rooms and opening hosts from your observed

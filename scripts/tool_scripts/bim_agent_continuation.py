@@ -101,6 +101,7 @@ def run_continuations(toolkit, initial_record, *, max_rounds, invoke, compact):
             f"Continue the SAME building task as the main agent. Original scope:\n"
             f"{toolkit.manifest['scope']}\nRemaining total budget: {remaining} seconds. "
             f"This is bounded follow-up {index}/{max_rounds}; the deadline is not reset.\n"
+            f"Shared candidate export budget: {json.dumps(toolkit.candidate_budget())}.\n"
             "The saved candidate, claims, confirmations, reviews and original inputs in this run "
             "remain available. An earlier response ended, but that does not establish task completion. "
             "Compare the original scope with the actual saved delivery below. Select the most useful "
