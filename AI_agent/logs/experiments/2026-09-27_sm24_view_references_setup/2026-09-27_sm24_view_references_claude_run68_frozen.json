@@ -1,0 +1,257 @@
+{
+  "scope": "Continue the supplied saved BIM using its original drawings. This is a\nbounded evidence-location and room-use review, not a cold reconstruction. Preserve\nphysical rooms, partitions, opening plan positions, hosts and connections; do not\nrebuild the plan. Previous height declarations below are unverified model hypotheses,\nnot ground truth. Record each unchanged declaration against candidate seed first,\nwithout adopting it, so the actual returned source crops can be examined. Check that\neach cited region contains the numbers, dimension endpoints and object context used\nby its interpretation. Inspect the original beyond the crop when needed. Choose\nwhether to retain, correct or retract each hypothesis. If correcting it, record a\nnew claim and retract the obsolete record; never overwrite the old one. Confirm\nadopted heights against the saved candidate when they match, or locally revise\nonly where original evidence supports an actual change. Read the claims reference.\nDo not treat numerical consistency or a tool's image return as semantic approval.\n\nFor room uses, prefer a plausible listed use over unknown, including a broad\ninference from building context or furniture; mark inference and allow later user\nadjustment. Avoid prolonged attempts to distinguish similar plausible uses. Review\nexisting unknown uses, retain reasonable assigned uses, and preserve physical\npartitions. Update saved notes to reflect actual checks and remaining assumptions.\nDeliver the viewable candidate and distinguish completed work from limitations.\nNo review_detail or delegation. No GT, evaluation, corrected boxes, developer\nheight answers or per-room interpretations are supplied. Prior declarations follow:\n[\n  {\n    \"basis\": \"annotation_and_pixels\",\n    \"candidate\": \"seed\",\n    \"objects\": [\n      {\n        \"id\": \"WS1\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WS2\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WE1\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WE2\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WW1\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WW2\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WW3\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WW4\",\n        \"kind\": \"window\"\n      }\n    ],\n    \"observation_mode\": \"candidate_review\",\n    \"reason\": \"Reviewing prior hypothesis: South/East/West elevations dimension the smaller windows as 1000 sill, 1800 height, 1700 above; ground floor origin z=0 at the elevation ground line.\",\n    \"sources\": [\n      {\n        \"box\": [\n          400.0,\n          300.0,\n          2000.0,\n          1000.0\n        ],\n        \"image\": \"South_view.png\"\n      },\n      {\n        \"box\": [\n          1000.0,\n          300.0,\n          2300.0,\n          700.0\n        ],\n        \"image\": \"East_view.png\"\n      },\n      {\n        \"box\": [\n          300.0,\n          350.0,\n          1500.0,\n          700.0\n        ],\n        \"image\": \"West_view.png\"\n      }\n    ],\n    \"unresolved\": [\n      \"Horizontal spans not re-measured in this claim\"\n    ],\n    \"value_targets\": null,\n    \"values\": {\n      \"z\": {\n        \"direction\": 1,\n        \"lengths\": [\n          1000.0,\n          1800.0,\n          1700.0\n        ],\n        \"origin_m\": 0.0,\n        \"segment\": 1,\n        \"type\": \"dimension_chain\",\n        \"unit\": \"mm\"\n      }\n    }\n  },\n  {\n    \"basis\": \"annotation_and_pixels\",\n    \"candidate\": \"seed\",\n    \"objects\": [\n      {\n        \"id\": \"WN\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WE3\",\n        \"kind\": \"window\"\n      },\n      {\n        \"id\": \"WW5\",\n        \"kind\": \"window\"\n      }\n    ],\n    \"observation_mode\": \"candidate_review\",\n    \"reason\": \"Reviewing prior hypothesis: North/East/West elevations dimension the large windows as 1000 sill, 2400 height, 1100 above; origin z=0 at ground line.\",\n    \"sources\": [\n      {\n        \"box\": [\n          600.0,\n          500.0,\n          1600.0,\n          1100.0\n        ],\n        \"image\": \"North_view.png\"\n      },\n      {\n        \"box\": [\n          1300.0,\n          300.0,\n          1900.0,\n          700.0\n        ],\n        \"image\": \"East_view.png\"\n      },\n      {\n        \"box\": [\n          1600.0,\n          300.0,\n          2300.0,\n          700.0\n        ],\n        \"image\": \"West_view.png\"\n      }\n    ],\n    \"unresolved\": [\n      \"Horizontal spans not re-measured in this claim\"\n    ],\n    \"value_targets\": null,\n    \"values\": {\n      \"z\": {\n        \"direction\": 1,\n        \"lengths\": [\n          1000.0,\n          2400.0,\n          1100.0\n        ],\n        \"origin_m\": 0.0,\n        \"segment\": 1,\n        \"type\": \"dimension_chain\",\n        \"unit\": \"mm\"\n      }\n    }\n  },\n  {\n    \"basis\": \"annotation_and_pixels\",\n    \"candidate\": \"seed\",\n    \"objects\": [\n      {\n        \"id\": \"DS\",\n        \"kind\": \"opening\"\n      },\n      {\n        \"id\": \"DN\",\n        \"kind\": \"opening\"\n      },\n      {\n        \"id\": \"DE\",\n        \"kind\": \"opening\"\n      }\n    ],\n    \"observation_mode\": \"candidate_review\",\n    \"reason\": \"Reviewing prior hypothesis: South, North and East elevations dimension exterior doors as 200 above ground, 2400 tall, 1900 above; origin z=0 at ground line.\",\n    \"sources\": [\n      {\n        \"box\": [\n          1000.0,\n          600.0,\n          1400.0,\n          1000.0\n        ],\n        \"image\": \"South_view.png\"\n      },\n      {\n        \"box\": [\n          1900.0,\n          700.0,\n          2300.0,\n          1150.0\n        ],\n        \"image\": \"North_view.png\"\n      },\n      {\n        \"box\": [\n          850.0,\n          380.0,\n          1100.0,\n          650.0\n        ],\n        \"image\": \"East_view.png\"\n      }\n    ],\n    \"unresolved\": [\n      \"Interior doors have no elevation evidence; 0-2.1 remains assumed\"\n    ],\n    \"value_targets\": null,\n    \"values\": {\n      \"z\": {\n        \"direction\": 1,\n        \"lengths\": [\n          200.0,\n          2400.0,\n          1900.0\n        ],\n        \"origin_m\": 0.0,\n        \"segment\": 1,\n        \"type\": \"dimension_chain\",\n        \"unit\": \"mm\"\n      }\n    }\n  }\n]",
+  "mode": "saved_proposal_and_unverified_claim_recovery_with_view_refs",
+  "image_sha256": {
+    "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+    "North_view.png": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+    "South_view.png": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+    "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+  },
+  "seed_proposal_sha256": "152160697dd70e278450f325e5b29f75d43ed481fe358d4da611036e575a2cd0",
+  "prior_claim_file_sha256": {
+    "claim_0001.json": "ad151a008bedffa0cf82e1a23b60dcc7ecc69217a299661f61add39815f45ff4",
+    "claim_0002.json": "4e711cb18aa8bc4975d3dec0dbe6d9dbd81261b36e7f05d9e12b21d910775ed9",
+    "claim_0003.json": "c2b16366a4ec84cdfbb1891571ca3d5865933d8a50e6757ab9a8e615909b0f0c"
+  },
+  "prior_run": "AI_agent/logs/experiments/2026-09-27_sm24_claim_regions_claude_run67",
+  "prior_claims": [
+    {
+      "basis": "annotation_and_pixels",
+      "candidate": "seed",
+      "objects": [
+        {
+          "id": "WS1",
+          "kind": "window"
+        },
+        {
+          "id": "WS2",
+          "kind": "window"
+        },
+        {
+          "id": "WE1",
+          "kind": "window"
+        },
+        {
+          "id": "WE2",
+          "kind": "window"
+        },
+        {
+          "id": "WW1",
+          "kind": "window"
+        },
+        {
+          "id": "WW2",
+          "kind": "window"
+        },
+        {
+          "id": "WW3",
+          "kind": "window"
+        },
+        {
+          "id": "WW4",
+          "kind": "window"
+        }
+      ],
+      "observation_mode": "candidate_review",
+      "reason": "Reviewing prior hypothesis: South/East/West elevations dimension the smaller windows as 1000 sill, 1800 height, 1700 above; ground floor origin z=0 at the elevation ground line.",
+      "sources": [
+        {
+          "box": [
+            400.0,
+            300.0,
+            2000.0,
+            1000.0
+          ],
+          "image": "South_view.png"
+        },
+        {
+          "box": [
+            1000.0,
+            300.0,
+            2300.0,
+            700.0
+          ],
+          "image": "East_view.png"
+        },
+        {
+          "box": [
+            300.0,
+            350.0,
+            1500.0,
+            700.0
+          ],
+          "image": "West_view.png"
+        }
+      ],
+      "unresolved": [
+        "Horizontal spans not re-measured in this claim"
+      ],
+      "value_targets": null,
+      "values": {
+        "z": {
+          "direction": 1,
+          "lengths": [
+            1000.0,
+            1800.0,
+            1700.0
+          ],
+          "origin_m": 0.0,
+          "segment": 1,
+          "type": "dimension_chain",
+          "unit": "mm"
+        }
+      }
+    },
+    {
+      "basis": "annotation_and_pixels",
+      "candidate": "seed",
+      "objects": [
+        {
+          "id": "WN",
+          "kind": "window"
+        },
+        {
+          "id": "WE3",
+          "kind": "window"
+        },
+        {
+          "id": "WW5",
+          "kind": "window"
+        }
+      ],
+      "observation_mode": "candidate_review",
+      "reason": "Reviewing prior hypothesis: North/East/West elevations dimension the large windows as 1000 sill, 2400 height, 1100 above; origin z=0 at ground line.",
+      "sources": [
+        {
+          "box": [
+            600.0,
+            500.0,
+            1600.0,
+            1100.0
+          ],
+          "image": "North_view.png"
+        },
+        {
+          "box": [
+            1300.0,
+            300.0,
+            1900.0,
+            700.0
+          ],
+          "image": "East_view.png"
+        },
+        {
+          "box": [
+            1600.0,
+            300.0,
+            2300.0,
+            700.0
+          ],
+          "image": "West_view.png"
+        }
+      ],
+      "unresolved": [
+        "Horizontal spans not re-measured in this claim"
+      ],
+      "value_targets": null,
+      "values": {
+        "z": {
+          "direction": 1,
+          "lengths": [
+            1000.0,
+            2400.0,
+            1100.0
+          ],
+          "origin_m": 0.0,
+          "segment": 1,
+          "type": "dimension_chain",
+          "unit": "mm"
+        }
+      }
+    },
+    {
+      "basis": "annotation_and_pixels",
+      "candidate": "seed",
+      "objects": [
+        {
+          "id": "DS",
+          "kind": "opening"
+        },
+        {
+          "id": "DN",
+          "kind": "opening"
+        },
+        {
+          "id": "DE",
+          "kind": "opening"
+        }
+      ],
+      "observation_mode": "candidate_review",
+      "reason": "Reviewing prior hypothesis: South, North and East elevations dimension exterior doors as 200 above ground, 2400 tall, 1900 above; origin z=0 at ground line.",
+      "sources": [
+        {
+          "box": [
+            1000.0,
+            600.0,
+            1400.0,
+            1000.0
+          ],
+          "image": "South_view.png"
+        },
+        {
+          "box": [
+            1900.0,
+            700.0,
+            2300.0,
+            1150.0
+          ],
+          "image": "North_view.png"
+        },
+        {
+          "box": [
+            850.0,
+            380.0,
+            1100.0,
+            650.0
+          ],
+          "image": "East_view.png"
+        }
+      ],
+      "unresolved": [
+        "Interior doors have no elevation evidence; 0-2.1 remains assumed"
+      ],
+      "value_targets": null,
+      "values": {
+        "z": {
+          "direction": 1,
+          "lengths": [
+            200.0,
+            2400.0,
+            1900.0
+          ],
+          "origin_m": 0.0,
+          "segment": 1,
+          "type": "dimension_chain",
+          "unit": "mm"
+        }
+      }
+    }
+  ],
+  "provider": "claude",
+  "role": "sonnet",
+  "effort": "medium",
+  "timeout_seconds": 1800,
+  "continuation_rounds": 2,
+  "shared_total_deadline": true,
+  "withheld": [
+    "GT",
+    "old evaluations",
+    "old decisions/confirmations",
+    "corrected boxes",
+    "developer room/height interpretations"
+  ],
+  "developer_participation": "Same generic bounded review instructions as run67; changed saved seed and new view-reference/replacement tools. No directed crop choices or live intervention.",
+  "development_agents": "Astra only",
+  "runtime_delegation": "prohibited"
+}

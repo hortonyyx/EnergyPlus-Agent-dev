@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1800,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 397.72,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 383028,
+    "stop_reason": "end_turn",
+    "session_id": "b5257b07-296a-4e26-b73b-01c3f976abd2",
+    "total_cost_usd": 1.3200648000000001,
+    "usage": {
+      "input_tokens": 42,
+      "cache_creation_input_tokens": 174747,
+      "cache_read_input_tokens": 1982564,
+      "output_tokens": 22448,
+      "output_tokens_details": {
+        "thinking_tokens": 12174
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 174747,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1302,
+          "cache_read_input_tokens": 171086,
+          "cache_creation_input_tokens": 3661,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3661
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 42,
+        "outputTokens": 22448,
+        "cacheReadInputTokens": 1982564,
+        "cacheCreationInputTokens": 174747,
+        "webSearchRequests": 0,
+        "costUSD": 1.3200648000000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 12174,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 38,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\n**Delivered candidate:** `candidate_01` (a note-only descendant of `seed`; geometry unchanged, sha256 identical before/after the note revision).\n\n**Height-claim review (main task of this continuation):**\n- Recorded all three prior height hypotheses (claim_0001–0003) against `seed` in `candidate_review` mode and inspected their actual returned crops.\n- Found that all three cited crop boxes were **mislocated** — most contained no dimension text at all, and one (claim_0001's South crop) actually contained the *door's* dimension chain, not the window's.\n- Independently located the real dimension chains by viewing full South/North/East/West elevations and targeted crops. All three numeric hypotheses turned out to be **correct**, just cited from the wrong region:\n  - Small windows (WS1,WS2,WE1,WE2,WW1‑4): 1000/1800/1700 mm → confirmed at South (full), East right edge, West left edge.\n  - Large windows (WN,WE3,WW5): 1000/2400/1100 mm → confirmed at North left edge, East (~x1130‑1200), West right edge.\n  - Exterior doors (DS,DN,DE): 200/2400/1900 mm → confirmed at South (full), North right edge, East left edge.\n- Used `replace_claim_sources` to create claim_0004/0005/0006 with the same values but correctly-located evidence, retracting the obsolete claim_0001‑0003. Adopted the new claims and used `confirm_claims` against `seed` (status: `confirmed_unchanged` for all bindings) since no numeric change was warranted.\n- Updated the stale assumptions note (which referenced the retracted \"claims 1‑3\") via `replace_note` to correctly cite claim_0004‑0006 and clarify the source-region correction — this produced `candidate_01`.\n- Interior doors (DE1, DE2, DHall, DR, DW1, DW2, DW3) remain **assumed 0–2.1 m**; no elevation evidence exists for them (unresolved, stated explicitly).\n\n**Plan/partition/connectivity review:**\n- Registered plan calibration and overlaid the seed's source geometry on `1f_view.png`: walls, doors and windows align closely with the original drawing (magenta boundaries and orange/green openings track the original ink well); a caller-calibration cross-axis warning (~2%) was noted but reflects anchor-picking tolerance, not a geometry defect.\n- Ran four targeted `check_source_space_relation` samples (top strip as one room vs. row-2 split, corridor vs. dining room, corridor vs. bottom-right office) — **all consistent** with the original drawing. No partition/connectivity corrections were needed.\n\n**Room uses:** all 8 rooms already carry inferred, plausible listed uses (no `unknown`) from the seed; reviewed and retained as reasonable, no re-classification attempted (per scope, avoiding prolonged use-disambiguation).\n\n**Limitations / unexamined scope (honest, unresolved in the delivered candidate):**\n- Interior door heights are still an assumption (0–2.1 m), lacking elevation evidence.\n- Horizontal window/door spans were not independently re-measured in this session (only heights were reviewed).\n- Pixel-to-world calibration is caller-supplied and not independently verified (noted cross-axis residual ~2%, within tolerance for a plan overlay sanity check but not a certified survey).\n- Only 4 of 8 rooms' space-relations were sampled explicitly; this is a spot-check, not full-floor fidelity proof.\n- `1f_view.png` had no prior direct-view record at the start of this run; it has now been fully viewed and overlaid in this session.\n- No drawing-fidelity certification is claimed — checks confirm internal/numerical consistency and located evidence, not ground truth.",
+    "ttft_ms": 5111,
+    "type": "result",
+    "duration_ms": 389072,
+    "uuid": "2b8eb629-ec53-49c4-bb6e-b0d5cd079191",
+    "ttft_stream_ms": 4391,
+    "time_to_request_ms": 86,
+    "first_content_frame_ms": 4391,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

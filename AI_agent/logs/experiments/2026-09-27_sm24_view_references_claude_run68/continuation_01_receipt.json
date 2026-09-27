@@ -1,0 +1,112 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1401,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "role": "main_agent_continuation",
+  "continuation_turn": "continuation_01",
+  "returncode": 0,
+  "elapsed_seconds": 63.07,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 53137,
+    "stop_reason": "end_turn",
+    "session_id": "cd4a8d89-5eeb-48b7-ac5c-9f019aa45f26",
+    "total_cost_usd": 0.204639,
+    "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 29553,
+      "cache_read_input_tokens": 248195,
+      "output_tokens": 3676,
+      "output_tokens_details": {
+        "thinking_tokens": 1286
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 29553,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 728,
+          "cache_read_input_tokens": 44186,
+          "cache_creation_input_tokens": 3608,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3608
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 14,
+        "outputTokens": 3676,
+        "cacheReadInputTokens": 248195,
+        "cacheCreationInputTokens": 29553,
+        "webSearchRequests": 0,
+        "costUSD": 0.204639,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 1286,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 8,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Final delivery: `candidate_01`\n\n**This continuation's actual work (verification, not re-description):**\n\n1. **Confirmed the prior height-claim correction was genuinely persisted** — `claim_status(candidate_01)` shows claim_0001–0003 correctly retracted (mislocated source crops) and claim_0004–0006 confirmed_unchanged, with full bindings applied to all 14 exterior window/door openings across North/South/East/West. `check_openings(heights_only=true)` confirms every facade opening is `image_evidence_linked`; the same 7 interior doors (DE1, DE2, DHall, DR, DW1, DW2, DW3) remain the only unchecked items — correctly, since no supplied elevation shows interior partitions.\n\n2. **Refreshed the stale space-relation review** by running two new `check_source_space_relation` samples directly against `candidate_01` (not the superseded seed): top-right room vs. row-2 room, and central corridor vs. bottom-left dining room. Both returned `separate_spaces` exactly as drawn, with no conflicts — the plan partition remains faithful to `1f_view.png` after the note-only revision.\n\n3. Room-use review: all 8 spaces already carry inferred, plausible listed uses (0 unknown); retained as-is per scope (no prolonged re-disambiguation).\n\n**Unresolved, honestly out of reach with supplied inputs:**\n- Interior door heights (7 doors) stay at the assumed 0–2.1 m; no elevation of any kind shows interior partitions in this drawing set.\n- Horizontal opening spans and a full wall-thickness dimension audit were not re-measured in this bounded follow-up.\n- Pixel-to-world calibration remains caller-supplied, not independently re-derived.\n- Only 6 total space-relation samples (4 prior + 2 this turn) have been spot-checked; this is not full-floor fidelity proof.\n\n`finish_bim(candidate_01)` recorded. No further feasible in-scope action remains: the only outstanding items (interior door heights) have no source evidence in any supplied drawing, and further use/dimension refinement is out of this bounded review's scope.",
+    "ttft_ms": 6868,
+    "type": "result",
+    "duration_ms": 55151,
+    "uuid": "caeba08d-22e6-40a8-9322-8e905eeecf51",
+    "ttft_stream_ms": 1641,
+    "time_to_request_ms": 76,
+    "first_content_frame_ms": 1641,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

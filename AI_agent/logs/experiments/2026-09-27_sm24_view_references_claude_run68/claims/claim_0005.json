@@ -1,0 +1,161 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "WN",
+        "kind": "window"
+      },
+      {
+        "id": "WE3",
+        "kind": "window"
+      },
+      {
+        "id": "WW5",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Original boxes missed the dimension text. Correct chain (1000/2400/1100, bottom-up) is visible: North_view left edge x~130-225, East_view x~1130-1200 (just left of the large window), West_view right edge x~2300-2500. Values unchanged and now confirmed at the correct location.",
+    "sources": [
+      {
+        "view_id": "view_0018"
+      },
+      {
+        "view_id": "view_0023"
+      },
+      {
+        "view_id": "view_0021"
+      }
+    ],
+    "unresolved": [
+      "Horizontal spans not re-measured in this claim"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2400.0,
+          1100.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 3.4,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 3.4
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "152160697dd70e278450f325e5b29f75d43ed481fe358d4da611036e575a2cd0",
+  "replaced_claim_sha256": "5d5c00788443516308ec9eff0ec243332e537c7c57a4be991fb17bc5b98da617",
+  "replaces_claim": "claim_0002",
+  "resolved_values": {
+    "z": [
+      1.0,
+      3.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        700,
+        1200
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ],
+      "view_id": "view_0018",
+      "view_sha256": "771b4a3257cc125327437ce0d57fc1e00edea27e117cfd51c95096f62a085cbf"
+    },
+    {
+      "box": [
+        1050,
+        150,
+        1500,
+        700
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "view_id": "view_0023",
+      "view_sha256": "7a60c3be008af6595598803f0c4728d870c296ad5c7bf275e03ad9708a18099e"
+    },
+    {
+      "box": [
+        2300,
+        0,
+        2580,
+        700
+      ],
+      "image": "West_view.png",
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "size": [
+        2580,
+        993
+      ],
+      "view_id": "view_0021",
+      "view_sha256": "b2145136e096c6ab29b955c6587fc24ffd0453a71b534836067a35f2d43528bc"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

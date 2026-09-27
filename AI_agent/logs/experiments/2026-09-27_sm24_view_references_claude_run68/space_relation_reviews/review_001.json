@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "1ee1e3c02d2167e62b025c15a50478427c5596ef3ea32a8a091868663e1a6c92",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        250.0,
+        0.0
+      ],
+      [
+        610.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        130.0,
+        20.0
+      ],
+      [
+        865.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "top_reception_vs_top_meeting",
+      "expected": "same_space",
+      "evidence": "Top strip (workstation left, sofa/table right) shows no dividing wall between them in the original, only the exterior walls and the row-2 wall below.",
+      "points": [
+        {
+          "pixel": [
+            320.0,
+            200.0
+          ],
+          "world_xy_m": [
+            1.9444444444444455,
+            18.095238095238095
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            520.0,
+            200.0
+          ],
+          "world_xy_m": [
+            7.499999999999999,
+            18.095238095238095
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "topstrip_vs_row2_left_office",
+      "expected": "separate_spaces",
+      "evidence": "Wall visible around y~280 separates the top strip from the second-row left office (desks with chairs).",
+      "points": [
+        {
+          "pixel": [
+            320.0,
+            200.0
+          ],
+          "world_xy_m": [
+            1.9444444444444455,
+            18.095238095238095
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            320.0,
+            330.0
+          ],
+          "world_xy_m": [
+            1.9444444444444455,
+            14.5578231292517
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S02",
+          "interior_space_ids": [
+            "F1_S02"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "corridor_vs_bottomleft_dining",
+      "expected": "separate_spaces",
+      "evidence": "Central corridor separated from the bottom-left large dining room (round-ended table, 10 chairs) by a wall, with a door swing near x~390-420,y~600.",
+      "points": [
+        {
+          "pixel": [
+            420.0,
+            700.0
+          ],
+          "world_xy_m": [
+            4.722222222222222,
+            4.489795918367346
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            320.0,
+            750.0
+          ],
+          "world_xy_m": [
+            1.9444444444444455,
+            3.129251700680271
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S07",
+          "interior_space_ids": [
+            "F1_S07"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "DW3",
+          "space_ids": [
+            "F1_S03",
+            "F1_S07"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "corridor_vs_bottomright_office",
+      "expected": "same_space",
+      "evidence": "Bottom-right small office area (two desks) appears to connect openly toward the corridor/entry area near the south door, per the stepped wall shown around x~450-610,y~685-865.",
+      "points": [
+        {
+          "pixel": [
+            480.0,
+            750.0
+          ],
+          "world_xy_m": [
+            6.388888888888888,
+            3.129251700680271
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S08",
+          "interior_space_ids": [
+            "F1_S08"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            540.0,
+            780.0
+          ],
+          "world_xy_m": [
+            8.055555555555557,
+            2.312925170068027
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S08",
+          "interior_space_ids": [
+            "F1_S08"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "seed",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "1d2b84232b34a946d6a9204424885b31568fb4337c6c224a16c79a7719f96432",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1467
+}

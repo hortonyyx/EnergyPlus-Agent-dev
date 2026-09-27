@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Single floor only; no upper floor or vertical circulation supplied",
+    "Interior door heights 2.1 m assumed (no elevation evidence: DE1,DE2,DHall,DR,DW1,DW2,DW3). Exterior door and window z values are confirmed against correctly-located elevation dimension-chain evidence (claim_0004 small windows, claim_0005 large windows, claim_0006 exterior doors) on North/South/East/West; the original claim_0001-0003 source crops were mislocated and were superseded without any value change.",
+    "Small dimension residuals from wall thickness not resolved",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0d080dab14acda2c62d62d851691eda4650eaabd6e733a3ea707559e9c57af25",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "seed",
+      "parent_proposal_sha256": "152160697dd70e278450f325e5b29f75d43ed481fe358d4da611036e575a2cd0"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "81ac04d573abb5c3c3ef92a3ef419dd282b6287e65cafb7b0fc061bd4bb80e9f",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "152160697dd70e278450f325e5b29f75d43ed481fe358d4da611036e575a2cd0"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "1261ebed8175fbb7b281e82b98b87aea2d7894bdc823134f36b685a996c1ccdc",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Room uses assigned by furniture inference only (no text labels); all 8 rooms now have an inferred listed use, including F1_S04 (storage, based on a low cabinet with no desk/seating).",
+    "Elevation openings matched to plan by dimension chains only",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "agent_assumptions": [
+    "Single floor only; no upper floor or vertical circulation supplied",
+    "Interior door heights 2.1 m assumed (no elevation evidence); exterior door and window z values linked to elevation dimension chains (claims 1-3) for North/South/East/West",
+    "Small dimension residuals from wall thickness not resolved",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "152160697dd70e278450f325e5b29f75d43ed481fe358d4da611036e575a2cd0",
+  "provenance": {
+    "candidate": "seed",
+    "mode": "previous_generated_proposal_recovery",
+    "proposal_sha256": "152160697dd70e278450f325e5b29f75d43ed481fe358d4da611036e575a2cd0",
+    "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-09-27_sm24_claim_regions_claude_run67/candidate_02"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "1ee1e3c02d2167e62b025c15a50478427c5596ef3ea32a8a091868663e1a6c92",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Room uses assigned by furniture inference only (no text labels); all 8 rooms now have an inferred listed use, including F1_S04 (storage, based on a low cabinet with no desk/seating).",
+    "Elevation openings matched to plan by dimension chains only",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

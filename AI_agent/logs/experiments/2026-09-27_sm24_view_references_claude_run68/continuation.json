@@ -1,0 +1,25 @@
+{
+  "max_rounds": 2,
+  "turns": [
+    {
+      "name": "continuation_01",
+      "before_candidate": "candidate_01",
+      "after_candidate": "candidate_01",
+      "decision": {
+        "turn": "continuation_01",
+        "candidate": "candidate_01",
+        "source_model_sha256": "1261ebed8175fbb7b281e82b98b87aea2d7894bdc823134f36b685a996c1ccdc",
+        "decision": "stop",
+        "reason": "Verified (not just re-described) that the prior session's work is actually persisted: claim_status(candidate_01) confirms claim_0001-0003 are retracted with correct located-evidence reasons and claim_0004-0006 are confirmed_unchanged with full bindings for all 14 exterior window/door openings; check_openings(heights_only=true) shows all North/South/East/West facade openings image_evidence_linked, with only the 7 interior doors (DE1,DE2,DHall,DR,DW1,DW2,DW3) genuinely unchecked - these have no elevation evidence anywhere in the supplied drawings (interior partitions are never shown on N/S/E/W exterior elevations), so this is an explained external-evidence gap, not unattempted work; the assumptions note already states this correctly. I additionally re-ran 2 fresh check_source_space_relation samples on candidate_01 itself (top-right room vs row-2 room; corridor vs bottom-left dining room) to refresh the previously stale review - both came back separate_spaces exactly as the original drawing shows, with no conflicts. Room-use review already shows 8/8 rooms with recorded inferred uses and 0 unknown. No further feasible in-scope action remains: horizontal opening spans, full wall-dimension audits and per-room use disambiguation beyond plausible inference are explicitly out of tightened scope for this bounded follow-up, and interior door heights cannot be sourced from any supplied elevation.",
+        "next_action": "",
+        "drawing_fidelity": "not_evaluated",
+        "task_completion": "model_judgment_only"
+      },
+      "persisted_source_or_evidence_changed": true,
+      "response_completed": true
+    }
+  ],
+  "stop_reason": "model_stop",
+  "task_completion": "not_certified",
+  "drawing_fidelity": "not_evaluated"
+}
