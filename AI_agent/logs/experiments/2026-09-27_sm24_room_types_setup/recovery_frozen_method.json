@@ -1,0 +1,24 @@
+{
+  "scope": "Review room functions in the supplied saved building proposal against\nthe supplied original drawings. This is a bounded semantic recovery, not a fresh\ngeometry reconstruction. Preserve every room polygon, level, boundary, window,\ndoor, host and connection. Read room_types and edits, inspect the actual current\nspaces and the original room interiors, then use revise_bim set_space_role to\nrecord each room's appropriate listed use or unknown, with original-image location,\nobserved/inferred/unknown basis and any assumptions. Furniture supports inference,\nnot observed text labels. Do not split a continuous physical space to separate uses.\nDo not force a known use where the evidence is insufficient. Reconcile obsolete\nglobal role notes without dropping unrelated height or geometry limitations.\nDo not rebuild the plan or retype the full proposal to classify rooms. Inspect\nthe final source roles/evidence and deliver the best saved candidate with truthful\nlimits. Work directly with the tools; no review_detail or other delegation.\nNo developer room labels, target counts, correct answer, GT or evaluation is supplied.",
+  "mode": "saved_proposal_room_function_recovery",
+  "image_sha256": {
+    "1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+    "North_view.png": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+    "South_view.png": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+    "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+  },
+  "seed_proposal_sha256": "3feec14d671518905022ee89be0ea2481bba7151ee51186b837f161ca8cd5b09",
+  "provider": "claude",
+  "role": "sonnet",
+  "effort": "medium",
+  "timeout_seconds": 1800,
+  "developer_participation": "Explicit use-review task and new operation; no per-room hints or live intervention.",
+  "withheld": [
+    "GT",
+    "previous evaluation",
+    "developer function interpretations"
+  ],
+  "development_agents": "Astra only",
+  "runtime_delegation": "prohibited"
+}

@@ -1,0 +1,3096 @@
+{
+  "candidate": "candidate_01",
+  "selection_origin": "agent_selected",
+  "viewer": "candidate_01/viewer.html",
+  "source_model": "candidate_01/source_model.json",
+  "viewer_exists": true,
+  "generation_status": {
+    "state": "completed",
+    "agent_response_completed": true,
+    "elapsed_seconds": 145.17,
+    "returncode": 0,
+    "timed_out": false
+  },
+  "schema_version": "bim_delivery_v1",
+  "source_model_sha256": "61cd7f6872be6963f2fa37c2949956b3a3393ce13a9aa1185c4f611ba0927cfd",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "wall_dimension_report": null,
+  "counts": {
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "unbuilt_openings": [],
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior door heights 2.1 m assumed; storey height 4.5 m from elevations; interior wall thickness not observed; room roles unknown",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "generation": {
+    "unresolved": [
+      "No upper floors or stairs in inputs; door swing/state unknown",
+      "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+    ]
+  },
+  "opening_inventory": {
+    "schema_version": "opening_inventory_v1",
+    "source_model_sha256": "61cd7f6872be6963f2fa37c2949956b3a3393ce13a9aa1185c4f611ba0927cfd",
+    "opening_count": 21,
+    "counts": {
+      "door": 10,
+      "passage": 0,
+      "window": 11
+    },
+    "floors": [
+      {
+        "floor_id": "F1",
+        "opening_count": 21,
+        "counts": {
+          "door": 10,
+          "passage": 0,
+          "window": 11
+        },
+        "opening_ids": [
+          "DA",
+          "DB",
+          "DC",
+          "DE1",
+          "DE2",
+          "DN",
+          "DSE",
+          "ED1",
+          "EW1",
+          "EW2",
+          "EW3",
+          "ND1",
+          "NW1",
+          "SD1",
+          "SW1",
+          "SW2",
+          "WW1",
+          "WW2",
+          "WW3",
+          "WW4",
+          "WW5"
+        ],
+        "openings": [
+          {
+            "id": "DA",
+            "kind": "door",
+            "space_ids": [
+              "F1_S02",
+              "F1_S03"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.219178,
+                14.277854
+              ],
+              [
+                4.219178,
+                13.370014
+              ]
+            ],
+            "vertices": [
+              [
+                4.219178,
+                14.277854,
+                0.0
+              ],
+              [
+                4.219178,
+                13.370014,
+                0.0
+              ],
+              [
+                4.219178,
+                13.370014,
+                2.1
+              ],
+              [
+                4.219178,
+                14.277854,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S02/wall/1",
+            "exterior": false
+          },
+          {
+            "id": "DB",
+            "kind": "door",
+            "space_ids": [
+              "F1_S03",
+              "F1_S06"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.219178,
+                12.654746
+              ],
+              [
+                4.219178,
+                11.719395
+              ]
+            ],
+            "vertices": [
+              [
+                4.219178,
+                12.654746,
+                0.0
+              ],
+              [
+                4.219178,
+                11.719395,
+                0.0
+              ],
+              [
+                4.219178,
+                11.719395,
+                2.1
+              ],
+              [
+                4.219178,
+                12.654746,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S03/wall/7",
+            "exterior": false
+          },
+          {
+            "id": "DC",
+            "kind": "door",
+            "space_ids": [
+              "F1_S03",
+              "F1_S07"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.219178,
+                7.702889
+              ],
+              [
+                4.219178,
+                6.795048
+              ]
+            ],
+            "vertices": [
+              [
+                4.219178,
+                7.702889,
+                0.0
+              ],
+              [
+                4.219178,
+                6.795048,
+                0.0
+              ],
+              [
+                4.219178,
+                6.795048,
+                2.1
+              ],
+              [
+                4.219178,
+                7.702889,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S03/wall/7",
+            "exterior": false
+          },
+          {
+            "id": "DE1",
+            "kind": "door",
+            "space_ids": [
+              "F1_S03",
+              "F1_S04"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                5.780822,
+                15.268226
+              ],
+              [
+                5.780822,
+                14.360385
+              ]
+            ],
+            "vertices": [
+              [
+                5.780822,
+                15.268226,
+                0.0
+              ],
+              [
+                5.780822,
+                14.360385,
+                0.0
+              ],
+              [
+                5.780822,
+                14.360385,
+                2.1
+              ],
+              [
+                5.780822,
+                15.268226,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S03/wall/5",
+            "exterior": false
+          },
+          {
+            "id": "DE2",
+            "kind": "door",
+            "space_ids": [
+              "F1_S03",
+              "F1_S05"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                5.780822,
+                13.645117
+              ],
+              [
+                5.780822,
+                12.737276
+              ]
+            ],
+            "vertices": [
+              [
+                5.780822,
+                13.645117,
+                0.0
+              ],
+              [
+                5.780822,
+                12.737276,
+                0.0
+              ],
+              [
+                5.780822,
+                12.737276,
+                2.1
+              ],
+              [
+                5.780822,
+                13.645117,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S03/wall/5",
+            "exterior": false
+          },
+          {
+            "id": "DN",
+            "kind": "door",
+            "space_ids": [
+              "F1_S01",
+              "F1_S03"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.383562,
+                15.983494
+              ],
+              [
+                5.589041,
+                15.983494
+              ]
+            ],
+            "vertices": [
+              [
+                4.383562,
+                15.983494,
+                0.0
+              ],
+              [
+                5.589041,
+                15.983494,
+                0.0
+              ],
+              [
+                5.589041,
+                15.983494,
+                2.1
+              ],
+              [
+                4.383562,
+                15.983494,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S01/wall/0",
+            "exterior": false
+          },
+          {
+            "id": "DSE",
+            "kind": "door",
+            "space_ids": [
+              "F1_S03",
+              "F1_S08"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                8.547945,
+                4.951857
+              ],
+              [
+                9.424658,
+                4.951857
+              ]
+            ],
+            "vertices": [
+              [
+                8.547945,
+                4.951857,
+                0.0
+              ],
+              [
+                9.424658,
+                4.951857,
+                0.0
+              ],
+              [
+                9.424658,
+                4.951857,
+                2.1
+              ],
+              [
+                8.547945,
+                4.951857,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/F1_S03/wall/2",
+            "exterior": false
+          },
+          {
+            "id": "ED1",
+            "kind": "door",
+            "space_ids": [
+              "F1_S03"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                7.298487
+              ],
+              [
+                10.0,
+                5.700138
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                7.298487,
+                0.2
+              ],
+              [
+                10.0,
+                5.700138,
+                0.2
+              ],
+              [
+                10.0,
+                5.700138,
+                2.6
+              ],
+              [
+                10.0,
+                7.298487,
+                2.6
+              ]
+            ],
+            "host_boundary_id": "space/F1_S03/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "EW1",
+            "kind": "window",
+            "space_ids": [
+              "F1_S01"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                17.958735
+              ],
+              [
+                10.0,
+                19.460798
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                17.958735,
+                1.0
+              ],
+              [
+                10.0,
+                19.460798,
+                1.0
+              ],
+              [
+                10.0,
+                19.460798,
+                2.8
+              ],
+              [
+                10.0,
+                17.958735,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/F1_S01/wall/1",
+            "exterior": true
+          },
+          {
+            "id": "EW2",
+            "kind": "window",
+            "space_ids": [
+              "F1_S04"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                14.379642
+              ],
+              [
+                10.0,
+                15.579092
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                14.379642,
+                1.0
+              ],
+              [
+                10.0,
+                15.579092,
+                1.0
+              ],
+              [
+                10.0,
+                15.579092,
+                2.8
+              ],
+              [
+                10.0,
+                14.379642,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/F1_S04/wall/1",
+            "exterior": true
+          },
+          {
+            "id": "EW3",
+            "kind": "window",
+            "space_ids": [
+              "F1_S05"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                8.839065
+              ],
+              [
+                10.0,
+                13.639615
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                8.839065,
+                1.0
+              ],
+              [
+                10.0,
+                13.639615,
+                1.0
+              ],
+              [
+                10.0,
+                13.639615,
+                3.4
+              ],
+              [
+                10.0,
+                8.839065,
+                3.4
+              ]
+            ],
+            "host_boundary_id": "space/F1_S05/wall/1",
+            "exterior": true
+          },
+          {
+            "id": "ND1",
+            "kind": "door",
+            "space_ids": [
+              "F1_S01"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.539726,
+                20.0
+              ],
+              [
+                2.139726,
+                20.0
+              ]
+            ],
+            "vertices": [
+              [
+                0.539726,
+                20.0,
+                0.2
+              ],
+              [
+                2.139726,
+                20.0,
+                0.2
+              ],
+              [
+                2.139726,
+                20.0,
+                2.6
+              ],
+              [
+                0.539726,
+                20.0,
+                2.6
+              ]
+            ],
+            "host_boundary_id": "space/F1_S01/wall/2",
+            "exterior": true
+          },
+          {
+            "id": "NW1",
+            "kind": "window",
+            "space_ids": [
+              "F1_S01"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.660274,
+                20.0
+              ],
+              [
+                9.460274,
+                20.0
+              ]
+            ],
+            "vertices": [
+              [
+                4.660274,
+                20.0,
+                3.4
+              ],
+              [
+                9.460274,
+                20.0,
+                3.4
+              ],
+              [
+                9.460274,
+                20.0,
+                1.0
+              ],
+              [
+                4.660274,
+                20.0,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/F1_S01/wall/2",
+            "exterior": true
+          },
+          {
+            "id": "SD1",
+            "kind": "door",
+            "space_ids": [
+              "F1_S08"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.539726,
+                0.0
+              ],
+              [
+                5.441096,
+                0.0
+              ]
+            ],
+            "vertices": [
+              [
+                4.539726,
+                0.0,
+                0.2
+              ],
+              [
+                5.441096,
+                0.0,
+                0.2
+              ],
+              [
+                5.441096,
+                0.0,
+                2.6
+              ],
+              [
+                4.539726,
+                0.0,
+                2.6
+              ]
+            ],
+            "host_boundary_id": "space/F1_S08/wall/0",
+            "exterior": true
+          },
+          {
+            "id": "SW1",
+            "kind": "window",
+            "space_ids": [
+              "F1_S07"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.539726,
+                0.0
+              ],
+              [
+                2.041096,
+                0.0
+              ]
+            ],
+            "vertices": [
+              [
+                0.539726,
+                0.0,
+                1.0
+              ],
+              [
+                2.041096,
+                0.0,
+                1.0
+              ],
+              [
+                2.041096,
+                0.0,
+                2.8
+              ],
+              [
+                0.539726,
+                0.0,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/F1_S07/wall/0",
+            "exterior": true
+          },
+          {
+            "id": "SW2",
+            "kind": "window",
+            "space_ids": [
+              "F1_S08"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                7.958904,
+                0.0
+              ],
+              [
+                9.460274,
+                0.0
+              ]
+            ],
+            "vertices": [
+              [
+                7.958904,
+                0.0,
+                1.0
+              ],
+              [
+                9.460274,
+                0.0,
+                1.0
+              ],
+              [
+                9.460274,
+                0.0,
+                2.8
+              ],
+              [
+                7.958904,
+                0.0,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/F1_S08/wall/0",
+            "exterior": true
+          },
+          {
+            "id": "WW1",
+            "kind": "window",
+            "space_ids": [
+              "F1_S01"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                17.958735
+              ],
+              [
+                0.0,
+                19.460798
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                17.958735,
+                2.8
+              ],
+              [
+                0.0,
+                19.460798,
+                2.8
+              ],
+              [
+                0.0,
+                19.460798,
+                1.0
+              ],
+              [
+                0.0,
+                17.958735,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/F1_S01/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "WW2",
+            "kind": "window",
+            "space_ids": [
+              "F1_S02"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                14.379642
+              ],
+              [
+                0.0,
+                15.579092
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                14.379642,
+                2.8
+              ],
+              [
+                0.0,
+                15.579092,
+                2.8
+              ],
+              [
+                0.0,
+                15.579092,
+                1.0
+              ],
+              [
+                0.0,
+                14.379642,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/F1_S02/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "WW3",
+            "kind": "window",
+            "space_ids": [
+              "F1_S06"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                11.141678
+              ],
+              [
+                0.0,
+                12.64099
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                11.141678,
+                2.8
+              ],
+              [
+                0.0,
+                12.64099,
+                2.8
+              ],
+              [
+                0.0,
+                12.64099,
+                1.0
+              ],
+              [
+                0.0,
+                11.141678,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/F1_S06/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "WW4",
+            "kind": "window",
+            "space_ids": [
+              "F1_S06"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                8.418157
+              ],
+              [
+                0.0,
+                9.92022
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                8.418157,
+                2.8
+              ],
+              [
+                0.0,
+                9.92022,
+                2.8
+              ],
+              [
+                0.0,
+                9.92022,
+                1.0
+              ],
+              [
+                0.0,
+                8.418157,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/F1_S06/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "WW5",
+            "kind": "window",
+            "space_ids": [
+              "F1_S07"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                0.541953
+              ],
+              [
+                0.0,
+                5.339752
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                0.541953,
+                3.4
+              ],
+              [
+                0.0,
+                5.339752,
+                3.4
+              ],
+              [
+                0.0,
+                5.339752,
+                1.0
+              ],
+              [
+                0.0,
+                0.541953,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/F1_S07/wall/3",
+            "exterior": true
+          }
+        ]
+      }
+    ],
+    "spaces": [
+      {
+        "space_id": "F1_S01",
+        "floor_id": "F1",
+        "opening_count": 5,
+        "counts": {
+          "door": 2,
+          "passage": 0,
+          "window": 3
+        },
+        "opening_ids": [
+          "DN",
+          "EW1",
+          "ND1",
+          "NW1",
+          "WW1"
+        ]
+      },
+      {
+        "space_id": "F1_S02",
+        "floor_id": "F1",
+        "opening_count": 2,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "DA",
+          "WW2"
+        ]
+      },
+      {
+        "space_id": "F1_S03",
+        "floor_id": "F1",
+        "opening_count": 8,
+        "counts": {
+          "door": 8,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": [
+          "DA",
+          "DB",
+          "DC",
+          "DE1",
+          "DE2",
+          "DN",
+          "DSE",
+          "ED1"
+        ]
+      },
+      {
+        "space_id": "F1_S04",
+        "floor_id": "F1",
+        "opening_count": 2,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "DE1",
+          "EW2"
+        ]
+      },
+      {
+        "space_id": "F1_S05",
+        "floor_id": "F1",
+        "opening_count": 2,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "DE2",
+          "EW3"
+        ]
+      },
+      {
+        "space_id": "F1_S06",
+        "floor_id": "F1",
+        "opening_count": 3,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 2
+        },
+        "opening_ids": [
+          "DB",
+          "WW3",
+          "WW4"
+        ]
+      },
+      {
+        "space_id": "F1_S07",
+        "floor_id": "F1",
+        "opening_count": 3,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 2
+        },
+        "opening_ids": [
+          "DC",
+          "SW1",
+          "WW5"
+        ]
+      },
+      {
+        "space_id": "F1_S08",
+        "floor_id": "F1",
+        "opening_count": 3,
+        "counts": {
+          "door": 2,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "DSE",
+          "SD1",
+          "SW2"
+        ]
+      }
+    ],
+    "scope": {
+      "actual_openings": "only explicit built source openings are inventoried",
+      "unbuilt_opening_ids": [],
+      "unbuilt_opening_count": 0,
+      "unsupported_observation_count": 0
+    }
+  },
+  "facade_inventory": {
+    "schema_version": "opening_facade_inventory_v1",
+    "source_model_sha256": "61cd7f6872be6963f2fa37c2949956b3a3393ce13a9aa1185c4f611ba0927cfd",
+    "floors": [
+      {
+        "floor_id": "F1",
+        "facades": [
+          {
+            "facade": "North",
+            "exterior_boundary_ids": [
+              "space/F1_S01/wall/2"
+            ],
+            "opening_ids": [
+              "ND1",
+              "NW1"
+            ]
+          },
+          {
+            "facade": "South",
+            "exterior_boundary_ids": [
+              "space/F1_S07/wall/0",
+              "space/F1_S08/wall/0"
+            ],
+            "opening_ids": [
+              "SD1",
+              "SW1",
+              "SW2"
+            ]
+          },
+          {
+            "facade": "East",
+            "exterior_boundary_ids": [
+              "space/F1_S01/wall/1",
+              "space/F1_S03/wall/3",
+              "space/F1_S04/wall/1",
+              "space/F1_S05/wall/1",
+              "space/F1_S08/wall/1"
+            ],
+            "opening_ids": [
+              "ED1",
+              "EW1",
+              "EW2",
+              "EW3"
+            ]
+          },
+          {
+            "facade": "West",
+            "exterior_boundary_ids": [
+              "space/F1_S01/wall/3",
+              "space/F1_S02/wall/3",
+              "space/F1_S06/wall/3",
+              "space/F1_S07/wall/3"
+            ],
+            "opening_ids": [
+              "WW1",
+              "WW2",
+              "WW3",
+              "WW4",
+              "WW5"
+            ]
+          }
+        ],
+        "non_facade_openings": [
+          {
+            "opening_id": "DA",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DB",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DC",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DE1",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DE2",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DN",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DSE",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          }
+        ],
+        "unsupported_exterior_boundaries": []
+      }
+    ],
+    "opening_classifications": {
+      "DA": {
+        "opening_id": "DA",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "DB": {
+        "opening_id": "DB",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "DC": {
+        "opening_id": "DC",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "DE1": {
+        "opening_id": "DE1",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "DE2": {
+        "opening_id": "DE2",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "DN": {
+        "opening_id": "DN",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "DSE": {
+        "opening_id": "DSE",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": null,
+        "reason": "not_exterior"
+      },
+      "ED1": {
+        "opening_id": "ED1",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": "East"
+      },
+      "EW1": {
+        "opening_id": "EW1",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "East"
+      },
+      "EW2": {
+        "opening_id": "EW2",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "East"
+      },
+      "EW3": {
+        "opening_id": "EW3",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "East"
+      },
+      "ND1": {
+        "opening_id": "ND1",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": "North"
+      },
+      "NW1": {
+        "opening_id": "NW1",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "North"
+      },
+      "SD1": {
+        "opening_id": "SD1",
+        "kind": "door",
+        "floor_id": "F1",
+        "facade": "South"
+      },
+      "SW1": {
+        "opening_id": "SW1",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "South"
+      },
+      "SW2": {
+        "opening_id": "SW2",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "South"
+      },
+      "WW1": {
+        "opening_id": "WW1",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "West"
+      },
+      "WW2": {
+        "opening_id": "WW2",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "West"
+      },
+      "WW3": {
+        "opening_id": "WW3",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "West"
+      },
+      "WW4": {
+        "opening_id": "WW4",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "West"
+      },
+      "WW5": {
+        "opening_id": "WW5",
+        "kind": "window",
+        "floor_id": "F1",
+        "facade": "West"
+      }
+    }
+  },
+  "opening_review_scopes": [
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "built_count": 10,
+      "built_opening_ids": [
+        "DA",
+        "DB",
+        "DC",
+        "DE1",
+        "DE2",
+        "DN",
+        "DSE",
+        "ED1",
+        "ND1",
+        "SD1"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": [],
+      "facade_coverage": {
+        "required_facades": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
+        "facade_scope_refs": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "non_facade_openings": [
+          {
+            "opening_id": "DA",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DB",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DC",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DE1",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DE2",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DN",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          },
+          {
+            "opening_id": "DSE",
+            "kind": "door",
+            "floor_id": "F1",
+            "facade": null,
+            "reason": "not_exterior"
+          }
+        ],
+        "unsupported_exterior_boundaries": [],
+        "unavailable_facade_review_refs": []
+      }
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": [],
+      "facade_coverage": {
+        "required_facades": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
+        "facade_scope_refs": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "non_facade_openings": [],
+        "unsupported_exterior_boundaries": [],
+        "unavailable_facade_review_refs": []
+      }
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "built_count": 11,
+      "built_opening_ids": [
+        "EW1",
+        "EW2",
+        "EW3",
+        "NW1",
+        "SW1",
+        "SW2",
+        "WW1",
+        "WW2",
+        "WW3",
+        "WW4",
+        "WW5"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": [],
+      "facade_coverage": {
+        "required_facades": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
+        "facade_scope_refs": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "non_facade_openings": [],
+        "unsupported_exterior_boundaries": [],
+        "unavailable_facade_review_refs": []
+      }
+    }
+  ],
+  "facade_review_scopes": [
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "North",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/2"
+      ],
+      "built_count": 1,
+      "built_opening_ids": [
+        "ND1"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "South",
+      "exterior_boundary_ids": [
+        "space/F1_S07/wall/0",
+        "space/F1_S08/wall/0"
+      ],
+      "built_count": 1,
+      "built_opening_ids": [
+        "SD1"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "East",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/1",
+        "space/F1_S03/wall/3",
+        "space/F1_S04/wall/1",
+        "space/F1_S05/wall/1",
+        "space/F1_S08/wall/1"
+      ],
+      "built_count": 1,
+      "built_opening_ids": [
+        "ED1"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "door",
+      "facade": "West",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/3",
+        "space/F1_S02/wall/3",
+        "space/F1_S06/wall/3",
+        "space/F1_S07/wall/3"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "North",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/2"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "South",
+      "exterior_boundary_ids": [
+        "space/F1_S07/wall/0",
+        "space/F1_S08/wall/0"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "East",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/1",
+        "space/F1_S03/wall/3",
+        "space/F1_S04/wall/1",
+        "space/F1_S05/wall/1",
+        "space/F1_S08/wall/1"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "passage",
+      "facade": "West",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/3",
+        "space/F1_S02/wall/3",
+        "space/F1_S06/wall/3",
+        "space/F1_S07/wall/3"
+      ],
+      "built_count": 0,
+      "built_opening_ids": [],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "North",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/2"
+      ],
+      "built_count": 1,
+      "built_opening_ids": [
+        "NW1"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "South",
+      "exterior_boundary_ids": [
+        "space/F1_S07/wall/0",
+        "space/F1_S08/wall/0"
+      ],
+      "built_count": 2,
+      "built_opening_ids": [
+        "SW1",
+        "SW2"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "East",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/1",
+        "space/F1_S03/wall/3",
+        "space/F1_S04/wall/1",
+        "space/F1_S05/wall/1",
+        "space/F1_S08/wall/1"
+      ],
+      "built_count": 3,
+      "built_opening_ids": [
+        "EW1",
+        "EW2",
+        "EW3"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    },
+    {
+      "floor_id": "F1",
+      "kind": "window",
+      "facade": "West",
+      "exterior_boundary_ids": [
+        "space/F1_S01/wall/3",
+        "space/F1_S02/wall/3",
+        "space/F1_S06/wall/3",
+        "space/F1_S07/wall/3"
+      ],
+      "built_count": 5,
+      "built_opening_ids": [
+        "WW1",
+        "WW2",
+        "WW3",
+        "WW4",
+        "WW5"
+      ],
+      "review_status": "not_reviewed",
+      "current_review_refs": [],
+      "effective_complete_review_refs": [],
+      "partial_review_refs": [],
+      "superseded_review_refs": [],
+      "finding_codes": []
+    }
+  ],
+  "current_reviews": [],
+  "stale_reviews": [],
+  "drawing_fidelity": "not_evaluated",
+  "source_image_feedback": {
+    "current_source_projections": [
+      {
+        "image": "1f_view.png",
+        "floor_id": "F1",
+        "overlay_image": "image_overlays/overlay_001.png",
+        "source_model_sha256": "61cd7f6872be6963f2fa37c2949956b3a3393ce13a9aa1185c4f611ba0927cfd",
+        "trigger_action": "build_plan_bim",
+        "automatic_projection": true,
+        "reused_calibration": {
+          "calibration_id": "calibration_001",
+          "calibration_file": "overlay_calibrations/calibration_001.json",
+          "registered_by_candidate": "candidate_01",
+          "registered_source_model_sha256": "61cd7f6872be6963f2fa37c2949956b3a3393ce13a9aa1185c4f611ba0927cfd",
+          "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+          "x_anchors": [
+            [
+              248,
+              0
+            ],
+            [
+              613,
+              10
+            ]
+          ],
+          "y_anchors": [
+            [
+              878,
+              0
+            ],
+            [
+              151,
+              20
+            ]
+          ],
+          "basis": "Outer-face 10000 x 20000 mm dimension chain on the plan; perimeter traced on outer faces, partitions on drawn wall centre lines; origin SW outer corner, x east, y north"
+        },
+        "anchors": {
+          "x": [
+            [
+              248.0,
+              0.0
+            ],
+            [
+              613.0,
+              10.0
+            ]
+          ],
+          "y": [
+            [
+              878.0,
+              0.0
+            ],
+            [
+              151.0,
+              20.0
+            ]
+          ]
+        },
+        "basis": "Outer-face 10000 x 20000 mm dimension chain on the plan; perimeter traced on outer faces, partitions on drawn wall centre lines; origin SW outer corner, x east, y north",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "calibration_warnings": [
+          {
+            "type": "cross_axis_disagreement",
+            "x_px_per_m": 36.5,
+            "y_px_per_m": 36.35,
+            "relative_deviation": 0.004118050789293029,
+            "relative_deviation_limit": 0.003,
+            "guidance": "x=36.5 px/m and y=36.35 px/m disagree by 0.411805%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+          }
+        ],
+        "wall_evidence_projection": {
+          "scope": {
+            "image_name": "1f_view.png",
+            "floor_id": "F1",
+            "endpoint_selection": "exact original image name and linked wall floor",
+            "view_status": "not_visually_verified"
+          },
+          "walls": [],
+          "endpoints": [],
+          "limits": [
+            "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+            "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+            "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+            "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+          ]
+        }
+      }
+    ],
+    "old_source_projections": [],
+    "registered_calibration_uncovered_floors": [],
+    "floors_without_registered_views": [],
+    "projection_errors": [],
+    "calibration_independently_verified": false,
+    "drawing_fidelity": "not_evaluated"
+  },
+  "space_relation_review": {
+    "status": "observations_require_follow_up",
+    "sample_count": 5,
+    "conflict_count": 1,
+    "unassessed_count": 0,
+    "stale_review_count": 0,
+    "conflicts": [
+      {
+        "id": "o4",
+        "expected": "separate_spaces",
+        "actual_relation": "same_space",
+        "review_file": "space_relation_reviews/review_001.json"
+      }
+    ],
+    "coverage": "caller_selected_point_pairs_only",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 1,
+        "crop_view_count": 2,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      }
+    ],
+    "no_direct_view_images": [],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound view_image returns are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "current_claim_state": {
+    "candidate": "candidate_01",
+    "claims": [
+      {
+        "id": "claim_0001",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "Elevation dimension chains read directly"
+        },
+        "objects": [
+          {
+            "id": "SW1",
+            "kind": "window"
+          },
+          {
+            "id": "SW2",
+            "kind": "window"
+          },
+          {
+            "id": "EW1",
+            "kind": "window"
+          },
+          {
+            "id": "EW2",
+            "kind": "window"
+          },
+          {
+            "id": "WW1",
+            "kind": "window"
+          },
+          {
+            "id": "WW2",
+            "kind": "window"
+          },
+          {
+            "id": "WW3",
+            "kind": "window"
+          },
+          {
+            "id": "WW4",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "South/East/West elevations dimension the small windows 1000 sill, 1800 high, 1700 to top of 4500 wall; origin z=0 ground floor level, chain read upward",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "SW1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "SW1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "SW2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "SW2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "EW1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "EW1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "EW2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "EW2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "WW1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "WW1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "WW2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "WW2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "WW3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "WW3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "WW4"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "WW4"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0002",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0002",
+          "disposition": "adopted",
+          "id": "decision_0002",
+          "reason": "Elevation dimension chains read directly"
+        },
+        "objects": [
+          {
+            "id": "NW1",
+            "kind": "window"
+          },
+          {
+            "id": "EW3",
+            "kind": "window"
+          },
+          {
+            "id": "WW5",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "reason": "North/East/West elevations dimension the 4800 wide windows: 1000 sill, 2400 high, 1100 to top; origin z=0 ground level, read upward",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "NW1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "NW1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "EW3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "EW3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "WW5"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "WW5"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0003",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0003",
+          "disposition": "adopted",
+          "id": "decision_0003",
+          "reason": "Elevation dimension chains read directly"
+        },
+        "objects": [
+          {
+            "id": "ND1",
+            "kind": "opening"
+          },
+          {
+            "id": "SD1",
+            "kind": "opening"
+          },
+          {
+            "id": "ED1",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "reason": "North/South/East elevations dimension exterior doors (with transom): 200 above ground, 2400 high, 1900 to top of 4500; origin z=0, read upward",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "ND1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "ND1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "SD1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "SD1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "ED1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "ED1"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      }
+    ],
+    "other_branch_claim_ids": [],
+    "inherited_observations": [],
+    "superseded_notes": [],
+    "drawing_fidelity": "not_evaluated",
+    "note": "Current numerical/context consistency only; neither retained nor confirmed means drawing truth."
+  },
+  "height_coverage": {
+    "schema_version": "opening_height_coverage_v1",
+    "candidate": "candidate_01",
+    "source_model_sha256": "61cd7f6872be6963f2fa37c2949956b3a3393ce13a9aa1185c4f611ba0927cfd",
+    "summary": {
+      "total_count": 21,
+      "image_linked_count": 14,
+      "non_image_linked_count": 0,
+      "unchecked_height_opening_ids": [
+        "DA",
+        "DB",
+        "DC",
+        "DE1",
+        "DE2",
+        "DN",
+        "DSE"
+      ]
+    },
+    "openings": [
+      {
+        "opening_id": "DA",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "DB",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "DC",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "DE1",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "DE2",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "DN",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "DSE",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": null,
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "coverage_state": "unchecked",
+        "image_height_evidence_linked": false,
+        "retained_image_evidence": [],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "ED1",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "East",
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0003",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "North_view.png",
+              "South_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "EW1",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "East",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "EW2",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "East",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "EW3",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "East",
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0002",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "North_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "ND1",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "North",
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0003",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "North_view.png",
+              "South_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "NW1",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "North",
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0002",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "North_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "SD1",
+        "kind": "door",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "South",
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0003",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "North_view.png",
+              "South_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "SW1",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "South",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "SW2",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "South",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "WW1",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "West",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "WW2",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "West",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "WW3",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "West",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "WW4",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "West",
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0001",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "South_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      },
+      {
+        "opening_id": "WW5",
+        "kind": "window",
+        "floor_ids": [
+          "F1"
+        ],
+        "facade": "West",
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "coverage_state": "image_evidence_linked",
+        "image_height_evidence_linked": true,
+        "retained_image_evidence": [
+          {
+            "claim_id": "claim_0002",
+            "binding_record": "confirmation_0001",
+            "binding_kind": "confirmation",
+            "value": "z",
+            "parameter": "z",
+            "basis": "annotation_and_pixels",
+            "evidence_class": "image",
+            "source_images": [
+              "East_view.png",
+              "North_view.png",
+              "West_view.png"
+            ]
+          }
+        ],
+        "retained_non_image_evidence": [],
+        "retained_unlocated_image_evidence": []
+      }
+    ],
+    "floors": [
+      {
+        "floor_id": "F1",
+        "facades": [
+          {
+            "facade": "North",
+            "exterior_boundary_ids": [
+              "space/F1_S01/wall/2"
+            ],
+            "actual_opening_ids": [
+              "ND1",
+              "NW1"
+            ],
+            "image_evidence_linked_opening_ids": [
+              "ND1",
+              "NW1"
+            ],
+            "non_image_evidence_only_opening_ids": [],
+            "unchecked_height_opening_ids": [],
+            "height_coverage": "all_image_evidence_linked",
+            "drawing_fidelity": "not_evaluated"
+          },
+          {
+            "facade": "South",
+            "exterior_boundary_ids": [
+              "space/F1_S07/wall/0",
+              "space/F1_S08/wall/0"
+            ],
+            "actual_opening_ids": [
+              "SD1",
+              "SW1",
+              "SW2"
+            ],
+            "image_evidence_linked_opening_ids": [
+              "SD1",
+              "SW1",
+              "SW2"
+            ],
+            "non_image_evidence_only_opening_ids": [],
+            "unchecked_height_opening_ids": [],
+            "height_coverage": "all_image_evidence_linked",
+            "drawing_fidelity": "not_evaluated"
+          },
+          {
+            "facade": "East",
+            "exterior_boundary_ids": [
+              "space/F1_S01/wall/1",
+              "space/F1_S03/wall/3",
+              "space/F1_S04/wall/1",
+              "space/F1_S05/wall/1",
+              "space/F1_S08/wall/1"
+            ],
+            "actual_opening_ids": [
+              "ED1",
+              "EW1",
+              "EW2",
+              "EW3"
+            ],
+            "image_evidence_linked_opening_ids": [
+              "ED1",
+              "EW1",
+              "EW2",
+              "EW3"
+            ],
+            "non_image_evidence_only_opening_ids": [],
+            "unchecked_height_opening_ids": [],
+            "height_coverage": "all_image_evidence_linked",
+            "drawing_fidelity": "not_evaluated"
+          },
+          {
+            "facade": "West",
+            "exterior_boundary_ids": [
+              "space/F1_S01/wall/3",
+              "space/F1_S02/wall/3",
+              "space/F1_S06/wall/3",
+              "space/F1_S07/wall/3"
+            ],
+            "actual_opening_ids": [
+              "WW1",
+              "WW2",
+              "WW3",
+              "WW4",
+              "WW5"
+            ],
+            "image_evidence_linked_opening_ids": [
+              "WW1",
+              "WW2",
+              "WW3",
+              "WW4",
+              "WW5"
+            ],
+            "non_image_evidence_only_opening_ids": [],
+            "unchecked_height_opening_ids": [],
+            "height_coverage": "all_image_evidence_linked",
+            "drawing_fidelity": "not_evaluated"
+          }
+        ],
+        "non_facade": {
+          "actual_opening_ids": [
+            "DA",
+            "DB",
+            "DC",
+            "DE1",
+            "DE2",
+            "DN",
+            "DSE"
+          ],
+          "image_evidence_linked_opening_ids": [],
+          "non_image_evidence_only_opening_ids": [],
+          "unchecked_height_opening_ids": [
+            "DA",
+            "DB",
+            "DC",
+            "DE1",
+            "DE2",
+            "DN",
+            "DSE"
+          ],
+          "height_coverage": "no_image_evidence_linked",
+          "drawing_fidelity": "not_evaluated"
+        },
+        "all_openings": {
+          "actual_opening_ids": [
+            "DA",
+            "DB",
+            "DC",
+            "DE1",
+            "DE2",
+            "DN",
+            "DSE",
+            "ED1",
+            "EW1",
+            "EW2",
+            "EW3",
+            "ND1",
+            "NW1",
+            "SD1",
+            "SW1",
+            "SW2",
+            "WW1",
+            "WW2",
+            "WW3",
+            "WW4",
+            "WW5"
+          ],
+          "image_evidence_linked_opening_ids": [
+            "ED1",
+            "EW1",
+            "EW2",
+            "EW3",
+            "ND1",
+            "NW1",
+            "SD1",
+            "SW1",
+            "SW2",
+            "WW1",
+            "WW2",
+            "WW3",
+            "WW4",
+            "WW5"
+          ],
+          "non_image_evidence_only_opening_ids": [],
+          "unchecked_height_opening_ids": [
+            "DA",
+            "DB",
+            "DC",
+            "DE1",
+            "DE2",
+            "DN",
+            "DSE"
+          ],
+          "height_coverage": "partial_image_evidence_linked",
+          "drawing_fidelity": "not_evaluated"
+        },
+        "unsupported_exterior_boundaries": []
+      }
+    ],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Coverage means a current adopted z binding, not proof that the drawing or BIM is correct. Inference and declared values do not count as located-image height evidence."
+  },
+  "claim_applications": [],
+  "adopted_unapplied_claims": []
+}

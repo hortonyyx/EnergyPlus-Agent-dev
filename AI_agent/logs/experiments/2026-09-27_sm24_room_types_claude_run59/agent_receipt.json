@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 145.17,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 135207,
+    "stop_reason": "end_turn",
+    "session_id": "983dc03b-8786-422d-b34d-b23e516d751f",
+    "total_cost_usd": 0.7034832,
+    "usage": {
+      "input_tokens": 24,
+      "cache_creation_input_tokens": 108600,
+      "cache_read_input_tokens": 689476,
+      "output_tokens": 13114,
+      "output_tokens_details": {
+        "thinking_tokens": 5969
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 108600,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 786,
+          "cache_read_input_tokens": 105610,
+          "cache_creation_input_tokens": 2990,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 2990
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 24,
+        "outputTokens": 13114,
+        "cacheReadInputTokens": 689476,
+        "cacheCreationInputTokens": 108600,
+        "webSearchRequests": 0,
+        "costUSD": 0.7034832,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 5969,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 22,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I saved and finished `candidate_01`, a single-floor BIM (F1, 10 m × 20 m, 4.5 m storey height). Drawing fidelity is not evaluated. The geometry checks are self-consistency only.\n\n**What the model contains**\n- **Floors:** The inputs held only one plan (`1f_view.png`) plus four elevations, so there is one floor and no assembly step. No stairs or upper floors appear in the inputs, and I invented none.\n- **Scale:** The plan is scaled from the 10000 × 20000 outer-face dimension chains, with the origin at the south-west corner. The tool flagged a 0.41% disagreement between the x and y pixel scales, which I did not re-measure.\n- **Spaces:** There are 8 spaces:\n  - a north room;\n  - two west offices;\n  - a west conference room;\n  - a small north-east room and a larger east room;\n  - a south-east room that includes a strip west of the bend;\n  - one L-shaped corridor and lobby, kept as a single space.\n- **Openings:** There are 21 openings: 11 windows and 10 doors. The doors are 3 exterior doors on the north, south and east walls and 7 interior doors. Positions follow the elevation dimension chains for the exterior openings and the plan pixels for the interior doors.\n- **Heights:** The 14 exterior openings carry adopted heights from the elevation dimension chains, confirmed unchanged on the candidate.\n  - Small windows run from 1.0 to 2.8 m.\n  - The 4800 mm windows run from 1.0 to 3.4 m.\n  - Exterior doors run from 0.2 to 2.6 m, including the transom.\n\n**Assumptions and gaps**\n- The 7 interior door heights (2.1 m) are assumed, not observed.\n- Room roles are unknown (all left as \"unknown\").\n- Interior wall thickness and door swing or state were not observed.\n- Interior partitions follow the drawn wall centre lines; the perimeter follows the outer faces.\n- Five space-relation samples were checked. One reported a conflict: it was my own mislabelled sample, whose two points both sit in the south-east room, and I did not re-run it. The other four matched.\n- The saved notes still say the storey height comes from the elevations and that interior door heights are assumed, which is still true. Nothing in them is obsolete.",
+    "ttft_ms": 3254,
+    "type": "result",
+    "duration_ms": 138434,
+    "uuid": "ae90ae9e-7f2c-42ed-a6a5-c94f728528f2",
+    "ttft_stream_ms": 3048,
+    "time_to_request_ms": 72,
+    "first_content_frame_ms": 3048,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "Single floor only; no upper floor or vertical circulation supplied",
+    "Interior door heights 2.1 m assumed; exterior doors 0.2-2.6 and windows heights from elevations",
+    "Small dimension residuals from wall thickness not resolved",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "95538df3129cf03cbf59004e1752aad1869bc3537d7ec1c8579c7251af02f8c8",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "2e6d235b7fdec211a1ee81641b5346306aa3f2b2ce247ca563ac4165b075f01c",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "c263522866a103cc517a61154e812e8399f3be1726ac2aa1ec8fd394bd0218cb",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "09e20d35a21aefe481a2c431b06dc8267ef2916a9d6081e2f72140623089e9f7",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "83a1a81b39132d226df9fbb63c58f0c8a0eef36297a5378ba51f30c99d923c67",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "435f7af44bae25176507dcfe0fa70597cc5e833da36ddf15a9d2e583cfab0cc7"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "23835f1f1a4c57b9762a9a1b5a636347367c84a5667208ac89cd8447b30deaa2",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Room uses not assigned",
+    "Elevation openings matched to plan by dimension chains only",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

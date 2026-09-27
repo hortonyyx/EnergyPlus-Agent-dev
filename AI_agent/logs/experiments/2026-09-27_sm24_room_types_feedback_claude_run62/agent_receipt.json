@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 121.13,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 109918,
+    "stop_reason": "end_turn",
+    "session_id": "1b2bfbe0-40b9-46aa-9a09-2171726f0bc9",
+    "total_cost_usd": 0.4023304,
+    "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 63322,
+      "cache_read_input_tokens": 262972,
+      "output_tokens": 9642,
+      "output_tokens_details": {
+        "thinking_tokens": 6030
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 63322,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 791,
+          "cache_read_input_tokens": 71043,
+          "cache_creation_input_tokens": 3479,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3479
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 14,
+        "outputTokens": 9642,
+        "cacheReadInputTokens": 262972,
+        "cacheCreationInputTokens": 63322,
+        "webSearchRequests": 0,
+        "costUSD": 0.4023304,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 6030,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 11,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I selected and finished `candidate_01`, a single-floor BIM (F1) of the 10 m × 20 m building. Its geometry passes the internal self-consistency check, but it has not been compared against the drawings for fidelity.\n\nOnly one plan (`1f_view.png`) was supplied, so there is one floor, with no assembly and no vertical circulation. The storey height is 4.5 m, read from the four elevations.\n\n**What it contains**\n- **Spaces:** 8. They are a north hall, a storage room and a main room on the east, three west rooms, and a bottom-right room with a stepped boundary. The last space is the L-shaped corridor, kept as one open space.\n- **Openings:** 21. There are 11 windows and 10 doors, and every one attached to a host wall.\n- **Scale:** calibrated from the plan's 10000 mm and 20000 mm outer-face dimensions. Partitions sit on their drawn centre lines.\n- **Exterior heights (from the elevations):**\n  - Small windows: 1.0–2.8 m.\n  - The 4800 mm windows: 1.0–3.4 m.\n  - Exterior doors: 0.2–2.6 m.\n- **Window and door positions:** from the plan dimension chains, matched to the elevation chains. Hand-placed on the plan and not otherwise verified.\n\n**Not done**\n- **Height claims:** none were recorded or confirmed. `check_openings(heights_only=true)` shows 0 of 21 openings linked to image height evidence, so all heights are only declared values. I did not run `record_claim`/`confirm_claims`, or the sampled same-space/separate-space checks.\n- **Assumptions:** interior doors are assumed 2.1 m high, and the doors' extra height above 2.6 m (the transom in the elevations) is not modelled.\n- **Room uses:** no roles are assigned, so all rooms are unknown.\n- **Drawing checks:** I did not run wall-support profiles, and the calibration and door positions were not independently verified.\n- **Elevation reading:** on the west elevation the left-to-right order matches the plan's top-to-bottom order, so I followed the plan's dimension chains.\n- **Saved notes:** they still say room uses and elevation matching are unresolved. That matches the actual state, so nothing was reconciled.\n\nThe viewer is at `candidate_01/viewer.html`.",
+    "ttft_ms": 2910,
+    "type": "result",
+    "duration_ms": 112398,
+    "uuid": "51459d69-02fa-4e5c-a333-b1755588019d",
+    "ttft_stream_ms": 2541,
+    "time_to_request_ms": 272,
+    "first_content_frame_ms": 2542,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

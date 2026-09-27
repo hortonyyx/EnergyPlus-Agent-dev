@@ -1,0 +1,177 @@
+{
+  "candidate": "candidate_01",
+  "actual_model": "claude-sonnet-5",
+  "elapsed_seconds": 153.3,
+  "cli_estimated_usd_not_bill": 0.6159199999999999,
+  "source_display_replay_exact": true,
+  "implementation_and_inputs_verified": true,
+  "counts": {
+    "floors": 1,
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10
+  },
+  "kinds": {
+    "door": 10,
+    "window": 11
+  },
+  "original_plan": {
+    "mode": "post_generation_developer_audit",
+    "candidate": "candidate_01",
+    "source_replay_exact": true,
+    "display_replay_exact": true,
+    "runtime_hashes_match": true,
+    "runtime_hash_source": "current_repository",
+    "input_contents": {
+      "original_png_images": {
+        "included": true,
+        "count": 5
+      },
+      "building_declaration": {
+        "included": false
+      },
+      "saved_generated_proposal": {
+        "included": false
+      },
+      "ground_truth_or_evaluation": {
+        "included": false
+      }
+    },
+    "counts": {
+      "spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 11
+      },
+      "connections": 10,
+      "unsupported": 0,
+      "unbuilt_openings": 0
+    },
+    "partition_status": "severe",
+    "partition_topology_findings": [
+      {
+        "code": "internal_partition_boundary_changed",
+        "severity": "severe",
+        "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+        "floor_id": "F1",
+        "missing_length_m": 39.27639253076275,
+        "extra_length_m": 39.56467241899841,
+        "missing_wkt": "MULTILINESTRING ((4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.051624999), (4.18 12.999999999999996, 0.020000001 12.999999999999996), (4.18 8.091625000999999, 4.18 12.817465999), (4.18 12.857466000999999, 4.18 12.999999999999996), (4.18 15.939999999999994, 0.020000001 15.939999999999994), (4.18 12.999999999999996, 4.18 15.939999999999994), (4.18 15.939999999999994, 4.238241999 15.939999999999994), (4.278242001 15.939999999999994, 5.749230999000001 15.939999999999994), (5.789231001 15.939999999999994, 5.819999999999997 15.939999999999994), (5.819999999999997 15.939999999999994, 9.979999999 15.939999999999994), (5.819999999999997 4.938677999, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 5.788902452237238 3.4400000000000013), (4.238241999 3.4400000000000013, 4.18 3.4400000000000013), (5.819999999999997 8.091625000999999, 5.819999999999997 13.974489999000001), (5.819999999999997 14.014490001, 5.819999999999997 15.939999999999994))",
+        "extra_wkt": "MULTILINESTRING ((0.020000001 15.977961, 4.258242 15.977961), (4.258242 15.977961, 5.769231 15.977961), (5.769231 15.977961, 9.979999999 15.977961), (4.258242 12.837466, 4.258242 15.919999998999995), (4.258242 15.960000000999994, 4.258242 15.977961), (0.020000001 12.837466, 4.159999999 12.837466), (4.200000000999999 12.837466, 4.258242 12.837466), (5.769231 13.99449, 5.769231 15.919999998999995), (5.769231 15.960000000999994, 5.769231 15.977961), (5.799999998999997 8.071625, 5.769231 8.071625), (5.769231 8.071625, 5.769231 13.99449), (4.258242 12.837466, 4.258242 8.071625), (4.258242 8.071625, 4.258242 3.4600000010000014), (5.769231 3.4600000010000014, 5.769231 4.958678), (5.769231 4.958678, 5.812906434998413 4.958678), (5.769231 13.99449, 5.799999998999997 13.99449), (4.200000000999999 8.071625, 4.258242 8.071625), (4.258242 0.020000001, 4.258242 3.419999999000001))"
+      }
+    ],
+    "original_partition_status": "severe",
+    "original_partition_matched_count": 8,
+    "original_aperture_count": 21,
+    "matched_apertures": 21,
+    "position_matches": 17,
+    "host_matches": 21,
+    "door_connections_matched": 10,
+    "max_aperture_endpoint_error_m": 0.10988992307692325,
+    "viewer_has_no_remote_scripts": true,
+    "limits": [
+      "Manual original-image interpretation, not an automatic semantic judge.",
+      "GT diagnosis remains independent, unmodified and post-generation only.",
+      "Original partition comparison uses explicit zero-thickness representative walls; small offsets remain measured.",
+      "All heights, materials, unseen elevations and full-building acceptance excluded.",
+      "One bounded cold start does not establish repeatability or whole-building autonomy.",
+      "No browser WebGL interaction was tested in this audit."
+    ]
+  },
+  "strict_gt_partition_status": "severe",
+  "strict_gt_matched_spaces": 8,
+  "space_identity_findings": [],
+  "matched_exterior": 14,
+  "all_parameters_and_host_match": 14,
+  "height_mismatches": [],
+  "unmatched_reference": [],
+  "unmatched_built_exterior": [],
+  "height_coverage": {
+    "total_count": 21,
+    "image_linked_count": 14,
+    "non_image_linked_count": 0,
+    "unchecked_height_opening_ids": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5",
+      "D6",
+      "D7"
+    ]
+  },
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 1,
+        "crop_view_count": 2,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 1,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      }
+    ],
+    "no_direct_view_images": [],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound view_image returns are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior door heights 2.1 m assumed; exterior door z 0.2-2.6 and window heights read from elevations",
+    "Single storey; ceiling 4.5 from elevation height",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Room uses not assigned",
+    "Wall thicknesses not modelled per plan (outer drawn 0.54)",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "transported_images": 9,
+  "finish_results": [
+    {
+      "characters": 6897,
+      "parseable_summary": true,
+      "detached_output_notice": false
+    }
+  ],
+  "limits": [
+    "Single cross-case execution, not repeated success on this whole-building scope.",
+    "No internal door height evidence is created by plan matching.",
+    "Original-pixel estimates and GT tolerances are independent diagnostics, not surveyed accuracy.",
+    "Assumption/evidence consistency requires manual semantic review; no EP or human approval."
+  ]
+}

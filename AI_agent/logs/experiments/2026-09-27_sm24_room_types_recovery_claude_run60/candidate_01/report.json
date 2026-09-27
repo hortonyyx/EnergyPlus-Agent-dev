@@ -1,0 +1,66 @@
+{
+  "agent_assumptions": [
+    "Interior door heights 2.1 m assumed; storey height 4.5 m from elevations; interior wall thickness not observed",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Room roles are inferred from furniture only; no text labels in the drawing. Elevations were not viewed for opening heights."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "3fbda7ec556e66099d299ad150499d5ace8d8660fb8a4fccbfadfaf7ac5a41a4",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "seed",
+      "parent_proposal_sha256": "3feec14d671518905022ee89be0ea2481bba7151ee51186b837f161ca8cd5b09"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "4658c64c9dffe94d6fa3258bdbe153ef95b7cc8ec2ef624d94044ee75318a6e1",
+    "mode": "saved_candidate_recovery",
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "3feec14d671518905022ee89be0ea2481bba7151ee51186b837f161ca8cd5b09"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "80278e7463021772e2f623d4d9b45cb91a7bc6fbc7bdc0e4a1a9b57f5fcb0753",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "No upper floors or stairs in inputs; door swing/state unknown",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Room roles are uncertain inferences; opening heights not checked against elevations."
+  ]
+}
