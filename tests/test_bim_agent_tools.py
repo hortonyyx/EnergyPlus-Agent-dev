@@ -75,6 +75,17 @@ def _error_text(result) -> str:
     return "\n".join(getattr(row, "text", "") for row in result.content)
 
 
+def _full_delivery_result(run, result):
+    """Large receipts explicitly point to the complete persisted report."""
+    reply = _json_result(result)
+    if not reply.get("response_compacted"):
+        return reply
+    assert reply["full_delivery_report"] == "delivery.json"
+    full = json.loads((run / reply["full_delivery_report"]).read_text())
+    assert (full["candidate"], full["source_model_sha256"]) == (reply["candidate"], reply["source_model_sha256"])
+    return full
+
+
 def test_assemble_plans_stdio_keeps_both_floors_and_binds_originals(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)
@@ -146,18 +157,18 @@ def test_space_relation_stdio_uses_current_source_and_registered_calibration(tmp
             assert checked['calibration_sha256'] == digest(run/checked['calibration_file'])
             assert json.loads((run/checked['review_file']).read_text()) == checked
             assert path.read_bytes() == unchanged
-            first_delivery = _json_result(await session.call_tool('finish_bim', {'candidate':candidate}))
+            first_delivery = _full_delivery_result(run, await session.call_tool('finish_bim', {'candidate':candidate}))
             assert first_delivery['space_relation_review']['conflict_count'] == 1
             observations[0]['expected'] = 'separate_spaces'
             await session.call_tool('check_source_space_relation', {**args,'observations_json':json.dumps(observations)})
-            second_delivery = _json_result(await session.call_tool('finish_bim', {'candidate':candidate}))
+            second_delivery = _full_delivery_result(run, await session.call_tool('finish_bim', {'candidate':candidate}))
             assert second_delivery['space_relation_review']['sample_count'] == 1
             assert second_delivery['space_relation_review']['status'] == 'consistent_with_supplied_samples'
             plan['partitions'] = []
             plan['openings'] = []
             second = _json_result(await session.call_tool('build_plan_bim', dict(image='plan.png',plan_json=json.dumps(plan))))
             assert second['source_geometry_ready']
-            stale = _json_result(await session.call_tool('finish_bim', {'candidate':second['candidate']}))
+            stale = _full_delivery_result(run, await session.call_tool('finish_bim', {'candidate':second['candidate']}))
             assert stale['space_relation_review']['status'] == 'not_reviewed'
             assert stale['space_relation_review']['stale_review_count'] == 2
             observations[0]['expected'] = 'same_space'
@@ -359,7 +370,7 @@ def test_on_demand_reference_build_example_and_readonly_access(tmp_path):
             rejected = await session.call_tool("get_bim_reference", {"topic": "../inputs.json"})
             assert rejected.isError
         async with _server_session(run, readonly=False) as session:
-            for topic in ("edits", "wall_dimensions", "opening_review"):
+            for topic in ("edits", "wall_dimensions", "opening_review", "room_types", "naming"):
                 result = _json_result(await session.call_tool("get_bim_reference", {"topic": topic}))
                 assert result["topic"] == topic and result["reference"]
             saved = _json_result(await session.call_tool("build_bim", {"proposal_json": json.dumps(proposal)}))
@@ -677,7 +688,7 @@ def test_wall_reference_stdio_calculation_persistence_and_feedback(tmp_path):
             assert evidence["scope"]["image_name"] == "plan.png"
             assert [p["pixel"] for p in evidence["endpoints"]] == [[1, 2], [6, 2]]
             assert {p["wall_id"] for p in evidence["endpoints"]} == {"west", "shared"}
-            delivered = _json_result(await session.call_tool("finish_bim", {"candidate": revised["candidate"]}))
+            delivered = _full_delivery_result(run, await session.call_tool("finish_bim", {"candidate": revised["candidate"]}))
             assert delivered["source_image_feedback"]["current_source_projections"][0]["wall_evidence_projection"] == evidence
             assert "尺寸证据与所引用墙段的位置对照" in (run / "delivery.html").read_text()
             d["end"]["pixel"] = [12, 2]
@@ -1032,7 +1043,7 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert (run / overlay_info["overlay_image"]).is_file()
             assert (run / "candidate_02/source_model.json").read_bytes() == before
 
-            finished = _json_result(await session.call_tool("finish_bim", {"candidate":"candidate_02"}))
+            finished = _full_delivery_result(run, await session.call_tool("finish_bim", {"candidate":"candidate_02"}))
             assert finished["candidate"] == "candidate_02"
             assert finished["selection_origin"] == "agent_selected"
             assert finished["drawing_fidelity"] == "not_evaluated"
@@ -1061,7 +1072,7 @@ def test_normal_stdio_builds_candidate_and_returns_plan_image(tmp_path):
             assert rooms["left"]["x"] == [3.5, 6] and rooms["right"]["x"] == [0, 3.5]
             assert moved_proposal["geometry"]["openings"][0]["p1"][0] == 3.5
             assert moved_proposal["geometry"]["openings"][0]["p2"][0] == 3.5
-            moved_delivery = _json_result(await session.call_tool("finish_bim", {"candidate":"candidate_03"}))
+            moved_delivery = _full_delivery_result(run, await session.call_tool("finish_bim", {"candidate":"candidate_03"}))
             assert moved_delivery["source_model_sha256"] != finished["source_model_sha256"]
             assert len(moved_delivery["stale_reviews"]) == 2
             assert all(scope["review_status"] == "not_reviewed"
@@ -1170,7 +1181,7 @@ def test_registered_source_overlay_feedback_reuses_only_explicit_image_floor_cal
             assert fourth["projection_errors"][0]["floor_id"] == "F1"
             assert "input image changed" in fourth["projection_errors"][0]["error"]
             assert fourth_call.content[0].type == "image"
-            delivery = _json_result(await session.call_tool("finish_bim", {"candidate": "candidate_04"}))
+            delivery = _full_delivery_result(run, await session.call_tool("finish_bim", {"candidate": "candidate_04"}))
             feedback = delivery["source_image_feedback"]
             assert feedback["current_source_projections"][0]["floor_id"] == "F2"
             assert feedback["old_source_projections"]
@@ -1303,7 +1314,7 @@ def test_parametric_tool_stdio_builds_repeated_spaces_and_preserves_compact_plan
     run = _run_with_one_image(tmp_path)
     compact = {
         'templates': {'t': {'footprint': [[0,0],[6,0],[6,4],[0,4]],
-            'spaces': [{'id':'room','role':'office_inferred','rect':[0,0,6,4],
+            'spaces': [{'id':'room','role':'office','rect':[0,0,6,4],
                         'source_refs':['synthetic hypothesis']}],
             'window_rows': [{'id':'w','facade':'West','plane':0,'spans':[[1,2]],
                              'z':[1,2],'source_refs':['synthetic observation']}]}},

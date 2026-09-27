@@ -1802,7 +1802,8 @@ def serve(run: Path, readonly=False):
 
     @server.tool()
     def get_bim_reference(topic: str) -> dict:
-        """Read reconstruction, geometry, plan_partition, edits, wall_dimensions or opening_review.
+        """Read room_types, naming, reconstruction, geometry, plan_partition, edits or opening_review.
+        Choose room_types before assigning roles; naming explains public names and CCW wall order.
         Choose reconstruction for drawing measurements and evidence interpretation.
         Choose geometry for a full proposal or plan_partition for pixel walls.
         These are generic instructions, not case observations or reference answers.
@@ -2491,6 +2492,10 @@ def run_experiment(args):
                              },
                              "deadline_epoch": time.time() + args.timeout,
                              "implementation_sha256": {
+                                 "src/agent/roles.py":digest(ROOT/"src/agent/roles.py"),
+                                 "src/agent/data/room_types.json":digest(ROOT/"src/agent/data/room_types.json"),
+                                 "src/agent/geometry/source_naming.py":digest(ROOT/"src/agent/geometry/source_naming.py"),
+                                 "scripts/tool_scripts/render_geometry_viewer.py":digest(ROOT/"scripts/tool_scripts/render_geometry_viewer.py"),
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
                                  "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
                                  "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),

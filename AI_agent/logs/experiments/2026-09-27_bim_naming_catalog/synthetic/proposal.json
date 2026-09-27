@@ -1,0 +1,134 @@
+{
+  "assumptions": [
+    "Synthetic illustration for naming/color checks only; not a real building."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3,
+        "cells": [
+          {
+            "id": "west-upper",
+            "role": "corridor",
+            "x": [
+              0,
+              4
+            ],
+            "y": [
+              0,
+              8
+            ]
+          },
+          {
+            "id": "east-upper",
+            "role": "restroom",
+            "x": [
+              4,
+              8
+            ],
+            "y": [
+              0,
+              8
+            ]
+          }
+        ],
+        "name": "upper-original",
+        "z_floor": 3
+      },
+      {
+        "ceiling_height": 3,
+        "cells": [
+          {
+            "id": "west",
+            "role": "meeting",
+            "x": [
+              0,
+              4
+            ],
+            "y": [
+              0,
+              8
+            ]
+          },
+          {
+            "id": "east",
+            "role": "office",
+            "x": [
+              4,
+              8
+            ],
+            "y": [
+              0,
+              8
+            ]
+          }
+        ],
+        "name": "ground-original",
+        "z_floor": 0
+      }
+    ],
+    "footprint_x": [
+      0,
+      8
+    ],
+    "footprint_y": [
+      0,
+      8
+    ],
+    "openings": [
+      {
+        "id": "shared",
+        "kind": "door",
+        "other_space_id": "east",
+        "p1": [
+          4,
+          3
+        ],
+        "p2": [
+          4,
+          4
+        ],
+        "source_refs": [
+          "synthetic door"
+        ],
+        "space_id": "west",
+        "z": [
+          0,
+          2
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "facade": "West",
+        "floor": "ground-original",
+        "id": "low",
+        "room": "west",
+        "span": [
+          1,
+          2
+        ],
+        "z": [
+          1,
+          2
+        ]
+      },
+      {
+        "facade": "West",
+        "floor": "ground-original",
+        "id": "high",
+        "room": "west",
+        "span": [
+          6,
+          7
+        ],
+        "z": [
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  "unresolved": []
+}

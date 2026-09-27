@@ -15,6 +15,7 @@
 | 去哪里找带贴图的单体建筑模型、怎么取、先测哪一类 | [来源](design/textured_mass/sources.md) · [获取路线](design/textured_mass/acquisition.md) · [案例梯度](design/textured_mass/case_ladder.md) |
 | 三维模型输入能支持到哪些格式、各自成本 | [输入格式路线图](design/textured_mass/input_formats.md) |
 | 历史好读图如何复用、reading/correction 如何接线 | [读图与校正设计依据](design/reading_correction.md) |
+| 所有可点击对象如何命名、房间功能如何选和着色 | [全构件命名](design/bim_naming.md) · [功能类型表](design/room_types.md) |
 | 共同模型、单位、坐标和编辑对象 | [轻量建筑模型](design/model.md) |
 | 已有代码、接口和真实能力缺口 | [现有实现](design/implementation.md) |
 | 怎样判断输出有用、完整和可信 | [验证与评价](design/evaluation.md) |

@@ -169,7 +169,8 @@ def test_sm21_preserves_source_rooms_and_all_window_vertices():
     geom=ensure_corrected_geometry(json.loads((SM21/"1_correction/correction_geometry_snapped.json").read_bytes()))
     old=materialize_source_model(geom,build_geometry(geom))
     source=build_source_bim(geom)
-    assert source["spaces"]==old["spaces"]
+    from src.agent.roles import require_role
+    assert source["spaces"] == [{**s, "role": require_role(s["role"])} for s in old["spaces"]]
     assert len(source["boundaries"])==84
     assert source["validation"]["status"]=="pass"
     verts=lambda s:{o["id"]:sorted(map(tuple,o["vertices"])) for o in s["openings"]}

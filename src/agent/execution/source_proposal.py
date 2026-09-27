@@ -6,6 +6,7 @@ drawing fidelity and human confirmation explicitly unevaluated.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import html
 import json
@@ -66,7 +67,13 @@ def _validate_proposal(proposal: dict) -> tuple[dict, list[str], list[str], dict
     enclosure = proposal.get("enclosure_declaration")
     if enclosure is not None and not isinstance(enclosure, dict):
         raise TypeError("proposal.enclosure_declaration must be an object")
-    return proposal["geometry"], list(proposal["assumptions"]), list(proposal["unresolved"]), enclosure
+    # Preserve the original proposal for audit; absent use never means office.
+    from src.agent.roles import require_role
+    geometry = copy.deepcopy(proposal["geometry"])
+    for floor in geometry.get("floors", []):
+        for cell in floor.get("cells", []):
+            cell["role"] = require_role(cell.get("role"))
+    return geometry, list(proposal["assumptions"]), list(proposal["unresolved"]), enclosure
 
 
 def _html_list(rows: list[str]) -> str:

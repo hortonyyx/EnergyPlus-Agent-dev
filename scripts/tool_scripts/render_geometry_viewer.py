@@ -83,20 +83,14 @@ _APP_JS = r"""
   const TYPE_COLORS = { Wall:0xdfe3e6, Floor:0xc8a165, Ceiling:0x9fa8da, Roof:0xfff3b0 };
   const WINDOW_COLOR = 0x1e5ad2, WHITE = 0xffffff, SEL_COLOR = 0xff9800;
   const ENCLOSURE_COLOR = 0x8b949e, ENCLOSURE_OPACITY = 0.32, LOGICAL_COLOR = 0x596b86;
-  // fixed room-type → fill colour. Mirrors render_gt.py ROLE_FILL (office/meeting/corridor)
-  // so the 3D viewer and the gt plan share one palette; synonyms map to the same hue so the
-  // SAME room type is always the SAME colour (across cases + helps see which zones to merge).
-  const ROLE_COLORS = {
-    office:0xcfe3f2, open_office:0xcfe3f2, openoffice:0xcfe3f2,
-    meeting:0xd7ecd2, conference:0xd7ecd2,
-    corridor:0xfdf0c8, circulation:0xfdf0c8, hallway:0xfdf0c8,
-    lobby:0xf6d6c2, reception:0xf6d6c2,
-    restroom:0xe6d5f0, toilet:0xe6d5f0, wc:0xe6d5f0, bathroom:0xe6d5f0,
-    stair:0xdcdcdc, stairwell:0xdcdcdc, elevator:0xd0d0d0, lift:0xd0d0d0,
-    kitchen:0xfde0e0, pantry:0xfde0e0, storage:0xe6e3d2, store:0xe6e3d2,
-    server:0xcfe0db, equipment:0xcfe0db, mechanical:0xcfe0db, electrical:0xcfe0db,
-    retail:0xf0e4b0, shop:0xf0e4b0 };
-  const ROLE_DEFAULT = 0xc9ced4;                 // typed but unknown role
+  // Classification and colors come from the same pinned catalog as generation.
+  const ROOM_TYPES = GEO.room_types || {};
+  const ROLE_COLORS = Object.fromEntries(Object.entries(ROOM_TYPES).map(([k,v])=>[k,parseInt(v.color.slice(1),16)]));
+  const ROLE_DEFAULT = ROLE_COLORS.unknown ?? 0xc9ced4;
+  const NAMES = GEO.public_names || {};
+  const spaceName = z => (NAMES.spaces||{})[(SOURCE_MAP.zones||{})[z]||z] || z;
+  const objectName = n => (NAMES.objects||{})[n] || n;
+  const roleLabel = r => ROOM_TYPES[r] ? ROOM_TYPES[r].label_zh+' · '+r : r;
   const ROLES = GEO.roles || {};
   const HAS_ROLES = Object.keys(ROLES).length > 0;
   const roleOf = z => (ROLES[z] || '').toString().toLowerCase();
@@ -117,12 +111,16 @@ _APP_JS = r"""
     const b=[]; for(const z of u) if(!b.length||Math.abs(z-b[b.length-1])>0.3) b.push(z); return b.length?b:[0]; }
   function nearestBase(z,bases){ let bi=0,bd=1e9; bases.forEach((b,i)=>{const d=Math.abs(z-b); if(d<bd){bd=d;bi=i;}}); return bi; }
   const floorSurf = SURF.filter(s => s.type === 'Floor');
-  const BASES = cluster((floorSurf.length ? floorSurf : SURF).map(zmin));
+  const NAMED_FLOORS = NAMES.floors || [];
+  const BASES = NAMED_FLOORS.length ? NAMED_FLOORS.map(f=>f.z_floor) : cluster((floorSurf.length ? floorSurf : SURF).map(zmin));
+  const floorName = i => NAMED_FLOORS[i]?.name || 'F'+(i+1);
   const _zFloorZ = {}, _zMinZ = {};
   SURF.forEach(s => { const z=s.zone||'?', mn=zmin(s); _zMinZ[z]=Math.min(_zMinZ[z]??1e9,mn);
     if(s.type==='Floor') _zFloorZ[z]=Math.min(_zFloorZ[z]??1e9,mn); });
   const zoneFloor = {};
-  Object.keys(_zMinZ).forEach(z => { zoneFloor[z]=nearestBase(_zFloorZ[z]??_zMinZ[z], BASES); });
+  Object.keys(_zMinZ).forEach(z => { const sid=(SOURCE_MAP.zones||{})[z]||z;
+    const fi=NAMED_FLOORS.findIndex(f=>f.id===SOURCE_SPACES[sid]?.floor_id);
+    zoneFloor[z]=fi>=0 ? fi : nearestBase(_zFloorZ[z]??_zMinZ[z], BASES); });
 
   // ---- zone centroids (explode-by-zone + window pop-out) ----
   const zoneSum = {};
@@ -260,7 +258,7 @@ _APP_JS = r"""
     // lighting wash that made horizontal (roof/floor) faces read near-white. Edges keep form.
     const m=new THREE.MeshBasicMaterial({side:THREE.DoubleSide, transparent:true, opacity:1});
     const parts = Object.prototype.hasOwnProperty.call(WALL_PARTS,s.name) ? WALL_PARTS[s.name] : [{verts:s.verts,holes:[]}];
-    parts.forEach(part=>{
+    parts.forEach((part,partIndex)=>{
       const dup=part.duplicate_at_rest ?? isDup(s);
       const enclosureCondition=part.enclosure_condition || 'physical';
       // Unknown patches are represented by the enclosure-region helper below.
@@ -269,7 +267,7 @@ _APP_JS = r"""
       if(enclosureCondition==='unknown') return;
       const mesh=new THREE.Mesh(ringGeom(part.verts,part.holes||[]), m.clone());
       mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup,
-        enclosureCondition,
+        enclosureCondition, publicName:(NAMES.parts||{})[s.name]?.[partIndex] || objectName(s.name),
         area:polyArea(part.verts)-(part.holes||[]).reduce((sum,r)=>sum+polyArea(r),0)};
       surfMeshes.push(mesh); root.add(mesh);
       [part.verts,...(part.holes||[])].forEach(ring=>{
@@ -285,7 +283,7 @@ _APP_JS = r"""
   function enclosureRegionKey(ring){
     return ring.map(v=>v.map(x=>Math.round(x*1e6)/1e6).join(',')).sort().join('|');
   }
-  ENC_REGIONS.forEach(r=>{
+  ENC_REGIONS.forEach((r,regionIndex)=>{
     if(!(r.verts||[]).length) return;
     const sourceBoundary=SOURCE_BOUNDARIES[r.boundary_id] || {};
     const zone=r.space_id || sourceBoundary.space_id || '?';
@@ -293,6 +291,7 @@ _APP_JS = r"""
     const key=enclosureRegionKey(r.verts), duplicate=enclosureRegionKeys.has(key);
     enclosureRegionKeys.add(key);
     const userData={zone,floor:fi,kind:'enclosure-region',condition:r.condition,dup:duplicate,
+      publicName:(NAMES.regions||[])[regionIndex] || objectName(r.boundary_id),
       boundaryId:r.boundary_id,area:polyArea(r.verts),sourceRefs:r.source_refs||[],assumptions:r.assumptions||[],
       evidenceKind:r.evidence_kind,baseColor:ENCLOSURE_COLOR};
     // This translucent face is a viewer-only aid. It makes an open extent easy
@@ -307,7 +306,7 @@ _APP_JS = r"""
     const zone=zoneOfWindow(w), sv=popOut(w.verts, zone);  // proud of wall → clean + pickable
     const m=new THREE.MeshStandardMaterial({color:WINDOW_COLOR, side:THREE.DoubleSide, roughness:0.4});
     const mesh=new THREE.Mesh(ringGeom(sv), m);
-    mesh.userData={zone, floor:nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), type:'Window', name:w.name, kind:'window', dup:false, area:polyArea(w.verts)};
+    mesh.userData={zone, floor:zoneFloor[zone]??nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), type:'Window', name:w.name, parent:w.parent, kind:'window', dup:false, area:polyArea(w.verts)};
     winMeshes.push(mesh); root.add(mesh);
   });
   OPENS.forEach(o=>{
@@ -317,7 +316,7 @@ _APP_JS = r"""
       opacity:o.state==='closed'?0.7:0.12,depthWrite:false});
     const mesh=new THREE.Mesh(ringGeom(o.verts),m);
     mesh.userData={zone,floor:zoneFloor[zone]||0,type:o.kind==='door'?'门':'空开口',name:o.name,
-      kind:'opening',dup,area:polyArea(o.verts),baseColor:color,sourceId:o.source_opening_id,
+      parent:o.parent,kind:'opening',dup,area:polyArea(o.verts),baseColor:color,sourceId:o.source_opening_id,
       spaceId:o.space_id,otherSpaceId:o.other_space_id,state:o.state};
     openingMeshes.push(mesh);root.add(mesh);
     const em=new THREE.LineSegments(edgeGeom(o.verts),new THREE.LineBasicMaterial({color}));
@@ -401,12 +400,13 @@ _APP_JS = r"""
 
   // ---- edge select (screen-space nearest segment → length) ----
   const EDGES=[];  // {a,b: true world Vector3, zone, len, floor, dup, kind}
-  function pushEdges(verts, zone, floor, dup, kind){ for(let i=0;i<verts.length;i++){ const a=verts[i], b=verts[(i+1)%verts.length];
+  function pushEdges(verts, zone, floor, dup, kind, name){ for(let i=0;i<verts.length;i++){ const a=verts[i], b=verts[(i+1)%verts.length];
     EDGES.push({a:new THREE.Vector3(a[0],a[1],a[2]), b:new THREE.Vector3(b[0],b[1],b[2]), zone, floor, dup, kind,
+      publicName:(NAMES.edges||{})[name]?.[i] || objectName(name)+"_Edge"+(i+1), parentName:objectName(name),
       len:Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])}); } }
-  SURF.forEach(s=>{ const z=s.zone||'?'; pushEdges(s.verts, z, zoneFloor[z]??nearestBase(zmin(s),BASES), isDup(s), 'surface'); });
-  WINS.forEach(w=>{ const z=zoneOfWindow(w); pushEdges(w.verts, z, nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), false, 'window'); });
-  OPENS.forEach(o=>{const z=_surfZoneByName[o.parent];pushEdges(o.verts,z,zoneFloor[z]||0,Boolean(o.partner&&o.name>o.partner),'opening');});
+  SURF.forEach(s=>{ const z=s.zone||'?'; pushEdges(s.verts, z, zoneFloor[z]??nearestBase(zmin(s),BASES), isDup(s), 'surface', s.name); });
+  WINS.forEach(w=>{ const z=zoneOfWindow(w); pushEdges(w.verts, z, zoneFloor[z]??nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), false, 'window', w.name); });
+  OPENS.forEach(o=>{const z=_surfZoneByName[o.parent];pushEdges(o.verts,z,zoneFloor[z]||0,Boolean(o.partner&&o.name>o.partner),'opening',o.name);});
   // only pick an edge whose source face is currently shown (same predicate as applyFilter)
   function edgeVisible(e){ const f=parseInt($('floorSel').value,10); const exploded=parseFloat($('explode').value)>0;
     if(!(f<0||e.floor===f)) return false;
@@ -426,7 +426,7 @@ _APP_JS = r"""
       if(d<bd && (thru || !occluded(A.clone().add(B).multiplyScalar(0.5)))){ bd=d; best={e,A,B}; } }
     clearSelection(); if(!best) return;
     selGroup.add(fatLine(best.A, best.B, SEL_COLOR, 0.006));   // whole edge as one thick, always-on-top line
-    $('sel').innerHTML='<div class="hh">edge</div>'+kv([['length',best.e.len.toFixed(3)+' m']]); $('sel').style.display='block'; }
+    $('sel').innerHTML='<div class="hh">edge</div>'+kv([['名称',best.e.publicName],['所属面',best.e.parentName],['所属房间',spaceName(best.e.zone)],['所属楼层',floorName(best.e.floor)],['length',best.e.len.toFixed(3)+' m']]); $('sel').style.display='block'; }
 
   // ---- selection picking (face raycast, for click-select only) ----
   const raycaster=new THREE.Raycaster();
@@ -452,18 +452,18 @@ _APP_JS = r"""
   function boundaryEvidence(b,key){ return evidenceText([...(b&&b[key]||[]),...(b&&b.enclosure_regions||[]).flatMap(r=>r[key]||[])]); }
   function boundaryEvidenceKinds(b){ return [...new Set((b&&b.enclosure_regions||[]).map(r=>r.evidence_kind).filter(Boolean))].join(', '); }
   function describe(mode,o){ const u=o.userData;
-    if(u.kind==='enclosure-region'){ const boundary=SOURCE_BOUNDARIES[u.boundaryId];
+    if(mode==='floor') return '<div class="hh">楼层</div>'+kv([['名称',floorName(u.floor)],['源楼层 ID',NAMED_FLOORS[u.floor]?.id],['底标高',BASES[u.floor]+' m']]);
+    if(u.kind==='enclosure-region' && mode!=='zone'){ const boundary=SOURCE_BOUNDARIES[u.boundaryId];
       return '<div class="hh">'+(u.condition==='open'?'明确开敞区域':'围护未知区域')+'</div>'+kv([
-        ['源边界 ID',u.boundaryId],['空间',u.zone],['面积',u.area.toFixed(2)+' m²'],
+        ['名称',u.publicName],['所属面',objectName(u.boundaryId)],['所属楼层',floorName(u.floor)],['源边界 ID',u.boundaryId],['空间',spaceName(u.zone)],['面积',u.area.toFixed(2)+' m²'],
         ['边界覆盖',coverageFor(boundary)],['证据类型',u.evidenceKind],['来源',evidenceText(u.sourceRefs)],
         ['假设',evidenceText(u.assumptions)]]); }
-    if(u.kind==='opening') return '<div class="hh">'+esc(u.type)+'</div>'+kv([
-      ['源开口 ID',u.sourceId],['连通',u.spaceId+' ↔ '+(u.otherSpaceId||'室外')],
+    if(u.kind==='opening' && mode!=='zone') return '<div class="hh">'+esc(u.type)+'</div>'+kv([
+      ['名称',objectName(u.name)],['所属面',objectName(u.parent)],['所属楼层',floorName(u.floor)],['所属房间',spaceName(u.zone)],['源开口 ID',u.sourceId],['连通',spaceName(u.spaceId)+' ↔ '+(u.otherSpaceId?spaceName(u.otherSpaceId):'室外')],
       ['开闭状态',({open:'开放',closed:'关闭',unknown:'未确定'})[u.state]],['面积',u.area.toFixed(2)+' m²']]);
-    if(mode==='floor') return '<div class="hh">floor</div>'+kv([['floor','F'+(u.floor+1)]]);
     if(mode==='zone'){ const r=roleOf(u.zone), sid=(SOURCE_MAP.zones||{})[u.zone]||u.zone, space=SOURCE_SPACES[sid],
       enclosureEvidence=space&&(space.enclosure_evidence||{});
-      return '<div class="hh">zone</div>'+kv([['name',u.zone],['type',r||'—'],
+      return '<div class="hh">zone</div>'+kv([['名称',spaceName(u.zone)],['所属楼层',floorName(u.floor)],['功能',roleLabel(r)||'—'],
         ['源空间 ID',(SOURCE_MAP.zones||{})[u.zone]],['空间开敞性',space&&enclosureLabel(space.exposure||space.enclosure)],
         ['证据类型',enclosureEvidence&&enclosureEvidence.evidence_kind],
         ['来源',space&&evidenceText(enclosureEvidence.source_refs||space.source_refs)],
@@ -472,7 +472,7 @@ _APP_JS = r"""
     // Area of the selected visible fragment: wall apertures are cut out;
     // windows remain separate child surfaces and are not subtracted here.
     const boundary=boundaryFor(u);
-    return '<div class="hh">surface</div>'+kv([['name',u.name],['type',u.type],
+    return '<div class="hh">surface</div>'+kv([['名称',u.publicName||objectName(u.name)],['所属面',objectName(u.parent||u.name)],['所属房间',spaceName(u.zone)],['所属楼层',floorName(u.floor)],['type',u.type],
       ['源对象 ID',(SOURCE_MAP.surfaces||{})[u.name] || (SOURCE_MAP.windows||{})[u.name]],
       ['显示语义',u.kind==='surface'?(u.enclosureCondition==='unknown'?'未知围护（未当作实体墙）':'实体围护'):'窗'],
       ['边界围护',boundary&&enclosureLabel(boundary.enclosure||boundary.kind)],['边界覆盖',coverageFor(boundary)],
@@ -555,7 +555,7 @@ _APP_JS = r"""
     present.sort();
     let h='';
     present.forEach(r=>{ const c=(r==='untyped')?ROLE_DEFAULT:(ROLE_COLORS[r]??ROLE_DEFAULT);
-      h+='<div class="lg"><span class="sw" style="background:'+hex6(c)+'"></span>'+esc(r)+'</div>'; });
+      h+='<div class="lg"><span class="sw" style="background:'+hex6(c)+'"></span>'+esc(roleLabel(r))+'</div>'; });
     el.innerHTML=h; el.style.display='block';
   }
 
@@ -570,7 +570,7 @@ _APP_JS = r"""
     $('en'+a.key).onchange=refresh; $('pos'+a.key).oninput=refresh; $('flip'+a.key).onchange=refresh; });
 
   // ---- floor select + wiring ----
-  const fs=$('floorSel'); BASES.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.textContent='F'+(i+1)+' (z='+b.toFixed(2)+')'; fs.appendChild(o);});
+  const fs=$('floorSel'); BASES.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.textContent=floorName(i)+' (z='+b.toFixed(2)+')'; fs.appendChild(o);});
   $('colorBy').onchange=()=>{ refreshColors(); clearSelection(); }; fs.onchange=applyFilter;
   $('showWalls').onchange=applyFilter; $('showWin').onchange=applyFilter; $('showEdges').onchange=applyFilter;
   $('showOpen').onchange=applyFilter; $('showLogical').onchange=applyFilter; $('showEnclosure').onchange=applyFilter;
@@ -750,6 +750,11 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
         "roles": roles if roles is not None else data.get("roles", {}),
         "source_model": data.get("source_model"),
     }
+    from src.agent.roles import ROOM_TYPES, normalize
+    from src.agent.geometry.source_naming import viewer_names
+    geo["roles"] = {sid: normalize(role) or "unknown" for sid, role in geo["roles"].items()}
+    geo["room_types"] = ROOM_TYPES
+    geo["public_names"] = viewer_names(data, geo["visible_wall_parts"])
     safe_title = html.escape(title)  # HTML-context (title tag + panel text)
     return (
         _HTML

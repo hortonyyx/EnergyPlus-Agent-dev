@@ -5,6 +5,7 @@ or create EnergyPlus surfaces. The viewer is a separate, disposable projection.
 """
 from __future__ import annotations
 
+import hashlib
 import math
 from itertools import combinations
 from urllib.parse import quote
@@ -170,6 +171,9 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
     # Reuse polygon validity/bounds checks, without the legacy EP kernel's
     # configurable minimum edge length. Small valid source spaces stay present.
     spaces, boundaries, polygons, by_space = source_primitives(geom, polygon_builder=cell_polygon)
+    from src.agent.roles import require_role
+    for space in spaces:
+        space.role = require_role(space.role)
     source_spaces_by_id = {space.id: space for space in spaces}
     for floor, fid in zip(geom.floors, floor_ids):
         footprint = getattr(floor, "footprint", None)
@@ -342,6 +346,12 @@ def build_source_bim(geom: CorrectedGeometry, *, capability_profile="rectangular
                        "not_evaluated": ["drawing partition fidelity and completeness", "unobserved openings",
                                          "voids and false slabs", "thermal properties and solver acceptance"]},
     }
+    from src.agent.geometry.source_naming import build_public_names
+    from src.agent.roles import CATALOG, CATALOG_PATH
+    payload["public_names"] = build_public_names(payload)
+    payload["room_type_catalog"] = {"schema_version": CATALOG["schema_version"],
+                                    "sha256": hashlib.sha256(CATALOG_PATH.read_bytes()).hexdigest(),
+                                    "source": CATALOG["source"]}
     payload["source_model_sha256"] = _digest(payload)
     if enclosure_declaration is not None:
         from src.agent.geometry.source_enclosure import apply_source_enclosure

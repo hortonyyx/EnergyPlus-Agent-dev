@@ -13,9 +13,9 @@ def plan():
         'templates': {'typical': {
             'footprint': [[0,0],[6,0],[6,2],[3,2],[3,5],[0,5]],
             'spaces': [
-                {'id':'hall','role':'corridor_inferred','rect':[0,0,3,5],
+                {'id':'hall','role':'corridor','rect':[0,0,3,5],
                  'source_refs':['hypothesis']},
-                {'id':'office','role':'office_inferred','rect':[3,0,6,2],
+                {'id':'office','role':'office','rect':[3,0,6,2],
                  'source_refs':['hypothesis']}],
             'window_rows': [{'id':'west','facade':'West','plane':0,
                 'spans':[[1,2],[3,4]],'z':[0.8,2.2], 'source_refs':['synthetic observation']}],
@@ -63,7 +63,7 @@ def test_source_reports_real_overlap_without_expansion_repair(tmp_path):
 def test_nonrectangular_single_space_survives_without_extra_physical_dividers(tmp_path):
     value=plan()
     template=value['templates']['typical']
-    template['spaces']=[{'id':'open','role':'office_inferred',
+    template['spaces']=[{'id':'open','role':'office',
         'polygon':template['footprint'], 'source_refs':['explicit open-layout hypothesis']}]
     template['doors']=[]
     report=export_source_proposal(expand_parametric_proposal(value),tmp_path/'open')
