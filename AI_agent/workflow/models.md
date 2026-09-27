@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-27 收工补充选模调研：** 用户要求增加 GPT、GLM、DeepSeek 的同档候选，支持泛化测试并减少 Claude 额度中断。当前代理接口可选 GPT-6 Astra/Sol/Luna、GPT-5.6 Sol/Terra；优先推荐 Sol 对应 Sonnet 工作档、Luna 对应 Haiku 局部档，属于待实测的角色近似。GLM-5.3 暂作文本主控候选，5.3-Flash 作视觉候选；DeepSeek-V4-Pro 无视觉，当前 deepseek-flash 对应 V4.1-Flash 且有视觉。BIM 入口尚未接 GPT/DeepSeek，GLM 两角色现均映射同一 Flash。型号可选、官网能力、实际可用额度与项目质量分别核验；没有新调用或路由修改，不改变模型上限、节点回归及 DeepSeek 专项许可。完整价格、来源、限制和后续建议见[同档候选调研](../logs/worklog/2026-09-27_model_equivalence_research.md)。
+
 **09-27 用途提醒四次回归尝试已结束，Claude额度受限：** 用户批准sm21/sm24各前后一次，随后指定2+2分批。run75实际claude-sonnet-5/medium，1144.37秒正常结束，CLI估算$4.8565468；run76同型号1612.58秒后429，估算$6.0323290，中断稿保留。第二批因编排未在失败回执检查后停住仍发起run77/78，6.72/6.75秒立即429，零输入/输出token、modelUsage为空、各估算$0；回执路由型号不代表有实际推理。四次总估算$10.8888758非账单。错误原文同时提monthly spend limit和session resets 6pm UTC，额度类型/恢复时间未独立核实。本轮不再调用、无重试/子调用/通道或付费回退；将来新节点范围另行拍板，不自动补跑。见[调用原件与执行失误](../logs/experiments/2026-09-27_room_use_guidance_setup/batch_result.json)及[完整收工](../logs/worklog/2026-09-27_reconstruction_use_guidance_close.md)。
 
 **09-27 像素反馈对照已完成：** 用户批准具体两次后，sm21/run73–74各1次Claude订阅主调用，实际均`claude-sonnet-5`/medium，955.91/945.32秒，0续查/子调用/重试；CLI估算$4.4949752/$3.5466882，合计$8.0416634，非账单。两组并行，时长相加不是墙钟时间。全部调用结束，本批未恢复旧几何质量，current未调用被改工具，不能判定反馈补丁效果；没有额外模型调用授权。见[本节点交接](../logs/worklog/2026-09-27_reconstruction_profile_comparison.md)。
