@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 955.91,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 918506,
+    "stop_reason": "end_turn",
+    "session_id": "cabf8e4d-d323-4dac-bdd7-2bf154c61fc2",
+    "total_cost_usd": 4.494975200000001,
+    "usage": {
+      "input_tokens": 126,
+      "cache_creation_input_tokens": 399144,
+      "cache_read_input_tokens": 10456086,
+      "output_tokens": 80693,
+      "output_tokens_details": {
+        "thinking_tokens": 52463
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 399144,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 976,
+          "cache_read_input_tokens": 394227,
+          "cache_creation_input_tokens": 4917,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4917
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 126,
+        "outputTokens": 80693,
+        "cacheReadInputTokens": 10456086,
+        "cacheCreationInputTokens": 399144,
+        "webSearchRequests": 0,
+        "costUSD": 4.494975200000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 52463,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 100,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "The whole-building lightweight BIM has been finished as **candidate_08**.\n\n## Summary\n\n**Delivered candidate:** `candidate_08` — a two-storey building, 15.0 m × 8.0 m footprint, assembled from independently reconstructed `1f_view.png` (F1, z=0–3.0m) and `2f_view.png` (F2, z=3.0–6.6m) plans.\n\n**Physical layout (both floors follow the same 3-bay north/south + central corridor pattern):**\n- F1: 3 north offices, corridor, 2 south offices + 1 south meeting room (round table), main west entrance double-door into the corridor, secondary south exterior door into the SW office, corridor-level east window.\n- F2: 2 large north meeting rooms (oval tables), corridor, 4 south offices, corridor-level east/west windows.\n- All room-to-corridor connections use doors (single or shared double-leaf); the corridor itself is kept as one open circulation space per floor, matching the drawing (verified with `check_source_space_relation` sampling — all consistent).\n\n**Calibration:** each plan independently calibrated from its own \"15000\"/\"8000\" dimension chains and wall-corner pixel crops (not copied between floors).\n\n**Heights:** Story heights (F1=3.0m, F2=3.6m, total 6.6m) and window/door sill-head values were read from the North/South/East/West elevation dimension chains, recorded as located claims with image sources, adopted, and confirmed/applied onto the final candidate (`check_openings` height_coverage now shows 17/29 openings image-linked, covering every exterior-facade opening).\n\n**Room uses:** all 14 spaces assigned inferred roles (office/enclosed, conference/meeting/multipurpose, corridor) from furniture evidence, recorded via `set_space_role` with explicit basis/assumptions.\n\n**Honest limitations (kept in the saved notes):**\n- Interior partition doors (12 of 14 doors) have no elevation view (they're internal) — their 2.1 m height is an explicit assumption, matching the one measured exterior door.\n- The south exterior office door (`F1:D_ext_S`) height is a visual-proportion estimate, not a dimensioned chain.\n- Some south/west-facade windows on both floors are assumed to share the measured north/east chains by symmetry rather than being independently re-measured on every facade.\n- F2 plan calibration showed a ~0.7% x/y cross-axis residual (flagged by the tool, within normal reading tolerance for a lightweight reconstruction).\n- No stairs are shown in either plan, so the two floors are modeled as independent stacked volumes with no vertical connection, per instructions not to invent circulation.\n- Overall drawing fidelity was not independently certified — geometry validity and the recorded checks are internal-consistency/claim-arithmetic checks, not proof the original drawing was reproduced perfectly.",
+    "ttft_ms": 3232,
+    "type": "result",
+    "duration_ms": 948259,
+    "uuid": "a7134d6d-4043-4298-8cb6-f432345dcd91",
+    "ttft_stream_ms": 3231,
+    "time_to_request_ms": 75,
+    "first_content_frame_ms": 3231,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

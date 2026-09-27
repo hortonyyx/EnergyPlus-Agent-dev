@@ -1,0 +1,659 @@
+{
+  "assumptions": [
+    "Door heights assumed 2.1m pending elevation evidence.",
+    "Window heights assumed sill 1.0m to head 2.0m pending elevation evidence.",
+    "Ceiling height assumed 3.0m pending elevation evidence.",
+    "Interior partitions modeled as centerlines without explicit thickness, consistent with plan_partition lightweight scope.",
+    "Door swing arcs used to estimate ~900mm door apertures for corridor doors where exact wall gap was partly occluded by symbols.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "roomA",
+            "polygon": [
+              [
+                0.275618,
+                4.908367
+              ],
+              [
+                5.183746,
+                4.908367
+              ],
+              [
+                5.183746,
+                7.787517
+              ],
+              [
+                0.275618,
+                7.787517
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room A and B, north segment, gray wall region px x883-895",
+              "1f_view.png: corridor north wall full width, py=618, continuous double-line wall observed in original"
+            ],
+            "x": [
+              0.275618,
+              5.183746
+            ],
+            "y": [
+              4.908367,
+              7.787517
+            ]
+          },
+          {
+            "id": "roomB",
+            "polygon": [
+              [
+                5.183746,
+                4.908367
+              ],
+              [
+                10.515901,
+                4.908367
+              ],
+              [
+                10.515901,
+                7.787517
+              ],
+              [
+                5.183746,
+                7.787517
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room A and B, north segment, gray wall region px x883-895",
+              "1f_view.png: vertical partition between room B and C, north segment, gray wall region px x1385-1400",
+              "1f_view.png: corridor north wall full width, py=618, continuous double-line wall observed in original"
+            ],
+            "x": [
+              5.183746,
+              10.515901
+            ],
+            "y": [
+              4.908367,
+              7.787517
+            ]
+          },
+          {
+            "id": "roomC",
+            "polygon": [
+              [
+                10.515901,
+                4.908367
+              ],
+              [
+                15.021201,
+                4.908367
+              ],
+              [
+                15.021201,
+                7.787517
+              ],
+              [
+                10.515901,
+                7.787517
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room B and C, north segment, gray wall region px x1385-1400",
+              "1f_view.png: corridor north wall full width, py=618, continuous double-line wall observed in original"
+            ],
+            "x": [
+              10.515901,
+              15.021201
+            ],
+            "y": [
+              4.908367,
+              7.787517
+            ]
+          },
+          {
+            "id": "corridor",
+            "polygon": [
+              [
+                0.275618,
+                2.932271
+              ],
+              [
+                15.021201,
+                2.932271
+              ],
+              [
+                15.021201,
+                4.908367
+              ],
+              [
+                0.275618,
+                4.908367
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: corridor north wall full width, py=618, continuous double-line wall observed in original",
+              "1f_view.png: corridor south wall full width, py=804"
+            ],
+            "x": [
+              0.275618,
+              15.021201
+            ],
+            "y": [
+              2.932271,
+              4.908367
+            ]
+          },
+          {
+            "id": "roomAp",
+            "polygon": [
+              [
+                0.275618,
+                -0.084993
+              ],
+              [
+                5.183746,
+                -0.084993
+              ],
+              [
+                5.183746,
+                2.932271
+              ],
+              [
+                0.275618,
+                2.932271
+              ]
+            ],
+            "role": "lounge/breakroom",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room A' and B', south segment",
+              "1f_view.png: corridor south wall full width, py=804"
+            ],
+            "x": [
+              0.275618,
+              5.183746
+            ],
+            "y": [
+              -0.084993,
+              2.932271
+            ]
+          },
+          {
+            "id": "roomBp",
+            "polygon": [
+              [
+                5.183746,
+                -0.084993
+              ],
+              [
+                10.515901,
+                -0.084993
+              ],
+              [
+                10.515901,
+                2.932271
+              ],
+              [
+                5.183746,
+                2.932271
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room A' and B', south segment",
+              "1f_view.png: vertical partition between room B' and C', south segment",
+              "1f_view.png: corridor south wall full width, py=804"
+            ],
+            "x": [
+              5.183746,
+              10.515901
+            ],
+            "y": [
+              -0.084993,
+              2.932271
+            ]
+          },
+          {
+            "id": "roomCp",
+            "polygon": [
+              [
+                10.515901,
+                -0.084993
+              ],
+              [
+                15.021201,
+                -0.084993
+              ],
+              [
+                15.021201,
+                2.932271
+              ],
+              [
+                10.515901,
+                2.932271
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room B' and C', south segment",
+              "1f_view.png: corridor south wall full width, py=804"
+            ],
+            "x": [
+              10.515901,
+              15.021201
+            ],
+            "y": [
+              -0.084993,
+              2.932271
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.275618,
+      15.021201
+    ],
+    "footprint_y": [
+      -0.084993,
+      7.787517
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_entrance",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.275618,
+          4.600266
+        ],
+        "p2": [
+          0.275618,
+          3.112882
+        ],
+        "source_refs": [
+          "1f_view.png: west exterior wall door swing arc into corridor, matches 1500mm dimension label; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_A_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.816254,
+          -0.084993
+        ],
+        "p2": [
+          1.717314,
+          -0.084993
+        ],
+        "source_refs": [
+          "1f_view.png: south exterior wall door swing arc into room A', matches 900mm segment of 540/900 dims; height assumed"
+        ],
+        "space_id": "roomAp",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_A_corr",
+        "kind": "door",
+        "other_space_id": "roomA",
+        "p1": [
+          4.166078,
+          4.908367
+        ],
+        "p2": [
+          5.120141,
+          4.908367
+        ],
+        "source_refs": [
+          "1f_view.png: door swing arc room A into corridor; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_B_corr",
+        "kind": "door",
+        "other_space_id": "roomB",
+        "p1": [
+          5.24735,
+          4.908367
+        ],
+        "p2": [
+          6.201413,
+          4.908367
+        ],
+        "source_refs": [
+          "1f_view.png: door swing arc room B into corridor; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_C_corr",
+        "kind": "door",
+        "other_space_id": "roomC",
+        "p1": [
+          10.600707,
+          4.908367
+        ],
+        "p2": [
+          11.55477,
+          4.908367
+        ],
+        "source_refs": [
+          "1f_view.png: door swing arc room C into corridor; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Ap_corr",
+        "kind": "door",
+        "other_space_id": "roomAp",
+        "p1": [
+          4.166078,
+          2.932271
+        ],
+        "p2": [
+          5.120141,
+          2.932271
+        ],
+        "source_refs": [
+          "1f_view.png: door swing arc room A' into corridor; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Bp_corr",
+        "kind": "door",
+        "other_space_id": "roomBp",
+        "p1": [
+          5.24735,
+          2.932271
+        ],
+        "p2": [
+          6.201413,
+          2.932271
+        ],
+        "source_refs": [
+          "1f_view.png: door swing arc room B' into corridor; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_Cp_corr",
+        "kind": "door",
+        "other_space_id": "roomCp",
+        "p1": [
+          10.600707,
+          2.932271
+        ],
+        "p2": [
+          11.55477,
+          2.932271
+        ],
+        "source_refs": [
+          "1f_view.png: door swing arc room C' into corridor; height assumed"
+        ],
+        "space_id": "corridor",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_A_n",
+        "kind": "window",
+        "p1": [
+          1.4947,
+          7.787517
+        ],
+        "p2": [
+          3.837456,
+          7.787517
+        ],
+        "room": "roomA",
+        "source_refs": [
+          "1f_view.png: north wall glazing hatch, room A, matches 2400mm dim; height assumed pending elevation"
+        ],
+        "span": [
+          1.4947,
+          3.837456
+        ],
+        "width_m": 2.342756,
+        "z": [
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_B_n",
+        "kind": "window",
+        "p1": [
+          6.466431,
+          7.787517
+        ],
+        "p2": [
+          8.809187,
+          7.787517
+        ],
+        "room": "roomB",
+        "source_refs": [
+          "1f_view.png: north wall glazing hatch, room B; height assumed pending elevation"
+        ],
+        "span": [
+          6.466431,
+          8.809187
+        ],
+        "width_m": 2.342756,
+        "z": [
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_C_n",
+        "kind": "window",
+        "p1": [
+          11.438163,
+          7.787517
+        ],
+        "p2": [
+          13.780919,
+          7.787517
+        ],
+        "room": "roomC",
+        "source_refs": [
+          "1f_view.png: north wall glazing hatch, room C; height assumed pending elevation"
+        ],
+        "span": [
+          11.438163,
+          13.780919
+        ],
+        "width_m": 2.342756,
+        "z": [
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_Ap_s",
+        "kind": "window",
+        "p1": [
+          3.657244,
+          -0.084993
+        ],
+        "p2": [
+          4.823322,
+          -0.084993
+        ],
+        "room": "roomAp",
+        "source_refs": [
+          "1f_view.png: south wall glazing hatch near partition, room A'; height assumed pending elevation"
+        ],
+        "span": [
+          3.657244,
+          4.823322
+        ],
+        "width_m": 1.166078,
+        "z": [
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_Bp_s",
+        "kind": "window",
+        "p1": [
+          6.477032,
+          -0.084993
+        ],
+        "p2": [
+          8.809187,
+          -0.084993
+        ],
+        "room": "roomBp",
+        "source_refs": [
+          "1f_view.png: south wall glazing hatch, room B'; height assumed pending elevation"
+        ],
+        "span": [
+          6.477032,
+          8.809187
+        ],
+        "width_m": 2.332155,
+        "z": [
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_Cp_s",
+        "kind": "window",
+        "p1": [
+          11.438163,
+          -0.084993
+        ],
+        "p2": [
+          13.780919,
+          -0.084993
+        ],
+        "room": "roomCp",
+        "source_refs": [
+          "1f_view.png: south wall glazing hatch, room C'; height assumed pending elevation"
+        ],
+        "span": [
+          11.438163,
+          13.780919
+        ],
+        "width_m": 2.342756,
+        "z": [
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_east",
+        "kind": "window",
+        "p1": [
+          15.021201,
+          4.515272
+        ],
+        "p2": [
+          15.021201,
+          3.293493
+        ],
+        "room": "corridor",
+        "source_refs": [
+          "1f_view.png: east wall glazing hatch at corridor level, matches 340/1200/340 dims; height assumed pending elevation"
+        ],
+        "span": [
+          3.293493,
+          4.515272
+        ],
+        "width_m": 1.221779,
+        "z": [
+          1.0,
+          2.0
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Precise opening heights require elevation view check.",
+    "Exact partition wall thickness not modeled (centerline only).",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

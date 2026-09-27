@@ -1,0 +1,115 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_07",
+    "objects": [
+      {
+        "id": "F1:W_S1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South_view.png local vertical dimension chain beside the entrance door (F1, 3000mm floor) reads 600/900/1500 from ceiling down: 600mm lintel gap, 900mm window height, 1500mm sill-to-floor, for the narrow accent window next to the south entrance door. Origin is F1 ceiling at absolute z=3.0m, direction -1.",
+    "sources": [
+      {
+        "box": [
+          0.0,
+          185.0,
+          300.0,
+          580.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          600.0,
+          900.0,
+          1500.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.4,
+            "index": 0,
+            "length_m": 0.6,
+            "span_m": [
+              2.4,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.5,
+            "index": 1,
+            "length_m": 0.9,
+            "span_m": [
+              1.5,
+              2.4
+            ],
+            "start_m": 2.4
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.5,
+            "span_m": [
+              0.0,
+              1.5
+            ],
+            "start_m": 1.5
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "326031d7319ee3bc34fb02e4a87e1d386010954eb9d16afcc9562f42cbe811f3",
+  "resolved_values": {
+    "height": [
+      1.5,
+      2.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0.0,
+        185.0,
+        300.0,
+        580.0
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

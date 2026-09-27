@@ -1,0 +1,281 @@
+{
+  "id": "application_0005",
+  "parent_candidate": "candidate_07",
+  "submitted_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_W_main",
+      "changes": {
+        "z": {
+          "claim": "claim_0004",
+          "value": "height"
+        }
+      },
+      "reason": "Apply pixel-measured door height from West_view.png elevation (refines assumed 2.1m to measured 2.13m)",
+      "source_refs": [
+        "claim_0004"
+      ]
+    },
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "ceiling_height: F1=3.0m, F2=3.6m, absolute total 6.6m, all measured from North/South/East/West elevation outer dimension chains (3600/3000/6600)",
+        "Door heights: F1:D_W_main measured ~2.13m from West_view.png pixels; F1:D_ext_S set to 2.1m by visual-proportion match to the measured main door; all remaining doors (all interior partition doors on F1 and F2, none visible in any elevation) assumed 2.1m standard height, consistent with the measured value but not independently confirmed per-door",
+        "Window sill/head heights measured from North/East/South_view.png dimension chains per floor and facade family (F1 offices 1.0-2.6m, F1 corridor 1.0-2.8m, F1 narrow accent window 1.5-2.4m, all F2 windows 4.0-5.8m absolute i.e. 1.0-2.8m floor-relative); South/West facades assumed to share the measured North/East chains by symmetry where not independently re-measured",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied",
+        "No stairs/vertical circulation observed in either plan view; the two floors are modeled as independent stacked volumes with no vertical connection"
+      ],
+      "unresolved": [
+        "Pixel-to-world plan calibration (both 1f_view.png and 2f_view.png) was derived by the agent from dimension-chain tick marks and wall-corner crops, not independently re-verified by a second method; F2 calibration shows a ~0.7% x/y cross-axis residual, within expected reading tolerance for a lightweight BIM",
+        "Interior door heights (all doors except F1:D_W_main and F1:D_ext_S) remain an explicit assumption; no elevation shows interior partition doors",
+        "F1:D_ext_S height is a visual-proportion estimate, not an independently measured dimension chain",
+        "F1 south-facade windows W_S2/W_S3 and all F2 south/west-facade windows are assumed to share the measured North/East-facade dimension chains by symmetry, not independently re-measured on every facade",
+        "Door open/closed state is unknown for all doors; not marked in either plan drawing"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0004"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_07",
+    "parent_proposal_sha256": "326031d7319ee3bc34fb02e4a87e1d386010954eb9d16afcc9562f42cbe811f3",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:D_W_main"
+          ]
+        ],
+        "claim_id": "claim_0004",
+        "value_field": "height",
+        "resolved_value": [
+          0.0,
+          2.130980392
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            177.5,
+            560,
+            436.5,
+            560.0
+          ],
+          "metre_anchors": [
+            6.6,
+            0.0
+          ],
+          "metres_per_pixel": -0.017254901960784313,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      }
+    ],
+    "claims": {
+      "claim_0004": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "candidate_07",
+            "objects": [
+              {
+                "id": "F1:D_W_main",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "West_view.png shows the main entrance double door as a full elevation rectangle. Measured pixel span (door top to floor line) against the calibrated overall 6600mm building-height dimension chain gives door height ~2130mm, i.e. a standard 2100mm door height. Using image_axis with the calibrated y-anchors and the measured door top/bottom pixels.",
+            "sources": [
+              {
+                "box": [
+                  380.0,
+                  380.0,
+                  850.0,
+                  570.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "anchors": [
+                  [
+                    177.5,
+                    6.6
+                  ],
+                  [
+                    560,
+                    0.0
+                  ]
+                ],
+                "axis": "y",
+                "image": "West_view.png",
+                "pixels": [
+                  436.5,
+                  560.0
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                6.6,
+                0.0
+              ],
+              "metres_per_pixel": -0.017254901960784313,
+              "pixels": [
+                177.5,
+                560,
+                436.5,
+                560.0
+              ]
+            }
+          },
+          "id": "claim_0004",
+          "parent_proposal_sha256": "326031d7319ee3bc34fb02e4a87e1d386010954eb9d16afcc9562f42cbe811f3",
+          "resolved_values": {
+            "height": [
+              0.0,
+              2.130980392
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                380.0,
+                380.0,
+                850.0,
+                570.0
+              ],
+              "image": "West_view.png",
+              "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "size": [
+                1077,
+                773
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0004",
+          "disposition": "adopted",
+          "id": "decision_0004",
+          "reason": "Pixel measurement of West_view.png main door confirms ~2.1m standard door height"
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_W_main",
+      "changes": {
+        "z": [
+          0.0,
+          2.130980392
+        ]
+      },
+      "reason": "Apply pixel-measured door height from West_view.png elevation (refines assumed 2.1m to measured 2.13m)",
+      "source_refs": [
+        "claim_0004",
+        "claim:claim_0004:1d5e2ae3d5cb1025ecbace0ff206a61f285171589c81ece5d33f2020935721b7"
+      ]
+    },
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "ceiling_height: F1=3.0m, F2=3.6m, absolute total 6.6m, all measured from North/South/East/West elevation outer dimension chains (3600/3000/6600)",
+        "Door heights: F1:D_W_main measured ~2.13m from West_view.png pixels; F1:D_ext_S set to 2.1m by visual-proportion match to the measured main door; all remaining doors (all interior partition doors on F1 and F2, none visible in any elevation) assumed 2.1m standard height, consistent with the measured value but not independently confirmed per-door",
+        "Window sill/head heights measured from North/East/South_view.png dimension chains per floor and facade family (F1 offices 1.0-2.6m, F1 corridor 1.0-2.8m, F1 narrow accent window 1.5-2.4m, all F2 windows 4.0-5.8m absolute i.e. 1.0-2.8m floor-relative); South/West facades assumed to share the measured North/East chains by symmetry where not independently re-measured",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied",
+        "No stairs/vertical circulation observed in either plan view; the two floors are modeled as independent stacked volumes with no vertical connection"
+      ],
+      "unresolved": [
+        "Pixel-to-world plan calibration (both 1f_view.png and 2f_view.png) was derived by the agent from dimension-chain tick marks and wall-corner crops, not independently re-verified by a second method; F2 calibration shows a ~0.7% x/y cross-axis residual, within expected reading tolerance for a lightweight BIM",
+        "Interior door heights (all doors except F1:D_W_main and F1:D_ext_S) remain an explicit assumption; no elevation shows interior partition doors",
+        "F1:D_ext_S height is a visual-proportion estimate, not an independently measured dimension chain",
+        "F1 south-facade windows W_S2/W_S3 and all F2 south/west-facade windows are assumed to share the measured North/East-facade dimension chains by symmetry, not independently re-measured on every facade",
+        "Door open/closed state is unknown for all doors; not marked in either plan drawing"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "329aec0406012b1e74d2e5f856561e01bff56ddd3255555b3b2c606351df49eb",
+  "geometry_after_sha256": "cda4ebac21ed3b930fab633558c8abaf050ea61b7c6d1b4311b32b66c1313256",
+  "changes": [
+    {
+      "kind": "opening",
+      "id": "F1:D_W_main",
+      "before": {
+        "id": "F1:D_W_main",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          4.748318
+        ],
+        "p2": [
+          0.0,
+          3.240915
+        ],
+        "space_id": "F1:corridor1",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      "after": {
+        "id": "F1:D_W_main",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          4.748318
+        ],
+        "p2": [
+          0.0,
+          3.240915
+        ],
+        "space_id": "F1:corridor1",
+        "z": [
+          0.0,
+          2.130980392
+        ]
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_08",
+  "source_model_sha256": "b9473132e8f9d7765695b4c0361febbcda2aaca2cc746a7b15b879d7b8ac8842",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{"floor_id":"F1","z_floor":0,"ceiling_height":3.0,
+"x_anchors":[[400,0],[1815,15]],"y_anchors":[[1080,0],[327,8]],
+"basis":"Calibrated from overall plan dimensions: horizontal 15000mm span pixel x=400 to x=1815 (top dimension line ticks); vertical 8000mm span pixel y=1080(bottom outer wall, world y=0) to y=327(top outer wall, world y=8). Outer footprint uses observed outer wall faces from filled gray wall regions. Interior partitions (two spine walls at px x=889 and x=1392) use measured wall centerlines. Corridor north/south walls at px y=618 and y=804 span full building width, with door apertures at each room-corridor connection measured from door swing arcs in the original drawing.",
+"footprint_pixels":[[426,347],[1817,347],[1817,1088],[426,1088]],
+"partitions":[
+ {"id":"spine1_top","points":[[889,347],[889,618]],"source_refs":["1f_view.png: vertical partition between room A and B, north segment, gray wall region px x883-895"]},
+ {"id":"spine1_bot","points":[[889,804],[889,1088]],"source_refs":["1f_view.png: vertical partition between room A' and B', south segment"]},
+ {"id":"spine2_top","points":[[1392,347],[1392,618]],"source_refs":["1f_view.png: vertical partition between room B and C, north segment, gray wall region px x1385-1400"]},
+ {"id":"spine2_bot","points":[[1392,804],[1392,1088]],"source_refs":["1f_view.png: vertical partition between room B' and C', south segment"]},
+ {"id":"corridor_north","points":[[426,618],[889,618],[1392,618],[1817,618]],"source_refs":["1f_view.png: corridor north wall full width, py=618, continuous double-line wall observed in original"]},
+ {"id":"corridor_south","points":[[426,804],[889,804],[1392,804],[1817,804]],"source_refs":["1f_view.png: corridor south wall full width, py=804"]}
+],
+"openings":[
+ {"id":"D_entrance","kind":"door","p1":[426,647],"p2":[426,787],"z":[0,2.1],"source_refs":["1f_view.png: west exterior wall door swing arc into corridor, matches 1500mm dimension label; height assumed"]},
+ {"id":"D_A_ext","kind":"door","p1":[477,1088],"p2":[562,1088],"z":[0,2.1],"source_refs":["1f_view.png: south exterior wall door swing arc into room A', matches 900mm segment of 540/900 dims; height assumed"]},
+ {"id":"W_A_n","kind":"window","p1":[541,347],"p2":[762,347],"z":[1.0,2.0],"source_refs":["1f_view.png: north wall glazing hatch, room A, matches 2400mm dim; height assumed pending elevation"]},
+ {"id":"W_B_n","kind":"window","p1":[1010,347],"p2":[1231,347],"z":[1.0,2.0],"source_refs":["1f_view.png: north wall glazing hatch, room B; height assumed pending elevation"]},
+ {"id":"W_C_n","kind":"window","p1":[1479,347],"p2":[1700,347],"z":[1.0,2.0],"source_refs":["1f_view.png: north wall glazing hatch, room C; height assumed pending elevation"]},
+ {"id":"W_Ap_s","kind":"window","p1":[745,1088],"p2":[855,1088],"z":[1.0,2.0],"source_refs":["1f_view.png: south wall glazing hatch near partition, room A'; height assumed pending elevation"]},
+ {"id":"W_Bp_s","kind":"window","p1":[1011,1088],"p2":[1231,1088],"z":[1.0,2.0],"source_refs":["1f_view.png: south wall glazing hatch, room B'; height assumed pending elevation"]},
+ {"id":"W_Cp_s","kind":"window","p1":[1479,1088],"p2":[1700,1088],"z":[1.0,2.0],"source_refs":["1f_view.png: south wall glazing hatch, room C'; height assumed pending elevation"]},
+ {"id":"W_east","kind":"window","p1":[1817,655],"p2":[1817,770],"z":[1.0,2.0],"source_refs":["1f_view.png: east wall glazing hatch at corridor level, matches 340/1200/340 dims; height assumed pending elevation"]},
+ {"id":"D_A_corr","kind":"door","p1":[793,618],"p2":[883,618],"z":[0,2.1],"source_refs":["1f_view.png: door swing arc room A into corridor; height assumed"]},
+ {"id":"D_B_corr","kind":"door","p1":[895,618],"p2":[985,618],"z":[0,2.1],"source_refs":["1f_view.png: door swing arc room B into corridor; height assumed"]},
+ {"id":"D_C_corr","kind":"door","p1":[1400,618],"p2":[1490,618],"z":[0,2.1],"source_refs":["1f_view.png: door swing arc room C into corridor; height assumed"]},
+ {"id":"D_Ap_corr","kind":"door","p1":[793,804],"p2":[883,804],"z":[0,2.1],"source_refs":["1f_view.png: door swing arc room A' into corridor; height assumed"]},
+ {"id":"D_Bp_corr","kind":"door","p1":[895,804],"p2":[985,804],"z":[0,2.1],"source_refs":["1f_view.png: door swing arc room B' into corridor; height assumed"]},
+ {"id":"D_Cp_corr","kind":"door","p1":[1400,804],"p2":[1490,804],"z":[0,2.1],"source_refs":["1f_view.png: door swing arc room C' into corridor; height assumed"]}
+],
+"space_seeds":[
+ {"id":"roomA","point":[655,480],"role":"office"},
+ {"id":"roomB","point":[1140,480],"role":"office"},
+ {"id":"roomC","point":[1600,480],"role":"office"},
+ {"id":"corridor","point":[1100,710],"role":"corridor"},
+ {"id":"roomAp","point":[655,950],"role":"lounge/breakroom"},
+ {"id":"roomBp","point":[1140,950],"role":"office"},
+ {"id":"roomCp","point":[1600,950],"role":"conference/meeting/multipurpose"}
+],
+"assumptions":["Door heights assumed 2.1m pending elevation evidence.","Window heights assumed sill 1.0m to head 2.0m pending elevation evidence.","Ceiling height assumed 3.0m pending elevation evidence.","Interior partitions modeled as centerlines without explicit thickness, consistent with plan_partition lightweight scope.","Door swing arcs used to estimate ~900mm door apertures for corridor doors where exact wall gap was partly occluded by symbols."],
+"unresolved":["Precise opening heights require elevation view check.","Exact partition wall thickness not modeled (centerline only)."]}

@@ -1,0 +1,173 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W_TL_n",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_TR_n",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_r1_s",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_r2_s",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_r3_s",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_r4_s",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_east_corr",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_west_corr",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png right-side vertical dimension chain descends from building top (z=6.6m) to ground (z=0): 800,1800,1000 (2F zone) then 400,1600,1000 (1F zone). Direction -1 from origin 6.6m gives cumulative points 6.6,5.8,4.0,3.0,2.6,1.0,0.0. The 2F window (1800mm segment, zero-based segment index 1) spans absolute z 4.0 to 5.8m, matching the value already used when this floor draft was built. This confirms/documents that existing value against the elevation.",
+    "sources": [
+      {
+        "box": null,
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [
+      "Assumes all F2 exterior windows share this single measured height family (matches South/East/West_view.png visual pattern)."
+    ],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          800.0,
+          1800.0,
+          1000.0,
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 6.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": -0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 6.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 5.8,
+            "index": 0,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 6.6
+          },
+          {
+            "end_m": 4.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 5.8
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 4.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 3,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 4,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": -0.0,
+            "index": 5,
+            "length_m": 1.0,
+            "span_m": [
+              -0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 6.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "2e6189213469a32453a102e05d1b16703641b6d94a94d34f9328c3482d151d58",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "op": "update_opening",
+    "id": "F1:D_W_main",
+    "changes": {
+      "z": [
+        0.0,
+        2.130980392
+      ]
+    },
+    "reason": "Apply pixel-measured door height from West_view.png elevation (refines assumed 2.1m to measured 2.13m)",
+    "source_refs": [
+      "claim_0004",
+      "claim:claim_0004:1d5e2ae3d5cb1025ecbace0ff206a61f285171589c81ece5d33f2020935721b7"
+    ]
+  },
+  {
+    "op": "set_notes",
+    "assumptions": [
+      "ceiling_height: F1=3.0m, F2=3.6m, absolute total 6.6m, all measured from North/South/East/West elevation outer dimension chains (3600/3000/6600)",
+      "Door heights: F1:D_W_main measured ~2.13m from West_view.png pixels; F1:D_ext_S set to 2.1m by visual-proportion match to the measured main door; all remaining doors (all interior partition doors on F1 and F2, none visible in any elevation) assumed 2.1m standard height, consistent with the measured value but not independently confirmed per-door",
+      "Window sill/head heights measured from North/East/South_view.png dimension chains per floor and facade family (F1 offices 1.0-2.6m, F1 corridor 1.0-2.8m, F1 narrow accent window 1.5-2.4m, all F2 windows 4.0-5.8m absolute i.e. 1.0-2.8m floor-relative); South/West facades assumed to share the measured North/East chains by symmetry where not independently re-measured",
+      "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied",
+      "No stairs/vertical circulation observed in either plan view; the two floors are modeled as independent stacked volumes with no vertical connection"
+    ],
+    "unresolved": [
+      "Pixel-to-world plan calibration (both 1f_view.png and 2f_view.png) was derived by the agent from dimension-chain tick marks and wall-corner crops, not independently re-verified by a second method; F2 calibration shows a ~0.7% x/y cross-axis residual, within expected reading tolerance for a lightweight BIM",
+      "Interior door heights (all doors except F1:D_W_main and F1:D_ext_S) remain an explicit assumption; no elevation shows interior partition doors",
+      "F1:D_ext_S height is a visual-proportion estimate, not an independently measured dimension chain",
+      "F1 south-facade windows W_S2/W_S3 and all F2 south/west-facade windows are assumed to share the measured North/East-facade dimension chains by symmetry, not independently re-measured on every facade",
+      "Door open/closed state is unknown for all doors; not marked in either plan drawing"
+    ]
+  }
+]

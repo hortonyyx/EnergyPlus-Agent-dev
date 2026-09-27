@@ -1,0 +1,206 @@
+{
+  "agent_assumptions": [
+    "ceiling_height: F1=3.0m, F2=3.6m, absolute total 6.6m, all measured from North/South/East/West elevation outer dimension chains (3600/3000/6600)",
+    "Door heights: F1:D_W_main measured ~2.13m from West_view.png pixels; F1:D_ext_S set to 2.1m by visual-proportion match to the measured main door; all remaining doors (all interior partition doors on F1 and F2, none visible in any elevation) assumed 2.1m standard height, consistent with the measured value but not independently confirmed per-door",
+    "Window sill/head heights measured from North/East/South_view.png dimension chains per floor and facade family (F1 offices 1.0-2.6m, F1 corridor 1.0-2.8m, F1 narrow accent window 1.5-2.4m, all F2 windows 4.0-5.8m absolute i.e. 1.0-2.8m floor-relative); South/West facades assumed to share the measured North/East chains by symmetry where not independently re-measured",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied",
+    "No stairs/vertical circulation observed in either plan view; the two floors are modeled as independent stacked volumes with no vertical connection"
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "729f9b9f853a27543d633c7847d51fe99d130a5d1624854ac8169494d03f3610",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0004",
+          "computation": {
+            "axis": "y",
+            "calibration": "caller_interpreted_not_verified",
+            "measurement_bindings": [],
+            "method": "image_axis",
+            "metre_anchors": [
+              6.6,
+              0.0
+            ],
+            "metres_per_pixel": -0.017254901960784313,
+            "pixels": [
+              177.5,
+              560,
+              436.5,
+              560.0
+            ]
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            0.0,
+            2.130980392
+          ],
+          "targets": [
+            [
+              "opening",
+              "F1:D_W_main"
+            ]
+          ],
+          "value_field": "height"
+        }
+      ],
+      "claims": {
+        "claim_0004": {
+          "decision": {
+            "claim_id": "claim_0004",
+            "disposition": "adopted",
+            "id": "decision_0004",
+            "reason": "Pixel measurement of West_view.png main door confirms ~2.1m standard door height"
+          },
+          "record": {
+            "claim": {
+              "basis": "pixels",
+              "candidate": "candidate_07",
+              "objects": [
+                {
+                  "id": "F1:D_W_main",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "West_view.png shows the main entrance double door as a full elevation rectangle. Measured pixel span (door top to floor line) against the calibrated overall 6600mm building-height dimension chain gives door height ~2130mm, i.e. a standard 2100mm door height. Using image_axis with the calibrated y-anchors and the measured door top/bottom pixels.",
+              "sources": [
+                {
+                  "box": [
+                    380.0,
+                    380.0,
+                    850.0,
+                    570.0
+                  ],
+                  "image": "West_view.png"
+                }
+              ],
+              "unresolved": [],
+              "value_targets": null,
+              "values": {
+                "height": {
+                  "anchors": [
+                    [
+                      177.5,
+                      6.6
+                    ],
+                    [
+                      560,
+                      0.0
+                    ]
+                  ],
+                  "axis": "y",
+                  "image": "West_view.png",
+                  "pixels": [
+                    436.5,
+                    560.0
+                  ],
+                  "reduction": null,
+                  "type": "image_axis"
+                }
+              }
+            },
+            "computations": {
+              "height": {
+                "axis": "y",
+                "calibration": "caller_interpreted_not_verified",
+                "measurement_bindings": [],
+                "method": "image_axis",
+                "metre_anchors": [
+                  6.6,
+                  0.0
+                ],
+                "metres_per_pixel": -0.017254901960784313,
+                "pixels": [
+                  177.5,
+                  560,
+                  436.5,
+                  560.0
+                ]
+              }
+            },
+            "id": "claim_0004",
+            "parent_proposal_sha256": "326031d7319ee3bc34fb02e4a87e1d386010954eb9d16afcc9562f42cbe811f3",
+            "resolved_values": {
+              "height": [
+                0.0,
+                2.130980392
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  380.0,
+                  380.0,
+                  850.0,
+                  570.0
+                ],
+                "image": "West_view.png",
+                "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                "size": [
+                  1077,
+                  773
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0005.json",
+      "parent_candidate": "candidate_07",
+      "parent_proposal_sha256": "326031d7319ee3bc34fb02e4a87e1d386010954eb9d16afcc9562f42cbe811f3"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "aab7c68a854fe5470e11e6f90ed69b3a1f00e39836a7b1a248100f781265fab3",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_07",
+    "parent_proposal_sha256": "326031d7319ee3bc34fb02e4a87e1d386010954eb9d16afcc9562f42cbe811f3"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "b9473132e8f9d7765695b4c0361febbcda2aaca2cc746a7b15b879d7b8ac8842",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Pixel-to-world plan calibration (both 1f_view.png and 2f_view.png) was derived by the agent from dimension-chain tick marks and wall-corner crops, not independently re-verified by a second method; F2 calibration shows a ~0.7% x/y cross-axis residual, within expected reading tolerance for a lightweight BIM",
+    "Interior door heights (all doors except F1:D_W_main and F1:D_ext_S) remain an explicit assumption; no elevation shows interior partition doors",
+    "F1:D_ext_S height is a visual-proportion estimate, not an independently measured dimension chain",
+    "F1 south-facade windows W_S2/W_S3 and all F2 south/west-facade windows are assumed to share the measured North/East-facade dimension chains by symmetry, not independently re-measured on every facade",
+    "Door open/closed state is unknown for all doors; not marked in either plan drawing"
+  ]
+}

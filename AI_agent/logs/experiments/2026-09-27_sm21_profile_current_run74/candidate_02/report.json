@@ -1,0 +1,84 @@
+{
+  "agent_assumptions": [
+    "Interior corridor door heights assumed 2.1m absolute (2F floor base+2.1), not shown on any facade (interior partitions).",
+    "Window z heights combine North/West/East elevation evidence (sill1.0m/head2.8m above 2F floor) added to an assumed z_floor=3.0m for this draft-local placement; actual assembled z will be corrected by assemble_plan_bim floor-base translation using this draft's LOCAL z (see note: this draft was built with z_floor=0 so opening z here should be LOCAL not absolute -- see unresolved).",
+    "Ceiling height 3.6m and floor2 base 3.0m taken from North_view.png/West_view.png overall 6600mm total split 3000(1F)+3600(2F).",
+    "Partition walls modeled as centerlines without explicit thickness.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "8ebab6e146c5d96e9f2ea4721ec340370c496b062db4eeb3743141a8a10ceba9",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "a4136b6829b272da634235e8c670783b36096630e0d8cfd63709b6c14690041f",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_004/compilation.json",
+      "compilation_sha256": "d7fff73df98cc4589c44f84b437523c2c1845598411e5b391392165fe3b2227f",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_004/draft_view.png",
+        "image_sha256": "50a42e04af826587f02f1e08d40ade003d2441f9e58f54ebd9fb045f1a706835",
+        "metadata_file": "plan_drafts/draft_004/draft_view.json",
+        "metadata_sha256": "0b7044e80868ea87cf338bf1617744001a09c062f8d75fab82a9b0c591060e33",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_004/plan.json",
+      "plan_sha256": "18406bcc7a7155e5c2dce46e48e77ff1fb1fdd0969a20c2c6189317dc543b5a5",
+      "revision": {
+        "file": "plan_revisions/revision_002.json",
+        "parent_draft_id": "draft_003",
+        "parent_plan_sha256": "129882d54421626891e496904daa408bf9d1b3234afe2089c9be074ab63835c9",
+        "sha256": "11a8bcaf5f2d84a444c8c2ede0a5edcd1c11307230625d354ec8aa676a502313"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "170df66000808fce8fdecba9042db177e60ef23394dde928480712be4afa8331",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Opening z values were entered assuming absolute elevation from building base; must verify/correct against this draft's actual z_floor=0 local convention before or during assembly.",
+    "Exact interior corridor door height unmeasured from any facade.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

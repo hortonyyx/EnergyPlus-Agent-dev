@@ -1,0 +1,39 @@
+{"floor_id":"F2","z_floor":0,"ceiling_height":3.6,
+"x_anchors":[[430,0],[1812,15]],"y_anchors":[[1082,0],[342,8]],
+"basis":"Calibrated from overall plan dimensions: horizontal 15000mm span pixel x=430 to x=1812; vertical 8000mm span pixel y=1082(bottom outer wall,world y=0) to y=342(top outer wall,world y=8). Outer footprint uses observed outer gray wall faces. Interior: one full-height spine wall at px x=1120 dividing two top meeting rooms; three spine walls at px x=733,1077,1427 dividing four bottom offices; both spine sets stop at a full-width corridor band py=604 to py=804 (open, no partition crossing it), matching the same layout pattern observed on 1f_view.png. Door apertures measured from swing-arc symbols flanking the spine walls at the corridor faces.",
+"footprint_pixels":[[427,331],[1814,331],[1814,1072],[427,1072]],
+"partitions":[
+ {"id":"topspine","points":[[1120,331],[1120,604]],"source_refs":["2f_view.png: vertical wall between two top meeting rooms, gray region px x1114-1126"]},
+ {"id":"botspine1","points":[[733,804],[733,1072]],"source_refs":["2f_view.png: vertical wall between bottom room1 and room2"]},
+ {"id":"botspine2","points":[[1077,804],[1077,1072]],"source_refs":["2f_view.png: vertical wall between bottom room2 and room3"]},
+ {"id":"botspine3","points":[[1427,804],[1427,1072]],"source_refs":["2f_view.png: vertical wall between bottom room3 and room4"]},
+ {"id":"corridor_north","points":[[427,604],[1120,604],[1814,604]],"source_refs":["2f_view.png: corridor north wall full width, py=604"]},
+ {"id":"corridor_south","points":[[427,804],[733,804],[1077,804],[1427,804],[1814,804]],"source_refs":["2f_view.png: corridor south wall full width, py=804"]}
+],
+"openings":[
+ {"id":"W_TL_n","kind":"window","p1":[611,331],"p2":[951,331],"z":[2.8,4.6],"source_refs":["2f_view.png: north wall glazing hatch, top-left meeting room, matches 3600mm dim; height from North_view.png elevation sill1.0/height1.8 within 2F storey (z_floor 3.0 + sill1.0=4.0? see note)"]},
+ {"id":"W_TR_n","kind":"window","p1":[1290,331],"p2":[1634,331],"z":[2.8,4.6],"source_refs":["2f_view.png: north wall glazing hatch, top-right meeting room; height per North_view.png"]},
+ {"id":"W_east_corr","kind":"window","p1":[1814,645],"p2":[1814,758],"z":[2.8,4.6],"source_refs":["2f_view.png: east wall glazing hatch at corridor level; height per East_view.png"]},
+ {"id":"W_west_corr","kind":"window","p1":[427,645],"p2":[427,758],"z":[2.8,4.6],"source_refs":["2f_view.png: west wall glazing hatch at corridor level; height per West_view.png"]},
+ {"id":"W_r1_s","kind":"window","p1":[629,1072],"p2":[741,1072],"z":[2.8,4.6],"source_refs":["2f_view.png: south wall glazing hatch room1"]},
+ {"id":"W_r2_s","kind":"window","p1":[807,1072],"p2":[919,1072],"z":[2.8,4.6],"source_refs":["2f_view.png: south wall glazing hatch room2"]},
+ {"id":"W_r3_s","kind":"window","p1":[1322,1072],"p2":[1434,1072],"z":[2.8,4.6],"source_refs":["2f_view.png: south wall glazing hatch room3"]},
+ {"id":"W_r4_s","kind":"window","p1":[1500,1072],"p2":[1612,1072],"z":[2.8,4.6],"source_refs":["2f_view.png: south wall glazing hatch room4"]},
+ {"id":"D_TL_corr","kind":"door","p1":[1035,604],"p2":[1120,604],"z":[3.0,5.1],"source_refs":["2f_view.png: door swing arc top-left meeting room into corridor; height assumed 2.1m"]},
+ {"id":"D_TR_corr","kind":"door","p1":[1120,604],"p2":[1205,604],"z":[3.0,5.1],"source_refs":["2f_view.png: door swing arc top-right meeting room into corridor; height assumed 2.1m"]},
+ {"id":"D_r1_corr","kind":"door","p1":[648,804],"p2":[733,804],"z":[3.0,5.1],"source_refs":["2f_view.png: door swing arc room1 into corridor; height assumed 2.1m"]},
+ {"id":"D_r2_corr","kind":"door","p1":[733,804],"p2":[818,804],"z":[3.0,5.1],"source_refs":["2f_view.png: door swing arc room2 into corridor; height assumed 2.1m"]},
+ {"id":"D_r3_corr","kind":"door","p1":[1342,804],"p2":[1427,804],"z":[3.0,5.1],"source_refs":["2f_view.png: door swing arc room3 into corridor; height assumed 2.1m"]},
+ {"id":"D_r4_corr","kind":"door","p1":[1427,804],"p2":[1512,804],"z":[3.0,5.1],"source_refs":["2f_view.png: door swing arc room4 into corridor; height assumed 2.1m"]}
+],
+"space_seeds":[
+ {"id":"roomTL","point":[700,450],"role":"conference/meeting/multipurpose"},
+ {"id":"roomTR","point":[1450,450],"role":"conference/meeting/multipurpose"},
+ {"id":"corridor2","point":[1100,700],"role":"corridor"},
+ {"id":"room1","point":[580,950],"role":"office"},
+ {"id":"room2","point":[900,950],"role":"office"},
+ {"id":"room3","point":[1250,950],"role":"office"},
+ {"id":"room4","point":[1600,950],"role":"office"}
+],
+"assumptions":["Interior corridor door heights assumed 2.1m absolute (2F floor base+2.1), not shown on any facade (interior partitions).","Window z heights combine North/West/East elevation evidence (sill1.0m/head2.8m above 2F floor) added to an assumed z_floor=3.0m for this draft-local placement; actual assembled z will be corrected by assemble_plan_bim floor-base translation using this draft's LOCAL z (see note: this draft was built with z_floor=0 so opening z here should be LOCAL not absolute -- see unresolved).","Ceiling height 3.6m and floor2 base 3.0m taken from North_view.png/West_view.png overall 6600mm total split 3000(1F)+3600(2F).","Partition walls modeled as centerlines without explicit thickness."],
+"unresolved":["Opening z values were entered assuming absolute elevation from building base; must verify/correct against this draft's actual z_floor=0 local convention before or during assembly.","Exact interior corridor door height unmeasured from any facade."]}

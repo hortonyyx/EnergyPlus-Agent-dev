@@ -1,0 +1,83 @@
+{
+  "agent_assumptions": [
+    "Door heights assumed 2.1m pending elevation check",
+    "Window sill/head assumed 0.9-2.1m pending elevation check",
+    "ceiling_height assumed 3.0m pending elevation check",
+    "No stairs/vertical circulation observed in plan views; floors modeled independently",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "262666612047256116da5d52a1fb44abe0a23445b4f863b35830a451e4f3a34c",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "aab7c68a854fe5470e11e6f90ed69b3a1f00e39836a7b1a248100f781265fab3",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_005/compilation.json",
+      "compilation_sha256": "295e75b607bdc1171c278f725445935f2ad5a5b8e7ee2ae1e5b3f3b772f84e1f",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_005/draft_view.png",
+        "image_sha256": "ce404199c5dc9bf5d07885aa0af8104ed0180fe2e5f87e8c975f2743d89d378c",
+        "metadata_file": "plan_drafts/draft_005/draft_view.json",
+        "metadata_sha256": "16b23fb9f44ef5d2dfccad48774f022a8f191ec76b5ea8a5c5cbb371a3c864e5",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_005/plan.json",
+      "plan_sha256": "864a3db608f081131531eaf5bd6ba5fbb8143ebd4983bff77c2d21a848f2b7c2",
+      "revision": {
+        "file": "plan_revisions/revision_003.json",
+        "parent_draft_id": "draft_004",
+        "parent_plan_sha256": "1cbdd4da9caa3ff5e0408c7f9a34d1815acd95866b151bf41a1a295630574622",
+        "sha256": "477cdeb14951e815070e0e973c3a3069030f78d07056e0fb1cffeeda05af4e62"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "5a5265ab30ea1190c4c19de19f6e09f829dd216cb3d56e6c4f87a81a45dcd8a3",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Opening heights not yet cross-checked against elevation drawings",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

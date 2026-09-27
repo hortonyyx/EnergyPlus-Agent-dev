@@ -1,0 +1,1448 @@
+{
+  "variant": "legacy",
+  "method_sha256": "085caf03fc0b6092dbb23b2204f2cff323d7bc2667cd03ca18cf03f4f170883e",
+  "tools": [
+    {
+      "name": "get_bim_reference",
+      "title": null,
+      "description": "Read room_types, naming, reconstruction, geometry, plan_partition, edits or opening_review.\n        Choose room_types before assigning roles; naming explains public names and CCW wall order.\n        Choose reconstruction for drawing measurements and evidence interpretation.\n        Choose geometry for a full proposal or plan_partition for pixel walls.\n        These are generic instructions, not case observations or reference answers.\n        ",
+      "inputSchema": {
+        "properties": {
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic"
+        ],
+        "title": "get_bim_referenceArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "inputs",
+      "title": null,
+      "description": "List admitted original images, native mesh, building declaration and scope.",
+      "inputSchema": {
+        "properties": {},
+        "title": "inputsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_image",
+      "title": null,
+      "description": "View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.\n        Full views fit 1600 px; grid labels keep original coordinates after scaling.\n        Use display_scale=4 for small text or thin lines; coordinates stay original pixels.\n        Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.\n        Returned view_id can be used directly in claim sources or replace_claim_sources;\n        do not copy crop coordinates again when citing exactly this view.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "box": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Box"
+          },
+          "coordinate_grid": {
+            "default": true,
+            "title": "Coordinate Grid",
+            "type": "boolean"
+          },
+          "display_scale": {
+            "default": 1.0,
+            "title": "Display Scale",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "view_imageArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "pixel_profile",
+      "title": null,
+      "description": "Measure colored ink runs along x or y in an original-pixel crop.\n        You select RGB/tolerance; results have no wall/door semantic labels.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "box": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Box",
+            "type": "array"
+          },
+          "axis": {
+            "title": "Axis",
+            "type": "string"
+          },
+          "rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 70,
+            "title": "Tolerance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "box",
+          "axis",
+          "rgb"
+        ],
+        "title": "pixel_profileArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_pixel_profile",
+      "title": null,
+      "description": "Show a numbered, thresholded color profile in ORIGINAL pixels.\n        axis=x searches x coordinates and reports unbridged y support at each\n        peak; axis=y does the converse. min_fraction is the required matching\n        share along the other axis. Results are pixel evidence, not object labels.\n        cross_axis_profile measures the SAME mask in the other direction;\n        crop_context flags cut ink and suggests a wider original-image view.\n        Use profile_id and candidate IDs in compare_facade_spans coordinate slots\n        to adopt measured coordinates without copying numbers.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "box": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Box",
+            "type": "array"
+          },
+          "axis": {
+            "title": "Axis",
+            "type": "string"
+          },
+          "rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 70,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "min_fraction": {
+            "default": 0.1,
+            "title": "Min Fraction",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "box",
+          "axis",
+          "rgb"
+        ],
+        "title": "view_pixel_profileArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_pixel_region_overview",
+      "title": null,
+      "description": "Locate numbered colour-connected candidates in the full original image.\n        background_rgb is the target colour: either ink (e.g. a frame) or a\n        clear area's background. Compare the labelled overview to the original,\n        then pass a returned ORIGINAL-pixel seed to view_pixel_region.\n        Small ink strokes may need a lower min_pixels than clear floor regions.\n        Area/border filters and truncation are reported. Candidates can include\n        furniture, dimension marks or connected spaces; IDs are not object labels.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "background_rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Background Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 60,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "min_pixels": {
+            "default": 500,
+            "title": "Min Pixels",
+            "type": "integer"
+          },
+          "max_regions": {
+            "default": 40,
+            "title": "Max Regions",
+            "type": "integer"
+          },
+          "include_border": {
+            "default": false,
+            "title": "Include Border",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "background_rgb"
+        ],
+        "title": "view_pixel_region_overviewArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_pixel_region",
+      "title": null,
+      "description": "Display the complete 4-connected target-colour region at a selected pixel.\n        background_rgb names the target colour, including ink or clear floor.\n        Choose a seed on that colour, preferably an overview candidate's seed.\n        For clear floor choose away from furniture; for frames choose on the ink.\n        Returns a non-semantic contour and half-open bbox, NOT a room/aperture.\n        One physical frame may contain disconnected pieces; touching same-colour\n        marks may merge. simplify_pixels=0 keeps the exact pixel outline.\n        Check the original surrounding wall and jambs before interpreting it.\n        All points and seed coordinates refer to the ORIGINAL image.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "seed_pixel": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Seed Pixel",
+            "type": "array"
+          },
+          "background_rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Background Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 60,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "simplify_pixels": {
+            "default": 1.5,
+            "title": "Simplify Pixels",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "seed_pixel",
+          "background_rgb"
+        ],
+        "title": "view_pixel_regionArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "preview_space_trace",
+      "title": null,
+      "description": "Draw your COMPLETE ordered room contour on its original image before building.\n        Include interior and exterior boundaries; close logically across apertures.\n        openings = [{id,p1:[x,y],p2:[x,y]}] uses the two wall jambs, not hinge-to-leaf-tip.\n        All positions are ORIGINAL pixels; each axis has two [pixel,world_metres] anchors.\n        Use a declared representative wall plane; do not trace both faces as two walls.\n        Returns clean/marked images, geometry errors and mapped points, no source mutation.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "polygon_pixels": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Polygon Pixels",
+            "type": "array"
+          },
+          "openings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Openings",
+            "type": "array"
+          },
+          "x_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "X Anchors",
+            "type": "array"
+          },
+          "y_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Y Anchors",
+            "type": "array"
+          },
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "polygon_pixels",
+          "openings",
+          "x_anchors",
+          "y_anchors",
+          "basis"
+        ],
+        "title": "preview_space_traceArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_space_trace",
+      "title": null,
+      "description": "View the actual saved clean/marked image and coordinates for a local trace.",
+      "inputSchema": {
+        "properties": {
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "title": "view_space_traceArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "select_space_trace",
+      "title": null,
+      "description": "Select a previewed local trace after visually checking its actual overlay.\n        This selects an observation; it is not a BIM or a drawing-fidelity pass.\n        ",
+      "inputSchema": {
+        "properties": {
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "title": "select_space_traceArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "map_dimension_chain",
+      "title": null,
+      "description": "Accumulate observed dimension labels into ordered world-metre spans.\n        lengths and expected_total use unit mm or m; origin_m is always metres.\n        direction -1 walks from a known high coordinate toward lower coordinates.\n        No OCR or semantic validation: retain evidence for labels and orientation.\n        ",
+      "inputSchema": {
+        "properties": {
+          "lengths": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Lengths",
+            "type": "array"
+          },
+          "unit": {
+            "default": "mm",
+            "title": "Unit",
+            "type": "string"
+          },
+          "origin_m": {
+            "default": 0.0,
+            "title": "Origin M",
+            "type": "number"
+          },
+          "direction": {
+            "default": 1,
+            "title": "Direction",
+            "type": "integer"
+          },
+          "expected_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Total"
+          }
+        },
+        "required": [
+          "lengths"
+        ],
+        "title": "map_dimension_chainArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "compare_facade_spans",
+      "title": null,
+      "description": "Compare complete independently observed opening lists in BOTH axis directions.\n        Exact original image names and original pixel coordinates only. JSON has plan\n        and elevation, each with axis_anchors [[pixel,0],[pixel,L_metres]] and openings\n        [{\"id\":\"observed_id\",\"pixels\":[start,end]}]. Retain types/evidence as extra fields.\n        Any pixel slot may instead be {\"profile\":\"profile_001\",\"candidate\":\"C01\",\n        \"at\":\"peak\"}; at=peak/start/end, default peak. Uses saved measurement pixels\n        directly, checks image and axis, and preserves the binding. No numeric offset.\n        Read facade_correspondence for an example and limitations. No automatic OCR,\n        direction acceptance, missing-opening repair or source mutation.\n        ",
+      "inputSchema": {
+        "properties": {
+          "plan_image": {
+            "title": "Plan Image",
+            "type": "string"
+          },
+          "elevation_image": {
+            "title": "Elevation Image",
+            "type": "string"
+          },
+          "observations_json": {
+            "title": "Observations Json",
+            "type": "string"
+          },
+          "plan_axis": {
+            "default": "y",
+            "title": "Plan Axis",
+            "type": "string"
+          },
+          "elevation_axis": {
+            "default": "x",
+            "title": "Elevation Axis",
+            "type": "string"
+          },
+          "ambiguity_tolerance_m": {
+            "default": 0.05,
+            "title": "Ambiguity Tolerance M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "plan_image",
+          "elevation_image",
+          "observations_json"
+        ],
+        "title": "compare_facade_spansArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "map_pixels",
+      "title": null,
+      "description": "Convert selected original pixel points to metres with two anchors per axis.\n        Each anchor is [pixel_position, world_metres]. Y normally has negative\n        slope. Anchors must come from your observed dimensions or explicit assumption;\n        this tool does arithmetic and does not establish the drawing scale for you.\n        ",
+      "inputSchema": {
+        "properties": {
+          "points": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "x_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "X Anchors",
+            "type": "array"
+          },
+          "y_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Y Anchors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "points",
+          "x_anchors",
+          "y_anchors"
+        ],
+        "title": "map_pixelsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "inspect_plan_draft",
+      "title": null,
+      "description": "Read a saved draft_NNN or resume declaration and its immutable hash.\n            Use the returned hash with revise_plan_bim for local edits.\n            ",
+      "inputSchema": {
+        "properties": {
+          "draft_id": {
+            "title": "Draft Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "draft_id"
+        ],
+        "title": "inspect_plan_draftArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "revise_plan_bim",
+      "title": null,
+      "description": "Locally edit saved pixel wall/opening/seed declarations by ID.\n            Read plan_partition reference for operations. Untouched declarations\n            stay exact; compiler and source/overlay feedback run normally. This\n            rebuilds ONE floor and may change room topology, never auto-fixes it.\n            ",
+      "inputSchema": {
+        "properties": {
+          "draft_id": {
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "expected_plan_sha256": {
+            "title": "Expected Plan Sha256",
+            "type": "string"
+          },
+          "operations_json": {
+            "title": "Operations Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "draft_id",
+          "expected_plan_sha256",
+          "operations_json"
+        ],
+        "title": "revise_plan_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_plan_wall_support",
+      "title": null,
+      "description": "Check complete partition paths from a saved build_plan_bim draft_NNN.\n            Choose wall RGB and strip radius from the original. Returns clean/marked\n            original, exact supported and unsupported intervals, declared apertures\n            separately, and proposed adjacent rooms if compilation exists. Gaps are\n            prompts to reobserve, not missing-wall verdicts. No BIM change or approval.\n            Supports failed drafts too. Coordinates are original pixels, never GT.\n            ",
+      "inputSchema": {
+        "properties": {
+          "draft_id": {
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 70,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "radius_pixels": {
+            "default": 6,
+            "title": "Radius Pixels",
+            "type": "integer"
+          },
+          "minimum_ink_pixels": {
+            "default": 1,
+            "title": "Minimum Ink Pixels",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "draft_id",
+          "rgb"
+        ],
+        "title": "view_plan_wall_supportArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "record_claim",
+      "title": null,
+      "description": "Record a located interpretation and computable values for an existing candidate.\n            Returns actual clean crops of up to three saved source regions. Inspect them\n            before adoption; use view_claim_evidence for remaining sources or magnification.\n            Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.\n            ",
+      "inputSchema": {
+        "properties": {
+          "claim_json": {
+            "title": "Claim Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_json"
+        ],
+        "title": "record_claimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "replace_claim_sources",
+      "title": null,
+      "description": "Replace wrong claim regions using actual view_image IDs, without retyping values.\n            Creates a new immutable claim on the SAME saved candidate, preserving objects,\n            value definitions, targets, basis and unresolved items; replaces sources/reason.\n            Retracts the old claim explicitly, returns new crops. New claim is unadopted:\n            decide_claim then confirm_claims/revise_bim is still required. No BIM change.\n            Full original views are valid; seeing a view does not certify interpretation.\n            ",
+      "inputSchema": {
+        "properties": {
+          "claim_id": {
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "view_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "View Ids",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "view_ids",
+          "reason"
+        ],
+        "title": "replace_claim_sourcesArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_claim_evidence",
+      "title": null,
+      "description": "View one actual saved claim region, using its original image hash.\n            source_index is zero-based; display_scale 1..8 enlarges tiny annotations.\n            Fractional boxes are enclosed in whole pixels and both boxes are reported.\n            This shows evidence; it neither adopts nor independently verifies the claim.\n            ",
+      "inputSchema": {
+        "properties": {
+          "claim_id": {
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "source_index": {
+            "default": 0,
+            "title": "Source Index",
+            "type": "integer"
+          },
+          "display_scale": {
+            "default": 1.0,
+            "title": "Display Scale",
+            "type": "number"
+          }
+        },
+        "required": [
+          "claim_id"
+        ],
+        "title": "view_claim_evidenceArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "decide_claim",
+      "title": null,
+      "description": "Choose adopted/deferred/retracted; adoption does not apply geometry.",
+      "inputSchema": {
+        "properties": {
+          "claim_id": {
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "disposition": {
+            "title": "Disposition",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "disposition",
+          "reason"
+        ],
+        "title": "decide_claimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "claim_status",
+      "title": null,
+      "description": "With candidate, project checks onto its actual ancestry and geometry.\n            Without candidate, read complete run history. Historical application alone\n            is not current applicability or drawing truth.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Candidate"
+          }
+        },
+        "title": "claim_statusArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "confirm_claims",
+      "title": null,
+      "description": "Check adopted claim references against unchanged saved parameters.\n            Use the same update_window/update_opening/move_shared_wall operations as\n            revise_bim. Every parameter must be a claim reference. Rejects any actual\n            geometric change; saves a confirmation without generating a new candidate.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "operations_json": {
+            "title": "Operations Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate",
+          "operations_json"
+        ],
+        "title": "confirm_claimsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "check_wall_dimensions",
+      "title": null,
+      "description": "List real wall hosts or convert explicit wall-face dimensions without changing geometry.\n            See get_bim_reference(\"wall_dimensions\") for the input format. Empty strings\n            reuse saved evidence. Persist new evidence separately via revise_bim.\n            Inventory is included only when no references exist or explicitly requested.\n            Its wall list is paged (limit 1..50); floor_id narrows the inventory only,\n            without changing explicit reference/dimension conversion. Read next_offset\n            until null when you need the full selected inventory.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "references_json": {
+            "default": "",
+            "title": "References Json",
+            "type": "string"
+          },
+          "dimensions_json": {
+            "default": "",
+            "title": "Dimensions Json",
+            "type": "string"
+          },
+          "include_inventory": {
+            "default": false,
+            "title": "Include Inventory",
+            "type": "boolean"
+          },
+          "floor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Floor Id"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 30,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "candidate"
+        ],
+        "title": "check_wall_dimensionsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "inspect_candidate",
+      "title": null,
+      "description": "Read a saved candidate's proposal and production geometry checks.\n            include_geometry=False returns notes/frame and a floor summary without\n            the expanded rooms/apertures; useful for registration of large candidates.\n            floor_id selects one floor. If geometry is still too large, the response\n            keeps only the summary; read_candidate_items pages cells/windows/openings.\n            A selected page is NOT a whole replacement proposal.\n            No independent evaluation or reference answer is exposed.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "default": "seed",
+            "title": "Candidate",
+            "type": "string"
+          },
+          "include_geometry": {
+            "default": true,
+            "title": "Include Geometry",
+            "type": "boolean"
+          },
+          "floor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Floor Id"
+          }
+        },
+        "title": "inspect_candidateArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "read_candidate_items",
+      "title": null,
+      "description": "Read exact saved proposal cells, windows, openings or unsupported records.\n            collection is cells/windows/openings/unsupported; floor_id optionally narrows it.\n            Each cell includes floor_id. Read next_offset for more; page_is_partial\n            means this is not a complete build_bim input. Prefer revise_bim to keep\n            unexamined objects. This reads the proposal, not mesh/GT observations.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "collection": {
+            "title": "Collection",
+            "type": "string"
+          },
+          "floor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Floor Id"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 20,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "candidate",
+          "collection"
+        ],
+        "title": "read_candidate_itemsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "check_source_space_relation",
+      "title": null,
+      "description": "Compare original-plan observations with actual source space ownership.\n            observations_json is a list of {id, points:[[original_px_x,original_px_y],\n            [original_px_x,original_px_y]], expected:\"same_space\"|\"separate_spaces\"|\n            \"uncertain\", evidence:\"what the original shows\"}. Pick points well inside\n            the observed spaces. Uses the latest registered image/floor calibration;\n            first build_plan_bim or overlay_candidate if none exists. Returns actual\n            space IDs and any direct door/open connection; connected does NOT mean the\n            same space. Saves a source/calibration-bound review. Never edits geometry\n            or certifies drawing truth. Recheck after revisions before finish_bim.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "image": {
+            "title": "Image",
+            "type": "string"
+          },
+          "floor_id": {
+            "title": "Floor Id",
+            "type": "string"
+          },
+          "observations_json": {
+            "title": "Observations Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate",
+          "image",
+          "floor_id",
+          "observations_json"
+        ],
+        "title": "check_source_space_relationArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "check_openings",
+      "title": null,
+      "description": "List actual openings, or check original-image marks against them.\n            Use heights_only=true for actual z and current height-observation coverage.\n            See get_bim_reference(\"opening_review\") for review_json. Saves a source-hash-bound\n            review independently; never modifies the BIM or certifies image truth.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "review_json": {
+            "default": "",
+            "title": "Review Json",
+            "type": "string"
+          },
+          "heights_only": {
+            "default": false,
+            "title": "Heights Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "candidate"
+        ],
+        "title": "check_openingsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "record_work_review",
+      "title": null,
+      "description": "During a continuation turn, choose continue or stop against saved work.\n            Explain scope/evidence; continue requires a concrete next_action to execute\n            THIS turn. A stop is a model judgment, not proof of task or image fidelity.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "next_action": {
+            "default": "",
+            "title": "Next Action",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate",
+          "decision",
+          "reason"
+        ],
+        "title": "record_work_reviewArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "finish_bim",
+      "title": null,
+      "description": "Select a saved BIM and persist a handoff based on actual checks.\n            Unreviewed/pending scopes remain explicit. This does not certify image\n            fidelity or prevent further work; call again to choose another candidate.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate"
+        ],
+        "title": "finish_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "overlay_candidate",
+      "title": null,
+      "description": "Project actual source geometry onto an AXIS-ALIGNED original plan.\n            Each axis needs two [ORIGINAL pixel position, world metres] anchors,\n            like map_pixels; basis explains the observed dimension and wall reference.\n            No GT, auto-registration, perspective correction or visual verdict.\n            Optional box crops the result in ORIGINAL pixels. Colours: magenta\n            source boundaries, orange doors/passages, lime windows.\n            Wall/evidence labels compare saved segment extents with original\n            dimension pixels on this exact image. Distances depend on your\n            calibration; extension-line ticks may lie outside a valid host.\n            By default, this explicit caller-supplied calibration is saved and only\n            reused for the same image/floor after later build_bim or revise_bim.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "image": {
+            "title": "Image",
+            "type": "string"
+          },
+          "floor_id": {
+            "title": "Floor Id",
+            "type": "string"
+          },
+          "x_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "X Anchors",
+            "type": "array"
+          },
+          "y_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Y Anchors",
+            "type": "array"
+          },
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "box": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Box"
+          },
+          "reuse_on_revision": {
+            "default": true,
+            "title": "Reuse On Revision",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "candidate",
+          "image",
+          "floor_id",
+          "x_anchors",
+          "y_anchors",
+          "basis"
+        ],
+        "title": "overlay_candidateArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "revise_bim",
+      "title": null,
+      "description": "Apply local edits/reflection with code and save a new checked BIM.\n            See get_bim_reference(\"edits\") for operations. Prior candidates stay unchanged.\n            Opening changes/removals and shared-wall moves require a reason and source_refs.\n            set_space_role assigns catalog use and its evidence, preserving geometry.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "operations_json": {
+            "title": "Operations Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate",
+          "operations_json"
+        ],
+        "title": "revise_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "review_detail",
+      "title": null,
+      "description": "Ask Haiku one small visual question, e.g. count/locate doors in a region.\n            Give image names and original crop coordinates, and describe observable\n            original-image evidence rather than a candidate conclusion. The submitted\n            question is not text-cleaned, so this only isolates file context. At most\n            two local reviews are available in this experiment. Choose 15–240\n            seconds (default 120), capped by the parent's remaining time with a\n            completion reserve. Keep the task small enough to return within it.\n            ",
+      "inputSchema": {
+        "properties": {
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "images": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Images",
+            "type": "array"
+          },
+          "timeout_seconds": {
+            "default": 120,
+            "title": "Timeout Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "question",
+          "images"
+        ],
+        "title": "review_detailArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "build_plan_bim",
+      "title": null,
+      "description": "Build one floor from observed pixel wall paths, apertures and calibration.\n            Read get_bim_reference('plan_partition') for the JSON contract. Code\n            closes faces and finds opening hosts; it never fills wall-path gaps,\n            invents partitions or trims openings. Returns actual source plan and\n            original overlay images. Simple orthogonal outer footprint without\n            holes, including concave outlines; orthogonal interior partitions.\n            A draft with known omissions needs explicit\n            unresolved notes. Each source export uses the shared candidate budget.\n            ",
+      "inputSchema": {
+        "properties": {
+          "image": {
+            "title": "Image",
+            "type": "string"
+          },
+          "plan_json": {
+            "title": "Plan Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image",
+          "plan_json"
+        ],
+        "title": "build_plan_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "assemble_plan_bim",
+      "title": null,
+      "description": "Assemble 2–32 saved pixel plans without rewriting their rooms or openings.\n            Read get_bim_reference('plan_assembly'). Each explicit item contains draft_id,\n            expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,\n            namespaces IDs and translates all opening z values by the floor-base change.\n            No height scaling, plan alignment, floor copying or inferred vertical connection.\n            For layer height or aperture changes first revise that draft explicitly.\n            Returns actual source views/overlays for every included floor.\n            ",
+      "inputSchema": {
+        "properties": {
+          "floors_json": {
+            "title": "Floors Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "floors_json"
+        ],
+        "title": "assemble_plan_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "build_parametric_bim",
+      "title": null,
+      "description": "Expand model-declared floor templates and window rows, then build source BIM.\n            Read get_bim_reference('parametric') first. Never infers or trims geometry.\n            Relative aperture heights are offset by each explicit instance base.\n            ",
+      "inputSchema": {
+        "properties": {
+          "plan_json": {
+            "title": "Plan Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_json"
+        ],
+        "title": "build_parametric_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "inspect_parametric_plan",
+      "title": null,
+      "description": "Read the exact saved compact plan for revision; original evidence is separate.",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate"
+        ],
+        "title": "inspect_parametric_planArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "build_bim",
+      "title": null,
+      "description": "Build/check/save a candidate; get_bim_reference(\"geometry\") describes proposal JSON.\n            Returns errors or actual geometry checks. All exports share the quota\n            reported by inputs.candidate_budget, including floor builds and revisions.\n            ",
+      "inputSchema": {
+        "properties": {
+          "proposal_json": {
+            "title": "Proposal Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_json"
+        ],
+        "title": "build_bimArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_elevation_candidate",
+      "title": null,
+      "description": "Inspect actual source wall/window/door heights across all floors.\n            facade: North, South, East or West. Returns a rendered image plus\n            source-bound geometry metadata, not original-image evidence or a pass.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "facade": {
+            "title": "Facade",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate",
+          "facade"
+        ],
+        "title": "view_elevation_candidateArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    },
+    {
+      "name": "view_candidate",
+      "title": null,
+      "description": "Render a saved candidate's source-space plan, with windows blue/doors red.\n            Use exact candidate from build_bim; floor_id is the proposed floor name.\n            This is an inspection projection, not evidence from the original drawing.\n            ",
+      "inputSchema": {
+        "properties": {
+          "candidate": {
+            "title": "Candidate",
+            "type": "string"
+          },
+          "floor_id": {
+            "title": "Floor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate",
+          "floor_id"
+        ],
+        "title": "view_candidateArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "icons": null,
+      "annotations": null,
+      "meta": null,
+      "execution": null
+    }
+  ],
+  "guide_sha256": "043f72563e72804afb4a9dced3b838eef469d2ae319346d1fcda8fb2948aa7bb",
+  "references_sha256": "343326c0f2e69e470cc9a7bbdbd4060ad40b334f5c83533a2ceef47e39405c68"
+}
