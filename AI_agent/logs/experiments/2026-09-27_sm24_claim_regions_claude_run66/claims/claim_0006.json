@@ -1,0 +1,171 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "DS",
+        "kind": "opening"
+      },
+      {
+        "id": "DN",
+        "kind": "opening"
+      },
+      {
+        "id": "DE",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Verified exterior-door dimension chain 200/2400/1900 (against 4500 total) fully confirmed at East_view left edge (x=0-780,y=100-700: digits 200,2400,1900,4500 all visible beside the door with knob) and North_view right edge (x=2300-2600,y=150-700: digit 1900 visible beside the double-door assembly); South_view full-image inspection also showed the same 1900/2400/200 chain beside the door. Threshold=0.2m, head=2.6m.",
+    "sources": [
+      {
+        "box": [
+          0.0,
+          100.0,
+          780.0,
+          700.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          2300.0,
+          150.0,
+          2600.0,
+          700.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          600.0,
+          150.0,
+          760.0,
+          700.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [
+      "Interior doors have no elevation evidence; 0-2.1 remains assumed"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          200.0,
+          2400.0,
+          1900.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 0.2,
+            "index": 0,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 0.2
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0006",
+  "parent_proposal_sha256": "d0969e266da036ad7088b6ba2afc84b280adc6596d454906c9e403825e54620b",
+  "resolved_values": {
+    "z": [
+      0.2,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0.0,
+        100.0,
+        780.0,
+        700.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    },
+    {
+      "box": [
+        2300.0,
+        150.0,
+        2600.0,
+        700.0
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ]
+    },
+    {
+      "box": [
+        600.0,
+        150.0,
+        760.0,
+        700.0
+      ],
+      "image": "South_view.png",
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "size": [
+        2434,
+        1457
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

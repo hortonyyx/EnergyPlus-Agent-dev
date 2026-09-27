@@ -1,0 +1,84 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "e590d1f2feecffa50efe2acdcdca5cadcb0fe4e907958563531b77e151172834",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        250.0,
+        0.0
+      ],
+      [
+        610.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        860.0,
+        0.0
+      ],
+      [
+        60.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "chk1",
+      "expected": "same_space",
+      "evidence": "placeholder",
+      "points": [
+        {
+          "pixel": [
+            480.0,
+            730.0
+          ],
+          "world_xy_m": [
+            6.388888888888888,
+            3.25
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S08",
+          "interior_space_ids": [
+            "F1_S08"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            480.0,
+            730.0
+          ],
+          "world_xy_m": [
+            6.388888888888888,
+            3.25
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S08",
+          "interior_space_ids": [
+            "F1_S08"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_02",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "ce9113a952d4b8f3052244d6ddd87b6a9165f8232aa320afd9acbf55c92f4f84",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 1449
+}

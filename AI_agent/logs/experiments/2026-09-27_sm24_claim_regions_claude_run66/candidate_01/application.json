@@ -1,0 +1,140 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "seed",
+  "submitted_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "F1_S04",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Small enclosed room with one desk and two chairs, similar furnishing pattern to sibling rooms F1_S02/F1_S06; no text label present"
+      ],
+      "source_refs": [
+        "1f_view.png: desk and two chairs at original pixels [460,700,530,800]"
+      ],
+      "reason": "Resolve previously unknown room use from visible furniture; preserves existing physical partition/opening geometry"
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "seed",
+    "parent_proposal_sha256": "d0969e266da036ad7088b6ba2afc84b280adc6596d454906c9e403825e54620b",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "F1_S04",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Small enclosed room with one desk and two chairs, similar furnishing pattern to sibling rooms F1_S02/F1_S06; no text label present"
+      ],
+      "source_refs": [
+        "1f_view.png: desk and two chairs at original pixels [460,700,530,800]"
+      ],
+      "reason": "Resolve previously unknown room use from visible furniture; preserves existing physical partition/opening geometry"
+    }
+  ],
+  "geometry_before_sha256": "e500a84b9172864cc3607b7da5ac91fd823f7cf4b0619cf566255b1db8d28f8f",
+  "geometry_after_sha256": "fa0998cfecd100f013ec333f0ec0fab186f65f0f26115fa8e0c7b6f333d02882",
+  "changes": [
+    {
+      "kind": "space",
+      "id": "F1_S04",
+      "before": {
+        "floor": "F1",
+        "id": "F1_S04",
+        "polygon": [
+          [
+            5.769231,
+            13.975241
+          ],
+          [
+            10.0,
+            13.975241
+          ],
+          [
+            10.0,
+            15.955983
+          ],
+          [
+            5.769231,
+            15.955983
+          ]
+        ],
+        "role": "unknown",
+        "role_evidence": {
+          "basis": "unknown",
+          "role": "unknown"
+        },
+        "x": [
+          5.769231,
+          10.0
+        ],
+        "y": [
+          13.975241,
+          15.955983
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1_S04",
+        "polygon": [
+          [
+            5.769231,
+            13.975241
+          ],
+          [
+            10.0,
+            13.975241
+          ],
+          [
+            10.0,
+            15.955983
+          ],
+          [
+            5.769231,
+            15.955983
+          ]
+        ],
+        "role": "office/enclosed",
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        },
+        "x": [
+          5.769231,
+          10.0
+        ],
+        "y": [
+          13.975241,
+          15.955983
+        ]
+      }
+    }
+  ],
+  "scope_check": "not_supported_for_all_operations",
+  "outside_declared_scope": null,
+  "parameters_without_claims": [],
+  "candidate": "candidate_01",
+  "source_model_sha256": "dd8633bee7e02419a8b93da1d5feb5bc5832dd48d3ea074512660b1b1488b404",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

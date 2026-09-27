@@ -1,0 +1,112 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 1512,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "role": "main_agent_continuation",
+  "continuation_turn": "continuation_01",
+  "returncode": 0,
+  "elapsed_seconds": 43.7,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 33783,
+    "stop_reason": "end_turn",
+    "session_id": "dfe6c13d-ffaf-49b1-987a-b23bb0f925e4",
+    "total_cost_usd": 0.1367098,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 22217,
+      "cache_read_input_tokens": 113929,
+      "output_tokens": 2504,
+      "output_tokens_details": {
+        "thinking_tokens": 540
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 22217,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 919,
+          "cache_read_input_tokens": 36217,
+          "cache_creation_input_tokens": 3666,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3666
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 8,
+        "outputTokens": 2504,
+        "cacheReadInputTokens": 113929,
+        "cacheCreationInputTokens": 22217,
+        "webSearchRequests": 0,
+        "costUSD": 0.1367098,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 540,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 5,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Verification complete — delivering `candidate_02`\n\nThis continuation turn verified (rather than re-narrated) that the prior session's claimed work is actually saved and correct:\n\n**Confirmed via `claim_status(candidate_02)`:**\n- All 3 height claims are `confirmed_unchanged` with proper `retained_bindings` — no phantom or lost edits.\n- claim_0001 (small windows WS1/WS2/WE1/WE2/WW1-4): z=[1.0, 2.8] ✓\n- claim_0002 (large windows WN/WE3/WW5): z=[1.0, 3.4] ✓\n- claim_0003 (exterior doors DS/DN/DE): z=[0.2, 2.6] ✓\n- Notes were genuinely updated via `replace_note` (visible in `superseded_notes`), not just claimed in prose.\n\n**Confirmed via `check_openings(heights_only=true)`:**\n- 14/21 openings image-evidence-linked; **all 4 facades (North/South/East/West) show `all_image_evidence_linked`** — full exterior-opening height coverage.\n- The 7 remaining `unchecked` openings (DE1, DE2, DHall, DR, DW1, DW2, DW3) are all **interior** doors at the default 0–2.1 m. No supplied elevation (North/South/East/West) dimensions any interior partition — this is an absence of external input, not unexamined work.\n\n**Room-use review:** 8/8 spaces have a recorded, inferred listed use, 0 unknown.\n\n### Delivered\n- Candidate: `candidate_02` (viewer.html, source_model.json)\n- 8 spaces, 21 openings, 10 connections, 0 unbuilt/unsupported.\n\n### Honest remaining limitations (unresolved, not silently dropped)\n- Interior door heights (2.1 m) remain an unverifiable assumption — no elevation evidence exists for them in any supplied drawing.\n- Room uses are furniture-based inferences (no text labels in source drawings), including F1_S04 as storage.\n- Pixel-to-world calibration was caller-supplied, not independently re-derived from raw dimensions.\n- Space-relation checks (4 samples, 0 conflicts) are targeted spot-checks, not full-floor fidelity certification.\n- `facade_review_scopes`/`opening_review_scopes` formal structured-review counters remain `not_reviewed` even though the elevations were directly viewed and their dimension chains checked — this is a schema/bookkeeping distinction, not unexamined evidence.\n\nNo further bounded, evidence-backed action was feasible this turn (no additional interior-door elevation exists to inspect), so I stopped and finished on `candidate_02`.",
+    "ttft_ms": 8520,
+    "type": "result",
+    "duration_ms": 35498,
+    "uuid": "28424a5d-421c-4751-bfa3-68977dd6d65a",
+    "ttft_stream_ms": 1996,
+    "time_to_request_ms": 64,
+    "first_content_frame_ms": 1996,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

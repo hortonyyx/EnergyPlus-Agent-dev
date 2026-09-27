@@ -1,0 +1,210 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "dd8633bee7e02419a8b93da1d5feb5bc5832dd48d3ea074512660b1b1488b404",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        250.0,
+        0.0
+      ],
+      [
+        610.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        860.0,
+        0.0
+      ],
+      [
+        60.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs1",
+      "expected": "same_space",
+      "evidence": "Top reception strip spans full width with only a door arc at center, no full wall separating desk area from sofa area",
+      "points": [
+        {
+          "pixel": [
+            300.0,
+            180.0
+          ],
+          "world_xy_m": [
+            1.3888888888888884,
+            17.0
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            500.0,
+            200.0
+          ],
+          "world_xy_m": [
+            6.944444444444444,
+            16.5
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs2",
+      "expected": "separate_spaces",
+      "evidence": "Small desk room (F1_S04) and two-table meeting room (F1_S05) are divided by a solid wall with a door (DE2) between them",
+      "points": [
+        {
+          "pixel": [
+            545.0,
+            805.0
+          ],
+          "world_xy_m": [
+            8.194444444444443,
+            1.375
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S08",
+          "interior_space_ids": [
+            "F1_S08"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            535.0,
+            480.0
+          ],
+          "world_xy_m": [
+            7.916666666666667,
+            9.5
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S05",
+          "interior_space_ids": [
+            "F1_S05"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs3",
+      "expected": "separate_spaces",
+      "evidence": "Left-side workstation room (F1_S06) and oval-table meeting room (F1_S07) are divided by a solid wall, each opening separately onto the corridor",
+      "points": [
+        {
+          "pixel": [
+            307.0,
+            495.0
+          ],
+          "world_xy_m": [
+            1.583333333333333,
+            9.125
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S06",
+          "interior_space_ids": [
+            "F1_S06"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            327.0,
+            740.0
+          ],
+          "world_xy_m": [
+            2.1388888888888884,
+            3.0
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S07",
+          "interior_space_ids": [
+            "F1_S07"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs4",
+      "expected": "same_space",
+      "evidence": "Central corridor (F1_S03) is a single continuous circulation space running north-south with door swings on both sides",
+      "points": [
+        {
+          "pixel": [
+            420.0,
+            500.0
+          ],
+          "world_xy_m": [
+            4.722222222222222,
+            9.0
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            420.0,
+            700.0
+          ],
+          "world_xy_m": [
+            4.722222222222222,
+            4.0
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_01",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "ce9113a952d4b8f3052244d6ddd87b6a9165f8232aa320afd9acbf55c92f4f84",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1508
+}

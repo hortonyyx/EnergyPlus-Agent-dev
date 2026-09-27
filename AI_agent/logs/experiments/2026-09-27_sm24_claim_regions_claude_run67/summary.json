@@ -1,0 +1,96 @@
+{
+  "input_mode": "saved_candidate_recovery",
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "building_input_sha256": null,
+  "candidate_results": [
+    {
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 54,
+        "connections": 10,
+        "openings": 21,
+        "spaces": 8,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_02",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 54,
+        "connections": 10,
+        "openings": 21,
+        "spaces": 8,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    }
+  ],
+  "agent_response_completed": true,
+  "has_viewable_candidate": true,
+  "elapsed_seconds": 330.46,
+  "drawing_fidelity": "not_evaluated",
+  "continuation": {
+    "max_rounds": 2,
+    "turns": [
+      {
+        "name": "continuation_01",
+        "before_candidate": "candidate_02",
+        "after_candidate": "candidate_02",
+        "decision": {
+          "turn": "continuation_01",
+          "candidate": "candidate_02",
+          "source_model_sha256": "b1951cfc6211108cdd91f5b47c5c00a2dc26e2f56c2c5d0014484688d7b9a2aa",
+          "decision": "stop",
+          "reason": "Verified via claim_status and check_openings(heights_only=true) that candidate_02 genuinely reflects the prior session's work: all 3 height claims (window/door elevation dimension chains) are confirmed_unchanged with correct retained z bindings on 14/21 openings across all 4 facades (North/South/East/West all show all_image_evidence_linked). The remaining 7 unchecked openings (DE1, DE2, DHall, DR, DW1, DW2, DW3) are interior doors with no corresponding elevation evidence in any supplied drawing (North/South/East/West elevations only dimension exterior openings) - this is an explained absence of external input, not unattempted work, so their 0-2.1m default assumption is correctly left as an honest unresolved item. Room-use review is complete (8/8 rooms have inferred listed uses, 0 unknown) and notes were properly updated via replace_note (visible in superseded_notes) rather than left stale. No further bounded, evidence-backed action is feasible within scope: there is no additional interior-door elevation to inspect, and partition/connectivity was already spot-checked with 4 consistent samples. Finishing on candidate_02.",
+          "next_action": "",
+          "drawing_fidelity": "not_evaluated",
+          "task_completion": "model_judgment_only"
+        },
+        "persisted_source_or_evidence_changed": false,
+        "response_completed": true
+      }
+    ],
+    "stop_reason": "model_stop",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "opening_reviews": [],
+  "delivery": {
+    "candidate": "candidate_02",
+    "selection_origin": "agent_selected",
+    "report": "delivery.json",
+    "viewer": "delivery.html"
+  },
+  "subscription_invocations": 2,
+  "estimated_cost_usd": 1.2602882,
+  "cost_receipts_complete": true,
+  "reported_partial_cost_usd": 1.2602882,
+  "not_evaluated": [
+    "independent GT comparison",
+    "human approval",
+    "EnergyPlus"
+  ],
+  "estimated_cost_note": "CLI estimates are not subscription bills"
+}

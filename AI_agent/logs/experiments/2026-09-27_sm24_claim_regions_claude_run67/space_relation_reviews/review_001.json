@@ -1,0 +1,210 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "b1951cfc6211108cdd91f5b47c5c00a2dc26e2f56c2c5d0014484688d7b9a2aa",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        250.0,
+        0.0
+      ],
+      [
+        608.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        860.0,
+        0.0
+      ],
+      [
+        150.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corridor_continuity",
+      "expected": "same_space",
+      "evidence": "Both points lie inside the narrow central vertical corridor strip between the west and east room clusters; no wall crosses it at these heights, only door swing arcs into side rooms.",
+      "points": [
+        {
+          "pixel": [
+            420.0,
+            330.0
+          ],
+          "world_xy_m": [
+            4.748603351955307,
+            14.929577464788732
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            420.0,
+            700.0
+          ],
+          "world_xy_m": [
+            4.748603351955307,
+            4.507042253521124
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S03",
+          "interior_space_ids": [
+            "F1_S03"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "S04_vs_S05_separate",
+      "expected": "separate_spaces",
+      "evidence": "Top point is inside the small cabinet room (F1_S04) north of the horizontal wall near y~350; bottom point is inside the larger room with the 4-chair table (F1_S05) south of that wall.",
+      "points": [
+        {
+          "pixel": [
+            520.0,
+            320.0
+          ],
+          "world_xy_m": [
+            7.541899441340782,
+            15.211267605633802
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S04",
+          "interior_space_ids": [
+            "F1_S04"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            520.0,
+            450.0
+          ],
+          "world_xy_m": [
+            7.541899441340782,
+            11.549295774647886
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S05",
+          "interior_space_ids": [
+            "F1_S05"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "S06_vs_S07_separate",
+      "expected": "separate_spaces",
+      "evidence": "Top point inside the two-workstation room (F1_S06); bottom point inside the oval conference table room (F1_S07), separated by a horizontal wall.",
+      "points": [
+        {
+          "pixel": [
+            300.0,
+            460.0
+          ],
+          "world_xy_m": [
+            1.3966480446927374,
+            11.267605633802816
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S06",
+          "interior_space_ids": [
+            "F1_S06"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            300.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.3966480446927374,
+            4.507042253521124
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S07",
+          "interior_space_ids": [
+            "F1_S07"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "S01_single_space",
+      "expected": "same_space",
+      "evidence": "Both points are inside the large north room (F1_S01) spanning the full width, with only furniture groups (desk cluster and sofa/lounge set) inside, no dividing wall between them.",
+      "points": [
+        {
+          "pixel": [
+            300.0,
+            200.0
+          ],
+          "world_xy_m": [
+            1.3966480446927374,
+            18.591549295774648
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            550.0,
+            180.0
+          ],
+          "world_xy_m": [
+            8.379888268156424,
+            19.154929577464788
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1_S01",
+          "interior_space_ids": [
+            "F1_S01"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_02",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "37c38b23d6cbf0fe6aa9a5ae8b42079a250ea51a6d510063971d29dea8fa1a6e",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1536
+}

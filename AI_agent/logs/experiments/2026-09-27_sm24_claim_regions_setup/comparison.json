@@ -1,0 +1,239 @@
+{
+  "runs": [
+    {
+      "run": "2026-09-27_sm24_claim_regions_claude_run66",
+      "candidate": "candidate_02",
+      "source_model_sha256": "e590d1f2feecffa50efe2acdcdca5cadcb0fe4e907958563531b77e151172834",
+      "invocations": 2,
+      "actual_models": [
+        "claude-sonnet-5",
+        "claude-sonnet-5"
+      ],
+      "elapsed_seconds": 391.75,
+      "estimated_usd_not_bill": 1.5238902,
+      "counts": {
+        "spaces": 8,
+        "boundaries": 54,
+        "openings": 21,
+        "connections": 10
+      },
+      "geometry_preserved": true,
+      "room_use": {
+        "total_count": 8,
+        "recorded_count": 8,
+        "unrecorded_count": 0,
+        "observed_count": 0,
+        "inferred_count": 8,
+        "unknown_count": 0
+      },
+      "height_coverage": {
+        "total_count": 21,
+        "image_linked_count": 14,
+        "non_image_linked_count": 0,
+        "unchecked_height_opening_ids": [
+          "DE1",
+          "DE2",
+          "DHall",
+          "DR",
+          "DW1",
+          "DW2",
+          "DW3"
+        ]
+      },
+      "position_matches": 15,
+      "host_matches": 21,
+      "door_connections_matched": 10,
+      "strict_partition": "severe",
+      "exterior_match_count": 14,
+      "semantic": {
+        "mode": "post_generation_manual_original_and_crop_review",
+        "reviewer": "Astra developer",
+        "status": "not_accepted",
+        "active_claim_ids": [
+          "claim_0004",
+          "claim_0005",
+          "claim_0006"
+        ],
+        "active_region_count": 8,
+        "regions_with_complete_relevant_chain_and_object_context": 0,
+        "numeric_values_supported_by_whole_originals": true,
+        "original_records_preserved": true,
+        "detail": "semantic_review.md",
+        "room_use_policy": "Plausible inferred catalog choice accepted; unique subtype not required.",
+        "geometry_and_connections_preserved": true,
+        "stale_note": "Source assumption still refers to claims 1-3, which are retracted in this run; active confirmations use 4-6.",
+        "room_use_source_location_limit": "F1_S04 is the northeast narrow cabinet room; its role evidence cites desks/chairs in another southern room."
+      },
+      "transported_images": 36,
+      "claim_preview_images": 17,
+      "errors": [
+        {
+          "tool": "mcp__bim__revise_bim",
+          "text": "Error executing tool revise_bim: set_space_role: unknown fields ['id']"
+        },
+        {
+          "tool": "mcp__bim__check_source_space_relation",
+          "text": "Error executing tool check_source_space_relation: register this image/floor calibration with overlay_candidate or build_plan_bim first"
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "text": "Error executing tool view_image: choose an exact image name from input inventory"
+        }
+      ],
+      "browser_pass": true,
+      "continuation": {
+        "max_rounds": 2,
+        "turns": [
+          {
+            "name": "continuation_01",
+            "before_candidate": "candidate_02",
+            "after_candidate": "candidate_02",
+            "decision": {
+              "turn": "continuation_01",
+              "candidate": "candidate_02",
+              "source_model_sha256": "e590d1f2feecffa50efe2acdcdca5cadcb0fe4e907958563531b77e151172834",
+              "decision": "stop",
+              "reason": "Re-verified candidate_02 (current claim_status): the 3 original imprecise height claims (claim_0001-3) remain explicitly retracted with stated crop-mismatch reasons, and their corrected replacements (claim_0004-6, citing actual verified digit locations) are confirmed_unchanged and bound to all 14 exterior-facing openings (North/South/East/West all show all_image_evidence_linked). Interior doors DE1/DE2/DHall/DR/DW1/DW2/DW3 remain explicitly unchecked/assumed at 0-2.1m because no elevation evidence exists for interior doors in the supplied drawings (South/North/East/West are exterior facades only) - this is a genuine absent-input limitation, not unattempted work. Room-use review shows 8/8 spaces recorded with inferred roles, 0 unknown, notes updated. The stale space-relation review (flagged in the delivery snapshot) has now been refreshed: ran 5 new same/separate-space observations directly against candidate_02 (reception vs meeting room, stacked left-wing offices, dining room vs right office, single-room continuity) - all 5 consistent with the original 1f_view.png, 0 conflicts, confirming physical partitions were preserved through the role-assignment edit. No further useful bounded action remains: horizontal opening spans were out of the requested height-review scope, and no additional original evidence exists for interior door heights or further use disambiguation. Delivering candidate_02 as final.",
+              "next_action": "",
+              "drawing_fidelity": "not_evaluated",
+              "task_completion": "model_judgment_only"
+            },
+            "persisted_source_or_evidence_changed": true,
+            "response_completed": true
+          }
+        ],
+        "stop_reason": "model_stop",
+        "task_completion": "not_certified",
+        "drawing_fidelity": "not_evaluated"
+      }
+    },
+    {
+      "run": "2026-09-27_sm24_claim_regions_claude_run67",
+      "candidate": "candidate_02",
+      "source_model_sha256": "b1951cfc6211108cdd91f5b47c5c00a2dc26e2f56c2c5d0014484688d7b9a2aa",
+      "invocations": 2,
+      "actual_models": [
+        "claude-sonnet-5",
+        "claude-sonnet-5"
+      ],
+      "elapsed_seconds": 330.46,
+      "estimated_usd_not_bill": 1.2602882,
+      "counts": {
+        "spaces": 8,
+        "boundaries": 54,
+        "openings": 21,
+        "connections": 10
+      },
+      "geometry_preserved": true,
+      "room_use": {
+        "total_count": 8,
+        "recorded_count": 8,
+        "unrecorded_count": 0,
+        "observed_count": 0,
+        "inferred_count": 8,
+        "unknown_count": 0
+      },
+      "height_coverage": {
+        "total_count": 21,
+        "image_linked_count": 14,
+        "non_image_linked_count": 0,
+        "unchecked_height_opening_ids": [
+          "DE1",
+          "DE2",
+          "DHall",
+          "DR",
+          "DW1",
+          "DW2",
+          "DW3"
+        ]
+      },
+      "position_matches": 15,
+      "host_matches": 21,
+      "door_connections_matched": 10,
+      "strict_partition": "severe",
+      "exterior_match_count": 14,
+      "semantic": {
+        "mode": "post_generation_manual_original_and_crop_review",
+        "reviewer": "Astra developer",
+        "status": "not_accepted",
+        "active_claim_ids": [
+          "claim_0001",
+          "claim_0002",
+          "claim_0003"
+        ],
+        "active_region_count": 9,
+        "regions_with_complete_relevant_chain_and_object_context": 0,
+        "numeric_values_supported_by_whole_originals": true,
+        "original_records_preserved": true,
+        "regions_equal_previous_run65": true,
+        "whole_image_reference_used": false,
+        "detail": "semantic_review.md",
+        "room_use_policy": "Storage is a plausible inferred use for the northeast narrow cabinet room; unique subtype not required.",
+        "geometry_and_connections_preserved": true
+      },
+      "transported_images": 22,
+      "claim_preview_images": 9,
+      "errors": [
+        {
+          "tool": "mcp__bim__confirm_claims",
+          "text": "Error executing tool confirm_claims: update_window: reason must be a nonblank string"
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "text": "Error executing tool revise_bim: set_space_role: unknown fields ['id']"
+        },
+        {
+          "tool": "mcp__bim__check_source_space_relation",
+          "text": "Error executing tool check_source_space_relation: register this image/floor calibration with overlay_candidate or build_plan_bim first"
+        }
+      ],
+      "browser_pass": true,
+      "continuation": {
+        "max_rounds": 2,
+        "turns": [
+          {
+            "name": "continuation_01",
+            "before_candidate": "candidate_02",
+            "after_candidate": "candidate_02",
+            "decision": {
+              "turn": "continuation_01",
+              "candidate": "candidate_02",
+              "source_model_sha256": "b1951cfc6211108cdd91f5b47c5c00a2dc26e2f56c2c5d0014484688d7b9a2aa",
+              "decision": "stop",
+              "reason": "Verified via claim_status and check_openings(heights_only=true) that candidate_02 genuinely reflects the prior session's work: all 3 height claims (window/door elevation dimension chains) are confirmed_unchanged with correct retained z bindings on 14/21 openings across all 4 facades (North/South/East/West all show all_image_evidence_linked). The remaining 7 unchecked openings (DE1, DE2, DHall, DR, DW1, DW2, DW3) are interior doors with no corresponding elevation evidence in any supplied drawing (North/South/East/West elevations only dimension exterior openings) - this is an explained absence of external input, not unattempted work, so their 0-2.1m default assumption is correctly left as an honest unresolved item. Room-use review is complete (8/8 rooms have inferred listed uses, 0 unknown) and notes were properly updated via replace_note (visible in superseded_notes) rather than left stale. No further bounded, evidence-backed action is feasible within scope: there is no additional interior-door elevation to inspect, and partition/connectivity was already spot-checked with 4 consistent samples. Finishing on candidate_02.",
+              "next_action": "",
+              "drawing_fidelity": "not_evaluated",
+              "task_completion": "model_judgment_only"
+            },
+            "persisted_source_or_evidence_changed": false,
+            "response_completed": true
+          }
+        ],
+        "stop_reason": "model_stop",
+        "task_completion": "not_certified",
+        "drawing_fidelity": "not_evaluated"
+      }
+    }
+  ],
+  "frozen_inputs_equal": {
+    "scope": true,
+    "image_sha256": true,
+    "seed_proposal_sha256": true,
+    "prior_claim_file_sha256": true,
+    "provider": true,
+    "role": true,
+    "effort": true,
+    "timeout_seconds": true,
+    "continuation_rounds": true
+  },
+  "total_invocations": 4,
+  "total_elapsed_seconds": 722.21,
+  "total_estimated_usd_not_bill": 2.7841784,
+  "distinct_offline_tests_passed": 104,
+  "interpretation": "Same recovery task/inputs, changed tool/reference implementation between runs. Neither a frozen producer repeat nor a causal comparison or cold generation.",
+  "preserved_baselines": [
+    "sm21/run58",
+    "sm24/run56",
+    "sm25/run54"
+  ]
+}

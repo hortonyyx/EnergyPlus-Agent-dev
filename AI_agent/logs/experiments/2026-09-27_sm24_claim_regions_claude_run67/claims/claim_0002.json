@@ -1,0 +1,171 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "WN",
+        "kind": "window"
+      },
+      {
+        "id": "WE3",
+        "kind": "window"
+      },
+      {
+        "id": "WW5",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Reviewing prior hypothesis: North/East/West elevations dimension the large windows as 1000 sill, 2400 height, 1100 above; origin z=0 at ground line.",
+    "sources": [
+      {
+        "box": [
+          600.0,
+          500.0,
+          1600.0,
+          1100.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          1300.0,
+          300.0,
+          1900.0,
+          700.0
+        ],
+        "image": "East_view.png"
+      },
+      {
+        "box": [
+          1600.0,
+          300.0,
+          2300.0,
+          700.0
+        ],
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [
+      "Horizontal spans not re-measured in this claim"
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2400.0,
+          1100.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 3.4,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 3.4
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "d0969e266da036ad7088b6ba2afc84b280adc6596d454906c9e403825e54620b",
+  "resolved_values": {
+    "z": [
+      1.0,
+      3.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        600.0,
+        500.0,
+        1600.0,
+        1100.0
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ]
+    },
+    {
+      "box": [
+        1300.0,
+        300.0,
+        1900.0,
+        700.0
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    },
+    {
+      "box": [
+        1600.0,
+        300.0,
+        2300.0,
+        700.0
+      ],
+      "image": "West_view.png",
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "size": [
+        2580,
+        993
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

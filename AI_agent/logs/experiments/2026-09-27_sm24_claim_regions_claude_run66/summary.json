@@ -1,0 +1,96 @@
+{
+  "input_mode": "saved_candidate_recovery",
+  "source_input_mode": "original_images_only",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": true
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "building_input_sha256": null,
+  "candidate_results": [
+    {
+      "candidate": "candidate_01",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 54,
+        "connections": 10,
+        "openings": 21,
+        "spaces": 8,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    },
+    {
+      "candidate": "candidate_02",
+      "status": "not_evaluated",
+      "source_geometry_ready": true,
+      "viewer_exists": true,
+      "counts": {
+        "boundaries": 54,
+        "connections": 10,
+        "openings": 21,
+        "spaces": 8,
+        "unbuilt_openings": 0,
+        "unsupported": 0
+      }
+    }
+  ],
+  "agent_response_completed": true,
+  "has_viewable_candidate": true,
+  "elapsed_seconds": 391.75,
+  "drawing_fidelity": "not_evaluated",
+  "continuation": {
+    "max_rounds": 2,
+    "turns": [
+      {
+        "name": "continuation_01",
+        "before_candidate": "candidate_02",
+        "after_candidate": "candidate_02",
+        "decision": {
+          "turn": "continuation_01",
+          "candidate": "candidate_02",
+          "source_model_sha256": "e590d1f2feecffa50efe2acdcdca5cadcb0fe4e907958563531b77e151172834",
+          "decision": "stop",
+          "reason": "Re-verified candidate_02 (current claim_status): the 3 original imprecise height claims (claim_0001-3) remain explicitly retracted with stated crop-mismatch reasons, and their corrected replacements (claim_0004-6, citing actual verified digit locations) are confirmed_unchanged and bound to all 14 exterior-facing openings (North/South/East/West all show all_image_evidence_linked). Interior doors DE1/DE2/DHall/DR/DW1/DW2/DW3 remain explicitly unchecked/assumed at 0-2.1m because no elevation evidence exists for interior doors in the supplied drawings (South/North/East/West are exterior facades only) - this is a genuine absent-input limitation, not unattempted work. Room-use review shows 8/8 spaces recorded with inferred roles, 0 unknown, notes updated. The stale space-relation review (flagged in the delivery snapshot) has now been refreshed: ran 5 new same/separate-space observations directly against candidate_02 (reception vs meeting room, stacked left-wing offices, dining room vs right office, single-room continuity) - all 5 consistent with the original 1f_view.png, 0 conflicts, confirming physical partitions were preserved through the role-assignment edit. No further useful bounded action remains: horizontal opening spans were out of the requested height-review scope, and no additional original evidence exists for interior door heights or further use disambiguation. Delivering candidate_02 as final.",
+          "next_action": "",
+          "drawing_fidelity": "not_evaluated",
+          "task_completion": "model_judgment_only"
+        },
+        "persisted_source_or_evidence_changed": true,
+        "response_completed": true
+      }
+    ],
+    "stop_reason": "model_stop",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "opening_reviews": [],
+  "delivery": {
+    "candidate": "candidate_02",
+    "selection_origin": "agent_selected",
+    "report": "delivery.json",
+    "viewer": "delivery.html"
+  },
+  "subscription_invocations": 2,
+  "estimated_cost_usd": 1.5238902,
+  "cost_receipts_complete": true,
+  "reported_partial_cost_usd": 1.5238902,
+  "not_evaluated": [
+    "independent GT comparison",
+    "human approval",
+    "EnergyPlus"
+  ],
+  "estimated_cost_note": "CLI estimates are not subscription bills"
+}
