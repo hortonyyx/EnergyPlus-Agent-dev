@@ -707,6 +707,7 @@ def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
             original = json.loads((run / built["candidate"] / "source_model.json").read_text())
             assert built["room_use_review"]["summary"]["recorded_count"] == 0
             assert built["room_use_review"]["summary"]["unrecorded_count"] == len(original["spaces"])
+            assert "next_action" not in built["room_use_review"]
             revised = _json_result(await session.call_tool("revise_bim", {
                 "candidate": built["candidate"], "operations_json": json.dumps([{
                     "op": "set_space_role", "space_id": "left", "role": "conference/meeting/multipurpose",
@@ -719,12 +720,16 @@ def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
             assert revised["room_use_review"]["summary"]["recorded_count"] == 1
             assert revised["room_use_review"]["summary"]["inferred_count"] == 1
             assert "left" not in revised["room_use_review"]["unrecorded_space_ids"]
+            assert "next_action" not in revised["room_use_review"]
             assert "Conference_Meeting_Multipurpose" in updated["public_names"]["spaces"]["left"]
             for key in ("floors", "boundaries", "openings", "connections", "opening_hosts"):
                 assert updated[key] == original[key]
             assert original == json.loads((run / built["candidate"] / "source_model.json").read_text())
             finished = _json_result(await session.call_tool("finish_bim", {"candidate": revised["candidate"]}))
-            assert finished["room_use_review"] == revised["room_use_review"]
+            inspected = _json_result(await session.call_tool("inspect_candidate", {"candidate": revised["candidate"]}))
+            assert inspected["room_use_review"] == finished["room_use_review"]
+            assert "set_space_role" in finished["room_use_review"]["next_action"]
+            assert {k: v for k, v in finished["room_use_review"].items() if k != "next_action"} == revised["room_use_review"]
 
     asyncio.run(scenario())
 

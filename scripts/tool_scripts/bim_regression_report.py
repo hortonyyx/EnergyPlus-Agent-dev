@@ -81,7 +81,7 @@ def read_run(root, entry):
         experiment = read(run / "experiment_condition.json")
         if experiment:
             row["conditions"]["experiment"] = {k: v for k, v in experiment.items()
-                                                if k not in {"producer_commit"}}
+                                                if k not in {"producer_commit", "run"}}
         row["condition_sha256"] = digest(row["conditions"])
     if audit is None:
         return row

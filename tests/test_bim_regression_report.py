@@ -114,3 +114,11 @@ def test_changed_evaluation_tolerance_is_not_pooled(tmp_path):
     value = json.loads(path.read_text())
     save(path, {**value, "tolerance": {"along_m": 0.5}})
     assert not report(tmp_path, {"runs": entries})["groups"][0]["comparable_saved_conditions"]
+
+
+def test_run_destination_and_record_commit_do_not_change_experiment_conditions(tmp_path):
+    entries = [run_fixture(tmp_path, "a"), run_fixture(tmp_path, "b")]
+    for name in ("a", "b"):
+        save(tmp_path / name / "experiment_condition.json", {
+            "variant": "same", "run": name, "producer_commit": name})
+    assert report(tmp_path, {"runs": entries})["groups"][0]["comparable_saved_conditions"]

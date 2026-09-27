@@ -51,7 +51,7 @@ def room_types_reference() -> str:
                         for r in CATALOG["types"]))
 
 
-def room_use_review(source: dict) -> dict:
+def room_use_review(source: dict, *, include_next_action: bool = True) -> dict:
     """Report saved use-basis coverage, never certify function interpretation."""
     counts = {basis: 0 for basis in ("observed", "inferred", "unknown")}
     unrecorded = []
@@ -64,7 +64,7 @@ def room_use_review(source: dict) -> dict:
             unrecorded.append(space["id"])
         else:
             counts[evidence["basis"]] += 1
-    return {
+    result = {
         "source_model_sha256": source.get("source_model_sha256"),
         "summary": {"total_count": len(source.get("spaces", [])),
                     "recorded_count": sum(counts.values()), "unrecorded_count": len(unrecorded),
@@ -84,3 +84,8 @@ def room_use_review(source: dict) -> dict:
                           "no defensible listed use fits; it is not a preferred response to ambiguity.",
         "drawing_fidelity": "not_evaluated", "delivery_blocked": False,
     }
+    if not include_next_action:
+        # Every save reports the same factual coverage. Action guidance belongs
+        # to explicit inspection/delivery, without inferring a fixed work phase.
+        result.pop("next_action")
+    return result

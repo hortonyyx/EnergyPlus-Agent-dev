@@ -1146,7 +1146,7 @@ class Toolkit:
             from src.agent.geometry.opening_review import opening_inventory
             from src.agent.roles import room_use_review
             source = json.loads(source_path.read_text())
-            result["room_use_review"] = room_use_review(source)
+            result["room_use_review"] = room_use_review(source, include_next_action=False)
             result["opening_inventory"] = opening_inventory(source)
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
             if calibration is not None:
