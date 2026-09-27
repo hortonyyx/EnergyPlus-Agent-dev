@@ -62,6 +62,12 @@ def parameter_present(proposal, operation, parameter):
 def context(proposal, source, references):
     """Include physical hosts so an unchanged number on a moved host goes stale."""
     inventory = objects(proposal, source)
+    # Numerical claims concern the physical space, not its use label/evidence.
+    # Use the compiled geometry (including storey heights) so a role-only edit
+    # retains height confirmations, while moved/resized/rehosted objects do not.
+    for space in source['spaces']:
+        inventory[('space', space['id'])] = {key: space[key] for key in
+            ('id', 'floor_id', 'polygon', 'z_floor', 'height')}
     result = {}
     for kind, identity in references:
         row = inventory.get((kind, identity))

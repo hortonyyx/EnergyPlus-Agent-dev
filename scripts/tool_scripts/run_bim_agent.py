@@ -2259,6 +2259,16 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
+        def record_work_review(candidate: str, decision: str, reason: str,
+                               next_action: str = "") -> dict:
+            """During a continuation turn, choose continue or stop against saved work.
+            Explain scope/evidence; continue requires a concrete next_action to execute
+            THIS turn. A stop is a model judgment, not proof of task or image fidelity.
+            """
+            from scripts.tool_scripts.bim_agent_continuation import record_work_review as record
+            return record(toolkit, candidate, decision, reason, next_action)
+
+        @server.tool()
         def finish_bim(candidate: str) -> dict:
             """Select a saved BIM and persist a handoff based on actual checks.
             Unreviewed/pending scopes remain explicit. This does not certify image
@@ -2443,6 +2453,9 @@ def serve(run: Path, readonly=False):
 
 def run_experiment(args):
     provider = getattr(args, "provider", "claude")
+    continuation_rounds = getattr(args, "continuation_rounds", 0)
+    if type(continuation_rounds) is not int or not 0 <= continuation_rounds <= 4:
+        raise ValueError("continuation_rounds must be an integer from 0 to 4")
     if provider == "glm" and getattr(args, "exploratory_opus", False):
         raise ValueError("--provider glm cannot be combined with --exploratory-opus")
     seed_path = getattr(args, "resume_candidate", None)
@@ -2492,6 +2505,7 @@ def run_experiment(args):
         if not seed_path and not plan_recovery:
             generation_mode = 'native_mesh_agent_experiment'
     manifest = {"images":images,"scope":args.scope,"provider":provider,
+                             "continuation_rounds": continuation_rounds,
                              "input_mode": generation_mode,
                              "exploratory_opus": getattr(args, "exploratory_opus", False),
                              "source_input_mode": source_input_mode,
@@ -2511,6 +2525,7 @@ def run_experiment(args):
                                  "scripts/tool_scripts/render_geometry_viewer.py":digest(ROOT/"scripts/tool_scripts/render_geometry_viewer.py"),
                                  "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
                                  "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
+                                 "scripts/tool_scripts/bim_agent_continuation.py":digest(ROOT/"scripts/tool_scripts/bim_agent_continuation.py"),
                                  "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),
                                  "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
                                  "src/agent/execution/bim_claims.py":digest(ROOT/"src/agent/execution/bim_claims.py"),
@@ -2609,6 +2624,17 @@ def run_experiment(args):
                           name="agent", timeout=args.timeout,
                           effort=getattr(args, "effort", None),
                           exploratory_opus=getattr(args, "exploratory_opus", False))
+    from scripts.tool_scripts.bim_agent_continuation import run_continuations, response_completed as completed
+    def invoke_followup(prompt, *, name, timeout):
+        return subscription(run, prompt,
+            model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
+            name=name, timeout=timeout, effort=getattr(args, "effort", None),
+            exploratory_opus=getattr(args, "exploratory_opus", False),
+            receipt_context={"role": "main_agent_continuation", "continuation_turn": name})
+    records, continuation_status = run_continuations(Toolkit(run), record,
+        max_rounds=continuation_rounds, invoke=invoke_followup, compact=delivery_tool_reply)
+    record = records[-1]
+    total_elapsed = round(sum(row["elapsed_seconds"] for row in records), 2)
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
         report = json.loads(path.read_text())
@@ -2618,12 +2644,11 @@ def run_experiment(args):
                            "counts":report.get("counts")})
     selection = run / "delivery_selection.json"
     delivery = None
-    response_completed = (bool(record.get("result")) and not record["result"].get("is_error",False)
-                          and not record.get("routing_error") and not record.get("timed_out")
-                          and record.get("returncode", 0) == 0)
+    response_completed = completed(record)
     generation_status = {"state":"completed" if response_completed else "interrupted",
                          "agent_response_completed":response_completed,
-                         "elapsed_seconds":record["elapsed_seconds"],
+                         "elapsed_seconds":total_elapsed,
+                         "continuation": continuation_status,
                          "returncode":record.get("returncode"),
                          "timed_out":record.get("timed_out", False)}
     if record.get("result", {}).get("is_error"):
@@ -2648,7 +2673,8 @@ def run_experiment(args):
                "candidate_results":candidates,
                "agent_response_completed":response_completed,
                "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or bool(delivery and delivery["viewer_exists"]),
-               "elapsed_seconds":record["elapsed_seconds"],"drawing_fidelity":"not_evaluated",
+               "elapsed_seconds":total_elapsed,"drawing_fidelity":"not_evaluated",
+               "continuation": continuation_status,
                "opening_reviews":[str(p.relative_to(run)) for p in sorted((run/"opening_reviews").glob("review_*.json"))],
                "delivery": {"candidate":delivery["candidate"], "selection_origin":delivery["selection_origin"],
                             "report":"delivery.json", "viewer":"delivery.html"} if delivery else None,
@@ -2671,6 +2697,8 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--continuation-rounds", type=int, choices=range(5), default=0,
+                     help="Experimental bounded main-agent follow-ups within the SAME total deadline")
     run.add_argument("--provider", choices=("claude", "glm"), default="claude",
                      help="Subscription route; glm uses glm-5.3-flash for main and local image tasks")
     run.add_argument("--exploratory-opus", action="store_true",

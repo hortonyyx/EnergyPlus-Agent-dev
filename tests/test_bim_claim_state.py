@@ -69,6 +69,24 @@ def test_false_or_unbound_confirmation_is_rejected_and_partial_coverage_visible(
     assert len(list((run/'claims').glob('confirmation_*'))) == 1
 
 
+def test_role_edit_preserves_height_check_but_physical_host_move_invalidates_it(tmp_path):
+    run, toolkit = setup_run(tmp_path)
+    row = window_claim(toolkit)
+    toolkit.confirm_claims('seed', json.dumps([window_check(row['id'])]))
+    revised = toolkit.revise('seed', json.dumps([dict(op='set_space_role', space_id='hall',
+        role='corridor', basis='inferred', source_refs=['plan.png synthetic circulation'],
+        assumptions=['Inferred from connectivity'], reason='Classify use')]))['candidate']
+    assert states(toolkit, revised)[row['id']]['state'] == 'confirmed_unchanged'
+    moved = toolkit.revise(revised, json.dumps([dict(op='move_shared_wall',
+        space_ids=['hall', 'room'], coordinate_m=3.2,
+        reason='Move physical host wall', source_refs=['synthetic'])]))['candidate']
+    assert states(toolkit, moved)[row['id']]['state'] == 'changed_since_check'
+    before = json.loads((run / revised / 'source_model.json').read_text())
+    after = json.loads((run / moved / 'source_model.json').read_text())
+    assert next(o for o in before['openings'] if o['id'] == 'window')['vertices'] == next(
+        o for o in after['openings'] if o['id'] == 'window')['vertices']
+
+
 def test_bound_value_overridden_later_in_same_revision_is_not_current(tmp_path):
     _, toolkit = setup_run(tmp_path)
     row = window_claim(toolkit)
