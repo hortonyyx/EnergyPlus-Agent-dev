@@ -178,6 +178,12 @@ the same coordinates in prose. This is currently an existing-candidate revision
 capability, not a required representation for all first builds. Literal metric
 estimates/inferences remain allowed when explicitly labelled. claim_status shows
 adopted versus actually applied/failed; none of these proves drawing truth.
+view_image returns a reusable view_id for exactly the region shown. Cite it as
+sources:[{"view_id":"view_0001"}] rather than retyping image/crop coordinates.
+When only a saved claim's source region is wrong, use replace_claim_sources with
+the relevant view_ids and a reason. This preserves its objects and numbers, saves
+a new claim and retracts the old one; inspect/adopt/confirm the new claim explicitly.
+Merely looking at a wider view does not update a previously saved narrow reference.
 If observed values already match, use confirm_claims with the same claim-referenced
 operations instead of creating a no-op candidate. Before finish_bim, inspect
 claim_status(candidate) and update obsolete assumption/unresolved text with
@@ -740,6 +746,11 @@ binds the full original extent and returns that image. Prefer this when dimensio
 and objects are far apart or you are unsure of exact crop coordinates. A narrow
 crop is optional, never a prerequisite for valid evidence. Explain which labels
 and object family support the value; a whole-image reference is not precise localization.
+To cite an image you just viewed, prefer {"view_id":"view_0001"}, using the actual
+ID returned by view_image (including whole-image views). The saved source binds
+that view's original image hash and exact region; grid/scale are presentation only.
+Do not combine view_id with image or box. IDs are local to this run, and an image
+return is not evidence that you understood it.
 record_claim returns clean crops for the first three saved source regions, plus
 unpreviewed_source_indices. Inspect the actual crops before adoption: the numbers,
 dimension endpoints and enough object context must be inside the referenced region.
@@ -747,8 +758,15 @@ A broader region is fine; a window-only box does not locate a chain outside it.
 Use view_claim_evidence(claim_id, source_index, display_scale=1..8) to inspect any
 saved source or enlarge small labels. Indices are zero-based. Fractional boxes are
 enclosed in whole pixels; metadata shows both the claimed and rendered boxes.
-If the region is misplaced, record a new corrected claim and retract the obsolete
-one with decide_claim. Saved claims are immutable. Seeing a crop is not automatic
+If the region is misplaced but the objects/values remain valid, call
+replace_claim_sources(claim_id, view_ids=[...], reason="Explain the corrected evidence").
+This copies the SAME candidate, objects, values, targets, basis and unresolved list,
+replaces only sources/reason, saves a new immutable claim and retracts the old one.
+Previous adoption/confirmation is NOT transferred. Inspect the new returned sources,
+then explicitly adopt and confirm/apply the NEW claim. It does not edit BIM geometry.
+If interpretation, values, basis, unresolved items or candidate need changing,
+record a new corrected claim and retract the obsolete one with decide_claim instead.
+Saved claims are immutable. Seeing a crop is not automatic
 OCR or independent verification, and confirmed arithmetic does not prove its labels.
 Record unexamined/conflicting evidence in unresolved. A direct observation is
 not automatically independent: observation_mode is caller-reported, and review

@@ -128,7 +128,7 @@ def height_coverage(store, candidate, current_state=None):
                     "parameter": "z",
                     "basis": basis,
                     "evidence_class": evidence_class,
-                    "source_images": sorted({row["image"] for row in claim.get("sources", [])}),
+                    "source_images": sorted({row["image"] for row in record.get("sources", [])}),
                 })
 
     classifications = facade_index["opening_classifications"]

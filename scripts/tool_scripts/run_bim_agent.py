@@ -15,6 +15,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import shutil
 import signal
 import subprocess
@@ -508,6 +509,13 @@ class Toolkit:
             raise ValueError("only the coordinator may decide candidate claims")
         result = self.claims().decide(claim_id, disposition, reason)
         self.log("decide_claim", result)
+        return result
+
+    def replace_claim_sources(self, claim_id, view_ids, reason):
+        if self.readonly:
+            raise ValueError("only the coordinator may replace claim sources")
+        result = self.claims().replace_sources(claim_id, view_ids, reason)
+        self.log("replace_claim_sources", result)
         return result
 
     def confirm_claims(self, candidate, operations_json):
@@ -1502,6 +1510,21 @@ class Toolkit:
         return CallToolResult(content=[picture.to_image_content(),
             TextContent(type="text", text=json.dumps(metadata))], structuredContent=metadata)
 
+    def read_image_view(self, view_id):
+        if not isinstance(view_id, str) or not re.fullmatch(r"view_\d{4,}", view_id):
+            raise ValueError("choose a saved view_NNNN from view_image")
+        path = self.run / "image_views" / f"{view_id}.json"
+        if not path.is_file():
+            raise ValueError("choose an existing view_NNNN from this run")
+        raw = path.read_bytes()
+        metadata = json.loads(raw)
+        if digest(self.image_path(metadata["name"])) != metadata["image_sha256"]:
+            raise ValueError("view original image changed")
+        with PILImage.open(self.image_path(metadata["name"])) as image:
+            if list(image.size) != metadata["original_size"]:
+                raise ValueError("view original size changed")
+        return {"record": metadata, "sha256": hashlib.sha256(raw).hexdigest()}
+
     def view(self, name, box=None, coordinate_grid=True, display_scale=1.0):
         from mcp.server.fastmcp import Image
         if (not isinstance(display_scale, (int, float)) or isinstance(display_scale, bool)
@@ -1542,6 +1565,24 @@ class Toolkit:
                         (region[3] - region[1]) / pic.height],
                     "coordinate_note": "Original pixel = crop origin + returned pixel * scale. Use ORIGINAL pixels for the next crop or measurement."}
         metadata["remaining_seconds"] = self.remaining_seconds()
+        # Small immutable view records let callers reuse the actual returned region.
+        # Exclusive creation also keeps simultaneous readers from overwriting it.
+        folder = self.run / "image_views"
+        folder.mkdir(exist_ok=True)
+        index = len(list(folder.glob("view_*.json"))) + 1
+        while True:
+            metadata["view_id"] = f"view_{index:04d}"
+            metadata["source_reference"] = {"view_id": metadata["view_id"]}
+            metadata["returned_png_sha256"] = hashlib.sha256(data.getvalue()).hexdigest()
+            path = folder / f"{metadata['view_id']}.json"
+            raw = (json.dumps(metadata, ensure_ascii=False, sort_keys=True) + "\n").encode()
+            try:
+                with path.open("xb") as saved:
+                    saved.write(raw)
+                break
+            except FileExistsError:
+                index += 1
+        metadata["view_record_sha256"] = hashlib.sha256(raw).hexdigest()
         self.log("view_image", metadata)
         return [Image(data=data.getvalue(), format="png"), json.dumps(metadata)]
 
@@ -1862,6 +1903,8 @@ def serve(run: Path, readonly=False):
         Full views fit 1600 px; grid labels keep original coordinates after scaling.
         Use display_scale=4 for small text or thin lines; coordinates stay original pixels.
         Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.
+        Returned view_id can be used directly in claim sources or replace_claim_sources;
+        do not copy crop coordinates again when citing exactly this view.
         """
         return toolkit.view(name, box, coordinate_grid, display_scale)
 
@@ -2072,14 +2115,7 @@ def serve(run: Path, readonly=False):
             """
             return toolkit.plan_wall_support(draft_id, rgb, tolerance, radius_pixels, minimum_ink_pixels)
 
-        @server.tool()
-        def record_claim(claim_json: str) -> CallToolResult:
-            """Record a located interpretation and computable values for an existing candidate.
-            Returns actual clean crops of up to three saved source regions. Inspect them
-            before adoption; use view_claim_evidence for remaining sources or magnification.
-            Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
-            """
-            row = toolkit.record_claim(claim_json)
+        def claim_result(row) -> CallToolResult:
             content, previews = [], []
             for index in range(min(3, len(row["sources"]))):
                 result = toolkit.view_claim_evidence(row["id"], index)
@@ -2089,6 +2125,26 @@ def serve(run: Path, readonly=False):
                      "unpreviewed_source_indices": list(range(3, len(row["sources"])))}
             content.append(TextContent(type="text", text=json.dumps(reply)))
             return CallToolResult(content=content, structuredContent=reply)
+
+        @server.tool()
+        def record_claim(claim_json: str) -> CallToolResult:
+            """Record a located interpretation and computable values for an existing candidate.
+            Returns actual clean crops of up to three saved source regions. Inspect them
+            before adoption; use view_claim_evidence for remaining sources or magnification.
+            Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
+            """
+            return claim_result(toolkit.record_claim(claim_json))
+
+        @server.tool()
+        def replace_claim_sources(claim_id: str, view_ids: list[str], reason: str) -> CallToolResult:
+            """Replace wrong claim regions using actual view_image IDs, without retyping values.
+            Creates a new immutable claim on the SAME saved candidate, preserving objects,
+            value definitions, targets, basis and unresolved items; replaces sources/reason.
+            Retracts the old claim explicitly, returns new crops. New claim is unadopted:
+            decide_claim then confirm_claims/revise_bim is still required. No BIM change.
+            Full original views are valid; seeing a view does not certify interpretation.
+            """
+            return claim_result(toolkit.replace_claim_sources(claim_id, view_ids, reason))
 
         @server.tool()
         def view_claim_evidence(claim_id: str, source_index: int = 0,

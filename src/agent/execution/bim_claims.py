@@ -43,6 +43,10 @@ class ImageRef(StrictModel):
     box: list[float] | None = Field(default=None, min_length=4, max_length=4)
 
 
+class ViewedImageRef(StrictModel):
+    view_id: str = Field(pattern=r"^view_\d{4,}$")
+
+
 class LiteralValue(StrictModel):
     type: Literal["literal"]
     value: float | list[float]
@@ -72,7 +76,7 @@ class Claim(StrictModel):
     objects: list[ObjectRef] = Field(min_length=1)
     basis: Literal["annotation_and_pixels", "pixels", "visual_estimate", "inference", "declared"]
     reason: str = Field(min_length=1)
-    sources: list[ImageRef]
+    sources: list[ImageRef | ViewedImageRef]
     values: dict[str, LiteralValue | AxisValue | ChainValue]
     # Omitted preserves the legacy all-values/all-objects contract. An explicit
     # empty list marks supporting evidence, never an applicable parameter.
@@ -167,6 +171,12 @@ class ClaimStore:
         if claim["basis"] in {"annotation_and_pixels", "pixels", "visual_estimate"} and not claim["sources"]:
             raise ValueError("image-based claims require a located source")
         for source in claim["sources"]:
+            view_binding = {}
+            if "view_id" in source:
+                viewed = self.toolkit.read_image_view(source["view_id"])
+                metadata = viewed["record"]
+                view_binding = {"view_id": source["view_id"], "view_sha256": viewed["sha256"]}
+                source = {"image": metadata["name"], "box": metadata["box_original_pixels"]}
             path = self.toolkit.image_path(source["image"])
             with Image.open(path) as picture:
                 width, height = picture.size
@@ -174,7 +184,7 @@ class ClaimStore:
             left, top, right, bottom = box
             if not (0 <= left < right <= width and 0 <= top < bottom <= height):
                 raise ValueError("source box outside original image")
-            sources.append({**source, "box": box, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            sources.append({**source, **view_binding, "box": box, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                             "size": [width, height]})
         return sources
 
@@ -226,7 +236,7 @@ class ClaimStore:
         json_bytes(resolved)
         return resolved, computations
 
-    def record(self, data):
+    def _prepare(self, data):
         claim = Claim.model_validate(data).model_dump()
         json_bytes(claim)
         if not claim["reason"].strip() or not claim["values"] or any(not k.strip() for k in claim["values"]):
@@ -259,9 +269,34 @@ class ClaimStore:
                 raise ValueError("claim requires at least one application value target")
         sources = self._sources(claim)
         values, computations = self._resolve_values(claim, sources)
-        return self._write("claim", {"claim": claim, "parent_proposal_sha256": sha(proposal),
+        return {"claim": claim, "parent_proposal_sha256": sha(proposal),
             "sources": sources, "resolved_values": values, "computations": computations,
-            "verification": "not_independently_verified"})
+            "verification": "not_independently_verified"}
+
+    def record(self, data):
+        return self._write("claim", self._prepare(data))
+
+    def replace_sources(self, identity, view_ids, reason):
+        """Replace references on the same candidate; never silently change values."""
+        if (not isinstance(view_ids, list) or not view_ids or not isinstance(reason, str)
+                or not reason.strip()):
+            raise ValueError("nonempty view_ids and replacement reason required")
+        old = self.read(identity)
+        proposal, _ = self.candidate(old["claim"]["candidate"])
+        if sha(proposal) != old["parent_proposal_sha256"]:
+            raise ValueError("claim parent changed; record a new observation")
+        data = copy.deepcopy(old["claim"])
+        data.update(sources=[{"view_id": value} for value in view_ids], reason=reason)
+        prepared = self._prepare(data)
+        if prepared["resolved_values"] != old["resolved_values"]:
+            raise ValueError("source replacement changed values; record a new observation")
+        # Validate before either append: an invalid view must not retract good evidence.
+        row = self._write("claim", {**prepared, "replaces_claim": identity,
+            "replaced_claim_sha256": sha(old)})
+        decision = self.decide(identity, "retracted", f"Sources replaced by {row['id']}: {reason}")
+        return {**row, "superseded_decision": decision,
+                "next_action": "Inspect the returned sources, decide whether to adopt the new claim, "
+                               "then confirm/apply it. Previous confirmations are not transferred."}
 
     def read(self, identity):
         if not re.fullmatch(r"claim_\d{4,}", identity):
