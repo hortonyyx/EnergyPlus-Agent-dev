@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-27 单人还原续推：** 用户本轮仍指定Astra独立开发，无开发子代理/Opus工作包。sm21独立重复run58实际`claude-sonnet-5`/medium，Claude现有订阅，310.58秒、CLI估算$1.6289102（非账单、不含开发用量），1主调用、无子模型或回退，正常结束。sm25全门窗核验及控制实验均离线，无额外模型调用、DeepSeek或付费API。三例各两次整栋结果仍为单Sonnet加确定性工具基线，不冒充功能分工/并发已实现。见[本轮交接](../logs/worklog/2026-09-27_reconstruction_repeat_and_inventory.md)。
+
 **09-26 sm21整栋回归完成并收工：** run57实际`claude-sonnet-5`/medium，Claude现有订阅，377.66秒，CLI估算$1.232221（非账单，不含开发用量），1主调用、无子模型/回退。Astra单独开发，全部调用结束，无DeepSeek或付费API。仍是单Sonnet配合确定性工具；局部Haiku失败未参与生成，功能角色/并发尚待实测。见[完整收工](../logs/worklog/2026-09-26_reconstruction_sm21_session_close.md)。
 
 **09-26 sm24整栋换例/重复完成：** run55/56均实际`claude-sonnet-5`/medium，原Claude订阅，297.27/212.68秒，各1次主调用、无子模型/回退；CLI估算$0.7913144/$0.7330728，合计$1.5243872，非账单且不含开发用量。两次均正常结束，run56此前目录预检失败发生在模型调用前。Astra单独开发，无DeepSeek或付费API。功能角色选模与后续并发是已记录方向，本轮仍是单Sonnet+工具基线，没有冒充多角色产品验证。见[交接](../logs/worklog/2026-09-26_reconstruction_cross_case_roles.md)。

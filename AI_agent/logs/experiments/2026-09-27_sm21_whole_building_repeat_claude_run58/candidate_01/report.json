@@ -1,0 +1,75 @@
+{
+  "agent_assumptions": [
+    "Internal door heights 2.1 assumed; door swing states unknown",
+    "Room uses not assigned",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "4195f479c8c7a980efded249322a1a3e8db2028fd80306632cdf9b1d4f0cfc8e",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "5e9253b620b7fd22b62eedb254ede3a6d11eb9578758f20b8c55ee9263239698",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "290f16fa830b5d42423d3978941cc4037ada073eda12d6c0bfee2e88e09ccd11",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "54260dba14591cfa748a1db5c140ce59974be33e9be439a75e9aa19f6d69038f",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "fec97bebeb22c8540eb597e8324b87ee92ba059498589ca185b390ab59953ae4",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "a0721ffe186095084f013850db063f6116f8c306aa87f64ad678c6b6cfa80e50"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "a45d15784d095122fa894233a56ddfcd2deb767486a09ef15257a760135e5816",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Partition thickness not modelled from drawing; wall thickness by compiler",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

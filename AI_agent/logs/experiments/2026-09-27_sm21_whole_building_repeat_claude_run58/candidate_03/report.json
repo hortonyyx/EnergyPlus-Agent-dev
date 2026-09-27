@@ -1,0 +1,65 @@
+{
+  "agent_assumptions": [
+    "Internal door heights 2.1 assumed; door swing states unknown",
+    "Room uses not assigned",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Internal door heights 3.0-5.1 assumed; door swing states unknown",
+    "No stair/vertical circulation shown in supplied drawings, none modelled",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "88745d9ea4358303a46d40d633a2c09359395050ecbf5e9551f276fbf68535cc",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "5e9253b620b7fd22b62eedb254ede3a6d11eb9578758f20b8c55ee9263239698",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "c5d31d34c9b0ec76da3692d42e4eb88d234d2eda2e4362930c56f9697e563951"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "5bef2ddb1256f6d3e3b180881a8f4f8e923696fc43adeaae554fa90897dd2c3e",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Partition thickness not modelled from drawing; wall thickness by compiler",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Room uses inferred only from furniture; not assigned",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

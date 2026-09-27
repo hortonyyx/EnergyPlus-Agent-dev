@@ -1,0 +1,115 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_E",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East elevation ground window: left chain from ground 1000 sill, 1800 window, then 200 to the 3000 floor line. Origin z=0 at ground.",
+    "sources": [
+      {
+        "box": [
+          180.0,
+          380.0,
+          280.0,
+          560.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          200.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              2.8,
+              3.0
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "88745d9ea4358303a46d40d633a2c09359395050ecbf5e9551f276fbf68535cc",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        180.0,
+        380.0,
+        280.0,
+        560.0
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

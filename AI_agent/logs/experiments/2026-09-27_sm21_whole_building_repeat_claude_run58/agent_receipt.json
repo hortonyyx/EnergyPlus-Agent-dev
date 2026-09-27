@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 310.58,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 286789,
+    "stop_reason": "end_turn",
+    "session_id": "a87d87e0-9838-4615-9521-a1daf5e57a92",
+    "total_cost_usd": 1.6289102000000004,
+    "usage": {
+      "input_tokens": 44,
+      "cache_creation_input_tokens": 226281,
+      "cache_read_input_tokens": 2205891,
+      "output_tokens": 28252,
+      "output_tokens_details": {
+        "thinking_tokens": 14893
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 226281,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 978,
+          "cache_read_input_tokens": 222461,
+          "cache_creation_input_tokens": 3820,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3820
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 44,
+        "outputTokens": 28252,
+        "cacheReadInputTokens": 2205891,
+        "cacheCreationInputTokens": 226281,
+        "webSearchRequests": 0,
+        "costUSD": 1.6289102000000004,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 14893,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 45,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "I've built and saved the two-storey model as `candidate_04` and recorded it with `finish_bim`. Drawing fidelity has not been evaluated, and every calibration is my own from the drawings, so treat positions as good to a few pixels rather than certified.\n\n**Geometry**\n- **Footprint:** 15 m × 8 m, with the origin at the south-west outer corner. Both floors use the outer wall faces as the perimeter.\n- **Levels:** floor 1 is at 0–3.0 m and floor 2 at 3.0–6.6 m, from the 3000 and 3600 dimensions on the elevations.\n- **Floor 1 spaces (7):** three rooms on the north side, three on the south side, and one continuous 2 m corridor between them. The corridor is a single space from the west door to the east window.\n- **Floor 1 openings (15):**\n  - 8 doors: six corridor doors, the west double door and the south-west door.\n  - 7 windows: three north, three south, one at the east end of the corridor.\n- **Floor 2 spaces (7):** two meeting rooms on the north side, four offices on the south side, and one continuous corridor.\n- **Floor 2 openings (14):**\n  - 6 doors: two north, four south.\n  - 8 windows: two north, four south, one at each end of the corridor.\n- **Floor 2 layout:** it is a separate interpretation, not a copy of floor 1. Its partitions sit at different positions.\n- **Vertical circulation:** none is shown in the drawings, so none is modelled.\n\n**Checks**\n- Eight same-space and separate-space samples (four per floor) all agree with the saved source, and the corridors read as one space on both floors.\n- The source geometry passes its own consistency checks, which do not establish fidelity.\n- I did not run a partition-support check on the walls or an opening-mark review against the plans.\n\n**Heights**\n- All 15 windows have heights linked to the elevation dimension chains:\n  - Floor 1: sills at 1.0 m with 1.6 m or 1.8 m height, plus one small south window at 1.5–2.1 m.\n  - Floor 2: 4.0–5.8 m, measured from a 3.0 m storey base.\n- The 14 doors remain assumptions:\n  - The 12 interior doors, six per floor, use an assumed 2.1 m height.\n  - The two floor-1 exterior doors read about 2.1 m by pixel only. I deferred those two claims rather than adopt them.\n- Assumption notes in the saved candidate were updated to match this.\n\n**Not verified**\n- Door swing states are unknown.\n- Room uses are not assigned.\n- Wall and partition thicknesses are compiler defaults, not taken from the drawing.\n- Interior door positions come from gaps in the drawn wall lines, at pixel precision.\n- I read the elevations and viewed the actual source south elevation, but did not compare the north, east or west source elevations against the drawings.",
+    "ttft_ms": 1662,
+    "type": "result",
+    "duration_ms": 306707,
+    "uuid": "60556122-e8ca-4422-ac25-1ea88326529f",
+    "ttft_stream_ms": 1473,
+    "time_to_request_ms": 76,
+    "first_content_frame_ms": 1473,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

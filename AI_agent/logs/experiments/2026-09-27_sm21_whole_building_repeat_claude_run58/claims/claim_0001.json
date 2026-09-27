@@ -1,0 +1,154 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North and South elevations, ground storey: right-side dimension chain from ground (z=0): 1000 sill, 1600 window, 400 to 3000 storey line. Origin z=0 at ground.",
+    "sources": [
+      {
+        "box": [
+          190.0,
+          400.0,
+          280.0,
+          580.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          1190.0,
+          395.0,
+          1290.0,
+          575.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1600.0,
+          400.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "88745d9ea4358303a46d40d633a2c09359395050ecbf5e9551f276fbf68535cc",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        190.0,
+        400.0,
+        280.0,
+        580.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    },
+    {
+      "box": [
+        1190.0,
+        395.0,
+        1290.0,
+        575.0
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}
