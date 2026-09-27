@@ -460,6 +460,7 @@ def delivery_tool_reply(result: dict) -> dict:
         'selection_origin', 'drawing_fidelity', 'response_compacted',
         'full_delivery_report', 'review_scope_status_counts', 'current_review_count',
         'stale_review_count', 'source_image_feedback_summary', 'space_relation_review_summary',
+        'room_use_review',
     ) if key in compact}
     minimal.update(detail_level='counts_only', more_details_omitted=True,
         generation_state=result.get('generation_status', {}).get('state'),
@@ -678,6 +679,8 @@ class Toolkit:
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
         result["space_relation_review"] = self.space_relation_status(source)
         result["input_view_status"] = self.input_view_status()
+        from src.agent.roles import room_use_review
+        result["room_use_review"] = room_use_review(source)
         claim_state = self.claims().status()
         from src.agent.execution.bim_claim_state import project
         current_claims = project(self.claims(), candidate)
@@ -1106,7 +1109,10 @@ class Toolkit:
         source_path = self.run / candidate / "source_model.json"
         if source_path.exists():
             from src.agent.geometry.opening_review import opening_inventory
-            result["opening_inventory"] = opening_inventory(json.loads(source_path.read_text()))
+            from src.agent.roles import room_use_review
+            source = json.loads(source_path.read_text())
+            result["room_use_review"] = room_use_review(source)
+            result["opening_inventory"] = opening_inventory(source)
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
             if calibration is not None:
                 self._save_calibration(candidate=candidate, image=plan_input["image"],
@@ -2146,7 +2152,11 @@ def serve(run: Path, readonly=False):
             if not include_geometry:
                 proposal = {key: value for key, value in proposal.items() if key != 'geometry'}
             report = json.loads((path/"report.json").read_text())
+            from src.agent.roles import room_use_review
+            source_path = path / "source_model.json"
             result = {"candidate": candidate, "proposal": proposal, "floors": floors,
+                      "room_use_review": room_use_review(json.loads(source_path.read_text()))
+                          if source_path.exists() else None,
                       "geometry_included": include_geometry,
                       'floor_filter':floor_id, 'summary_due_to_size':summary_due_to_size,
                       'geometry_read_hint':'Use floor_id or read_candidate_items for bounded reads; partial results must not replace the full proposal.',

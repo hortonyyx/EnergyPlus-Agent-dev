@@ -45,3 +45,30 @@ def room_types_reference() -> str:
             + "\n".join(f"{r['code']} | {r['label_zh']} | {r['color']}"
                         + (f" | {r['annotation']}" if r["annotation"] else "")
                         for r in CATALOG["types"]))
+
+
+def room_use_review(source: dict) -> dict:
+    """Report saved use-basis coverage, never certify function interpretation."""
+    counts = {basis: 0 for basis in ("observed", "inferred", "unknown")}
+    unrecorded = []
+    for space in source.get("spaces", []):
+        evidence = space.get("role_evidence")
+        if evidence is None:
+            unrecorded.append(space["id"])
+        else:
+            counts[evidence["basis"]] += 1
+    return {
+        "source_model_sha256": source.get("source_model_sha256"),
+        "summary": {"total_count": len(source.get("spaces", [])),
+                    "recorded_count": sum(counts.values()), "unrecorded_count": len(unrecorded),
+                    **{basis + "_count": count for basis, count in counts.items()}},
+        "unrecorded_space_ids": unrecorded[:20],
+        "unrecorded_ids_truncated": len(unrecorded) > 20,
+        "next_action": ("Read room_types and edits, inspect original room interiors, then use "
+                        "revise_bim/set_space_role for a supported use or explicitly explained unknown. "
+                        "Read remaining cells with read_candidate_items; preserve physical partitions."
+                        if unrecorded else "Use-basis records saved; unresolved inferences remain explicit."),
+        "interpretation": "Counts cover structured role_evidence only, not semantic correctness. "
+                          "Legacy source_refs may contain other evidence. Explained unknown is a valid result.",
+        "drawing_fidelity": "not_evaluated", "delivery_blocked": False,
+    }

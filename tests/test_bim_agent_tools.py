@@ -662,6 +662,8 @@ def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
         async with _server_session(run, readonly=False) as session:
             built = _json_result(await session.call_tool("build_bim", {"proposal_json": _two_floor_proposal()}))
             original = json.loads((run / built["candidate"] / "source_model.json").read_text())
+            assert built["room_use_review"]["summary"]["recorded_count"] == 0
+            assert built["room_use_review"]["summary"]["unrecorded_count"] == len(original["spaces"])
             revised = _json_result(await session.call_tool("revise_bim", {
                 "candidate": built["candidate"], "operations_json": json.dumps([{
                     "op": "set_space_role", "space_id": "left", "role": "conference/meeting/multipurpose",
@@ -671,10 +673,15 @@ def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
             updated = json.loads((run / revised["candidate"] / "source_model.json").read_text())
             room = next(s for s in updated["spaces"] if s["id"] == "left")
             assert room["role_evidence"]["basis"] == "inferred"
+            assert revised["room_use_review"]["summary"]["recorded_count"] == 1
+            assert revised["room_use_review"]["summary"]["inferred_count"] == 1
+            assert "left" not in revised["room_use_review"]["unrecorded_space_ids"]
             assert "Conference_Meeting_Multipurpose" in updated["public_names"]["spaces"]["left"]
             for key in ("floors", "boundaries", "openings", "connections", "opening_hosts"):
                 assert updated[key] == original[key]
             assert original == json.loads((run / built["candidate"] / "source_model.json").read_text())
+            finished = _json_result(await session.call_tool("finish_bim", {"candidate": revised["candidate"]}))
+            assert finished["room_use_review"] == revised["room_use_review"]
 
     asyncio.run(scenario())
 

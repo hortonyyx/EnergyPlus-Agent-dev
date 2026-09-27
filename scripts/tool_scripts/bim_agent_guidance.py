@@ -65,6 +65,10 @@ Furniture can support an explicitly inferred use, never an observed text label.
 For an existing candidate, read edits and use set_space_role to assign or withdraw
 a use with its located basis, without rebuilding walls/openings. Unknown remains
 appropriate for ambiguous rooms; state why. Review stale global use notes as well.
+Candidate feedback room_use_review lists rooms without a structured use-basis
+record. Resolve applicable items from original evidence before delivery or state
+their unexamined scope; it distinguishes explained unknown from absent records,
+not correct from incorrect interpretations. It never authorizes geometry changes.
 Read get_bim_reference('naming') for public display names and CCW wall numbering.
 For drawing reconstruction, read get_bim_reference('reconstruction') for a
 measurement-to-source method, including calibration, wall junctions and opening

@@ -43,6 +43,25 @@ def test_catalog_is_exact_pinned_upstream_plus_explicit_unknown():
     assert require_role("Meeting Room") == "conference/meeting/multipurpose"
 
 
+def test_room_use_feedback_distinguishes_explained_unknown_and_missing_records():
+    from src.agent.roles import room_use_review
+    source = {"spaces": [
+        {"id": "blank", "role": "unknown"},
+        {"id": "old", "role": "office", "source_refs": ["legacy desk inference"]},
+        {"id": "unclear", "role": "unknown", "role_evidence": {"basis": "unknown"}},
+        {"id": "inferred", "role": "office", "role_evidence": {"basis": "inferred"}},
+    ]}
+    result = room_use_review(source)
+    assert result["unrecorded_space_ids"] == ["blank", "old"]
+    assert result["summary"] == dict(total_count=4, recorded_count=2, unrecorded_count=2,
+                                     observed_count=0, inferred_count=1, unknown_count=1)
+    assert result["delivery_blocked"] is False and result["drawing_fidelity"] == "not_evaluated"
+    source["spaces"] = [{"id": str(i), "role": "unknown"} for i in range(100)]
+    bounded = room_use_review(source)
+    assert bounded["summary"]["unrecorded_count"] == 100
+    assert len(bounded["unrecorded_space_ids"]) == 20 and bounded["unrecorded_ids_truncated"]
+
+
 def test_room_wall_window_shared_door_names():
     s = source()
     n = s["public_names"]
