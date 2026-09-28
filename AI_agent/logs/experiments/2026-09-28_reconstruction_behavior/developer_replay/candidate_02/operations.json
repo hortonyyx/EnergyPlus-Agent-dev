@@ -1,0 +1,42 @@
+[
+  {
+    "op": "update_window",
+    "id": "F1:W_S1",
+    "changes": {
+      "z": [
+        1.5,
+        2.1
+      ]
+    },
+    "reason": "Apply this object's reobserved extent, preserving unrelated geometry.",
+    "source_refs": [
+      "claim:claim_0001:24e350b05d73252fde963533e10da4b66921bc4e5674cdb9347fb1f265c67dd5"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F2:W2F_East",
+    "changes": {
+      "span": [
+        3.406207827,
+        4.593792173
+      ]
+    },
+    "reason": "Apply this object's reobserved extent, preserving unrelated geometry.",
+    "source_refs": [
+      "claim:claim_0002:30447bf9fa27667c5c00d2444cdac6563fdecd9ce762402f7b2cb4b32b56fbad"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "South/East window heights (W_S1-3, W_East) assumed equal to the North_view.png-measured 1F window family (head 2.653m, sill 1.023m above ground); not independently pixel-measured on South_view.png/East_view.png in this pass. North-facing windows W_N1-3 now use directly measured North_view.png pixel evidence via claim_0001.",
+    "replacement": [
+      "Developer replay: F1:W_S1 alone now follows its South elevation 900/600/1500 chain. F1:W_S2, F1:W_S3 and F1:W_East retain their previous values and unchecked status; no whole-facade validation is claimed."
+    ],
+    "reason": "The small window no longer shares the regular-family assumption.",
+    "source_refs": [
+      "claim_0001"
+    ]
+  }
+]

@@ -1,0 +1,6409 @@
+{
+  "model_calls": 0,
+  "runs": [
+    {
+      "run": "2026-09-26_sm21_whole_building_claude_run57",
+      "selected_candidate": "candidate_04",
+      "response_completed": true,
+      "image_sha256": {
+        "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+        "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+        "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+        "West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+      },
+      "objects": [
+        {
+          "label": "F1 north regular window",
+          "object_id": "F1:W-N1",
+          "final_extent": {
+            "x": [
+              1.239571,
+              3.638881
+            ],
+            "y": [
+              8.0,
+              8.0
+            ],
+            "z": [
+              1.010026385,
+              2.612137203
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425.3,
+                    0
+                  ],
+                  [
+                    1815.7,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346.6,
+                    8
+                  ],
+                  [
+                    1086.4,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W-N1",
+                "kind": "window",
+                "p1": [
+                  540.2,
+                  346.6
+                ],
+                "p2": [
+                  762.6,
+                  346.6
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view; North_view sill1000 h1600"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  1.239571,
+                  3.638881
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  1.239571,
+                  3.638881
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.010026385,
+                  2.612137203
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0004",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F1:W-N1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W-N2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W-N3",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view ground-floor windows: 1000 sill, 1600 height, 400 above to 3000; ground y=578, top y=199 (6.6 m).",
+                "sources": [
+                  {
+                    "box": [
+                      360.0,
+                      425.0,
+                      1090.0,
+                      525.0
+                    ],
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "anchors": [
+                      [
+                        578,
+                        0
+                      ],
+                      [
+                        199,
+                        6.6
+                      ]
+                    ],
+                    "axis": "y",
+                    "image": "North_view.png",
+                    "pixels": [
+                      520.0,
+                      428.0
+                    ],
+                    "reduction": null,
+                    "type": "image_axis"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.010026385,
+                  2.612137203
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    360.0,
+                    425.0,
+                    1090.0,
+                    525.0
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 35,
+              "tool": "revise_bim",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 4,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W-N1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0004",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "apply elevation height",
+                  "source_refs": [
+                    "claim_0004"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F1 south small window",
+          "object_id": "F1:W-S1",
+          "final_extent": {
+            "x": [
+              3.439298,
+              4.638953
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.493684211,
+              2.101578947
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425.3,
+                    0
+                  ],
+                  [
+                    1815.7,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346.6,
+                    8
+                  ],
+                  [
+                    1086.4,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W-S1",
+                "kind": "window",
+                "p1": [
+                  744.1,
+                  1086.4
+                ],
+                "p2": [
+                  855.3,
+                  1086.4
+                ],
+                "z": [
+                  1.5,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view; South_view small window sill1500 h600"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  3.439298,
+                  4.638953
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.5,
+                  2.1
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  3.439298,
+                  4.638953
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.493684211,
+                  2.101578947
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0002",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F1:W-S1",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "South_view small ground-floor window: sill 1500, height 600 (900 above to 3000).",
+                "sources": [
+                  {
+                    "box": [
+                      505.0,
+                      440.0,
+                      585.0,
+                      490.0
+                    ],
+                    "image": "South_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "anchors": [
+                      [
+                        569,
+                        0
+                      ],
+                      [
+                        189,
+                        6.6
+                      ]
+                    ],
+                    "axis": "y",
+                    "image": "South_view.png",
+                    "pixels": [
+                      483.0,
+                      448.0
+                    ],
+                    "reduction": null,
+                    "type": "image_axis"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.493684211,
+                  2.101578947
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    505.0,
+                    440.0,
+                    585.0,
+                    490.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 35,
+              "tool": "revise_bim",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 4,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W-S1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0002",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "apply elevation height",
+                  "source_refs": [
+                    "claim_0002"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F2 east corridor window",
+          "object_id": "F2:W-E",
+          "final_extent": {
+            "x": [
+              15.0,
+              15.0
+            ],
+            "y": [
+              3.399973,
+              4.600027
+            ],
+            "z": [
+              4.005277045,
+              5.798944591
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_002",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    426.9,
+                    0
+                  ],
+                  [
+                    1812.5,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    331.5,
+                    8
+                  ],
+                  [
+                    1070.8,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W-E",
+                "kind": "window",
+                "p1": [
+                  1812.5,
+                  756.6
+                ],
+                "p2": [
+                  1812.5,
+                  645.7
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ],
+                "source_refs": [
+                  "2f_view; East_view upper window"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.399973,
+                  4.600027
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACORR/wall/1",
+              "spaces": [
+                "F2:CORR"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.399973,
+                  4.600027
+                ],
+                "z": [
+                  4.005277045,
+                  5.798944591
+                ]
+              },
+              "host": "space/F2%3ACORR/wall/1",
+              "spaces": [
+                "F2:CORR"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0009",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F2:W-E",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "East_view upper window 800/1800/1000; ground y=553, top y=174.",
+                "sources": [
+                  {
+                    "box": [
+                      480.0,
+                      218.0,
+                      555.0,
+                      328.0
+                    ],
+                    "image": "East_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "anchors": [
+                      [
+                        553,
+                        0
+                      ],
+                      [
+                        174,
+                        6.6
+                      ]
+                    ],
+                    "axis": "y",
+                    "image": "East_view.png",
+                    "pixels": [
+                      323.0,
+                      220.0
+                    ],
+                    "reduction": null,
+                    "type": "image_axis"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  4.005277045,
+                  5.798944591
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    480.0,
+                    218.0,
+                    555.0,
+                    328.0
+                  ],
+                  "image": "East_view.png",
+                  "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+                  "size": [
+                    945,
+                    741
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 35,
+              "tool": "revise_bim",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 4,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F2:W-E",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0009",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "apply elevation height",
+                  "source_refs": [
+                    "claim_0009"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "original_views": [
+        {
+          "ordinal": 3,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 4,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 5,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 6,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 7,
+          "tool": "view_image",
+          "input": {
+            "name": "East_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 8,
+          "tool": "view_image",
+          "input": {
+            "name": "West_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "source_elevation_views": [],
+      "reference_reads": [
+        {
+          "ordinal": 2,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_partition"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 13,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "claims"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 34,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "edits"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "end_actions": [
+        {
+          "ordinal": 37,
+          "tool": "check_source_space_relation",
+          "input": {
+            "candidate": "candidate_04",
+            "image": "2f_view.png",
+            "floor_id": "F2",
+            "observations_json": "[{\"id\":\"corr_one\",\"points\":[[600,700],[1700,700]],\"expected\":\"same_space\",\"evidence\":\"open corridor\"},{\"id\":\"N1_N2\",\"points\":[[800,470],[1450,470]],\"expected\":\"separate_spaces\",\"evidence\":\"partition at x=7.5\"},{\"id\":\"S2_S3\",\"points\":[[946,930],[1293,930]],\"expected\":\"separate_spaces\",\"evidence\":\"centre partition x=7.5 south\"}]"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        },
+        {
+          "ordinal": 38,
+          "tool": "finish_bim",
+          "input": {
+            "candidate": "candidate_04"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        }
+      ],
+      "evidence_sha256": {
+        "2026-09-26_sm21_whole_building_claude_run57/summary.json": "9a77672d4e73a8d1fab7d7b6933ea61bd23177763caff60ca09d2bf6f9701bf3",
+        "2026-09-26_sm21_whole_building_claude_run57/candidate_04/source_model.json": "410cc53f91a1bbe19503a0592167db2be7d0da995da6eb4ce2a8c87b52e154f0",
+        "2026-09-26_sm21_whole_building_claude_run57/candidate_01/source_model.json": "8e838a1a61dcc5c1d54a1c2f5cdba83bbf7efcb1d945b67416e4e5197cb7c3d6",
+        "2026-09-26_sm21_whole_building_claude_run57/candidate_02/source_model.json": "e581610e89d543155a00ba487930a1ca10676f708ebb896e939dbd353082d3a3",
+        "2026-09-26_sm21_whole_building_claude_run57/candidate_03/source_model.json": "90fd6b84119a2d59f95dc7fdb065788b8b6f525cf2b93254231b73658f39bf2b",
+        "2026-09-26_sm21_whole_building_claude_run57/inputs.json": "255bf99571607bad6c0e78e5a013fe68f264b719c6199bb25abd63a1da71ec43",
+        "2026-09-26_sm21_whole_building_claude_run57/agent_stream.jsonl.gz": "8c67dea29ba1e3f0710d1d8db691bff71f8dec139583ff12a195516141c6e9d0",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0001.json": "cdf61fa9d3073329094b69b53e033bb5bb010a319fda385382f082fbf05018d3",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0002.json": "d441790d3e5b65f8aaf6930cd8b0ce8eab69eb4736731c3a12c146e5a26c0804",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0003.json": "b43b1f1f8cfe3733211cfcb55a1ff9d7d40f0fbd72dac760235e49565fd53ad8",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0004.json": "9b376938a70a73c962be59bc93b26867a534ed6ef7333237dd98282ebea7208d",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0005.json": "3fe7baa509c52cd7e3231a4286a0caa31574590aae34386622724534c81bec65",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0006.json": "e85193ecc5474a339b76754c0affea7be8d65553e1c62f43cb27feaf0051488a",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0007.json": "6bed45ce90227ba84aaa14dd3cd563ec7cee93a997e19068321ad6a7bd27bb92",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0008.json": "26480eb5a31e723c71b7e3cc2b1911de4607749029b571316aee4d15cbe624cc",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0009.json": "9c3a1ebf8799af38933914396d5d5433cdbdf9e4bf7e7c823fc429eb7c3bdaa6",
+        "2026-09-26_sm21_whole_building_claude_run57/claims/claim_0010.json": "8315877b24f1a1fe277b850fa0ccd3fbd80ca5d0424766dac47af3f0bf8a5375",
+        "2026-09-26_sm21_whole_building_claude_run57/plan_drafts/draft_001/plan.json": "0938a8eb5bedc03309dfefafbfe658085f522599bfc7dcbf22786725c1229e72",
+        "2026-09-26_sm21_whole_building_claude_run57/plan_drafts/draft_002/plan.json": "2863ae4f81135918b83bdbf81f5a55433340e4421386e7e99f9dd75bdb5d042d"
+      }
+    },
+    {
+      "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+      "selected_candidate": "candidate_04",
+      "response_completed": true,
+      "image_sha256": {
+        "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+        "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+        "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+        "West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+      },
+      "objects": [
+        {
+          "label": "F1 north regular window",
+          "object_id": "F1:W_N1",
+          "final_extent": {
+            "x": [
+              1.241901,
+              3.639309
+            ],
+            "y": [
+              8.0,
+              8.0
+            ],
+            "z": [
+              1.0,
+              2.6
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    426,
+                    0
+                  ],
+                  [
+                    1815,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    347,
+                    8
+                  ],
+                  [
+                    1087,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_N1",
+                "kind": "window",
+                "p1": [
+                  541,
+                  347
+                ],
+                "p2": [
+                  763,
+                  347
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ],
+                "source_refs": [
+                  "North_view.png 1F windows sill1000 h1600"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  1.241901,
+                  3.639309
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  1.241901,
+                  3.639309
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0001",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F1:W_N1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S3",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North and South elevations, ground storey: right-side dimension chain from ground (z=0): 1000 sill, 1600 window, 400 to 3000 storey line. Origin z=0 at ground.",
+                "sources": [
+                  {
+                    "box": [
+                      190.0,
+                      400.0,
+                      280.0,
+                      580.0
+                    ],
+                    "image": "North_view.png"
+                  },
+                  {
+                    "box": [
+                      1190.0,
+                      395.0,
+                      1290.0,
+                      575.0
+                    ],
+                    "image": "South_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "direction": 1,
+                    "lengths": [
+                      1000.0,
+                      1600.0,
+                      400.0
+                    ],
+                    "origin_m": 0.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    190.0,
+                    400.0,
+                    280.0,
+                    580.0
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                },
+                {
+                  "box": [
+                    1190.0,
+                    395.0,
+                    1290.0,
+                    575.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 38,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_03",
+              "returned_error": null,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_N1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "confirm elevation chain",
+                  "source_refs": [
+                    "claim_0001"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F1 south small window",
+          "object_id": "F1:W_S1",
+          "final_extent": {
+            "x": [
+              3.434125,
+              4.632829
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.5,
+              2.1
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    426,
+                    0
+                  ],
+                  [
+                    1815,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    347,
+                    8
+                  ],
+                  [
+                    1087,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_S1",
+                "kind": "window",
+                "p1": [
+                  744,
+                  1087
+                ],
+                "p2": [
+                  855,
+                  1087
+                ],
+                "z": [
+                  1.5,
+                  2.1
+                ],
+                "source_refs": [
+                  "South_view.png small window sill 1500 h600"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  3.434125,
+                  4.632829
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.5,
+                  2.1
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  3.434125,
+                  4.632829
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.5,
+                  2.1
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0002",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F1:W_S1",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "South elevation small ground-floor window: left dimension chain from ground 1500 (to sill), 600 window, 900 to 3000 line.",
+                "sources": [
+                  {
+                    "box": [
+                      195.0,
+                      395.0,
+                      300.0,
+                      575.0
+                    ],
+                    "image": "South_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "direction": 1,
+                    "lengths": [
+                      1500.0,
+                      600.0,
+                      900.0
+                    ],
+                    "origin_m": 0.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.5,
+                  2.1
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    195.0,
+                    395.0,
+                    300.0,
+                    575.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 38,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_03",
+              "returned_error": null,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_S1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0002",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "confirm",
+                  "source_refs": [
+                    "claim_0002"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F2 east corridor window",
+          "object_id": "F2:W_E",
+          "final_extent": {
+            "x": [
+              15.0,
+              15.0
+            ],
+            "y": [
+              3.408412,
+              4.602442
+            ],
+            "z": [
+              4.0,
+              5.8
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_002",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    428,
+                    0
+                  ],
+                  [
+                    1813,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    333,
+                    8
+                  ],
+                  [
+                    1070,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_E",
+                "kind": "window",
+                "p1": [
+                  1813,
+                  646
+                ],
+                "p2": [
+                  1813,
+                  756
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ],
+                "source_refs": [
+                  "2f_view.png east corridor window; East_view.png 2F window"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.408412,
+                  4.602442
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACOR/wall/1",
+              "spaces": [
+                "F2:COR"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.408412,
+                  4.602442
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACOR/wall/1",
+              "spaces": [
+                "F2:COR"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0004",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F2:W_N1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_N2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_S1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_S2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_S3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_S4",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_E",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_W",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "Upper storey windows in all four elevations: chain 1000 sill, 1800 window, 800 to top (3600 upper storey). Origin z=3.0 m is the 3000 storey line above ground (lower storey 3000 + upper 3600 = 6600).",
+                "sources": [
+                  {
+                    "box": [
+                      190.0,
+                      200.0,
+                      280.0,
+                      400.0
+                    ],
+                    "image": "North_view.png"
+                  },
+                  {
+                    "box": [
+                      190.0,
+                      185.0,
+                      300.0,
+                      400.0
+                    ],
+                    "image": "South_view.png"
+                  },
+                  {
+                    "box": [
+                      180.0,
+                      170.0,
+                      280.0,
+                      390.0
+                    ],
+                    "image": "East_view.png"
+                  },
+                  {
+                    "box": [
+                      270.0,
+                      180.0,
+                      370.0,
+                      390.0
+                    ],
+                    "image": "West_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "direction": 1,
+                    "lengths": [
+                      1000.0,
+                      1800.0,
+                      800.0
+                    ],
+                    "origin_m": 3.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    190.0,
+                    200.0,
+                    280.0,
+                    400.0
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                },
+                {
+                  "box": [
+                    190.0,
+                    185.0,
+                    300.0,
+                    400.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ]
+                },
+                {
+                  "box": [
+                    180.0,
+                    170.0,
+                    280.0,
+                    390.0
+                  ],
+                  "image": "East_view.png",
+                  "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+                  "size": [
+                    945,
+                    741
+                  ]
+                },
+                {
+                  "box": [
+                    270.0,
+                    180.0,
+                    370.0,
+                    390.0
+                  ],
+                  "image": "West_view.png",
+                  "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                  "size": [
+                    1077,
+                    773
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 38,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_03",
+              "returned_error": null,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F2:W_E",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0004",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "confirm",
+                  "source_refs": [
+                    "claim_0004"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "original_views": [
+        {
+          "ordinal": 3,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 4,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 13,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png",
+            "box": [
+              600,
+              580,
+              1300,
+              840
+            ],
+            "display_scale": 2.2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 14,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png",
+            "box": [
+              1300,
+              580,
+              1830,
+              840
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 15,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              700,
+              580,
+              1100,
+              860
+            ],
+            "display_scale": 3.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 16,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1300,
+              580,
+              1830,
+              860
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 17,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 18,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 19,
+          "tool": "view_image",
+          "input": {
+            "name": "East_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 20,
+          "tool": "view_image",
+          "input": {
+            "name": "West_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "source_elevation_views": [
+        {
+          "ordinal": 42,
+          "tool": "view_elevation_candidate",
+          "input": {
+            "candidate": "candidate_04",
+            "facade": "South"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        }
+      ],
+      "reference_reads": [
+        {
+          "ordinal": 2,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_partition"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 25,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "claims"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "end_actions": [
+        {
+          "ordinal": 43,
+          "tool": "check_openings",
+          "input": {
+            "candidate": "candidate_04",
+            "heights_only": true
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        },
+        {
+          "ordinal": 44,
+          "tool": "finish_bim",
+          "input": {
+            "candidate": "candidate_04"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        }
+      ],
+      "evidence_sha256": {
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/summary.json": "fce429563be32de0b2c118ff53d06a531bc20a8c4ce189e1c838b5e0b2ed69df",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/candidate_04/source_model.json": "99a416a9253a56af69611fe38c130c523389b4ed8c1dc0ce3988a67f52ab4053",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/candidate_01/source_model.json": "125ac5cf8c0907bb333908b76296ddea35a108b12455b4d3908cebf8b2517358",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/candidate_02/source_model.json": "8d235c0271252b64b6755f57c2fd064813524285727b9f226bfd130a96c0a28f",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/candidate_03/source_model.json": "0daf9f216121aa515ec042666a155a33603a7799eab39c6e420ffbf04861037d",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/inputs.json": "5e9253b620b7fd22b62eedb254ede3a6d11eb9578758f20b8c55ee9263239698",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/agent_stream.jsonl.gz": "e0e60b63d5a8e3d24c304fd892381d67d75a41c15e8193e3aa2ac8b5f1b2ce3b",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/claims/claim_0001.json": "7aa2f323ec35601ed3e49955f40c158689fe081235617b6788ba266b753d5f75",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/claims/claim_0002.json": "86f085e5580f040a6f0ba6117481552c53598caba0b5cad30ea32dc787c1913b",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/claims/claim_0003.json": "95ecd3547740df8f3a59395da2261ef0e9f9659b83006097abe3ab2f36ad84cb",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/claims/claim_0004.json": "05d7006a206b68fc2721914d43c8bdf6eed9ce93a610fbbeadaff6a19f90dc1a",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/claims/claim_0005.json": "24533dc42071469861eaf64a78c5e932314c67fcc101b413e5cc8c9790fca5ca",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/claims/claim_0006.json": "bf5892fad5f29e5e846023bb76af17f118700616cf327b5fd1e3377dd17c93d8",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/plan_drafts/draft_001/plan.json": "a0721ffe186095084f013850db063f6116f8c306aa87f64ad678c6b6cfa80e50",
+        "2026-09-27_sm21_whole_building_repeat_claude_run58/plan_drafts/draft_002/plan.json": "381a23764e68683ac23a58091c9d6786281c113a2d9dc91d5969da9646f9ce56"
+      }
+    },
+    {
+      "run": "2026-09-28_sm21_threshold_legacy_run79",
+      "selected_candidate": "candidate_08",
+      "response_completed": true,
+      "image_sha256": {
+        "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+        "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+        "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+        "West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+      },
+      "objects": [
+        {
+          "label": "F1 north regular window",
+          "object_id": "F1:W1",
+          "final_extent": {
+            "x": [
+              1.26259,
+              3.625899
+            ],
+            "y": [
+              8.0,
+              8.0
+            ],
+            "z": [
+              1.0,
+              2.6
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W1",
+                "kind": "window",
+                "p1": [
+                  542,
+                  346
+                ],
+                "p2": [
+                  761,
+                  346
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window RoomA, pixel_profile top wall cyan band"
+                ]
+              }
+            },
+            {
+              "draft": "draft_002",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W1",
+                "kind": "window",
+                "p1": [
+                  542,
+                  346
+                ],
+                "p2": [
+                  761,
+                  346
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window RoomA, pixel_profile top wall cyan band"
+                ]
+              }
+            },
+            {
+              "draft": "draft_003",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W1",
+                "kind": "window",
+                "p1": [
+                  542,
+                  346
+                ],
+                "p2": [
+                  761,
+                  346
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window RoomA, pixel_profile top wall cyan band"
+                ]
+              }
+            },
+            {
+              "draft": "draft_006",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W1",
+                "kind": "window",
+                "p1": [
+                  542,
+                  346
+                ],
+                "p2": [
+                  761,
+                  346
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window RoomA, pixel_profile top wall cyan band"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_05",
+              "extent": {
+                "x": [
+                  1.26259,
+                  3.625899
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomA/wall/2",
+              "spaces": [
+                "F1:RoomA"
+              ]
+            },
+            {
+              "candidate": "candidate_06",
+              "extent": {
+                "x": [
+                  1.26259,
+                  3.625899
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomA/wall/2",
+              "spaces": [
+                "F1:RoomA"
+              ]
+            },
+            {
+              "candidate": "candidate_07",
+              "extent": {
+                "x": [
+                  1.26259,
+                  3.625899
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomA/wall/2",
+              "spaces": [
+                "F1:RoomA"
+              ]
+            },
+            {
+              "candidate": "candidate_08",
+              "extent": {
+                "x": [
+                  1.26259,
+                  3.625899
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomA/wall/2",
+              "spaces": [
+                "F1:RoomA"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0001",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_05",
+                "objects": [
+                  {
+                    "id": "F1:W1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W4",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W5",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W6",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W7",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png right-side vertical dimension chain (top-to-bottom, above the F1/F2 slab line): 400mm (lintel), 1600mm (window height), 1000mm (sill to ground). F1 wall top is absolute z=3.0m (matches assembled F1 ceiling_height). direction=-1 walks downward from that top. Segment index 1 (the 1600mm span) yields the window's absolute z interval. South_view.png pixel measurement of a representative F1 window (view_0031/profile_027: wall outline y189(top,6.6m)-y569(ground,0m); window outer frame y419-511) independently gives head=(569-419)*17.368mm/px=2604mm, sill=(569-511)*17.368=1007mm, confirming the same 1000/1600 family for the south facade too. Applied to all F1 windows (north, south, east) as one consistent height family; no per-window difference was observed.",
+                "sources": [
+                  {
+                    "view_id": "view_0029"
+                  },
+                  {
+                    "view_id": "view_0031"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "direction": -1,
+                    "lengths": [
+                      400.0,
+                      1600.0,
+                      1000.0
+                    ],
+                    "origin_m": 3.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    180,
+                    180,
+                    300,
+                    590
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ],
+                  "view_id": "view_0029",
+                  "view_sha256": "d4557b3cd5d64731f7d9caf97dc63c8afca6c52dce2fa6cc908044def0c52fc9"
+                },
+                {
+                  "box": [
+                    600,
+                    180,
+                    700,
+                    590
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ],
+                  "view_id": "view_0031",
+                  "view_sha256": "81b1e604a28b90041a3737ea1e296388a2cb30e2eed40f9516d47e8c7c0feeed"
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 90,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_05",
+              "returned_error": null,
+              "candidate": "candidate_05",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "confirm image-linked F1 window height"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F1 south small window",
+          "object_id": "F1:W4",
+          "final_extent": {
+            "x": [
+              3.464029,
+              4.618705
+            ],
+            "y": [
+              -0.010796,
+              -0.010796
+            ],
+            "z": [
+              1.0,
+              2.6
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W4",
+                "kind": "window",
+                "p1": [
+                  746,
+                  1088
+                ],
+                "p2": [
+                  853,
+                  1088
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade window RoomD, narrower due to adjacent entry recess"
+                ]
+              }
+            },
+            {
+              "draft": "draft_002",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W4",
+                "kind": "window",
+                "p1": [
+                  746,
+                  1088
+                ],
+                "p2": [
+                  853,
+                  1088
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade window RoomD, narrower due to adjacent entry recess"
+                ]
+              }
+            },
+            {
+              "draft": "draft_003",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W4",
+                "kind": "window",
+                "p1": [
+                  746,
+                  1088
+                ],
+                "p2": [
+                  853,
+                  1088
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade window RoomD, narrower due to adjacent entry recess"
+                ]
+              }
+            },
+            {
+              "draft": "draft_006",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0.0
+                  ],
+                  [
+                    1815,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8.0
+                  ],
+                  [
+                    1087,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W4",
+                "kind": "window",
+                "p1": [
+                  746,
+                  1088
+                ],
+                "p2": [
+                  853,
+                  1088
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade window RoomD, narrower due to adjacent entry recess"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_05",
+              "extent": {
+                "x": [
+                  3.464029,
+                  4.618705
+                ],
+                "y": [
+                  -0.010796,
+                  -0.010796
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomD/wall/0",
+              "spaces": [
+                "F1:RoomD"
+              ]
+            },
+            {
+              "candidate": "candidate_06",
+              "extent": {
+                "x": [
+                  3.464029,
+                  4.618705
+                ],
+                "y": [
+                  -0.010796,
+                  -0.010796
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomD/wall/0",
+              "spaces": [
+                "F1:RoomD"
+              ]
+            },
+            {
+              "candidate": "candidate_07",
+              "extent": {
+                "x": [
+                  3.464029,
+                  4.618705
+                ],
+                "y": [
+                  -0.010796,
+                  -0.010796
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomD/wall/0",
+              "spaces": [
+                "F1:RoomD"
+              ]
+            },
+            {
+              "candidate": "candidate_08",
+              "extent": {
+                "x": [
+                  3.464029,
+                  4.618705
+                ],
+                "y": [
+                  -0.010796,
+                  -0.010796
+                ],
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3ARoomD/wall/0",
+              "spaces": [
+                "F1:RoomD"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0001",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_05",
+                "objects": [
+                  {
+                    "id": "F1:W1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W4",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W5",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W6",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W7",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png right-side vertical dimension chain (top-to-bottom, above the F1/F2 slab line): 400mm (lintel), 1600mm (window height), 1000mm (sill to ground). F1 wall top is absolute z=3.0m (matches assembled F1 ceiling_height). direction=-1 walks downward from that top. Segment index 1 (the 1600mm span) yields the window's absolute z interval. South_view.png pixel measurement of a representative F1 window (view_0031/profile_027: wall outline y189(top,6.6m)-y569(ground,0m); window outer frame y419-511) independently gives head=(569-419)*17.368mm/px=2604mm, sill=(569-511)*17.368=1007mm, confirming the same 1000/1600 family for the south facade too. Applied to all F1 windows (north, south, east) as one consistent height family; no per-window difference was observed.",
+                "sources": [
+                  {
+                    "view_id": "view_0029"
+                  },
+                  {
+                    "view_id": "view_0031"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "direction": -1,
+                    "lengths": [
+                      400.0,
+                      1600.0,
+                      1000.0
+                    ],
+                    "origin_m": 3.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.0,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    180,
+                    180,
+                    300,
+                    590
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ],
+                  "view_id": "view_0029",
+                  "view_sha256": "d4557b3cd5d64731f7d9caf97dc63c8afca6c52dce2fa6cc908044def0c52fc9"
+                },
+                {
+                  "box": [
+                    600,
+                    180,
+                    700,
+                    590
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ],
+                  "view_id": "view_0031",
+                  "view_sha256": "81b1e604a28b90041a3737ea1e296388a2cb30e2eed40f9516d47e8c7c0feeed"
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 90,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_05",
+              "returned_error": null,
+              "candidate": "candidate_05",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W4",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "confirm image-linked F1 window height"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F2 east corridor window",
+          "object_id": "F2:W_east",
+          "final_extent": {
+            "x": [
+              15.010823,
+              15.010823
+            ],
+            "y": [
+              3.394595,
+              4.605405
+            ],
+            "z": [
+              4.0,
+              5.8
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_004",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    427,
+                    0.0
+                  ],
+                  [
+                    1813,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    331,
+                    8.0
+                  ],
+                  [
+                    1071,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_east",
+                "kind": "window",
+                "p1": [
+                  1814,
+                  645
+                ],
+                "p2": [
+                  1814,
+                  757
+                ],
+                "z": [
+                  0.9,
+                  2.1
+                ],
+                "source_refs": [
+                  "2f_view.png: east facade corridor window, pixel_profile x1793-1814 y645-757"
+                ]
+              }
+            },
+            {
+              "draft": "draft_005",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    427,
+                    0.0
+                  ],
+                  [
+                    1813,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    331,
+                    8.0
+                  ],
+                  [
+                    1071,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_east",
+                "kind": "window",
+                "p1": [
+                  1814,
+                  645
+                ],
+                "p2": [
+                  1814,
+                  757
+                ],
+                "z": [
+                  3.9,
+                  5.1
+                ],
+                "source_refs": [
+                  "2f_view.png: east facade corridor window, pixel_profile x1793-1814 y645-757"
+                ]
+              }
+            },
+            {
+              "draft": "draft_007",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    427,
+                    0.0
+                  ],
+                  [
+                    1813,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    331,
+                    8.0
+                  ],
+                  [
+                    1071,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_east",
+                "kind": "window",
+                "p1": [
+                  1814,
+                  645
+                ],
+                "p2": [
+                  1814,
+                  757
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ],
+                "source_refs": [
+                  "2f_view.png: east facade corridor window, pixel_profile x1793-1814 y645-757"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_05",
+              "extent": {
+                "x": [
+                  15.010823,
+                  15.010823
+                ],
+                "y": [
+                  3.394595,
+                  4.605405
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACorridor2F/wall/1",
+              "spaces": [
+                "F2:Corridor2F"
+              ]
+            },
+            {
+              "candidate": "candidate_06",
+              "extent": {
+                "x": [
+                  15.010823,
+                  15.010823
+                ],
+                "y": [
+                  3.394595,
+                  4.605405
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACorridor2F/wall/1",
+              "spaces": [
+                "F2:Corridor2F"
+              ]
+            },
+            {
+              "candidate": "candidate_07",
+              "extent": {
+                "x": [
+                  15.010823,
+                  15.010823
+                ],
+                "y": [
+                  3.394595,
+                  4.605405
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACorridor2F/wall/1",
+              "spaces": [
+                "F2:Corridor2F"
+              ]
+            },
+            {
+              "candidate": "candidate_08",
+              "extent": {
+                "x": [
+                  15.010823,
+                  15.010823
+                ],
+                "y": [
+                  3.394595,
+                  4.605405
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACorridor2F/wall/1",
+              "spaces": [
+                "F2:Corridor2F"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0002",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_05",
+                "objects": [
+                  {
+                    "id": "F2:W_top1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_top2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_b1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_b2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_b3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_b4",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_east",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_west",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png right-side vertical dimension chain (top-to-bottom, above the F1/F2 slab line): 800mm (parapet above window), 1800mm (window height), 1000mm (sill to F1/F2 slab). South_view.png shows the identical 800/1800/1000 breakdown for its top row. Absolute building top = z=6.6m (matches overall '6600' elevation label and assembled F1(3.0)+F2(3.6) heights). direction=-1 walks downward from that top; segment index 1 (the 1800mm span) yields the window's absolute z interval [4.0,5.8]. Applied uniformly to all F2 windows (north, south, east, west corridor) as one consistent height family; no per-window difference was observed in any elevation.",
+                "sources": [
+                  {
+                    "view_id": "view_0029"
+                  },
+                  {
+                    "view_id": "view_0030"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "direction": -1,
+                    "lengths": [
+                      800.0,
+                      1800.0,
+                      1000.0
+                    ],
+                    "origin_m": 6.6,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    180,
+                    180,
+                    300,
+                    590
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ],
+                  "view_id": "view_0029",
+                  "view_sha256": "d4557b3cd5d64731f7d9caf97dc63c8afca6c52dce2fa6cc908044def0c52fc9"
+                },
+                {
+                  "box": [
+                    190,
+                    180,
+                    300,
+                    590
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ],
+                  "view_id": "view_0030",
+                  "view_sha256": "e1adba21a5ec1120d9ec591d24aa159ff85d47839306fd9ec7777a7aaec49311"
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 90,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_05",
+              "returned_error": null,
+              "candidate": "candidate_05",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F2:W_east",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0002",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "confirm image-linked F2 window height"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "original_views": [
+        {
+          "ordinal": 5,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 6,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 7,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              280,
+              40,
+              800,
+              500
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 8,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              280,
+              400,
+              800,
+              850
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 9,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1250,
+              40,
+              1420,
+              250
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 10,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              100,
+              240,
+              340,
+              1100
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 19,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              760,
+              340,
+              1020,
+              900
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 20,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              400,
+              330,
+              1050,
+              1100
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 21,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1000,
+              330,
+              1850,
+              1100
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 22,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              620,
+              550,
+              820,
+              700
+            ],
+            "display_scale": 4
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 23,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              600,
+              340,
+              950,
+              1100
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 24,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              660,
+              550,
+              920,
+              630
+            ],
+            "display_scale": 5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 25,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              650,
+              340,
+              950,
+              650
+            ],
+            "display_scale": 3.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 28,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1250,
+              340,
+              1550,
+              1100
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 29,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1350,
+              580,
+              1820,
+              850
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 31,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              100,
+              440,
+              450,
+              900
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 32,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              300,
+              1000,
+              700,
+              1150
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 33,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              350,
+              950,
+              700,
+              1160
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 34,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              400,
+              1030,
+              750,
+              1160
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 39,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              650,
+              780,
+              1080,
+              870
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 40,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1300,
+              780,
+              1460,
+              870
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 51,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png",
+            "box": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 53,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png",
+            "box": [
+              420,
+              600,
+              1820,
+              1090
+            ],
+            "display_scale": 1
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 54,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png",
+            "box": [
+              950,
+              380,
+              1280,
+              1090
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 66,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 67,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 68,
+          "tool": "view_image",
+          "input": {
+            "name": "East_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 69,
+          "tool": "view_image",
+          "input": {
+            "name": "West_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 70,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png",
+            "box": [
+              180,
+              180,
+              300,
+              590
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 71,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png",
+            "box": [
+              190,
+              180,
+              300,
+              590
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 72,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png",
+            "box": [
+              600,
+              180,
+              700,
+              590
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "source_elevation_views": [],
+      "reference_reads": [
+        {
+          "ordinal": 2,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "reconstruction"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 3,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_partition"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 4,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_assembly"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 41,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "room_types"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 83,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "claims"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 92,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "edits"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "end_actions": [
+        {
+          "ordinal": 103,
+          "tool": "claim_status",
+          "input": {
+            "candidate": "candidate_08"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_08",
+          "returned_error": null
+        },
+        {
+          "ordinal": 104,
+          "tool": "finish_bim",
+          "input": {
+            "candidate": "candidate_08"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_08",
+          "returned_error": null
+        }
+      ],
+      "evidence_sha256": {
+        "2026-09-28_sm21_threshold_legacy_run79/summary.json": "f9ced0d814322d728fc301870537767066bde452d7706c677b341f93d8eb1e7e",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_08/source_model.json": "c88d3981bd9fb5b61871bf07c2d00056855b1c0b934951bd2479fe03ced94819",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_01/source_model.json": "5bf4bcb382bd565f966f46f2f26170131bced776bdb207e8f1cac5706bbf681b",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_02/source_model.json": "e49598bbc70d0ff87b81318258f7c9f318c35cb434e2d0cf11649dae9b82738d",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_03/source_model.json": "bc918447b3c94d53100662d2dbed9c5868251dc888674c2d1854afa7f92705a6",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_04/source_model.json": "e726b31fee8b7537e4ab1476a1fa469dfe16c6d7250a904b6bec3266ae537c59",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_05/source_model.json": "1674bd45e03eb13f7faf7d0cc8ec6e86fc582f0d467f101dfab241982837d6f3",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_06/source_model.json": "bcd28d50b4ff1e7200c674f47b721a5f0251fe3cbaf5efaab80df22f0407e1c0",
+        "2026-09-28_sm21_threshold_legacy_run79/candidate_07/source_model.json": "4bff8ce74d15b01e27c6dbb4248fca261ae463f76da77e5660c3ca80c2eca772",
+        "2026-09-28_sm21_threshold_legacy_run79/inputs.json": "cf233047546ca0f91205ac86057d19d86cb61480c611a22bd823cfea224781a5",
+        "2026-09-28_sm21_threshold_legacy_run79/agent_stream.jsonl.gz": "b8fcbd78c0ce9d53800449aae70c9c6caad5db504f07230dcce7722f2adec3a6",
+        "2026-09-28_sm21_threshold_legacy_run79/claims/claim_0001.json": "e888aa375587da3a6c28128043d63113dd7b4599e6a5acce8c904b04fce9f401",
+        "2026-09-28_sm21_threshold_legacy_run79/claims/claim_0002.json": "9e064cb64babd3600fdaef768f6c3b7011644fcd9b133a178213b27e38043e35",
+        "2026-09-28_sm21_threshold_legacy_run79/claims/claim_0003.json": "62635d5bd086833345f4d26c7f9f8a9bbf12de2e2d534fe00a681ef9c26a1cb5",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_001/plan.json": "955d6b01c6da29ad02dfbc831157f1be4f04c0138f20c668c2e23217a5831390",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_002/plan.json": "d9b8bb493c77f38618fa1383990bd01b4d20c0bdae068f555e757cf6ab8a4d67",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_003/plan.json": "a4d804482e08f9fe48cbd0e728eca49d4a84d55724a9fb7af12cd09bfaf2cf63",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_004/plan.json": "67a4a36286d42a65955d20c3fab06b2f9bcde3eac248020b8715eca192b7a476",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_005/plan.json": "a0e221d4be9ddd3e0cfb6560ff85d3740eb5c45ae7a7bab466860d4bfa190c6b",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_006/plan.json": "ae6febd1f1fff1077da48731e9d0d3a706059e6c333dac33cb028b684db4a055",
+        "2026-09-28_sm21_threshold_legacy_run79/plan_drafts/draft_007/plan.json": "b40e594bdd273f53a5b5cb9bbda568efa5e7fc5641def070511c53c5709ffafd"
+      }
+    },
+    {
+      "run": "2026-09-28_sm21_threshold_current_run80",
+      "selected_candidate": "candidate_07",
+      "response_completed": true,
+      "image_sha256": {
+        "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+        "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+        "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+        "West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+      },
+      "objects": [
+        {
+          "label": "F1 north regular window",
+          "object_id": "F1:W_N1",
+          "final_extent": {
+            "x": [
+              1.25,
+              3.642241
+            ],
+            "y": [
+              8.0,
+              8.0
+            ],
+            "z": [
+              1.6,
+              2.6
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_N1",
+                "kind": "window",
+                "p1": [
+                  541,
+                  346
+                ],
+                "p2": [
+                  763,
+                  346
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window band, cyan flood-fill; height assumed from North_view elevation, unresolved cross-check"
+                ]
+              }
+            },
+            {
+              "draft": "draft_002",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_N1",
+                "kind": "window",
+                "p1": [
+                  541,
+                  346
+                ],
+                "p2": [
+                  763,
+                  346
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window band, cyan flood-fill; height assumed from North_view elevation, unresolved cross-check"
+                ]
+              }
+            },
+            {
+              "draft": "draft_003",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_N1",
+                "kind": "window",
+                "p1": [
+                  541,
+                  346
+                ],
+                "p2": [
+                  763,
+                  346
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window band, cyan flood-fill; height assumed from North_view elevation, unresolved cross-check"
+                ]
+              }
+            },
+            {
+              "draft": "draft_005",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_N1",
+                "kind": "window",
+                "p1": [
+                  541,
+                  346
+                ],
+                "p2": [
+                  763,
+                  346
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: north facade window band, cyan flood-fill; height assumed from North_view elevation, unresolved cross-check"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  1.25,
+                  3.642241
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            },
+            {
+              "candidate": "candidate_06",
+              "extent": {
+                "x": [
+                  1.25,
+                  3.642241
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            },
+            {
+              "candidate": "candidate_07",
+              "extent": {
+                "x": [
+                  1.25,
+                  3.642241
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AN1/wall/2",
+              "spaces": [
+                "F1:N1"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0001",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_06",
+                "objects": [
+                  {
+                    "id": "F1:W_N1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_east_corridor",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png shows the building's total height 6600mm split by a mid-height horizontal line into an upper 3600mm zone and a lower 3000mm zone. The lower zone (F1) carries its own vertical dimension chain, top-down: 400 (gap from the F1/F2 dividing line down to window head), 1000 (window height), 1600 (gap from window sill down to the F1 floor line). World origin_m=3.0 is the F1/F2 dividing line (absolute z=3.0, matching F1 ceiling_height=3.0 from z_floor=0), direction=-1 walks downward. Segment 1 (index 1, the 1000mm window band) yields absolute z=[1.6,2.6], matching the head/sill I already declared for every F1 exterior window. Applying the same North-facade-derived family to the South and East F1 windows is an explicit unverified assumption (South/East elevations not yet cross-checked figure-by-figure), recorded as such.",
+                "sources": [
+                  {
+                    "box": null,
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "South_view.png and East_view.png not individually re-measured for their own window chains; F1 south/east windows assumed to share the north family."
+                ],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      400.0,
+                      1000.0,
+                      1600.0
+                    ],
+                    "origin_m": 3.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "height": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    0,
+                    0,
+                    1354,
+                    812
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 57,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": true,
+              "image_count": 0,
+              "candidate": "candidate_06",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_N1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "height"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "ordinal": 58,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_06",
+              "returned_error": null,
+              "candidate": "candidate_06",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_N1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "height"
+                    }
+                  },
+                  "reason": "Confirm F1 north window height against North_view.png dimension chain",
+                  "source_refs": [
+                    "claim_0001"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F1 south small window",
+          "object_id": "F1:W_S1",
+          "final_extent": {
+            "x": [
+              3.448276,
+              4.633621
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.6,
+              2.6
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_S1",
+                "kind": "window",
+                "p1": [
+                  745,
+                  1088
+                ],
+                "p2": [
+                  855,
+                  1088
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade small window band; height assumed"
+                ]
+              }
+            },
+            {
+              "draft": "draft_002",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_S1",
+                "kind": "window",
+                "p1": [
+                  745,
+                  1088
+                ],
+                "p2": [
+                  855,
+                  1088
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade small window band; height assumed"
+                ]
+              }
+            },
+            {
+              "draft": "draft_003",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_S1",
+                "kind": "window",
+                "p1": [
+                  745,
+                  1088
+                ],
+                "p2": [
+                  855,
+                  1088
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade small window band; height assumed"
+                ]
+              }
+            },
+            {
+              "draft": "draft_005",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425,
+                    0
+                  ],
+                  [
+                    1817,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    346,
+                    8
+                  ],
+                  [
+                    1088,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_S1",
+                "kind": "window",
+                "p1": [
+                  745,
+                  1088
+                ],
+                "p2": [
+                  855,
+                  1088
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ],
+                "source_refs": [
+                  "1f_view.png: south facade small window band; height assumed"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  3.448276,
+                  4.633621
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            },
+            {
+              "candidate": "candidate_06",
+              "extent": {
+                "x": [
+                  3.448276,
+                  4.633621
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            },
+            {
+              "candidate": "candidate_07",
+              "extent": {
+                "x": [
+                  3.448276,
+                  4.633621
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "host": "space/F1%3AS1/wall/0",
+              "spaces": [
+                "F1:S1"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0001",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_06",
+                "objects": [
+                  {
+                    "id": "F1:W_N1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_S3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_east_corridor",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png shows the building's total height 6600mm split by a mid-height horizontal line into an upper 3600mm zone and a lower 3000mm zone. The lower zone (F1) carries its own vertical dimension chain, top-down: 400 (gap from the F1/F2 dividing line down to window head), 1000 (window height), 1600 (gap from window sill down to the F1 floor line). World origin_m=3.0 is the F1/F2 dividing line (absolute z=3.0, matching F1 ceiling_height=3.0 from z_floor=0), direction=-1 walks downward. Segment 1 (index 1, the 1000mm window band) yields absolute z=[1.6,2.6], matching the head/sill I already declared for every F1 exterior window. Applying the same North-facade-derived family to the South and East F1 windows is an explicit unverified assumption (South/East elevations not yet cross-checked figure-by-figure), recorded as such.",
+                "sources": [
+                  {
+                    "box": null,
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "South_view.png and East_view.png not individually re-measured for their own window chains; F1 south/east windows assumed to share the north family."
+                ],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      400.0,
+                      1000.0,
+                      1600.0
+                    ],
+                    "origin_m": 3.0,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "height": [
+                  1.6,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    0,
+                    0,
+                    1354,
+                    812
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 57,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": true,
+              "image_count": 0,
+              "candidate": "candidate_06",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_S1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "height"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "ordinal": 58,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_06",
+              "returned_error": null,
+              "candidate": "candidate_06",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_S1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "height"
+                    }
+                  },
+                  "reason": "Confirm F1 south window height using north-family assumption",
+                  "source_refs": [
+                    "claim_0001"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F2 east corridor window",
+          "object_id": "F2:W_east_corridor2",
+          "final_extent": {
+            "x": [
+              15.0,
+              15.0
+            ],
+            "y": [
+              3.40081,
+              4.59919
+            ],
+            "z": [
+              4.0,
+              5.8
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_006",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    427,
+                    0
+                  ],
+                  [
+                    1814,
+                    15
+                  ]
+                ],
+                "y": [
+                  [
+                    331,
+                    8
+                  ],
+                  [
+                    1072,
+                    0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_east_corridor2",
+                "kind": "window",
+                "p1": [
+                  1814,
+                  646
+                ],
+                "p2": [
+                  1814,
+                  757
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ],
+                "source_refs": [
+                  "2f_view.png: east facade corridor window band, cyan flood-fill (missed in first pass); height assumed same family as other F2 windows pending East_view cross-check"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_06",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.40081,
+                  4.59919
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACorridor2/wall/1",
+              "spaces": [
+                "F2:Corridor2"
+              ]
+            },
+            {
+              "candidate": "candidate_07",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.40081,
+                  4.59919
+                ],
+                "z": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "host": "space/F2%3ACorridor2/wall/1",
+              "spaces": [
+                "F2:Corridor2"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0002",
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_06",
+                "objects": [
+                  {
+                    "id": "F2:W_T1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_T2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_B1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_B2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_B3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_B4",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_east_corridor2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2:W_west_corridor2",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png shows total building height 6600mm split by a mid-height line into upper 3600mm (F2) and lower 3000mm (F1) zones. The upper zone carries its own vertical dimension chain, top-down from the building top (absolute z=6.6, i.e. F1(3.0)+F2 ceiling_height(3.6)): 800 (gap from roof/parapet down to window head), 1800 (window height), 1000 (gap from window sill down to the F1/F2 dividing line at z=3.0). World origin_m=6.6, direction=-1. Segment 1 (index 1, the 1800mm window band) yields absolute z=[4.0,5.8], matching the head/sill already declared for every F2 exterior window. Applying this single North-facade-derived family to the South, East and West F2 windows (office and corridor windows, which look visually similar in width proportion though not individually re-measured) is an explicit unverified assumption.",
+                "sources": [
+                  {
+                    "box": null,
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [
+                  "South_view.png, East_view.png and West_view.png not individually re-measured for their own F2 window chains; all F2 windows assumed to share the north family."
+                ],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      800.0,
+                      1800.0,
+                      1000.0
+                    ],
+                    "origin_m": 6.6,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "resolved_values": {
+                "height": [
+                  4.0,
+                  5.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    0,
+                    0,
+                    1354,
+                    812
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 57,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": true,
+              "image_count": 0,
+              "candidate": "candidate_06",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F2:W_east_corridor2",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0002",
+                      "value": "height"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "ordinal": 58,
+              "tool": "confirm_claims",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 0,
+              "returned_candidate": "candidate_06",
+              "returned_error": null,
+              "candidate": "candidate_06",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F2:W_east_corridor2",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0002",
+                      "value": "height"
+                    }
+                  },
+                  "reason": "Confirm F2 east corridor window height using north-family assumption",
+                  "source_refs": [
+                    "claim_0002"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "original_views": [
+        {
+          "ordinal": 2,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 3,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 4,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 5,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 6,
+          "tool": "view_image",
+          "input": {
+            "name": "East_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 7,
+          "tool": "view_image",
+          "input": {
+            "name": "West_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 8,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              280,
+              40,
+              500,
+              300
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 9,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1250,
+              40,
+              1450,
+              300
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 10,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              0,
+              950,
+              350,
+              1150
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 11,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              280,
+              40,
+              420,
+              420
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 12,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1300,
+              40,
+              1440,
+              420
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 13,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1300,
+              950,
+              1440,
+              1150
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 14,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              80,
+              230,
+              260,
+              420
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 15,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              80,
+              950,
+              260,
+              1140
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 18,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              313,
+              345,
+              1353,
+              1075
+            ],
+            "display_scale": 1.2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 19,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              850,
+              550,
+              1050,
+              870
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 20,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              550,
+              550,
+              1160,
+              870
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 21,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              313,
+              130,
+              1353,
+              250
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 22,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1100,
+              130,
+              1360,
+              250
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 27,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              313,
+              345,
+              850,
+              620
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 28,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              820,
+              345,
+              1360,
+              620
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 30,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              750,
+              580,
+              1050,
+              850
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 31,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1200,
+              580,
+              1500,
+              850
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 32,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              420,
+              950,
+              900,
+              1090
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "source_elevation_views": [],
+      "reference_reads": [
+        {
+          "ordinal": 16,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_partition"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 17,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_assembly"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 47,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "claims"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "end_actions": [
+        {
+          "ordinal": 60,
+          "tool": "claim_status",
+          "input": {
+            "candidate": "candidate_07"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_07",
+          "returned_error": null
+        },
+        {
+          "ordinal": 61,
+          "tool": "finish_bim",
+          "input": {
+            "candidate": "candidate_07"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_07",
+          "returned_error": null
+        }
+      ],
+      "evidence_sha256": {
+        "2026-09-28_sm21_threshold_current_run80/summary.json": "2a8d9dc8b19a00c3bb1cc91cf2bd74777fa50546bfd004d7bc90f82f49105017",
+        "2026-09-28_sm21_threshold_current_run80/candidate_07/source_model.json": "6d7bda28ea03c51acd9afae5ca6d5b574ca8a2ee0475ecfa51a11eb0ae3ef2b7",
+        "2026-09-28_sm21_threshold_current_run80/candidate_01/source_model.json": "5c6296439be64bc0c578c608e06dc097f890d6ed373384b1927864f766cbae61",
+        "2026-09-28_sm21_threshold_current_run80/candidate_02/source_model.json": "c6957d80a42fc816a837b34ddd12f2a8cc3ecc178be34a522ee24b3ef1559e3b",
+        "2026-09-28_sm21_threshold_current_run80/candidate_03/source_model.json": "ca231645fb2ad9c7549b7e2f19630b2d13529f9019161a7703837012ad5e1e7d",
+        "2026-09-28_sm21_threshold_current_run80/candidate_04/source_model.json": "0d584d5eedc634875a612636562d97dcd633240258778aa8dea251d24ad592bb",
+        "2026-09-28_sm21_threshold_current_run80/candidate_05/source_model.json": "db5aa611e9260f2d06e83937f9ea5cc1b41c2e61b803672ccefcfb9d0f830433",
+        "2026-09-28_sm21_threshold_current_run80/candidate_06/source_model.json": "b40a0ac4ef842f724ec60f0f22031054aab8ae386ab45bd309074d8ba609ffb2",
+        "2026-09-28_sm21_threshold_current_run80/inputs.json": "fd63468d4e38920c264f964e0c1ab0f12282303420f9446bc26e39bcbaf8cab5",
+        "2026-09-28_sm21_threshold_current_run80/agent_stream.jsonl.gz": "73c636acc2417f67bdcb299622a3daa42df1588d24f3f4995955440de4181fc8",
+        "2026-09-28_sm21_threshold_current_run80/claims/claim_0001.json": "2fb6945f796fce2affd7304785cca4fc92d1589be6641a4f4bf801d1937db360",
+        "2026-09-28_sm21_threshold_current_run80/claims/claim_0002.json": "b4a617f979a3b3ef67d1a3318a0fe8bf2cc029507637397d34b9041c53242ce2",
+        "2026-09-28_sm21_threshold_current_run80/plan_drafts/draft_001/plan.json": "5539e1aa000a827eb62474896116bfc163392b27378138250248441ed1f5829c",
+        "2026-09-28_sm21_threshold_current_run80/plan_drafts/draft_002/plan.json": "94e1a632edc870bd6fdc82a09043a847d0de3491eab11da3576fa6723ff32fb5",
+        "2026-09-28_sm21_threshold_current_run80/plan_drafts/draft_003/plan.json": "a2e1cd5a431671a3d072f69d000a22ddfee418aebccd5ad83aa915140c07fcbf",
+        "2026-09-28_sm21_threshold_current_run80/plan_drafts/draft_004/plan.json": "563f77d04d94ea1abfed61a88091066526775a82dd35c11dc22c3afa993628f9",
+        "2026-09-28_sm21_threshold_current_run80/plan_drafts/draft_005/plan.json": "df24f1cab186d6354167bc5b6c5e7b05730e79d3cea940815a956b001398602c",
+        "2026-09-28_sm21_threshold_current_run80/plan_drafts/draft_006/plan.json": "c05f34e20a18f277ef55d7cd5435fc57a0068aee41a4eaece4e8a592d364de86"
+      }
+    },
+    {
+      "run": "2026-09-28_sm21_historical_tree_run81",
+      "selected_candidate": "candidate_04",
+      "response_completed": true,
+      "image_sha256": {
+        "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+        "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+        "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+        "West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+      },
+      "objects": [
+        {
+          "label": "F1 north regular window",
+          "object_id": "F1:W_N1",
+          "final_extent": {
+            "x": [
+              1.257194,
+              3.631295
+            ],
+            "y": [
+              8.0,
+              8.0
+            ],
+            "z": [
+              1.023121387,
+              2.653179191
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425.5,
+                    0.0
+                  ],
+                  [
+                    1815.5,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    345.5,
+                    8.0
+                  ],
+                  [
+                    1086.5,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_N1",
+                "kind": "window",
+                "p1": [
+                  542,
+                  345.5
+                ],
+                "p2": [
+                  762,
+                  345.5
+                ],
+                "z": [
+                  1.04,
+                  2.69
+                ],
+                "source_refs": [
+                  "1f_view.png plan position x542-762; North_view.png elevation: 1F window outer rectangle measured y424-518px -> sill 1.04m, head 2.69m above ground"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  1.257194,
+                  3.631295
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.04,
+                  2.69
+                ]
+              },
+              "host": "space/F1%3AF1_TopLeft/wall/2",
+              "spaces": [
+                "F1:F1_TopLeft"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  1.257194,
+                  3.631295
+                ],
+                "y": [
+                  8.0,
+                  8.0
+                ],
+                "z": [
+                  1.023121387,
+                  2.653179191
+                ]
+              },
+              "host": "space/F1%3AF1_TopLeft/wall/2",
+              "spaces": [
+                "F1:F1_TopLeft"
+              ]
+            }
+          ],
+          "claims": [
+            {
+              "id": "claim_0001",
+              "claim": {
+                "basis": "pixels",
+                "candidate": "candidate_03",
+                "objects": [
+                  {
+                    "id": "F1:W_N1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F1:W_N3",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "North_view.png 1F window outer rectangle measured directly: ground line at pixel y=577 (region-detected 1F wall band bottom), 1F/2F floor line at pixel y=404 (region-detected 1F wall band top), mapping to world z 0.0 and 3.0m respectively (matches measured 1F wall height 3000mm). Window outer rectangle vertical extent measured at pixel y=424 (head) and y=518 (sill) via view_pixel_region on cyan window frame color.",
+                "sources": [
+                  {
+                    "box": [
+                      400.0,
+                      240.0,
+                      650.0,
+                      530.0
+                    ],
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "anchors": [
+                      [
+                        577,
+                        0.0
+                      ],
+                      [
+                        404,
+                        3.0
+                      ]
+                    ],
+                    "axis": "y",
+                    "image": "North_view.png",
+                    "pixels": [
+                      518.0,
+                      424.0
+                    ],
+                    "reduction": null,
+                    "type": "image_axis"
+                  }
+                }
+              },
+              "resolved_values": {
+                "z": [
+                  1.023121387,
+                  2.653179191
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    400.0,
+                    240.0,
+                    650.0,
+                    530.0
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+                  "size": [
+                    1354,
+                    812
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          ],
+          "interventions": [
+            {
+              "ordinal": 120,
+              "tool": "revise_bim",
+              "result_received": true,
+              "is_error": false,
+              "image_count": 4,
+              "returned_candidate": "candidate_04",
+              "returned_error": null,
+              "candidate": "candidate_03",
+              "operations": [
+                {
+                  "op": "update_window",
+                  "id": "F1:W_N1",
+                  "changes": {
+                    "z": {
+                      "claim": "claim_0001",
+                      "value": "z"
+                    }
+                  },
+                  "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+                  "source_refs": [
+                    "claim_0001"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "F1 south small window",
+          "object_id": "F1:W_S1",
+          "final_extent": {
+            "x": [
+              3.458633,
+              4.613309
+            ],
+            "y": [
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.04,
+              2.69
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_001",
+              "floor_id": "F1",
+              "anchors": {
+                "x": [
+                  [
+                    425.5,
+                    0.0
+                  ],
+                  [
+                    1815.5,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    345.5,
+                    8.0
+                  ],
+                  [
+                    1086.5,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W_S1",
+                "kind": "window",
+                "p1": [
+                  746,
+                  1086.5
+                ],
+                "p2": [
+                  853,
+                  1086.5
+                ],
+                "z": [
+                  1.04,
+                  2.69
+                ],
+                "source_refs": [
+                  "1f_view.png plan position x746-853 (south wall); height assumed same 1F window family as measured on North_view (South not directly pixel-measured for height)"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  3.458633,
+                  4.613309
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.04,
+                  2.69
+                ]
+              },
+              "host": "space/F1%3AF1_BottomLeft/wall/0",
+              "spaces": [
+                "F1:F1_BottomLeft"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  3.458633,
+                  4.613309
+                ],
+                "y": [
+                  0.0,
+                  0.0
+                ],
+                "z": [
+                  1.04,
+                  2.69
+                ]
+              },
+              "host": "space/F1%3AF1_BottomLeft/wall/0",
+              "spaces": [
+                "F1:F1_BottomLeft"
+              ]
+            }
+          ],
+          "claims": [],
+          "interventions": []
+        },
+        {
+          "label": "F2 east corridor window",
+          "object_id": "F2:W2F_East",
+          "final_extent": {
+            "x": [
+              15.0,
+              15.0
+            ],
+            "y": [
+              3.956815,
+              4.582996
+            ],
+            "z": [
+              4.03,
+              5.86
+            ]
+          },
+          "plan_declarations": [
+            {
+              "draft": "draft_002",
+              "floor_id": "F2",
+              "anchors": {
+                "x": [
+                  [
+                    427.5,
+                    0.0
+                  ],
+                  [
+                    1812.5,
+                    15.0
+                  ]
+                ],
+                "y": [
+                  [
+                    330.5,
+                    8.0
+                  ],
+                  [
+                    1071.5,
+                    0.0
+                  ]
+                ]
+              },
+              "opening": {
+                "id": "W2F_East",
+                "kind": "window",
+                "p1": [
+                  1812.5,
+                  647
+                ],
+                "p2": [
+                  1812.5,
+                  705
+                ],
+                "z": [
+                  4.03,
+                  5.86
+                ],
+                "source_refs": [
+                  "2f_view.png: east exterior window at corridor level y647-705; height assumed same 2F family, not independently measured on East_view.png"
+                ]
+              }
+            }
+          ],
+          "source_history": [
+            {
+              "candidate": "candidate_03",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.956815,
+                  4.582996
+                ],
+                "z": [
+                  4.03,
+                  5.86
+                ]
+              },
+              "host": "space/F2%3AF2_Corridor/wall/1",
+              "spaces": [
+                "F2:F2_Corridor"
+              ]
+            },
+            {
+              "candidate": "candidate_04",
+              "extent": {
+                "x": [
+                  15.0,
+                  15.0
+                ],
+                "y": [
+                  3.956815,
+                  4.582996
+                ],
+                "z": [
+                  4.03,
+                  5.86
+                ]
+              },
+              "host": "space/F2%3AF2_Corridor/wall/1",
+              "spaces": [
+                "F2:F2_Corridor"
+              ]
+            }
+          ],
+          "claims": [],
+          "interventions": []
+        }
+      ],
+      "original_views": [
+        {
+          "ordinal": 5,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 6,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 7,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 8,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 9,
+          "tool": "view_image",
+          "input": {
+            "name": "East_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 10,
+          "tool": "view_image",
+          "input": {
+            "name": "West_view.png"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 11,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              280,
+              240,
+              900,
+              820
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 12,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              850,
+              240,
+              1420,
+              820
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 13,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              820,
+              240,
+              1000,
+              1090
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 14,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1280,
+              240,
+              1420,
+              1090
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 15,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              280,
+              60,
+              460,
+              260
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 16,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1280,
+              60,
+              1420,
+              260
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 17,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              0,
+              380,
+              340,
+              1090
+            ],
+            "display_scale": 1.3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 18,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              380,
+              320,
+              480,
+              420
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 19,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1760,
+              320,
+              1860,
+              420
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 20,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              380,
+              1040,
+              480,
+              1140
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 21,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1760,
+              1040,
+              1860,
+              1140
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 22,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              300,
+              900,
+              700,
+              1150
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 40,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              390,
+              340,
+              470,
+              1090
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 46,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1760,
+              600,
+              1830,
+              830
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 51,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              440,
+              1030,
+              1800,
+              1090
+            ],
+            "display_scale": 1
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 53,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              440,
+              1030,
+              1800,
+              1090
+            ],
+            "coordinate_grid": true,
+            "display_scale": 1.2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 55,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              420,
+              1000,
+              1050,
+              1100
+            ],
+            "display_scale": 1.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 56,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              420,
+              1000,
+              1820,
+              1100
+            ],
+            "display_scale": 1
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 57,
+          "tool": "view_image",
+          "input": {
+            "name": "1f_view.png",
+            "box": [
+              1350,
+              1000,
+              1820,
+              1100
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 65,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png",
+            "box": [
+              0,
+              0,
+              300,
+              600
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 74,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png",
+            "box": [
+              380,
+              190,
+              650,
+              410
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 75,
+          "tool": "view_image",
+          "input": {
+            "name": "North_view.png",
+            "box": [
+              620,
+              400,
+              830,
+              540
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 76,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png",
+            "box": [
+              300,
+              380,
+              450,
+              580
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 77,
+          "tool": "view_image",
+          "input": {
+            "name": "West_view.png",
+            "box": [
+              500,
+              380,
+              720,
+              580
+            ],
+            "display_scale": 2.5
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 97,
+          "tool": "view_image",
+          "input": {
+            "name": "2f_view.png",
+            "box": [
+              1780,
+              600,
+              1815,
+              850
+            ],
+            "display_scale": 2
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 111,
+          "tool": "view_image",
+          "input": {
+            "name": "South_view.png",
+            "box": [
+              300,
+              390,
+              400,
+              570
+            ],
+            "display_scale": 3
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 1,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "source_elevation_views": [],
+      "reference_reads": [
+        {
+          "ordinal": 2,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "reconstruction"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 3,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_partition"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 4,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "plan_assembly"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        },
+        {
+          "ordinal": 104,
+          "tool": "get_bim_reference",
+          "input": {
+            "topic": "claims"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": null,
+          "returned_error": null
+        }
+      ],
+      "end_actions": [
+        {
+          "ordinal": 120,
+          "tool": "revise_bim",
+          "input": {
+            "candidate": "candidate_03",
+            "operations_json": "[\n{\"op\":\"update_window\",\"id\":\"F1:W_N1\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured 1F north window head/sill from North_view.png\",\"source_refs\":[\"claim_0001\"]},\n{\"op\":\"update_window\",\"id\":\"F1:W_N2\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured 1F north window head/sill from North_view.png\",\"source_refs\":[\"claim_0001\"]},\n{\"op\":\"update_window\",\"id\":\"F1:W_N3\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured 1F north window head/sill from North_view.png\",\"source_refs\":[\"claim_0001\"]},\n{\"op\":\"update_window\",\"id\":\"F2:W2F_N1\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured 2F north window head/sill from North_view.png\",\"source_refs\":[\"claim_0002\"]},\n{\"op\":\"update_window\",\"id\":\"F2:W2F_N2\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured 2F north window head/sill from North_view.png\",\"source_refs\":[\"claim_0002\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:D_West\",\"changes\":{\"z\":{\"claim\":\"claim_0003\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured west entrance door head from West_view.png\",\"source_refs\":[\"claim_0003\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:D_South\",\"changes\":{\"z\":{\"claim\":\"claim_0004\",\"value\":\"z\"}},\"reason\":\"Apply pixel-measured south entrance door head from South_view.png\",\"source_refs\":[\"claim_0004\"]},\n{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"South window heights assumed equal to measured North elevation window family (not independently pixel-measured on South_view).\",\"replacement\":[\"South/East window heights (W_S1-3, W_East) assumed equal to the North_view.png-measured 1F window family (head 2.653m, sill 1.023m above ground); not independently pixel-measured on South_view.png/East_view.png in this pass. North-facing windows W_N1-3 now use directly measured North_view.png pixel evidence via claim_0001.\",\"Ground-floor exterior doors D_West and D_South now use directly measured elevation pixel evidence (claims 0003/0004: heads at 2.135m and 2.132m respectively) instead of the initial assumed values.\"],\"reason\":\"North window family and both exterior ground-floor doors now have direct elevation pixel measurement (claims 0001,0003,0004); remaining South/East window heights and interior door heights remain explicit assumptions.\",\"source_refs\":[\"claim_0001\",\"claim_0003\",\"claim_0004\"]}\n]"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 4,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        },
+        {
+          "ordinal": 121,
+          "tool": "finish_bim",
+          "input": {
+            "candidate": "candidate_04"
+          },
+          "result_received": true,
+          "is_error": false,
+          "image_count": 0,
+          "returned_candidate": "candidate_04",
+          "returned_error": null
+        }
+      ],
+      "evidence_sha256": {
+        "2026-09-28_sm21_historical_tree_run81/summary.json": "33477e7aeb70f8401e19692ed67a31307649ef99138bdd47482b811527ffebbb",
+        "2026-09-28_sm21_historical_tree_run81/candidate_04/source_model.json": "622cacc9b59e10efb5d342a5f28a396ab967e125d9f46658886a714815b4636d",
+        "2026-09-28_sm21_historical_tree_run81/candidate_01/source_model.json": "00643f54044b8b89127283438f8bf53b1acc353e676ef067fdbef64d769659fe",
+        "2026-09-28_sm21_historical_tree_run81/candidate_02/source_model.json": "f833f362118b8a8869178c415841360990ad97c9f2dce6fc19da4ac367849082",
+        "2026-09-28_sm21_historical_tree_run81/candidate_03/source_model.json": "6c3531612b21fb580f209d40b8070af99374ef7e04193b455fe8c8e4ff5f872d",
+        "2026-09-28_sm21_historical_tree_run81/inputs.json": "f1aa35d5a703e421a8b6629847d2cd4d9ec5483ac34e262d728fa2cd5dc37456",
+        "2026-09-28_sm21_historical_tree_run81/agent_stream.jsonl.gz": "1c85f706f61d0fb4076c19cf95173793e66666bb4c4729b7cafd56771403359b",
+        "2026-09-28_sm21_historical_tree_run81/claims/claim_0001.json": "d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed",
+        "2026-09-28_sm21_historical_tree_run81/claims/claim_0002.json": "528cd3f9639d34c4a8559792d1a2a2ff76fbe8f02a06ae8fa8169a154307639b",
+        "2026-09-28_sm21_historical_tree_run81/claims/claim_0003.json": "2c17a3e5a6bc9aaba1bb30655b3fd11412b542bdb4ca1448b8af573a0eb7fcf9",
+        "2026-09-28_sm21_historical_tree_run81/claims/claim_0004.json": "e4499e8f6203c3fe7092d940aca175c4322030db0598758d913ecf7fb845a275",
+        "2026-09-28_sm21_historical_tree_run81/plan_drafts/draft_001/plan.json": "04396ea6fe91b74986bf14519988e8ab510a9753ab0f35b0419eb10e9a9a1605",
+        "2026-09-28_sm21_historical_tree_run81/plan_drafts/draft_002/plan.json": "c1310e59fa229f9cf2135ad59f283e2d71e29fb64a3a19d832437c2bba96f866"
+      }
+    }
+  ],
+  "interpretation": "Descriptive object histories. No causal effect estimate or automatic drawing-truth verdict. Claims/confirmations are model observations, not independent evaluation.",
+  "limitations": [
+    "Three development-selected window identities in five completed sm21 runs; not an unbiased success sample.",
+    "Run conditions differ. Preserve per-run results, do not pool success rates.",
+    "Originals and independent audits establish correctness separately; correct execution of a wrong observation is still a wrong result."
+  ]
+}

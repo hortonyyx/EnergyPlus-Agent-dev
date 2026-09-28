@@ -1,0 +1,110 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "F1:W_S1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Developer identifies the small lower South window separately from the two large windows. Its sill/head align with the left 1500/600/900 chain: from the 3 m floor line downward 900 to head, 600 window, 1500 to ground. Whole elevation retains both dimension ticks and frame context.",
+    "sources": [
+      {
+        "box": null,
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          900.0,
+          600.0,
+          1500.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.1,
+            "index": 0,
+            "length_m": 0.9,
+            "span_m": [
+              2.1,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.5,
+            "index": 1,
+            "length_m": 0.6,
+            "span_m": [
+              1.5,
+              2.1
+            ],
+            "start_m": 2.1
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.5,
+            "span_m": [
+              0.0,
+              1.5
+            ],
+            "start_m": 1.5
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "af883c97a303271532c8d1e60d257d096f5814e17d7e9010f562bfc948974ce0",
+  "resolved_values": {
+    "z": [
+      1.5,
+      2.1
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -352,10 +352,19 @@ checking annotation occlusion and the actual opening. Match external plan marks
 to the corresponding elevation using facade, order, span and neighbouring marks.
 Check the elevation's left/right orientation rather than copying its display x
 into world x/y. Similar widths do not establish identical sill/head heights.
-Measure each height family against elevation labels/pixels; match doors separately
-from windows, explaining any transom treatment. Keep internal heights or an
-uncertain datum as explicit assumptions when no drawing supplies them. Plan
-positions and elevation heights must describe the same opening ID.
+Locate BOTH outer ends of the complete aperture; an internal frame/mullion is
+not its end. Compare the full span with the associated dimension or a separately
+observed view. For each distinct height family, identify its actual sill/head
+and the dimension extension lines reaching those levels. Read chain segments in
+spatial order from an explicit datum and compare their proportions with the
+visible frame. A chain can sum correctly while its segments are swapped.
+Before sharing a height across openings, check that each target has that family
+in its own facade/storey; keep exceptional small, tall or transomed openings
+separate. Use source_refs or claim.reason to record that correspondence, not
+just the numbers. No extra form or claim per identical window is required.
+Match doors separately from windows, explaining any transom treatment. Keep
+internal heights or an uncertain datum as explicit assumptions when no drawing
+supplies them. Plan positions and elevation heights describe the same opening ID.
 
 SOURCE FEEDBACK. Once built, inspect the actual source plan and its original
 overlay. Check entire dividers and the spaces on BOTH sides, not merely counts.
@@ -367,6 +376,20 @@ do not move a measured wall to accommodate a guessed opening. Revise from the
 evidence and inspect the new actual source. Keep observed, inferred, rejected
 and still unexamined content distinct. Successful geometry and your own opening
 review do not independently certify drawing fidelity.
+
+CHECK THE RESULT OF THE ACTION. Review the saved object against the original
+frame/partition, rather than deriving a second observation from your own earlier
+numbers. A claim confirmed against those same numbers checks execution only;
+it cannot detect a wrong family, transcribed segment order or truncated span.
+For a discrepancy, identify the object and property, reobserve the relevant
+original extent, revise locally, then inspect that property on the new source
+and check affected hosts/connections. If a previous value was already supported,
+keep it; extra tool calls or unnecessary revisions are not progress. Choose views
+and tools for the uncertainty, not a mandatory sequence. Before finishing, separate
+unavailable information from supplied views you have not yet checked. Prioritize
+unresolved physical partitions, opening extents and distinct height families over
+use-label refinements. A written caveat preserves uncertainty but does not repair
+a discrepancy that the supplied drawing can resolve. State remaining scope honestly.
 """,
     'plan_partition': """build_plan_bim(image, plan_json) compiles the following JSON string.
 This synthetic example is unrelated to the supplied drawing:
