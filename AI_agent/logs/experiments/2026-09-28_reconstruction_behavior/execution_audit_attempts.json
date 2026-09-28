@@ -1,0 +1,16 @@
+{
+  "model_retries": 0,
+  "offline_attempts": [
+    {
+      "script": "inspect_interrupted.py",
+      "attempt": 1,
+      "result": "Historical claim-preview adapter asserted at least one claim preview; interrupted run has zero claims.",
+      "fix": "Local adapter verifies no claim calls/files, marks only claim-preview branch not applicable, and runs unchanged exact direct-view byte/pixel verification.",
+      "rerun_result": "pass:45 actual direct views verified; claim previews remain not applicable"
+    }
+  ],
+  "raw_evidence_preservation": {
+    "git_diff_check_exception": "run82/plan_drafts/draft_003/plan.json line11 has original model trailing whitespace and malformed JSON. Retained byte-for-byte because plan hash and failed request are evidence.",
+    "scope": "All other staged changes checked separately; no production exception or threshold change."
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "agent_assumptions": [
+    "Ceiling height 3.0m assumed pending elevation check.",
+    "Door heights 2.1m assumed pending elevation check.",
+    "Window sill/head heights assumed (0.9-2.1m typical, east window 1.2-2.1m) pending elevation check.",
+    "Exterior wall thickness not modeled beyond footprint outer face; interior corridor wall thickness taken as single representative line at measured position.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "b452fede102e191d90df6d8d09f4c2553e817b2234573922596c732c24018841",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "d6d53aeb7b54d0cd54ca81bd15d8de1f917c90e6aadb609ea4f58dab7826c4a6",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "dd80c76b34ee08453b22a099460e48ddf738e7b357b94ec30422c15c61577498",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "85f412881d060a299a9b81f46de71dae4f10bafee4395fb39018ea6fd5c679b1",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "d1194288902ae49ae77057be6a39e7000d610e55ee467c8ee13923efee39b4d1",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "2c1c4262548db5a676395b57c15c270568d262e1736c7cbd56e2c7e6e289f38a"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "410d20cf731a12c73ad31676624437851815579c81358262079e501126da63bf",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "South wall window subdivision between x=855-1230px (approx 5.0-8.7m) may contain an unlabeled ~360mm pier not separately modeled as two windows; treated as one window span for physical fidelity.",
+    "Partition wall true thickness (~120mm measured) not independently confirmed against a labeled dimension.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

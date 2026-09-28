@@ -1,0 +1,235 @@
+{
+  "status": "development_review_of_interrupted_saved_state",
+  "candidate": "candidate_06",
+  "source_model_sha256": "37ec9569c855af6b518eb420a208a3146bf921178e5bfa73b360192a38353dd5",
+  "model_response_completed": false,
+  "complete_run_quality": "unknown",
+  "method_exposure": [
+    {
+      "ordinal": 2,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "reconstruction"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    },
+    {
+      "ordinal": 3,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "plan_partition"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    },
+    {
+      "ordinal": 4,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "plan_assembly"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    },
+    {
+      "ordinal": 111,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "claims"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    }
+  ],
+  "scope": "Observable tool requests/results, declared reasons and saved geometry only; no hidden reasoning inspection.",
+  "findings": [
+    {
+      "id": "crop_edge_adopted_as_opening_endpoint",
+      "objects": [
+        "1F:W_East"
+      ],
+      "public_calls": [
+        52,
+        53,
+        56
+      ],
+      "draft": "draft_001",
+      "evidence": "pixel_profile box [1795,640,1815,730] returns support ending at y729, exactly bottom-1. Declared opening endpoints y661..729 are retained through candidate_06.",
+      "source_width_m": 0.734143,
+      "original_width_m": 1.2,
+      "stage": "evidence extent selection and endpoint interpretation",
+      "qualification": "A prior wider view was available. This is adoption of truncated local measurement, not absent image transport; completion-time correction remains unknown.",
+      "public_call_tools": {
+        "52": "view_image",
+        "53": "pixel_profile",
+        "56": "build_plan_bim"
+      }
+    },
+    {
+      "id": "west_double_door_partial_extent",
+      "objects": [
+        "1F:D_West"
+      ],
+      "public_calls": [
+        54,
+        56
+      ],
+      "draft": "draft_001",
+      "evidence": "Profile box [400,590,425,720] excludes lower part of the full door; the plan uses y648..712. Saved width 0.690958m versus about 1.5m original.",
+      "stage": "incomplete local context and selected feature interpretation",
+      "qualification": "The selected end 712 is a local peak, not the crop edge; do not conflate this with the east-window exact-edge mechanism.",
+      "public_call_tools": {
+        "54": "pixel_profile",
+        "56": "build_plan_bim"
+      }
+    },
+    {
+      "id": "visible_north_doors_declared_absent",
+      "objects": [
+        "2F:RoomN1",
+        "2F:RoomN2"
+      ],
+      "public_calls": [
+        6,
+        60,
+        68,
+        70,
+        81,
+        82,
+        83,
+        84
+      ],
+      "draft": "draft_005",
+      "evidence": "Full original contains two cyan door symbols to corridor. Actual local return at call68 crops off most leaf arcs but retains jambs/gaps. The saved plan explicitly says neither north room has a door and omits both. Original correspondence finds door-NW and door-NE missing; connections 12 of expected14.",
+      "stage": "object recognition and absence interpretation",
+      "qualification": "Image delivery verified. Cannot attribute omission solely to cropping or claim the unfinished review would not correct it.",
+      "public_call_tools": {
+        "6": "view_image",
+        "60": "view_image",
+        "68": "view_image",
+        "70": "view_image",
+        "81": "build_plan_bim",
+        "82": "build_plan_bim",
+        "83": "inspect_plan_draft",
+        "84": "revise_plan_bim"
+      }
+    },
+    {
+      "id": "small_window_mapped_to_regular_family",
+      "objects": [
+        "1F:W_S1"
+      ],
+      "public_calls": [
+        96,
+        103
+      ],
+      "draft": "draft_006",
+      "evidence": "Call96 measures the regular south window at x670..820, y419..511. Call103 applies that family to W_S1 as well as regular south windows. W_S1 z changes [0.9,2.1] to [1.0,2.6], while the distinct original small window is [1.5,2.1].",
+      "stage": "correct measurement assigned to wrong object",
+      "qualification": "New reconstruction guidance was returned before generation, but this operation did not implement family separation.",
+      "public_call_tools": {
+        "96": "pixel_profile",
+        "103": "revise_plan_bim"
+      }
+    },
+    {
+      "id": "regular_window_height_effective_correction",
+      "objects": [
+        "1F:W_N1",
+        "1F:W_N2",
+        "1F:W_N3",
+        "1F:W_S2",
+        "1F:W_S3",
+        "2F:W_N_A",
+        "2F:W_N_B",
+        "2F:W_S_A",
+        "2F:W_S_B",
+        "2F:W_S_C",
+        "2F:W_S_D"
+      ],
+      "public_calls": [
+        103,
+        104
+      ],
+      "evidence": "The same elevation-driven edits correctly replace assumed regular-window heights with [1.0,2.6] on first floor and [4.0,5.8] on second floor.",
+      "stage": "evidence interpretation and saved application succeeded for these objects",
+      "qualification": "Do not erase valid actions because other objects failed; east/west upper windows have correct height but short plan widths.",
+      "public_call_tools": {
+        "103": "revise_plan_bim",
+        "104": "revise_plan_bim"
+      }
+    },
+    {
+      "id": "absolute_height_contract_repaired",
+      "public_calls": [
+        82,
+        83,
+        84
+      ],
+      "draft": "draft_004 -> draft_005",
+      "evidence": "Compilation rejected second-floor opening z [0.9,2.1] outside floor [3,6]. Local revision adds floor level, successfully building candidate_03.",
+      "stage": "execution feedback and correction",
+      "qualification": "Interface/coordinate repair is distinct from independent drawing truth.",
+      "public_call_tools": {
+        "82": "build_plan_bim",
+        "83": "inspect_plan_draft",
+        "84": "revise_plan_bim"
+      }
+    },
+    {
+      "id": "recognized_storey_height_not_saved",
+      "public_calls": [
+        107
+      ],
+      "objects": [
+        "2F"
+      ],
+      "evidence": "Assembly evidence states 3000/3600mm storeys and 6600mm total, but draft_007 and candidate_06 retain second-floor height3.0m, making the saved top6.0m.",
+      "stage": "interpretation-to-saved-state application gap",
+      "qualification": "No final source review before 429; not a final-stop failure.",
+      "public_call_tools": {
+        "107": "assemble_plan_bim"
+      }
+    },
+    {
+      "id": "wall_midplane_change_still_inaccurate",
+      "public_calls": [
+        80
+      ],
+      "evidence": "Local revision changes first-floor corridor walls to y635.5/797.5 based on a claimed 250mm midpoint; saved walls and six interior doors remain about12–13cm from original representative lines. Second-floor corridor walls differ about20cm.",
+      "stage": "dimension-to-line interpretation",
+      "qualification": "All14 room identities remain; this dimensional error is distinct from missing doors and connectivity loss.",
+      "public_call_tools": {
+        "80": "revise_plan_bim"
+      }
+    }
+  ],
+  "limits": [
+    "Interrupted before record_claim or finish_bim; no evidence about eventual correction, successful final validation or stability.",
+    "Independent references/tolerances unchanged; 12/17 exterior parameters in existing tolerance is intermediate-only and does not make east first-floor height family correct.",
+    "Method exposure and tool counts are not effectiveness scores; no new-old causal claim."
+  ],
+  "evidence_sha256": {
+    "agent_receipt.json": "637b4038f5eb32b69d1f5523d6ba876a14f1349be45c7d40d008cba141e2ce07",
+    "agent_stream.jsonl.gz": "da71774ae4317b50fe0b44f984f92da0a048b7a6886266b40cdd7d3ced461368",
+    "interrupted_object_history.json": "1d2ff2c684788913a7a60bcdddf5dc18d09eec0c1182224a796436da5c9c987e",
+    "candidate_06/source_model.json": "fda9009c7793b909f8a70b02c56a06e1bbefa33489d3c1d33778910825073f21",
+    "evaluation/original_openings.json": "d5e31309ff95802aa19cb0320fe004549f0356789c318bbbf5bc1c65d238ecea",
+    "evaluation/gt/intermediate_opening_diagnostic.json": "3a1468ab862a2a84a5530edaa72ae62715f91efe00ff890a82f2dcc4ad5ffdb2",
+    "evaluation/view_reference_audit.json": "cf432d283d2e1b9a5adf3d46546067c5f271c2d54c3dfac2fd2e31aaa83be960",
+    "browser_qa/report.json": "64c0bf4302e085cde25bc2784de5d813ac71df9f5d70d60a9d79cede94bd3f27"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "agent_assumptions": [
+    "z_floor=3.0m for 2F assumed equal to 1F ceiling_height pending elevation storey-height check.",
+    "Ceiling height 3.0m and door/window heights assumed pending elevation check.",
+    "West window jamb pixels approximated as mirror of east window; not independently measured to the same precision.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 4,
+    "openings": 12,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "a28eab9198cfc3f099608f23abeeb0a847b0345b510ab6c052e06d5934a56724",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "d6d53aeb7b54d0cd54ca81bd15d8de1f917c90e6aadb609ea4f58dab7826c4a6",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_007/compilation.json",
+      "compilation_sha256": "5efa1c78f4bb7058ab9cb2cde22d0c61864ab8eb038b0a6f5ae2e6b85cca3777",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_007/draft_view.png",
+        "image_sha256": "ee2bfe610583da0e371a97505469b7e293e19f6bf0e431332827b060570a6be0",
+        "metadata_file": "plan_drafts/draft_007/draft_view.json",
+        "metadata_sha256": "1daab08e4a12a65604ac30cac551a076b3aa7abf83be86062c833d6007320e96",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_007/plan.json",
+      "plan_sha256": "021c6d6e2d92ce218ee7545e2ef10d1dce2c32720845541e8eb782cdfe30a230",
+      "revision": {
+        "file": "plan_revisions/revision_004.json",
+        "parent_draft_id": "draft_005",
+        "parent_plan_sha256": "0baee0864a3419c7049d5dbeb12f7f0d045cb9ca626c768d3c66486cf14feb8c",
+        "sha256": "f14d52c06d2440f41302f6b00acc3359ada9037e0b87f6d23177b1abdb2850c9"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "c393141d00c7cd031d0181641657984dc8629bfbe2b091ec8895175b2df59c7a",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Neither large north conference room (RoomN1, RoomN2) shows any door or open passage to Corridor2F, the north exterior wall, or each other in this drawing; they also have no exterior door of their own. As drawn they are physically enclosed with only windows for openings. This is preserved as observed rather than inventing a connection; it may reflect an omission in the source drawing or a connection not visible at this drawing's scope (e.g. a sliding/folding partition not rendered as a door symbol).",
+    "No exterior door is visible anywhere on 2F (north, south, east or west); vertical circulation (stair) reaching this floor is not shown in the supplied plan and is not modeled.",
+    "South window subdivisions were read from a weak/sparse color profile; exact widths carry modest pixel-reading uncertainty.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

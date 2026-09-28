@@ -1,0 +1,71 @@
+{
+  "agent_assumptions": [
+    "Ceiling height 3.0m assumed pending elevation check.",
+    "Door heights 2.1m assumed pending elevation check.",
+    "Window sill/head heights assumed (0.9-2.1m typical, east window 1.2-2.1m) pending elevation check.",
+    "Exterior wall thickness not modeled beyond footprint outer face; interior corridor wall thickness taken as single representative line at measured position.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "z_floor=3.0m for 2F assumed equal to 1F ceiling_height pending elevation storey-height check.",
+    "Ceiling height 3.0m and door/window heights assumed pending elevation check.",
+    "West window jamb pixels approximated as mirror of east window; not independently measured to the same precision.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 12,
+    "openings": 27,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "93e1624644f7fdde2ebee8bbcdcd6dfdf9c87f63f7369f67c5f07f0e6d515cea",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "d6d53aeb7b54d0cd54ca81bd15d8de1f917c90e6aadb609ea4f58dab7826c4a6",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "c89d30cd19377865cc4ee4745b3df93b4af8278bca552b9ce54d2278d3f21060"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "37ec9569c855af6b518eb420a208a3146bf921178e5bfa73b360192a38353dd5",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "South wall window subdivision between x=855-1230px (approx 5.0-8.7m) may contain an unlabeled ~360mm pier not separately modeled as two windows; treated as one window span for physical fidelity.",
+    "Partition wall true thickness (~120mm measured) not independently confirmed against a labeled dimension.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Neither large north conference room (RoomN1, RoomN2) shows any door or open passage to Corridor2F, the north exterior wall, or each other in this drawing; they also have no exterior door of their own. As drawn they are physically enclosed with only windows for openings. This is preserved as observed rather than inventing a connection; it may reflect an omission in the source drawing or a connection not visible at this drawing's scope (e.g. a sliding/folding partition not rendered as a door symbol).",
+    "No exterior door is visible anywhere on 2F (north, south, east or west); vertical circulation (stair) reaching this floor is not shown in the supplied plan and is not modeled.",
+    "South window subdivisions were read from a weak/sparse color profile; exact widths carry modest pixel-reading uncertainty.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

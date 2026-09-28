@@ -1,0 +1,252 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "37ec9569c855af6b518eb420a208a3146bf921178e5bfa73b360192a38353dd5",
+  "floor_id": "1F",
+  "calibration": {
+    "x_anchors": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1815.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        1087.0,
+        0.0
+      ],
+      [
+        346.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs1",
+      "expected": "same_space",
+      "evidence": "Both points lie inside the central corridor band between the two rows of rooms, well away from any drawn partition.",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            650.0
+          ],
+          "world_xy_m": [
+            0.8093525179856114,
+            4.717948717948718
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Corridor1F",
+          "interior_space_ids": [
+            "1F:Corridor1F"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            700.0,
+            720.0
+          ],
+          "world_xy_m": [
+            2.9676258992805753,
+            3.96221322537112
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Corridor1F",
+          "interior_space_ids": [
+            "1F:Corridor1F"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs2",
+      "expected": "separate_spaces",
+      "evidence": "Room1 (left office) and Room2 (middle office) are separated by the drawn vertical partition at x~888.",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            480.0
+          ],
+          "world_xy_m": [
+            2.428057553956835,
+            6.553306342780027
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Room1",
+          "interior_space_ids": [
+            "1F:Room1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            480.0
+          ],
+          "world_xy_m": [
+            7.284172661870504,
+            6.553306342780027
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Room2",
+          "interior_space_ids": [
+            "1F:Room2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs3",
+      "expected": "separate_spaces",
+      "evidence": "RoomD (left) and RoomF (right meeting room) are separated by two partitions and not directly adjoining.",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            950.0
+          ],
+          "world_xy_m": [
+            2.428057553956835,
+            1.479082321187585
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:RoomD",
+          "interior_space_ids": [
+            "1F:RoomD"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1550.0,
+            950.0
+          ],
+          "world_xy_m": [
+            12.140287769784173,
+            1.479082321187585
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:RoomF",
+          "interior_space_ids": [
+            "1F:RoomF"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs4",
+      "expected": "separate_spaces",
+      "evidence": "Room3 (north) and RoomF (south) are on opposite sides of the corridor, separated by corridor walls.",
+      "points": [
+        {
+          "pixel": [
+            1550.0,
+            480.0
+          ],
+          "world_xy_m": [
+            12.140287769784173,
+            6.553306342780027
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Room3",
+          "interior_space_ids": [
+            "1F:Room3"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1550.0,
+            950.0
+          ],
+          "world_xy_m": [
+            12.140287769784173,
+            1.479082321187585
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:RoomF",
+          "interior_space_ids": [
+            "1F:RoomF"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs5",
+      "expected": "same_space",
+      "evidence": "Both points are inside the long corridor at its west and east ends, which is one continuous space with no dividing wall drawn across it.",
+      "points": [
+        {
+          "pixel": [
+            450.0,
+            650.0
+          ],
+          "world_xy_m": [
+            0.26978417266187016,
+            4.717948717948718
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Corridor1F",
+          "interior_space_ids": [
+            "1F:Corridor1F"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1780.0,
+            650.0
+          ],
+          "world_xy_m": [
+            14.622302158273381,
+            4.717948717948718
+          ],
+          "status": "inside_one_space",
+          "space_id": "1F:Corridor1F",
+          "interior_space_ids": [
+            "1F:Corridor1F"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_06",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_006.json",
+  "calibration_sha256": "0b9e6ae28c2daf49d434256e3910e0e457a8e826dcc538c13854d5099fbfabb1",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1848
+}

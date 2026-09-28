@@ -1,0 +1,1704 @@
+{
+  "status": "interrupted_429",
+  "completed_run_quality": "unknown",
+  "candidate": "candidate_06",
+  "selection_origin": "latest_saved_fallback_not_agent_selected",
+  "actual_model": "claude-sonnet-5",
+  "invocations": 1,
+  "elapsed_seconds": 1165.11,
+  "estimated_usd_not_subscription_bill": 4.351359600000001,
+  "input_and_producer_hashes_verified": true,
+  "source_display_replay_exact": true,
+  "assemblies_replayed": [
+    {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "c89d30cd19377865cc4ee4745b3df93b4af8278bca552b9ce54d2278d3f21060",
+      "floors": [
+        {
+          "draft_id": "draft_006",
+          "draft_sha256": "097406dec915b15aee4efe7cdcda16600b22b85013a071fba22ef388aeab2d6e",
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "floor_id": "1F",
+          "z_floor": 0
+        },
+        {
+          "draft_id": "draft_007",
+          "draft_sha256": "021c6d6e2d92ce218ee7545e2ef10d1dce2c32720845541e8eb782cdfe30a230",
+          "image": "2f_view.png",
+          "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+          "floor_id": "2F",
+          "z_floor": 3.0
+        }
+      ],
+      "candidate_replay_matches": [
+        "candidate_06"
+      ],
+      "unmatched_note": null
+    }
+  ],
+  "transported_images": 68,
+  "counts": {
+    "floors": 2,
+    "spaces": 14,
+    "boundaries": 84,
+    "openings": 27,
+    "connections": 12
+  },
+  "reference_reads": [
+    {
+      "ordinal": 2,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "reconstruction"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    },
+    {
+      "ordinal": 3,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "plan_partition"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    },
+    {
+      "ordinal": 4,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "plan_assembly"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    },
+    {
+      "ordinal": 111,
+      "tool": "get_bim_reference",
+      "input": {
+        "topic": "claims"
+      },
+      "result_received": true,
+      "is_error": false,
+      "image_count": 0,
+      "returned_candidate": null,
+      "returned_error": null
+    }
+  ],
+  "intermediate_original_openings": {
+    "candidate": "candidate_06",
+    "reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+    "reference_count": 29,
+    "matched": 27,
+    "positions": 13,
+    "hosts": 27,
+    "door_connections": 12,
+    "floors": [
+      {
+        "floor_id": "1F",
+        "image": "1f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "1F:Room1"
+          ],
+          "NC": [
+            "1F:Room2"
+          ],
+          "NE": [
+            "1F:Room3"
+          ],
+          "C": [
+            "1F:Corridor1F"
+          ],
+          "SW": [
+            "1F:RoomD"
+          ],
+          "SC": [
+            "1F:RoomE"
+          ],
+          "SE": [
+            "1F:RoomF"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      },
+      {
+        "floor_id": "2F",
+        "image": "2f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "2F:RoomN1"
+          ],
+          "NE": [
+            "2F:RoomN2"
+          ],
+          "C": [
+            "2F:Corridor2F"
+          ],
+          "S1": [
+            "2F:RoomS1"
+          ],
+          "S2": [
+            "2F:RoomS2"
+          ],
+          "S3": [
+            "2F:RoomS3"
+          ],
+          "S4": [
+            "2F:RoomS4"
+          ]
+        },
+        "unmatched_reference": [
+          "door-NW",
+          "door-NE"
+        ],
+        "unmatched_actual": []
+      }
+    ],
+    "comparisons": [
+      {
+        "floor_id": "1F",
+        "reference_id": "N-W",
+        "opening_id": "1F:W_N1",
+        "max_endpoint_error_m": 0.002622186915887781,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:Room1"
+        ],
+        "actual_hosts": [
+          "1F:Room1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "N-C",
+        "opening_id": "1F:W_N2",
+        "max_endpoint_error_m": 0.015329785046729327,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:Room2"
+        ],
+        "actual_hosts": [
+          "1F:Room2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "N-E",
+        "opening_id": "1F:W_N3",
+        "max_endpoint_error_m": 0.018968204169663494,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:Room3"
+        ],
+        "actual_hosts": [
+          "1F:Room3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "S-W",
+        "opening_id": "1F:W_S1",
+        "max_endpoint_error_m": 0.007455833213516172,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:RoomD"
+        ],
+        "actual_hosts": [
+          "1F:RoomD"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "S-C",
+        "opening_id": "1F:W_S2",
+        "max_endpoint_error_m": 0.004538785046729998,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:RoomE"
+        ],
+        "actual_hosts": [
+          "1F:RoomE"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "S-E",
+        "opening_id": "1F:W_S3",
+        "max_endpoint_error_m": 0.020682634076203854,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:RoomF"
+        ],
+        "actual_hosts": [
+          "1F:RoomF"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "E-C",
+        "opening_id": "1F:W_East",
+        "max_endpoint_error_m": 0.47503350472334693,
+        "perpendicular_error_m": 0.11861969805895001,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-NW",
+        "opening_id": "1F:D_R1",
+        "max_endpoint_error_m": 0.01348370668583776,
+        "perpendicular_error_m": 0.12415647233468263,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F",
+          "1F:Room1"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F",
+          "1F:Room1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-NC",
+        "opening_id": "1F:D_R2",
+        "max_endpoint_error_m": 0.017075779295470994,
+        "perpendicular_error_m": 0.12415647233468263,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F",
+          "1F:Room2"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F",
+          "1F:Room2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-NE",
+        "opening_id": "1F:D_R3",
+        "max_endpoint_error_m": 0.013483706685835983,
+        "perpendicular_error_m": 0.12415647233468263,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F",
+          "1F:Room3"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F",
+          "1F:Room3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-SW",
+        "opening_id": "1F:D_D",
+        "max_endpoint_error_m": 0.01348370668583776,
+        "perpendicular_error_m": 0.1349526936572203,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F",
+          "1F:RoomD"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F",
+          "1F:RoomD"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-SC",
+        "opening_id": "1F:D_E",
+        "max_endpoint_error_m": 0.017075779295470994,
+        "perpendicular_error_m": 0.1349526936572203,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F",
+          "1F:RoomE"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F",
+          "1F:RoomE"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-SE",
+        "opening_id": "1F:D_F",
+        "max_endpoint_error_m": 0.013483706685835983,
+        "perpendicular_error_m": 0.1349526936572203,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F",
+          "1F:RoomF"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F",
+          "1F:RoomF"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-W",
+        "opening_id": "1F:D_West",
+        "max_endpoint_error_m": 0.8097166032388659,
+        "perpendicular_error_m": 0.1186196980589504,
+        "position_match": false,
+        "expected_hosts": [
+          "1F:Corridor1F"
+        ],
+        "actual_hosts": [
+          "1F:Corridor1F"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "1F",
+        "reference_id": "door-S",
+        "opening_id": "1F:D_South_Main",
+        "max_endpoint_error_m": 0.02053520345075488,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "1F:RoomD"
+        ],
+        "actual_hosts": [
+          "1F:RoomD"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-NW",
+        "opening_id": "2F:W_N_A",
+        "max_endpoint_error_m": 5.194805186015117e-08,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "2F:RoomN1"
+        ],
+        "actual_hosts": [
+          "2F:RoomN1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-NE",
+        "opening_id": "2F:W_N_B",
+        "max_endpoint_error_m": 5.194805297037419e-08,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "2F:RoomN2"
+        ],
+        "actual_hosts": [
+          "2F:RoomN2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-S1",
+        "opening_id": "2F:W_S_A",
+        "max_endpoint_error_m": 1.861471861097641e-07,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "2F:RoomS1"
+        ],
+        "actual_hosts": [
+          "2F:RoomS1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-S2",
+        "opening_id": "2F:W_S_B",
+        "max_endpoint_error_m": 1.861471856656749e-07,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "2F:RoomS2"
+        ],
+        "actual_hosts": [
+          "2F:RoomS2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-S3",
+        "opening_id": "2F:W_S_C",
+        "max_endpoint_error_m": 1.8614718655385332e-07,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "2F:RoomS3"
+        ],
+        "actual_hosts": [
+          "2F:RoomS3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-S4",
+        "opening_id": "2F:W_S_D",
+        "max_endpoint_error_m": 1.8614718655385332e-07,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "2F:RoomS4"
+        ],
+        "actual_hosts": [
+          "2F:RoomS4"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-W",
+        "opening_id": "2F:W_West",
+        "max_endpoint_error_m": 0.5081084054054053,
+        "perpendicular_error_m": 0.11904761904761904,
+        "position_match": false,
+        "expected_hosts": [
+          "2F:Corridor2F"
+        ],
+        "actual_hosts": [
+          "2F:Corridor2F"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "window-E",
+        "opening_id": "2F:W_East",
+        "max_endpoint_error_m": 0.5081084054054053,
+        "perpendicular_error_m": 0.11904761904761862,
+        "position_match": false,
+        "expected_hosts": [
+          "2F:Corridor2F"
+        ],
+        "actual_hosts": [
+          "2F:Corridor2F"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "door-S1",
+        "opening_id": "2F:D_S1",
+        "max_endpoint_error_m": 0.032467398268398284,
+        "perpendicular_error_m": 0.20000000000000018,
+        "position_match": false,
+        "expected_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS1"
+        ],
+        "actual_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "door-S2",
+        "opening_id": "2F:D_S2",
+        "max_endpoint_error_m": 0.021644887445886773,
+        "perpendicular_error_m": 0.20000000000000018,
+        "position_match": false,
+        "expected_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS2"
+        ],
+        "actual_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "door-S3",
+        "opening_id": "2F:D_S3",
+        "max_endpoint_error_m": 0.032467398268398284,
+        "perpendicular_error_m": 0.20000000000000018,
+        "position_match": false,
+        "expected_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS3"
+        ],
+        "actual_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "2F",
+        "reference_id": "door-S4",
+        "opening_id": "2F:D_S4",
+        "max_endpoint_error_m": 0.02164488744588766,
+        "perpendicular_error_m": 0.20000000000000018,
+        "position_match": false,
+        "expected_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS4"
+        ],
+        "actual_hosts": [
+          "2F:Corridor2F",
+          "2F:RoomS4"
+        ],
+        "host_match": true,
+        "connection_match": true
+      }
+    ],
+    "limits": [
+      "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+      "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+      "No door height, operating state, material or vertical circulation claim."
+    ]
+  },
+  "intermediate_partition": {
+    "schema_version": 1,
+    "status": "severe",
+    "tolerance_m": 0.02,
+    "reference_count": 14,
+    "candidate_count": 14,
+    "matched_count": 14,
+    "matches": [
+      {
+        "reference_id": "F1_S1",
+        "candidate_id": "1F:RoomD",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 14.989208999999999,
+        "reference_coverage_fraction": 0.9992806,
+        "candidate_coverage_fraction": 0.959844581965288,
+        "iou": 0.9591817784318195,
+        "symmetric_difference_area_m2": 0.6378695549180008,
+        "boundary_hausdorff_m": 0.12550600000000012,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F1_S2",
+        "candidate_id": "1F:RoomE",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 14.946041999999998,
+        "reference_coverage_fraction": 0.9964027999999999,
+        "candidate_coverage_fraction": 0.9591520768818933,
+        "iou": 0.9558422647240868,
+        "symmetric_difference_area_m2": 0.6904730941660022,
+        "boundary_hausdorff_m": 0.12555753440156442,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F1_S3",
+        "candidate_id": "1F:RoomF",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 15.0,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9564042047599256,
+        "iou": 0.9564042047599256,
+        "symmetric_difference_area_m2": 0.6837453509160021,
+        "boundary_hausdorff_m": 0.12678821803306506,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F1_COR",
+        "candidate_id": "1F:Corridor1F",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 26.234820000000003,
+        "reference_coverage_fraction": 0.8744940000000001,
+        "candidate_coverage_fraction": 1.0,
+        "iou": 0.8744940000000002,
+        "symmetric_difference_area_m2": 3.765179999999997,
+        "boundary_hausdorff_m": 0.12550600000000012,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F1_N1",
+        "candidate_id": "1F:Room1",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 14.989208999999999,
+        "reference_coverage_fraction": 0.9992806,
+        "candidate_coverage_fraction": 0.9598445819652882,
+        "iou": 0.95918177843182,
+        "symmetric_difference_area_m2": 0.6378695549179986,
+        "boundary_hausdorff_m": 0.12550599999999967,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F1_N2",
+        "candidate_id": "1F:Room2",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 14.946041999999998,
+        "reference_coverage_fraction": 0.9964027999999999,
+        "candidate_coverage_fraction": 0.9591520768818934,
+        "iou": 0.9558422647240868,
+        "symmetric_difference_area_m2": 0.6904730941660002,
+        "boundary_hausdorff_m": 0.12555753440156397,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F1_N3",
+        "candidate_id": "1F:Room3",
+        "reference_floor_id": "Floor 1",
+        "candidate_floor_id": "Floor 1",
+        "status": "severe",
+        "intersection_area_m2": 15.0,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9564042047599257,
+        "iou": 0.9564042047599258,
+        "symmetric_difference_area_m2": 0.6837453509160003,
+        "boundary_hausdorff_m": 0.12678821803306464,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.0,
+        "z_top_delta_m": 0.0
+      },
+      {
+        "reference_id": "F2_S1",
+        "candidate_id": "2F:RoomS1",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      },
+      {
+        "reference_id": "F2_S2",
+        "candidate_id": "2F:RoomS2",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      },
+      {
+        "reference_id": "F2_S3",
+        "candidate_id": "2F:RoomS3",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      },
+      {
+        "reference_id": "F2_S4",
+        "candidate_id": "2F:RoomS4",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      },
+      {
+        "reference_id": "F2_COR",
+        "candidate_id": "2F:Corridor2F",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 23.999999999999993,
+        "reference_coverage_fraction": 0.7999999999999997,
+        "candidate_coverage_fraction": 1.0,
+        "iou": 0.7999999999999997,
+        "symmetric_difference_area_m2": 6.000000000000005,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      },
+      {
+        "reference_id": "F2_N1",
+        "candidate_id": "2F:RoomN1",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 22.5,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 1.5000000000000013,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      },
+      {
+        "reference_id": "F2_N2",
+        "candidate_id": "2F:RoomN2",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 22.5,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 1.5000000000000013,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    ],
+    "findings": [
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_S1"
+        ],
+        "candidate_ids": [
+          "1F:RoomD"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_S1",
+          "candidate_id": "1F:RoomD",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 14.989208999999999,
+          "reference_coverage_fraction": 0.9992806,
+          "candidate_coverage_fraction": 0.959844581965288,
+          "iou": 0.9591817784318195,
+          "symmetric_difference_area_m2": 0.6378695549180008,
+          "boundary_hausdorff_m": 0.12550600000000012,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_S2"
+        ],
+        "candidate_ids": [
+          "1F:RoomE"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_S2",
+          "candidate_id": "1F:RoomE",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 14.946041999999998,
+          "reference_coverage_fraction": 0.9964027999999999,
+          "candidate_coverage_fraction": 0.9591520768818933,
+          "iou": 0.9558422647240868,
+          "symmetric_difference_area_m2": 0.6904730941660022,
+          "boundary_hausdorff_m": 0.12555753440156442,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_S3"
+        ],
+        "candidate_ids": [
+          "1F:RoomF"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_S3",
+          "candidate_id": "1F:RoomF",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 15.0,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9564042047599256,
+          "iou": 0.9564042047599256,
+          "symmetric_difference_area_m2": 0.6837453509160021,
+          "boundary_hausdorff_m": 0.12678821803306506,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_COR"
+        ],
+        "candidate_ids": [
+          "1F:Corridor1F"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_COR",
+          "candidate_id": "1F:Corridor1F",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 26.234820000000003,
+          "reference_coverage_fraction": 0.8744940000000001,
+          "candidate_coverage_fraction": 1.0,
+          "iou": 0.8744940000000002,
+          "symmetric_difference_area_m2": 3.765179999999997,
+          "boundary_hausdorff_m": 0.12550600000000012,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_N1"
+        ],
+        "candidate_ids": [
+          "1F:Room1"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_N1",
+          "candidate_id": "1F:Room1",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 14.989208999999999,
+          "reference_coverage_fraction": 0.9992806,
+          "candidate_coverage_fraction": 0.9598445819652882,
+          "iou": 0.95918177843182,
+          "symmetric_difference_area_m2": 0.6378695549179986,
+          "boundary_hausdorff_m": 0.12550599999999967,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_N2"
+        ],
+        "candidate_ids": [
+          "1F:Room2"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_N2",
+          "candidate_id": "1F:Room2",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 14.946041999999998,
+          "reference_coverage_fraction": 0.9964027999999999,
+          "candidate_coverage_fraction": 0.9591520768818934,
+          "iou": 0.9558422647240868,
+          "symmetric_difference_area_m2": 0.6904730941660002,
+          "boundary_hausdorff_m": 0.12555753440156397,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F1_N3"
+        ],
+        "candidate_ids": [
+          "1F:Room3"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F1_N3",
+          "candidate_id": "1F:Room3",
+          "reference_floor_id": "Floor 1",
+          "candidate_floor_id": "Floor 1",
+          "status": "severe",
+          "intersection_area_m2": 15.0,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9564042047599257,
+          "iou": 0.9564042047599258,
+          "symmetric_difference_area_m2": 0.6837453509160003,
+          "boundary_hausdorff_m": 0.12678821803306464,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.0,
+          "z_top_delta_m": 0.0
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S1"
+        ],
+        "candidate_ids": [
+          "2F:RoomS1"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S1",
+          "candidate_id": "2F:RoomS1",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S1"
+        ],
+        "candidate_ids": [
+          "2F:RoomS1"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S1",
+          "candidate_id": "2F:RoomS1",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S2"
+        ],
+        "candidate_ids": [
+          "2F:RoomS2"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S2",
+          "candidate_id": "2F:RoomS2",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S2"
+        ],
+        "candidate_ids": [
+          "2F:RoomS2"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S2",
+          "candidate_id": "2F:RoomS2",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S3"
+        ],
+        "candidate_ids": [
+          "2F:RoomS3"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S3",
+          "candidate_id": "2F:RoomS3",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S3"
+        ],
+        "candidate_ids": [
+          "2F:RoomS3"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S3",
+          "candidate_id": "2F:RoomS3",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S4"
+        ],
+        "candidate_ids": [
+          "2F:RoomS4"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S4",
+          "candidate_id": "2F:RoomS4",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_S4"
+        ],
+        "candidate_ids": [
+          "2F:RoomS4"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_S4",
+          "candidate_id": "2F:RoomS4",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 11.25,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 0.7500000000000007,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_COR"
+        ],
+        "candidate_ids": [
+          "2F:Corridor2F"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_COR",
+          "candidate_id": "2F:Corridor2F",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 23.999999999999993,
+          "reference_coverage_fraction": 0.7999999999999997,
+          "candidate_coverage_fraction": 1.0,
+          "iou": 0.7999999999999997,
+          "symmetric_difference_area_m2": 6.000000000000005,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_COR"
+        ],
+        "candidate_ids": [
+          "2F:Corridor2F"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_COR",
+          "candidate_id": "2F:Corridor2F",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 23.999999999999993,
+          "reference_coverage_fraction": 0.7999999999999997,
+          "candidate_coverage_fraction": 1.0,
+          "iou": 0.7999999999999997,
+          "symmetric_difference_area_m2": 6.000000000000005,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_N1"
+        ],
+        "candidate_ids": [
+          "2F:RoomN1"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_N1",
+          "candidate_id": "2F:RoomN1",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 22.5,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 1.5000000000000013,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_N1"
+        ],
+        "candidate_ids": [
+          "2F:RoomN1"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_N1",
+          "candidate_id": "2F:RoomN1",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 22.5,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 1.5000000000000013,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "vertical_extent_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_N2"
+        ],
+        "candidate_ids": [
+          "2F:RoomN2"
+        ],
+        "message": "Matched space has a vertical extent change beyond tolerance.",
+        "match": {
+          "reference_id": "F2_N2",
+          "candidate_id": "2F:RoomN2",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 22.5,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 1.5000000000000013,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      },
+      {
+        "code": "partition_boundary_changed",
+        "severity": "severe",
+        "reference_ids": [
+          "F2_N2"
+        ],
+        "candidate_ids": [
+          "2F:RoomN2"
+        ],
+        "message": "Matched source space boundaries differ beyond tolerance.",
+        "match": {
+          "reference_id": "F2_N2",
+          "candidate_id": "2F:RoomN2",
+          "reference_floor_id": "Floor 2",
+          "candidate_floor_id": "Floor 2",
+          "status": "severe",
+          "intersection_area_m2": 22.5,
+          "reference_coverage_fraction": 1.0,
+          "candidate_coverage_fraction": 0.9375,
+          "iou": 0.9375,
+          "symmetric_difference_area_m2": 1.5000000000000013,
+          "boundary_hausdorff_m": 0.20000000000000018,
+          "boundary_within_tolerance": false,
+          "z_floor_delta_m": 0.0,
+          "height_delta_m": 0.6000000000000001,
+          "z_top_delta_m": 0.5999999999999996
+        }
+      }
+    ],
+    "evaluated": [
+      "source_space_correspondence",
+      "partition_geometry",
+      "floor_assignment",
+      "vertical_extent"
+    ],
+    "not_evaluated": [
+      "doors",
+      "openings",
+      "connectivity",
+      "false_slabs",
+      "physical_wall_types"
+    ]
+  },
+  "topology_findings": [
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S1"
+      ],
+      "candidate_ids": [
+        "2F:RoomS1"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_S1",
+        "candidate_id": "2F:RoomS1",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S2"
+      ],
+      "candidate_ids": [
+        "2F:RoomS2"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_S2",
+        "candidate_id": "2F:RoomS2",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S3"
+      ],
+      "candidate_ids": [
+        "2F:RoomS3"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_S3",
+        "candidate_id": "2F:RoomS3",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S4"
+      ],
+      "candidate_ids": [
+        "2F:RoomS4"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_S4",
+        "candidate_id": "2F:RoomS4",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 11.25,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 0.7500000000000007,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_COR"
+      ],
+      "candidate_ids": [
+        "2F:Corridor2F"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_COR",
+        "candidate_id": "2F:Corridor2F",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 23.999999999999993,
+        "reference_coverage_fraction": 0.7999999999999997,
+        "candidate_coverage_fraction": 1.0,
+        "iou": 0.7999999999999997,
+        "symmetric_difference_area_m2": 6.000000000000005,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_N1"
+      ],
+      "candidate_ids": [
+        "2F:RoomN1"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_N1",
+        "candidate_id": "2F:RoomN1",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 22.5,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 1.5000000000000013,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "vertical_extent_changed",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_N2"
+      ],
+      "candidate_ids": [
+        "2F:RoomN2"
+      ],
+      "message": "Matched space has a vertical extent change beyond tolerance.",
+      "match": {
+        "reference_id": "F2_N2",
+        "candidate_id": "2F:RoomN2",
+        "reference_floor_id": "Floor 2",
+        "candidate_floor_id": "Floor 2",
+        "status": "severe",
+        "intersection_area_m2": 22.5,
+        "reference_coverage_fraction": 1.0,
+        "candidate_coverage_fraction": 0.9375,
+        "iou": 0.9375,
+        "symmetric_difference_area_m2": 1.5000000000000013,
+        "boundary_hausdorff_m": 0.20000000000000018,
+        "boundary_within_tolerance": false,
+        "z_floor_delta_m": 0.0,
+        "height_delta_m": 0.6000000000000001,
+        "z_top_delta_m": 0.5999999999999996
+      }
+    },
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "Floor 1",
+      "missing_length_m": 29.759999988000004,
+      "extra_length_m": 30.34202399200001,
+      "missing_wkt": "MULTILINESTRING ((4.976402999 3, 0.020000001 3), (9.962013999 3, 5.016403001 3), (14.979999999 3, 10.002014001 3), (4.976402999 5, 0.020000001 5), (9.962013999 5, 5.016403001 5), (14.979999999 5, 10.002014001 5))",
+      "extra_wkt": "MULTILINESTRING ((4.996403 4.874494, 0.020000001 4.874494), (9.982014 4.874494, 4.996403 4.874494), (14.979999999 4.874494, 9.982014 4.874494), (0.020000001 3.125506, 4.996403 3.125506), (4.996403 3.125506, 9.982014 3.125506), (9.982014 3.125506, 14.979999999 3.125506), (4.996403 4.874494, 4.996403 4.979999999), (9.982014 4.874494, 9.982014 4.979999999), (4.996403 3.020000001, 4.996403 3.125506), (9.982014 3.020000001, 9.982014 3.125506))"
+    },
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "Floor 2",
+      "missing_length_m": 29.759999988000004,
+      "extra_length_m": 30.639999992,
+      "missing_wkt": "MULTILINESTRING ((3.729999999 3, 0.020000001 3), (7.479999999 3, 3.770000001 3), (11.229999999 3, 7.520000001 3), (14.979999999 3, 11.270000001 3), (7.479999999 5, 0.020000001 5), (14.979999999 5, 7.520000001 5))",
+      "extra_wkt": "MULTILINESTRING ((7.5 4.8, 0.020000001 4.8), (14.979999999 4.8, 7.5 4.8), (0.020000001 3.2, 3.75 3.2), (3.75 3.2, 7.5 3.2), (7.5 3.2, 11.25 3.2), (11.25 3.2, 14.979999999 3.2), (7.5 4.8, 7.5 4.979999999), (3.75 3.020000001, 3.75 3.2), (7.5 3.020000001, 7.5 3.2), (11.25 3.020000001, 11.25 3.2))"
+    }
+  ],
+  "intermediate_exterior_parameters_match": 12,
+  "limits": [
+    "429 occurred before claims or final review. Do not infer the model would have left these errors after completion.",
+    "No finished run, method success/failure rate, new baseline, or causal comparison.",
+    "Developer observations describe saved states and observable requests/results only."
+  ]
+}

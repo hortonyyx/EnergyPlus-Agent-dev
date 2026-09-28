@@ -1,0 +1,531 @@
+{
+  "candidate": "candidate_06",
+  "reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+  "reference_count": 29,
+  "matched": 27,
+  "positions": 13,
+  "hosts": 27,
+  "door_connections": 12,
+  "floors": [
+    {
+      "floor_id": "1F",
+      "image": "1f_view.png",
+      "space_identity_by_interior_point": {
+        "NW": [
+          "1F:Room1"
+        ],
+        "NC": [
+          "1F:Room2"
+        ],
+        "NE": [
+          "1F:Room3"
+        ],
+        "C": [
+          "1F:Corridor1F"
+        ],
+        "SW": [
+          "1F:RoomD"
+        ],
+        "SC": [
+          "1F:RoomE"
+        ],
+        "SE": [
+          "1F:RoomF"
+        ]
+      },
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    },
+    {
+      "floor_id": "2F",
+      "image": "2f_view.png",
+      "space_identity_by_interior_point": {
+        "NW": [
+          "2F:RoomN1"
+        ],
+        "NE": [
+          "2F:RoomN2"
+        ],
+        "C": [
+          "2F:Corridor2F"
+        ],
+        "S1": [
+          "2F:RoomS1"
+        ],
+        "S2": [
+          "2F:RoomS2"
+        ],
+        "S3": [
+          "2F:RoomS3"
+        ],
+        "S4": [
+          "2F:RoomS4"
+        ]
+      },
+      "unmatched_reference": [
+        "door-NW",
+        "door-NE"
+      ],
+      "unmatched_actual": []
+    }
+  ],
+  "comparisons": [
+    {
+      "floor_id": "1F",
+      "reference_id": "N-W",
+      "opening_id": "1F:W_N1",
+      "max_endpoint_error_m": 0.002622186915887781,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:Room1"
+      ],
+      "actual_hosts": [
+        "1F:Room1"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "N-C",
+      "opening_id": "1F:W_N2",
+      "max_endpoint_error_m": 0.015329785046729327,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:Room2"
+      ],
+      "actual_hosts": [
+        "1F:Room2"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "N-E",
+      "opening_id": "1F:W_N3",
+      "max_endpoint_error_m": 0.018968204169663494,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:Room3"
+      ],
+      "actual_hosts": [
+        "1F:Room3"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "S-W",
+      "opening_id": "1F:W_S1",
+      "max_endpoint_error_m": 0.007455833213516172,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:RoomD"
+      ],
+      "actual_hosts": [
+        "1F:RoomD"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "S-C",
+      "opening_id": "1F:W_S2",
+      "max_endpoint_error_m": 0.004538785046729998,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:RoomE"
+      ],
+      "actual_hosts": [
+        "1F:RoomE"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "S-E",
+      "opening_id": "1F:W_S3",
+      "max_endpoint_error_m": 0.020682634076203854,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:RoomF"
+      ],
+      "actual_hosts": [
+        "1F:RoomF"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "E-C",
+      "opening_id": "1F:W_East",
+      "max_endpoint_error_m": 0.47503350472334693,
+      "perpendicular_error_m": 0.11861969805895001,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-NW",
+      "opening_id": "1F:D_R1",
+      "max_endpoint_error_m": 0.01348370668583776,
+      "perpendicular_error_m": 0.12415647233468263,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F",
+        "1F:Room1"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F",
+        "1F:Room1"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-NC",
+      "opening_id": "1F:D_R2",
+      "max_endpoint_error_m": 0.017075779295470994,
+      "perpendicular_error_m": 0.12415647233468263,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F",
+        "1F:Room2"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F",
+        "1F:Room2"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-NE",
+      "opening_id": "1F:D_R3",
+      "max_endpoint_error_m": 0.013483706685835983,
+      "perpendicular_error_m": 0.12415647233468263,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F",
+        "1F:Room3"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F",
+        "1F:Room3"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-SW",
+      "opening_id": "1F:D_D",
+      "max_endpoint_error_m": 0.01348370668583776,
+      "perpendicular_error_m": 0.1349526936572203,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F",
+        "1F:RoomD"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F",
+        "1F:RoomD"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-SC",
+      "opening_id": "1F:D_E",
+      "max_endpoint_error_m": 0.017075779295470994,
+      "perpendicular_error_m": 0.1349526936572203,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F",
+        "1F:RoomE"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F",
+        "1F:RoomE"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-SE",
+      "opening_id": "1F:D_F",
+      "max_endpoint_error_m": 0.013483706685835983,
+      "perpendicular_error_m": 0.1349526936572203,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F",
+        "1F:RoomF"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F",
+        "1F:RoomF"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-W",
+      "opening_id": "1F:D_West",
+      "max_endpoint_error_m": 0.8097166032388659,
+      "perpendicular_error_m": 0.1186196980589504,
+      "position_match": false,
+      "expected_hosts": [
+        "1F:Corridor1F"
+      ],
+      "actual_hosts": [
+        "1F:Corridor1F"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "1F",
+      "reference_id": "door-S",
+      "opening_id": "1F:D_South_Main",
+      "max_endpoint_error_m": 0.02053520345075488,
+      "perpendicular_error_m": 0.11875843454790846,
+      "position_match": true,
+      "expected_hosts": [
+        "1F:RoomD"
+      ],
+      "actual_hosts": [
+        "1F:RoomD"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-NW",
+      "opening_id": "2F:W_N_A",
+      "max_endpoint_error_m": 5.194805186015117e-08,
+      "perpendicular_error_m": 0.12432432432432439,
+      "position_match": true,
+      "expected_hosts": [
+        "2F:RoomN1"
+      ],
+      "actual_hosts": [
+        "2F:RoomN1"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-NE",
+      "opening_id": "2F:W_N_B",
+      "max_endpoint_error_m": 5.194805297037419e-08,
+      "perpendicular_error_m": 0.12432432432432439,
+      "position_match": true,
+      "expected_hosts": [
+        "2F:RoomN2"
+      ],
+      "actual_hosts": [
+        "2F:RoomN2"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-S1",
+      "opening_id": "2F:W_S_A",
+      "max_endpoint_error_m": 1.861471861097641e-07,
+      "perpendicular_error_m": 0.12432432432432439,
+      "position_match": true,
+      "expected_hosts": [
+        "2F:RoomS1"
+      ],
+      "actual_hosts": [
+        "2F:RoomS1"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-S2",
+      "opening_id": "2F:W_S_B",
+      "max_endpoint_error_m": 1.861471856656749e-07,
+      "perpendicular_error_m": 0.12432432432432439,
+      "position_match": true,
+      "expected_hosts": [
+        "2F:RoomS2"
+      ],
+      "actual_hosts": [
+        "2F:RoomS2"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-S3",
+      "opening_id": "2F:W_S_C",
+      "max_endpoint_error_m": 1.8614718655385332e-07,
+      "perpendicular_error_m": 0.12432432432432439,
+      "position_match": true,
+      "expected_hosts": [
+        "2F:RoomS3"
+      ],
+      "actual_hosts": [
+        "2F:RoomS3"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-S4",
+      "opening_id": "2F:W_S_D",
+      "max_endpoint_error_m": 1.8614718655385332e-07,
+      "perpendicular_error_m": 0.12432432432432439,
+      "position_match": true,
+      "expected_hosts": [
+        "2F:RoomS4"
+      ],
+      "actual_hosts": [
+        "2F:RoomS4"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-W",
+      "opening_id": "2F:W_West",
+      "max_endpoint_error_m": 0.5081084054054053,
+      "perpendicular_error_m": 0.11904761904761904,
+      "position_match": false,
+      "expected_hosts": [
+        "2F:Corridor2F"
+      ],
+      "actual_hosts": [
+        "2F:Corridor2F"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "window-E",
+      "opening_id": "2F:W_East",
+      "max_endpoint_error_m": 0.5081084054054053,
+      "perpendicular_error_m": 0.11904761904761862,
+      "position_match": false,
+      "expected_hosts": [
+        "2F:Corridor2F"
+      ],
+      "actual_hosts": [
+        "2F:Corridor2F"
+      ],
+      "host_match": true,
+      "connection_match": null
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "door-S1",
+      "opening_id": "2F:D_S1",
+      "max_endpoint_error_m": 0.032467398268398284,
+      "perpendicular_error_m": 0.20000000000000018,
+      "position_match": false,
+      "expected_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS1"
+      ],
+      "actual_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS1"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "door-S2",
+      "opening_id": "2F:D_S2",
+      "max_endpoint_error_m": 0.021644887445886773,
+      "perpendicular_error_m": 0.20000000000000018,
+      "position_match": false,
+      "expected_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS2"
+      ],
+      "actual_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS2"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "door-S3",
+      "opening_id": "2F:D_S3",
+      "max_endpoint_error_m": 0.032467398268398284,
+      "perpendicular_error_m": 0.20000000000000018,
+      "position_match": false,
+      "expected_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS3"
+      ],
+      "actual_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS3"
+      ],
+      "host_match": true,
+      "connection_match": true
+    },
+    {
+      "floor_id": "2F",
+      "reference_id": "door-S4",
+      "opening_id": "2F:D_S4",
+      "max_endpoint_error_m": 0.02164488744588766,
+      "perpendicular_error_m": 0.20000000000000018,
+      "position_match": false,
+      "expected_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS4"
+      ],
+      "actual_hosts": [
+        "2F:Corridor2F",
+        "2F:RoomS4"
+      ],
+      "host_match": true,
+      "connection_match": true
+    }
+  ],
+  "limits": [
+    "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+    "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+    "No door height, operating state, material or vertical circulation claim."
+  ]
+}
