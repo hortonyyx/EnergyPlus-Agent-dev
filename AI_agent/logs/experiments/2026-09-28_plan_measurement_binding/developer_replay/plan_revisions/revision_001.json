@@ -1,0 +1,116 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "cab45d0410dca7fcd25b7cabb75cc4a51848de9f9b5033f2561a93751f87c460",
+  "operations_json": "[{\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"P_O12\", \"changes\": {\"points\": [[{\"midpoint\": [{\"profile\": \"profile_001\", \"candidate\": \"C03\"}, {\"profile\": \"profile_001\", \"candidate\": \"C04\"}]}, 800], [{\"midpoint\": [{\"profile\": \"profile_001\", \"candidate\": \"C03\"}, {\"profile\": \"profile_001\", \"candidate\": \"C04\"}]}, 1071]]}, \"reason\": \"Developer identifies the paired thin lines as this partition and selects their midpoint; no window shortening.\", \"source_refs\": [\"2f_view.png: profile_001 candidates C03/C04\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "P_O12",
+      "before": {
+        "id": "P_O12",
+        "points": [
+          [
+            727,
+            800
+          ],
+          [
+            727,
+            1071
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: partition between office1/office2, thin double-line wall confirmed by zoomed crop"
+        ]
+      },
+      "after": {
+        "id": "P_O12",
+        "points": [
+          [
+            {
+              "midpoint": [
+                {
+                  "profile": "profile_001",
+                  "candidate": "C03"
+                },
+                {
+                  "profile": "profile_001",
+                  "candidate": "C04"
+                }
+              ]
+            },
+            800
+          ],
+          [
+            {
+              "midpoint": [
+                {
+                  "profile": "profile_001",
+                  "candidate": "C03"
+                },
+                {
+                  "profile": "profile_001",
+                  "candidate": "C04"
+                }
+              ]
+            },
+            1071
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: partition between office1/office2, thin double-line wall confirmed by zoomed crop"
+        ]
+      },
+      "reason": "Developer identifies the paired thin lines as this partition and selects their midpoint; no window shortening.",
+      "source_refs": [
+        "2f_view.png: profile_001 candidates C03/C04"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P_O23",
+      "P_O34",
+      "corridor_N",
+      "corridor_S"
+    ],
+    "openings": [
+      "D_hall",
+      "W_N1",
+      "W_N2",
+      "W_S1",
+      "W_S2",
+      "W_S3",
+      "W_S4",
+      "W_west",
+      "W_east",
+      "D_S1",
+      "D_S2",
+      "D_S3",
+      "D_S4"
+    ],
+    "space_seeds": [
+      "hall",
+      "corridor2",
+      "office_S1",
+      "office_S2",
+      "office_S3",
+      "office_S4"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

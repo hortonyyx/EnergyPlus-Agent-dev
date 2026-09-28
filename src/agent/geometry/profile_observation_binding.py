@@ -1,4 +1,4 @@
-"""Resolve saved pixel-profile candidates in facade observations.
+"""Resolve explicitly selected pixel-profile candidates in observations/plans.
 
 This module only binds an explicitly selected candidate coordinate.  It does
 not infer drawing entities, reorder openings, or validate the facade comparison
@@ -17,6 +17,76 @@ from typing import Any
 _PROFILE_ID = re.compile(r"profile_[0-9]{3,}\Z")
 _REFERENCE_FIELDS = frozenset({"profile", "candidate", "at"})
 _REFERENCE_POINTS = frozenset({"peak", "start", "end"})
+
+
+def resolve_plan_pixels(raw: dict, *, image: str, image_sha256: str,
+                        load_profile: Callable[[str], dict]) -> tuple[dict, list]:
+    """Bind pixel slots only; retain world dimensions and all other declarations.
+
+    A midpoint is arithmetic on two caller-selected references, not recognition
+    of a wall or a choice of its representative plane. Geometry validation stays
+    with the existing compiler. No coordinate is snapped or inferred.
+    """
+    if not isinstance(raw, dict):
+        raise ValueError("plan must be an object")
+    resolved = copy.deepcopy(raw)
+    views = {axis: dict(image=image, sha256=image_sha256, axis=axis) for axis in ("x", "y")}
+    cache = {}
+    bindings = []
+
+    def slot(container, index, path, axis):
+        value = container[index]
+        if not isinstance(value, dict):
+            return
+
+        def reference(item, location):
+            if not isinstance(item, dict):
+                raise ValueError(f"{location} must be a profile candidate reference")
+            return _resolve_reference(item, slot=location, view_name=axis,
+                                      load_profile=load_profile, views=views, cache=cache)
+
+        if "midpoint" in value:
+            pair = value["midpoint"]
+            if set(value) != {"midpoint"} or not isinstance(pair, list) or len(pair) != 2:
+                raise ValueError(f"{path} midpoint requires exactly two profile references")
+            ends = [reference(item, f"{path}.midpoint[{i}]") for i, item in enumerate(pair)]
+            pixel = ends[0][0] / 2 + ends[1][0] / 2
+            binding = dict(slot=path, operation="midpoint", resolved_pixel=pixel,
+                           image=image, image_sha256=image_sha256, axis=axis,
+                           endpoints=[item[1] for item in ends])
+        else:
+            pixel, binding = reference(value, path)
+        container[index] = pixel
+        bindings.append(binding)
+
+    def point(value, path):
+        if isinstance(value, list):
+            for i, axis in enumerate(("x", "y")[:len(value)]):
+                slot(value, i, f"{path}[{i}]", axis)
+
+    for axis in ("x", "y"):
+        anchors = resolved.get(f"{axis}_anchors")
+        for i, anchor in enumerate(anchors if isinstance(anchors, list) else []):
+            if isinstance(anchor, list) and anchor:
+                slot(anchor, 0, f"{axis}_anchors[{i}][0]", axis)
+    footprint = resolved.get("footprint_pixels")
+    for i, value in enumerate(footprint if isinstance(footprint, list) else []):
+        point(value, f"footprint_pixels[{i}]")
+    for collection, fields in (("partitions", ("points",)),
+                               ("openings", ("p1", "p2")), ("space_seeds", ("point",))):
+        rows = resolved.get(collection)
+        for i, row in enumerate(rows if isinstance(rows, list) else []):
+            if not isinstance(row, dict):
+                continue
+            for field in fields:
+                path = f"{collection}[{i}].{field}"
+                value = row.get(field)
+                if field == "points" and isinstance(value, list):
+                    for j, vertex in enumerate(value):
+                        point(vertex, f"{path}[{j}]")
+                else:
+                    point(value, path)
+    return resolved, bindings
 
 
 def _finite_number(value: object, label: str) -> int | float:

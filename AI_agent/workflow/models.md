@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-28 用户指定独立调查已启动：** Opus 5.5通过现有Claude订阅，以CLI当前最高选项`--effort max`、固定`claude-opus-5-5`运行；初始化已确认实际型号，完成回执待收。独立工作树基准ceb8b1df，1次开发调查，无额外模型/子代理或API回退授权；不改变产品先单Sonnet恢复质量的安排。见[任务与启动器](../logs/experiments/2026-09-28_opus_quality_investigation_setup/task.md)。
+
 **09-28 最新顺序：** 用户要求先恢复单 Sonnet 建模质量，再逐步尝试角色分工。run53–58已逐一核真实回执：均claude-sonnet-5、1次订阅主调用、0局部子模型。已有候选配置/接口库留作后用，本轮未完成的正式入口接入已留档并退出生产路径，没有新模型调用。此排期覆盖下方历史“下一项接入”安排，产品的可配置多模型方向保持。见[交接](../logs/worklog/2026-09-28_single_sonnet_quality_priority.md)。
 
 **09-28 接续已结束：** 用户确认 Agent 内部按角色分、不定死型号，并告知 Claude 额度恢复。按原条件仅接续未执行的run83：实际claude-sonnet-5/medium，1097.15秒正常完成，1次订阅入口，0续查/委派/重试/回退，CLI估价$3.7294448非账单。整案仍有错并/门窗问题，不宣称长期额度保证或质量恢复；run82中断保留。角色配置与兼容聊天/MCP循环35项离线检查通过，本轮API推理0，订阅整案未消费新接口。见[结果交接](../logs/worklog/2026-09-28_reconstruction_behavior_resume.md)与[配置边界](../design/model_configuration.md)。

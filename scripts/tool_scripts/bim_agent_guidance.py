@@ -407,6 +407,18 @@ This synthetic example is unrelated to the supplied drawing:
 "assumptions":["Synthetic dimensions/heights only"],"unresolved":[]}
 All plan points use ORIGINAL image pixels. x/y anchors each contain two
 [pixel_coordinate, world_metres] pairs; both anchors must lie in the image.
+Pixel coordinates may also reference a saved view_pixel_profile candidate:
+{"profile":"profile_001","candidate":"C02","at":"peak"} (start/end also work).
+For an explicitly chosen midplane between two measured faces, use
+{"midpoint":[{"profile":"profile_001","candidate":"C02"},
+             {"profile":"profile_001","candidate":"C03"}]}.
+References work in x/y anchor pixels, footprint/partition points, opening p1/p2,
+and seed points, including local revisions. They must match the original image
+and coordinate axis. Identify the physical object and representative plane from
+the original before selecting candidates; ink bands are not wall labels. Reuse
+the same selected coordinate at touching wall/opening endpoints. World metres
+and z remain numbers. The submitted references, numeric compiled plan and exact
+bindings are saved separately; numeric-only declarations keep their old format.
 Keep calibration and geometry in the SAME coordinate frame. Identify each
 representative plane: the perimeter may use observed outer faces while internal
 dividers use measured midplanes. Document that choice; do not confuse a face

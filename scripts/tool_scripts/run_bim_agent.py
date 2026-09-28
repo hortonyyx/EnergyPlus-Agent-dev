@@ -977,6 +977,7 @@ class Toolkit:
         """Preserve a pixel declaration before deterministic compilation or errors."""
         from src.agent.geometry.plan_partition import OpeningHostError, compile_plan_partition
         from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
+        from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -990,19 +991,37 @@ class Toolkit:
         if revision is not None:
             record["revision"] = revision
         dump(draft / "input.json", record)
+        input_stage = "parse_json"
         try:
             plan = json.loads(plan_json)
-        except (ValueError, TypeError) as error:
+            input_stage = "measurement_binding"
+            plan, bindings = resolve_plan_pixels(plan, image=image,
+                image_sha256=record["image_sha256"], load_profile=self.load_pixel_profile)
+        except (ValueError, TypeError, KeyError) as error:
             record["draft_view_errors"] = [{
-                "path": "plan_json", "reason": f"JSON could not be parsed: {error}",
+                "path": "plan_json", "reason": f"{input_stage}: {error}",
             }]
             dump(draft / "input.json", record)
-            result = {"status": "error", "error": str(error), "plan_input": record,
+            result = {"status": "error", "error": str(error), "error_stage": input_stage, "plan_input": record,
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
             return result
+
+        if bindings:
+            submitted = draft / "submitted_plan.json"
+            submitted.write_bytes(raw_path.read_bytes())
+            dump(raw_path, plan)
+            binding_path = draft / "measurement_bindings.json"
+            dump(binding_path, {"bindings": bindings, "drawing_fidelity": "not_evaluated",
+                "interpretation": "Coordinates resolve caller-selected measurements only; object identity and representative planes remain caller observations."})
+            record.update(plan_sha256=digest(raw_path),
+                submitted_plan_file=str(submitted.relative_to(self.run)),
+                submitted_plan_sha256=digest(submitted),
+                measurement_bindings={"file": str(binding_path.relative_to(self.run)),
+                    "sha256": digest(binding_path), "count": len(bindings)})
+            dump(draft / "input.json", record)
 
         try:
             with PILImage.open(image_path) as original:
@@ -1217,6 +1236,17 @@ class Toolkit:
         if digest(path) != self.manifest["images"][name]["sha256"]:
             raise ValueError("input image changed")
         return path
+
+    def load_pixel_profile(self, profile_id):
+        """Load only a saved profile from this run; consumers bind image and axis."""
+        if not isinstance(profile_id, str) or not re.fullmatch(r"profile_\d{3,}", profile_id):
+            raise ValueError("choose an existing profile_id returned by view_pixel_profile")
+        folder = (self.run / "pixel_profiles").resolve()
+        path = folder / f"{profile_id}.json"
+        if not path.is_file() or path.resolve().parent != folder:
+            raise ValueError("choose an existing profile_id returned by view_pixel_profile")
+        raw = path.read_bytes()
+        return {"record": json.loads(raw), "sha256": hashlib.sha256(raw).hexdigest()}
 
     def compare_facade_spans(self, plan_image, elevation_image, observations_json,
                              plan_axis="y", elevation_axis="x", ambiguity_tolerance_m=0.05):
