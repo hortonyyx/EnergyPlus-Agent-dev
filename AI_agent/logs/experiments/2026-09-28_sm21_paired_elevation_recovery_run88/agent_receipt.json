@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 342.12,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 331902,
+    "stop_reason": "end_turn",
+    "session_id": "b1ac8890-dcb6-4ffa-b311-9df8a8e1bf2c",
+    "total_cost_usd": 1.435637,
+    "usage": {
+      "input_tokens": 48,
+      "cache_creation_input_tokens": 173253,
+      "cache_read_input_tokens": 2370795,
+      "output_tokens": 26837,
+      "output_tokens_details": {
+        "thinking_tokens": 17840
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 173253,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1112,
+          "cache_read_input_tokens": 168369,
+          "cache_creation_input_tokens": 4884,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4884
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 48,
+        "outputTokens": 26837,
+        "cacheReadInputTokens": 2370795,
+        "cacheCreationInputTokens": 173253,
+        "webSearchRequests": 0,
+        "costUSD": 1.435637,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 17840,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 48,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\n**Delivered candidate: `candidate_01`** (derived from seed via one targeted revision).\n\n**Review performed:** Compared the seed BIM against all four elevations (North/South/East/West) and both plans (1F/2F) using `view_elevation_candidate`, pixel-level measurement (`pixel_profile`), and `overlay_candidate`/`check_source_space_relation`.\n\n**Discrepancy found and corrected:**\n- **F1:W4** (south wall, small window between the SW door and the standard windows) was modeled with the same height/position as the other 1.6m windows (sill 1.007m, head 2.605m). Pixel measurement on `South_view.png` — calibrated and cross-validated against `F1:D8`, `F1:W5`, `F1:W6` which matched the seed almost exactly (confirming the calibration) — showed this window is actually much smaller and set higher: sill ≈1.509m, head ≈2.098m, height ≈0.59m. Width/x-position were already correct and untouched. Recorded as `claim_0001` (image_axis measurement) and applied via `update_window`.\n\n**Confirmed correct (no changes needed):**\n- North/South F1 and F2 standard window families (sill/head/height) match dimension chains exactly (1007/2605/1598mm on F1; 1012/2801/1789mm on F2).\n- West door `F1:D7` width/position/height (2.10m) and East/West `F2:W7/W8` window family match the drawings.\n- Plan partition topology for both floors: `overlay_candidate` projections of the source boundaries/openings align closely with the visible walls, doors and windows in `1f_view.png` and `2f_view.png`.\n- Sampled `check_source_space_relation` checks (corridor continuity, north_a/b separation, south_a/b separation) all matched expectations with no conflicts.\n\n**Preserved assumptions/unresolved items (unchanged, still valid):**\n- Interior doors (F1/F2 D1–D6) assumed 2.1m — not visible in any elevation (interior partitions aren't elevated).\n- West porch recess and South SW notch simplified to flush walls with single doors.\n- No stair/vertical circulation modeled (not shown in supplied drawings).\n- Furniture not modeled (partitions/openings only).\n- Door swing states unknown.\n\n**Limitations honestly reported:**\n- Only 3 sampled space-relation observations were checked (not exhaustive), though they cover the main partition-topology risk points and are corroborated by the strong overlay alignment across both floors.\n- Height coverage remains \"unchecked\" for most openings in `check_openings`'s strict image-linkage sense, even though North/East/West/most-of-South windows were visually/numerically cross-checked against their elevations in this session (only the one corrected opening carries a formal claim binding).\n- Calibration for `overlay_candidate`/`check_source_space_relation` was caller-supplied (visually estimated wall extents) and flagged by the tool as having ~1.4% cross-axis disagreement — sufficient for topology sampling but not a certified survey-grade calibration.\n- room_use_review: all 14 spaces remain unrecorded (no room-type/use assignment was in scope for this geometry-fidelity review).\n\nFinished via `finish_bim(candidate_01)`.",
+    "ttft_ms": 3464,
+    "type": "result",
+    "duration_ms": 334983,
+    "uuid": "48ec18f0-b87f-4ce6-ba1d-dbbabb8c5307",
+    "ttft_stream_ms": 3020,
+    "time_to_request_ms": 60,
+    "first_content_frame_ms": 3020,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "639f1d0a0e648692969104440eb45ad404a511ee86fc5bc561425d96bd76c9fe",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        320.0,
+        0.0
+      ],
+      [
+        1362.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        262.0,
+        8.0
+      ],
+      [
+        810.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corridor_span",
+      "expected": "same_space",
+      "evidence": "1F corridor is one continuous open space from west to east between the two rows of arc doors.",
+      "points": [
+        {
+          "pixel": [
+            420.0,
+            530.0
+          ],
+          "world_xy_m": [
+            1.4395393474088296,
+            4.087591240875912
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor_1f",
+          "interior_space_ids": [
+            "F1:corridor_1f"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1300.0,
+            530.0
+          ],
+          "world_xy_m": [
+            14.107485604606527,
+            4.087591240875912
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor_1f",
+          "interior_space_ids": [
+            "F1:corridor_1f"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "north_a_vs_b",
+      "expected": "separate_spaces",
+      "evidence": "Solid vertical partition wall separates the two north offices at x~660px; each has its own door into corridor.",
+      "points": [
+        {
+          "pixel": [
+            420.0,
+            370.0
+          ],
+          "world_xy_m": [
+            1.4395393474088296,
+            6.423357664233576
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_1f_north_a",
+          "interior_space_ids": [
+            "F1:office_1f_north_a"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            750.0,
+            370.0
+          ],
+          "world_xy_m": [
+            6.190019193857966,
+            6.423357664233576
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_1f_north_b",
+          "interior_space_ids": [
+            "F1:office_1f_north_b"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "south_a_vs_b",
+      "expected": "separate_spaces",
+      "evidence": "South_a room (with L-shaped counter/fixture) is separated from adjoining south_b office by a partition wall at x~660px.",
+      "points": [
+        {
+          "pixel": [
+            420.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.4395393474088296,
+            1.6058394160583944
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_1f_south_a",
+          "interior_space_ids": [
+            "F1:office_1f_south_a"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            750.0,
+            700.0
+          ],
+          "world_xy_m": [
+            6.190019193857966,
+            1.6058394160583944
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:office_1f_south_b",
+          "interior_space_ids": [
+            "F1:office_1f_south_b"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_01",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_001.json",
+  "calibration_sha256": "2d65ba059154e20d85b9aedf650797d8e0cb148d6b6dd77ec405445550854d84",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 2682
+}

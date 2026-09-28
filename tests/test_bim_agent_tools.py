@@ -712,6 +712,27 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
             source = json.loads((run / built["candidate"] / "source_model.json").read_text())
             assert metadata["source_model_sha256"] == source["source_model_sha256"]
             assert "South" == metadata["facade"]
+            protected = digest(run / built["candidate"] / "source_model.json")
+            paired = await session.call_tool("view_elevation_candidate", {
+                "candidate": built["candidate"], "facade": "South", "image": "plan.png"})
+            pair_meta = _json_result(paired)
+            # The name does not control the orientation: caller pairing stays unverified.
+            assert pair_meta["comparison"]["image_facade_binding"] == "caller_selected_not_verified"
+            assert pair_meta["drawing_fidelity"] == "not_evaluated"
+            assert [item.type for item in paired.content] == ["image", "image", "text"]
+            original = Image.open(io.BytesIO(base64.b64decode(paired.content[0].data)))
+            assert original.size == (12, 8) and original.getpixel((0, 0)) == (255, 255, 255)
+            assert paired.content[1].data == first.content[0].data
+            assert pair_meta["original_view"]["box_original_pixels"] == [0, 0, 12, 8]
+            assert not pair_meta["original_view"]["coordinate_grid"]["shown"]
+            reference = Toolkit(run).read_image_view(pair_meta["original_view"]["view_id"])
+            assert reference["record"]["returned_png_sha256"] == hashlib.sha256(base64.b64decode(paired.content[0].data)).hexdigest()
+            assert json.loads((run / pair_meta["review_file"]).read_text()) == pair_meta
+            assert digest(run / built["candidate"] / "source_model.json") == protected
+            assert pair_meta["opening_heights"][0]["above_floor_m"] == [0.4, 2.2]
+            missing = await session.call_tool("view_elevation_candidate", {
+                "candidate": built["candidate"], "facade": "South", "image": "invented.png"})
+            assert "exact image name" in _error_text(missing)
             revised = _json_result(await session.call_tool("revise_bim", {
                 "candidate":built["candidate"], "operations_json":json.dumps([{
                     "op":"update_window", "id":"south_window", "changes":{"z":[1,2.6]},
@@ -721,6 +742,8 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
             updated = _json_result(second)
             assert updated["source_model_sha256"] != metadata["source_model_sha256"]
             assert first.content[0].data != second.content[0].data
+            assert updated["opening_heights"][0]["absolute_z_m"] == [1, 2.6]
+            assert json.loads((run / pair_meta["review_file"]).read_text()) == pair_meta
             assert "facade" in _error_text(await session.call_tool("view_elevation_candidate", {
                 "candidate":revised["candidate"], "facade":"../South"}))
 

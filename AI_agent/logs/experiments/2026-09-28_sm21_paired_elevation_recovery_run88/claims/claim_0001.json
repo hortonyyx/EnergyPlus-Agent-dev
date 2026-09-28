@@ -1,0 +1,117 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F1:W4",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South_view.png shows F1:W4 (between door F1:D8 and window F1:W5) as visibly smaller and set higher than the standard 1.6m windows. Calibrated via cyan-ink pixel_profile on this same image: floor baseline at pixel y=569 (rgb 199,199,199 gray wall line, view_0011/0013 crop context), F1/F2 split line at y=396, giving 173px=3.000m (17.34mm/px). This scale was cross-validated against F1:D8 (measured width 936mm vs candidate 1500mm door width match at x, height 2098mm vs candidate 2101.6mm) and F1:W5/W6 (measured height 1595mm vs candidate 1598mm, sill 1006mm vs 1007mm) which matched the existing candidate almost exactly, confirming the calibration is reliable. F1:W4's own outer cyan frame was measured at pixel y=448 (head) and y=482 (sill), giving above-floor head/sill of 2.098m/1.509m, versus the candidate's current 2.605m/1.007m (borrowed from the standard window family). Width/x-position of F1:W4 already match the drawing closely and are not changed by this claim.",
+    "sources": [
+      {
+        "view_id": "view_0011"
+      },
+      {
+        "view_id": "view_0013"
+      }
+    ],
+    "unresolved": [
+      "Bottom frame line at pixel y=482 had weak isolated pixel support (count=2) in the raw color-run output; the outer rectangle bottom edge is still clearly visible in the enlarged crop view_0011/view_0013."
+    ],
+    "value_targets": {
+      "above_floor_span": [
+        {
+          "id": "F1:W4",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "above_floor_span": {
+        "anchors": [
+          [
+            569,
+            0.0
+          ],
+          [
+            396,
+            3.0
+          ]
+        ],
+        "axis": "y",
+        "image": "South_view.png",
+        "pixels": [
+          482.0,
+          448.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "above_floor_span": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        0.0,
+        3.0
+      ],
+      "metres_per_pixel": -0.017341040462427744,
+      "pixels": [
+        569,
+        396,
+        482.0,
+        448.0
+      ]
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "2d7205745375350c2f6cff7c465ab3e1691455d27dfe8ade57757242e9a6bc2c",
+  "resolved_values": {
+    "above_floor_span": [
+      1.50867052,
+      2.098265896
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        280,
+        170,
+        650,
+        580
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0011",
+      "view_sha256": "1af019e9f16aeb831e0110940b9af24733c97566f92dfc8ba786c252d5852112"
+    },
+    {
+      "box": [
+        330,
+        400,
+        1180,
+        580
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0013",
+      "view_sha256": "b1f930ee14462c1c4ef3d716787906eddc4b70eaa2d6fe4dee440b603d6efd77"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -59,6 +59,12 @@ def test_elevation_filters_real_facade_hosts_and_preserves_world_heights():
     # North reverses x in the view: the source's increasing-x first edge runs left.
     assert lower["pixel_vertices"][0][0] > lower["pixel_vertices"][1][0]
     assert metadata["drawing_fidelity"] == "not_evaluated"
+    heights = {row["id"]: row for row in metadata["opening_heights"]}
+    assert heights["north-f2"]["absolute_z_m"] == [4, 5]
+    assert heights["north-f2"]["above_floor_m"] == [1, 2]
+    assert heights["north-f2"]["floor_base_z_m"] == 3
+    assert heights["north-door"]["opening_height_m"] == 2.1
+    assert heights["north-f1"]["horizontal_span_m"] == [0.3, 1.3]
 
 
 @pytest.mark.parametrize(("facade", "axis", "direction"), [

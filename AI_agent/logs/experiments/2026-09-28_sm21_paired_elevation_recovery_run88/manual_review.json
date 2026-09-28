@@ -1,0 +1,91 @@
+{
+  "reviewer": "development assistant, after generation; not the working model",
+  "generation_complete": true,
+  "complete_quality_restored": false,
+  "stable_generation_established": false,
+  "source_model_sha256": "639f1d0a0e648692969104440eb45ad404a511ee86fc5bc561425d96bd76c9fe",
+  "mode": "saved_proposal_recovery",
+  "physical_preservation": {
+    "floors": 2,
+    "spaces": 14,
+    "boundaries": 84,
+    "connections": 14,
+    "unchanged_openings": 28,
+    "changed_opening": "F1:W4",
+    "all_29_opening_xy_unchanged": true,
+    "all_29_hosts_unchanged": true,
+    "only_changed_physical_field": "F1:W4 vertices z"
+  },
+  "findings": [
+    {
+      "object": "F1:W4",
+      "status": "repaired_with_minor_pixel_offsets",
+      "actual_z_m": [
+        1.50867052,
+        2.098265896
+      ],
+      "original_expected_z_m": [
+        1.5,
+        2.1
+      ],
+      "endpoint_delta_m": [
+        0.00867052,
+        -0.001734104
+      ],
+      "evidence": "South original left vertical chain: sill1500, opening600, head-to-floor900; full original and final source elevation visually reviewed.",
+      "observed_behavior": "Paired source/original calls13/40; own clean crops16/18 and profile23-28; corrected claim37/adopt38/revise39. Saved edit references claim-derived image-axis values."
+    },
+    {
+      "object": "F1:W7",
+      "status": "unchanged_wrong_height_family",
+      "actual_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "original_expected_z_m": [
+        1.0,
+        2.8
+      ],
+      "head_shortfall_m": 0.19473684199999974,
+      "evidence": "East original lower dimension chain is1000/1800/200, not ordinary1000/1600/400. Full original and actual source elevation checked.",
+      "observed_behavior": "East paired calls14/45 delivered exact full images/table. No East crop/profile/claim/revision followed. Public text aftercall45 asserted the ordinary400/1600/1000 pattern had been validated elsewhere. Viewing did not resolve the wrong cross-facade interpretation.",
+      "existing_parameter_tolerance_pass": true
+    },
+    {
+      "scope": "partition",
+      "status": "unchanged_wall_position_offsets",
+      "evidence": "Run87 physical fields retained exactly; strict2cm score stayssevere because of F2 wall offsets about2.2-5.2cm. No missing/split/merged rooms or connection regression found."
+    },
+    {
+      "scope": "claim narrative",
+      "status": "unsupported_corroboration_retained",
+      "evidence": "claim0001 mentions measured936mm versus candidate1500mm while claiming door-width agreement. This inconsistent prose did not enter the z computation; source door geometry is unchanged. It is not accepted as independent corroboration."
+    },
+    {
+      "scope": "coverage",
+      "status": "partial_current_run_height_linkage",
+      "evidence": "Only repaired window has a current image-bound height claim. Old claims were intentionally not imported;1/29 linkage is this run's evidence scope, not a loss of28 physical openings.12 interior door heights remain2.1m explicit assumptions."
+    }
+  ],
+  "result_interpretation": "The paired tool was used and the salient small-window mismatch was autonomously repaired in a method-directed saved-proposal task. The East counterexample prevents a claim of complete or stable restoration; changed runtime/task and lack of a control prevent attributing causality to the tool alone.",
+  "next_offline_scope": "Use the remaining East mismatch to test projection against caller-observed original elevation anchors, exposing actual sill/head displacement in one coordinate frame; avoid another uniform-height reminder or same-condition blind rerun. No such production overlay or new model batch is implemented/authorized here.",
+  "preserved_history": "run87 and every prior run remain unchanged; onlyrun88 uses this saved proposal",
+  "audit_adapter_note": "The first post-run delta script assumed every record had id; connections use opening_id. This audit-only adapter was corrected and resumed, without changing generation, reference scores or model calls.",
+  "evidence_sha256": {
+    "agent_receipt.json": "b6d2fd23108c4b2c34389575cc3ae627dccb2bb7ca17b74efaee4b8e92e4e082",
+    "experiment_condition.json": "c9d03ef78d73a6e5489f0cf4ccd2ff2b1d777718d541f6248e65aa84cdaf9702",
+    "candidate_01/source_model.json": "b35ec30c527bbc3fe0cad4110f9351becf35582a0385e18a94ab3d9e59b4d5ac",
+    "candidate_01/operations.json": "8de8ad62e34df0947a1a5584d98b2f4f3e7d34045263e517b8c8e6b1d98a6496",
+    "candidate_01/elevation_South.png": "5b78ca4d2df7667b0c161b7a67bd246e753fda9228cebc56c829a8bb6eceff32",
+    "candidate_01/elevation_East.png": "6470831a6ba3b0fdbb8f0c621fba2b878dfce441c8f4320e03038aaea1270c6a",
+    "images/South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "images/East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+    "claims/claim_0001.json": "3e2221b8c83833e65ab06063ac829299f2437e162a66b543f6d6ad075b959034",
+    "source_changes.json": "6f557f7db677445eeb541cd9fff021eb3ceb5152c142d06e2a9adbe6a8417606",
+    "behavior_audit.json": "63215a546735298dcf4af2c2f8db37394689119062e6b1b1b2f9e3cc366feaf6",
+    "postrun_audit.json": "132bd154f2caa51eab540476ebdbe82dd3c1157fa266620693c310322ef04faa",
+    "room_identity_audit.json": "f0e75e8af40b8126aebdc17fc426d9dba2a9c91df125d1d4269d6efa44589f8a",
+    "browser_qa/report.json": "d256276016cf39602bb90060ca02eaa30a471099694648ab822de7120856bf68",
+    "evaluation/claim_transport_audit.json": "862869348f984645a2353e1616c19eb981e34526db4841052d685d4ea6ce3f4e"
+  }
+}

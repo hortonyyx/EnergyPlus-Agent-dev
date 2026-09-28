@@ -1,0 +1,1201 @@
+{
+  "candidate": "candidate_01",
+  "source_model_sha256": "639f1d0a0e648692969104440eb45ad404a511ee86fc5bc561425d96bd76c9fe",
+  "input_mode": "saved_proposal_paired_elevation_recovery",
+  "input_and_producer_hashes_verified": true,
+  "source_display_replay_exact": true,
+  "invocations": 1,
+  "actual_models": [
+    "claude-sonnet-5"
+  ],
+  "elapsed_seconds": 342.12,
+  "estimated_usd_not_bill": 1.435637,
+  "counts": {
+    "floors": 2,
+    "spaces": 14,
+    "boundaries": 84,
+    "openings": 29,
+    "connections": 14
+  },
+  "kinds": {
+    "door": 14,
+    "window": 15
+  },
+  "strict_partition_status": "severe",
+  "matched_spaces": 14,
+  "space_identity_findings": [],
+  "topology_findings": [
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "Floor 2",
+      "missing_length_m": 11.823761992000001,
+      "extra_length_m": 11.839999992,
+      "missing_wkt": "MULTILINESTRING ((3.75 0.020000001, 3.75 2.973233999), (7.5 0.020000001, 7.5 2.973233999), (11.25 0.020000001, 11.25 2.973233999), (7.5 5.015940001, 7.5 7.979999999))",
+      "extra_wkt": "MULTILINESTRING ((7.478402 5.020000001, 7.478402 7.979999999), (3.801296 0.020000001, 3.801296 2.979999999), (7.548596 0.020000001, 7.548596 2.979999999), (11.285097 0.020000001, 11.285097 2.979999999))"
+    }
+  ],
+  "original_openings": {
+    "candidate": "candidate_01",
+    "reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+    "reference_count": 29,
+    "matched": 29,
+    "positions": 29,
+    "hosts": 29,
+    "door_connections": 14,
+    "floors": [
+      {
+        "floor_id": "F1",
+        "image": "1f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F1:office_1f_north_a"
+          ],
+          "NC": [
+            "F1:office_1f_north_b"
+          ],
+          "NE": [
+            "F1:office_1f_north_c"
+          ],
+          "C": [
+            "F1:corridor_1f"
+          ],
+          "SW": [
+            "F1:office_1f_south_a"
+          ],
+          "SC": [
+            "F1:office_1f_south_b"
+          ],
+          "SE": [
+            "F1:office_1f_south_c"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      },
+      {
+        "floor_id": "F2",
+        "image": "2f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F2:conf_2f_1"
+          ],
+          "NE": [
+            "F2:conf_2f_2"
+          ],
+          "C": [
+            "F2:corridor_2f"
+          ],
+          "S1": [
+            "F2:office_2f_1"
+          ],
+          "S2": [
+            "F2:office_2f_2"
+          ],
+          "S3": [
+            "F2:office_2f_3"
+          ],
+          "S4": [
+            "F2:office_2f_4"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      }
+    ],
+    "comparisons": [
+      {
+        "floor_id": "F1",
+        "reference_id": "N-W",
+        "opening_id": "F1:W1",
+        "max_endpoint_error_m": 0.0026188130841124924,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_north_a"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_north_a"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-C",
+        "opening_id": "F1:W2",
+        "max_endpoint_error_m": 0.017019785046729297,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_north_b"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_north_b"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-E",
+        "opening_id": "F1:W3",
+        "max_endpoint_error_m": 0.02065336592379552,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_north_c"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_north_c"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-W",
+        "opening_id": "F1:W4",
+        "max_endpoint_error_m": 0.014106833213515912,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_south_a"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_south_a"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-C",
+        "opening_id": "F1:W5",
+        "max_endpoint_error_m": 0.017019785046729297,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_south_b"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_south_b"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-E",
+        "opening_id": "F1:W6",
+        "max_endpoint_error_m": 0.018940795830337365,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_south_c"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_south_c"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "E-C",
+        "opening_id": "F1:W7",
+        "max_endpoint_error_m": 0.010796716599190681,
+        "perpendicular_error_m": 0.11861969805895001,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NW",
+        "opening_id": "F1:D1",
+        "max_endpoint_error_m": 0.013464293314162212,
+        "perpendicular_error_m": 0.005398527665317232,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_north_a"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_north_a"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NC",
+        "opening_id": "F1:D2",
+        "max_endpoint_error_m": 0.014625630481668317,
+        "perpendicular_error_m": 0.005398527665317232,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_north_b"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_north_b"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NE",
+        "opening_id": "F1:D3",
+        "max_endpoint_error_m": 0.018212557872034907,
+        "perpendicular_error_m": 0.005398527665317232,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_north_c"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_north_c"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SW",
+        "opening_id": "F1:D4",
+        "max_endpoint_error_m": 0.0033308332135160157,
+        "perpendicular_error_m": 0.005397693657219982,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_south_a"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_south_a"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SC",
+        "opening_id": "F1:D5",
+        "max_endpoint_error_m": 0.015276779295470888,
+        "perpendicular_error_m": 0.005397693657219982,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_south_b"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_south_b"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SE",
+        "opening_id": "F1:D6",
+        "max_endpoint_error_m": 0.008087706685836693,
+        "perpendicular_error_m": 0.005397693657219982,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_south_c"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f",
+          "F1:office_1f_south_c"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-W",
+        "opening_id": "F1:D7",
+        "max_endpoint_error_m": 0.010796603238865998,
+        "perpendicular_error_m": 0.1186196980589504,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:corridor_1f"
+        ],
+        "actual_hosts": [
+          "F1:corridor_1f"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-S",
+        "opening_id": "F1:D8",
+        "max_endpoint_error_m": 0.05283379654924514,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:office_1f_south_a"
+        ],
+        "actual_hosts": [
+          "F1:office_1f_south_a"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NW",
+        "opening_id": "F2:W1",
+        "max_endpoint_error_m": 0.011991051948051279,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:conf_2f_1"
+        ],
+        "actual_hosts": [
+          "F2:conf_2f_1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NE",
+        "opening_id": "F2:W2",
+        "max_endpoint_error_m": 0.028190051948051575,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:conf_2f_2"
+        ],
+        "actual_hosts": [
+          "F2:conf_2f_2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S1",
+        "opening_id": "F2:W3",
+        "max_endpoint_error_m": 0.0073158874458876255,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:office_2f_1"
+        ],
+        "actual_hosts": [
+          "F2:office_2f_1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S2",
+        "opening_id": "F2:W4",
+        "max_endpoint_error_m": 0.011476813852814516,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:office_2f_2"
+        ],
+        "actual_hosts": [
+          "F2:office_2f_2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S3",
+        "opening_id": "F2:W5",
+        "max_endpoint_error_m": 0.023514887445887922,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:office_2f_3"
+        ],
+        "actual_hosts": [
+          "F2:office_2f_3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S4",
+        "opening_id": "F2:W6",
+        "max_endpoint_error_m": 0.027675813852813036,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:office_2f_4"
+        ],
+        "actual_hosts": [
+          "F2:office_2f_4"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-W",
+        "opening_id": "F2:W8",
+        "max_endpoint_error_m": 0.015419405405405762,
+        "perpendicular_error_m": 0.11904761904761904,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:corridor_2f"
+        ],
+        "actual_hosts": [
+          "F2:corridor_2f"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-E",
+        "opening_id": "F2:W7",
+        "max_endpoint_error_m": 0.015419405405405762,
+        "perpendicular_error_m": 0.11904761904761862,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:corridor_2f"
+        ],
+        "actual_hosts": [
+          "F2:corridor_2f"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NW",
+        "opening_id": "F2:D1",
+        "max_endpoint_error_m": 0.024263233766234293,
+        "perpendicular_error_m": 0.0040599999999999525,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:conf_2f_1",
+          "F2:corridor_2f"
+        ],
+        "actual_hosts": [
+          "F2:conf_2f_1",
+          "F2:corridor_2f"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NE",
+        "opening_id": "F2:D2",
+        "max_endpoint_error_m": 0.016946346320346528,
+        "perpendicular_error_m": 0.0040599999999999525,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:conf_2f_2",
+          "F2:corridor_2f"
+        ],
+        "actual_hosts": [
+          "F2:conf_2f_2",
+          "F2:corridor_2f"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S1",
+        "opening_id": "F2:D3",
+        "max_endpoint_error_m": 0.018138398268398248,
+        "perpendicular_error_m": 0.006765999999999828,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_1"
+        ],
+        "actual_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S2",
+        "opening_id": "F2:D4",
+        "max_endpoint_error_m": 0.021645021645021245,
+        "perpendicular_error_m": 0.006765999999999828,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_2"
+        ],
+        "actual_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S3",
+        "opening_id": "F2:D5",
+        "max_endpoint_error_m": 0.034337398268398545,
+        "perpendicular_error_m": 0.006765999999999828,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_3"
+        ],
+        "actual_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S4",
+        "opening_id": "F2:D6",
+        "max_endpoint_error_m": 0.03784402164502154,
+        "perpendicular_error_m": 0.006765999999999828,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_4"
+        ],
+        "actual_hosts": [
+          "F2:corridor_2f",
+          "F2:office_2f_4"
+        ],
+        "host_match": true,
+        "connection_match": true
+      }
+    ],
+    "limits": [
+      "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+      "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+      "No door height, operating state, material or vertical circulation claim."
+    ]
+  },
+  "matched_exterior": 17,
+  "exterior_parameters_match": 17,
+  "exterior_height_differences": [
+    {
+      "reference_id": "door_1",
+      "opening_id": "F1:D8",
+      "floor": "Floor 1",
+      "kind": "door",
+      "facade": "South",
+      "reference_along_m": [
+        0.54,
+        1.44
+      ],
+      "candidate_along_m": [
+        0.538793,
+        1.508621
+      ],
+      "reference_z_m": [
+        0.0,
+        2.1
+      ],
+      "candidate_z_m": [
+        0.0,
+        2.101578947
+      ],
+      "max_along_endpoint_delta_m": 0.06862100000000004,
+      "width_delta_m": 0.06982800000000011,
+      "z_endpoint_delta_m": [
+        0.0,
+        0.0015789470000000527
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "door_0",
+      "opening_id": "F1:D7",
+      "floor": "Floor 1",
+      "kind": "door",
+      "facade": "West",
+      "reference_along_m": [
+        3.25,
+        4.75
+      ],
+      "candidate_along_m": [
+        3.249663,
+        4.750337
+      ],
+      "reference_z_m": [
+        0.0,
+        2.1
+      ],
+      "candidate_z_m": [
+        0.0,
+        2.101578947
+      ],
+      "max_along_endpoint_delta_m": 0.0003370000000000317,
+      "width_delta_m": 0.0006740000000000634,
+      "z_endpoint_delta_m": [
+        0.0,
+        0.0015789470000000527
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_4_item_0",
+      "opening_id": "F1:W7",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "East",
+      "reference_along_m": [
+        3.4,
+        4.6
+      ],
+      "candidate_along_m": [
+        3.40081,
+        4.609987
+      ],
+      "reference_z_m": [
+        1.0,
+        2.8
+      ],
+      "candidate_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "max_along_endpoint_delta_m": 0.009987000000000634,
+      "width_delta_m": 0.009177000000000657,
+      "z_endpoint_delta_m": [
+        0.007368421000000014,
+        0.19473684199999974
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_0_item_0",
+      "opening_id": "F1:W1",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "North",
+      "reference_along_m": [
+        1.24,
+        3.6399999999999997
+      ],
+      "candidate_along_m": [
+        1.239224,
+        3.642241
+      ],
+      "reference_z_m": [
+        1.0,
+        2.6
+      ],
+      "candidate_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "max_along_endpoint_delta_m": 0.0022410000000001595,
+      "width_delta_m": 0.0030170000000002695,
+      "z_endpoint_delta_m": [
+        0.007368421000000014,
+        0.00526315799999999
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_0_item_1",
+      "opening_id": "F1:W2",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "North",
+      "reference_along_m": [
+        6.3,
+        8.7
+      ],
+      "candidate_along_m": [
+        6.303879,
+        8.674569
+      ],
+      "reference_z_m": [
+        1.0,
+        2.6
+      ],
+      "candidate_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "max_along_endpoint_delta_m": 0.025430999999999315,
+      "width_delta_m": 0.029309999999999725,
+      "z_endpoint_delta_m": [
+        0.007368421000000014,
+        0.00526315799999999
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_0_item_2",
+      "opening_id": "F1:W3",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "North",
+      "reference_along_m": [
+        11.36,
+        13.76
+      ],
+      "candidate_along_m": [
+        11.357759,
+        13.728448
+      ],
+      "reference_z_m": [
+        1.0,
+        2.6
+      ],
+      "candidate_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "max_along_endpoint_delta_m": 0.03155199999999958,
+      "width_delta_m": 0.029310999999999865,
+      "z_endpoint_delta_m": [
+        0.007368421000000014,
+        0.00526315799999999
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_2_item_0",
+      "opening_id": "F1:W4",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        3.44,
+        4.64
+      ],
+      "candidate_along_m": [
+        3.448276,
+        4.622845
+      ],
+      "reference_z_m": [
+        1.5,
+        2.1
+      ],
+      "candidate_z_m": [
+        1.50867052,
+        2.098265896
+      ],
+      "max_along_endpoint_delta_m": 0.01715499999999981,
+      "width_delta_m": 0.02543099999999976,
+      "z_endpoint_delta_m": [
+        0.008670519999999904,
+        0.0017341040000000696
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_2_item_1",
+      "opening_id": "F1:W5",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        6.3,
+        8.7
+      ],
+      "candidate_along_m": [
+        6.303879,
+        8.674569
+      ],
+      "reference_z_m": [
+        1.0,
+        2.6
+      ],
+      "candidate_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "max_along_endpoint_delta_m": 0.025430999999999315,
+      "width_delta_m": 0.029309999999999725,
+      "z_endpoint_delta_m": [
+        0.007368421000000014,
+        0.00526315799999999
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_2_item_2",
+      "opening_id": "F1:W6",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        11.36,
+        13.76
+      ],
+      "candidate_along_m": [
+        11.346983,
+        13.75
+      ],
+      "reference_z_m": [
+        1.0,
+        2.6
+      ],
+      "candidate_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "max_along_endpoint_delta_m": 0.013016999999999612,
+      "width_delta_m": 0.0030169999999998254,
+      "z_endpoint_delta_m": [
+        0.007368421000000014,
+        0.00526315799999999
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_5_item_0",
+      "opening_id": "F2:W7",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "East",
+      "reference_along_m": [
+        3.4,
+        4.6
+      ],
+      "candidate_along_m": [
+        3.399188,
+        4.589986
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.010013999999999967,
+      "width_delta_m": 0.009202000000000155,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_1_item_0",
+      "opening_id": "F2:W1",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "North",
+      "reference_along_m": [
+        1.95,
+        5.55
+      ],
+      "candidate_along_m": [
+        1.943844,
+        5.539957
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.01004299999999958,
+      "width_delta_m": 0.0038869999999993077,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_1_item_1",
+      "opening_id": "F2:W2",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "North",
+      "reference_along_m": [
+        9.45,
+        13.049999999999999
+      ],
+      "candidate_along_m": [
+        9.427646,
+        13.023758
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.0262419999999981,
+      "width_delta_m": 0.003887999999998115,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_3_item_0",
+      "opening_id": "F2:W3",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        2.19,
+        3.3899999999999997
+      ],
+      "candidate_along_m": [
+        2.181425,
+        3.38013
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.009869999999999823,
+      "width_delta_m": 0.001294999999999824,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_3_item_1",
+      "opening_id": "F2:W4",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        4.11,
+        5.3100000000000005
+      ],
+      "candidate_along_m": [
+        4.103672,
+        5.302376
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.007624000000000741,
+      "width_delta_m": 0.001296000000000852,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_3_item_2",
+      "opening_id": "F2:W5",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        9.69,
+        10.889999999999999
+      ],
+      "candidate_along_m": [
+        9.665227,
+        10.863931
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.026068999999999676,
+      "width_delta_m": 0.0012959999999999638,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_3_item_3",
+      "opening_id": "F2:W6",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        11.61,
+        12.809999999999999
+      ],
+      "candidate_along_m": [
+        11.587473,
+        12.786177
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.023822999999998373,
+      "width_delta_m": 0.0012959999999981875,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    },
+    {
+      "reference_id": "window_group_7_item_0",
+      "opening_id": "F2:W8",
+      "floor": "Floor 2",
+      "kind": "window",
+      "facade": "West",
+      "reference_along_m": [
+        3.4,
+        4.6
+      ],
+      "candidate_along_m": [
+        3.399188,
+        4.589986
+      ],
+      "reference_z_m": [
+        4.0,
+        5.8
+      ],
+      "candidate_z_m": [
+        4.012105263,
+        5.801052632
+      ],
+      "max_along_endpoint_delta_m": 0.010013999999999967,
+      "width_delta_m": 0.009202000000000155,
+      "z_endpoint_delta_m": [
+        0.012105262999999589,
+        0.0010526320000003864
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": true,
+      "host_zone_match": null
+    }
+  ],
+  "height_mismatches": [],
+  "unmatched_reference": [],
+  "unmatched_built_exterior": [],
+  "transported_images": 29,
+  "source_assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior corridor/office door heights (F1:D1-D6, F2:D1-D6) remain an explicit assumption of 2.1m, matching the elevation-evidenced exterior entrance doors (F1:D7, F1:D8) and confirmed window-head pattern; these 12 interior doors are not directly visible in any supplied elevation (interior partitions are not elevated) and remain unlinked to image height evidence in check_openings.",
+    "West wall vestibule/porch recess (~1m deep, corridor width) simplified to a flush exterior wall with a single wide entrance door D7 spanning the corridor width; the small projecting porch geometry itself is not modeled.",
+    "South wall small notch/chamfer near the SW entrance simplified to a flush wall with a single door D8.",
+    "All door swing/open states left unknown.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "No exterior ground-level door assumed on 2F (upper storey); vertical circulation (stair) is not shown in the supplied plan/elevation views and is not modeled.",
+    "All door swing/open states left unknown.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Vestibule/porch recess geometry on the west facade and the SW corner wall notch are simplified/not modeled as separate enclosed space; only door openings are represented.",
+    "Small furniture items (desks, chairs, L-shaped workstation) not modeled; only partitions/openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "No stair or vertical circulation between F1 and F2 is shown in the supplied drawings; none is modeled.",
+    "Furniture (conference tables/chairs, desks) not modeled; only partitions/openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "original_reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+  "limits": [
+    "Saved run87 proposal plus six originals; not a cold start.",
+    "Current main runtime, paired tool and method-specific scope differ from run87; not a causal ablation.",
+    "No previous claims, error locations, target dimensions, audits or GT supplied.",
+    "No retry, continuation, local model, paid API or fallback. One repair cannot prove stable generation."
+  ]
+}

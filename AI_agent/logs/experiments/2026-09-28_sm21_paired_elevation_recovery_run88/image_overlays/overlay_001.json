@@ -1,0 +1,577 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "639f1d0a0e648692969104440eb45ad404a511ee86fc5bc561425d96bd76c9fe",
+  "floor_id": "F1",
+  "basis": "Wall outer footprint estimated from visible plan outline (left wall ~x=320px=0m, right wall ~x=1362px=15m matching the 15000mm overall dimension chain; top wall ~y=262px=8m north edge, bottom wall ~y=810px=0m south edge matching the 8000mm overall depth), consistent with the +Y/N arrow shown in view_candidate renders.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        320.0,
+        0.0
+      ],
+      [
+        1362.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        262.0,
+        8.0
+      ],
+      [
+        810.0,
+        0.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.014395393474088292,
+      "y": -0.014598540145985401
+    },
+    "pixels_per_world_metre": {
+      "x": 69.46666666666667,
+      "y": -68.5
+    },
+    "axis_px_per_m": {
+      "x": 69.46666666666667,
+      "y": 68.5
+    },
+    "warnings": [
+      {
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 69.46666666666667,
+        "y_px_per_m": 68.5,
+        "relative_deviation": 0.01401304662962071,
+        "relative_deviation_limit": 0.003,
+        "guidance": "x=69.4666667 px/m and y=68.5 px/m disagree by 1.401305%, over the 0.300000% limit — at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean."
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "x",
+        "dimension_ref": "caller_x_anchors",
+        "span_px": 1042.0,
+        "value_m": 15.0,
+        "residual_px": 3.21107266435979,
+        "residual_m": 0.0463675427200949
+      },
+      {
+        "type": "residual_exceeds_threshold",
+        "axis": "y",
+        "dimension_ref": "caller_y_anchors",
+        "span_px": 548.0,
+        "value_m": 8.0,
+        "residual_px": -6.020761245674748,
+        "residual_m": -0.08693914260017999
+      }
+    ]
+  },
+  "projected_spaces": [
+    {
+      "id": "F1:corridor_1f",
+      "pixel_polygon": [
+        [
+          320.0,
+          604.777356
+        ],
+        [
+          1362.0,
+          604.777356
+        ],
+        [
+          1362.0,
+          467.222643
+        ],
+        [
+          320.0,
+          467.222643
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:office_1f_north_a",
+      "pixel_polygon": [
+        [
+          320.0,
+          467.222643
+        ],
+        [
+          666.959047,
+          467.222643
+        ],
+        [
+          666.959047,
+          262.0
+        ],
+        [
+          320.0,
+          262.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:office_1f_north_b",
+      "pixel_polygon": [
+        [
+          666.959047,
+          467.222643
+        ],
+        [
+          1013.918094,
+          467.222643
+        ],
+        [
+          1013.918094,
+          262.0
+        ],
+        [
+          666.959047,
+          262.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:office_1f_north_c",
+      "pixel_polygon": [
+        [
+          1013.918094,
+          467.222643
+        ],
+        [
+          1362.0,
+          467.222643
+        ],
+        [
+          1362.0,
+          262.0
+        ],
+        [
+          1013.918094,
+          262.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:office_1f_south_a",
+      "pixel_polygon": [
+        [
+          320.0,
+          810.0
+        ],
+        [
+          666.959047,
+          810.0
+        ],
+        [
+          666.959047,
+          604.777356
+        ],
+        [
+          320.0,
+          604.777356
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:office_1f_south_b",
+      "pixel_polygon": [
+        [
+          666.959047,
+          810.0
+        ],
+        [
+          1013.918094,
+          810.0
+        ],
+        [
+          1013.918094,
+          604.777356
+        ],
+        [
+          666.959047,
+          604.777356
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:office_1f_south_c",
+      "pixel_polygon": [
+        [
+          1013.918094,
+          810.0
+        ],
+        [
+          1362.0,
+          810.0
+        ],
+        [
+          1362.0,
+          604.777356
+        ],
+        [
+          1013.918094,
+          604.777356
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "F1:D1",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f",
+        "F1:office_1f_north_a"
+      ],
+      "pixel_endpoints": [
+        [
+          579.002854,
+          467.222643
+        ],
+        [
+          642.630778,
+          467.222643
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D2",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f",
+        "F1:office_1f_north_b"
+      ],
+      "pixel_endpoints": [
+        [
+          691.287385,
+          467.222643
+        ],
+        [
+          754.915239,
+          467.222643
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D3",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f",
+        "F1:office_1f_north_c"
+      ],
+      "pixel_endpoints": [
+        [
+          1037.872146,
+          467.222643
+        ],
+        [
+          1102.248573,
+          467.222643
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D4",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f",
+        "F1:office_1f_south_a"
+      ],
+      "pixel_endpoints": [
+        [
+          579.751427,
+          604.777356
+        ],
+        [
+          641.882205,
+          604.777356
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D5",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f",
+        "F1:office_1f_south_b"
+      ],
+      "pixel_endpoints": [
+        [
+          692.035888,
+          604.777356
+        ],
+        [
+          754.166667,
+          604.777356
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D6",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f",
+        "F1:office_1f_south_c"
+      ],
+      "pixel_endpoints": [
+        [
+          1038.620718,
+          604.777356
+        ],
+        [
+          1101.5,
+          604.777356
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D7",
+      "kind": "door",
+      "space_ids": [
+        "F1:corridor_1f"
+      ],
+      "pixel_endpoints": [
+        [
+          320.0,
+          484.601915
+        ],
+        [
+          320.0,
+          587.398084
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:D8",
+      "kind": "door",
+      "space_ids": [
+        "F1:office_1f_south_a"
+      ],
+      "pixel_endpoints": [
+        [
+          357.428154,
+          810.0
+        ],
+        [
+          424.798872,
+          810.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W1",
+      "kind": "window",
+      "space_ids": [
+        "F1:office_1f_north_a"
+      ],
+      "pixel_endpoints": [
+        [
+          406.084761,
+          262.0
+        ],
+        [
+          573.014341,
+          262.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W2",
+      "kind": "window",
+      "space_ids": [
+        "F1:office_1f_north_b"
+      ],
+      "pixel_endpoints": [
+        [
+          757.909461,
+          262.0
+        ],
+        [
+          922.593393,
+          262.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W3",
+      "kind": "window",
+      "space_ids": [
+        "F1:office_1f_north_c"
+      ],
+      "pixel_endpoints": [
+        [
+          1108.985659,
+          262.0
+        ],
+        [
+          1273.669521,
+          262.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W4",
+      "kind": "window",
+      "space_ids": [
+        "F1:office_1f_south_a"
+      ],
+      "pixel_endpoints": [
+        [
+          559.540239,
+          810.0
+        ],
+        [
+          641.133633,
+          810.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W5",
+      "kind": "window",
+      "space_ids": [
+        "F1:office_1f_south_b"
+      ],
+      "pixel_endpoints": [
+        [
+          757.909461,
+          810.0
+        ],
+        [
+          922.593393,
+          810.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W6",
+      "kind": "window",
+      "space_ids": [
+        "F1:office_1f_south_c"
+      ],
+      "pixel_endpoints": [
+        [
+          1108.237086,
+          810.0
+        ],
+        [
+          1275.166667,
+          810.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "F1:W7",
+      "kind": "window",
+      "space_ids": [
+        "F1:corridor_1f"
+      ],
+      "pixel_endpoints": [
+        [
+          1362.0,
+          577.044515
+        ],
+        [
+          1362.0,
+          494.21589
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "1f_view.png",
+      "floor_id": "F1",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "candidate_01",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "trigger_action": "overlay_candidate",
+  "automatic_projection": false,
+  "overlay_image": "image_overlays/overlay_001.png",
+  "original_size": [
+    2133,
+    1345
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2133,
+    1345
+  ],
+  "returned_size": [
+    1600,
+    1009
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.333125,
+    1.3330029732408326
+  ],
+  "remaining_seconds": 2689,
+  "registered_calibration": {
+    "calibration_id": "calibration_001",
+    "calibration_file": "overlay_calibrations/calibration_001.json",
+    "reuse_on_revision": true
+  }
+}
