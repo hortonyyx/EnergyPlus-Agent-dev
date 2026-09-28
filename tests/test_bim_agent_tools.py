@@ -546,6 +546,13 @@ def test_view_pixel_profile_filters_sparse_strokes_and_reports_unbridged_peak_su
                 "max_fraction": 0.625,
                 "support_intervals_at_peak": [[1, 2], [4, 6]],
             }]
+            excluded = result["threshold_excluded_support"]
+            assert excluded["intervals"] == [
+                {"pixels": [1, 7], "min_count": 1, "max_count": 2},
+                {"pixels": [10, 10], "min_count": 1, "max_count": 1},
+            ]
+            assert excluded["coordinate_count"] == 8 and excluded["matching_pixels"] == 12
+            assert excluded["minimum_count"] == 3 and excluded["support_length"] == 8
             assert result["box_original_pixels"] == [0, 0, 12, 8]
             assert (run / result["profile_image"]).is_file()
             assert (run / result["profile_record"]).is_file()
@@ -600,6 +607,15 @@ def test_profile_cross_axis_separates_long_traces_from_junction_peak(tmp_path, r
             assert [row["pixels"] for row in cross["runs"]] == [[8, 8], [11, 11]]
             assert all(row["max_count"] == 16 and row["support_intervals_at_peak"] == [[4, 19]]
                        for row in cross["runs"])
+            # The long one-pixel vertical trace is hidden by the y threshold,
+            # even though the horizontal junctions make the result nonempty.
+            assert "empty_filter_diagnostics" not in data
+            assert data["threshold_excluded_support"]["intervals"] == []
+            assert cross["threshold_excluded_support"]["intervals"] == [
+                {"pixels": [5, 7], "min_count": 1, "max_count": 1},
+                {"pixels": [9, 10], "min_count": 1, "max_count": 1},
+                {"pixels": [12, 14], "min_count": 1, "max_count": 1},
+            ]
             context = data["crop_context"]
             assert context["edge_support_intervals"] == {
                 "left": [[8, 8], [11, 11]], "right": [[5, 14]],
@@ -607,6 +623,8 @@ def test_profile_cross_axis_separates_long_traces_from_junction_peak(tmp_path, r
             assert context["suggested_view_box"] == [0, 0, 24, 20]
             other = json.loads((await session.call_tool("view_pixel_profile", {**common, "axis": "y"})).content[1].text)
             assert [{k: v for k, v in row.items() if k != "id"} for row in other["candidates"]] == cross["runs"]
+            assert other["threshold_excluded_support"] == cross["threshold_excluded_support"]
+            assert other["cross_axis_profile"]["threshold_excluded_support"] == data["threshold_excluded_support"]
             assert other["cross_axis_profile"]["runs"] == [
                 {k: v for k, v in row.items() if k != "id"} for row in data["candidates"]]
             assert json.loads((run / data["profile_record"]).read_text()) == data
@@ -634,6 +652,7 @@ def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, re
             data = json.loads(wrong.content[1].text)
             diagnostic = data["empty_filter_diagnostics"]
             assert data["candidates"] == [] and data["matching_pixels"] == 0
+            assert data["threshold_excluded_support"]["intervals"] == []
             assert diagnostic["reason"] == "no_pixels_match_requested_color"
             assert diagnostic["nearest_observed_color"]["rgb"] == [128, 128, 128]
             assert diagnostic["frequent_observed_colors"] == [
@@ -647,12 +666,21 @@ def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, re
             assert data["candidates"] == [] and data["matching_pixels"] == 8
             assert diagnostic["reason"] == "matching_pixels_below_support_threshold"
             assert diagnostic["maximum_support_count"] == 8 and diagnostic["minimum_count"] == 12
+            assert data["threshold_excluded_support"]["intervals"] == [
+                {"pixels": [3, 3], "min_count": 8, "max_count": 8}]
             good = await session.call_tool("view_pixel_profile", {
                 **common, "rgb": [128, 128, 128], "min_fraction": .5})
             data = json.loads(good.content[1].text)
             assert "empty_filter_diagnostics" not in data
             assert data["candidates"][0]["pixels"] == [3, 3]
             assert data["candidates"][0]["support_intervals_at_peak"] == [[2, 9]]
+            # A one-pixel minimum excludes nothing, and does not reclassify ink.
+            unfiltered = await session.call_tool("view_pixel_profile", {
+                **common, "rgb": [128, 128, 128], "min_fraction": .01})
+            unfiltered_data = json.loads(unfiltered.content[1].text)
+            assert unfiltered_data["minimum_count"] == 1
+            assert unfiltered_data["threshold_excluded_support"]["intervals"] == []
+            assert unfiltered_data["cross_axis_profile"]["threshold_excluded_support"]["intervals"] == []
             plain = _json_result(await session.call_tool("pixel_profile", {
                 **common, "rgb": [255, 255, 255]}))
             assert plain["runs"] == []

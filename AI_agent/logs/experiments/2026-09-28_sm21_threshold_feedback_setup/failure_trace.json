@@ -1,0 +1,736 @@
+{
+  "mode": "offline saved-tool-evidence audit",
+  "model_calls": 0,
+  "source_run": "2026-09-27_sm21_use_guidance_before_run75",
+  "critical_actual_reply": {
+    "tool_ordinal": 24,
+    "request": {
+      "name": "1f_view.png",
+      "box": [
+        1330,
+        250,
+        1350,
+        800
+      ],
+      "axis": "y",
+      "rgb": [
+        150,
+        150,
+        150
+      ],
+      "tolerance": 60
+    },
+    "reply": {
+      "name": "1f_view.png",
+      "profile_id": "profile_010",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "axis": "y",
+      "box_original_pixels": [
+        1330,
+        250,
+        1350,
+        800
+      ],
+      "rgb": [
+        150,
+        150,
+        150
+      ],
+      "tolerance": 60.0,
+      "min_fraction": 0.1,
+      "minimum_count": 2,
+      "support_length": 20,
+      "matching_pixels": 737,
+      "candidates": [
+        {
+          "id": "C01",
+          "pixels": [
+            346,
+            368
+          ],
+          "peak": 346,
+          "max_count": 20,
+          "max_fraction": 1.0,
+          "support_intervals_at_peak": [
+            [
+              1330,
+              1349
+            ]
+          ]
+        },
+        {
+          "id": "C02",
+          "pixels": [
+            618,
+            618
+          ],
+          "peak": 618,
+          "max_count": 17,
+          "max_fraction": 0.85,
+          "support_intervals_at_peak": [
+            [
+              1330,
+              1346
+            ]
+          ]
+        },
+        {
+          "id": "C03",
+          "pixels": [
+            629,
+            629
+          ],
+          "peak": 629,
+          "max_count": 20,
+          "max_fraction": 1.0,
+          "support_intervals_at_peak": [
+            [
+              1330,
+              1349
+            ]
+          ]
+        }
+      ],
+      "cross_axis_profile": {
+        "axis": "x",
+        "min_fraction": 0.1,
+        "minimum_count": 55,
+        "support_length": 550,
+        "runs": [
+          {
+            "pixels": [
+              1346,
+              1346
+            ],
+            "peak": 1346,
+            "max_count": 273,
+            "max_fraction": 0.496364,
+            "support_intervals_at_peak": [
+              [
+                346,
+                368
+              ],
+              [
+                370,
+                618
+              ],
+              [
+                629,
+                629
+              ]
+            ]
+          }
+        ],
+        "note": "Same exact mask and fraction, measured along the other axis. Compare long traces with local junction peaks; neither is a wall label. For bindable C IDs on this axis, request a profile using this axis."
+      },
+      "crop_context": {
+        "edge_support_intervals": {
+          "left": [
+            [
+              346,
+              368
+            ],
+            [
+              618,
+              618
+            ],
+            [
+              629,
+              629
+            ]
+          ],
+          "right": [
+            [
+              346,
+              364
+            ],
+            [
+              629,
+              629
+            ]
+          ],
+          "top": [],
+          "bottom": []
+        },
+        "suggested_view_box": [
+          1298,
+          218,
+          1382,
+          832
+        ],
+        "note": "Edge intervals are matching pixels on the crop border (right/bottom are exclusive box limits, so samples are at right-1/bottom-1). A crop edge is not an object endpoint. The suggested box is only an initial 32px context expansion; inspect further as needed to establish both endpoints and adjoining space boundaries. No continuation is inferred."
+      },
+      "profile_image": "pixel_profiles/profile_010.png",
+      "profile_record": "pixel_profiles/profile_010.json",
+      "profile_image_sha256": "8a1518c74bf98b6b0621634c38c4112f5b8d82898ef481a86775b224d1f2db26",
+      "panel_layout": {
+        "original_crop_combined_pixels": [
+          0,
+          0,
+          20,
+          550
+        ],
+        "mask_panel_combined_pixels": [
+          23,
+          0,
+          43,
+          550
+        ],
+        "separator_width": 3
+      },
+      "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+      "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+      "remaining_seconds": 2913,
+      "returned_size": [
+        43,
+        550
+      ],
+      "original_pixels_per_returned_pixel": [
+        1.0,
+        1.0
+      ],
+      "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+    }
+  },
+  "initial_plan": {
+    "partitions": [
+      {
+        "id": "corridor_north_wall",
+        "points": [
+          [
+            424,
+            618
+          ],
+          [
+            1817,
+            618
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: gray wall ink row y=618, continuous 448-1792 except measured door gaps"
+        ]
+      },
+      {
+        "id": "corridor_south_wall",
+        "points": [
+          [
+            424,
+            815
+          ],
+          [
+            1817,
+            815
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: gray wall ink row y=815, continuous 448-1791 except measured door gaps, matches y=618 pattern"
+        ]
+      }
+    ],
+    "space_seeds": [
+      {
+        "id": "north_open_office",
+        "point": [
+          700,
+          450
+        ],
+        "role": "office"
+      },
+      {
+        "id": "south_open_office",
+        "point": [
+          700,
+          950
+        ],
+        "role": "office"
+      },
+      {
+        "id": "corridor",
+        "point": [
+          700,
+          716
+        ],
+        "role": "corridor"
+      }
+    ]
+  },
+  "f1_relation_checks": [
+    {
+      "schema_version": "source_space_relation_review_v1",
+      "source_model_sha256": "ba079e9d7cf15d0823c3722b9a442ba102a0495ba0433193ae3d800735f83cf0",
+      "floor_id": "F1",
+      "calibration": {
+        "x_anchors": [
+          [
+            424.0,
+            0.0
+          ],
+          [
+            1817.0,
+            15.0
+          ]
+        ],
+        "y_anchors": [
+          [
+            346.0,
+            8.0
+          ],
+          [
+            1086.0,
+            0.0
+          ]
+        ]
+      },
+      "calibration_unverified": true,
+      "drawing_fidelity": "not_evaluated",
+      "coverage": "caller_selected_point_pairs_only",
+      "observations": [
+        {
+          "id": "obs1",
+          "expected": "same_space",
+          "evidence": "1f_view.png north zone: desk group1 and desk group2 appear in one continuous room with no full-height wall between them, only a short door-frame nib at the corridor wall junction",
+          "points": [
+            {
+              "pixel": [
+                600.0,
+                450.0
+              ],
+              "world_xy_m": [
+                1.8951902368987792,
+                6.875675675675675
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:north_open_office",
+              "interior_space_ids": [
+                "F1:north_open_office"
+              ],
+              "boundary_space_ids": []
+            },
+            {
+              "pixel": [
+                1100.0,
+                450.0
+              ],
+              "world_xy_m": [
+                7.279253409906676,
+                6.875675675675675
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:north_open_office",
+              "interior_space_ids": [
+                "F1:north_open_office"
+              ],
+              "boundary_space_ids": []
+            }
+          ],
+          "actual_relation": "same_space",
+          "direct_connections": [],
+          "consistency": "consistent_with_supplied_expectation"
+        },
+        {
+          "id": "obs2",
+          "expected": "separate_spaces",
+          "evidence": "1f_view.png north desk group1 area vs south closet area, separated by the corridor band",
+          "points": [
+            {
+              "pixel": [
+                600.0,
+                450.0
+              ],
+              "world_xy_m": [
+                1.8951902368987792,
+                6.875675675675675
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:north_open_office",
+              "interior_space_ids": [
+                "F1:north_open_office"
+              ],
+              "boundary_space_ids": []
+            },
+            {
+              "pixel": [
+                600.0,
+                950.0
+              ],
+              "world_xy_m": [
+                1.8951902368987792,
+                1.4702702702702695
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:south_open_office",
+              "interior_space_ids": [
+                "F1:south_open_office"
+              ],
+              "boundary_space_ids": []
+            }
+          ],
+          "actual_relation": "separate_spaces",
+          "direct_connections": [],
+          "consistency": "consistent_with_supplied_expectation"
+        },
+        {
+          "id": "obs3",
+          "expected": "same_space",
+          "evidence": "1f_view.png corridor is one continuous open band across the whole width",
+          "points": [
+            {
+              "pixel": [
+                600.0,
+                700.0
+              ],
+              "world_xy_m": [
+                1.8951902368987792,
+                4.172972972972971
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:corridor",
+              "interior_space_ids": [
+                "F1:corridor"
+              ],
+              "boundary_space_ids": []
+            },
+            {
+              "pixel": [
+                1400.0,
+                700.0
+              ],
+              "world_xy_m": [
+                10.509691313711414,
+                4.172972972972971
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:corridor",
+              "interior_space_ids": [
+                "F1:corridor"
+              ],
+              "boundary_space_ids": []
+            }
+          ],
+          "actual_relation": "same_space",
+          "direct_connections": [],
+          "consistency": "consistent_with_supplied_expectation"
+        },
+        {
+          "id": "obs4",
+          "expected": "same_space",
+          "evidence": "1f_view.png south zone (closet, workstation, round table) has no full-height partitions between them",
+          "points": [
+            {
+              "pixel": [
+                500.0,
+                1046.0
+              ],
+              "world_xy_m": [
+                0.8183776022972005,
+                0.43243243243243157
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:south_open_office",
+              "interior_space_ids": [
+                "F1:south_open_office"
+              ],
+              "boundary_space_ids": []
+            },
+            {
+              "pixel": [
+                1600.0,
+                1046.0
+              ],
+              "world_xy_m": [
+                12.663316582914574,
+                0.43243243243243157
+              ],
+              "status": "inside_one_space",
+              "space_id": "F1:south_open_office",
+              "interior_space_ids": [
+                "F1:south_open_office"
+              ],
+              "boundary_space_ids": []
+            }
+          ],
+          "actual_relation": "same_space",
+          "direct_connections": [],
+          "consistency": "consistent_with_supplied_expectation"
+        }
+      ],
+      "conflict_count": 0,
+      "unassessed_count": 0,
+      "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+      "candidate": "candidate_03",
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "calibration_file": "overlay_calibrations/calibration_003.json",
+      "calibration_sha256": "da2abc3fb8232e2ea7818eae6e62f987b277a684ccaa78041dcc18af08cd3109",
+      "review_file": "space_relation_reviews/review_002.json",
+      "remaining_seconds": 2101
+    }
+  ],
+  "exposure_parser": {
+    "parsed_replies": [
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 13,
+        "profile_id": "profile_001",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 14,
+        "profile_id": "profile_002",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 17,
+        "profile_id": "profile_003",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 18,
+        "profile_id": "profile_004",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 19,
+        "profile_id": "profile_005",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 20,
+        "profile_id": "profile_006",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 21,
+        "profile_id": "profile_007",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 22,
+        "profile_id": "profile_008",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 23,
+        "profile_id": "profile_009",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 24,
+        "profile_id": "profile_010",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 32,
+        "profile_id": "profile_011",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 33,
+        "profile_id": "profile_012",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 34,
+        "profile_id": "profile_013",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 35,
+        "profile_id": "profile_014",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 36,
+        "profile_id": "profile_015",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 37,
+        "profile_id": "profile_016",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 38,
+        "profile_id": "profile_017",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 39,
+        "profile_id": "profile_018",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 40,
+        "profile_id": "profile_019",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 41,
+        "profile_id": "profile_020",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 42,
+        "profile_id": "profile_021",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 43,
+        "profile_id": "profile_022",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 44,
+        "profile_id": "profile_023",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 45,
+        "profile_id": "profile_024",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 47,
+        "profile_id": "profile_025",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 48,
+        "profile_id": "profile_026",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 51,
+        "profile_id": "profile_027",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 52,
+        "profile_id": "profile_028",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 53,
+        "profile_id": "profile_029",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 54,
+        "profile_id": "profile_030",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 55,
+        "profile_id": "profile_031",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 56,
+        "profile_id": "profile_032",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 57,
+        "profile_id": "profile_033",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 58,
+        "profile_id": "profile_034",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 59,
+        "profile_id": "profile_035",
+        "excluded_coordinates": null,
+        "cross_axis_excluded_coordinates": null
+      }
+    ],
+    "unparsed_or_failed_calls": [
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 11
+      },
+      {
+        "name": "mcp__bim__view_pixel_profile",
+        "ordinal": 12
+      }
+    ],
+    "limit": "Returned evidence is not verified understanding. Missing parseable replies are not proof of no exposure."
+  },
+  "conclusions": [
+    "F1 first plan already declares only two corridor walls and three spaces; four room partitions are omitted before any candidate feedback.",
+    "Actual MCP reply includes cross-axis evidence x=1346, y=370..618; transport did not remove this evidence.",
+    "Main-axis threshold is two matching pixels; one-pixel wall outline is excluded from most rows. Nonempty candidates suppress empty_filter_diagnostics.",
+    "Same-space checking validates the supplied mistaken interpretation; it is not independent drawing evaluation.",
+    "This is a demonstrable feedback limitation and adoption failure, not proof of the historical regression cause. Old cross-axis information was already available. Missing windows and height-family errors remain distinct."
+  ]
+}

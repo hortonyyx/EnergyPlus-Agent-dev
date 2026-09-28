@@ -127,6 +127,31 @@ def _profile_support_peaks(counts, offset):
     return peaks
 
 
+def _profile_excluded_support(counts, offset, minimum_count, support_length):
+    """Expose positive ink omitted by the caller's threshold, without new candidates."""
+    excluded = (counts > 0) & (counts < minimum_count)
+    intervals = []
+    for start, end in _inclusive_runs(excluded):
+        values = counts[start:end + 1]
+        intervals.append({
+            "pixels": [start + offset, end + offset],
+            "min_count": int(values.min()), "max_count": int(values.max()),
+        })
+    return {
+        "coordinate_count": int(excluded.sum()),
+        "matching_pixels": int(counts[excluded].sum()),
+        "minimum_count": minimum_count,
+        "support_length": support_length,
+        "intervals": intervals,
+        "note": "These coordinates contain matching ink but are below min_fraction; "
+                "they are not empty background. Intervals use inclusive original pixels. "
+                "Counts do not prove the same stroke continues between rows/columns. "
+                "Compare the clean crop and cross-axis support, or choose a narrower crop "
+                "or lower threshold after inspecting the original. No wall, opening or "
+                "candidate is inferred; existing candidate IDs are unchanged.",
+    }
+
+
 def coordinate_grid_view(pic, region):
     """Label original pixels on a disposable model view, keeping its affine frame."""
     if min(pic.size) < 100:
@@ -1733,7 +1758,7 @@ class Toolkit:
         support_offset = y0 if axis == "x" else x0
         candidates = [{"id": f"C{i + 1:02d}", **row} for i, row in enumerate(runs)]
         other_axis = "y" if axis == "x" else "x"
-        _, other_minimum, other_length, other_runs = _profile_axis(mask, box, other_axis, min_fraction)
+        other_counts, other_minimum, other_length, other_runs = _profile_axis(mask, box, other_axis, min_fraction)
         edge_support = {}
         for edge, support, offset in (("left", mask[:, 0], y0), ("right", mask[:, -1], y0),
                                       ("top", mask[0, :], x0), ("bottom", mask[-1, :], x0)):
@@ -1786,10 +1811,14 @@ class Toolkit:
             "support_length": support_length,
             "matching_pixels": int(mask.sum()),
             "candidates": candidates,
+            "threshold_excluded_support": _profile_excluded_support(
+                counts, projection_offset, minimum_count, support_length),
             "cross_axis_profile": {
                 "axis": other_axis, "min_fraction": float(min_fraction),
                 "minimum_count": other_minimum, "support_length": other_length,
                 "runs": other_runs,
+                "threshold_excluded_support": _profile_excluded_support(
+                    other_counts, support_offset, other_minimum, other_length),
                 "note": "Same exact mask and fraction, measured along the other axis. "
                         "Compare long traces with local junction peaks; neither is a wall label. "
                         "For bindable C IDs on this axis, request a profile using this axis.",
