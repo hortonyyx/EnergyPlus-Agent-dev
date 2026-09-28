@@ -1,0 +1,220 @@
+{
+  "agent_assumptions": [
+    "South/north row2 (S1-S3) door positions assumed mirrored from row1 due to symmetric plan appearance; not individually pixel-verified.",
+    "Interior door heights assumed 2.1m standard (no plan/elevation dimension found for interior doors).",
+    "Exterior entrance door heights (south, west) assumed 2.7m pending elevation confirmation.",
+    "Partition/door pixel positions read from wall-color detection and zoomed crops; some sub-100mm placement uncertainty remains.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 2.1m (floor+2.1) with no plan/elevation dimension for interior doors on this floor.",
+    "Partition and door jamb pixel positions read from zoomed crops and wall-color detection; sub-100mm placement uncertainty remains.",
+    "South-wall 2F window x-spans taken from South_view.png dimension chain and mapped onto plan pixel coordinates via the shared 15000mm calibration; not independently re-measured in 2f_view.png pixels.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 78,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 13,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "6d08b4c63706b99234a79d60b404740904bd64d38114880d24be300677fcc084",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            0.0,
+            3.0
+          ],
+          "targets": [
+            [
+              "opening",
+              "F1:D_south_entry"
+            ]
+          ],
+          "value_field": "z"
+        },
+        {
+          "claim_id": "claim_0003",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 1,
+          "parameter": "z",
+          "resolved_value": [
+            0.0,
+            3.0
+          ],
+          "targets": [
+            [
+              "opening",
+              "F1:D_west_entry"
+            ]
+          ],
+          "value_field": "z"
+        }
+      ],
+      "claims": {
+        "claim_0003": {
+          "decision": {
+            "claim_id": "claim_0003",
+            "disposition": "adopted",
+            "id": "decision_0003",
+            "reason": "South_view.png and West_view.png both confirm the 1F glazed entrance doors span the full 3000mm story height, not the previously assumed 2.7m."
+          },
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_04",
+              "objects": [
+                {
+                  "id": "F1:D_south_entry",
+                  "kind": "opening"
+                },
+                {
+                  "id": "F1:D_west_entry",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "South_view.png shows the glazed entrance door (with transom lights) spanning a full 3000mm from ground to the 1F floor-to-floor line (600+900+1500=3000mm chain). West_view.png confirms the same double-door bay spans the full 3000mm 1F story height (two stacked '3000' dimension ticks, ground to floor line). Both exterior 1F entrance doors are therefore full-height glazed frames, z=[0,3.0].",
+              "sources": [
+                {
+                  "box": [
+                    180.0,
+                    380.0,
+                    420.0,
+                    600.0
+                  ],
+                  "image": "South_view.png"
+                },
+                {
+                  "box": [
+                    130.0,
+                    380.0,
+                    380.0,
+                    600.0
+                  ],
+                  "image": "West_view.png"
+                }
+              ],
+              "unresolved": [],
+              "value_targets": null,
+              "values": {
+                "z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    0.0,
+                    3.0
+                  ]
+                }
+              }
+            },
+            "computations": {
+              "z": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              }
+            },
+            "id": "claim_0003",
+            "parent_proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7",
+            "resolved_values": {
+              "z": [
+                0.0,
+                3.0
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  180.0,
+                  380.0,
+                  420.0,
+                  600.0
+                ],
+                "image": "South_view.png",
+                "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                "size": [
+                  1423,
+                  794
+                ]
+              },
+              {
+                "box": [
+                  130.0,
+                  380.0,
+                  380.0,
+                  600.0
+                ],
+                "image": "West_view.png",
+                "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                "size": [
+                  1077,
+                  773
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0001.json",
+      "parent_candidate": "candidate_04",
+      "parent_proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "1ab3d587e0a8d1a1379ed405ee4a62363d26721fd0faf258877576fa0b3c42f2",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "3863d302e8c9de032f490679c56093fa6e6f666312633ee75bf66da98b9a8dce",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact south-row (S1-S3) door jamb pixel positions not independently confirmed against original image; assumed symmetric to north row.",
+    "Exterior entrance door heights (south, west) confirmed at z=[0,3.0] via South_view.png/West_view.png dimension chains. Interior corridor/room door heights (2.1m) remain an explicit assumption; no plan or elevation dimension exists for them.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact vertical extent/thickness of the P_top vestibule (two close parallel lines) simplified to a single centerline; possible small storage nook there not modeled.",
+    "Bottom-row window count/positions (WS1-WS4) rely on South_view.png dimension chain rather than direct 2f_view.png pixel measurement; not cross-checked against 2f_view.png window graphics pixel-by-pixel.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

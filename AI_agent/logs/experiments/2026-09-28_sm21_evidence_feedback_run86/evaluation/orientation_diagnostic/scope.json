@@ -1,0 +1,19 @@
+{
+  "mode": "post_generation_direction_only_diagnostic_not_replacement_score",
+  "transform": "y_reference = 8 - y_saved; x and z unchanged",
+  "basis": "Both saved plans explicitly map image top to 0m and bottom to 8m; the independent reference uses the reverse direction. No fit to openings or space geometry.",
+  "original_reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+  "original_artifacts_unchanged": {
+    "candidate_06/source_model.json": "ddce2fd6db1f1e9993718fe0631c3d80ac7ff66cb16c96b3f25586ed3ca7f04a",
+    "evaluation/original_openings.json": "c99d558b617f6712644bc408ea27196b932e3146819c78f026ded94df8f6d7c4",
+    "evaluation/gt/candidate_06_partition.json": "f78f75ba5dc8e1e3d52959f7b61650c6705331aef6634148fbf4566793ad7404"
+  },
+  "candidate": "candidate_06",
+  "source_model_sha256": "d9e5febb0987cbd98fb1d211affa64454593a569acb3a4aaa470c8077c3e54f7",
+  "limits": [
+    "Original official scores remain unchanged. This diagnostic does not repair the model or certify building orientation.",
+    "Reference pixel positions, identities, matching algorithm and tolerances are unchanged; only the Y direction is reversed.",
+    "Merged reference rooms must still be reported even when both seeds resolve to one host.",
+    "17 linked exterior heights do not imply 17 correctly interpreted heights."
+  ]
+}

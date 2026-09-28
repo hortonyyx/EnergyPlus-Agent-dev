@@ -1,0 +1,185 @@
+{
+  "completed": true,
+  "quality": "not_restored",
+  "candidate": "candidate_06",
+  "source_model_sha256": "d9e5febb0987cbd98fb1d211affa64454593a569acb3a4aaa470c8077c3e54f7",
+  "final_role_edit_preserves_physical_geometry": true,
+  "findings": [
+    {
+      "topic": "F2 south central partition omitted",
+      "actions": [
+        30,
+        33,
+        37,
+        56
+      ],
+      "evidence": "The full original and action30 crop contain the central south divider. First F2 declaration has only two south partitions and three south seeds; S2 and S3 remain merged as F2:B2 through delivery. Relation samples check outer-room separation but never the two central original rooms. Final role rationale calls B2 one room with two desks and two doors.",
+      "outcome": "Missing wall and room identity loss, independent of coordinate direction and centimetre tolerances."
+    },
+    {
+      "topic": "F1 small window recognized but wrong segment adopted",
+      "actions": [
+        21,
+        22,
+        23,
+        43,
+        48
+      ],
+      "evidence": "Initial and final W_S_small use x852..886 pixels, about0.365m, instead of the original cyan opening aroundx745..855 (label1200mm). Its z=[1,2.6] is then confirmed together with six other F1 windows using the North elevation family.",
+      "outcome": "Inventory is present, width/location and height remain wrong; no later geometry correction."
+    },
+    {
+      "topic": "Host correction followed by partial original correction",
+      "actions": [
+        23,
+        24,
+        25,
+        26,
+        27
+      ],
+      "evidence": "Host failure at P2 x1426 is first cleared by moving P2 to1463 and changing D_N3/D_S3 x1398..1463 to1388..1455 (0.698m to0.719m). Both doors then connect to middle rooms. After a further original crop, the model moves P2 west to1347; source hosts become the eastern rooms. Aperture endpoints stay unchanged and remain short/misplaced against the original. The second revision correctly reports no aperture dimension changes, while source hosts do change.",
+      "outcome": "Useful wall/host correction occurs, but full drawing fidelity is not restored. Feedback exposure is not proof of causal benefit."
+    },
+    {
+      "topic": "Height confirmation and harmful door revision",
+      "actions": [
+        38,
+        43,
+        44,
+        48,
+        50,
+        52
+      ],
+      "evidence": "15 windows are confirmed in two floor-wide families. F1 small/east windows require different heights. North claim boxes exclude the vertical chains; the F2 box y0..190 ends above the building. Both exterior doors are changed2.7m to3.0m after a false full-storey interpretation; originals show2.1m. All17 exterior apertures nevertheless have linked height records.",
+      "outcome": "Four semantic height errors, including a0.2m east-window head error hidden by existing0.3m tolerance. Twelve interior door heights remain explicit assumptions."
+    },
+    {
+      "topic": "Coordinate convention and evaluation",
+      "actions": [
+        23,
+        33,
+        34
+      ],
+      "evidence": "Both plans use increasing Y down the image, opposite the fixed evaluation frame; scale is15x8m with floor heights3.0/3.6m. Raw original score is6/29. A separate rigid Y reflection with unchanged reference observations/tolerances yields17/29. It still maps both original F2 central south rooms to B2.",
+      "outcome": "Keep raw score and direction diagnostic separate. A coordinate convention cannot explain missing walls, wrong widths or heights."
+    },
+    {
+      "topic": "Feature adoption and preserved useful work",
+      "actions": [
+        13,
+        23,
+        25,
+        27,
+        33,
+        56
+      ],
+      "evidence": "Actual plan_partition reference matches frozen content. Dimension feedback returned4times, revision geometry2times. No reconstruction/opening_review reference, explicit length quantity, profile binding or located opening review was used. Two floors,15x8m extents,29apertures,14recorded connections, floor levels and13recorded uses are preserved. Final role-only edit preserves all physical geometry.",
+      "outcome": "No scale explosion in this sample; optional unit/location features are untested by model behavior. No causal package or stable recovery claim."
+    },
+    {
+      "topic": "Stale source notes",
+      "actions": [
+        52,
+        56
+      ],
+      "evidence": "An unresolved note now claims exterior doors confirmed at3m, while the saved assumptions still say2.7m pending elevation confirmation.",
+      "outcome": "Source notes remain internally contradictory despite partial replacement."
+    }
+  ],
+  "exact_height_findings": [
+    {
+      "id": "F1:W_S_small",
+      "saved": {
+        "width_m": 0.36506799999999995,
+        "z_m": [
+          1.0,
+          2.6
+        ]
+      },
+      "expected_z_m": [
+        1.5,
+        2.1
+      ],
+      "evidence": "South_view.png: 1500 sill, 600 window, 900 above; 1f_view.png/South_view.png width 1200mm."
+    },
+    {
+      "id": "F1:W_east_corridor",
+      "saved": {
+        "width_m": 1.199465,
+        "z_m": [
+          1.0,
+          2.6
+        ]
+      },
+      "expected_z_m": [
+        1.0,
+        2.8
+      ],
+      "evidence": "East_view.png: 1000 sill, 1800 window, 200 above. The 0.2m head error passes the old 0.3m parameter tolerance but uses the wrong family."
+    },
+    {
+      "id": "F1:D_south_entry",
+      "saved": {
+        "width_m": 0.9019320000000001,
+        "z_m": [
+          0.0,
+          3.0
+        ]
+      },
+      "expected_z_m": [
+        0,
+        2.1
+      ],
+      "evidence": "South_view.png: door top aligns with small-window top at 2100mm, below the 3000mm floor line."
+    },
+    {
+      "id": "F1:D_west_entry",
+      "saved": {
+        "width_m": 1.199465,
+        "z_m": [
+          0.0,
+          3.0
+        ]
+      },
+      "expected_z_m": [
+        0,
+        2.1
+      ],
+      "evidence": "West_view.png and unchanged legacy GT: 2100mm exterior door, not full 3000mm storey."
+    }
+  ],
+  "merged_original_spaces": [
+    {
+      "floor": "F2",
+      "source_space": "F2:B2",
+      "reference_spaces": [
+        "S2",
+        "S3"
+      ]
+    }
+  ],
+  "returned_references_match_frozen": {
+    "plan_partition": true,
+    "plan_assembly": true,
+    "geometry": true,
+    "claims": true,
+    "room_types": true,
+    "edits": true
+  },
+  "evidence_sha256": {
+    "agent_receipt.json": "7905e99b178c67baa7b9547af1f6a5dcf5a0ba8d514437db2e95c199a95aaee2",
+    "agent_stream.jsonl.gz": "8108b2bff3da8b64a4e1f47256dfdeb939fdb4ad82f28e79431971fad3204da2",
+    "postrun_audit.json": "ce92d2f139a21578ecea74e3fd99acbeff0ff6bcc009d1ed279383949f12bc63",
+    "feedback_adoption.json": "9caad7fd4853ce6f0652999ebe70c6e29244d37148446134c70b615001916a1f",
+    "comparison_metrics.json": "85da9db1207ba415e54f4fce39937ffe285b6fb41d2c14b036668922c2cb67db",
+    "evaluation/orientation_diagnostic/scope.json": "139f17ce8ff60028b34ab484f174f67116ef78e597c7a7f795fbfc97d9448297",
+    "candidate_06/source_model.json": "ddce2fd6db1f1e9993718fe0631c3d80ac7ff66cb16c96b3f25586ed3ca7f04a",
+    "images/1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "images/2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "images/South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "images/East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+    "images/West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+  },
+  "model_calls_by_review": 0,
+  "interpretation": "Development review of original images, public calls/results and saved source only. No hidden reasoning, repaired generation result, changed tolerance or new model invocation."
+}

@@ -1,0 +1,95 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:D_south_entry",
+        "kind": "opening"
+      },
+      {
+        "id": "F1:D_west_entry",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South_view.png shows the glazed entrance door (with transom lights) spanning a full 3000mm from ground to the 1F floor-to-floor line (600+900+1500=3000mm chain). West_view.png confirms the same double-door bay spans the full 3000mm 1F story height (two stacked '3000' dimension ticks, ground to floor line). Both exterior 1F entrance doors are therefore full-height glazed frames, z=[0,3.0].",
+    "sources": [
+      {
+        "box": [
+          180.0,
+          380.0,
+          420.0,
+          600.0
+        ],
+        "image": "South_view.png"
+      },
+      {
+        "box": [
+          130.0,
+          380.0,
+          380.0,
+          600.0
+        ],
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          0.0,
+          3.0
+        ]
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "basis": "annotation_and_pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7",
+  "resolved_values": {
+    "z": [
+      0.0,
+      3.0
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        180.0,
+        380.0,
+        420.0,
+        600.0
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    },
+    {
+      "box": [
+        130.0,
+        380.0,
+        380.0,
+        600.0
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

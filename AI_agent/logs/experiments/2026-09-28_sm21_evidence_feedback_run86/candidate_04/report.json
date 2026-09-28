@@ -1,0 +1,70 @@
+{
+  "agent_assumptions": [
+    "South/north row2 (S1-S3) door positions assumed mirrored from row1 due to symmetric plan appearance; not individually pixel-verified.",
+    "Interior door heights assumed 2.1m standard (no plan/elevation dimension found for interior doors).",
+    "Exterior entrance door heights (south, west) assumed 2.7m pending elevation confirmation.",
+    "Partition/door pixel positions read from wall-color detection and zoomed crops; some sub-100mm placement uncertainty remains.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 2.1m (floor+2.1) with no plan/elevation dimension for interior doors on this floor.",
+    "Partition and door jamb pixel positions read from zoomed crops and wall-color detection; sub-100mm placement uncertainty remains.",
+    "South-wall 2F window x-spans taken from South_view.png dimension chain and mapped onto plan pixel coordinates via the shared 15000mm calibration; not independently re-measured in 2f_view.png pixels.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 78,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 13,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "1ab3d587e0a8d1a1379ed405ee4a62363d26721fd0faf258877576fa0b3c42f2",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "a7b1aa5767118af0d2988784f7efdd3c7774513a85ef3a4f4df1575713f5a273"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "a8bb15622cb985c05e65383cf7c91128675cd3af35488ba363cd41dd65283a7c",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact south-row (S1-S3) door jamb pixel positions not independently confirmed against original image; assumed symmetric to north row.",
+    "Interior door and exterior entrance door heights not yet cross-checked against elevation drawings.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact vertical extent/thickness of the P_top vestibule (two close parallel lines) simplified to a single centerline; possible small storage nook there not modeled.",
+    "Bottom-row window count/positions (WS1-WS4) rely on South_view.png dimension chain rather than direct 2f_view.png pixel measurement; not cross-checked against 2f_view.png window graphics pixel-by-pixel.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,229 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "319c9091f069ebbe26e71fecb9a5a8fdfffdfd63b29c660dee824ad11ef213a7",
+  "operations_json": "[\n {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"P2_north\",\"changes\":{\"points\":[[1463,340],[1463,627]]},\"reason\":\"Move partition2 to east edge of observed gap so the adjacent room-N3 door fits fully on one side without straddling the wall junction\",\"source_refs\":[\"1f_view.png: gap in gray wall fill between x=1384 and x=1463 near second partition; wall placed at east edge matching visible solid wall resumption (R18 region)\"]},\n {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"P2_south\",\"changes\":{\"points\":[[1463,805],[1463,1087]]},\"reason\":\"Mirror P2_north move for symmetry, south partition\",\"source_refs\":[\"1f_view.png: assumed symmetric with P2_north\"]},\n {\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_N3\",\"changes\":{\"p1\":[1388,627],\"p2\":[1455,627]},\"reason\":\"Keep door fully west of relocated partition2 (x=1463) within observed gap, avoiding T-junction at wall meeting point\",\"source_refs\":[\"1f_view.png: door arc observed in gap 1384-1463px near second partition\"]},\n {\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_S3\",\"changes\":{\"p1\":[1388,805],\"p2\":[1455,805]},\"reason\":\"Mirror D_N3 fix for south row door\",\"source_refs\":[\"1f_view.png: assumed symmetric with D_N3\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "P2_north",
+      "before": {
+        "id": "P2_north",
+        "points": [
+          [
+            1426,
+            340
+          ],
+          [
+            1426,
+            627
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room N2 and N3, north of corridor wall"
+        ]
+      },
+      "after": {
+        "id": "P2_north",
+        "points": [
+          [
+            1463,
+            340
+          ],
+          [
+            1463,
+            627
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room N2 and N3, north of corridor wall"
+        ]
+      },
+      "reason": "Move partition2 to east edge of observed gap so the adjacent room-N3 door fits fully on one side without straddling the wall junction",
+      "source_refs": [
+        "1f_view.png: gap in gray wall fill between x=1384 and x=1463 near second partition; wall placed at east edge matching visible solid wall resumption (R18 region)"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "P2_south",
+      "before": {
+        "id": "P2_south",
+        "points": [
+          [
+            1426,
+            805
+          ],
+          [
+            1426,
+            1087
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north"
+        ]
+      },
+      "after": {
+        "id": "P2_south",
+        "points": [
+          [
+            1463,
+            805
+          ],
+          [
+            1463,
+            1087
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north"
+        ]
+      },
+      "reason": "Mirror P2_north move for symmetry, south partition",
+      "source_refs": [
+        "1f_view.png: assumed symmetric with P2_north"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "openings",
+      "id": "D_N3",
+      "before": {
+        "id": "D_N3",
+        "kind": "door",
+        "p1": [
+          1398,
+          627
+        ],
+        "p2": [
+          1463,
+          627
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: door arc near P2 partition, room N3 into corridor; height assumed standard"
+        ]
+      },
+      "after": {
+        "id": "D_N3",
+        "kind": "door",
+        "p1": [
+          1388,
+          627
+        ],
+        "p2": [
+          1455,
+          627
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: door arc near P2 partition, room N3 into corridor; height assumed standard"
+        ]
+      },
+      "reason": "Keep door fully west of relocated partition2 (x=1463) within observed gap, avoiding T-junction at wall meeting point",
+      "source_refs": [
+        "1f_view.png: door arc observed in gap 1384-1463px near second partition"
+      ]
+    },
+    {
+      "operation_index": 3,
+      "field": "openings",
+      "id": "D_S3",
+      "before": {
+        "id": "D_S3",
+        "kind": "door",
+        "p1": [
+          1398,
+          805
+        ],
+        "p2": [
+          1463,
+          805
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: assumed mirrored door room S3 into corridor, symmetric with D_N3; unconfirmed exact jamb pixels"
+        ]
+      },
+      "after": {
+        "id": "D_S3",
+        "kind": "door",
+        "p1": [
+          1388,
+          805
+        ],
+        "p2": [
+          1455,
+          805
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: assumed mirrored door room S3 into corridor, symmetric with D_N3; unconfirmed exact jamb pixels"
+        ]
+      },
+      "reason": "Mirror D_N3 fix for south row door",
+      "source_refs": [
+        "1f_view.png: assumed symmetric with D_N3"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P1_north",
+      "P1_south",
+      "H_row1_corridor",
+      "H_corridor_row2"
+    ],
+    "openings": [
+      "D_N1",
+      "D_N2",
+      "D_S1",
+      "D_S2",
+      "D_west_entry",
+      "D_south_entry",
+      "W_N1",
+      "W_N2",
+      "W_N3",
+      "W_S_small",
+      "W_S2",
+      "W_S3",
+      "W_east_corridor"
+    ],
+    "space_seeds": [
+      "N1",
+      "N2",
+      "N3",
+      "corridor",
+      "S1",
+      "S2",
+      "S3"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

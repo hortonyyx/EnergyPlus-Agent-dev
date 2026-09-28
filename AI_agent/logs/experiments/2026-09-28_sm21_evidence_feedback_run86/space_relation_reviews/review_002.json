@@ -1,0 +1,168 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "a8bb15622cb985c05e65383cf7c91128675cd3af35488ba363cd41dd65283a7c",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        427.0,
+        0.0
+      ],
+      [
+        1814.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        331.0,
+        0.0
+      ],
+      [
+        1072.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs5",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: T1 and T2 (two large meeting rooms) separated by center partition/vestibule wall with double doors into corridor, not directly open to each other",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            470.0
+          ],
+          "world_xy_m": [
+            2.4116798846431147,
+            1.5006747638326585
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:T1",
+          "interior_space_ids": [
+            "F2:T1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1450.0,
+            470.0
+          ],
+          "world_xy_m": [
+            11.063446286950253,
+            1.5006747638326585
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:T2",
+          "interior_space_ids": [
+            "F2:T2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs6",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: room B1 (single desk, left) and room B2 (two desks, middle) separated by vertical partition wall",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            930.0
+          ],
+          "world_xy_m": [
+            1.870944484498918,
+            6.466936572199729
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:B1",
+          "interior_space_ids": [
+            "F2:B1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            930.0
+          ],
+          "world_xy_m": [
+            7.278298485940879,
+            6.466936572199729
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:B2",
+          "interior_space_ids": [
+            "F2:B2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs7",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: room B2 (middle, two desks) and room B3 (single desk, right) separated by vertical partition wall",
+      "points": [
+        {
+          "pixel": [
+            1100.0,
+            930.0
+          ],
+          "world_xy_m": [
+            7.278298485940879,
+            6.466936572199729
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:B2",
+          "interior_space_ids": [
+            "F2:B2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1650.0,
+            930.0
+          ],
+          "world_xy_m": [
+            13.226387887527036,
+            6.466936572199729
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:B3",
+          "interior_space_ids": [
+            "F2:B3"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "calibration_file": "overlay_calibrations/calibration_005.json",
+  "calibration_sha256": "55d414ba970909b2badc1e4e07c06e053c06de1c3fc7c2e449b59e5e1f933d36",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 1994
+}

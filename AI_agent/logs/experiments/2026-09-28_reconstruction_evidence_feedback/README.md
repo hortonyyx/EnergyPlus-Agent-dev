@@ -1,6 +1,8 @@
 # 观察与实际几何反馈节点
 
-本节点只做离线开发；新增模型调用0。用户告知Claude恢复，本机CLI为2.1.280；未探测订阅额度，不将本机版本或用户提供的恢复状态当成长期可用性保证。
+本节点完成离线开发和用户明确批准的1次整案回归。run86正常结束，质量未恢复：二层漏墙错并、小窗错宽及外门窗高度误判仍在。已结束本批，无重试、委派或额外模型调用。CLI2.1.280，实际`claude-sonnet-5`，不把单次正常调用当成长期可用性保证。
+
+[实际回归结果](../2026-09-28_sm21_evidence_feedback_run86/README.md) · [逐对象复核](../2026-09-28_sm21_evidence_feedback_run86/manual_review.json) · [27次历史质量记录](quality_report/README.md)
 
 ## 已实现与验证
 
@@ -26,18 +28,39 @@
 python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.replay --out <new-output-directory>
 ```
 
-## 下一节点方案（待用户决定）
+## 本次明确批准的回归
 
 1次sm21六原图冷启动，独立run86；相同既有完整建筑任务，不给旧稿、具体错处、数量或GT。单Sonnet/medium、既有Claude订阅，3000秒、24候选，0续查/局部模型/重试/付费回退。预估消耗只能参考历史CLI标价，约数美元级，不是订阅账单；本批上限为一次主调用。
 
 验证新反馈是否实际采用，以及房间/隔墙/门窗/连接、单位/跨度、高度和可查看交付是否保住。独立原图/GT评价在生成后进行，原容差不改；缺失与错误关系优先于厘米偏差。单次结果不证明稳定恢复，无采用不算方法效果；中断保留unknown。若无整体收益，先重新评估范围/旧基线逐包路线，不追加同条件抽样。
 
-[冻结条件](frozen.json)含41个生产文件、六图、任务及参考散列；[真实入口/MCP预检](preflight.json)已在模型进程边界阻断、模型调用0，确认参考实际返回。整案尚未执行，不能宣称质量恢复。
+[冻结条件](frozen.json)含41个生产文件、六图、任务及参考散列；[真实入口/MCP预检](preflight.json)在模型进程边界阻断、预检模型调用0，确认参考实际返回。随后用户明确答复“启动这1次回归（推荐）”，[批准记录](approval.json)绑定冻结散列；[执行回执](execution_receipt.json)确认仅1次，无重试。
 
 ```bash
 python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.batch prepare
-# 用户明确批准后，由主助手保存本批approval.json并执行一次：
+# 以下run已执行，禁止用此记录重复启动：
 python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.batch run
 ```
 
 `approval.json`须记录本批用户原指令并绑定`frozen.json`散列；脚本不自动重试，不覆盖已有run。工程检查不代替项目约定的节点回归批准。
+
+## 回归结论与边界
+
+1189.87秒正常完成，6个候选，最终两层13空间、15窗、14门、14条已记录连接；15×8m跨度和3.0/3.6m层高保持。旧固定坐标系原图位置6/29、宿主22/29、连接9/14，严格分区severe。本次Y向下，与参考相反；另存仅反转Y方向的诊断，位置17/29，既有观察/容差/原成绩不变。诊断宿主29/29、连接14/14仍把两个原房间映射成一个宿主，不能覆盖二层南中部漏墙错并。
+
+小窗已建却取错标注段，约0.365m而非1.2m，且套用普通窗高；一层东窗头高差0.2m被旧0.3m容差接受。两外门由假设2.7m误改为3.0m，原图约2.1m。17个外开口高度有图像绑定不等于高度正确。第一次返工错移隔墙后，第二次据图把门宿主改回东房，体现局部有效修订；门端点仍有误。最后用途编辑保持几何，但旧门高待核备注未完全清理。
+
+实际尺寸反馈4次、修订变化2次，读取的6份参考散列与冻结内容一致；未读reconstruction/opening_review，显式单位、量测绑定、原图门窗框均未采用。不能用这一条证明未采用功能有效/无效，也不能把本次退步归因于新包。源/装配重放、41文件/六图、29次原图返回字节/像素和双层离线浏览器检查通过，均不代替建筑质量。
+
+生成后核查命令（均0模型调用；方向诊断输出拒绝覆盖）：
+
+```bash
+python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.evaluate_run AI_agent/logs/experiments/2026-09-28_sm21_evidence_feedback_run86
+python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.audit_feedback AI_agent/logs/experiments/2026-09-28_sm21_evidence_feedback_run86
+python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.audit_orientation AI_agent/logs/experiments/2026-09-28_sm21_evidence_feedback_run86
+python -m AI_agent.logs.experiments.2026-09-28_reconstruction_evidence_feedback.summarize_run AI_agent/logs/experiments/2026-09-28_sm21_evidence_feedback_run86
+PLAYWRIGHT_BROWSERS_PATH=/tmp/ep-bim-browser-qa/browsers /tmp/ep-bim-browser-qa/bin/python AI_agent/logs/experiments/2026-09-26_sm25_height_review_setup/browser_check.py AI_agent/logs/experiments/2026-09-28_sm21_evidence_feedback_run86
+python scripts/tool_scripts/bim_regression_report.py AI_agent/logs/experiments/2026-09-28_reconstruction_evidence_feedback/quality_runs.json --out AI_agent/logs/experiments/2026-09-28_reconstruction_evidence_feedback/quality_report
+```
+
+本包关闭，保留工程修复与全部失败证据，不以继续叠提醒/同条件重抽推进。下一入口改为离线收敛旧较好基线逐包加回的具体范围，重点区别首稿对象解释、图像坐标与能力增量；run81旧树也未完整恢复，不能把回旧树本身当成修复。新增整案另备具体方案再提请，当前不启动迁移或新批次。

@@ -1,0 +1,138 @@
+{
+  "parent_draft_id": "draft_002",
+  "parent_plan_sha256": "294c76f72e70e81201fcb598ce43a339d5952f00cbbaca05cee85a79bfe88748",
+  "operations_json": "[\n {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"P2_north\",\"changes\":{\"points\":[[1347,340],[1347,627]]},\"reason\":\"Correct partition2 x-position to the actual observed vertical wall line (~x1347px) west of the room-N3 door, so the door at x1388-1455 sits inside room N3's wall span instead of N2's\",\"source_refs\":[\"1f_view.png crop [1300,340,1650,820]: vertical partition line at x~1347px with door jamb/arc east of it\"]},\n {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"P2_south\",\"changes\":{\"points\":[[1347,805],[1347,1087]]},\"reason\":\"Mirror corrected P2_north position for south partition\",\"source_refs\":[\"1f_view.png: assumed symmetric with P2_north\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "P2_north",
+      "before": {
+        "id": "P2_north",
+        "points": [
+          [
+            1463,
+            340
+          ],
+          [
+            1463,
+            627
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room N2 and N3, north of corridor wall"
+        ]
+      },
+      "after": {
+        "id": "P2_north",
+        "points": [
+          [
+            1347,
+            340
+          ],
+          [
+            1347,
+            627
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room N2 and N3, north of corridor wall"
+        ]
+      },
+      "reason": "Correct partition2 x-position to the actual observed vertical wall line (~x1347px) west of the room-N3 door, so the door at x1388-1455 sits inside room N3's wall span instead of N2's",
+      "source_refs": [
+        "1f_view.png crop [1300,340,1650,820]: vertical partition line at x~1347px with door jamb/arc east of it"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "P2_south",
+      "before": {
+        "id": "P2_south",
+        "points": [
+          [
+            1463,
+            805
+          ],
+          [
+            1463,
+            1087
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north"
+        ]
+      },
+      "after": {
+        "id": "P2_south",
+        "points": [
+          [
+            1347,
+            805
+          ],
+          [
+            1347,
+            1087
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north"
+        ]
+      },
+      "reason": "Mirror corrected P2_north position for south partition",
+      "source_refs": [
+        "1f_view.png: assumed symmetric with P2_north"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P1_north",
+      "P1_south",
+      "H_row1_corridor",
+      "H_corridor_row2"
+    ],
+    "openings": [
+      "D_N1",
+      "D_N2",
+      "D_N3",
+      "D_S1",
+      "D_S2",
+      "D_S3",
+      "D_west_entry",
+      "D_south_entry",
+      "W_N1",
+      "W_N2",
+      "W_N3",
+      "W_S_small",
+      "W_S2",
+      "W_S3",
+      "W_east_corridor"
+    ],
+    "space_seeds": [
+      "N1",
+      "N2",
+      "N3",
+      "corridor",
+      "S1",
+      "S2",
+      "S3"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

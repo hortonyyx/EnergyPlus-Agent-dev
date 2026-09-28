@@ -1,0 +1,237 @@
+{
+  "agent_assumptions": [
+    "South/north row2 (S1-S3) door positions assumed mirrored from row1 due to symmetric plan appearance; not individually pixel-verified.",
+    "Interior door heights assumed 2.1m standard (no plan/elevation dimension found for interior doors).",
+    "Exterior entrance door heights (south, west) assumed 2.7m pending elevation confirmation.",
+    "Partition/door pixel positions read from wall-color detection and zoomed crops; some sub-100mm placement uncertainty remains.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "50b057304652b9e5db79f08398e483c9d67f57ff7bc1f8fa5adf5de97fa6a79a",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "1ab3d587e0a8d1a1379ed405ee4a62363d26721fd0faf258877576fa0b3c42f2",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_003/compilation.json",
+      "compilation_sha256": "c36a45ab59a99d004a842209bbb4d38342a0d23ab02105910a7f98ce1068c205",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_003/draft_view.png",
+        "image_sha256": "e0e40e263a8f16fdb4260c9488019aa993ea113e2208b6f29dfd33ebc53aaae3",
+        "metadata_file": "plan_drafts/draft_003/draft_view.json",
+        "metadata_sha256": "f53f2e96c7013a02fb00b68596936e8598122167e50cd18eeccad697e1c2c08e",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "geometry_feedback": {
+        "ceiling_height_m": 3.0,
+        "drawing_fidelity": "not_evaluated",
+        "file": "plan_drafts/draft_003/geometry_feedback.json",
+        "floor_id": "F1",
+        "footprint_bounds_m": [
+          [
+            0.0,
+            15.0
+          ],
+          [
+            0.0,
+            7.999999999999999
+          ]
+        ],
+        "footprint_span_m": [
+          15.0,
+          7.999999999999999
+        ],
+        "metres_per_pixel": {
+          "x": 0.010737294201861132,
+          "y": 0.0107095046854083
+        },
+        "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+        "opening_count": 15,
+        "opening_dimensions": [
+          {
+            "id": "D_N1",
+            "width_m": 0.9019327129563344,
+            "z_m": [
+              0,
+              2.1
+            ]
+          },
+          {
+            "id": "D_N2",
+            "width_m": 0.8804581245526144,
+            "z_m": [
+              0,
+              2.1
+            ]
+          },
+          {
+            "id": "D_N3",
+            "width_m": 0.7193987115246951,
+            "z_m": [
+              0,
+              2.1
+            ]
+          },
+          {
+            "id": "D_S1",
+            "width_m": 0.9019327129563344,
+            "z_m": [
+              0,
+              2.1
+            ]
+          },
+          {
+            "id": "D_S2",
+            "width_m": 0.8804581245526144,
+            "z_m": [
+              0,
+              2.1
+            ]
+          },
+          {
+            "id": "D_S3",
+            "width_m": 0.7193987115246951,
+            "z_m": [
+              0,
+              2.1
+            ]
+          },
+          {
+            "id": "D_west_entry",
+            "width_m": 1.1994645247657294,
+            "z_m": [
+              0,
+              2.7
+            ]
+          },
+          {
+            "id": "D_south_entry",
+            "width_m": 0.9019327129563344,
+            "z_m": [
+              0,
+              2.7
+            ]
+          },
+          {
+            "id": "W_N1",
+            "width_m": 2.3944166070150317,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          },
+          {
+            "id": "W_N2",
+            "width_m": 2.3944166070150317,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          },
+          {
+            "id": "W_N3",
+            "width_m": 2.4051539012168934,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          },
+          {
+            "id": "W_S_small",
+            "width_m": 0.36506800286327845,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          },
+          {
+            "id": "W_S2",
+            "width_m": 2.3944166070150317,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          },
+          {
+            "id": "W_S3",
+            "width_m": 2.4051539012168934,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          },
+          {
+            "id": "W_east_corridor",
+            "width_m": 1.1994645247657294,
+            "z_m": [
+              1.0,
+              2.6
+            ]
+          }
+        ],
+        "openings_returned": 15,
+        "openings_truncated": false,
+        "sha256": "196deaf58fce20774cc47cb74562854ebcc26c74af26ddb444355fccfdd783c1",
+        "unit": "m",
+        "z_floor_m": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_003/plan.json",
+      "plan_sha256": "22cb4ed0513ac2ca5d81514a2fd91b72e86e67d6f8bf2867050dec428ae02416",
+      "revision": {
+        "file": "plan_revisions/revision_002.json",
+        "parent_draft_id": "draft_002",
+        "parent_plan_sha256": "294c76f72e70e81201fcb598ce43a339d5952f00cbbaca05cee85a79bfe88748",
+        "sha256": "d81bb31b244125345b432e83ea26b29e9343420b70621b63c0a8c2dc62c6b873"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "d84ea1b3a76e95137d640c57d7d61b5c3d4cdfbb99fe8bddd70af8390ce50a57",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact south-row (S1-S3) door jamb pixel positions not independently confirmed against original image; assumed symmetric to north row.",
+    "Interior door and exterior entrance door heights not yet cross-checked against elevation drawings.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

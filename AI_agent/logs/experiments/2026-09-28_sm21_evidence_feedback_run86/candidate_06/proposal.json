@@ -1,0 +1,2828 @@
+{
+  "assumptions": [
+    "South/north row2 (S1-S3) door positions assumed mirrored from row1 due to symmetric plan appearance; not individually pixel-verified.",
+    "Interior door heights assumed 2.1m standard (no plan/elevation dimension found for interior doors).",
+    "Exterior entrance door heights (south, west) assumed 2.7m pending elevation confirmation.",
+    "Partition/door pixel positions read from wall-color detection and zoomed crops; some sub-100mm placement uncertainty remains.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 2.1m (floor+2.1) with no plan/elevation dimension for interior doors on this floor.",
+    "Partition and door jamb pixel positions read from zoomed crops and wall-color detection; sub-100mm placement uncertainty remains.",
+    "South-wall 2F window x-spans taken from South_view.png dimension chain and mapped onto plan pixel coordinates via the shared 15000mm calibration; not independently re-measured in 2f_view.png pixels.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "assumptions": [],
+          "id": "F1:D_south_entry",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            0.536865,
+            8.0
+          ],
+          "p2": [
+            1.438797,
+            8.0
+          ],
+          "source_refs": [
+            "claim_0003",
+            "claim:claim_0003:dfd8cbc4a82c99efcdad5c77e7b1d1661398f1975005af4b08c8c8669161010e"
+          ],
+          "space_id": "F1:S1",
+          "z": [
+            0.0,
+            3.0
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "F1:D_south_entry",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            0.536865,
+            8.0
+          ],
+          "p2": [
+            1.438797,
+            8.0
+          ],
+          "source_refs": [
+            "1f_view.png south dimension chain 540/900mm door span; South_view.png shows glazed entrance door, height assumed with transom to be confirmed against elevation"
+          ],
+          "space_id": "F1:S1",
+          "z": [
+            0.0,
+            2.7
+          ]
+        },
+        "id": "F1:D_south_entry",
+        "operation": "update_opening",
+        "reason": "Correct entrance door height using South_view.png/West_view.png dimension evidence (full 3000mm story height, not assumed 2.7m)",
+        "source_refs": [
+          "claim_0003",
+          "claim:claim_0003:dfd8cbc4a82c99efcdad5c77e7b1d1661398f1975005af4b08c8c8669161010e"
+        ]
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "id": "F1:D_west_entry",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            0.0,
+            3.405622
+          ],
+          "p2": [
+            0.0,
+            4.605087
+          ],
+          "source_refs": [
+            "claim_0003",
+            "claim:claim_0003:dfd8cbc4a82c99efcdad5c77e7b1d1661398f1975005af4b08c8c8669161010e"
+          ],
+          "space_id": "F1:corridor",
+          "z": [
+            0.0,
+            3.0
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "F1:D_west_entry",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            0.0,
+            3.405622
+          ],
+          "p2": [
+            0.0,
+            4.605087
+          ],
+          "source_refs": [
+            "West_view.png: 1F double glazed door, span 3400-4600mm on 8000mm facade chain, height assumed with transom to be confirmed against elevation"
+          ],
+          "space_id": "F1:corridor",
+          "z": [
+            0.0,
+            2.7
+          ]
+        },
+        "id": "F1:D_west_entry",
+        "operation": "update_opening",
+        "reason": "Correct entrance door height using South_view.png/West_view.png dimension evidence (full 3000mm story height, not assumed 2.7m)",
+        "source_refs": [
+          "claim_0003",
+          "claim:claim_0003:dfd8cbc4a82c99efcdad5c77e7b1d1661398f1975005af4b08c8c8669161010e"
+        ]
+      },
+      {
+        "after": [
+          "Exterior entrance door heights (south, west) confirmed at z=[0,3.0] via South_view.png/West_view.png dimension chains. Interior corridor/room door heights (2.1m) remain an explicit assumption; no plan or elevation dimension exists for them."
+        ],
+        "before": "Interior door and exterior entrance door heights not yet cross-checked against elevation drawings.",
+        "field": "unresolved",
+        "operation": "replace_note",
+        "reason": "South_view.png and West_view.png entrance door dimension chains examined and applied; interior door heights remain genuinely unobserved.",
+        "source_refs": [
+          "claim_0003"
+        ]
+      },
+      {
+        "application_id": "application_0001",
+        "bindings": [
+          {
+            "claim_id": "claim_0003",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              0.0,
+              3.0
+            ],
+            "targets": [
+              [
+                "opening",
+                "F1:D_south_entry"
+              ]
+            ],
+            "value_field": "z"
+          },
+          {
+            "claim_id": "claim_0003",
+            "computation": {
+              "basis": "annotation_and_pixels",
+              "method": "explicit_metric_value"
+            },
+            "operation_index": 1,
+            "parameter": "z",
+            "resolved_value": [
+              0.0,
+              3.0
+            ],
+            "targets": [
+              [
+                "opening",
+                "F1:D_west_entry"
+              ]
+            ],
+            "value_field": "z"
+          }
+        ],
+        "claims": {
+          "claim_0003": {
+            "decision": {
+              "claim_id": "claim_0003",
+              "disposition": "adopted",
+              "id": "decision_0003",
+              "reason": "South_view.png and West_view.png both confirm the 1F glazed entrance doors span the full 3000mm story height, not the previously assumed 2.7m."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_04",
+                "objects": [
+                  {
+                    "id": "F1:D_south_entry",
+                    "kind": "opening"
+                  },
+                  {
+                    "id": "F1:D_west_entry",
+                    "kind": "opening"
+                  }
+                ],
+                "observation_mode": "candidate_review",
+                "reason": "South_view.png shows the glazed entrance door (with transom lights) spanning a full 3000mm from ground to the 1F floor-to-floor line (600+900+1500=3000mm chain). West_view.png confirms the same double-door bay spans the full 3000mm 1F story height (two stacked '3000' dimension ticks, ground to floor line). Both exterior 1F entrance doors are therefore full-height glazed frames, z=[0,3.0].",
+                "sources": [
+                  {
+                    "box": [
+                      180.0,
+                      380.0,
+                      420.0,
+                      600.0
+                    ],
+                    "image": "South_view.png"
+                  },
+                  {
+                    "box": [
+                      130.0,
+                      380.0,
+                      380.0,
+                      600.0
+                    ],
+                    "image": "West_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "z": {
+                    "type": "literal",
+                    "unit": "m",
+                    "value": [
+                      0.0,
+                      3.0
+                    ]
+                  }
+                }
+              },
+              "computations": {
+                "z": {
+                  "basis": "annotation_and_pixels",
+                  "method": "explicit_metric_value"
+                }
+              },
+              "id": "claim_0003",
+              "parent_proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7",
+              "resolved_values": {
+                "z": [
+                  0.0,
+                  3.0
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    180.0,
+                    380.0,
+                    420.0,
+                    600.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "size": [
+                    1423,
+                    794
+                  ]
+                },
+                {
+                  "box": [
+                    130.0,
+                    380.0,
+                    380.0,
+                    600.0
+                  ],
+                  "image": "West_view.png",
+                  "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                  "size": [
+                    1077,
+                    773
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "operation": "claim_application",
+        "parent_candidate": "candidate_04",
+        "parent_proposal_sha256": "6feecb31c99eecf6b67f9cdb4799fb5d62e98527ae1c36c3b1c43ee23e2b1ea7"
+      },
+      {
+        "after": {
+          "id": "F1:N1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              5.035791,
+              0.0
+            ],
+            [
+              5.035791,
+              3.073628
+            ],
+            [
+              0.0,
+              3.073628
+            ]
+          ],
+          "role": "office/enclosed",
+          "role_evidence": {
+            "assumptions": [
+              "Desk with 2 chairs suggests individual/shared office"
+            ],
+            "basis": "inferred",
+            "role": "office/enclosed",
+            "source_refs": [
+              "1f_view.png: desk+2 chairs in room N1"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room N1 and N2, north of corridor wall",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+          ],
+          "x": [
+            0.0,
+            5.035791
+          ],
+          "y": [
+            0.0,
+            3.073628
+          ]
+        },
+        "before": {
+          "id": "F1:N1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              5.035791,
+              0.0
+            ],
+            [
+              5.035791,
+              3.073628
+            ],
+            [
+              0.0,
+              3.073628
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room N1 and N2, north of corridor wall",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+          ],
+          "x": [
+            0.0,
+            5.035791
+          ],
+          "y": [
+            0.0,
+            3.073628
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "1f_view.png: desk+2 chairs in room N1"
+        ],
+        "space_id": "F1:N1"
+      },
+      {
+        "after": {
+          "id": "F1:N2",
+          "polygon": [
+            [
+              5.035791,
+              0.0
+            ],
+            [
+              9.953472,
+              0.0
+            ],
+            [
+              9.953472,
+              3.073628
+            ],
+            [
+              5.035791,
+              3.073628
+            ]
+          ],
+          "role": "office/enclosed",
+          "role_evidence": {
+            "assumptions": [
+              "Desk with 2 chairs suggests individual/shared office"
+            ],
+            "basis": "inferred",
+            "role": "office/enclosed",
+            "source_refs": [
+              "1f_view.png: desk+2 chairs in room N2"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room N1 and N2, north of corridor wall",
+            "1f_view.png: vertical partition between room N2 and N3, north of corridor wall",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+          ],
+          "x": [
+            5.035791,
+            9.953472
+          ],
+          "y": [
+            0.0,
+            3.073628
+          ]
+        },
+        "before": {
+          "id": "F1:N2",
+          "polygon": [
+            [
+              5.035791,
+              0.0
+            ],
+            [
+              9.953472,
+              0.0
+            ],
+            [
+              9.953472,
+              3.073628
+            ],
+            [
+              5.035791,
+              3.073628
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room N1 and N2, north of corridor wall",
+            "1f_view.png: vertical partition between room N2 and N3, north of corridor wall",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+          ],
+          "x": [
+            5.035791,
+            9.953472
+          ],
+          "y": [
+            0.0,
+            3.073628
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "1f_view.png: desk+2 chairs in room N2"
+        ],
+        "space_id": "F1:N2"
+      },
+      {
+        "after": {
+          "id": "F1:N3",
+          "polygon": [
+            [
+              9.953472,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              3.073628
+            ],
+            [
+              9.953472,
+              3.073628
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "role_evidence": {
+            "assumptions": [
+              "Round table with 4 chairs suggests meeting use"
+            ],
+            "basis": "inferred",
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "1f_view.png: round table+chairs in room N3"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room N2 and N3, north of corridor wall",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+          ],
+          "x": [
+            9.953472,
+            15.0
+          ],
+          "y": [
+            0.0,
+            3.073628
+          ]
+        },
+        "before": {
+          "id": "F1:N3",
+          "polygon": [
+            [
+              9.953472,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              3.073628
+            ],
+            [
+              9.953472,
+              3.073628
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room N2 and N3, north of corridor wall",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+          ],
+          "x": [
+            9.953472,
+            15.0
+          ],
+          "y": [
+            0.0,
+            3.073628
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "1f_view.png: round table+chairs in room N3"
+        ],
+        "space_id": "F1:N3"
+      },
+      {
+        "after": {
+          "id": "F1:S1",
+          "polygon": [
+            [
+              0.0,
+              4.97992
+            ],
+            [
+              5.035791,
+              4.97992
+            ],
+            [
+              5.035791,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "lobby",
+          "role_evidence": {
+            "assumptions": [
+              "Contains the main south exterior entrance and an L-shaped sofa/seating group, consistent with entry lobby/waiting use"
+            ],
+            "basis": "inferred",
+            "role": "lobby",
+            "source_refs": [
+              "1f_view.png: sofa + main entrance door in room S1"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room S1 and S2, south of corridor wall, assumed aligned with P1_north",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            0.0,
+            5.035791
+          ],
+          "y": [
+            4.97992,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F1:S1",
+          "polygon": [
+            [
+              0.0,
+              4.97992
+            ],
+            [
+              5.035791,
+              4.97992
+            ],
+            [
+              5.035791,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room S1 and S2, south of corridor wall, assumed aligned with P1_north",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            0.0,
+            5.035791
+          ],
+          "y": [
+            4.97992,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture and entrance-location based role assignment",
+        "source_refs": [
+          "1f_view.png: sofa + main entrance door in room S1"
+        ],
+        "space_id": "F1:S1"
+      },
+      {
+        "after": {
+          "id": "F1:S2",
+          "polygon": [
+            [
+              5.035791,
+              4.97992
+            ],
+            [
+              9.953472,
+              4.97992
+            ],
+            [
+              9.953472,
+              8.0
+            ],
+            [
+              5.035791,
+              8.0
+            ]
+          ],
+          "role": "office/enclosed",
+          "role_evidence": {
+            "assumptions": [
+              "L-shaped desk furniture suggests office use"
+            ],
+            "basis": "inferred",
+            "role": "office/enclosed",
+            "source_refs": [
+              "1f_view.png: L-desk in room S2"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room S1 and S2, south of corridor wall, assumed aligned with P1_north",
+            "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            5.035791,
+            9.953472
+          ],
+          "y": [
+            4.97992,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F1:S2",
+          "polygon": [
+            [
+              5.035791,
+              4.97992
+            ],
+            [
+              9.953472,
+              4.97992
+            ],
+            [
+              9.953472,
+              8.0
+            ],
+            [
+              5.035791,
+              8.0
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room S1 and S2, south of corridor wall, assumed aligned with P1_north",
+            "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            5.035791,
+            9.953472
+          ],
+          "y": [
+            4.97992,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "1f_view.png: L-desk in room S2"
+        ],
+        "space_id": "F1:S2"
+      },
+      {
+        "after": {
+          "id": "F1:S3",
+          "polygon": [
+            [
+              9.953472,
+              4.97992
+            ],
+            [
+              15.0,
+              4.97992
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              9.953472,
+              8.0
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "role_evidence": {
+            "assumptions": [
+              "Round table with 4 chairs suggests meeting use"
+            ],
+            "basis": "inferred",
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "1f_view.png: round table+chairs in room S3"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            9.953472,
+            15.0
+          ],
+          "y": [
+            4.97992,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F1:S3",
+          "polygon": [
+            [
+              9.953472,
+              4.97992
+            ],
+            [
+              15.0,
+              4.97992
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              9.953472,
+              8.0
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            9.953472,
+            15.0
+          ],
+          "y": [
+            4.97992,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "1f_view.png: round table+chairs in room S3"
+        ],
+        "space_id": "F1:S3"
+      },
+      {
+        "after": {
+          "id": "F1:corridor",
+          "polygon": [
+            [
+              0.0,
+              3.073628
+            ],
+            [
+              15.0,
+              3.073628
+            ],
+            [
+              15.0,
+              4.97992
+            ],
+            [
+              0.0,
+              4.97992
+            ]
+          ],
+          "role": "corridor",
+          "role_evidence": {
+            "assumptions": [],
+            "basis": "observed",
+            "role": "corridor",
+            "source_refs": [
+              "1f_view.png: continuous open circulation strip"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            3.073628,
+            4.97992
+          ]
+        },
+        "before": {
+          "id": "F1:corridor",
+          "polygon": [
+            [
+              0.0,
+              3.073628
+            ],
+            [
+              15.0,
+              3.073628
+            ],
+            [
+              15.0,
+              4.97992
+            ],
+            [
+              0.0,
+              4.97992
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px",
+            "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            3.073628,
+            4.97992
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Central circulation space connecting all rooms and two exterior entrances",
+        "source_refs": [
+          "1f_view.png: continuous open circulation strip"
+        ],
+        "space_id": "F1:corridor"
+      },
+      {
+        "after": {
+          "id": "F2:T1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              7.245854,
+              0.0
+            ],
+            [
+              7.245854,
+              2.947368
+            ],
+            [
+              0.0,
+              2.947368
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "role_evidence": {
+            "assumptions": [
+              "Large oval table with ~10 chairs suggests meeting use"
+            ],
+            "basis": "inferred",
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "2f_view.png: oval table+chairs in room T1"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall",
+            "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+          ],
+          "x": [
+            0.0,
+            7.245854
+          ],
+          "y": [
+            0.0,
+            2.947368
+          ]
+        },
+        "before": {
+          "id": "F2:T1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              7.245854,
+              0.0
+            ],
+            [
+              7.245854,
+              2.947368
+            ],
+            [
+              0.0,
+              2.947368
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall",
+            "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+          ],
+          "x": [
+            0.0,
+            7.245854
+          ],
+          "y": [
+            0.0,
+            2.947368
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "2f_view.png: oval table+chairs in room T1"
+        ],
+        "space_id": "F2:T1"
+      },
+      {
+        "after": {
+          "id": "F2:T2",
+          "polygon": [
+            [
+              7.245854,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              2.947368
+            ],
+            [
+              7.245854,
+              2.947368
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "role_evidence": {
+            "assumptions": [
+              "Large oval table with ~10 chairs suggests meeting use"
+            ],
+            "basis": "inferred",
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "2f_view.png: oval table+chairs in room T2"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall",
+            "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+          ],
+          "x": [
+            7.245854,
+            15.0
+          ],
+          "y": [
+            0.0,
+            2.947368
+          ]
+        },
+        "before": {
+          "id": "F2:T2",
+          "polygon": [
+            [
+              7.245854,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              2.947368
+            ],
+            [
+              7.245854,
+              2.947368
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall",
+            "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+          ],
+          "x": [
+            7.245854,
+            15.0
+          ],
+          "y": [
+            0.0,
+            2.947368
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "2f_view.png: oval table+chairs in room T2"
+        ],
+        "space_id": "F2:T2"
+      },
+      {
+        "after": {
+          "id": "F2:B1",
+          "polygon": [
+            [
+              0.0,
+              4.955466
+            ],
+            [
+              3.752704,
+              4.955466
+            ],
+            [
+              3.752704,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "office/enclosed",
+          "role_evidence": {
+            "assumptions": [
+              "Desk with 2 chairs suggests office use"
+            ],
+            "basis": "inferred",
+            "role": "office/enclosed",
+            "source_refs": [
+              "2f_view.png: desk+2 chairs in room B1"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+            "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px"
+          ],
+          "x": [
+            0.0,
+            3.752704
+          ],
+          "y": [
+            4.955466,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:B1",
+          "polygon": [
+            [
+              0.0,
+              4.955466
+            ],
+            [
+              3.752704,
+              4.955466
+            ],
+            [
+              3.752704,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+            "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px"
+          ],
+          "x": [
+            0.0,
+            3.752704
+          ],
+          "y": [
+            4.955466,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "2f_view.png: desk+2 chairs in room B1"
+        ],
+        "space_id": "F2:B1"
+      },
+      {
+        "after": {
+          "id": "F2:B2",
+          "polygon": [
+            [
+              3.752704,
+              4.955466
+            ],
+            [
+              11.247296,
+              4.955466
+            ],
+            [
+              11.247296,
+              8.0
+            ],
+            [
+              3.752704,
+              8.0
+            ]
+          ],
+          "role": "office/enclosed",
+          "role_evidence": {
+            "assumptions": [
+              "Two desks with chairs suggest shared office use"
+            ],
+            "basis": "inferred",
+            "role": "office/enclosed",
+            "source_refs": [
+              "2f_view.png: two desks in room B2"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+            "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px",
+            "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+          ],
+          "x": [
+            3.752704,
+            11.247296
+          ],
+          "y": [
+            4.955466,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:B2",
+          "polygon": [
+            [
+              3.752704,
+              4.955466
+            ],
+            [
+              11.247296,
+              4.955466
+            ],
+            [
+              11.247296,
+              8.0
+            ],
+            [
+              3.752704,
+              8.0
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+            "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px",
+            "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+          ],
+          "x": [
+            3.752704,
+            11.247296
+          ],
+          "y": [
+            4.955466,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "2f_view.png: two desks in room B2"
+        ],
+        "space_id": "F2:B2"
+      },
+      {
+        "after": {
+          "id": "F2:B3",
+          "polygon": [
+            [
+              11.247296,
+              4.955466
+            ],
+            [
+              15.0,
+              4.955466
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              11.247296,
+              8.0
+            ]
+          ],
+          "role": "office/enclosed",
+          "role_evidence": {
+            "assumptions": [
+              "Desk with 2 chairs suggests office use"
+            ],
+            "basis": "inferred",
+            "role": "office/enclosed",
+            "source_refs": [
+              "2f_view.png: desk+2 chairs in room B3"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+            "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+          ],
+          "x": [
+            11.247296,
+            15.0
+          ],
+          "y": [
+            4.955466,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:B3",
+          "polygon": [
+            [
+              11.247296,
+              4.955466
+            ],
+            [
+              15.0,
+              4.955466
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              11.247296,
+              8.0
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+            "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+          ],
+          "x": [
+            11.247296,
+            15.0
+          ],
+          "y": [
+            4.955466,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Furniture-based role assignment",
+        "source_refs": [
+          "2f_view.png: desk+2 chairs in room B3"
+        ],
+        "space_id": "F2:B3"
+      },
+      {
+        "after": {
+          "id": "F2:corridor2",
+          "polygon": [
+            [
+              0.0,
+              2.947368
+            ],
+            [
+              15.0,
+              2.947368
+            ],
+            [
+              15.0,
+              4.955466
+            ],
+            [
+              0.0,
+              4.955466
+            ]
+          ],
+          "role": "corridor",
+          "role_evidence": {
+            "assumptions": [],
+            "basis": "observed",
+            "role": "corridor",
+            "source_refs": [
+              "2f_view.png: continuous open circulation strip"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            2.947368,
+            4.955466
+          ]
+        },
+        "before": {
+          "id": "F2:corridor2",
+          "polygon": [
+            [
+              0.0,
+              2.947368
+            ],
+            [
+              15.0,
+              2.947368
+            ],
+            [
+              15.0,
+              4.955466
+            ],
+            [
+              0.0,
+              4.955466
+            ]
+          ],
+          "role": "unknown",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px",
+            "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            2.947368,
+            4.955466
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Central circulation space connecting all rooms and two exterior windows",
+        "source_refs": [
+          "2f_view.png: continuous open circulation strip"
+        ],
+        "space_id": "F2:corridor2"
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "F1:N1",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                5.035791,
+                0.0
+              ],
+              [
+                5.035791,
+                3.073628
+              ],
+              [
+                0.0,
+                3.073628
+              ]
+            ],
+            "role": "office/enclosed",
+            "role_evidence": {
+              "assumptions": [
+                "Desk with 2 chairs suggests individual/shared office"
+              ],
+              "basis": "inferred",
+              "role": "office/enclosed",
+              "source_refs": [
+                "1f_view.png: desk+2 chairs in room N1"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room N1 and N2, north of corridor wall",
+              "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+            ],
+            "x": [
+              0.0,
+              5.035791
+            ],
+            "y": [
+              0.0,
+              3.073628
+            ]
+          },
+          {
+            "id": "F1:N2",
+            "polygon": [
+              [
+                5.035791,
+                0.0
+              ],
+              [
+                9.953472,
+                0.0
+              ],
+              [
+                9.953472,
+                3.073628
+              ],
+              [
+                5.035791,
+                3.073628
+              ]
+            ],
+            "role": "office/enclosed",
+            "role_evidence": {
+              "assumptions": [
+                "Desk with 2 chairs suggests individual/shared office"
+              ],
+              "basis": "inferred",
+              "role": "office/enclosed",
+              "source_refs": [
+                "1f_view.png: desk+2 chairs in room N2"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room N1 and N2, north of corridor wall",
+              "1f_view.png: vertical partition between room N2 and N3, north of corridor wall",
+              "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+            ],
+            "x": [
+              5.035791,
+              9.953472
+            ],
+            "y": [
+              0.0,
+              3.073628
+            ]
+          },
+          {
+            "id": "F1:N3",
+            "polygon": [
+              [
+                9.953472,
+                0.0
+              ],
+              [
+                15.0,
+                0.0
+              ],
+              [
+                15.0,
+                3.073628
+              ],
+              [
+                9.953472,
+                3.073628
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "role_evidence": {
+              "assumptions": [
+                "Round table with 4 chairs suggests meeting use"
+              ],
+              "basis": "inferred",
+              "role": "conference/meeting/multipurpose",
+              "source_refs": [
+                "1f_view.png: round table+chairs in room N3"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room N2 and N3, north of corridor wall",
+              "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px"
+            ],
+            "x": [
+              9.953472,
+              15.0
+            ],
+            "y": [
+              0.0,
+              3.073628
+            ]
+          },
+          {
+            "id": "F1:corridor",
+            "polygon": [
+              [
+                0.0,
+                3.073628
+              ],
+              [
+                15.0,
+                3.073628
+              ],
+              [
+                15.0,
+                4.97992
+              ],
+              [
+                0.0,
+                4.97992
+              ]
+            ],
+            "role": "corridor",
+            "role_evidence": {
+              "assumptions": [],
+              "basis": "observed",
+              "role": "corridor",
+              "source_refs": [
+                "1f_view.png: continuous open circulation strip"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: wall between north offices row and central corridor, gray fill detected ~y627px",
+              "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+            ],
+            "x": [
+              0.0,
+              15.0
+            ],
+            "y": [
+              3.073628,
+              4.97992
+            ]
+          },
+          {
+            "id": "F1:S1",
+            "polygon": [
+              [
+                0.0,
+                4.97992
+              ],
+              [
+                5.035791,
+                4.97992
+              ],
+              [
+                5.035791,
+                8.0
+              ],
+              [
+                0.0,
+                8.0
+              ]
+            ],
+            "role": "lobby",
+            "role_evidence": {
+              "assumptions": [
+                "Contains the main south exterior entrance and an L-shaped sofa/seating group, consistent with entry lobby/waiting use"
+              ],
+              "basis": "inferred",
+              "role": "lobby",
+              "source_refs": [
+                "1f_view.png: sofa + main entrance door in room S1"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room S1 and S2, south of corridor wall, assumed aligned with P1_north",
+              "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+            ],
+            "x": [
+              0.0,
+              5.035791
+            ],
+            "y": [
+              4.97992,
+              8.0
+            ]
+          },
+          {
+            "id": "F1:S2",
+            "polygon": [
+              [
+                5.035791,
+                4.97992
+              ],
+              [
+                9.953472,
+                4.97992
+              ],
+              [
+                9.953472,
+                8.0
+              ],
+              [
+                5.035791,
+                8.0
+              ]
+            ],
+            "role": "office/enclosed",
+            "role_evidence": {
+              "assumptions": [
+                "L-shaped desk furniture suggests office use"
+              ],
+              "basis": "inferred",
+              "role": "office/enclosed",
+              "source_refs": [
+                "1f_view.png: L-desk in room S2"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room S1 and S2, south of corridor wall, assumed aligned with P1_north",
+              "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north",
+              "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+            ],
+            "x": [
+              5.035791,
+              9.953472
+            ],
+            "y": [
+              4.97992,
+              8.0
+            ]
+          },
+          {
+            "id": "F1:S3",
+            "polygon": [
+              [
+                9.953472,
+                4.97992
+              ],
+              [
+                15.0,
+                4.97992
+              ],
+              [
+                15.0,
+                8.0
+              ],
+              [
+                9.953472,
+                8.0
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "role_evidence": {
+              "assumptions": [
+                "Round table with 4 chairs suggests meeting use"
+              ],
+              "basis": "inferred",
+              "role": "conference/meeting/multipurpose",
+              "source_refs": [
+                "1f_view.png: round table+chairs in room S3"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical partition between room S2 and S3, south of corridor wall, assumed aligned with P2_north",
+              "1f_view.png: wall between central corridor and south offices row, gray fill detected ~y805px"
+            ],
+            "x": [
+              9.953472,
+              15.0
+            ],
+            "y": [
+              4.97992,
+              8.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ]
+        },
+        "name": "F1",
+        "z_floor": 0.0
+      },
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "id": "F2:T1",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                7.245854,
+                0.0
+              ],
+              [
+                7.245854,
+                2.947368
+              ],
+              [
+                0.0,
+                2.947368
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "role_evidence": {
+              "assumptions": [
+                "Large oval table with ~10 chairs suggests meeting use"
+              ],
+              "basis": "inferred",
+              "role": "conference/meeting/multipurpose",
+              "source_refs": [
+                "2f_view.png: oval table+chairs in room T1"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall",
+              "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+            ],
+            "x": [
+              0.0,
+              7.245854
+            ],
+            "y": [
+              0.0,
+              2.947368
+            ]
+          },
+          {
+            "id": "F2:T2",
+            "polygon": [
+              [
+                7.245854,
+                0.0
+              ],
+              [
+                15.0,
+                0.0
+              ],
+              [
+                15.0,
+                2.947368
+              ],
+              [
+                7.245854,
+                2.947368
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "role_evidence": {
+              "assumptions": [
+                "Large oval table with ~10 chairs suggests meeting use"
+              ],
+              "basis": "inferred",
+              "role": "conference/meeting/multipurpose",
+              "source_refs": [
+                "2f_view.png: oval table+chairs in room T2"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall",
+              "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+            ],
+            "x": [
+              7.245854,
+              15.0
+            ],
+            "y": [
+              0.0,
+              2.947368
+            ]
+          },
+          {
+            "id": "F2:corridor2",
+            "polygon": [
+              [
+                0.0,
+                2.947368
+              ],
+              [
+                15.0,
+                2.947368
+              ],
+              [
+                15.0,
+                4.955466
+              ],
+              [
+                0.0,
+                4.955466
+              ]
+            ],
+            "role": "corridor",
+            "role_evidence": {
+              "assumptions": [],
+              "basis": "observed",
+              "role": "corridor",
+              "source_refs": [
+                "2f_view.png: continuous open circulation strip"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px",
+              "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px"
+            ],
+            "x": [
+              0.0,
+              15.0
+            ],
+            "y": [
+              2.947368,
+              4.955466
+            ]
+          },
+          {
+            "id": "F2:B1",
+            "polygon": [
+              [
+                0.0,
+                4.955466
+              ],
+              [
+                3.752704,
+                4.955466
+              ],
+              [
+                3.752704,
+                8.0
+              ],
+              [
+                0.0,
+                8.0
+              ]
+            ],
+            "role": "office/enclosed",
+            "role_evidence": {
+              "assumptions": [
+                "Desk with 2 chairs suggests office use"
+              ],
+              "basis": "inferred",
+              "role": "office/enclosed",
+              "source_refs": [
+                "2f_view.png: desk+2 chairs in room B1"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+              "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px"
+            ],
+            "x": [
+              0.0,
+              3.752704
+            ],
+            "y": [
+              4.955466,
+              8.0
+            ]
+          },
+          {
+            "id": "F2:B2",
+            "polygon": [
+              [
+                3.752704,
+                4.955466
+              ],
+              [
+                11.247296,
+                4.955466
+              ],
+              [
+                11.247296,
+                8.0
+              ],
+              [
+                3.752704,
+                8.0
+              ]
+            ],
+            "role": "office/enclosed",
+            "role_evidence": {
+              "assumptions": [
+                "Two desks with chairs suggest shared office use"
+              ],
+              "basis": "inferred",
+              "role": "office/enclosed",
+              "source_refs": [
+                "2f_view.png: two desks in room B2"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+              "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px",
+              "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+            ],
+            "x": [
+              3.752704,
+              11.247296
+            ],
+            "y": [
+              4.955466,
+              8.0
+            ]
+          },
+          {
+            "id": "F2:B3",
+            "polygon": [
+              [
+                11.247296,
+                4.955466
+              ],
+              [
+                15.0,
+                4.955466
+              ],
+              [
+                15.0,
+                8.0
+              ],
+              [
+                11.247296,
+                8.0
+              ]
+            ],
+            "role": "office/enclosed",
+            "role_evidence": {
+              "assumptions": [
+                "Desk with 2 chairs suggests office use"
+              ],
+              "basis": "inferred",
+              "role": "office/enclosed",
+              "source_refs": [
+                "2f_view.png: desk+2 chairs in room B3"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px",
+              "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+            ],
+            "x": [
+              11.247296,
+              15.0
+            ],
+            "y": [
+              4.955466,
+              8.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ]
+        },
+        "name": "F2",
+        "z_floor": 3.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      15.0
+    ],
+    "footprint_y": [
+      0.0,
+      8.0
+    ],
+    "notes": "Deterministic assembly of explicit single-floor plan proposals.\nFloor 'F1' from 'F1'; source_ref=\"Ground floor plan (1f_view.png); z_floor=0 as building base, matching 1F drawing's own coordinate origin.\"; source z_floor=0.0, target z_floor=0.0; note='Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.'\nFloor 'F2' from 'F2'; source_ref='Second floor plan (2f_view.png); z_floor=3.0m matches North/South/East/West elevation 1F story height (3000mm) placing 2F floor level at 3.0m absolute.'; source z_floor=3.0, target z_floor=3.0; note='Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.'",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "F1:D_N1",
+        "kind": "door",
+        "other_space_id": "F1:corridor",
+        "p1": [
+          3.897638,
+          3.073628
+        ],
+        "p2": [
+          4.799571,
+          3.073628
+        ],
+        "source_refs": [
+          "1f_view.png: door arc near west jamb of P1 partition, room N1 into corridor; height assumed standard"
+        ],
+        "space_id": "F1:N1",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_N2",
+        "kind": "door",
+        "other_space_id": "F1:corridor",
+        "p1": [
+          5.314961,
+          3.073628
+        ],
+        "p2": [
+          6.195419,
+          3.073628
+        ],
+        "source_refs": [
+          "1f_view.png: door arc near east jamb of P1 partition, room N2 into corridor; height assumed standard"
+        ],
+        "space_id": "F1:N2",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_N3",
+        "kind": "door",
+        "other_space_id": "F1:corridor",
+        "p1": [
+          10.393701,
+          3.073628
+        ],
+        "p2": [
+          11.113099,
+          3.073628
+        ],
+        "source_refs": [
+          "1f_view.png: door arc near P2 partition, room N3 into corridor; height assumed standard"
+        ],
+        "space_id": "F1:N3",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_S1",
+        "kind": "door",
+        "other_space_id": "F1:corridor",
+        "p1": [
+          3.897638,
+          4.97992
+        ],
+        "p2": [
+          4.799571,
+          4.97992
+        ],
+        "source_refs": [
+          "1f_view.png: assumed mirrored door room S1 into corridor, symmetric with D_N1; unconfirmed exact jamb pixels"
+        ],
+        "space_id": "F1:S1",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_S2",
+        "kind": "door",
+        "other_space_id": "F1:corridor",
+        "p1": [
+          5.314961,
+          4.97992
+        ],
+        "p2": [
+          6.195419,
+          4.97992
+        ],
+        "source_refs": [
+          "1f_view.png: assumed mirrored door room S2 into corridor, symmetric with D_N2; unconfirmed exact jamb pixels"
+        ],
+        "space_id": "F1:S2",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_S3",
+        "kind": "door",
+        "other_space_id": "F1:corridor",
+        "p1": [
+          10.393701,
+          4.97992
+        ],
+        "p2": [
+          11.113099,
+          4.97992
+        ],
+        "source_refs": [
+          "1f_view.png: assumed mirrored door room S3 into corridor, symmetric with D_N3; unconfirmed exact jamb pixels"
+        ],
+        "space_id": "F1:S3",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_west_entry",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          3.405622
+        ],
+        "p2": [
+          0.0,
+          4.605087
+        ],
+        "source_refs": [
+          "claim_0003",
+          "claim:claim_0003:dfd8cbc4a82c99efcdad5c77e7b1d1661398f1975005af4b08c8c8669161010e"
+        ],
+        "space_id": "F1:corridor",
+        "z": [
+          0.0,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_south_entry",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.536865,
+          8.0
+        ],
+        "p2": [
+          1.438797,
+          8.0
+        ],
+        "source_refs": [
+          "claim_0003",
+          "claim:claim_0003:dfd8cbc4a82c99efcdad5c77e7b1d1661398f1975005af4b08c8c8669161010e"
+        ],
+        "space_id": "F1:S1",
+        "z": [
+          0.0,
+          3.0
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F2:D_T1",
+        "kind": "door",
+        "other_space_id": "F2:corridor2",
+        "p1": [
+          6.218457,
+          2.947368
+        ],
+        "p2": [
+          7.105263,
+          2.947368
+        ],
+        "source_refs": [
+          "2f_view.png crop: door arc west of center partition, room T1 into corridor; height assumed standard"
+        ],
+        "space_id": "F2:T1",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F2:D_T2",
+        "kind": "door",
+        "other_space_id": "F2:corridor2",
+        "p1": [
+          7.905552,
+          2.947368
+        ],
+        "p2": [
+          8.749099,
+          2.947368
+        ],
+        "source_refs": [
+          "2f_view.png crop: door arc east of center partition, room T2 into corridor; height assumed standard"
+        ],
+        "space_id": "F2:T2",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F2:D_B1",
+        "kind": "door",
+        "other_space_id": "F2:corridor2",
+        "p1": [
+          2.41168,
+          4.955466
+        ],
+        "p2": [
+          3.709445,
+          4.955466
+        ],
+        "source_refs": [
+          "2f_view.png crop [600,760,900,900]: door arc west of partition1, room B1 into corridor; height assumed standard"
+        ],
+        "space_id": "F2:B1",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F2:D_B2w",
+        "kind": "door",
+        "other_space_id": "F2:corridor2",
+        "p1": [
+          4.142033,
+          4.955466
+        ],
+        "p2": [
+          5.00721,
+          4.955466
+        ],
+        "source_refs": [
+          "2f_view.png crop [600,760,900,900]: door arc east of partition1, room B2 west door into corridor; height assumed standard"
+        ],
+        "space_id": "F2:B2",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F2:D_B2e",
+        "kind": "door",
+        "other_space_id": "F2:corridor2",
+        "p1": [
+          9.657534,
+          4.955466
+        ],
+        "p2": [
+          10.522711,
+          4.955466
+        ],
+        "source_refs": [
+          "2f_view.png crop [1300,760,1600,900]: door arc west of partition2, room B2 east door into corridor; height assumed standard"
+        ],
+        "space_id": "F2:B2",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F2:D_B3",
+        "kind": "door",
+        "other_space_id": "F2:corridor2",
+        "p1": [
+          11.604182,
+          4.955466
+        ],
+        "p2": [
+          12.469358,
+          4.955466
+        ],
+        "source_refs": [
+          "2f_view.png crop [1300,760,1600,900]: door arc east of partition2, room B3 into corridor; height assumed standard"
+        ],
+        "space_id": "F2:B3",
+        "z": [
+          3.0,
+          5.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "F1:W_N1",
+        "kind": "window",
+        "p1": [
+          1.245526,
+          0.0
+        ],
+        "p2": [
+          3.639943,
+          0.0
+        ],
+        "room": "F1:N1",
+        "source_refs": [
+          "1f_view.png north chain 1240-3640mm; North_view.png window sill/height family"
+        ],
+        "span": [
+          1.245526,
+          3.639943
+        ],
+        "width_m": 2.394417,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "F1:W_N2",
+        "kind": "window",
+        "p1": [
+          6.420902,
+          0.0
+        ],
+        "p2": [
+          8.815319,
+          0.0
+        ],
+        "room": "F1:N2",
+        "source_refs": [
+          "1f_view.png north chain 6420-8820mm; North_view.png window family"
+        ],
+        "span": [
+          6.420902,
+          8.815319
+        ],
+        "width_m": 2.394417,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "F1:W_N3",
+        "kind": "window",
+        "p1": [
+          11.360057,
+          0.0
+        ],
+        "p2": [
+          13.765211,
+          0.0
+        ],
+        "room": "F1:N3",
+        "source_refs": [
+          "1f_view.png north chain 11360-13760mm; North_view.png window family"
+        ],
+        "span": [
+          11.360057,
+          13.765211
+        ],
+        "width_m": 2.405154,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_S_small",
+        "kind": "window",
+        "p1": [
+          4.638511,
+          8.0
+        ],
+        "p2": [
+          5.003579,
+          8.0
+        ],
+        "room": "F1:S1",
+        "source_refs": [
+          "1f_view.png south chain 4640-5000mm small window; South_view.png small window graphic"
+        ],
+        "span": [
+          4.638511,
+          5.003579
+        ],
+        "width_m": 0.365068,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_S2",
+        "kind": "window",
+        "p1": [
+          6.302792,
+          8.0
+        ],
+        "p2": [
+          8.697208,
+          8.0
+        ],
+        "room": "F1:S2",
+        "source_refs": [
+          "1f_view.png south chain 6300-8700mm; South_view.png window family"
+        ],
+        "span": [
+          6.302792,
+          8.697208
+        ],
+        "width_m": 2.394416,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_S3",
+        "kind": "window",
+        "p1": [
+          11.360057,
+          8.0
+        ],
+        "p2": [
+          13.765211,
+          8.0
+        ],
+        "room": "F1:S3",
+        "source_refs": [
+          "1f_view.png south chain 11360-13760mm; South_view.png window family"
+        ],
+        "span": [
+          11.360057,
+          13.765211
+        ],
+        "width_m": 2.405154,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "F1:W_east_corridor",
+        "kind": "window",
+        "p1": [
+          15.0,
+          3.405622
+        ],
+        "p2": [
+          15.0,
+          4.605087
+        ],
+        "room": "F1:corridor",
+        "source_refs": [
+          "East_view.png: 1F window span 3400-4600mm on 8000mm facade chain, matching corridor depth"
+        ],
+        "span": [
+          3.405622,
+          4.605087
+        ],
+        "width_m": 1.199465,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F2",
+        "id": "F2:W_east_corridor",
+        "kind": "window",
+        "p1": [
+          15.0,
+          3.40081
+        ],
+        "p2": [
+          15.0,
+          4.59919
+        ],
+        "room": "F2:corridor2",
+        "source_refs": [
+          "East_view.png: 2F window span 3400-4600mm on 8000mm facade chain, matching corridor depth"
+        ],
+        "span": [
+          3.40081,
+          4.59919
+        ],
+        "width_m": 1.19838,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F2",
+        "id": "F2:W_west_corridor",
+        "kind": "window",
+        "p1": [
+          0.0,
+          3.40081
+        ],
+        "p2": [
+          0.0,
+          4.59919
+        ],
+        "room": "F2:corridor2",
+        "source_refs": [
+          "West_view.png: 2F window span 3400-4600mm on 8000mm facade chain, matching corridor depth"
+        ],
+        "span": [
+          3.40081,
+          4.59919
+        ],
+        "width_m": 1.19838,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F2",
+        "id": "F2:W_T1",
+        "kind": "window",
+        "p1": [
+          1.946647,
+          0.0
+        ],
+        "p2": [
+          5.547945,
+          0.0
+        ],
+        "room": "F2:T1",
+        "source_refs": [
+          "2f_view.png north chain 1950-5550mm; North_view.png 2F window family"
+        ],
+        "span": [
+          1.946647,
+          5.547945
+        ],
+        "width_m": 3.601298,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F2",
+        "id": "F2:W_T2",
+        "kind": "window",
+        "p1": [
+          9.333093,
+          0.0
+        ],
+        "p2": [
+          12.934391,
+          0.0
+        ],
+        "room": "F2:T2",
+        "source_refs": [
+          "2f_view.png north chain 9330-12930mm; North_view.png 2F window family"
+        ],
+        "span": [
+          9.333093,
+          12.934391
+        ],
+        "width_m": 3.601298,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W_S1",
+        "kind": "window",
+        "p1": [
+          2.195386,
+          8.0
+        ],
+        "p2": [
+          3.395818,
+          8.0
+        ],
+        "room": "F2:B1",
+        "source_refs": [
+          "South_view.png top chain 2190-3390mm; 2F small window pair"
+        ],
+        "span": [
+          2.195386,
+          3.395818
+        ],
+        "width_m": 1.200432,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W_S2",
+        "kind": "window",
+        "p1": [
+          4.109589,
+          8.0
+        ],
+        "p2": [
+          5.310022,
+          8.0
+        ],
+        "room": "F2:B2",
+        "source_refs": [
+          "South_view.png top chain 4110-5310mm; 2F small window pair"
+        ],
+        "span": [
+          4.109589,
+          5.310022
+        ],
+        "width_m": 1.200433,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W_S3",
+        "kind": "window",
+        "p1": [
+          9.689978,
+          8.0
+        ],
+        "p2": [
+          10.890411,
+          8.0
+        ],
+        "room": "F2:B2",
+        "source_refs": [
+          "South_view.png top chain 9690-10890mm; 2F small window pair"
+        ],
+        "span": [
+          9.689978,
+          10.890411
+        ],
+        "width_m": 1.200433,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W_S4",
+        "kind": "window",
+        "p1": [
+          11.614996,
+          8.0
+        ],
+        "p2": [
+          12.815429,
+          8.0
+        ],
+        "room": "F2:B3",
+        "source_refs": [
+          "South_view.png top chain 11610-12810mm; 2F small window pair"
+        ],
+        "span": [
+          11.614996,
+          12.815429
+        ],
+        "width_m": 1.200433,
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact south-row (S1-S3) door jamb pixel positions not independently confirmed against original image; assumed symmetric to north row.",
+    "Exterior entrance door heights (south, west) confirmed at z=[0,3.0] via South_view.png/West_view.png dimension chains. Interior corridor/room door heights (2.1m) remain an explicit assumption; no plan or elevation dimension exists for them.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact vertical extent/thickness of the P_top vestibule (two close parallel lines) simplified to a single centerline; possible small storage nook there not modeled.",
+    "Bottom-row window count/positions (WS1-WS4) rely on South_view.png dimension chain rather than direct 2f_view.png pixel measurement; not cross-checked against 2f_view.png window graphics pixel-by-pixel.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

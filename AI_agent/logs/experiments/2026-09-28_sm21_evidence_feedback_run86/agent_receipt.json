@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1189.87,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1104043,
+    "stop_reason": "end_turn",
+    "session_id": "9cf46719-424a-41cc-91cc-1f2b5f4f42ac",
+    "total_cost_usd": 4.0171242,
+    "usage": {
+      "input_tokens": 88,
+      "cache_creation_input_tokens": 367702,
+      "cache_read_input_tokens": 8074701,
+      "output_tokens": 93120,
+      "output_tokens_details": {
+        "thinking_tokens": 72645
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 367702,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1020,
+          "cache_read_input_tokens": 362980,
+          "cache_creation_input_tokens": 4722,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4722
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 88,
+        "outputTokens": 93120,
+        "cacheReadInputTokens": 8074701,
+        "cacheCreationInputTokens": 367702,
+        "webSearchRequests": 0,
+        "costUSD": 4.0171242,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 72645,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 58,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "candidate_06 delivered successfully as the final whole-building BIM.\n\n## Summary\n\nI reconstructed a two-storey office building (15.0 m × 8.0 m footprint, F1 z=0–3.0m, F2 z=3.0–6.6m) from the six supplied original drawings (1F plan, 2F plan, North/South/East/West elevations), using **candidate_06** as the delivered BIM.\n\n**Method:**\n- Calibrated pixel↔metre scale on each plan from its own \"15000\"/\"8000\" dimension-line arrow endpoints (verified against outer-wall pixel-color detection).\n- Traced physical partitions and doors from wall-color regions (`view_pixel_region_overview`) plus zoomed crops of door-arc/jamb graphics, building each floor with `build_plan_bim`/`revise_plan_bim`, then combined via `assemble_plan_bim`.\n- F1: 3 north offices + 3 south rooms (incl. round-table meeting rooms) around a central corridor, with a south main entrance and a separate west corridor entrance.\n- F2: 2 large meeting rooms (oval tables) + 3 offices (one double-wide) around a second corridor, with corridor windows on east/west.\n- Sampled same/separate-space relations against the originals via `check_source_space_relation` — all consistent.\n- Recorded and applied image-linked height claims: 1F windows z=[1.0,2.6] and 2F windows z=[4.0,5.8] from the North elevation's vertical dimension chain (15/15 windows now image-linked); corrected both 1F exterior entrance doors from an assumed 2.7 m to the evidenced full-height 3.0 m using South/West elevation dimension chains.\n- Assigned room roles (office/enclosed, conference/meeting/multipurpose, lobby, corridor) from furniture/context, all recorded as `inferred` or `observed` evidence.\n\n**Honest limitations (kept in the saved BIM's unresolved/assumptions):**\n- South-row (S1–S3) door jamb positions on F1 were assumed mirrored from the north row rather than each individually pixel-verified (one spot-check confirmed the pattern).\n- The 6 interior corridor↔room doors on each floor (12 total) remain at an assumed 2.1 m height — no plan/elevation dimension exists for them; this is explicit and unlinked in `height_coverage`.\n- 2F bottom-row window positions were taken from the South elevation's dimension chain rather than independently re-measured in 2f_view.png pixels.\n- The small double-line \"vestibule\" between the two 2F meeting rooms was simplified to a single partition centerline.\n- Pixel-to-world calibration is caller-supplied (from the drawings' own dimension arrows), not independently re-derived by a second method.\n\nfinish_bim(candidate_06) was called and recorded these checks; drawing fidelity remains \"not_evaluated\" per tool policy — this reflects self-consistency and sampled-evidence checks, not a certified match to the original drawings.",
+    "ttft_ms": 5895,
+    "type": "result",
+    "duration_ms": 1183251,
+    "uuid": "4d3cfe82-b1fc-4ce1-a5b9-47ce19c873bb",
+    "ttft_stream_ms": 5175,
+    "time_to_request_ms": 95,
+    "first_content_frame_ms": 5175,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

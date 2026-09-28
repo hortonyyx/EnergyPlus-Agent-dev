@@ -1,0 +1,796 @@
+{
+  "references": [
+    {
+      "topic": "plan_partition",
+      "returned_reference": "build_plan_bim(image, plan_json) compiles the following JSON string.\nThis synthetic example is unrelated to the supplied drawing:\n{\"floor_id\":\"F1\",\"z_floor\":0,\"ceiling_height\":3,\n\"x_anchors\":[[1,0],[11,6]],\"y_anchors\":[[1,4],[7,0]],\n\"basis\":\"synthetic example calibration and representative wall planes\",\n\"footprint_pixels\":[[1,1],[11,1],[11,7],[1,7]],\n\"partitions\":[{\"id\":\"wall-A\",\"points\":[[6,1],[6,7]],\n\"source_refs\":[\"plan.png: physical divider, continued through its door aperture\"]}],\n\"openings\":[{\"id\":\"D1\",\"kind\":\"door\",\"p1\":[6,3],\"p2\":[6,4.5],\n\"z\":[0,2.1],\"source_refs\":[\"plan.png: observed door; height assumed\"]},\n{\"id\":\"W1\",\"kind\":\"window\",\"p1\":[1,2],\"p2\":[1,3],\n\"z\":[1,2],\"source_refs\":[\"plan.png: observed exterior window; heights assumed\"]}],\n\"space_seeds\":[{\"id\":\"left\",\"point\":[3,4],\"role\":\"office\"}],\n\"assumptions\":[\"Synthetic dimensions/heights only\"],\"unresolved\":[]}\nAll plan points use ORIGINAL image pixels. x/y anchors each contain two\n[pixel_coordinate, world_metres] pairs; both anchors must lie in the image.\nPixel coordinates may also reference a saved view_pixel_profile candidate:\n{\"profile\":\"profile_001\",\"candidate\":\"C02\",\"at\":\"peak\"} (start/end also work).\nFor an explicitly chosen midplane between two measured faces, use\n{\"midpoint\":[{\"profile\":\"profile_001\",\"candidate\":\"C02\"},\n             {\"profile\":\"profile_001\",\"candidate\":\"C03\"}]}.\nReferences work in x/y anchor pixels, footprint/partition points, opening p1/p2,\nand seed points, including local revisions. They must match the original image\nand coordinate axis. Identify the physical object and representative plane from\nthe original before selecting candidates; ink bands are not wall labels. Reuse\nthe same selected coordinate at touching wall/opening endpoints. World length\nslots (anchor second values, z_floor, ceiling_height, opening z) accept either\nnumbers IN METRES or explicit {\"value\":15000,\"unit\":\"mm\"} quantities (m/cm/mm).\nUnits apply per value, never to pixels; code converts tagged lengths to metres.\nThe submitted references/quantities, numeric compiled plan and exact\nbindings are saved separately; numeric-only declarations keep their old format.\ngeometry_feedback returns effective footprint bounds/spans, metres per pixel\nand opening dimensions, including failed host drafts. Check these against the\noriginal annotations; there is no guessed unit correction or absolute size gate.\nKeep calibration and geometry in the SAME coordinate frame. Identify each\nrepresentative plane: the perimeter may use observed outer faces while internal\ndividers use measured midplanes. Document that choice; do not confuse a face\ndimension with a centreline dimension or apply an unobserved half-thickness.\nWorld z is absolute. basis explains observed dimensions and reference planes.\nCurrent scope: ONE floor, simple orthogonal outer footprint without holes,\northogonal partitions; footprint and rooms may be nonrectangular. Trace every\nouter turn, including recesses; never fill the bounding rectangle or add walls\nto split a continuous space into boxes. Windows on recessed exterior edges are\nsupported; code derives their outward direction from the calibrated outer ring.\nNonorthogonal rings, holes and ambiguous hosts explicitly fail.\npartitions are complete physical divider paths, including bends and continuation\nthrough a door aperture. Put the aperture separately in openings. Shared path\nendpoints must coincide explicitly. The compiler will not extend, snap or bridge\npaths; revise coordinates only with evidence and record any regularization.\nEvery enclosed face becomes one space. No room count is supplied or enforced.\nAn open passage still leaves two faces and two spaces, even at full ceiling height.\nUse it for an evidenced opening in a real separating wall. A corridor bend or\ncontinuation without a physical separator belongs to ONE face: do not draw a\nclosing line there just to host a passage. To repair an overextended partition,\nupdate its points to one real wall portion and add the other real portions as\nseparate paths with coincident actual junctions. Remove any invented opening on\nthe removed portion in the SAME revision. The compiler then derives the merged\nspace and its actual opening hosts; do not manually recreate every room polygon.\nOptional space_seeds assign IDs/roles to containing faces; every unseeded face is\nretained with a stable derived ID and unknown role. Seeds are points INSIDE rooms,\nnot wall points. Two seeds in one face fail rather than inventing a divider.\nThe whole opening segment must belong to exactly one exterior host or two\ninterior hosts. A door spanning a wall junction fails; no width is clipped.\nkind is window, door or open. Only exterior facade windows are supported here;\ndoors/open passages may connect rooms or outdoors. Door state defaults unknown;\nits optional state is unknown/open/closed. For open passages state is open or\nomitted; window state is not supported. Preserve IDs, source_refs and assumptions.\nEmpty openings or incomplete observed coverage is allowed ONLY as an explicit\npartial draft: record unexamined views and omissions in unresolved. A partial\ndraft does not establish room completeness or drawing fidelity.\nThe raw declaration and deterministic mapping are retained in plan_drafts.\nLocal revision: inspect_plan_draft('draft_NNN') returns declaration and plan_sha256;\nuse 'resume' for an explicitly supplied saved pixel plan. Pass that hash as\nexpected_plan_sha256 to revise_plan_bim(draft_id, expected_plan_sha256,\noperations_json). operations_json is a list of 1-100 operations. Each needs\nreason and nonempty source_refs, plus:\n- update: collection, id, changes (nonempty fields, no id).\n- add: collection, value (complete new row with a new id).\n- remove: collection, id.\n- set: field, value (top-level scalar/array fields except floor_id and collections).\nCollections are partitions, openings, space_seeds; edit each row/field once per\nbatch. Example operation on the synthetic declaration above:\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D1\",\"changes\":{\"z\":[0,2.2]},\n\"reason\":\"explicit revised height assumption\",\"source_refs\":[\"height assumed\"]}\nThe revision response includes geometry_changes: resolved opening endpoints,\nwidths and heights before/after, including indirect changes from calibration.\nThe full file is retained if the response is truncated. Untouched declarations\nremain exact; changed topology may change derived rooms\nand hosts. Every revision saves a NEW full draft and runs the same compiler and\nsource/overlay feedback. Failed compilation preserves its draft and error; it does\nnot invalidate the parent. Removing a divider may require removing a redundant\nspace seed if both points now occupy the same actual space. Resolve that from the\noriginal; never delete unrelated physical partitions just to clear seed errors.\nOn compilation failure, the original error is retained and a draft-only overlay\nshows the submitted footprint, partition IDs and aperture endpoints. Unrenderable\nitems are listed explicitly. This is not a source BIM or a claim of room validity;\ncompare the whole declared wall path with the original before changing it.\nSuccessful source export returns its actual plan and original overlay; anchors\nare registered for later revise_bim. Inspect the images before claiming accuracy.\nExisting candidates can be revised with revise_bim; this compiler creates a fresh\nsingle-floor candidate, so do not use it to silently discard other floors.\nFor several distinct plans, use assemble_plan_bim after reviewing each draft;\nread plan_assembly. It retains each plan and places it at an explicit base level.\n"
+    },
+    {
+      "topic": "plan_assembly",
+      "returned_reference": "Combine distinct saved pixel-plan drafts into one building:\nassemble_plan_bim(floors_json) takes a JSON list of 2–32 explicit items:\n[{\"draft_id\":\"draft_001\",\"expected_plan_sha256\":\"<from inspect_plan_draft>\",\n  \"floor_id\":\"F1\",\"z_floor\":0,\"evidence\":\"original elevation base annotation\"},\n {\"draft_id\":\"draft_002\",\"expected_plan_sha256\":\"<from inspect_plan_draft>\",\n  \"floor_id\":\"F2\",\"z_floor\":3,\"evidence\":\"original elevation storey annotation\"}].\nUse inspect_plan_draft for the exact hash; an explicitly supplied resume plan is\nalso admitted as draft_id=resume. Every listed draft is recompiled against its\nbound original image. IDs become floor_id:original_id, including opening hosts.\nXY, partitions, aperture dimensions and ceiling_height stay unchanged. Only\nfloor base and every absolute opening z move by the same declared difference.\nEstablish a common XY origin and direction from each plan's evidence BEFORE\nassembly; this tool does not align plans. Distinct upstairs partitions/openings\nmust come from that floor's own drawing, not an unexamined downstairs copy.\nTo change a layer's height first use revise_plan_bim set ceiling_height; opening\nz pairs must still fit and need separate, justified edits if they change. An\nupper draft can already use its final absolute z, or use local z with base zero;\nnever add the floor base twice. Heights/evidence are caller declarations, not\nverified image truth. Use elevation annotations, original crops and measurement\ntools to match floor identity and opening height families, then inspect actual\nsource elevations and plan overlays. Report any unobserved internal door height\nas an explicit assumption. Assembly does not infer stairs, merge vertical spaces,\nor create vertical connections. For genuinely continuous spaces use the shared\ngeometry representation explicitly instead of stacking rooms with false slabs.\nInclude ALL intended floors when reassembling revised drafts. New assembly\nrebuilds from those drafts and does not carry later candidate-only edits. Treat\neach assembly as a new candidate; recheck the final source, not old sample results.\n"
+    },
+    {
+      "topic": "geometry",
+      "returned_reference": "Geometry adapter input is a JSON string containing:\n{\"geometry\":{\"schema_version\":\"2\",\"footprint_x\":[0,6],\"footprint_y\":[0,4],\n\"floors\":[{\"name\":\"F1\",\"z_floor\":0,\"ceiling_height\":3,\"cells\":[\n{\"id\":\"F1_left\",\"role\":\"office\",\"x\":[0,3],\"y\":[0,4]},\n{\"id\":\"F1_right\",\"role\":\"corridor\",\"x\":[3,6],\"y\":[0,4]}]}],\n\"windows\":[{\"id\":\"W1\",\"floor\":\"F1\",\"facade\":\"West\",\"span\":[1,2],\n\"z\":[1,2],\"room\":\"F1_left\"}],\n\"openings\":[{\"id\":\"D1\",\"kind\":\"door\",\"space_id\":\"F1_left\",\n\"other_space_id\":\"F1_right\",\"p1\":[3,1],\"p2\":[3,2],\"z\":[0,2.1],\n\"state\":\"unknown\",\"source_refs\":[\"plan: visible door\"],\"assumptions\":[]}]},\n\"assumptions\":[\"Example only, not this building\"],\"unresolved\":[]}\nUnits are metres; x right/east, y up/north, z world absolute height. Window\nspan uses x on North/South and y on East/West. Doors use two plan endpoints\nexactly on the shared wall; other_space_id=null means outdoors. Heights are\nabsolute also on upper floors. Door state is unknown unless evidenced.\nNonrectangular rooms use polygon:[[x,y],...] (CCW, unclosed, orthogonal) and\nx/y bounding intervals. These rooms must stay intact. Rooms cover each floor\nwithout gaps/overlap: use an explicitly declared representative wall plane to\nabstract thickness. Do not add fake interior walls or floor void closures.\nKeep source_refs on cells/windows when available and list assumptions clearly.\nThe current tool supports orthogonal floors; explicitly report unsupported\ngeometry. The example numbers/counts are unrelated to the supplied drawings.\n"
+    },
+    {
+      "topic": "claims",
+      "returned_reference": "Located observations that actually supply local revision parameters.\n\n1. inspect_candidate identifies exact existing window/opening/space IDs.\n2. record_claim(claim_json) stores a candidate-bound observation:\n{\n  \"candidate\": \"seed\",\n  \"objects\": [{\"kind\": \"opening\", \"id\": \"door_A\"}],\n  \"basis\": \"annotation_and_pixels\",\n  \"reason\": \"The located dimension chain bounds this door, with its origin explained here.\",\n  \"sources\": [{\"image\": \"elevation.png\", \"box\": [20, 30, 100, 200]}],\n  \"values\": {\"height\": {\"type\": \"dimension_chain\", \"lengths\": [900, 1800, 300],\n      \"unit\": \"mm\", \"origin_m\": 3.0, \"direction\": -1, \"segment\": 1}},\n  \"observation_mode\": \"candidate_review\",\n  \"unresolved\": []\n}\nThe unrelated example yields absolute z=[0.3,2.1] from the zero-based segment.\nIt is NOT a case answer. Transcribe YOUR actual labels and explain the world\norigin, which physical extent they measure, and any frame assumptions.\n\nbasis: annotation_and_pixels, pixels, visual_estimate, inference, declared.\nUse original image boxes; code binds actual source hashes. Image-based claims\nrequire sources; declared/inference may have none but must state the actual basis.\nFor a whole-drawing reference, use {\"image\":\"elevation.png\"} without box; code\nbinds the full original extent and returns that image. Prefer this when dimensions\nand objects are far apart or you are unsure of exact crop coordinates. A narrow\ncrop is optional, never a prerequisite for valid evidence. Explain which labels\nand object family support the value; a whole-image reference is not precise localization.\nTo cite an image you just viewed, prefer {\"view_id\":\"view_0001\"}, using the actual\nID returned by view_image (including whole-image views). The saved source binds\nthat view's original image hash and exact region; grid/scale are presentation only.\nDo not combine view_id with image or box. IDs are local to this run, and an image\nreturn is not evidence that you understood it.\nrecord_claim returns clean crops for the first three saved source regions, plus\nunpreviewed_source_indices. Inspect the actual crops before adoption: the numbers,\ndimension endpoints and enough object context must be inside the referenced region.\nA broader region is fine; a window-only box does not locate a chain outside it.\nUse view_claim_evidence(claim_id, source_index, display_scale=1..8) to inspect any\nsaved source or enlarge small labels. Indices are zero-based. Fractional boxes are\nenclosed in whole pixels; metadata shows both the claimed and rendered boxes.\nIf the region is misplaced but the objects/values remain valid, call\nreplace_claim_sources(claim_id, view_ids=[...], reason=\"Explain the corrected evidence\").\nThis copies the SAME candidate, objects, values, targets, basis and unresolved list,\nreplaces only sources/reason, saves a new immutable claim and retracts the old one.\nPrevious adoption/confirmation is NOT transferred. Inspect the new returned sources,\nthen explicitly adopt and confirm/apply the NEW claim. It does not edit BIM geometry.\nIf interpretation, values, basis, unresolved items or candidate need changing,\nrecord a new corrected claim and retract the obsolete one with decide_claim instead.\nSaved claims are immutable. Seeing a crop is not automatic\nOCR or independent verification, and confirmed arithmetic does not prove its labels.\nRecord unexamined/conflicting evidence in unresolved. A direct observation is\nnot automatically independent: observation_mode is caller-reported, and review\nof a shown hypothesis does not count as an independent corroboration.\n\nobjects kinds: opening (geometry.openings), window (geometry.windows), space,\nboundary (exact source boundary ID). The source BIM's unified openings list also\ncontains windows, but claim references still use kind=window for those windows\nand kind=opening for doors/passages. Keep the actual ID; do not add a type prefix.\nValues have named fields and three types:\n- literal: {\"type\":\"literal\", \"value\":0.18, \"unit\":\"m\"}; also a two-number\n  vector/interval. Use the true basis (including declared/inference), not a fake scan.\n- dimension_chain: as above; code uses map_dimension_chain, returns the selected\n  segment's ordered span in absolute metres. Closed arithmetic is not verified OCR.\n- image_axis: {\"type\":\"image_axis\", \"image\":\"elevation.png\", \"axis\":\"y\",\n  \"anchors\":[[10,3.0],[210,0.0]], \"pixels\":[40,180]}.\n  Image pixel axis can map to a chosen world x/y/z coordinate; explain that mapping\n  in reason. One pixel returns a scalar, two return an ORDERED metric interval.\n  Optional \"reduction\":\"midpoint\" with TWO pixels computes their representative\n  midpoint in metres, retaining the measured faces and calibration in the audit.\n  For p1/p2 use an explicit two-coordinate literal; an image_axis interval is not\n  a 2D point transformation. Each pixel, including anchor pixels, can instead be\n  {\"profile\":\"profile_001\",\"candidate\":\"C01\",\"at\":\"start\"} (peak/end also\n  accepted), from view_pixel_profile. Code loads the immutable measured coordinate\n  and checks image/axis/hash. Numeric pixels remain explicitly model-selected;\n  profile candidates locate ink, not automatically a physical wall or aperture.\n\n3. decide_claim(claim_id, 'adopted'|'deferred'|'retracted', reason).\nAdoption is YOUR decision, not application and not an independent fidelity pass.\n4. revise_bim uses a reference IN PLACE OF the parameter value, e.g.:\n[{\"op\":\"update_opening\", \"id\":\"door_A\",\n  \"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"height\"}},\n  \"reason\":\"Apply the checked extent using the recorded chain\"}]\nCode resolves the parameter; do not duplicate the numeric value. source_refs are\nadded automatically for bound parameters. Supported slots: update_window.z/span;\nupdate_opening.z/p1/p2; move_shared_wall.coordinate_m (claim must name both spaces).\nadd_opening.opening.p1/p2/z also accept references. Because the door does not\nexist yet, its claim must name the EXISTING host space(s), including both sides\nfor an interior door. Use separate claims for measured plan endpoints and assumed\nheight, so a plan image does not masquerade as height evidence. New door identity,\nkind and connectivity remain explicit declarations checked by the source builder.\nreshape_spaces also accepts a scalar reference at ANY polygon coordinate, e.g.\n{\"op\":\"reshape_spaces\", \"spaces\":[{\"id\":\"room_A\",\n \"polygon\":[[0,0],[{\"claim\":\"claim_0001\",\"value\":\"wall_x\"},0],\n [{\"claim\":\"claim_0001\",\"value\":\"wall_x\"},5],[0,5]]}],\n \"reason\":\"Use measured representative wall position\"}.\nKeep unchanged coordinates literal. Reference every occurrence of a changed\ncoordinate and explicitly update affected hosted openings as usual. This reuses\nthe same polygon edit, preserving the complete closed-space contract.\n\nFor multiple values/objects, record optional value_targets mapping EVERY value\nname to the subset of declared objects it supplies. For example:\n\"value_targets\":{\"wall_x\":[{\"kind\":\"space\",\"id\":\"room_A\"}], \"face_interval\":[]}.\n[] marks supporting measurements, which cannot be applied as parameters and do\nnot count as missing applications. Without this mapping the legacy contract is\nall values applied to all listed objects. Do not conflate different walls or\nfloors merely because they share one image. Code validates each reference against\nits mapped object, so no need to duplicate a claim just to express these subsets.\nOther operations still use the edits contract and are reported as unbound.\nClaims bind the exact parent proposal. After a geometry/notes revision, record\nagainst the new candidate before further application; no silent stale reuse.\nMultiple objects/values may share one observation and be applied in one revision.\n\nFor values already present, confirm_claims(candidate, operations_json) takes the\nSAME claim-referenced update_window/update_opening/move_shared_wall intents as\nrevise_bim, verifies they change no geometry, and saves a confirmation without\nbuilding a candidate. Confirm against the observation's exact parent BEFORE\nmaking other edits. Confirmations follow that candidate's descendants while the\nchecked object/host remains unchanged; a different branch does not inherit them.\nThis checks numerical consistency, not image interpretation. Confirm every application value and its mapped objects; supporting measurements\nneed no application. Partial coverage remains explicit. For reshapes, confirmation\nrequires ALL polygon coordinates bound; prefer window/opening confirmation for\nheight review and avoid manufacturing claims for unrelated constant coordinates.\n\nHeight review: check_openings(candidate, heights_only=true) and finish_bim expose height_coverage\nfrom actual openings, grouped by floor and facade. A retained adopted z binding\nwith located image evidence counts as linked image observation, not certified\nimage truth. A rendered/viewed elevation or a span-only review covers no heights.\nUse absolute z with each floor origin explained in a dimension_chain; do not\nreuse ground-floor heights upstairs. Confirm matching windows BEFORE revising\nothers against the same candidate. Then apply different heights with references.\nRead every scoped floor separately; report unlinked/deferred/internal heights\nas unchecked, and inference/declared heights separately. Empty facade scopes do\nnot prove the drawing has no opening. Do not claim the whole building verified\nwhen only some openings have corresponding height observations.\n\nTo supersede obsolete text, include a local note replacement in revise_bim:\n{\"op\":\"replace_note\", \"field\":\"assumptions\", \"old\":\"Exact existing note\",\n \"replacement\":[\"Updated statement limited to the inspected objects; others remain assumptions\"],\n \"reason\":\"What observation superseded this statement\", \"source_refs\":[\"claim_0001\"]}.\nfield can be assumptions or unresolved; replacement=[] explicitly withdraws that\none note with a reason. Old text must match exactly once. Unrelated notes survive,\nthe replacement enters source BIM and the old statement remains in audit history.\nUse this in the SAME revision as the geometry correction when possible. Do not\nleave a known false all-objects assumption in the saved source. Text associations\nare model judgments, not automatic semantic verification of the replacement.\n\nThickness only: inspect source wall/floor/ceiling boundary IDs via\ncheck_wall_dimensions/include_inventory for walls, or existing source inventories.\nrevise_bim also accepts:\n{\"op\":\"set_component_thickness\", \"boundary_id\":\"space/room_A/wall/0\",\n \"thickness_m\":{\"claim\":\"claim_0002\",\"value\":\"thickness\"},\n \"basis\":\"observed overall thickness; finishes included\",\n \"reason\":\"Preserve the explicit property without moving geometry\"}.\nThe claim names this boundary. This updates optional component_attributes on a\nnew proposal/source; no space dimensions, opening geometry or level changes.\nShared full coincident sides receive ONE property record. Partial contacts and\nopen/unknown enclosure are not supported. Host identity is bound; later changing\nthat boundary requires explicit rebinding rather than silently reusing thickness.\n\nclaim_status(candidate) projects that candidate's ancestry: confirmed_unchanged,\napplied_current, pending_application, partially_satisfied, changed_since_check,\ndeferred/retracted/undecided. It also includes claim unresolved items and explicitly\nsuperseded notes. Other branches are separate. Imported prior-run applications\nare marked inherited/not rechecked; run-local confirmation files are not imported\nby proposal-only recovery. claim_status() returns full run history. A failed\nedit retains its record and parent; source validation may also retain a failed\ncandidate for inspection. Applications show exact resolved operations, actual\nsource changes, legitimate hosted-opening movement and any unsupported scope.\nMissing claim references mean 'not tracked by this interface', not automatically\nwrong geometry. Applied on one candidate does NOT mean current on all descendants.\nfinish_bim keeps failures and adopted-but-unapplied claims visible in delivery.\npending_application means no linked execution/confirmation was verified, not\nproof that geometry was never changed. Literal reshape coordinates and unsupported\nparameter slots may already have changed geometry without references; report\nthat gap explicitly. Do not record a duplicate adopted claim just to make its\nparent match; that alone supplies neither an application nor a confirmation.\n"
+    },
+    {
+      "topic": "room_types",
+      "returned_reference": "Choose role from this pinned OpenStudio level-1 catalog (code | 中文 | fixed color). Prefer a reasonable listed use based on building context, layout and furniture, even when uncertain; use a broader plausible type with explicit inference. Precise use identification is low priority for this lightweight BIM and users can revise it later. Reserve unknown for cases with no defensible listed choice; ambiguity alone is not enough. No invented roles; keep uncertainty and original drawing labels in source_refs/assumptions. This does not assign physical properties.\nhttps://github.com/NatLabRockies/openstudio-standards/blob/83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663/lib/openstudio-standards/space_type/data/level_1_space_types.json\natrium | 中庭 | #afbddf\nattic | 阁楼 | #cbdfaf\naudience seating | 观众席 | #dfafd9\nbanking | 银行营业区 | #afdfd7\nclassroom/lecture/training | 教室／讲堂／培训 | #dfc9af\ncomputer room | 计算机房 | #bbafdf\nconference/meeting/multipurpose | 会议／多功能 | #d7ecd2\nconfinement cells | 拘留室 | #dfafbf\ncopy/print | 复印／打印 | #afcddf | to be revised\ncorridor | 走廊 | #fdf0c8\ncourtroom | 法庭 | #d5afdf\ndatacenter/high ite | 高设备负载数据中心 | #afdfc7 | to be revised\ndatacenter/low ite | 低设备负载数据中心 | #dfb9af | to be revised\ndining | 用餐区 | #afb3df\ndressing room | 化妆／换装室 | #c1dfaf\nelectrical/mechanical | 电气／机械设备 | #cfe0db\nemergency room | 急诊室 | #afdddf\nemergency vehicle garage | 应急车辆车库 | #dfd3af\nexam/treatment | 检查／治疗 | #c5afdf\nexercise area | 健身区 | #afdfb7\nexhibit | 展览区 | #dfafb5\nguest room | 客房 | #afc3df\nimaging | 医学影像 | #d1dfaf\ninterior parking | 室内停车 | #dfafdf\njudges chambers | 法官办公室 | #afdfd1\nfood preparation | 食品制备 | #fde0e0\nlaboratory | 实验室 | #b5afdf\nlaundry/washing | 洗衣 | #b7dfaf\nlibrary | 图书馆 | #dfafc5\nliving quarters | 集体起居区 | #afd3df | living quarters such as in a fire station\nloading dock | 装卸区 | #dfddaf | to be revised\nlobby | 门厅 | #f6d6c2\nlocker room | 更衣室 | #afdfc1\nlounge/breakroom | 休息室／茶歇 | #dfb3af\nmanufacturing | 生产制造 | #afb9df\nmedical supply | 医疗物资 | #c7dfaf\nmultifamily | 多户住宅公共区 | #dfafd5 | common areas in a multifamily building/NOT dwelling units; schedule to be revised\nnursery | 育婴室 | #afdfdb\nnurses station | 护士站 | #dfcdaf\noffice | 办公 | #cfe3f2\noffice/enclosed | 独立办公室 | #b9d4eb\noperating room | 手术室 | #dfafbb\npatient room | 病房 | #afc9df\npharmacy | 药房 | #d7dfaf\nphysical therapy | 物理治疗 | #d9afdf\nplaying area | 运动场地 | #afdfcb\nplenum | 吊顶／架空夹层 | #dfbdaf\npost office | 邮局 | #afafdf\nrecovery | 康复区 | #bddfaf\nrecreation/common living | 休闲／公共起居 | #dfafcb\nrestroom | 卫生间 | #e6d5f0\nretail | 零售 | #f0e4b0\nshaft | 竖井 | #d0d0d0\nsleeping quarters | 集体寝室 | #afdfbb | sleeping quarters such as in a dormitory\nsports arena | 体育场馆 | #dfafb1\nstairwell | 楼梯间 | #dcdcdc\nstorage | 储藏 | #e6e3d2\ntransportation | 交通客运 | #dfafdb\nvehicular maintenance | 车辆维修 | #afdfd5\nworkshop | 车间 | #dfc7af\nworship | 宗教礼拜 | #b8afdf\nunknown | 未知／待判定 | #c9ced4 | Project sentinel; not an OpenStudio space type. Use when evidence is insufficient or no catalog type fits."
+    },
+    {
+      "topic": "edits",
+      "returned_reference": "revise_bim takes candidate plus an operations_json list. Operations include:\n{\"op\":\"set_space_role\",\"space_id\":\"F1_left\",\"role\":\"office\",\n \"basis\":\"inferred\",\"assumptions\":[\"Furniture suggests office; no use label supplied\"],\n \"reason\":\"Review existing room function\",\"source_refs\":[\"plan.png: desk symbols in room interior, original pixels [20,30,80,90]\"]};\n{\"op\":\"reflect\",\"axis\":\"y\",\"reason\":\"explain the chosen frame change\"};\n{\"op\":\"update_window\",\"id\":\"W1\",\"changes\":{\"span\":[1,2]},\n \"reason\":\"explain\",\"source_refs\":[\"image: observation or explicit assumption\"]};\n{\"op\":\"update_opening\",\"id\":\"D1\",\"changes\":{\"p1\":[3,1],\"p2\":[3,2]},\n \"reason\":\"explain\",\"source_refs\":[\"image: observation or explicit assumption\"]};\n{\"op\":\"move_shared_wall\",\"space_ids\":[\"F1_left\",\"F1_right\"],\"coordinate_m\":3.5,\n \"reason\":\"explain observed partition displacement\",\"source_refs\":[\"plan: observed wall\"]};\n{\"op\":\"reshape_spaces\",\"spaces\":[{\"id\":\"room-A\",\"polygon\":[[0,0],[3,0],[3,2],[0,2]]}],\n \"reason\":\"explain observed wall extents\",\"source_refs\":[\"plan: local evidence\"]};\n{\"op\":\"remove_opening\",\"id\":\"D1\",\"reason\":\"explain reclassification\",\n \"source_refs\":[\"image: observation\"]};\n{\"op\":\"add_opening\",\"opening\":{\"id\":\"new_D2\",\"kind\":\"door\",\n \"space_id\":\"room-A\",\"other_space_id\":\"room-B\",\"p1\":[3,1],\"p2\":[3,2],\n \"z\":[0,2.1],\"state\":\"unknown\",\"assumptions\":[\"height assumed\"]},\n \"reason\":\"new door observed\",\"source_refs\":[\"plan: door and both hosts\"]};\n{\"op\":\"set_notes\",\"assumptions\":[\"updated assumptions\"],\"unresolved\":[]}.\nset_space_role only changes the selected room's catalog role and role_evidence;\nit preserves all geometry, IDs, openings, connections and geometry source notes.\nRead room_types first. basis is observed for explicit input labels/declarations,\ninferred for a plausible interpretation, including a broad use from building context\n(requires nonempty assumptions). Prefer an inferred listed use over unknown; the fallback is\nunknown paired with role=unknown. For observed/unknown, omitted assumptions become\nan empty list; inferred still requires an explicit nonempty assumption. source_refs\nmust locate the evidence or explain its insufficiency. A later assignment replaces the active role_evidence and keeps\nthe old value in the edit history. Normal export updates public names and colors.\nIt does not establish drawing truth. Reconcile obsolete global notes explicitly.\nadd_opening preserves all existing objects; it supports doors/open apertures and\nrequires a new ID. World z is absolute, including on upper floors. Normal source\nvalidation rejects wrong/ambiguous hosts, overlaps or out-of-floor heights.\nFor an inherited geometry.unsupported entry of kind as_drawn_opening_unbuilt,\nread exact records with read_candidate_items(collection=\"unsupported\");\nafter adding or identifying its actual door, explicitly use\n{\"op\":\"resolve_unbuilt_observation\",\"input_id\":\"plan\",\n \"observation_ids\":[\"old-face-gap\"],\"opening_ids\":[\"new_D2\"],\n \"reason\":\"explain original-image correspondence\",\"source_refs\":[\"plan: observation\"]}.\ninput_id/observation_ids must exactly match one saved entry. Replacement openings\nmust exist on that floor. Multiple face observations may map to one physical door\nonly with drawing evidence; do not count them as separate doors. The old record\nremains in corrections. This records your interpretation, not an independent pass.\nCombine addition and resolution in one revision when appropriate. Unresolved\nobservations must remain; do not clear them merely to pass a check.\nReflect transforms the entire proposal around the footprint midpoint on that\naxis, including rooms, window directions/spans and door coordinates. It preserves\nidentities and connectivity. Replace stale directional assumptions with set_notes.\nSource IDs remain stable even if they contain an obsolete direction in their name.\nmove_shared_wall is a local operation for two same-floor rectangular cells\nsharing one complete edge. It derives the wall axis from their existing geometry\nand moves both sides to coordinate_m together; openings hosted between those\ntwo cells move with the wall. Other objects retain their world coordinates and\nare checked by the normal builder. Polygon cells, partial shared sides and\nexplicit enclosure declarations are unsupported by this edit; no new rooms or\nwalls are invented. Preserve image basis and check the resulting geometry.\nreplace_space_region takes space_id, neighbor_space_id, polygon, reason, source_refs.\nIt replaces one complete room and computes the adjacent room as the remainder of\ntheir original union; both stay single hole-free spaces. It refuses third-space\nencroachment, does not move apertures, and records before/after. Use explicit\nupdate_opening operations in the same revision when hosts or positions change.\nreshape_spaces replaces only the listed existing space polygons, deriving their\nx/y bounds by code. It preserves other objects and NEVER moves or resizes an\nopening. Update all affected adjoining spaces in one operation; include explicit\nupdate_opening edits in the same revision where a moved host requires them.\nPreserve the aperture's width/height unless new image evidence supports a change.\nNormal source checks still reject overlaps and unhosted openings. This operation\nrejects explicit enclosure declarations or nonempty wall reference/dimension\nrecords; it does not add/remove spaces or remap wall evidence.\nFor edits not supported by revise_bim, submit a complete revised proposal with\nbuild_bim, retaining the reliable geometry, IDs, source references and caveats.\n\n"
+    }
+  ],
+  "returned_feedback": [
+    {
+      "tool": "build_plan_bim",
+      "result": {
+        "source_geometry_ready": false,
+        "error": "opening D_N3 at pixels [1398.0, 627.0] -> [1463.0, 627.0] has only one full space host but is not wholly on the footprint boundary; a T-junction or partial host cannot be treated as outdoors",
+        "geometry_feedback": {
+          "file": "plan_drafts/draft_001/geometry_feedback.json",
+          "sha256": "33129c630bf1e1ebbd709dc5144db7bac3b1426b0c7ae41d1f371d4fa1b0d6cd",
+          "unit": "m",
+          "floor_id": "F1",
+          "metres_per_pixel": {
+            "x": 0.010737294201861132,
+            "y": 0.0107095046854083
+          },
+          "footprint_bounds_m": [
+            [
+              0,
+              15
+            ],
+            [
+              0,
+              7.999999999999999
+            ]
+          ],
+          "footprint_span_m": [
+            15,
+            7.999999999999999
+          ],
+          "z_floor_m": 0,
+          "ceiling_height_m": 3,
+          "drawing_fidelity": "not_evaluated",
+          "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+          "opening_count": 15,
+          "openings_returned": 15,
+          "openings_truncated": false,
+          "opening_dimensions": [
+            {
+              "id": "D_N1",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_N2",
+              "width_m": 0.8804581245526144,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_N3",
+              "width_m": 0.6979241231209734,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S1",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S2",
+              "width_m": 0.8804581245526144,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S3",
+              "width_m": 0.6979241231209734,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_west_entry",
+              "width_m": 1.1994645247657294,
+              "z_m": [
+                0,
+                2.7
+              ]
+            },
+            {
+              "id": "D_south_entry",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.7
+              ]
+            },
+            {
+              "id": "W_N1",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_N2",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_N3",
+              "width_m": 2.4051539012168934,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S_small",
+              "width_m": 0.36506800286327845,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S2",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S3",
+              "width_m": 2.4051539012168934,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_east_corridor",
+              "width_m": 1.1994645247657294,
+              "z_m": [
+                1,
+                2.6
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "tool": "revise_plan_bim",
+      "result": {
+        "candidate": "candidate_01",
+        "source_geometry_ready": true,
+        "geometry_feedback": {
+          "file": "plan_drafts/draft_002/geometry_feedback.json",
+          "sha256": "196deaf58fce20774cc47cb74562854ebcc26c74af26ddb444355fccfdd783c1",
+          "unit": "m",
+          "floor_id": "F1",
+          "metres_per_pixel": {
+            "x": 0.010737294201861132,
+            "y": 0.0107095046854083
+          },
+          "footprint_bounds_m": [
+            [
+              0,
+              15
+            ],
+            [
+              0,
+              7.999999999999999
+            ]
+          ],
+          "footprint_span_m": [
+            15,
+            7.999999999999999
+          ],
+          "z_floor_m": 0,
+          "ceiling_height_m": 3,
+          "drawing_fidelity": "not_evaluated",
+          "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+          "opening_count": 15,
+          "openings_returned": 15,
+          "openings_truncated": false,
+          "opening_dimensions": [
+            {
+              "id": "D_N1",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_N2",
+              "width_m": 0.8804581245526144,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_N3",
+              "width_m": 0.7193987115246951,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S1",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S2",
+              "width_m": 0.8804581245526144,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S3",
+              "width_m": 0.7193987115246951,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_west_entry",
+              "width_m": 1.1994645247657294,
+              "z_m": [
+                0,
+                2.7
+              ]
+            },
+            {
+              "id": "D_south_entry",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.7
+              ]
+            },
+            {
+              "id": "W_N1",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_N2",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_N3",
+              "width_m": 2.4051539012168934,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S_small",
+              "width_m": 0.36506800286327845,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S2",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S3",
+              "width_m": 2.4051539012168934,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_east_corridor",
+              "width_m": 1.1994645247657294,
+              "z_m": [
+                1,
+                2.6
+              ]
+            }
+          ]
+        },
+        "geometry_changes": {
+          "file": "plan_drafts/draft_002/opening_changes.json",
+          "sha256": "1895b21fe106f57a2d375e2725af7b6bf239d1c7bbe618b4c95768c202569804",
+          "changed_count": 2,
+          "changed_openings": [
+            {
+              "id": "D_N3",
+              "before": {
+                "id": "D_N3",
+                "kind": "door",
+                "p1_m": [
+                  10.501073729420186,
+                  3.073627844712182
+                ],
+                "p2_m": [
+                  11.19899785254116,
+                  3.073627844712182
+                ],
+                "width_m": 0.6979241231209734,
+                "z_m": [
+                  0,
+                  2.1
+                ],
+                "height_m": 2.1
+              },
+              "after": {
+                "id": "D_N3",
+                "kind": "door",
+                "p1_m": [
+                  10.393700787401576,
+                  3.073627844712182
+                ],
+                "p2_m": [
+                  11.113099498926271,
+                  3.073627844712182
+                ],
+                "width_m": 0.7193987115246951,
+                "z_m": [
+                  0,
+                  2.1
+                ],
+                "height_m": 2.1
+              }
+            },
+            {
+              "id": "D_S3",
+              "before": {
+                "id": "D_S3",
+                "kind": "door",
+                "p1_m": [
+                  10.501073729420186,
+                  4.979919678714858
+                ],
+                "p2_m": [
+                  11.19899785254116,
+                  4.979919678714858
+                ],
+                "width_m": 0.6979241231209734,
+                "z_m": [
+                  0,
+                  2.1
+                ],
+                "height_m": 2.1
+              },
+              "after": {
+                "id": "D_S3",
+                "kind": "door",
+                "p1_m": [
+                  10.393700787401576,
+                  4.979919678714858
+                ],
+                "p2_m": [
+                  11.113099498926271,
+                  4.979919678714858
+                ],
+                "width_m": 0.7193987115246951,
+                "z_m": [
+                  0,
+                  2.1
+                ],
+                "height_m": 2.1
+              }
+            }
+          ],
+          "truncated": false,
+          "unchanged_opening_ids": [
+            "D_N1",
+            "D_N2",
+            "D_S1",
+            "D_S2",
+            "D_south_entry",
+            "D_west_entry",
+            "W_N1",
+            "W_N2",
+            "W_N3",
+            "W_S2",
+            "W_S3",
+            "W_S_small",
+            "W_east_corridor"
+          ],
+          "note": "Actual resolved declaration dimensions; host/space changes and drawing truth require source/original review."
+        }
+      }
+    },
+    {
+      "tool": "revise_plan_bim",
+      "result": {
+        "candidate": "candidate_02",
+        "source_geometry_ready": true,
+        "geometry_feedback": {
+          "file": "plan_drafts/draft_003/geometry_feedback.json",
+          "sha256": "196deaf58fce20774cc47cb74562854ebcc26c74af26ddb444355fccfdd783c1",
+          "unit": "m",
+          "floor_id": "F1",
+          "metres_per_pixel": {
+            "x": 0.010737294201861132,
+            "y": 0.0107095046854083
+          },
+          "footprint_bounds_m": [
+            [
+              0,
+              15
+            ],
+            [
+              0,
+              7.999999999999999
+            ]
+          ],
+          "footprint_span_m": [
+            15,
+            7.999999999999999
+          ],
+          "z_floor_m": 0,
+          "ceiling_height_m": 3,
+          "drawing_fidelity": "not_evaluated",
+          "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+          "opening_count": 15,
+          "openings_returned": 15,
+          "openings_truncated": false,
+          "opening_dimensions": [
+            {
+              "id": "D_N1",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_N2",
+              "width_m": 0.8804581245526144,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_N3",
+              "width_m": 0.7193987115246951,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S1",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S2",
+              "width_m": 0.8804581245526144,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_S3",
+              "width_m": 0.7193987115246951,
+              "z_m": [
+                0,
+                2.1
+              ]
+            },
+            {
+              "id": "D_west_entry",
+              "width_m": 1.1994645247657294,
+              "z_m": [
+                0,
+                2.7
+              ]
+            },
+            {
+              "id": "D_south_entry",
+              "width_m": 0.9019327129563344,
+              "z_m": [
+                0,
+                2.7
+              ]
+            },
+            {
+              "id": "W_N1",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_N2",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_N3",
+              "width_m": 2.4051539012168934,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S_small",
+              "width_m": 0.36506800286327845,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S2",
+              "width_m": 2.3944166070150317,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_S3",
+              "width_m": 2.4051539012168934,
+              "z_m": [
+                1,
+                2.6
+              ]
+            },
+            {
+              "id": "W_east_corridor",
+              "width_m": 1.1994645247657294,
+              "z_m": [
+                1,
+                2.6
+              ]
+            }
+          ]
+        },
+        "geometry_changes": {
+          "file": "plan_drafts/draft_003/opening_changes.json",
+          "sha256": "09e396b86cf5b261b2bed301ac14e9cc529a917418cf5ae14657f2564c2232b4",
+          "changed_count": 0,
+          "changed_openings": [],
+          "truncated": false,
+          "unchanged_opening_ids": [
+            "D_N1",
+            "D_N2",
+            "D_N3",
+            "D_S1",
+            "D_S2",
+            "D_S3",
+            "D_south_entry",
+            "D_west_entry",
+            "W_N1",
+            "W_N2",
+            "W_N3",
+            "W_S2",
+            "W_S3",
+            "W_S_small",
+            "W_east_corridor"
+          ],
+          "note": "Actual resolved declaration dimensions; host/space changes and drawing truth require source/original review."
+        }
+      }
+    },
+    {
+      "tool": "build_plan_bim",
+      "result": {
+        "candidate": "candidate_03",
+        "source_geometry_ready": true,
+        "geometry_feedback": {
+          "file": "plan_drafts/draft_004/geometry_feedback.json",
+          "sha256": "abbd0e44cbb6ac5220b1c49a37ec93e256d1474f9e1d7c853168f0ec80065129",
+          "unit": "m",
+          "floor_id": "F2",
+          "metres_per_pixel": {
+            "x": 0.010814708002883922,
+            "y": 0.010796221322537112
+          },
+          "footprint_bounds_m": [
+            [
+              0,
+              15
+            ],
+            [
+              0,
+              7.999999999999999
+            ]
+          ],
+          "footprint_span_m": [
+            15,
+            7.999999999999999
+          ],
+          "z_floor_m": 3,
+          "ceiling_height_m": 3.6,
+          "drawing_fidelity": "not_evaluated",
+          "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+          "opening_count": 14,
+          "openings_returned": 14,
+          "openings_truncated": false,
+          "opening_dimensions": [
+            {
+              "id": "D_T1",
+              "width_m": 0.8868060562364821,
+              "z_m": [
+                3,
+                5.1
+              ]
+            },
+            {
+              "id": "D_T2",
+              "width_m": 0.8435472242249444,
+              "z_m": [
+                3,
+                5.1
+              ]
+            },
+            {
+              "id": "D_B1",
+              "width_m": 1.2977649603460701,
+              "z_m": [
+                3,
+                5.1
+              ]
+            },
+            {
+              "id": "D_B2w",
+              "width_m": 0.8651766402307128,
+              "z_m": [
+                3,
+                5.1
+              ]
+            },
+            {
+              "id": "D_B2e",
+              "width_m": 0.8651766402307146,
+              "z_m": [
+                3,
+                5.1
+              ]
+            },
+            {
+              "id": "D_B3",
+              "width_m": 0.8651766402307146,
+              "z_m": [
+                3,
+                5.1
+              ]
+            },
+            {
+              "id": "W_east_corridor",
+              "width_m": 1.1983805668016192,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_west_corridor",
+              "width_m": 1.1983805668016192,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_T1",
+              "width_m": 3.6012977649603455,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_T2",
+              "width_m": 3.6012977649603464,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_S1",
+              "width_m": 1.2004325883201155,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_S2",
+              "width_m": 1.2004325883201155,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_S3",
+              "width_m": 1.2004325883201155,
+              "z_m": [
+                4,
+                5.8
+              ]
+            },
+            {
+              "id": "W_S4",
+              "width_m": 1.2004325883201155,
+              "z_m": [
+                4,
+                5.8
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "saved_bindings": [],
+  "review_count": 0,
+  "located_plan_reviews": 0,
+  "unmodeled_mark_count": 0,
+  "units_bound": 0,
+  "pixels_bound": 0,
+  "limits": "Exposure and adopted inputs only; outcome and actual correction require independent original/source review. This is not a behavior score."
+}

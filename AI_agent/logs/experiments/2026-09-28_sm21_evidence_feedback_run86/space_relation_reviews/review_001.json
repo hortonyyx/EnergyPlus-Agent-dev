@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "a8bb15622cb985c05e65383cf7c91128675cd3af35488ba363cd41dd65283a7c",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        420.0,
+        0.0
+      ],
+      [
+        1817.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        340.0,
+        0.0
+      ],
+      [
+        1087.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs1",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png: solid partition wall with 240 label between room N1 (desks left) and room N2 (desks center) north row",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            480.0
+          ],
+          "world_xy_m": [
+            1.9327129563350036,
+            1.499330655957162
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N1",
+          "interior_space_ids": [
+            "F1:N1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1150.0,
+            480.0
+          ],
+          "world_xy_m": [
+            7.838224767358627,
+            1.499330655957162
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N2",
+          "interior_space_ids": [
+            "F1:N2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs2",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png: N1 (north row) and central corridor are separated by a wall with a door aperture, not open",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            480.0
+          ],
+          "world_xy_m": [
+            1.9327129563350036,
+            1.499330655957162
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N1",
+          "interior_space_ids": [
+            "F1:N1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1150.0,
+            715.0
+          ],
+          "world_xy_m": [
+            7.838224767358627,
+            4.016064257028112
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor",
+          "interior_space_ids": [
+            "F1:corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F1:D_N1",
+          "space_ids": [
+            "F1:N1",
+            "F1:corridor"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs3",
+      "expected": "same_space",
+      "evidence": "1f_view.png: bottom-left room S1 containing L-shaped sofa and the entrance-door area are one continuous room with no dividing wall (only furniture)",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            950.0
+          ],
+          "world_xy_m": [
+            1.9327129563350036,
+            6.532797858099063
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:S1",
+          "interior_space_ids": [
+            "F1:S1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            450.0,
+            1030.0
+          ],
+          "world_xy_m": [
+            0.3221188260558341,
+            7.389558232931727
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:S1",
+          "interior_space_ids": [
+            "F1:S1"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs4",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png: room N3 (north row, round table) and room S3 (south row, round table) are on opposite sides of the central corridor, separated by corridor walls",
+      "points": [
+        {
+          "pixel": [
+            1650.0,
+            480.0
+          ],
+          "world_xy_m": [
+            13.206871868289191,
+            1.499330655957162
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N3",
+          "interior_space_ids": [
+            "F1:N3"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1650.0,
+            950.0
+          ],
+          "world_xy_m": [
+            13.206871868289191,
+            6.532797858099063
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:S3",
+          "interior_space_ids": [
+            "F1:S3"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "1b65b9317e734824c9745e0aaa671ab5e6050948a81db0c6feadb314548e22f0",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1997
+}

@@ -1,0 +1,222 @@
+{
+  "agent_assumptions": [
+    "Interior door heights assumed 2.1m (floor+2.1) with no plan/elevation dimension for interior doors on this floor.",
+    "Partition and door jamb pixel positions read from zoomed crops and wall-color detection; sub-100mm placement uncertainty remains.",
+    "South-wall 2F window x-spans taken from South_view.png dimension chain and mapped onto plan pixel coordinates via the shared 15000mm calibration; not independently re-measured in 2f_view.png pixels.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 36,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 6,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f9fd9b4c4c92e370a2cf71db3b9b3217d4a8d740a2dd6945b27873aec58b7d53",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "1ab3d587e0a8d1a1379ed405ee4a62363d26721fd0faf258877576fa0b3c42f2",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_004/compilation.json",
+      "compilation_sha256": "44ac245e43196e67ba7db41058579c080d792893750581c9702036db1c76d0f2",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_004/draft_view.png",
+        "image_sha256": "7ed073a19719f42f21d60e16cf182118dc5c81dbe9b5a8c3d254bdce5c6058ac",
+        "metadata_file": "plan_drafts/draft_004/draft_view.json",
+        "metadata_sha256": "b472c5a0b2ee4306669da33975092708647609ea5ac160502160e8a742fef885",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "geometry_feedback": {
+        "ceiling_height_m": 3.6,
+        "drawing_fidelity": "not_evaluated",
+        "file": "plan_drafts/draft_004/geometry_feedback.json",
+        "floor_id": "F2",
+        "footprint_bounds_m": [
+          [
+            0.0,
+            15.0
+          ],
+          [
+            0.0,
+            7.999999999999999
+          ]
+        ],
+        "footprint_span_m": [
+          15.0,
+          7.999999999999999
+        ],
+        "metres_per_pixel": {
+          "x": 0.010814708002883922,
+          "y": 0.010796221322537112
+        },
+        "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+        "opening_count": 14,
+        "opening_dimensions": [
+          {
+            "id": "D_T1",
+            "width_m": 0.8868060562364821,
+            "z_m": [
+              3.0,
+              5.1
+            ]
+          },
+          {
+            "id": "D_T2",
+            "width_m": 0.8435472242249444,
+            "z_m": [
+              3.0,
+              5.1
+            ]
+          },
+          {
+            "id": "D_B1",
+            "width_m": 1.2977649603460701,
+            "z_m": [
+              3.0,
+              5.1
+            ]
+          },
+          {
+            "id": "D_B2w",
+            "width_m": 0.8651766402307128,
+            "z_m": [
+              3.0,
+              5.1
+            ]
+          },
+          {
+            "id": "D_B2e",
+            "width_m": 0.8651766402307146,
+            "z_m": [
+              3.0,
+              5.1
+            ]
+          },
+          {
+            "id": "D_B3",
+            "width_m": 0.8651766402307146,
+            "z_m": [
+              3.0,
+              5.1
+            ]
+          },
+          {
+            "id": "W_east_corridor",
+            "width_m": 1.1983805668016192,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_west_corridor",
+            "width_m": 1.1983805668016192,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_T1",
+            "width_m": 3.6012977649603455,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_T2",
+            "width_m": 3.6012977649603464,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_S1",
+            "width_m": 1.2004325883201155,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_S2",
+            "width_m": 1.2004325883201155,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_S3",
+            "width_m": 1.2004325883201155,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          },
+          {
+            "id": "W_S4",
+            "width_m": 1.2004325883201155,
+            "z_m": [
+              4.0,
+              5.8
+            ]
+          }
+        ],
+        "openings_returned": 14,
+        "openings_truncated": false,
+        "sha256": "abbd0e44cbb6ac5220b1c49a37ec93e256d1474f9e1d7c853168f0ec80065129",
+        "unit": "m",
+        "z_floor_m": 3.0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_004/plan.json",
+      "plan_sha256": "16ec6a898b9498e3ba9119ca0a91935b1967f81369913bd3f22463a999ce078e"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "1a4c7ecba4cf43c6e0d503d251fd1378afb694c5c307491872980033716f0d52",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact vertical extent/thickness of the P_top vestibule (two close parallel lines) simplified to a single centerline; possible small storage nook there not modeled.",
+    "Bottom-row window count/positions (WS1-WS4) rely on South_view.png dimension chain rather than direct 2f_view.png pixel measurement; not cross-checked against 2f_view.png window graphics pixel-by-pixel.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
