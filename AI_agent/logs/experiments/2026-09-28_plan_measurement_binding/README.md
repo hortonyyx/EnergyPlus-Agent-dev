@@ -12,6 +12,7 @@
 
 - `python -m pytest -n 0 tests/test_plan_measurement_binding.py tests/test_profile_observation_binding.py tests/test_bim_agent_plan_partition.py tests/test_plan_revision.py -q`：39 passed，38.28秒，无provider调用。
 - 真实MCP合成原图：两条线→取中点→墙与门→局部修订保留其他窗→两个楼层装配，源空间/门连接和保存声明均核对。
+- [实际入口预检](runtime_preflight.json)：只用sm21原图准备到模型启动边界并阻断调用，40个生产文件快照包含解析器，真实MCP返回新版`plan_partition`全文及中点语法；0模型调用。脚本[runtime_preflight.py](runtime_preflight.py)复用旧批次的输入参数，不执行/覆盖旧批次，也不是新增回归批准。
 - [开发辅助重放](report.json)：run83/draft_003原样先报W_S1；开发者根据原图选择x=768/779两条细墙线，把P_O12两端x绑定为中点773.5。再次编译报W_S3，W_S1冲突消失；全部窗、其余墙及声明保持，0新候选/模型调用/GT输入。原图和旧稿散列未变。完整产物在[developer_replay](developer_replay/)，脚本为[replay.py](replay.py)。
 - [纠正后的数字兼容对照](numeric_compatibility.json)：run57/58/83的8份数字草稿，解析前后声明完全相同，6份编译成功、2份原有错误；成功proposal和标定元数据、错误文本均一致，历史原件散列未变。脚本为[numeric_compatibility.py](numeric_compatibility.py)。
 
