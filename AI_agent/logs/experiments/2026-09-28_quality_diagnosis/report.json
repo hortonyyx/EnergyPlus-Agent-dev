@@ -1,0 +1,177 @@
+{
+  "model_calls": 0,
+  "production_changes": 0,
+  "saved_new_bim_candidates": 0,
+  "production_code_sha256": {
+    "src/agent/geometry/plan_partition.py": "6dc64a1301b9f050b8f3cc30849a27aa88159bc6768dfbf65ba5782651d689d3",
+    "src/agent/geometry/source_space_relations.py": "97601df4bb9e9fa5af0279aa6e1373ab17a926bd33aed0f409d36115c382c2e5"
+  },
+  "source_relationship_counterexamples": [
+    {
+      "run": 57,
+      "expected": "separate_spaces",
+      "actual_relation": "separate_spaces",
+      "conflict_count": 0,
+      "consistency": "consistent_with_supplied_expectation",
+      "drawing_fidelity": "not_evaluated",
+      "source_model_sha256": "cf3f986c4584a6700f24797dab940a350ddadf5cf409aa990ac77e2b7ae16ffb"
+    },
+    {
+      "run": 57,
+      "expected": "same_space",
+      "actual_relation": "separate_spaces",
+      "conflict_count": 1,
+      "consistency": "conflicts_with_supplied_expectation",
+      "drawing_fidelity": "not_evaluated",
+      "source_model_sha256": "cf3f986c4584a6700f24797dab940a350ddadf5cf409aa990ac77e2b7ae16ffb"
+    },
+    {
+      "run": 58,
+      "expected": "separate_spaces",
+      "actual_relation": "separate_spaces",
+      "conflict_count": 0,
+      "consistency": "consistent_with_supplied_expectation",
+      "drawing_fidelity": "not_evaluated",
+      "source_model_sha256": "7d3a8d8f0a05a94847feea709d967a855840f7105ba67f668ec622c540296b61"
+    },
+    {
+      "run": 58,
+      "expected": "same_space",
+      "actual_relation": "separate_spaces",
+      "conflict_count": 1,
+      "consistency": "conflicts_with_supplied_expectation",
+      "drawing_fidelity": "not_evaluated",
+      "source_model_sha256": "7d3a8d8f0a05a94847feea709d967a855840f7105ba67f668ec622c540296b61"
+    },
+    {
+      "run": 83,
+      "expected": "separate_spaces",
+      "actual_relation": "same_space",
+      "conflict_count": 1,
+      "consistency": "conflicts_with_supplied_expectation",
+      "drawing_fidelity": "not_evaluated",
+      "source_model_sha256": "500ecb5d0b03736769d6a1019ca362759db840a2b1ef5b02c9d9c600a9e8f566"
+    },
+    {
+      "run": 83,
+      "expected": "same_space",
+      "actual_relation": "same_space",
+      "conflict_count": 0,
+      "consistency": "consistent_with_supplied_expectation",
+      "drawing_fidelity": "not_evaluated",
+      "source_model_sha256": "500ecb5d0b03736769d6a1019ca362759db840a2b1ef5b02c9d9c600a9e8f566"
+    }
+  ],
+  "original_tool_measurement": {
+    "tool_call_id": "toolu_01QH4aaUtpfctXTuNoC1mikf",
+    "box_original_pixels": [
+      400,
+      900,
+      1820,
+      920
+    ],
+    "wall_line_peaks": [
+      {
+        "pixels": [
+          768,
+          768
+        ],
+        "peak": 768,
+        "max_count": 20,
+        "support_peaks": [
+          {
+            "pixels": [
+              768,
+              768
+            ],
+            "count": 20
+          }
+        ]
+      },
+      {
+        "pixels": [
+          779,
+          779
+        ],
+        "peak": 779,
+        "max_count": 20,
+        "support_peaks": [
+          {
+            "pixels": [
+              779,
+              779
+            ],
+            "count": 20
+          }
+        ]
+      }
+    ]
+  },
+  "developer_selected_wall_replay": {
+    "partition_id": "P_O12",
+    "before": [
+      [
+        727,
+        800
+      ],
+      [
+        727,
+        1071
+      ]
+    ],
+    "after": [
+      [
+        773.5,
+        800
+      ],
+      [
+        773.5,
+        1071
+      ]
+    ],
+    "all_openings_unchanged": true,
+    "all_other_declarations_unchanged": true,
+    "compiler_results": [
+      {
+        "condition": "unchanged",
+        "first_host_error": "W_S1",
+        "error": "opening W_S1 at pixels [640.0, 1071.0] -> [750.0, 1071.0] requires one exterior or two interior full-boundary hosts; found []",
+        "source_geometry_ready": false
+      },
+      {
+        "condition": "one_wall_reobserved",
+        "first_host_error": "W_S3",
+        "error": "opening W_S3 at pixels [1360.0, 1071.0] -> [1470.0, 1071.0] requires one exterior or two interior full-boundary hosts; found []",
+        "source_geometry_ready": false
+      }
+    ]
+  },
+  "original_files_unchanged": true,
+  "evidence_sha256": {
+    "2026-09-26_sm21_whole_building_claude_run57/candidate_04/source_model.json": "410cc53f91a1bbe19503a0592167db2be7d0da995da6eb4ce2a8c87b52e154f0",
+    "2026-09-26_sm21_whole_building_claude_run57/inputs.json": "255bf99571607bad6c0e78e5a013fe68f264b719c6199bb25abd63a1da71ec43",
+    "2026-09-26_sm21_whole_building_claude_run57/plan_drafts/draft_001/plan.json": "0938a8eb5bedc03309dfefafbfe658085f522599bfc7dcbf22786725c1229e72",
+    "2026-09-26_sm21_whole_building_claude_run57/plan_drafts/draft_002/plan.json": "2863ae4f81135918b83bdbf81f5a55433340e4421386e7e99f9dd75bdb5d042d",
+    "2026-09-27_sm21_whole_building_repeat_claude_run58/candidate_04/source_model.json": "99a416a9253a56af69611fe38c130c523389b4ed8c1dc0ce3988a67f52ab4053",
+    "2026-09-27_sm21_whole_building_repeat_claude_run58/inputs.json": "5e9253b620b7fd22b62eedb254ede3a6d11eb9578758f20b8c55ee9263239698",
+    "2026-09-27_sm21_whole_building_repeat_claude_run58/plan_drafts/draft_001/plan.json": "a0721ffe186095084f013850db063f6116f8c306aa87f64ad678c6b6cfa80e50",
+    "2026-09-27_sm21_whole_building_repeat_claude_run58/plan_drafts/draft_002/plan.json": "381a23764e68683ac23a58091c9d6786281c113a2d9dc91d5969da9646f9ce56",
+    "2026-09-28_sm21_behavior_repeat_run83/candidate_04/source_model.json": "aef5b0bab5ada298e7ed643a84af2f41e441641fdadbabfe0bf10e3dea796b29",
+    "2026-09-28_sm21_behavior_repeat_run83/inputs.json": "8a381dfef024713793080b6325e986f2d3b4756d1455ee4e2f2661d5396ccf8e",
+    "2026-09-28_sm21_behavior_repeat_run83/plan_drafts/draft_001/plan.json": "ab939cd76102aec3fd9ba0d1b2617ac48f73ce6f5761d289b1e1c88cf24d364e",
+    "2026-09-28_sm21_behavior_repeat_run83/plan_drafts/draft_002/plan.json": "c08189213e0e83a8c81dde853e5b206c1e6fb0899a1e1479a2a8dbf6c11bc146",
+    "2026-09-28_sm21_behavior_repeat_run83/agent_stream.jsonl.gz": "0e1bd62cd05b2faaf6bedd66d45a4f9d73875384560ec0d2cf829fa3683dd33f",
+    "2026-09-28_sm21_behavior_repeat_run83/plan_drafts/draft_003/plan.json": "cab45d0410dca7fcd25b7cabb75cc4a51848de9f9b5033f2561a93751f87c460",
+    "2026-09-28_sm21_behavior_repeat_run83/images/2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+  },
+  "conclusions": [
+    "The same relation checker accepts a wrong expectation when the wrong source agrees with it; it checks consistency, not original drawing truth.",
+    "Actual measurement already exposed the developer-identified wall at x=768 and779, but the model declared it at727.",
+    "Changing this wall alone removes the first window's host failure without shortening any window. Another window still fails; this is not a complete repair."
+  ],
+  "limits": [
+    "Developer supplies wall identity; no automatic identification or work-model adoption is demonstrated.",
+    "This does not determine why recent runs fail more often, or exclude indirect prompt/tool/context effects.",
+    "No GT or historical good coordinates feed the wall edit. Historical sources serve only the separate relationship controls."
+  ]
+}
