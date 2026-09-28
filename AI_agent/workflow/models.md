@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-28 最新用户决定：恢复本轮质量基线后停止使用Claude工作模型。** 原因是反复额度等待影响进展；当前恢复步骤保持，恢复后先选择非Claude候选迁移同一整案任务并核质量保持，再逐步尝试角色拆分和低档替换。不得在后续常规工作模型配置中继续选Claude或自动回退到Claude。该决定针对工作模型，开发调查按具体任务安排；产品按角色可配置、用户自接与服务器多模型方向保持。现有候选不等于已验证建筑质量，型号尚未锁定；本次没有模型调用，也没有新增整案批次批准。见[讨论与证据边界](../logs/worklog/2026-09-28_behavior_variance_and_model_transition.md)。
+
 **09-28 方法对照两次已执行并停批：** 用户“启动吧”批准sm21的B/run84、A/run85串行验证，均实际claude-sonnet-5/medium、各3000秒/24候选、0续查/委派/回退。B在993.57秒正常完成；核真实回执后独立启动A，826.83秒遇429额度限制中断，仅保存首层，完整质量unknown。共2次现有订阅调用，CLI合计估价$6.160602非账单；无重试/补跑/额外调查/API/DeepSeek。B质量仍未恢复，无法形成完整方法对照；不自动等待额度重开。见[授权、实际回执与结果](../logs/experiments/2026-09-28_dimension_first_comparison/README.md)。
 
 **09-28 用户指定独立调查已完成：** Opus 5.5通过现有Claude订阅，以CLI当前最高选项`--effort max`、实际`claude-opus-5-5`正常结束，2093.31秒、returncode=0/is_error=false。独立工作树基准ceb8b1df，1次开发调查，0额外工作模型/子代理/API/DeepSeek/回退；CLI标价估算$8.2363386非账单。调查成果已交回，不改变产品先单Sonnet恢复质量的安排；后续两次Sonnet方法对照的实际执行结果见本页首条。见[任务、完成回执与复核](../logs/experiments/2026-09-28_opus_quality_investigation_setup/README.md)。
