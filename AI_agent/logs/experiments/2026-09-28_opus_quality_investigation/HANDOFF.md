@@ -14,7 +14,7 @@
 
 ## 独立反驳/更正
 
-1. **run83“x≈718 的无关线”不成立。** 原图北侧两房之间唯一贯通的竖线在 x=1114/1125（`check_north_divider_run83_2f.txt`），原图 x≈718 处没有竖线。模型用的裁切原点是 400、比例 1，裁切内 718 正对应原图 1118。所以是**看对了对象，却混用了裁切坐标，并用“无灰填/无墙厚支撑”判据否掉了它**；尺寸链中 1889/1891 的分点也被误读。修复应针对坐标系和判据，不是“找错了线”。
+1. **run83“x≈718 的无关线”不成立。** 原图北侧两房之间唯一贯通的竖线在 x=1114/1125（`check_north_divider_run83_2f.md`），原图 x≈718 处没有竖线。模型用的裁切原点是 400、比例 1，裁切内 718 正对应原图 1118。所以是**看对了对象，却混用了裁切坐标，并用“无灰填/无墙厚支撑”判据否掉了它**；尺寸链中 1889/1891 的分点也被误读。修复应针对坐标系和判据，不是“找错了线”。
 2. **“sm21 全部 severe”不等于全部退步。** 严格 GT 的 2 cm 容差把参照面选择（墙面还是中线；原图两条尺寸链分别对应两者）判成 severe；sm24/sm25 的好结果在这把尺子下也是 severe。对象级错误实际是 4/12（72、75、83、82）。
 
 ## 新增观察（相关性，未证因果）
@@ -50,7 +50,7 @@
 | reevaluate_sm24_sm25.py → sm24_sm25_evaluation.json | sm24/sm25 同法复评，含原图分区与开口位置/宿主计数 | `PYTHONPATH=<tree> /opt/venv/bin/python3 reevaluate_sm24_sm25.py` |
 | behavior_profile.py → behavior_table.json、first_declaration_basis.json | 参考读取、首建时刻、像素用量、首份声明依据 | `python3 behavior_profile.py`（需先有上面三个输出） |
 | public_actions.py | 公开动作抽取，跳过 thinking | `python3 public_actions.py <run_dir>` |
-| check_north_divider.py → check_north_divider_run83_2f.txt | run83 二层北侧隔墙像素核查 | `/opt/venv/bin/python3 check_north_divider.py <2f_view.png>` |
+| check_north_divider.py → check_north_divider_run83_2f.md | run83 二层北侧隔墙像素核查 | `/opt/venv/bin/python3 check_north_divider.py <2f_view.png>` |
 | interior_stroke_audit.py / interior_stroke_mutation.py → *.json | P1(b) 原型、真实失败命中与变异灵敏度 | `/opt/venv/bin/python3 interior_stroke_audit.py run57 …` |
 
 - 原文件保持：`git status` 只显示本目录新增文件；`src/`、历史 run 都无 diff。
