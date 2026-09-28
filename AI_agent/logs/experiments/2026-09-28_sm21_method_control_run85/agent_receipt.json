@@ -1,0 +1,106 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 1,
+  "elapsed_seconds": 826.83,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 817130,
+    "stop_reason": "stop_sequence",
+    "session_id": "8b147cb0-c8f7-4cca-9904-f13579d42298",
+    "total_cost_usd": 1.7869642,
+    "usage": {
+      "input_tokens": 42,
+      "cache_creation_input_tokens": 177010,
+      "cache_read_input_tokens": 2067301,
+      "output_tokens": 66538,
+      "output_tokens_details": {
+        "thinking_tokens": 58874
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 177010,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2965,
+          "cache_read_input_tokens": 185076,
+          "cache_creation_input_tokens": 9995,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 9995
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 42,
+        "outputTokens": 66538,
+        "cacheReadInputTokens": 2067301,
+        "cacheCreationInputTokens": 177010,
+        "webSearchRequests": 0,
+        "costUSD": 1.7869642,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 58874,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "api_error",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": true,
+    "num_turns": 42,
+    "subtype": "success",
+    "api_error_status": 429,
+    "result": "You've hit your monthly spend limit · raise it at claude.ai/settings/usage?from=cc_cli_limit_message · your session limit resets 12:50pm (UTC)",
+    "type": "result",
+    "duration_ms": 821807,
+    "uuid": "968f701b-3dac-4e70-9fa3-e20a3f4eb2ac",
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "candidate_05",
+    "objects": [
+      {
+        "id": "F1:D_main_entry",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West_view.png double-door glyph measured against the overall 6600mm elevation dimension: wall top at pixel y=180 (z=6.6m) and ground at pixel y=566 (z=0m) give scale 386px/6.6m=58.5px/m. The door top edge at pixel y=438 and bottom at pixel y=568 (approx ground) give door height=(568-438)/58.5=2.22m, so head z=2.2m from ground.",
+    "sources": [
+      {
+        "box": [
+          540.0,
+          380.0,
+          680.0,
+          570.0
+        ],
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [
+      "Anchor pixel y=180/566 for wall top/ground read from a wider full-image view, not exactly this crop; small pixel-reading uncertainty (~2-3px, tens of mm) remains."
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            180,
+            6.6
+          ],
+          [
+            566,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "West_view.png",
+        "pixels": [
+          568.0,
+          438.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        6.6,
+        0.0
+      ],
+      "metres_per_pixel": -0.01709844559585492,
+      "pixels": [
+        180,
+        566,
+        568.0,
+        438.0
+      ]
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "2bd1917afa60691ce25a1aecab4407c3730cc31af94249dff6266bf9afcf2b83",
+  "resolved_values": {
+    "z": [
+      -0.034196891,
+      2.188601036
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        540.0,
+        380.0,
+        680.0,
+        570.0
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "Interior corridor door heights (2.1m) are assumed; no elevation shows internal door heights.",
+    "Exterior door head height 2.4m derived from South_view.png dimension chain (600,900,1500->head=2400); applied also to the West entrance door by similarity, not independently confirmed by West_view chain segmentation.",
+    "Partition and corridor wall thickness not modelled (compiler centreline convention); only exterior envelope carries the 240mm wall per drawing label.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "9c863c782521c7bce46742366a59e04d5688fdc55fc914935341e9d74ab18330",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "55180a3cc562a3842121192a087821fb39b22c374d03372c12bc9576a15adb17",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_001/compilation.json",
+      "compilation_sha256": "ccffcda01a178291a2d533608e37f15925ebe62319bd25969e7349e4a750dbf7",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_001/draft_view.png",
+        "image_sha256": "b736916820ef65af6063d5bebfbbc35fde2094833bf17c0349c38578bb164a49",
+        "metadata_file": "plan_drafts/draft_001/draft_view.json",
+        "metadata_sha256": "95fd0fb07b9bdd1b17bf321b40e088b013c7ed3012d1c3a4cf56e9c68c6d4cde",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_001/plan.json",
+      "plan_sha256": "79f67db4a2c8e566e2808794826e1b5f475c421e32b7da9d2b089eb5bfd20178"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e9944a6214ce412cc76091e77321d1fa8ea8027426e0f62e18151ef5f0cabacd",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Corridor door widths simplified to ~900mm/1200mm bands from noisy overlapping profile gaps near partition junctions; exact leaf count/width (single vs double door) at each corridor entry not fully resolved.",
+    "East and West exterior wall full opening inventory (besides the identified west entrance door) not yet cross-checked against East_view.png; East facade shows only windows on elevation, consistent with no door found on east wall in plan.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "agent_assumptions": [
+    "1F exterior window heights (sill 1.0m/head 2.6m) and the west main-entry door height (0-2.2m) are confirmed against North/West elevation dimension chains (claims 0001, 0004). Interior corridor-to-room doors on both floors remain an explicit 2.1m assumption; no elevation shows internal doors.",
+    "Interior door widths estimated from arc/jamb pixel positions; exact jamb-to-jamb widths approximate (~600-1300mm range) since some door frame marks overlap partition end symbols.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "No exterior door observed on this floor's plan; vertical circulation (stairs) not depicted in the supplied drawings and is not invented here.",
+    "2F exterior window heights (sill 1.0m/head 2.8m absolute, i.e. 4.0-5.8m) are confirmed against the North elevation dimension chain (claim_0002), applying to all 2F windows including the top-room and bottom-room families and the corridor east/west windows. Interior corridor-to-room doors remain an explicit 2.1m assumption; no elevation shows internal doors.",
+    "1F ceiling height 3.0m and 2F ceiling height 3.6m are confirmed by the North/South elevation's 6600mm total height split into 3000mm (1F) and 3600mm (2F) brackets.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 28,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "50cbd9403bec7ca1bbe2de01119d77d87abaecaf4d855cfaac54c5d6b1d0abbb",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "candidate_05",
+      "parent_proposal_sha256": "2bd1917afa60691ce25a1aecab4407c3730cc31af94249dff6266bf9afcf2b83"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "bf3ba4a0557cce4facc1fe95ec188de6adc2bf9d7bc0bb2b096f8172c414ccda",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "2bd1917afa60691ce25a1aecab4407c3730cc31af94249dff6266bf9afcf2b83"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f10312f0d849bf99bac9e920a9e460f09b206a84544faa1676a487f4d21b5d16",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Interior door exact widths not independently dimensioned in source; read from arcs.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Vertical connection between F1 and F2 (stairs) not shown on these plan sheets; floor stacking assumed from consistent 15x8m footprint and dimension chains only.",
+    "Interior door exact widths approximate, read from arc/jamb pixel positions.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

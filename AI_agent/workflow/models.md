@@ -1,6 +1,8 @@
 # 开发与产品运行的模型使用约定
 
-**09-28 用户指定独立调查已完成：** Opus 5.5通过现有Claude订阅，以CLI当前最高选项`--effort max`、实际`claude-opus-5-5`正常结束，2093.31秒、returncode=0/is_error=false。独立工作树基准ceb8b1df，1次开发调查，0额外工作模型/子代理/API/DeepSeek/回退；CLI标价估算$8.2363386非账单。调查成果已交回，不改变产品先单Sonnet恢复质量的安排；下一两次Sonnet方法对照仅完成离线准备，待用户决定。见[任务、完成回执与复核](../logs/experiments/2026-09-28_opus_quality_investigation_setup/README.md)。
+**09-28 方法对照两次已执行并停批：** 用户“启动吧”批准sm21的B/run84、A/run85串行验证，均实际claude-sonnet-5/medium、各3000秒/24候选、0续查/委派/回退。B在993.57秒正常完成；核真实回执后独立启动A，826.83秒遇429额度限制中断，仅保存首层，完整质量unknown。共2次现有订阅调用，CLI合计估价$6.160602非账单；无重试/补跑/额外调查/API/DeepSeek。B质量仍未恢复，无法形成完整方法对照；不自动等待额度重开。见[授权、实际回执与结果](../logs/experiments/2026-09-28_dimension_first_comparison/README.md)。
+
+**09-28 用户指定独立调查已完成：** Opus 5.5通过现有Claude订阅，以CLI当前最高选项`--effort max`、实际`claude-opus-5-5`正常结束，2093.31秒、returncode=0/is_error=false。独立工作树基准ceb8b1df，1次开发调查，0额外工作模型/子代理/API/DeepSeek/回退；CLI标价估算$8.2363386非账单。调查成果已交回，不改变产品先单Sonnet恢复质量的安排；后续两次Sonnet方法对照的实际执行结果见本页首条。见[任务、完成回执与复核](../logs/experiments/2026-09-28_opus_quality_investigation_setup/README.md)。
 
 **09-28 最新顺序：** 用户要求先恢复单 Sonnet 建模质量，再逐步尝试角色分工。run53–58已逐一核真实回执：均claude-sonnet-5、1次订阅主调用、0局部子模型。已有候选配置/接口库留作后用，本轮未完成的正式入口接入已留档并退出生产路径，没有新模型调用。此排期覆盖下方历史“下一项接入”安排，产品的可配置多模型方向保持。见[交接](../logs/worklog/2026-09-28_single_sonnet_quality_priority.md)。
 

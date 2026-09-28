@@ -1,0 +1,435 @@
+{
+  "parent_draft_id": "draft_003",
+  "parent_plan_sha256": "7c28018c9f9679627d7d0381af68624249ef9012663a49d310b511c1ca02be88",
+  "operations_json": "[\n{\"op\":\"set\",\"field\":\"ceiling_height\",\"value\":3.6,\"reason\":\"North elevation shows 2F (upper) zone total height 3600mm, confirmed by 6600mm total minus 1F's 3000mm\",\"source_refs\":[\"North_view.png: left dimension chain 6600 total split into 3600 (upper/2F) and 3000 (lower/1F)\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_top1\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"North elevation upper-zone window chain 800/1800/1000 gives 2F window sill=1.0m above 2F floor, head=2.8m\",\"source_refs\":[\"North_view.png: right dimension chain 800/1800/1000 above the floor division line for the upper (2F) window column\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_top2\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"same 2F window height family\",\"source_refs\":[\"North_view.png: dimension chain for 2F window column\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_b1\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"2F bottom-room windows use the same 2F window height family as the top rooms\",\"source_refs\":[\"South_view.png: matching 2F window heights on south facade upper zone\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_b2\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"2F window height family\",\"source_refs\":[\"South_view.png: 2F window heights\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_b3\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"2F window height family\",\"source_refs\":[\"South_view.png: 2F window heights\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_b4\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"2F window height family\",\"source_refs\":[\"South_view.png: 2F window heights\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_corridor_west\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"2F window height family\",\"source_refs\":[\"West_view.png: 2F upper window on west facade\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_corridor_east\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"2F window height family\",\"source_refs\":[\"East_view.png: 2F upper window on east facade\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "ceiling_height",
+      "id": null,
+      "before": 3.0,
+      "after": 3.6,
+      "reason": "North elevation shows 2F (upper) zone total height 3600mm, confirmed by 6600mm total minus 1F's 3000mm",
+      "source_refs": [
+        "North_view.png: left dimension chain 6600 total split into 3600 (upper/2F) and 3000 (lower/1F)"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "openings",
+      "id": "W_top1",
+      "before": {
+        "id": "W_top1",
+        "kind": "window",
+        "p1": [
+          607,
+          347
+        ],
+        "p2": [
+          941,
+          347
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on north facade over top-left meeting room; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_top1",
+        "kind": "window",
+        "p1": [
+          607,
+          347
+        ],
+        "p2": [
+          941,
+          347
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on north facade over top-left meeting room; sill/head assumed"
+        ]
+      },
+      "reason": "North elevation upper-zone window chain 800/1800/1000 gives 2F window sill=1.0m above 2F floor, head=2.8m",
+      "source_refs": [
+        "North_view.png: right dimension chain 800/1800/1000 above the floor division line for the upper (2F) window column"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "openings",
+      "id": "W_top2",
+      "before": {
+        "id": "W_top2",
+        "kind": "window",
+        "p1": [
+          1300,
+          347
+        ],
+        "p2": [
+          1637,
+          347
+        ],
+        "z": [
+          0.9,
+          2.4
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on north facade over top-right meeting room; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_top2",
+        "kind": "window",
+        "p1": [
+          1300,
+          347
+        ],
+        "p2": [
+          1637,
+          347
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on north facade over top-right meeting room; sill/head assumed"
+        ]
+      },
+      "reason": "same 2F window height family",
+      "source_refs": [
+        "North_view.png: dimension chain for 2F window column"
+      ]
+    },
+    {
+      "operation_index": 3,
+      "field": "openings",
+      "id": "W_b1",
+      "before": {
+        "id": "W_b1",
+        "kind": "window",
+        "p1": [
+          629,
+          1071
+        ],
+        "p2": [
+          740,
+          1071
+        ],
+        "z": [
+          0.9,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room1; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_b1",
+        "kind": "window",
+        "p1": [
+          629,
+          1071
+        ],
+        "p2": [
+          740,
+          1071
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room1; sill/head assumed"
+        ]
+      },
+      "reason": "2F bottom-room windows use the same 2F window height family as the top rooms",
+      "source_refs": [
+        "South_view.png: matching 2F window heights on south facade upper zone"
+      ]
+    },
+    {
+      "operation_index": 4,
+      "field": "openings",
+      "id": "W_b2",
+      "before": {
+        "id": "W_b2",
+        "kind": "window",
+        "p1": [
+          807,
+          1071
+        ],
+        "p2": [
+          918,
+          1071
+        ],
+        "z": [
+          0.9,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room2; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_b2",
+        "kind": "window",
+        "p1": [
+          807,
+          1071
+        ],
+        "p2": [
+          918,
+          1071
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room2; sill/head assumed"
+        ]
+      },
+      "reason": "2F window height family",
+      "source_refs": [
+        "South_view.png: 2F window heights"
+      ]
+    },
+    {
+      "operation_index": 5,
+      "field": "openings",
+      "id": "W_b3",
+      "before": {
+        "id": "W_b3",
+        "kind": "window",
+        "p1": [
+          1322,
+          1071
+        ],
+        "p2": [
+          1433,
+          1071
+        ],
+        "z": [
+          0.9,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room3; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_b3",
+        "kind": "window",
+        "p1": [
+          1322,
+          1071
+        ],
+        "p2": [
+          1433,
+          1071
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room3; sill/head assumed"
+        ]
+      },
+      "reason": "2F window height family",
+      "source_refs": [
+        "South_view.png: 2F window heights"
+      ]
+    },
+    {
+      "operation_index": 6,
+      "field": "openings",
+      "id": "W_b4",
+      "before": {
+        "id": "W_b4",
+        "kind": "window",
+        "p1": [
+          1500,
+          1071
+        ],
+        "p2": [
+          1611,
+          1071
+        ],
+        "z": [
+          0.9,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room4; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_b4",
+        "kind": "window",
+        "p1": [
+          1500,
+          1071
+        ],
+        "p2": [
+          1611,
+          1071
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on south facade over bottom-room4; sill/head assumed"
+        ]
+      },
+      "reason": "2F window height family",
+      "source_refs": [
+        "South_view.png: 2F window heights"
+      ]
+    },
+    {
+      "operation_index": 7,
+      "field": "openings",
+      "id": "W_corridor_west",
+      "before": {
+        "id": "W_corridor_west",
+        "kind": "window",
+        "p1": [
+          427,
+          645
+        ],
+        "p2": [
+          427,
+          757
+        ],
+        "z": [
+          0.9,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on west facade at corridor level; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_corridor_west",
+        "kind": "window",
+        "p1": [
+          427,
+          645
+        ],
+        "p2": [
+          427,
+          757
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on west facade at corridor level; sill/head assumed"
+        ]
+      },
+      "reason": "2F window height family",
+      "source_refs": [
+        "West_view.png: 2F upper window on west facade"
+      ]
+    },
+    {
+      "operation_index": 8,
+      "field": "openings",
+      "id": "W_corridor_east",
+      "before": {
+        "id": "W_corridor_east",
+        "kind": "window",
+        "p1": [
+          1814,
+          645
+        ],
+        "p2": [
+          1814,
+          757
+        ],
+        "z": [
+          0.9,
+          2.1
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on east facade at corridor level; sill/head assumed"
+        ]
+      },
+      "after": {
+        "id": "W_corridor_east",
+        "kind": "window",
+        "p1": [
+          1814,
+          645
+        ],
+        "p2": [
+          1814,
+          757
+        ],
+        "z": [
+          1.0,
+          2.8
+        ],
+        "source_refs": [
+          "2f_view.png: cyan window band on east facade at corridor level; sill/head assumed"
+        ]
+      },
+      "reason": "2F window height family",
+      "source_refs": [
+        "East_view.png: 2F upper window on east facade"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "openings": [
+      "D_top1_corr",
+      "D_top2_corr",
+      "D_b1_corr",
+      "D_b2_corr",
+      "D_b3_corr",
+      "D_b4_corr"
+    ],
+    "space_seeds": [
+      "room_top1",
+      "room_top2",
+      "corridor2",
+      "room_b1",
+      "room_b2",
+      "room_b3",
+      "room_b4"
+    ],
+    "partitions": [
+      "PT_top",
+      "PB_1_2",
+      "PB_2_3",
+      "PB_3_4",
+      "P_corridor_north",
+      "P_corridor_south"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

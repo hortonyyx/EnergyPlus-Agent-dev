@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "bb6cc5734090b843846eec19ef93fca9a9802ec6c050f378b076ce15e1c2fbb6",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        426.0,
+        0.0
+      ],
+      [
+        1818.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        346.75,
+        8.0
+      ],
+      [
+        1086.7,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "obs1",
+      "expected": "separate_spaces",
+      "evidence": "room1 and room2 separated by solid partition wall at x~888",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            500.0
+          ],
+          "world_xy_m": [
+            1.875,
+            6.343131292654909
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room1",
+          "interior_space_ids": [
+            "F1:room1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1050.0,
+            500.0
+          ],
+          "world_xy_m": [
+            6.724137931034483,
+            6.343131292654909
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room2",
+          "interior_space_ids": [
+            "F1:room2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs2",
+      "expected": "same_space",
+      "evidence": "corridor is one continuous open space along full building width",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.875,
+            4.180823028583013
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor",
+          "interior_space_ids": [
+            "F1:corridor"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            12.65086206896552,
+            4.180823028583013
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor",
+          "interior_space_ids": [
+            "F1:corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs3",
+      "expected": "separate_spaces",
+      "evidence": "room4 and room5 separated by partition wall at x~888",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            950.0
+          ],
+          "world_xy_m": [
+            1.875,
+            1.4779376984931414
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room4",
+          "interior_space_ids": [
+            "F1:room4"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1150.0,
+            950.0
+          ],
+          "world_xy_m": [
+            7.801724137931035,
+            1.4779376984931414
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room5",
+          "interior_space_ids": [
+            "F1:room5"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "obs4",
+      "expected": "separate_spaces",
+      "evidence": "room2 and corridor are separate spaces connected only by a door",
+      "points": [
+        {
+          "pixel": [
+            1050.0,
+            500.0
+          ],
+          "world_xy_m": [
+            6.724137931034483,
+            6.343131292654909
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:room2",
+          "interior_space_ids": [
+            "F1:room2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            700.0
+          ],
+          "world_xy_m": [
+            7.262931034482759,
+            4.180823028583013
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:corridor",
+          "interior_space_ids": [
+            "F1:corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F1:D_room2_corr",
+          "space_ids": [
+            "F1:corridor",
+            "F1:room2"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_05",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_005.json",
+  "calibration_sha256": "4af90a231b55df0e9aa016f93c26a97c4bbf0baf799b7e16cadd741e223b1e1d",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 2190
+}

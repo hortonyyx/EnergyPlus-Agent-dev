@@ -1,0 +1,133 @@
+{
+  "candidate": "candidate_05",
+  "claim_ids": [
+    "claim_0005"
+  ],
+  "evidence": {
+    "bindings": [
+      {
+        "claim_id": "claim_0005",
+        "computation": {
+          "basis": "visual_estimate",
+          "method": "explicit_metric_value"
+        },
+        "operation_index": 0,
+        "parameter": "z",
+        "resolved_value": [
+          0.0,
+          2.1
+        ],
+        "targets": [
+          [
+            "opening",
+            "F1:D_room4_entry"
+          ]
+        ],
+        "value_field": "z"
+      }
+    ],
+    "claims": {
+      "claim_0005": {
+        "decision": {
+          "claim_id": "claim_0005",
+          "disposition": "adopted",
+          "id": "decision_0005",
+          "reason": "South elevation visual estimate is consistent with the already-applied 2.1m room4 entry door height."
+        },
+        "record": {
+          "claim": {
+            "basis": "visual_estimate",
+            "candidate": "candidate_05",
+            "objects": [
+              {
+                "id": "F1:D_room4_entry",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "South_view.png shows this door reaching from near the ground up to roughly 2.0-2.3m using the 6600mm overall elevation scale (~61 px/m); pixel precision on this door glyph is coarser than the main entry, so the value is kept at the already-applied standard 2.1m door height rather than an over-precise pixel figure.",
+            "sources": [
+              {
+                "box": [
+                  330.0,
+                  420.0,
+                  410.0,
+                  570.0
+                ],
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [
+              "Exact pixel-measured door height is approximate (~2.0-2.3m range); 2.1m standard value retained rather than an imprecise pixel figure."
+            ],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "type": "literal",
+                "unit": "m",
+                "value": [
+                  0.0,
+                  2.1
+                ]
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "basis": "visual_estimate",
+              "method": "explicit_metric_value"
+            }
+          },
+          "id": "claim_0005",
+          "parent_proposal_sha256": "2bd1917afa60691ce25a1aecab4407c3730cc31af94249dff6266bf9afcf2b83",
+          "resolved_values": {
+            "z": [
+              0.0,
+              2.1
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                330.0,
+                420.0,
+                410.0,
+                570.0
+              ],
+              "image": "South_view.png",
+              "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "size": [
+                1423,
+                794
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        }
+      }
+    },
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "2bd1917afa60691ce25a1aecab4407c3730cc31af94249dff6266bf9afcf2b83"
+  },
+  "id": "confirmation_0002",
+  "kind": "confirmation",
+  "parent_proposal_sha256": "2bd1917afa60691ce25a1aecab4407c3730cc31af94249dff6266bf9afcf2b83",
+  "resolved_operations": [
+    {
+      "changes": {
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      "id": "F1:D_room4_entry",
+      "op": "update_opening",
+      "reason": "confirm room4 entry door height against South elevation",
+      "source_refs": [
+        "claim:claim_0005:3ece2e725179a3cf09eb71f145640aa1335e771320ae394c0e9277af3219cf01"
+      ]
+    }
+  ],
+  "source_model_sha256": "bb6cc5734090b843846eec19ef93fca9a9802ec6c050f378b076ce15e1c2fbb6",
+  "status": "confirmed_unchanged"
+}

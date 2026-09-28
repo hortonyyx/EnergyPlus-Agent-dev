@@ -1,0 +1,650 @@
+{
+  "completed": true,
+  "quality": "not_restored_missing_window_and_plan_geometry_errors",
+  "candidate": "candidate_06",
+  "source_model_sha256": "f10312f0d849bf99bac9e920a9e460f09b206a84544faa1676a487f4d21b5d16",
+  "final_role_edit_preserves_physical_geometry": true,
+  "findings": [
+    {
+      "topic": "F1 south small window",
+      "first_declaration_action": 32,
+      "measured_at_action": 26,
+      "outcome": "omitted_from_first_declaration_and_all_saved_versions",
+      "public_return": {
+        "pixels": [
+          745,
+          854
+        ],
+        "peak": 746,
+        "max_count": 2,
+        "support_peaks": [
+          {
+            "pixels": [
+              746,
+              853
+            ],
+            "count": 2
+          }
+        ]
+      },
+      "evidence": "Original 1f_view.png and evaluation-only original_reference identify S-W at x745..855. Action26 already returned cyan support x745..854; the first F1 declaration lists six windows and omits this one. Every later F1 draft retains six. Height checks and confirmations operate on existing objects and do not recover the omission.",
+      "limit": "Returned support is evidence available to the model, not proof that it recognized the object. No hidden reasoning was inspected."
+    },
+    {
+      "topic": "F1 door correction after host error",
+      "actions": [
+        32,
+        33,
+        34
+      ],
+      "outcome": "successful_compile_but_two_doors_broadened_incorrectly",
+      "changes": [
+        {
+          "operation_index": 1,
+          "field": "openings",
+          "id": "D_room2_corr",
+          "before": {
+            "id": "D_room2_corr",
+            "kind": "door",
+            "p1": [
+              975,
+              600
+            ],
+            "p2": [
+              1065,
+              600
+            ],
+            "z": [
+              0,
+              2.1
+            ],
+            "source_refs": [
+              "1f_view.png: door arc at north corridor wall right of partition P1, connecting north-middle room to corridor; height assumed"
+            ]
+          },
+          "after": {
+            "id": "D_room2_corr",
+            "kind": "door",
+            "p1": [
+              892,
+              600
+            ],
+            "p2": [
+              1065,
+              600
+            ],
+            "z": [
+              0,
+              2.1
+            ],
+            "source_refs": [
+              "1f_view.png: door arc at north corridor wall right of partition P1, connecting north-middle room to corridor; height assumed"
+            ]
+          },
+          "reason": "avoid crossing partition P1 T-junction at x=888",
+          "source_refs": [
+            "1f_view.png: door jamb starts after partition centerline"
+          ]
+        },
+        {
+          "operation_index": 3,
+          "field": "openings",
+          "id": "D_room5_corr",
+          "before": {
+            "id": "D_room5_corr",
+            "kind": "door",
+            "p1": [
+              975,
+              800
+            ],
+            "p2": [
+              1065,
+              800
+            ],
+            "z": [
+              0,
+              2.1
+            ],
+            "source_refs": [
+              "1f_view.png: door arc at south corridor wall right of partition P3, connecting south-middle room to corridor; height assumed"
+            ]
+          },
+          "after": {
+            "id": "D_room5_corr",
+            "kind": "door",
+            "p1": [
+              892,
+              800
+            ],
+            "p2": [
+              1065,
+              800
+            ],
+            "z": [
+              0,
+              2.1
+            ],
+            "source_refs": [
+              "1f_view.png: door arc at south corridor wall right of partition P3, connecting south-middle room to corridor; height assumed"
+            ]
+          },
+          "reason": "avoid crossing partition P3 T-junction at x=888",
+          "source_refs": [
+            "1f_view.png: door jamb starts after partition centerline"
+          ]
+        }
+      ],
+      "widths": {
+        "before_m": 0.9698275862068966,
+        "after_m": 1.8642241379310345,
+        "original_reference_m": 0.905823148813803
+      },
+      "evidence": "The failure concerns D_room1_corr crossing a partition. After inspecting the draft, the model changes five doors while preserving all partitions. D_room2_corr and D_room5_corr expand from x975..1065 to x892..1065 (about0.970m to1.864m, versus original0.906m). Original jamb spans are x922..1006; both the initial and revised spans are misplaced, with final endpoint error about0.6205m. No new original-view/profile call intervenes between draft inspection and revision. Tool success does not establish a faithful correction."
+    },
+    {
+      "topic": "Plan coordinates and saved extent",
+      "actions": [
+        32,
+        55,
+        64,
+        65
+      ],
+      "outcome": "coordinate_discrepancies_survive_inspection",
+      "evidence": "F1 corridor boundaries stay at y600/800 pixels, while original reference centerlines are624/810; this causes about0.263/0.109m perpendicular opening displacement. F2 y-anchor331.75 is assigned8m, but the footprint starts at347, so saved depth is7.835m despite a stated15x8m footprint. These are inspectable numeric discrepancies; no automatic snapping or compiler rewrite caused them.",
+      "limit": "Outer face versus centerline convention also contributes some smaller offsets; not every strict2cm finding is an object error."
+    },
+    {
+      "topic": "Successful space and height behaviors",
+      "actions": [
+        55,
+        62,
+        63,
+        66,
+        69,
+        79,
+        84,
+        88
+      ],
+      "outcome": "source_room_identity_preserved_and_existing_exterior_heights_repaired",
+      "evidence": "The initial F2 declaration includes the north divider aroundx1120 and two distinct doors, preserving both rooms. Elevation rereading drives actual F1/F2 window height updates and F2 ceiling3.6m before assembly; assembly places F2 atz3m and its doors at3..5.1m. Existing16 exterior apertures match the legacy diagnostic parameters; the missing17th is retained as missing. Final role/note edit preserves all physical geometry.",
+      "limit": "16/16 existing matches is not17/17 completeness. Source relation checks corroborate the declared separation; they do not independently discover missed objects."
+    },
+    {
+      "topic": "Method exposure and optional measurement binding",
+      "actions": [
+        2
+      ],
+      "outcome": "reference_received_but_whole_method_package_not_validated",
+      "evidence": "Actual reconstruction reference hash matches frozenB. Public requests still use manual numeric plan declarations after pixel profiles, with no view_pixel_profile or measurement bindings. Annotations are used for scale and heights, while major planar coordinates and object inventory remain faulty. This is mixed behavior evidence, not a causal conclusion from tool counts.",
+      "limit": "B changes both reference length and method emphasis. One sample cannot establish benefit, harm, stable recovery, server drift, or the separate value of the common binding feature."
+    }
+  ],
+  "public_result_excerpts": {
+    "26": [
+      {
+        "axis": "x",
+        "runs": [
+          {
+            "pixels": [
+              554,
+              557
+            ],
+            "peak": 554,
+            "max_count": 9,
+            "support_peaks": [
+              {
+                "pixels": [
+                  554,
+                  554
+                ],
+                "count": 9
+              }
+            ]
+          },
+          {
+            "pixels": [
+              745,
+              854
+            ],
+            "peak": 746,
+            "max_count": 2,
+            "support_peaks": [
+              {
+                "pixels": [
+                  746,
+                  853
+                ],
+                "count": 2
+              }
+            ]
+          },
+          {
+            "pixels": [
+              1010,
+              1230
+            ],
+            "peak": 1011,
+            "max_count": 2,
+            "support_peaks": [
+              {
+                "pixels": [
+                  1011,
+                  1230
+                ],
+                "count": 2
+              }
+            ]
+          },
+          {
+            "pixels": [
+              1478,
+              1701
+            ],
+            "peak": 1478,
+            "max_count": 15,
+            "support_peaks": [
+              {
+                "pixels": [
+                  1478,
+                  1478
+                ],
+                "count": 15
+              },
+              {
+                "pixels": [
+                  1700,
+                  1701
+                ],
+                "count": 15
+              }
+            ]
+          }
+        ],
+        "matching_pixels": 1157,
+        "name": "1f_view.png",
+        "box_original_pixels": [
+          420,
+          1070,
+          1820,
+          1085
+        ],
+        "support_length": 15,
+        "coordinate_system": "original image pixels; interval endpoints inclusive",
+        "evidence_note": "pixels spans any positive color support, including connected lines, text and arrow tips; its ends are not measured dimension or object endpoints. peak is only the FIRST global maximum in the run. support_peaks lists every positive local maximum plateau with its count, including weaker peaks, in original coordinates; no smoothing, threshold or endpoint selection is applied. A plateau is higher than both adjacent counts (zero outside the run). Peaks can include noise and do not identify ticks, walls or openings. Inspect the original crop or use view_pixel_profile with the same input image name and a chosen min_fraction before adopting coordinates."
+      }
+    ],
+    "28": [
+      {
+        "axis": "x",
+        "runs": [
+          {
+            "pixels": [
+              774,
+              778
+            ],
+            "peak": 774,
+            "max_count": 4,
+            "support_peaks": [
+              {
+                "pixels": [
+                  774,
+                  774
+                ],
+                "count": 4
+              }
+            ]
+          },
+          {
+            "pixels": [
+              851,
+              851
+            ],
+            "peak": 851,
+            "max_count": 14,
+            "support_peaks": [
+              {
+                "pixels": [
+                  851,
+                  851
+                ],
+                "count": 14
+              }
+            ]
+          },
+          {
+            "pixels": [
+              855,
+              855
+            ],
+            "peak": 855,
+            "max_count": 14,
+            "support_peaks": [
+              {
+                "pixels": [
+                  855,
+                  855
+                ],
+                "count": 14
+              }
+            ]
+          },
+          {
+            "pixels": [
+              922,
+              922
+            ],
+            "peak": 922,
+            "max_count": 14,
+            "support_peaks": [
+              {
+                "pixels": [
+                  922,
+                  922
+                ],
+                "count": 14
+              }
+            ]
+          },
+          {
+            "pixels": [
+              926,
+              926
+            ],
+            "peak": 926,
+            "max_count": 14,
+            "support_peaks": [
+              {
+                "pixels": [
+                  926,
+                  926
+                ],
+                "count": 14
+              }
+            ]
+          },
+          {
+            "pixels": [
+              999,
+              1003
+            ],
+            "peak": 1003,
+            "max_count": 4,
+            "support_peaks": [
+              {
+                "pixels": [
+                  1003,
+                  1003
+                ],
+                "count": 4
+              }
+            ]
+          },
+          {
+            "pixels": [
+              1385,
+              1385
+            ],
+            "peak": 1385,
+            "max_count": 14,
+            "support_peaks": [
+              {
+                "pixels": [
+                  1385,
+                  1385
+                ],
+                "count": 14
+              }
+            ]
+          },
+          {
+            "pixels": [
+              1463,
+              1467
+            ],
+            "peak": 1465,
+            "max_count": 4,
+            "support_peaks": [
+              {
+                "pixels": [
+                  1463,
+                  1463
+                ],
+                "count": 3
+              },
+              {
+                "pixels": [
+                  1465,
+                  1465
+                ],
+                "count": 4
+              }
+            ]
+          }
+        ],
+        "matching_pixels": 112,
+        "name": "1f_view.png",
+        "box_original_pixels": [
+          420,
+          593,
+          1820,
+          607
+        ],
+        "support_length": 14,
+        "coordinate_system": "original image pixels; interval endpoints inclusive",
+        "evidence_note": "pixels spans any positive color support, including connected lines, text and arrow tips; its ends are not measured dimension or object endpoints. peak is only the FIRST global maximum in the run. support_peaks lists every positive local maximum plateau with its count, including weaker peaks, in original coordinates; no smoothing, threshold or endpoint selection is applied. A plateau is higher than both adjacent counts (zero outside the run). Peaks can include noise and do not identify ticks, walls or openings. Inspect the original crop or use view_pixel_profile with the same input image name and a chosen min_fraction before adopting coordinates."
+      }
+    ],
+    "29": [
+      {
+        "axis": "x",
+        "runs": [],
+        "matching_pixels": 0,
+        "name": "1f_view.png",
+        "box_original_pixels": [
+          420,
+          793,
+          1820,
+          807
+        ],
+        "support_length": 14,
+        "coordinate_system": "original image pixels; interval endpoints inclusive",
+        "evidence_note": "pixels spans any positive color support, including connected lines, text and arrow tips; its ends are not measured dimension or object endpoints. peak is only the FIRST global maximum in the run. support_peaks lists every positive local maximum plateau with its count, including weaker peaks, in original coordinates; no smoothing, threshold or endpoint selection is applied. A plateau is higher than both adjacent counts (zero outside the run). Peaks can include noise and do not identify ticks, walls or openings. Inspect the original crop or use view_pixel_profile with the same input image name and a chosen min_fraction before adopting coordinates.",
+        "empty_filter_diagnostics": {
+          "reason": "no_pixels_match_requested_color",
+          "nearest_observed_color": {
+            "rgb": [
+              133,
+              133,
+              133
+            ],
+            "distance": 163.300337,
+            "pixel_count": 1084
+          },
+          "frequent_observed_colors": [
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "pixel_count": 15587
+            },
+            {
+              "rgb": [
+                71,
+                71,
+                71
+              ],
+              "pixel_count": 1095
+            },
+            {
+              "rgb": [
+                1,
+                1,
+                1
+              ],
+              "pixel_count": 1085
+            },
+            {
+              "rgb": [
+                133,
+                133,
+                133
+              ],
+              "pixel_count": 1084
+            },
+            {
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "pixel_count": 545
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "pixel_count": 15
+            },
+            {
+              "rgb": [
+                16,
+                16,
+                16
+              ],
+              "pixel_count": 14
+            },
+            {
+              "rgb": [
+                104,
+                104,
+                104
+              ],
+              "pixel_count": 14
+            }
+          ],
+          "total_crop_pixels": 19600,
+          "maximum_support_count": 0,
+          "maximum_support_fraction": 0.0,
+          "minimum_count": 1,
+          "interpretation": "These are exact crop colours and filter support, not object labels. Reinspect the original and choose a suitable RGB/axis/threshold if needed. An empty filter does not establish a missing wall or an open connection."
+        }
+      }
+    ],
+    "32": [
+      {
+        "status": "error",
+        "error": "opening D_room1_corr at pixels [795.0, 600.0] -> [890.0, 600.0] has only one full space host but is not wholly on the footprint boundary; a T-junction or partial host cannot be treated as outdoors",
+        "plan_input": {
+          "plan_file": "plan_drafts/draft_001/plan.json",
+          "plan_sha256": "9d536328598124a985d371630b943e7978bc1dd25d92e2ba451fe3608f776209",
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "draft_view": {
+            "image_file": "plan_drafts/draft_001/draft_view.png",
+            "image_sha256": "fcf38b362bab2ded080767ef0ab05bfde1d59c27981110a23c49d0b98d1fdbce",
+            "metadata_file": "plan_drafts/draft_001/draft_view.json",
+            "metadata_sha256": "d69138a2201b951efa97cb106b1c187024467d0061a7114b00745fa2cbd6c76b",
+            "draft_only": true,
+            "drawing_fidelity": "not_evaluated",
+            "source_geometry_ready": false,
+            "unrenderable_count": 0,
+            "unrenderable": []
+          },
+          "host_failure_view": {
+            "image_file": "plan_drafts/draft_001/opening_host_failure.png",
+            "image_sha256": "4f0b8edc8ca3403c263e22c8059260fab92195b472596dbc2799447829f06692",
+            "metadata_file": "plan_drafts/draft_001/opening_host_failure.json",
+            "metadata_sha256": "a68c8ddcc255680803a6822464af582eabff2b2828c914190cd609ba195b01f3",
+            "opening_id": "D_room1_corr",
+            "p1_original_pixels": [
+              795,
+              600
+            ],
+            "p2_original_pixels": [
+              890,
+              600
+            ],
+            "metadata": {
+              "schema_version": "opening_host_failure_view_v1",
+              "mode": "declaration_feedback_only",
+              "image": {
+                "name": "1f_view.png",
+                "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+                "size": [
+                  2133,
+                  1345
+                ]
+              },
+              "plan": {
+                "file": "plan_drafts/draft_001/plan.json",
+                "sha256": "9d536328598124a985d371630b943e7978bc1dd25d92e2ba451fe3608f776209"
+              },
+              "opening": {
+                "id": "D_room1_corr",
+                "p1_original_pixels": [
+                  795,
+                  600
+                ],
+                "p2_original_pixels": [
+                  890,
+                  600
+                ],
+                "full_declared_segment_preserved": true
+              },
+              "crop_original_pixels": [
+                653,
+                458,
+                1033,
+                743
+              ],
+              "panels": {
+                "clean_original": [
+                  0,
+                  24,
+                  780,
+                  609
+                ],
+                "declaration": [
+                  792,
+                  24,
+                  1572,
+                  609
+                ]
+              },
+              "panel_size_pixels": [
+                780,
+                585
+              ],
+              "display_scale": [
+                2.0526315789473686,
+                2.0526315789473686
+              ],
+              "mapping": "returned-image pixel = panel origin + (original pixel - original crop origin) * display_scale; use clean_original or declaration panel origin from panels. Both panels show the same original crop.",
+              "drawing_fidelity": "not_evaluated",
+              "source_geometry_ready": false,
+              "note": "Left is the clean original drawing; right overlays only caller-declared footprint, partitions and the full opening. This does not identify a valid host. Recheck the original wall and aperture before changing the declaration; do not shorten an observed opening merely to clear a host error."
+            }
+          }
+        },
+        "remaining_seconds": 2539,
+        "source_geometry_ready": false
+      }
+    ]
+  },
+  "evidence_sha256": {
+    "agent_receipt.json": "a483d7fc9edeb1324f1b36ef9b4635afde6c2d41323ede8c3572b76f183f8d97",
+    "agent_stream.jsonl.gz": "178beed92d19c05bacaf867de8babacfc0dcb1b17b07fa79c6fc4665d66d8b26",
+    "postrun_audit.json": "3f3ea3d8de67f51760258f669b31c1bfe5da1296c701acbf668839843dc84696",
+    "comparison_metrics.json": "27f98487f57c95a8eb5e5e2d36a3673ecf8136ae8e5168f48193c4e1cf94b985",
+    "candidate_06/source_model.json": "57c8c2024aecc86adb68389483df9bba2e97309913555d6a01f13abcb2c89874",
+    "plan_revisions/revision_001.json": "332005759817dba242b3b13d588642aa3e268a54fa54aa24dd6c6a8c899710c1",
+    "images/1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "images/2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+  },
+  "model_calls_by_review": 0,
+  "interpretation": "Development-side original/result review after generation; no GT feedback, repair, threshold changes or hidden reasoning."
+}
