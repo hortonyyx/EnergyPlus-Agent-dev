@@ -1,0 +1,40 @@
+{
+  "profiles": [
+    {
+      "role": "default",
+      "model_id": "Qwen3.8-27B",
+      "client_constructed": true
+    },
+    {
+      "role": "local_main",
+      "model_id": "Qwen3.8-27B",
+      "client_constructed": true
+    },
+    {
+      "role": "local_alternative",
+      "model_id": "Qwen3.5-35B-A3B",
+      "client_constructed": true
+    },
+    {
+      "role": "flash_assist",
+      "model_id": "Qwen3.8-Flash",
+      "client_constructed": true
+    },
+    {
+      "role": "flash_crosscheck",
+      "model_id": "GLM-5.3-Flash",
+      "client_constructed": true
+    },
+    {
+      "role": "connection_check",
+      "model_id": "Qwen3.8-27B",
+      "client_constructed": true
+    }
+  ],
+  "network_calls": 0,
+  "archived_original_hash_matches": true,
+  "current_config_sha256": "2ba271fb868db0d88a83e47a9b2d6c3e28b776484b4fb36e938d514428898500",
+  "candidate_profiles_retained": true,
+  "selection_policy": "Flash work tier: cost first, token/latency measured, Sonnet reference without strict intelligence ceiling",
+  "note": "Configuration construction only; no BIM integration or economic-fit certification."
+}

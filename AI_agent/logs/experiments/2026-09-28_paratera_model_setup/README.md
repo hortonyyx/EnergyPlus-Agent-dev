@@ -1,5 +1,7 @@
 # Paratera 工作模型接入与首轮筛选（2026-09-28）
 
+**同日续谈纠正：** Flash 工作档以 Sonnet 为参照、成本优先并重视速度/token，不设严格智力上限，也不按名称筛选。下文首轮组合扩展为[跨能力候选池](../2026-09-28_model_capability_research/README.md)；六个候选 profile 保留但尚无成本/建筑质量排名，当时配置与hash见[历史原件](../2026-09-28_model_capability_research/initial_paratera_profiles.yaml)。本目录保留原实测与用量。
+
 用户提供 Paratera 地址、文档及凭据，要求先筛适合的工作模型；理想组合以 Qwen 27B 这种可本地部署级模型为主，部分 Flash 级模型辅助。以下是助手建议和实际接口证据，尚非用户选定型号或建筑质量基线。
 
 ## 推荐候选
