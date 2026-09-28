@@ -1,0 +1,64 @@
+{
+  "model": "Qwen3.8-27B",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Same exact input image and instruction as request_1.json"
+    },
+    {
+      "content": "",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "call_c5204c2f22b3474ca6d7a518",
+          "function": {
+            "arguments": "{\"left\": 37, \"right\": 84}",
+            "name": "add_numbers"
+          },
+          "type": "function",
+          "index": 0
+        }
+      ],
+      "reasoning_content": "",
+      "provider_specific_fields": {
+        "refusal": null
+      }
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_c5204c2f22b3474ca6d7a518",
+      "content": "{\"sum\": 121, \"receipt\": \"receipt_ff1123cb62ea\"}"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "add_numbers",
+        "description": "Add the two observed integers and return a receipt.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "integer"
+            },
+            "right": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "left",
+            "right"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "tool_choice": "none",
+  "max_tokens": 1024,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

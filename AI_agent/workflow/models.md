@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-28 当前目标模型已取得接入信息：** 用户提供 Paratera API，要求先筛候选，最终以 Qwen 27B 这种可本地部署级模型为主力、部分 Flash 辅助。已配置私有凭据和独立 [API 配置](../../src/configs/llm_paratera.yaml)，四项各两次图像/工具接续实测通过（8请求、2833 tokens、实际金额未知）。助手推荐 Qwen3.8-27B + Qwen3.8-Flash，另保留 Qwen3.5-35B-A3B / GLM-5.3-Flash；型号尚非建筑质量基线。现有 BIM 订阅循环仍待 API/MCP 适配，未跑整栋回归、无自动切换或 DeepSeek 调用。本次指定平台的配置/筛选已获用户任务授权；新增建筑节点回归沿用既有约定，不重复申请已授权的接入工作。详见[候选与实际边界](../logs/experiments/2026-09-28_paratera_model_setup/README.md)，覆盖下方“接入信息待提供”的历史状态。
+
 **09-28 用户直接安排的旧树复跑已完成：** run81为未改468d83f7旧生产树，实际claude-sonnet-5/medium、CLI2.1.280，990.36秒；1次Claude现有订阅主调用，0续查/局部模型/自动重试/回退，没有追加当前版调用。实际回执success；CLI估价$4.3419532非订阅账单。结果未完整恢复，不据此推断长期额度、稳定性或服务端变化。见[实际回执](../logs/experiments/2026-09-28_sm21_historical_tree_setup/execution_receipt.json)及[诊断结论](../logs/worklog/2026-09-28_reconstruction_historical_tree.md)。
 
 **09-28 明确批准的阈值反馈两次回归已结束：** run79/80均实际claude-sonnet-5、medium、各1次Claude现有订阅主调用，1443.23/1264.25秒，0续查/子调用/自动主调用重试/回退。第一组实际成功回执独立核后才启动第二组，均无429或其他终态错误；这只说明本批调用成功，不推断长期额度。CLI合计估价$10.1791822非订阅账单。几何质量仍未恢复，不自动追加。见[执行回执](../logs/experiments/2026-09-28_sm21_threshold_feedback_setup/execution_receipts.json)及[批次结论](../logs/worklog/2026-09-28_reconstruction_threshold_comparison.md)。

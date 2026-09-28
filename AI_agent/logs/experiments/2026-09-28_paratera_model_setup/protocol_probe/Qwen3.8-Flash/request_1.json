@@ -1,0 +1,51 @@
+{
+  "model": "Qwen3.8-Flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Read the integer in each box. Call add_numbers with left and right matching the image, without answering directly. After the tool responds, output only its receipt field."
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "../input.png; transmitted as exact base64 bytes"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "add_numbers",
+        "description": "Add the two observed integers and return a receipt.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "integer"
+            },
+            "right": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "left",
+            "right"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto",
+  "max_tokens": 1024,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "profiles": [
+    {
+      "role": "default",
+      "model": "Qwen3.8-27B",
+      "provider": "openai",
+      "base_url": "https://llmapi.paratera.com/v1",
+      "max_tokens": 16384,
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "constructed_without_request": true
+    },
+    {
+      "role": "local_main",
+      "model": "Qwen3.8-27B",
+      "provider": "openai",
+      "base_url": "https://llmapi.paratera.com/v1",
+      "max_tokens": 16384,
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "constructed_without_request": true
+    },
+    {
+      "role": "local_alternative",
+      "model": "Qwen3.5-35B-A3B",
+      "provider": "openai",
+      "base_url": "https://llmapi.paratera.com/v1",
+      "max_tokens": 16384,
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "constructed_without_request": true
+    },
+    {
+      "role": "flash_assist",
+      "model": "Qwen3.8-Flash",
+      "provider": "openai",
+      "base_url": "https://llmapi.paratera.com/v1",
+      "max_tokens": 16384,
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "constructed_without_request": true
+    },
+    {
+      "role": "flash_crosscheck",
+      "model": "GLM-5.3-Flash",
+      "provider": "openai",
+      "base_url": "https://llmapi.paratera.com/v1",
+      "max_tokens": 16384,
+      "extra_body": {
+        "reasoning_effort": "low"
+      },
+      "constructed_without_request": true
+    },
+    {
+      "role": "connection_check",
+      "model": "Qwen3.8-27B",
+      "provider": "openai",
+      "base_url": "https://llmapi.paratera.com/v1",
+      "max_tokens": 1024,
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "constructed_without_request": true
+    }
+  ],
+  "network_calls": 0,
+  "default_config_before_override": "/workspaces/EnergyPlus-Agent-dev/src/configs/llm.yaml",
+  "production_default_unchanged": true,
+  "config_sha256": "77bd0bdb5a0440be2d3754467535d8e3cbc06c404ea18ad5b6b57981103bcb33",
+  "limits": "Existing API-client configuration only; run_bim_agent still requires an API/MCP tool-loop adapter. Thinking-enabled profiles not generation-tested."
+}
