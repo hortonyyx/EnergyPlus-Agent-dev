@@ -1,0 +1,215 @@
+"""Role-configured compatible API adapter for the existing BIM workspace."""
+from __future__ import annotations
+
+import asyncio
+import base64
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+import time
+from urllib.parse import urlsplit
+
+from dotenv import load_dotenv
+from mcp import ClientSession
+from mcp.client.stdio import StdioServerParameters, stdio_client
+from omegaconf import OmegaConf
+from openai import AsyncOpenAI
+
+from src.agent.execution.chat_mcp import ChatBudget, SharedBudgetExceeded, run_chat_mcp
+from src.agent.model_routes import ModelRoutes
+from src.configs.config import LLMConfig
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def _dump(path, data):
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+
+
+def _sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def _select(routes, role):
+    if role not in routes.roles:
+        raise ValueError(f'BIM role {role!r} is not configured')
+    profile = routes.models[routes.roles[role].model]
+    service = routes.services[profile.service]
+    if service.provider != 'openai' or not service.base_url:
+        raise ValueError('BIM API currently requires an explicit compatible-chat base_url')
+    url = urlsplit(service.base_url)
+    if (url.scheme not in {'http', 'https'} or not url.netloc or url.username
+            or url.password or url.query or url.fragment):
+        raise ValueError('base_url must be HTTP(S) without embedded credentials, query or fragment')
+    if not all(profile.capabilities.get(k) is True for k in ('image_input', 'tool_calls')):
+        raise ValueError('This BIM adapter requires declared image_input and tool_calls support')
+    # No family inference is used for capabilities. This project-specific guard
+    # prevents this adapter from bypassing the user's separate DeepSeek permission.
+    if 'deepseek' in (profile.model_name + ' ' + service.base_url).lower():
+        raise ValueError('DeepSeek requires a separately authorized task adapter; no automatic invocation')
+    routes.chat_config(role)  # Check only selected credentials before launching anything.
+    return profile, service
+
+
+def prepare_settings(args):
+    if getattr(args, 'provider', 'claude') != 'api':
+        if getattr(args, 'model_config', None) or getattr(args, 'review_role', None):
+            raise ValueError('--model-config/--review-role require --provider api')
+        return None
+    if getattr(args, 'exploratory_opus', False):
+        raise ValueError('--exploratory-opus cannot be combined with --provider api')
+    path = getattr(args, 'model_config', None)
+    if path is None:
+        raise ValueError('--provider api requires --model-config')
+    limits = dict(model_calls=getattr(args, 'api_model_calls', None),
+                  tool_calls=getattr(args, 'api_tool_calls', None),
+                  review_model_calls=getattr(args, 'review_model_calls', 8),
+                  review_tool_calls=getattr(args, 'review_tool_calls', 16),
+                  local_reviews=getattr(args, 'max_local_reviews', 2))
+    for name, value in limits.items():
+        if type(value) is not int or value < (0 if name == 'local_reviews' else 1):
+            raise ValueError(f'Explicit positive API budget required: {name} (local_reviews may be zero)')
+    load_dotenv(ROOT / '.env')
+    data = OmegaConf.to_container(OmegaConf.load(path), resolve=True)
+    routes = ModelRoutes.model_validate(data)
+    main_role = getattr(args, 'model_role', 'modeling')
+    review_role = getattr(args, 'review_role', None)
+    _select(routes, main_role)
+    if review_role:
+        _select(routes, review_role)
+    snapshot = routes.model_dump(mode='json')
+    raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True).encode()
+    keys = [os.environ.get(s.api_key_env) for s in routes.services.values()]
+    if any(key and len(key) > 8 and key.encode() in raw for key in keys):
+        raise ValueError('Model configuration must reference credentials, not contain their values')
+    return dict(routes=snapshot, runtime=dict(config_file='model_routes.json',
+        config_sha256=_sha(raw), main_role=main_role, review_role=review_role,
+        limits=limits, protocol='openai_compatible_chat'))
+
+
+def freeze_settings(run, settings):
+    _dump(run / 'model_routes.json', settings['routes'])
+    _dump(run / 'api_budget.json', dict(model_calls=0, tool_calls=0))
+
+
+def read_routes(run, runtime):
+    raw = json.loads((run / 'model_routes.json').read_text())
+    if _sha(json.dumps(raw, ensure_ascii=False, sort_keys=True).encode()) != runtime['config_sha256']:
+        raise ValueError('Frozen model configuration changed')
+    return ModelRoutes.model_validate(raw)
+
+
+def _reserve(root, limits, event):
+    field = {'model_request': 'model_calls', 'tool_request': 'tool_calls'}.get(event)
+    if not field:
+        return
+    # The parent and readonly workers share one ledger, including continuations.
+    with (root / 'api_budget.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        path = root / 'api_budget.json'
+        state = json.loads(path.read_text())
+        if state[field] >= limits[field]:
+            raise SharedBudgetExceeded()
+        state[field] += 1
+        _dump(path, state)
+
+
+def _new_client(config, timeout):
+    return AsyncOpenAI(api_key=config.api_key, base_url=config.base_url,
+                       max_retries=0, timeout=timeout)
+
+
+def invoke_api(run, prompt, *, role, name, system_prompt, readonly=False,
+               timeout=900, log_run=None, receipt_context=None):
+    run, log_run = Path(run).resolve(), Path(log_run or run).resolve()
+    manifest = json.loads((run / 'inputs.json').read_text())
+    runtime = manifest['api_runtime']
+    routes = read_routes(run, runtime)
+    profile, service = _select(routes, role)
+    config = LLMConfig.model_validate(routes.chat_config(role))
+    limits = runtime['limits']
+    secrets = [os.environ.get(s.api_key_env) for s in routes.services.values()]
+
+    def safe(data):
+        raw = json.dumps(data, ensure_ascii=False)
+        for value in secrets:
+            if value:
+                raw = raw.replace(value, '[REDACTED]')
+        return json.loads(raw)
+
+    record = dict(provider='api', channel='configured compatible-chat API; no retry/fallback',
+        role=role, requested_role=role, requested_model=profile.model_name,
+        service=profile.service, config_sha256=runtime['config_sha256'],
+        readonly=readonly, timeout_seconds=timeout, **(receipt_context or {}))
+    _dump(log_run / f'{name}_request.json', safe(dict(record, prompt=prompt, system_prompt=system_prompt)))
+    started = time.monotonic()
+    deadline = min(started + timeout,
+        started + max(0, manifest.get('deadline_epoch', time.time() + timeout) - time.time()))
+    events = log_run / f'{name}_api_events.jsonl'
+    images_dir = log_run / 'api_images'
+
+    with events.open('x') as stream:
+        def emit(event):
+            _reserve(log_run, limits, event['event'])
+            row = dict(event)
+            # Archive actual tool bytes once, without logging giant base64 blobs.
+            blocks = row.pop('image_blocks', [])
+            for block in blocks:
+                if block['type'] == 'image_url':
+                    uri = block['image_url']['url']
+                    data = base64.b64decode(uri.split(',', 1)[1], validate=True)
+                    images_dir.mkdir(exist_ok=True)
+                    target = images_dir / f'{_sha(data)}.bin'
+                    if not target.exists():
+                        target.write_bytes(data)
+            stream.write(json.dumps(safe(dict(time=time.time(), **row)), ensure_ascii=False) + '\n')
+            stream.flush()
+
+        async def converse():
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError()
+            # Credentials are private transport context, never MCP inputs/results.
+            env = {s.api_key_env: os.environ[s.api_key_env] for s in routes.services.values()
+                   if s.api_key_env in os.environ}
+            params = StdioServerParameters(command=sys.executable,
+                args=[str(ROOT / 'scripts/tool_scripts/run_bim_agent.py'), 'serve', str(run),
+                      *(['--readonly'] if readonly else [])], cwd=str(ROOT), env=env)
+            async with asyncio.timeout(remaining):
+                async with _new_client(config, remaining) as client:
+                    async with stdio_client(params) as (read, write):
+                        async with ClientSession(read, write) as session:
+                            await session.initialize()
+                            catalog = await session.list_tools()
+                            # Only this explicit BIM server's registered tools; no shell/repo tools.
+                            if catalog.nextCursor:
+                                raise ValueError('BIM tool catalog unexpectedly paginated')
+                            return await run_chat_mcp(client, session, config=config,
+                                messages=[dict(role='system', content=system_prompt), dict(role='user', content=prompt)],
+                                allowed_tools={t.name for t in catalog.tools},
+                                budget=ChatBudget(
+                                    min(limits['model_calls'], limits['review_model_calls']) if readonly else limits['model_calls'],
+                                    min(limits['tool_calls'], limits['review_tool_calls']) if readonly else limits['tool_calls'],
+                                    max(0.001, deadline - time.monotonic())),
+                                image_input=True, assistant_echo_fields=tuple(profile.assistant_echo_fields), record=emit)
+        try:
+            result = asyncio.run(converse())
+        except Exception as error:
+            result = dict(status='timed_out' if isinstance(error, TimeoutError) else 'failed',
+                          response_completed=False, error_type=type(error).__name__,
+                          failure_stage='api_or_mcp_setup', usage_complete=False)
+    done = result.get('response_completed') is True
+    models = result.get('actual_models', [])
+    record.update(returncode=0 if done else 1, timed_out=result.get('status') == 'timed_out',
+        elapsed_seconds=round(time.monotonic() - started, 2),
+        actual_model=models[0] if len(models) == 1 else None,
+        actual_models=models, api=result,
+        result=dict(is_error=not done, result=result.get('answer', result['status']),
+                    total_cost_usd=None, usage=[r.get('usage') for r in result.get('responses', [])]),
+        estimated_cost_note='API price not configured; missing cost is unknown, not zero')
+    record = safe(record)
+    _dump(log_run / f'{name}_receipt.json', record)
+    return record

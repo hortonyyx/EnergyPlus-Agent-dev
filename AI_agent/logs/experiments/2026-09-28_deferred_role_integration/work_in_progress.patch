@@ -1,0 +1,358 @@
+diff --git a/scripts/tool_scripts/run_bim_agent.py b/scripts/tool_scripts/run_bim_agent.py
+index ba434c47..ebb0ba12 100644
+--- a/scripts/tool_scripts/run_bim_agent.py
++++ b/scripts/tool_scripts/run_bim_agent.py
+@@ -1,4 +1,4 @@
+-"""Small subscription-driven BIM experiment; no legacy flow or solver stages.
++"""Small role-driven BIM experiment; no legacy flow or solver stages.
+ 
+ The model sees an explicit image inventory, an optional frozen user building
+ declaration, and the tools below. MCP owns file access and geometry execution;
+@@ -216,6 +216,9 @@ def terminate_subscription(process):
+         process.wait()
+ 
+ 
++DETAIL_GUIDE = "Answer only the supplied local visual question using tools. Inspect a suitable crop; cite original pixel locations of marks. Separate door arcs, gaps and dimension ticks. State uncertainty; For line evidence, compare both profile axes; peak support at a junction is not a whole wall's extent or thickness. Inspect beyond both ends and trace adjoining space boundaries before calling an endpoint free. do not infer a connection just because rooms are adjacent. For dimension labels, use a magnified clean crop and bind each transcription to its actual label box, dimension line and adjacent extension endpoints in original pixels. Keep different chains separate. Use map_dimension_chain only after transcription. If arithmetic or the claimed endpoints conflict, recheck that local evidence once, then report unknown instead of inventing a missing segment. Check inputs or view_image metadata for remaining_seconds, answer early, and near the limit state explicit unexamined items. Do not plan the whole building."
++
++
+ def subscription(run: Path, prompt: str, *, model: str, name: str,
+                  readonly: bool = False, timeout: int = 900,
+                  log_run: Path | None = None, receipt_context: dict | None = None,
+@@ -247,22 +250,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
+                "--strict-mcp-config", "--setting-sources", "",
+                "--settings", '{"disableAllHooks":true}',
+                "--no-session-persistence", "--output-format", "stream-json", "--verbose",
+-               "--system-prompt", ("Answer only the supplied local visual question using tools. "
+-                                    "Inspect a suitable crop; cite original pixel locations of marks. "
+-                                    "Separate door arcs, gaps and dimension ticks. State uncertainty; "
+-                                    "For line evidence, compare both profile axes; peak support at a junction "
+-                                    "is not a whole wall's extent or thickness. Inspect beyond both ends "
+-                                    "and trace adjoining space boundaries before calling an endpoint free. "
+-                                    "do not infer a connection just because rooms are adjacent. "
+-                                    "For dimension labels, use a magnified clean crop and bind each "
+-                                    "transcription to its actual label box, dimension line and adjacent "
+-                                    "extension endpoints in original pixels. Keep different chains separate. "
+-                                    "Use map_dimension_chain only after transcription. If arithmetic or "
+-                                    "the claimed endpoints conflict, recheck that local evidence once, then "
+-                                    "report unknown instead of inventing a missing segment. "
+-                                    "Check inputs or view_image metadata for remaining_seconds, answer early, "
+-                                    "and near the limit state explicit unexamined items. Do not plan the whole building."
+-                                    if readonly else GUIDE)]
++               "--system-prompt", (DETAIL_GUIDE if readonly else GUIDE)]
+     if not readonly or model == "sonnet":
+         command.extend(["--effort", effort or "medium"])
+     server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run)]
+@@ -313,6 +301,21 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
+     return record
+ 
+ 
++def invoke_model(run, prompt, *, role, readonly=False, effort=None,
++                 exploratory_opus=False, **kwargs):
++    """Functional roles at the agent boundary; adapters resolve concrete models."""
++    manifest = json.loads((run / "inputs.json").read_text())
++    if manifest.get("provider") == "api":
++        from scripts.tool_scripts.bim_agent_api import invoke_api
++        return invoke_api(run, prompt, role=role, readonly=readonly,
++                          system_prompt=DETAIL_GUIDE if readonly else GUIDE, **kwargs)
++    aliases = {"modeling": "opus" if exploratory_opus else "sonnet", "visual_review": "haiku"}
++    if role not in aliases:
++        raise ValueError("unconfigured subscription role")
++    return subscription(run, prompt, model=aliases[role], readonly=readonly,
++                        effort=effort, exploratory_opus=exploratory_opus, **kwargs)
++
++
+ DETAIL_MAX_TIMEOUT_SECONDS = 240
+ DETAIL_COMPLETION_RESERVE_SECONDS = 45
+ DETAIL_MIN_TIMEOUT_SECONDS = 15
+@@ -364,6 +367,9 @@ def prepare_detail_observation(
+         ),
+         "question_sha256": hashlib.sha256(question.encode("utf-8")).hexdigest(),
+     }
++    if "api_runtime" in toolkit.manifest:
++        manifest["api_runtime"] = toolkit.manifest["api_runtime"]
++        shutil.copy2(toolkit.run / "model_routes.json", child / "model_routes.json")
+     if deadline_epoch is not None:
+         # This is part of the immutable child input before its digest is recorded.
+         # The readonly server reads it to expose remaining_seconds to its tools.
+@@ -374,7 +380,7 @@ def prepare_detail_observation(
+ 
+ def review_detail_observation(
+         toolkit: "Toolkit", question: str, images: list[str], *,
+-        timeout_seconds: float = DETAIL_MAX_TIMEOUT_SECONDS, invoke=subscription) -> dict:
++        timeout_seconds: float = DETAIL_MAX_TIMEOUT_SECONDS, invoke=None) -> dict:
+     """Run one bounded, readonly local observation and retain parent receipts."""
+     if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))
+             or not DETAIL_MIN_TIMEOUT_SECONDS <= timeout_seconds <= DETAIL_MAX_TIMEOUT_SECONDS):
+@@ -382,8 +388,13 @@ def review_detail_observation(
+     # FastMCP may serve sync tools concurrently. Keep allocation, receipt creation
+     # and the bounded invocation together so two calls cannot both claim detail_01.
+     with DETAIL_OBSERVATION_LOCK:
++        runtime = toolkit.manifest.get("api_runtime", {})
++        role = runtime.get("review_role", "visual_review")
++        if not role:
++            return {"error": "visual review role is not configured", "completed": False}
+         used = len(list(toolkit.run.glob("detail_*_request.json")))
+-        if used >= 2:
++        limit = runtime.get("limits", {}).get("local_reviews", toolkit.manifest.get("max_local_reviews", 2))
++        if used >= limit:
+             return {"error": "local review budget exhausted", "completed": False}
+         parent_deadline = toolkit.manifest.get("deadline_epoch")
+         remaining = toolkit.remaining_seconds()
+@@ -409,7 +420,7 @@ def review_detail_observation(
+         # Image copying/manifest writing consume time too. Do not let the process
+         # outlive the deadline the readonly tools were shown.
+         timeout = min(timeout_seconds, child_deadline - time.time())
+-        result = invoke(child, f"Images: {images}\nQuestion: {question}", model="haiku", name=name,
++        result = (invoke or invoke_model)(child, f"Images: {images}\nQuestion: {question}", role=role, name=name,
+                         readonly=True, timeout=timeout, log_run=toolkit.run,
+                         receipt_context={"observation_source": source})
+         result_event = result.get("result")
+@@ -1144,7 +1155,8 @@ class Toolkit:
+         candidate = f"candidate_{index:02d}"
+         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
+                       "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
+-                      "generator": f"{self.manifest.get('provider', 'claude')} subscription tool loop"}
++                      "generator": ("configured API role tool loop" if self.manifest.get('provider') == 'api'
++                                    else f"{self.manifest.get('provider', 'claude')} subscription tool loop")}
+         if parent is not None:
+             provenance.update(parent_candidate=parent,
+                               parent_proposal_sha256=digest(self.candidate_path(parent)/"proposal.json"))
+@@ -2505,11 +2517,12 @@ def serve(run: Path, readonly=False):
+ 
+         @server.tool()
+         def review_detail(question: str, images: list[str], timeout_seconds: float = 120) -> dict:
+-            """Ask Haiku one small visual question, e.g. count/locate doors in a region.
++            """Ask the configured visual role one small original-image question.
+             Give image names and original crop coordinates, and describe observable
+             original-image evidence rather than a candidate conclusion. The submitted
+-            question is not text-cleaned, so this only isolates file context. At most
+-            two local reviews are available in this experiment. Choose 15–240
++            question is not text-cleaned, so this only isolates file context. Use
++            observe_original to avoid passing a candidate conclusion. Reviews share
++            the configured local-call and parent budgets. Choose 15–240
+             seconds (default 120), capped by the parent's remaining time with a
+             completion reserve. Keep the task small enough to return within it.
+             """
+@@ -2519,6 +2532,21 @@ def serve(run: Path, readonly=False):
+                                           "response": response})
+             return response
+ 
++        @server.tool()
++        def observe_original(image: str, box: list[int], focus: str,
++                             timeout_seconds: float = 120) -> dict:
++            """Get a separate original-only observation without supplying an answer.
++            Select an ORIGINAL-pixel region and focus: partitions_doors,
++            wall_opening_fit, or window_families. The worker sees the whole selected
++            original for context, never candidate geometry or your interpretation.
++            Returns reported features and uncertainties, not verified truth or edits.
++            Compare with the saved BIM and recheck conflicts before changing it.
++            Shares the review_detail budget; not a required modelling step.
++            """
++            from scripts.tool_scripts.bim_agent_observation import observe_original_region
++            return observe_original_region(toolkit, image, box, focus,
++                timeout_seconds=timeout_seconds, review=review_detail_observation)
++
+         @server.tool()
+         def build_plan_bim(image: str, plan_json: str) -> CallToolResult:
+             """Build one floor from observed pixel wall paths, apertures and calibration.
+@@ -2632,6 +2660,13 @@ def run_experiment(args):
+     if type(max_candidates) is not int or max_candidates <= 0:
+         raise ValueError("max_candidates must be a positive integer")
+     provider = getattr(args, "provider", "claude")
++    if provider not in {"claude", "glm", "api"}:
++        raise ValueError("unknown model provider")
++    from scripts.tool_scripts.bim_agent_api import prepare_settings, freeze_settings
++    api_settings = prepare_settings(args)
++    local_reviews = getattr(args, "max_local_reviews", 2)
++    if type(local_reviews) is not int or local_reviews < 0:
++        raise ValueError("max_local_reviews must be a nonnegative integer")
+     continuation_rounds = getattr(args, "continuation_rounds", 0)
+     if type(continuation_rounds) is not int or not 0 <= continuation_rounds <= 4:
+         raise ValueError("continuation_rounds must be an integer from 0 to 4")
+@@ -2684,6 +2719,7 @@ def run_experiment(args):
+         if not seed_path and not plan_recovery:
+             generation_mode = 'native_mesh_agent_experiment'
+     manifest = {"images":images,"scope":args.scope,"provider":provider,
++                             "max_local_reviews":local_reviews,
+                              "max_candidates":max_candidates,
+                              "continuation_rounds": continuation_rounds,
+                              "input_mode": generation_mode,
+@@ -2697,6 +2733,7 @@ def run_experiment(args):
+                              },
+                              "deadline_epoch": time.time() + args.timeout,
+                              "implementation_sha256": {
++                                 "scripts/tool_scripts/bim_agent_observation.py":digest(ROOT/"scripts/tool_scripts/bim_agent_observation.py"),
+                                  "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),
+                                  "src/agent/geometry/source_model.py":digest(ROOT/"src/agent/geometry/source_model.py"),
+                                  "src/agent/roles.py":digest(ROOT/"src/agent/roles.py"),
+@@ -2746,6 +2783,12 @@ def run_experiment(args):
+                              )}
+     if building_input:
+         manifest["building_input"] = building_input
++    if api_settings:
++        freeze_settings(run, api_settings)
++        manifest["api_runtime"] = api_settings["runtime"]
++        for name in ("scripts/tool_scripts/bim_agent_api.py", "src/agent/model_routes.py",
++                     "src/agent/execution/chat_mcp.py", "src/configs/config.py"):
++            manifest["implementation_sha256"][name] = digest(ROOT / name)
+     if plan_recovery:
+         manifest["plan_recovery"] = plan_recovery
+         manifest["input_contents"]["saved_pixel_plan"] = {"included": True,
+@@ -2797,17 +2840,17 @@ def run_experiment(args):
+         if building_input else
+         " No structured building declaration was supplied for this experiment."
+     )
+-    record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
++    main_role = api_settings['runtime']['main_role'] if api_settings else 'modeling'
++    record = invoke_model(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
+                           f"Start by listing supplied inputs.{declaration_prompt} {continuation} "
+                           "Report limitations honestly, and finish within the budget.",
+-                          model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
++                          role=main_role,
+                           name="agent", timeout=args.timeout,
+                           effort=getattr(args, "effort", None),
+                           exploratory_opus=getattr(args, "exploratory_opus", False))
+     from scripts.tool_scripts.bim_agent_continuation import run_continuations, response_completed as completed
+     def invoke_followup(prompt, *, name, timeout):
+-        return subscription(run, prompt,
+-            model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
++        return invoke_model(run, prompt, role=main_role,
+             name=name, timeout=timeout, effort=getattr(args, "effort", None),
+             exploratory_opus=getattr(args, "exploratory_opus", False),
+             receipt_context={"role": "main_agent_continuation", "continuation_turn": name})
+@@ -2858,10 +2901,14 @@ def run_experiment(args):
+                "opening_reviews":[str(p.relative_to(run)) for p in sorted((run/"opening_reviews").glob("review_*.json"))],
+                "delivery": {"candidate":delivery["candidate"], "selection_origin":delivery["selection_origin"],
+                             "report":"delivery.json", "viewer":"delivery.html"} if delivery else None,
+-               "subscription_invocations":len(receipts),
++               "model_invocations":len(receipts),
++               "subscription_invocations":sum(r.get('provider') != 'api' for r in receipts),
++               "api_invocations":sum(r.get('provider') == 'api' for r in receipts),
+                **cost_summary,
+                "not_evaluated":["independent GT comparison","human approval","EnergyPlus"],
+-               "estimated_cost_note":"CLI estimates are not subscription bills"}
++               "estimated_cost_note":"CLI estimates are not subscription bills; API prices may be unknown"}
++    if api_settings:
++        summary['api_budget_used'] = json.loads((run/'api_budget.json').read_text())
+     dump(run/"summary.json",summary)
+     print(json.dumps(summary,ensure_ascii=False,indent=2))
+ 
+@@ -2881,8 +2928,16 @@ def main():
+                      help="Shared export quota for floor builds, assembly and revisions (default: 24)")
+     run.add_argument("--continuation-rounds", type=int, choices=range(5), default=0,
+                      help="Experimental bounded main-agent follow-ups within the SAME total deadline")
+-    run.add_argument("--provider", choices=("claude", "glm"), default="claude",
+-                     help="Subscription route; glm uses glm-5.3-flash for main and local image tasks")
++    run.add_argument("--provider", choices=("claude", "glm", "api"), default="claude",
++                     help="Subscription adapter, or explicit role-configured compatible API")
++    run.add_argument("--model-config", type=Path, help="API services/models/roles YAML; credentials remain in environment")
++    run.add_argument("--model-role", default="modeling")
++    run.add_argument("--review-role", help="Optional API original-image observer role; omitted disables local API model tools")
++    run.add_argument("--api-model-calls", type=int, help="Total API request attempts, shared by main, workers and continuations")
++    run.add_argument("--api-tool-calls", type=int, help="Total API tool attempts, shared by main, workers and continuations")
++    run.add_argument("--review-model-calls", type=int, default=8)
++    run.add_argument("--review-tool-calls", type=int, default=16)
++    run.add_argument("--max-local-reviews", type=int, default=2)
+     run.add_argument("--exploratory-opus", action="store_true",
+                      help="Explicit task-authorized exploratory Opus subscription run; default remains Sonnet")
+     run.add_argument("--effort", choices=("low", "medium"), default="medium",
+diff --git a/src/agent/execution/chat_mcp.py b/src/agent/execution/chat_mcp.py
+index 74e8ac69..a68c178c 100644
+--- a/src/agent/execution/chat_mcp.py
++++ b/src/agent/execution/chat_mcp.py
+@@ -22,6 +22,10 @@ from openai import AsyncOpenAI
+ from src.configs.config import LLMConfig
+ 
+ 
++class SharedBudgetExceeded(Exception):
++    """The caller's shared parent/child ledger refused another action."""
++
++
+ @dataclass(frozen=True)
+ class ChatBudget:
+     model_calls: int
+@@ -90,6 +94,12 @@ async def run_chat_mcp(
+         raise ValueError("assistant echo fields cannot override standard message fields")
+     started = time.monotonic()
+     history = list(messages)
++    if not image_input and any(
++        part.get("type") == "image_url"
++        for message in history if isinstance(message.get("content"), list)
++        for part in message["content"]
++    ):
++        raise ValueError("selected deployment cannot receive initial images")
+     receipt: dict[str, Any] = dict(status="running", model_calls=0, tool_calls=0,
+         requested_model=config.model_name, actual_models=[], responses=[], images=[],
+         retries=0, fallback=False, response_completed=False,
+@@ -124,9 +134,9 @@ async def run_chat_mcp(
+         pending_images = []
+         for _ in range(budget.model_calls):
+             stage = "model_request"
+-            receipt["model_calls"] += 1
+-            emit(dict(event="model_request", index=receipt["model_calls"],
++            emit(dict(event="model_request", index=receipt["model_calls"] + 1,
+                       model=config.model_name, newly_attached_tool_images=pending_images))
++            receipt["model_calls"] += 1
+             pending_images = []
+             response = await client.chat.completions.create(
+                 model=config.model_name, messages=history, tools=specs,
+@@ -181,8 +191,8 @@ async def run_chat_mcp(
+             image_blocks = []
+             for call, arguments in parsed_calls:
+                 stage = f"tool:{call.function.name}"
+-                receipt["tool_calls"] += 1
+                 emit(dict(event="tool_request", id=call.id, name=call.function.name, arguments=arguments))
++                receipt["tool_calls"] += 1
+                 result = await session.call_tool(call.function.name, arguments)
+                 stage = f"tool_result:{call.function.name}"
+                 message, pictures, images = _tool_output(call.id, result)
+@@ -193,7 +203,8 @@ async def run_chat_mcp(
+                 pending_images.extend(images)
+                 receipt["images"].extend(images)
+                 emit(dict(event="tool_result", id=call.id, name=call.function.name,
+-                          isError=result.isError, images=images))
++                          isError=result.isError, images=images,
++                          payload=json.loads(message["content"]), image_blocks=pictures))
+             if image_blocks:
+                 history.append(dict(role="user", content=image_blocks))
+         receipt["status"] = "model_budget_exhausted"
+@@ -203,6 +214,8 @@ async def run_chat_mcp(
+             await converse()
+     except TimeoutError:
+         receipt.update(status="timed_out", failure_stage=stage)
++    except SharedBudgetExceeded:
++        receipt.update(status="shared_budget_exhausted", failure_stage=stage)
+     except Exception as error:
+         # Provider exceptions can contain keys, request headers or private URLs.
+         receipt.update(status="failed", error_type=type(error).__name__, failure_stage=stage)
+diff --git a/src/agent/model_routes.py b/src/agent/model_routes.py
+index 930dca72..1ccfeeb5 100644
+--- a/src/agent/model_routes.py
++++ b/src/agent/model_routes.py
+@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, model_validator
+ 
+ 
+ class _StrictConfig(BaseModel):
+-    model_config = ConfigDict(extra="forbid", frozen=True)
++    model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
+ 
+ 
+ class ChatService(_StrictConfig):
+@@ -30,6 +30,17 @@ class ChatProfile(_StrictConfig):
+     extra_body: dict[str, Any] | None = None
+     # Missing/None is unknown, never implied support.
+     capabilities: dict[str, StrictBool | None] = Field(default_factory=dict)
++    assistant_echo_fields: list[str] = Field(default_factory=list)
++
++    @model_validator(mode="after")
++    def check_transport_fields(self) -> ChatProfile:
++        reserved = {"model", "messages", "tools", "tool_choice", "max_tokens",
++                    "max_completion_tokens", "stream", "n"}
++        if reserved.intersection(self.extra_body or {}):
++            raise ValueError("extra_body cannot override routing, tools or output limits")
++        if {"role", "content", "tool_calls"}.intersection(self.assistant_echo_fields):
++            raise ValueError("assistant_echo_fields cannot override standard fields")
++        return self
+ 
+ 
+ class RoleBinding(_StrictConfig):

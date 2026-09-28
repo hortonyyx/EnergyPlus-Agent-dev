@@ -4,6 +4,7 @@
 
 | 日期 | 已确认的决定 | 原因与影响 |
 |---|---|---|
+| 2026-09-28（先恢复单模型质量） | 用户要求暂不推进角色分工，先恢复单 Sonnet 还原质量，后续持续开发中再试分工，避免混淆变量 | run53–58均为单 Sonnet 加确定性工具，无局部子模型；配置雏形和后续可替换方向保留，未完成入口接入草稿留档并退出生产路径。见[最新交接](../logs/worklog/2026-09-28_single_sonnet_quality_priority.md) |
 | 2026-09-28（角色组织再次确认，额度恢复接续） | Agent 内部仍按角色划分，不定死模型；用户告知 Claude 额度恢复并要求继续 | 角色/服务/型号分开配置；按原条件接续上一批准批次尚未执行的 run83 一次，不自动重跑已中断 run82 或扩批。额度恢复来自用户告知，实际可用性以本次真实回执为准。见[配置实现](../design/model_configuration.md)及[接续授权](../logs/experiments/2026-09-28_behavior_resume/authorization.json) |
 | 2026-09-28（Flash经济档与多模型产品，最终澄清） | Flash 对标 Sonnet，但成本优先、兼顾速度和 token，智力不设严格上限，允许同档能力逐渐提高；扩大视觉/OCR等候选，支持用户自接及服务器多模型调度；27B本地主力方向和渐进降依赖/提速/降本保持 | 覆盖此前将这一档固定为 Sonnet 硬上限的解释；按任务经济性和质量选型，不按型号名称。见[配置设计](../design/model_configuration.md)及[扩大候选池](../logs/experiments/2026-09-28_model_capability_research/README.md) |
 | 2026-09-28（本地主力与 Flash 辅助） | 用户提供 Paratera API 并要求先筛工作模型，理想组合以 Qwen 27B 这种可本地部署级模型为主力，部分 Flash 级模型辅助 | 配置与有界筛选在本次任务范围内；具体推荐型号不是用户已采用，协议成功不替代建筑质量，角色按能力配置。见[本轮接入](../logs/worklog/2026-09-28_paratera_working_models.md) |
