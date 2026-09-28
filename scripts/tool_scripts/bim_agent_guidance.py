@@ -527,8 +527,9 @@ it preserves all geometry, IDs, openings, connections and geometry source notes.
 Read room_types first. basis is observed for explicit input labels/declarations,
 inferred for a plausible interpretation, including a broad use from building context
 (requires nonempty assumptions). Prefer an inferred listed use over unknown; the fallback is
-unknown paired with role=unknown. source_refs must locate the evidence or explain
-its insufficiency. A later assignment replaces the active role_evidence and keeps
+unknown paired with role=unknown. For observed/unknown, omitted assumptions become
+an empty list; inferred still requires an explicit nonempty assumption. source_refs
+must locate the evidence or explain its insufficiency. A later assignment replaces the active role_evidence and keeps
 the old value in the edit history. Normal export updates public names and colors.
 It does not establish drawing truth. Reconcile obsolete global notes explicitly.
 add_opening preserves all existing objects; it supports doors/open apertures and

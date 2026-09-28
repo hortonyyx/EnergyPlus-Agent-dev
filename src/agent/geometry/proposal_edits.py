@@ -48,9 +48,9 @@ def _source_refs(value: object, *, operation: str) -> list[str]:
     return list(value)
 
 
-def _notes(value: object, *, field: str) -> list[str]:
+def _notes(value: object, *, field: str, operation: str = "set_notes") -> list[str]:
     if not isinstance(value, list) or any(not isinstance(row, str) for row in value):
-        raise ValueError(f"set_notes: {field} must be a list of strings")
+        raise ValueError(f"{operation}: {field} must be a list of strings")
     return list(value)
 
 
@@ -201,7 +201,7 @@ def _set_space_role(geometry: dict, operation: dict) -> dict:
     evidence = RoomRoleEvidence.model_validate({
         "role": role, "basis": operation.get("basis"),
         "source_refs": _source_refs(operation.get("source_refs"), operation=name),
-        "assumptions": _notes(operation.get("assumptions"), field="assumptions"),
+        "assumptions": _notes(operation.get("assumptions", []), field="assumptions", operation=name),
     }).model_dump(mode="json")
     cells = [cell for floor in geometry.get("floors", []) for cell in floor.get("cells", [])]
     row = _find(cells, identity, operation=name)

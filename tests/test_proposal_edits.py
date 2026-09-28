@@ -87,6 +87,30 @@ def test_invalid_room_function_edit_never_changes_input(patch):
     assert proposal == before
 
 
+@pytest.mark.parametrize("basis,role", [("observed", "office"), ("unknown", "unknown")])
+def test_room_function_edit_can_omit_unused_assumptions(basis, role):
+    proposal = _proposal()
+    operation = {"op": "set_space_role", "space_id": "left", "role": role, "basis": basis,
+                 "source_refs": ["plan: explicit label or insufficient evidence"], "reason": "Review use"}
+    revised = apply_proposal_edits(proposal, [operation])
+    explicit = apply_proposal_edits(proposal, [{**operation, "assumptions": []}])
+    assert revised == explicit
+    assert revised["geometry"]["floors"][0]["cells"][0]["role_evidence"]["assumptions"] == []
+
+
+def test_room_function_missing_inferred_assumption_and_bad_type_remain_errors():
+    proposal = _proposal()
+    before = copy.deepcopy(proposal)
+    operation = {"op": "set_space_role", "space_id": "left", "role": "office", "basis": "inferred",
+                 "source_refs": ["plan: furniture"], "reason": "Review use"}
+    with pytest.raises(ValueError, match="inferred room role requires an explicit assumption"):
+        apply_proposal_edits(proposal, [operation])
+    for value in (None, "", [1]):
+        with pytest.raises(ValueError, match="set_space_role: assumptions must be a list of strings"):
+            apply_proposal_edits(proposal, [{**operation, "assumptions": value}])
+    assert proposal == before
+
+
 def _rectangular_wall_proposal():
     return {
         "geometry": {
