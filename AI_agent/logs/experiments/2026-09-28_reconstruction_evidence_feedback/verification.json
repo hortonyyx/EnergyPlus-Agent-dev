@@ -1,0 +1,46 @@
+{
+  "distinct_tests_passed": 94,
+  "model_calls": 0,
+  "checks": [
+    {
+      "command": "python -m pytest -n 2 tests/test_plan_measurement_binding.py tests/test_plan_revision.py tests/test_bim_agent_plan_partition.py tests/test_opening_review.py -q",
+      "passed": 39,
+      "seconds": 23.93
+    },
+    {
+      "command": "python -m pytest -n 2 tests/test_plan_evidence_feedback.py -q",
+      "passed": 8,
+      "seconds": 12.04
+    },
+    {
+      "command": "python -m pytest -n 2 tests/test_bim_agent_tools.py tests/test_bim_delivery.py -q",
+      "passed": 47,
+      "seconds": 116.37
+    },
+    {
+      "command": "python -m pytest -n 2 tests/test_plan_evidence_feedback.py tests/test_bim_delivery.py -q",
+      "passed": 16,
+      "seconds": 12.6,
+      "repeated_after_calibration_invalidation": true
+    },
+    {
+      "command": "python -m pytest -n 0 tests/test_plan_evidence_feedback.py::test_explicit_mixed_units_reach_numeric_saved_plan_without_scaling_pixels -q",
+      "passed": 1,
+      "seconds": 7.34,
+      "repeated_after_actual_source_assertion": true
+    }
+  ],
+  "replay": {
+    "model_calls": 0,
+    "original_files_unchanged": 393,
+    "numeric_plans_checked": 23,
+    "compile_successes": 20,
+    "compile_errors_preserved": 3,
+    "unit_conversion_verified": true,
+    "collateral_enlargements_exposed": 2,
+    "wrong_mark_location_exposed": true,
+    "supplied_missing_observation_exposed": true,
+    "whole_building_quality_restored": false
+  },
+  "first_replay_failure": "Test script used exact float equality for a computed span; stopped before build. Corrected to 1e-8 comparison in replay02; no compiler threshold changed."
+}

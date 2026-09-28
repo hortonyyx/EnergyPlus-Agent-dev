@@ -50,6 +50,8 @@ def _review_ref(review: dict, index: int, *, state: str, reason: str | None = No
     }
     if isinstance(scope, dict) and isinstance(scope.get("facade"), str):
         result["facade"] = scope["facade"]
+    if "location_check" in review:
+        result["location_check"] = copy.deepcopy(review["location_check"])
     if reason is not None:
         result["stale_reason"] = reason
     return result
@@ -133,7 +135,9 @@ def summarize_delivery(source: dict, reviews: list[dict]) -> dict:
     current_reviews: list[dict] = []
     stale_reviews: list[dict] = []
     for index, review in enumerate(reviews):
-        if review.get("source_model_sha256") != source_hash:
+        if review.get("stale_reason"):
+            stale_reviews.append(_review_ref(review, index, state="stale", reason=review["stale_reason"]))
+        elif review.get("source_model_sha256") != source_hash:
             reason = ("source_model_sha256_missing" if "source_model_sha256" not in review
                       else "source_model_sha256_mismatch")
             stale_reviews.append(_review_ref(review, index, state="stale", reason=reason))

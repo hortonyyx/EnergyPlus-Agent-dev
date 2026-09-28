@@ -728,6 +728,16 @@ class Toolkit:
         source = json.loads((path / "source_model.json").read_text())
         reviews = [json.loads(p.read_text()) for p in
                    sorted((self.run / "opening_reviews").glob("review_*.json"))]
+        calibrations = {(row["image"], row["floor_id"]): row for _, row in self.registered_calibrations()}
+        for review in reviews:
+            location = review.get("location_check", {})
+            if location.get("status") != "checked_against_supplied_plan_boxes":
+                continue
+            current = calibrations.get((review.get("image", {}).get("name"),
+                                        review.get("review_scope", {}).get("floor_id")), {})
+            if (any(location.get(key) != current.get(key) for key in ("x_anchors", "y_anchors"))
+                    or review.get("image", {}).get("sha256") != current.get("image_sha256")):
+                review["stale_reason"] = "plan_calibration_changed"
         result = {"candidate": candidate, "selection_origin": selection_origin,
                   "viewer": f"{candidate}/viewer.html", "source_model": f"{candidate}/source_model.json",
                   "viewer_exists": (path / "viewer.html").is_file(),
@@ -942,6 +952,7 @@ class Toolkit:
 
     def revise_plan(self, draft_id, expected_plan_sha256, operations_json):
         from src.agent.geometry.plan_revision import apply_plan_revision
+        from src.agent.geometry.plan_feedback import plan_geometry_feedback, opening_geometry_changes
         parent = self.inspect_plan(draft_id)
         if parent["plan_sha256"] != expected_plan_sha256:
             raise ValueError("stale plan hash; inspect the intended saved draft before revision")
@@ -968,6 +979,24 @@ class Toolkit:
             raise
         result["plan_revision"] = dict(**binding, unchanged_ids=preservation["unchanged_ids"],
             changed_targets=[dict(field=r["field"], id=r["id"]) for r in preservation["changes"]])
+        try:
+            saved_plan = json.loads((self.run / result["plan_input"]["plan_file"]).read_text())
+            with PILImage.open(self.image_path(parent["image"])) as original:
+                changes = opening_geometry_changes(
+                    plan_geometry_feedback(parent["declaration"], original.size),
+                    plan_geometry_feedback(saved_plan, original.size))
+            feedback_path = self.run / result["plan_input"]["plan_file"]
+            feedback_path = feedback_path.with_name("opening_changes.json")
+            dump(feedback_path, changes)
+            result["plan_revision"]["geometry_changes"] = dict(
+                file=str(feedback_path.relative_to(self.run)), sha256=digest(feedback_path),
+                changed_count=len(changes["changed_openings"]),
+                changed_openings=changes["changed_openings"][:24],
+                truncated=len(changes["changed_openings"]) > 24,
+                unchanged_opening_ids=changes["unchanged_opening_ids"], note=changes["note"])
+        except (ValueError, TypeError, KeyError, IndexError) as error:
+            result["plan_revision"]["geometry_changes"] = dict(status="unavailable", reason=str(error))
+        dump((self.run / result["plan_input"]["plan_file"]).with_name("result.json"), result)
         self.log("revise_plan_bim", dict(candidate=result.get("candidate"),
             source_geometry_ready=result.get("source_geometry_ready"), plan_input=result.get("plan_input"),
             plan_revision=result["plan_revision"], error=result.get("error")))
@@ -978,6 +1007,7 @@ class Toolkit:
         from src.agent.geometry.plan_partition import OpeningHostError, compile_plan_partition
         from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
+        from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -994,6 +1024,8 @@ class Toolkit:
         input_stage = "parse_json"
         try:
             plan = json.loads(plan_json)
+            input_stage = "length_binding"
+            plan, length_bindings = resolve_plan_lengths(plan)
             input_stage = "measurement_binding"
             plan, bindings = resolve_plan_pixels(plan, image=image,
                 image_sha256=record["image_sha256"], load_profile=self.load_pixel_profile)
@@ -1009,19 +1041,29 @@ class Toolkit:
             self.log("build_plan_bim", result)
             return result
 
-        if bindings:
+        if bindings or length_bindings:
             submitted = draft / "submitted_plan.json"
             submitted.write_bytes(raw_path.read_bytes())
             dump(raw_path, plan)
             binding_path = draft / "measurement_bindings.json"
-            dump(binding_path, {"bindings": bindings, "drawing_fidelity": "not_evaluated",
+            dump(binding_path, {"bindings": bindings, "length_bindings": length_bindings, "drawing_fidelity": "not_evaluated",
                 "interpretation": "Coordinates resolve caller-selected measurements only; object identity and representative planes remain caller observations."})
             record.update(plan_sha256=digest(raw_path),
                 submitted_plan_file=str(submitted.relative_to(self.run)),
                 submitted_plan_sha256=digest(submitted),
                 measurement_bindings={"file": str(binding_path.relative_to(self.run)),
-                    "sha256": digest(binding_path), "count": len(bindings)})
+                    "sha256": digest(binding_path), "count": len(bindings), "length_count": len(length_bindings)})
             dump(draft / "input.json", record)
+
+        try:
+            with PILImage.open(image_path) as original:
+                dimensions = plan_geometry_feedback(plan, original.size)
+            dimensions_path = draft / "geometry_feedback.json"
+            dump(dimensions_path, dimensions)
+            record["geometry_feedback"] = dict(file=str(dimensions_path.relative_to(self.run)),
+                sha256=digest(dimensions_path), **compact_plan_feedback(dimensions))
+        except (ValueError, TypeError, KeyError, IndexError) as error:
+            record["geometry_feedback"] = dict(status="unavailable", reason=str(error))
 
         try:
             with PILImage.open(image_path) as original:
@@ -2118,6 +2160,8 @@ def serve(run: Path, readonly=False):
 
     def candidate_result(result) -> CallToolResult:
         """Keep JSON structured output while attaching newly generated feedback views."""
+        # Put actionable dimensions/edits ahead of the large existing inventories.
+        result = {**{k: result[k] for k in ("plan_revision", "plan_input") if k in result}, **result}
         content = []
         draft_view = result.get("plan_input", {}).get("draft_view")
         if not result.get("source_geometry_ready") and draft_view:
@@ -2452,7 +2496,10 @@ def serve(run: Path, readonly=False):
             else:
                 observations = json.loads(review_json)
                 toolkit.image_path(observations["image"])
-                report = review_openings(source, observations, toolkit.manifest["images"])
+                calibration = next((row for _, row in toolkit.registered_calibrations()
+                    if (row["image"], row["floor_id"]) == (observations["image"], observations["floor_id"])), None)
+                report = review_openings(source, observations, toolkit.manifest["images"],
+                                        plan_calibration=calibration)
                 folder = run / "opening_reviews"
                 folder.mkdir(exist_ok=True)
                 target = folder / f"review_{len(list(folder.glob('review_*.json'))) + 1:03d}.json"
@@ -2759,6 +2806,7 @@ def run_experiment(args):
                                  "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
                                  "src/agent/geometry/facade_span_comparison.py":digest(ROOT/"src/agent/geometry/facade_span_comparison.py"),
                                  "src/agent/geometry/profile_observation_binding.py":digest(ROOT/"src/agent/geometry/profile_observation_binding.py"),
+                                 "src/agent/geometry/plan_feedback.py":digest(ROOT/"src/agent/geometry/plan_feedback.py"),
                                  "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
                                  "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
                                  "src/agent/geometry/plan_assembly.py":digest(ROOT/"src/agent/geometry/plan_assembly.py"),

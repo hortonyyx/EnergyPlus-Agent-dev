@@ -1,0 +1,485 @@
+{
+  "floor_id": "F1",
+  "z_floor": 0,
+  "ceiling_height": 3.0,
+  "x_anchors": [
+    [
+      425,
+      0.0
+    ],
+    [
+      1815,
+      15.0
+    ]
+  ],
+  "y_anchors": [
+    [
+      1088,
+      0.0
+    ],
+    [
+      347,
+      8.0
+    ]
+  ],
+  "basis": "1F: x_anchors and y_anchors from outer wall faces measured against the '15000' and '8000' overall dimension chains (west face px425=world0, east face px1815=world15000; south outer face px1088=world0, north outer face px347=world8000). Exterior wall representative plane = outer face for footprint; interior partitions/corridor walls use observed single-line centreline pixel positions from view_pixel_profile (gray band detection, profile_001..004). Partition1 centreline px888 (world~5000), partition2 centreline px1352 (world~10000). Corridor north wall centreline px618, south wall centreline px804, matching the '3000,250,1500,250,3000' vertical dimension chain (corridor clear 1500mm, walls ~town of building). Openings measured from wall-gap intervals in the same profiles.",
+  "footprint_pixels": [
+    [
+      425,
+      347
+    ],
+    [
+      1815,
+      347
+    ],
+    [
+      1815,
+      1088
+    ],
+    [
+      425,
+      1088
+    ]
+  ],
+  "partitions": [
+    {
+      "id": "part1_north",
+      "points": [
+        [
+          888,
+          347
+        ],
+        [
+          888,
+          618
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical partition line px888, full-height gray support 347-599 (profile_001 C05/C06 analog at 1346/1358; part1 confirmed visually in crop view_0013), continues to corridor wall"
+      ]
+    },
+    {
+      "id": "part2_north",
+      "points": [
+        [
+          1352,
+          347
+        ],
+        [
+          1352,
+          618
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: vertical partition full-height gray support px1346-1358 (profile_001 candidates C05/C06)"
+      ]
+    },
+    {
+      "id": "part1_south",
+      "points": [
+        [
+          888,
+          1088
+        ],
+        [
+          888,
+          804
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: south mirror of part1, seen in crop view_0011/0012, gray support in profile_004"
+      ]
+    },
+    {
+      "id": "part2_south",
+      "points": [
+        [
+          1352,
+          1088
+        ],
+        [
+          1352,
+          804
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: south mirror of part2, profile_004 candidates C03/C04 at 1346/1358"
+      ]
+    },
+    {
+      "id": "corridor_north_wall",
+      "points": [
+        [
+          425,
+          618
+        ],
+        [
+          1815,
+          618
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: corridor north wall, profile_001 cross_axis y=347 not this; profile_004 cross_axis y=618 solid intervals with door gaps"
+      ]
+    },
+    {
+      "id": "corridor_south_wall",
+      "points": [
+        [
+          425,
+          804
+        ],
+        [
+          1815,
+          804
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: corridor south wall, profile_004 cross_axis y=804 solid intervals with door gaps"
+      ]
+    }
+  ],
+  "openings": [
+    {
+      "id": "NW1",
+      "kind": "window",
+      "p1": [
+        539,
+        347
+      ],
+      "p2": [
+        764,
+        347
+      ],
+      "z": [
+        1.6,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: north wall window gap px539-764, profile_001 top wall gap"
+      ]
+    },
+    {
+      "id": "NW2",
+      "kind": "window",
+      "p1": [
+        1008,
+        347
+      ],
+      "p2": [
+        1231,
+        347
+      ],
+      "z": [
+        1.6,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: north wall window gap px1008-1231"
+      ]
+    },
+    {
+      "id": "NW3",
+      "kind": "window",
+      "p1": [
+        1477,
+        347
+      ],
+      "p2": [
+        1700,
+        347
+      ],
+      "z": [
+        1.6,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: north wall window gap px1477-1700"
+      ]
+    },
+    {
+      "id": "SDOOR1",
+      "kind": "door",
+      "p1": [
+        474,
+        1088
+      ],
+      "p2": [
+        560,
+        1088
+      ],
+      "z": [
+        0,
+        2.4
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: south wall door gap px474-560, matches plan dim ticks 540/1440mm; South_view.png door shape confirms head~2400 from 600/900/1500 chain(head=3000-600=2400)"
+      ]
+    },
+    {
+      "id": "SW1_small",
+      "kind": "window",
+      "p1": [
+        743,
+        1088
+      ],
+      "p2": [
+        856,
+        1088
+      ],
+      "z": [
+        1.5,
+        2.4
+      ],
+      "source_refs": [
+        "1f_view.png: south wall small window gap px743-856; South_view.png chain 600,900,1500 gives sill1500/head2400 for this narrow high window"
+      ]
+    },
+    {
+      "id": "SW2",
+      "kind": "window",
+      "p1": [
+        1008,
+        1088
+      ],
+      "p2": [
+        1233,
+        1088
+      ],
+      "z": [
+        1.6,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: south wall window gap px1008-1233"
+      ]
+    },
+    {
+      "id": "SW3",
+      "kind": "window",
+      "p1": [
+        1477,
+        1088
+      ],
+      "p2": [
+        1702,
+        1088
+      ],
+      "z": [
+        1.6,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: south wall window gap px1477-1702"
+      ]
+    },
+    {
+      "id": "WDOOR_entry",
+      "kind": "door",
+      "p1": [
+        425,
+        662
+      ],
+      "p2": [
+        425,
+        774
+      ],
+      "z": [
+        0,
+        2.4
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: west wall door arc px y~630-762 into corridor; West_view.png shows ground-floor double door, dim chain 3400/1200/3400 -> world y 3400-4600 used for precise span"
+      ]
+    },
+    {
+      "id": "DN1",
+      "kind": "door",
+      "p1": [
+        778,
+        618
+      ],
+      "p2": [
+        862,
+        618
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: corridor north wall door gap near px771-921 (west of partition1), profile_004 cross_axis y=618; height assumed 2.1m, no elevation evidence for interior doors"
+      ]
+    },
+    {
+      "id": "DN2",
+      "kind": "door",
+      "p1": [
+        918,
+        618
+      ],
+      "p2": [
+        1001,
+        618
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: corridor north wall door gap px921-1007 (east of partition1); height assumed"
+      ]
+    },
+    {
+      "id": "DN3",
+      "kind": "door",
+      "p1": [
+        1382,
+        618
+      ],
+      "p2": [
+        1466,
+        618
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: corridor north wall door gap px1384-1470 (east of partition2); height assumed"
+      ]
+    },
+    {
+      "id": "DS1",
+      "kind": "door",
+      "p1": [
+        778,
+        804
+      ],
+      "p2": [
+        862,
+        804
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: corridor south wall door gap mirrors north, profile_004 cross_axis y=804; height assumed"
+      ]
+    },
+    {
+      "id": "DS2",
+      "kind": "door",
+      "p1": [
+        918,
+        804
+      ],
+      "p2": [
+        1001,
+        804
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: corridor south wall door gap mirrors north; height assumed"
+      ]
+    },
+    {
+      "id": "DS3",
+      "kind": "door",
+      "p1": [
+        1382,
+        804
+      ],
+      "p2": [
+        1466,
+        804
+      ],
+      "z": [
+        0,
+        2.1
+      ],
+      "state": "unknown",
+      "source_refs": [
+        "1f_view.png: corridor south wall door gap mirrors north; height assumed"
+      ]
+    }
+  ],
+  "space_seeds": [
+    {
+      "id": "N1",
+      "point": [
+        650,
+        480
+      ],
+      "role": "office"
+    },
+    {
+      "id": "N2",
+      "point": [
+        1120,
+        480
+      ],
+      "role": "office"
+    },
+    {
+      "id": "N3",
+      "point": [
+        1580,
+        480
+      ],
+      "role": "office"
+    },
+    {
+      "id": "S1",
+      "point": [
+        650,
+        950
+      ],
+      "role": "storage"
+    },
+    {
+      "id": "S2",
+      "point": [
+        1120,
+        950
+      ],
+      "role": "office"
+    },
+    {
+      "id": "S3",
+      "point": [
+        1580,
+        950
+      ],
+      "role": "office"
+    },
+    {
+      "id": "CORR",
+      "point": [
+        1120,
+        710
+      ],
+      "role": "corridor"
+    }
+  ],
+  "assumptions": [
+    "Interior corridor door heights (2.1m) are assumed; no elevation shows internal door heights.",
+    "Exterior door head height 2.4m derived from South_view.png dimension chain (600,900,1500->head=2400); applied also to the West entrance door by similarity, not independently confirmed by West_view chain segmentation.",
+    "Partition and corridor wall thickness not modelled (compiler centreline convention); only exterior envelope carries the 240mm wall per drawing label."
+  ],
+  "unresolved": [
+    "Corridor door widths simplified to ~900mm/1200mm bands from noisy overlapping profile gaps near partition junctions; exact leaf count/width (single vs double door) at each corridor entry not fully resolved.",
+    "East and West exterior wall full opening inventory (besides the identified west entrance door) not yet cross-checked against East_view.png; East facade shows only windows on elevation, consistent with no door found on east wall in plan."
+  ]
+}

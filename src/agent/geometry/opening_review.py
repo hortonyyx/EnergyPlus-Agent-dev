@@ -472,7 +472,7 @@ def _validate_review(review: dict, images: dict) -> tuple[int, int, str]:
     return width, height, image_hash
 
 
-def review_openings(source: dict, review: dict, images: dict) -> dict:
+def review_openings(source: dict, review: dict, images: dict, *, plan_calibration: dict | None = None) -> dict:
     """Check one floor/kind image review against explicit source openings.
 
     A ``complete`` review is a completeness claim only for its stated floor and
@@ -481,6 +481,23 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
     """
     source_hash, floors, spaces, openings = _source_index(source)
     width, height, image_hash = _validate_review(review, images)
+    projection = None
+    location_check = dict(status="not_checked", reason="no_registered_plan_calibration")
+    if "facade" in review:
+        location_check["reason"] = "elevation_marks_do_not_use_plan_xy_calibration"
+    elif plan_calibration is not None:
+        from src.agent.geometry.source_image_overlay import _axis_anchors
+        if (plan_calibration.get("image"), plan_calibration.get("floor_id"), plan_calibration.get("image_sha256")) != (
+                review["image"], review["floor_id"], image_hash):
+            _reject("plan calibration must match the exact image, floor and image hash")
+        sx, ix, _ = _axis_anchors(plan_calibration["x_anchors"], axis="x", size=width)
+        sy, iy, _ = _axis_anchors(plan_calibration["y_anchors"], axis="y", size=height)
+        projection = lambda point: [(point[0] - ix) / sx, (point[1] - iy) / sy]
+        location_check = dict(status="checked_against_supplied_plan_boxes",
+            calibration_id=plan_calibration.get("calibration_id"),
+            x_anchors=copy.deepcopy(plan_calibration["x_anchors"]),
+            y_anchors=copy.deepcopy(plan_calibration["y_anchors"]),
+            note="Both source aperture endpoints must fit the observed original-pixel box. Calibration and marks are caller supplied; containment does not prove complete width or drawing truth.")
     findings: list[dict] = []
     def finding(code: str, **evidence) -> None:
         findings.append({"code": code, **evidence})
@@ -558,6 +575,14 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
                 finding("mark_space_ids_mismatch", mark_id=mark_id, opening_id=opening_id,
                         actual_space_ids=list(opening["space_ids"]), marked_space_ids=list(mark["space_ids"]))
                 valid_mark = False
+            if projection is not None:
+                pixels = [projection(point) for point in opening["plan_endpoints"]]
+                x0, y0, x1, y1 = box
+                if any(not (x0 - 1e-6 <= p[0] <= x1 + 1e-6 and y0 - 1e-6 <= p[1] <= y1 + 1e-6)
+                       for p in pixels):
+                    finding("mark_source_location_mismatch", mark_id=mark_id,
+                        opening_id=opening_id, observed_box=list(box), source_endpoints_pixels=pixels)
+                    valid_mark = False
         if valid_mark:
             matched_ids.add(ids[0])
         if mark["basis"] in {"inferred", "uncertain"}:
@@ -604,6 +629,7 @@ def review_openings(source: dict, review: dict, images: dict) -> dict:
         "findings": findings,
         "conclusion": conclusion,
         "drawing_fidelity": "not_evaluated",
+        "location_check": location_check,
         "source_scope": {
             "actual_openings": "only explicit built source openings were reviewed",
             "unbuilt_opening_count": len(source.get("unbuilt_openings", [])),

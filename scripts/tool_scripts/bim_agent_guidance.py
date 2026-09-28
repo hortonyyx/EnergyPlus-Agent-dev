@@ -313,7 +313,10 @@ support. Candidate intervals already use ORIGINAL pixels. Use interval centres
 for ticks or paired strokes only after checking what they represent. Crops and
 display_scale do not change the coordinate system; follow the returned transform
 if reading positions off a resized image. Use map_pixels/map_dimension_chain for
-arithmetic. Check another known span on each axis. A discrepancy means recheck
+arithmetic. In plan world-length slots use {"value":15000,"unit":"mm"} for a
+15000 mm annotation; bare numbers mean metres. Compare geometry_feedback's
+effective footprint span and opening dimensions with those annotations.
+Check another known span on each axis. A discrepancy means recheck
 endpoints, dimensions and reference planes, not fit the image to your candidate.
 
 WALL PATHS. Begin with the observed perimeter and physical dividers, before room
@@ -344,6 +347,10 @@ an aperture. Seeds name already enclosed faces; neither seeds, downstream zoning
 counts nor a desired number of rooms justify adding/removing walls.
 
 OPENING IDENTITY. Keep stable IDs and a complete observed list for each view.
+Reconcile original marks with check_openings(review_json), including marks with
+opening_ids:[] for observed but unbuilt apertures. Start from the original view,
+not a traversal of only existing source IDs; inventory alone cannot find a
+missing aperture. Use separate marks for separately observed physical objects.
 For each plan mark, determine door/window/open passage from the symbol and wall
 interruption, then measure its projected wall span. Door swing indicates hinge
 geometry, not operating state; retain unknown state unless stated. A swing arc
@@ -383,7 +390,11 @@ numbers. A claim confirmed against those same numbers checks execution only;
 it cannot detect a wrong family, transcribed segment order or truncated span.
 For a discrepancy, identify the object and property, reobserve the relevant
 original extent, revise locally, then inspect that property on the new source
-and check affected hosts/connections. If a previous value was already supported,
+and check affected hosts/connections. revise_plan_bim returns geometry_changes:
+check each affected opening's before/after endpoints, width and height, including
+indirect calibration changes. A compiler success is not evidence for resizing a
+door; return to its original mark if the change is unsupported.
+If a previous value was already supported,
 keep it; extra tool calls or unnecessary revisions are not progress. Choose views
 and tools for the uncertainty, not a mandatory sequence. Before finishing, separate
 unavailable information from supplied views you have not yet checked. Prioritize
@@ -416,9 +427,15 @@ References work in x/y anchor pixels, footprint/partition points, opening p1/p2,
 and seed points, including local revisions. They must match the original image
 and coordinate axis. Identify the physical object and representative plane from
 the original before selecting candidates; ink bands are not wall labels. Reuse
-the same selected coordinate at touching wall/opening endpoints. World metres
-and z remain numbers. The submitted references, numeric compiled plan and exact
+the same selected coordinate at touching wall/opening endpoints. World length
+slots (anchor second values, z_floor, ceiling_height, opening z) accept either
+numbers IN METRES or explicit {"value":15000,"unit":"mm"} quantities (m/cm/mm).
+Units apply per value, never to pixels; code converts tagged lengths to metres.
+The submitted references/quantities, numeric compiled plan and exact
 bindings are saved separately; numeric-only declarations keep their old format.
+geometry_feedback returns effective footprint bounds/spans, metres per pixel
+and opening dimensions, including failed host drafts. Check these against the
+original annotations; there is no guessed unit correction or absolute size gate.
 Keep calibration and geometry in the SAME coordinate frame. Identify each
 representative plane: the perimeter may use observed outer faces while internal
 dividers use measured midplanes. Document that choice; do not confuse a face
@@ -469,7 +486,10 @@ Collections are partitions, openings, space_seeds; edit each row/field once per
 batch. Example operation on the synthetic declaration above:
 {"op":"update","collection":"openings","id":"D1","changes":{"z":[0,2.2]},
 "reason":"explicit revised height assumption","source_refs":["height assumed"]}
-Untouched declarations remain exact; changed topology may change derived rooms
+The revision response includes geometry_changes: resolved opening endpoints,
+widths and heights before/after, including indirect changes from calibration.
+The full file is retained if the response is truncated. Untouched declarations
+remain exact; changed topology may change derived rooms
 and hosts. Every revision saves a NEW full draft and runs the same compiler and
 source/overlay feedback. Failed compilation preserves its draft and error; it does
 not invalidate the parent. Removing a divider may require removing a redundant
@@ -674,7 +694,12 @@ check_openings review_json example (unrelated to supplied drawings):
  "marks":[{"mark_id":"door-mark-1","box":[10,20,40,60],
  "opening_ids":["D1"],"space_ids":["room","hall"],"basis":"visible",
  "note":"one leaf and arc in a wall gap"}]}.
-Use original-image pixels for box. An exterior opening lists only its indoor
+Use original-image pixels for box and enclose the entire observed aperture,
+not only its label/arc. For registered plan images, both actual source endpoints
+must fit the mark box; a mismatch is reported even if ID/kind/room all agree.
+This checks location/containment, not exact width or visual truth. Without a
+plan calibration, or for facade/elevation reviews, location_check says not_checked.
+An exterior opening lists only its indoor
 space ID in space_ids; never add an ID named 'outside' or 'outdoors'. Use no
 opening_ids when an observed aperture has not been modeled. Separate paired
 arcs serving different rooms into separate marks; a double-leaf door serving
