@@ -1,6 +1,6 @@
 # 路线与当前任务
 
-**09-28 当前在研：量测采用窄修复＋Opus独立调查。** Astra负责将已选像素量测直接用于平面声明/局部修订，39项检查及真实错误重放已过，旧数字草稿保持，尚未验证Sonnet采用或整案恢复。用户指定Opus 5.5最高档调查，已通过现有订阅以max启动，独立树基准ceb8b1df、只写调查目录，主模型初始化已确认；详见[任务](../logs/experiments/2026-09-28_opus_quality_investigation_setup/task.md)。待本包与调查收敛后裁决下一步，允许转旧基线逐包加回，不无界叠修复。
+**09-28 当前节点完成，方法对照待用户决定。** 量测采用窄修复39项检查及真实重放通过，数字旧稿保持；Opus 5.5/max独立调查正常完成（2093.31秒），补出行为分水岭、评分容差影响及裁图坐标线索，根因仍未证实。Astra复核后暂选保留底座、先做两次sm21方法参考对照；实际入口/MCP/40文件差异已核，0新Sonnet调用，未宣称质量恢复。自动漏墙提示、尺度硬门及角色分工不混入本批。详见[当前交接](../logs/worklog/2026-09-28_opus_investigation_and_quality_next.md)与[可执行方案](../logs/experiments/2026-09-28_dimension_first_comparison/README.md)。
 
 **09-28 进展与原因梳理：** 已定位对象误认后自证、正确量测未采用及缩窗消宿主错、窗型/尺寸段错套三类失误链；近期整体退步总因仍未证实。新增六项离线关系反例，以及仅修一面墙且保留全部窗的编译对照，确认该窗冲突可通过修墙消除；其他错误仍在，0新模型调用/生产改动，不宣称质量恢复。单Sonnet路径继续收敛证据到声明和修订对象选择，见[本轮进展](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
 
@@ -218,7 +218,7 @@
 
 ## 当前交接
 
-**最新交接：[09-28 平面量测采用与独立调查](../logs/worklog/2026-09-28_plan_measurement_binding.md)。** 窄修复39项检查及真实失败稿重放通过，旧数字稿保持；尚未实测工作模型采用或整案恢复。Opus 5.5/max独立调查进行中，待收报告决定下一实验/旧基线逐包路径。分工/API接入继续后置。前置具体失误、六项关系反例及墙位对照见[原因梳理](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
+**最新交接：[09-28 Opus独立调查、窄修复与下一验证](../logs/worklog/2026-09-28_opus_investigation_and_quality_next.md)。** 调查和局部实现已完成，暂保留当前底座；两次单Sonnet方法参考对照已准备但未获批/执行，不宣称恢复。先读该交接和冻结方案，用户批准后只跑指定B/A两次。分工/API接入继续后置。前置实现见[量测采用](../logs/worklog/2026-09-28_plan_measurement_binding.md)，对象追踪及718坐标解释更正见[原因梳理](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
 
 **最新节点：[09-28 模型能力池与配置要求](../logs/worklog/2026-09-28_model_capability_research.md)。** 扩大资料筛选完成；任务/服务/模型能力分层设计落文档。Flash档不作严格智力封顶，以成本为先兼顾速度/token，渐进降低模型依赖。下一项API工具循环适配；专用能力和不同组合的质量/性能尚待实测，本轮无新推理或活动模型。
 
