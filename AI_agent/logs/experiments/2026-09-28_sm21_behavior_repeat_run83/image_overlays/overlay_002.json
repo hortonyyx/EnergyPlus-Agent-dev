@@ -1,0 +1,514 @@
+{
+  "mode": "source_image_overlay",
+  "source_model_sha256": "5283b439232a43bfd0b3be1951d8ae52e611d7e50d68730e977cdf80327c6d7e",
+  "floor_id": "F2",
+  "basis": "2f_view.png: calibrated from top '15000' dimension ticks (x=427->0m,x=1813->15m) and left '8000' dimension ticks (y=328->8m north,y=1067->0m south). Outer wall faces confirmed at x=427/1813(ish) and y=331/1071 by direct gray-pixel profiling. North half (y=331-600) is ONE open conference hall: the thin non-filled vertical line near x=718 has no gray fill and no wall-thickness pixel support, unlike all real partitions (which are gray-filled or clearly double-line to the exterior), so it is treated as a non-wall (ceiling/beam) mark, not a room divider; the two round tables share one wide double-door opening into the corridor (matches North wall single continuous window band per side, confirmed against the 1950/3600/1889/1891/3600/1950 north dimension chain which places a solid/door zone at the centre, not a second partition). South half (y=800-1071) has 4 offices divided by 3 real partitions located by direct pixel inspection at x=727,1115,1456, each with its own corridor door. Window spans on north/south walls from cumulative dimension chains anchored at x=427. West/East single-window openings (F2) matched to West_view.png/East_view.png upper row (3400/1200/3400 offset pattern) at the corridor's mid-depth.",
+  "calibration_basis": "caller_supplied_not_independently_verified",
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "anchors": {
+    "x": [
+      [
+        427.0,
+        0.0
+      ],
+      [
+        1813.0,
+        15.0
+      ]
+    ],
+    "y": [
+      [
+        328.0,
+        8.0
+      ],
+      [
+        1067.0,
+        0.0
+      ]
+    ]
+  },
+  "scale": {
+    "world_metres_per_pixel": {
+      "x": 0.010822510822510822,
+      "y": -0.010825439783491205
+    },
+    "pixels_per_world_metre": {
+      "x": 92.4,
+      "y": -92.375
+    },
+    "axis_px_per_m": {
+      "x": 92.4,
+      "y": 92.375
+    },
+    "warnings": []
+  },
+  "projected_spaces": [
+    {
+      "id": "corridor2",
+      "pixel_polygon": [
+        [
+          427.0,
+          800.000039
+        ],
+        [
+          1813.0,
+          800.000039
+        ],
+        [
+          1813.0,
+          600.000035
+        ],
+        [
+          427.0,
+          600.000035
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "hall",
+      "pixel_polygon": [
+        [
+          427.0,
+          600.000035
+        ],
+        [
+          1813.0,
+          600.000035
+        ],
+        [
+          1813.0,
+          330.99997
+        ],
+        [
+          427.0,
+          330.99997
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "office_S1",
+      "pixel_polygon": [
+        [
+          427.0,
+          1071.000022
+        ],
+        [
+          726.999977,
+          1071.000022
+        ],
+        [
+          726.999977,
+          800.000039
+        ],
+        [
+          427.0,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "office_S2",
+      "pixel_polygon": [
+        [
+          726.999977,
+          1071.000022
+        ],
+        [
+          1114.999959,
+          1071.000022
+        ],
+        [
+          1114.999959,
+          800.000039
+        ],
+        [
+          726.999977,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "office_S3",
+      "pixel_polygon": [
+        [
+          1114.999959,
+          1071.000022
+        ],
+        [
+          1456.000034,
+          1071.000022
+        ],
+        [
+          1456.000034,
+          800.000039
+        ],
+        [
+          1114.999959,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "office_S4",
+      "pixel_polygon": [
+        [
+          1456.000034,
+          1071.000022
+        ],
+        [
+          1813.0,
+          1071.000022
+        ],
+        [
+          1813.0,
+          800.000039
+        ],
+        [
+          1456.000034,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D_S1",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "office_S1"
+      ],
+      "pixel_endpoints": [
+        [
+          605.000007,
+          800.000039
+        ],
+        [
+          699.999958,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_S2",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "office_S2"
+      ],
+      "pixel_endpoints": [
+        [
+          849.999993,
+          800.000039
+        ],
+        [
+          920.000015,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_S3",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "office_S3"
+      ],
+      "pixel_endpoints": [
+        [
+          1319.999985,
+          800.000039
+        ],
+        [
+          1390.000007,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_S4",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "office_S4"
+      ],
+      "pixel_endpoints": [
+        [
+          1540.000042,
+          800.000039
+        ],
+        [
+          1634.999993,
+          800.000039
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "D_hall",
+      "kind": "door",
+      "space_ids": [
+        "corridor2",
+        "hall"
+      ],
+      "pixel_endpoints": [
+        [
+          979.999955,
+          600.000035
+        ],
+        [
+          1264.999994,
+          600.000035
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_N1",
+      "kind": "window",
+      "space_ids": [
+        "hall"
+      ],
+      "pixel_endpoints": [
+        [
+          609.000003,
+          330.99997
+        ],
+        [
+          945.999989,
+          330.99997
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_N2",
+      "kind": "window",
+      "space_ids": [
+        "hall"
+      ],
+      "pixel_endpoints": [
+        [
+          1298.99996,
+          330.99997
+        ],
+        [
+          1636.000038,
+          330.99997
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S1",
+      "kind": "window",
+      "space_ids": [
+        "office_S1"
+      ],
+      "pixel_endpoints": [
+        [
+          630.000028,
+          1071.000022
+        ],
+        [
+          714.999989,
+          1071.000022
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S2",
+      "kind": "window",
+      "space_ids": [
+        "office_S2"
+      ],
+      "pixel_endpoints": [
+        [
+          840.000003,
+          1071.000022
+        ],
+        [
+          949.999985,
+          1071.000022
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S3",
+      "kind": "window",
+      "space_ids": [
+        "office_S3"
+      ],
+      "pixel_endpoints": [
+        [
+          1360.000037,
+          1071.000022
+        ],
+        [
+          1439.999957,
+          1071.000022
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_S4",
+      "kind": "window",
+      "space_ids": [
+        "office_S4"
+      ],
+      "pixel_endpoints": [
+        [
+          1570.000012,
+          1071.000022
+        ],
+        [
+          1679.999994,
+          1071.000022
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_east",
+      "kind": "window",
+      "space_ids": [
+        "corridor2"
+      ],
+      "pixel_endpoints": [
+        [
+          1813.0,
+          753.000008
+        ],
+        [
+          1813.0,
+          641.999991
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W_west",
+      "kind": "window",
+      "space_ids": [
+        "corridor2"
+      ],
+      "pixel_endpoints": [
+        [
+          427.0,
+          753.000008
+        ],
+        [
+          427.0,
+          641.999991
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_wall_faces": [],
+  "legend": {
+    "magenta": "source representative boundary",
+    "blue": "declared wall faces; evidence status in metadata",
+    "green": "window",
+    "orange": "door/open aperture",
+    "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+    "red": "D#:S original dimension start evidence point",
+    "cyan": "D#:E original dimension end evidence point"
+  },
+  "out_of_image": {
+    "space_ids": [],
+    "opening_ids": [],
+    "wall_reference_ids": []
+  },
+  "unsupported": [
+    "rotation",
+    "perspective",
+    "nonlinear_distortion"
+  ],
+  "limits": [
+    "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+    "The overlay does not inspect original pixels or automatically decide positional error."
+  ],
+  "wall_evidence_projection": {
+    "scope": {
+      "image_name": "2f_view.png",
+      "floor_id": "F2",
+      "endpoint_selection": "exact original image name and linked wall floor",
+      "view_status": "not_visually_verified"
+    },
+    "walls": [],
+    "endpoints": [],
+    "limits": [
+      "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+      "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+      "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+      "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+    ]
+  },
+  "candidate": "candidate_02",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "trigger_action": "build_plan_bim",
+  "automatic_projection": true,
+  "reused_calibration": {
+    "calibration_id": "calibration_002",
+    "calibration_file": "overlay_calibrations/calibration_002.json",
+    "registered_by_candidate": "candidate_02",
+    "registered_source_model_sha256": "5283b439232a43bfd0b3be1951d8ae52e611d7e50d68730e977cdf80327c6d7e",
+    "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "x_anchors": [
+      [
+        427,
+        0
+      ],
+      [
+        1813,
+        15
+      ]
+    ],
+    "y_anchors": [
+      [
+        328,
+        8
+      ],
+      [
+        1067,
+        0
+      ]
+    ],
+    "basis": "2f_view.png: calibrated from top '15000' dimension ticks (x=427->0m,x=1813->15m) and left '8000' dimension ticks (y=328->8m north,y=1067->0m south). Outer wall faces confirmed at x=427/1813(ish) and y=331/1071 by direct gray-pixel profiling. North half (y=331-600) is ONE open conference hall: the thin non-filled vertical line near x=718 has no gray fill and no wall-thickness pixel support, unlike all real partitions (which are gray-filled or clearly double-line to the exterior), so it is treated as a non-wall (ceiling/beam) mark, not a room divider; the two round tables share one wide double-door opening into the corridor (matches North wall single continuous window band per side, confirmed against the 1950/3600/1889/1891/3600/1950 north dimension chain which places a solid/door zone at the centre, not a second partition). South half (y=800-1071) has 4 offices divided by 3 real partitions located by direct pixel inspection at x=727,1115,1456, each with its own corridor door. Window spans on north/south walls from cumulative dimension chains anchored at x=427. West/East single-window openings (F2) matched to West_view.png/East_view.png upper row (3400/1200/3400 offset pattern) at the corridor's mid-depth."
+  },
+  "overlay_image": "image_overlays/overlay_002.png",
+  "original_size": [
+    2182,
+    1319
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2182,
+    1319
+  ],
+  "returned_size": [
+    1600,
+    967
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.36375,
+    1.3640124095139607
+  ],
+  "remaining_seconds": 2030
+}

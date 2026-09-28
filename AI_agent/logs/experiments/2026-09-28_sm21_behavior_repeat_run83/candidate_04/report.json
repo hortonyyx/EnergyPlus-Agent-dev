@@ -1,0 +1,75 @@
+{
+  "agent_assumptions": [
+    "All interior door heights assumed 0-2.1m (not separately dimensioned).",
+    "Door swing states unknown.",
+    "F1 window height family (sill 1.0m/head 2.6m absolute) confirmed via claim_0001 dimension chain from North_view.png; East facade window assumed to share this family as no separate East vertical dimension chain was transcribed.",
+    "Room role 'office' inferred from desk furniture in the drawing.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 0-2.1m.",
+    "South office window spans approximated from the dimension chain 2190/1200/360/660/1200/2190 pattern; small 360/660mm sub-segments merged/simplified rather than modelled as separate small openings.",
+    "The thin unfilled vertical line near x=718 in the north hall is interpreted as a non-wall (ceiling/beam) mark, not a partition, because it lacks any gray wall-fill pixels found elsewhere for real partitions.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 78,
+    "connections": 13,
+    "openings": 28,
+    "spaces": 13,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0cf4f3f7c4624c3535c465639cd714e78f0c54e257a314e08b408e8db0989d9c",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "candidate_03",
+      "parent_proposal_sha256": "9585490c28d674f1b1bda2a0589aebde866e46d04569cc7fe696e5d1989e0da2"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "8a381dfef024713793080b6325e986f2d3b4756d1455ee4e2f2661d5396ccf8e",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "9585490c28d674f1b1bda2a0589aebde866e46d04569cc7fe696e5d1989e0da2"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "500ecb5d0b03736769d6a1019ca362759db840a2b1ef5b02c9d9c600a9e8f566",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact corridor-to-room door widths/positions estimated visually; not individually dimensioned in the drawing.",
+    "South secondary door (D_south_room1) purpose (fire exit vs main use) not labeled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact door widths/positions for the 4 south offices and the hall's double door are visually estimated, not individually dimensioned.",
+    "F2 window height family (sill 4.0m/head 5.8m absolute) confirmed via claim_0002 dimension chain from North_view.png for North/South; East/West windows assumed to share this family as no separate East/West vertical dimension chain was transcribed.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

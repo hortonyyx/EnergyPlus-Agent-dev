@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1097.15,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1072145,
+    "stop_reason": "end_turn",
+    "session_id": "ee5d3c7c-6056-4a87-8190-9e6fc8f1dbc3",
+    "total_cost_usd": 3.7294448,
+    "usage": {
+      "input_tokens": 114,
+      "cache_creation_input_tokens": 342810,
+      "cache_read_input_tokens": 7640684,
+      "output_tokens": 82984,
+      "output_tokens_details": {
+        "thinking_tokens": 60700
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 342810,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1088,
+          "cache_read_input_tokens": 338383,
+          "cache_creation_input_tokens": 4427,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4427
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 114,
+        "outputTokens": 82984,
+        "cacheReadInputTokens": 7640684,
+        "cacheCreationInputTokens": 342810,
+        "webSearchRequests": 0,
+        "costUSD": 3.7294448,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 60700,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 88,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\nI reconstructed a two-storey office building (15.0 m × 8.0 m footprint, F1 ceiling height 3.0 m, F2 ceiling height 3.6 m, total 6.6 m) from the six supplied original drawings (`1f_view.png`, `2f_view.png`, `North/South/East/West_view.png`), with no prior BIM, declaration, or GT supplied.\n\n**Delivered candidate: `candidate_04`**\n\n**Method**\n- Calibrated each plan independently from its own dimension-line ticks (verified against wall-face pixel positions).\n- F1: corridor (2 m deep, full building length) with 3 offices to the north and 3 to the south, each connected to the corridor by its own door; main entrance is a double door on the **West** facade (matches West_view.png), plus a small secondary door in room_S1's south wall (matches South_view.png); one window on the corridor's East end (matches East_view.png).\n- F2: one open conference hall (two round tables, no dividing wall — confirmed the thin line at x≈718 is not gray-filled/wall-supported) connected to the corridor by one wide double door; 4 enclosed offices to the south, each with its own corridor door; single windows at the corridor's East/West ends.\n- Floor levels/heights derived from the elevation drawings' vertical dimension chains (F1: 3.0 m, F2 base 3.0 m + 3.6 m = 6.6 m total).\n- Assembled both floors with `assemble_plan_bim` (no manual vertex copying).\n- Sampled same/separate-space checks on both floors (corridor continuity, room separations, hall openness) — all consistent with the originals.\n- Recorded and **confirmed** two image-linked claims from `North_view.png`'s dimension chain for the F1 window family (sill 1.0 m/head 2.6 m) and F2 window family (sill 4.0 m/head 5.8 m); both exactly matched the declared values, so `confirm_claims` was used instead of a no-op rebuild.\n- Assigned room roles (office/enclosed, corridor, conference/meeting/multipurpose) from furniture evidence.\n\n**Honest limitations / unresolved**\n- Door heights (all interior/exterior doors) are an unverified assumption of 2.1 m — no drawing dimensioned them.\n- East-facade F1 window and East/West-facade F2 windows are assumed to share the North/South-measured height family; their own vertical chains were not separately transcribed.\n- Exact corridor-door widths/positions (F1 and F2) and the F2 hall's double-door width are visually estimated, not individually dimensioned.\n- The purpose of F1 room_S1's secondary south-facing door is not labeled in the drawing.\n- Calibration is caller-supplied from dimension ticks; a ~0.9% x/y cross-axis discrepancy was flagged by the tool and is noted rather than hidden.\n- No mesh/3D input was supplied, so no elevation-mesh cross-check was possible beyond the four 2D elevation drawings.\n\nGeometry validity and my own consistency checks do not certify drawing fidelity — this is my best inspected reconstruction with all assumptions and unresolved items preserved in the saved candidate's notes.",
+    "ttft_ms": 2869,
+    "type": "result",
+    "duration_ms": 1090615,
+    "uuid": "2a787e64-1e86-4801-a71c-80a44573e1b8",
+    "ttft_stream_ms": 2279,
+    "time_to_request_ms": 103,
+    "first_content_frame_ms": 2279,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

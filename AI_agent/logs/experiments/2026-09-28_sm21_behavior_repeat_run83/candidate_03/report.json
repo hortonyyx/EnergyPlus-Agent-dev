@@ -1,0 +1,70 @@
+{
+  "agent_assumptions": [
+    "All interior door heights assumed 0-2.1m (not separately dimensioned).",
+    "Door swing states unknown.",
+    "East F1 window height family assumed equal to other F1 windows pending direct elevation comparison.",
+    "Room role 'office' inferred from desk furniture in the drawing.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights assumed 0-2.1m.",
+    "South office window spans approximated from the dimension chain 2190/1200/360/660/1200/2190 pattern; small 360/660mm sub-segments merged/simplified rather than modelled as separate small openings.",
+    "The thin unfilled vertical line near x=718 in the north hall is interpreted as a non-wall (ceiling/beam) mark, not a partition, because it lacks any gray wall-fill pixels found elsewhere for real partitions.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 78,
+    "connections": 13,
+    "openings": 28,
+    "spaces": 13,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "9585490c28d674f1b1bda2a0589aebde866e46d04569cc7fe696e5d1989e0da2",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "8a381dfef024713793080b6325e986f2d3b4756d1455ee4e2f2661d5396ccf8e",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "5e332d1d4e1ebe1e6290177c9eec1d716a588690deb8583b456dac46aef3a0ad"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "00ba3e212b94b6a0a954d315acf157850fab3abc24fe3e818352e98c7b1bd679",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact corridor-to-room door widths/positions estimated visually; not individually dimensioned in the drawing.",
+    "South secondary door (D_south_room1) purpose (fire exit vs main use) not labeled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact door widths/positions for the 4 south offices and the hall's double door are visually estimated, not individually dimensioned.",
+    "F2 east/west window height family assumed identical to north/south F2 windows pending direct cross-check.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

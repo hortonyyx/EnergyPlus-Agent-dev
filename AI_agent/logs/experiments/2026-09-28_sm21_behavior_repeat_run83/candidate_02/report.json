@@ -1,0 +1,83 @@
+{
+  "agent_assumptions": [
+    "Interior door heights assumed 0-2.1m.",
+    "South office window spans approximated from the dimension chain 2190/1200/360/660/1200/2190 pattern; small 360/660mm sub-segments merged/simplified rather than modelled as separate small openings.",
+    "The thin unfilled vertical line near x=718 in the north hall is interpreted as a non-wall (ceiling/beam) mark, not a partition, because it lacks any gray wall-fill pixels found elsewhere for real partitions.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 36,
+    "connections": 5,
+    "openings": 13,
+    "spaces": 6,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "73d1367eeec5c887b0c82a2136a316e447e3d77c791f6c5e76fc48826e4c96df",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "8a381dfef024713793080b6325e986f2d3b4756d1455ee4e2f2661d5396ccf8e",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_004/compilation.json",
+      "compilation_sha256": "7f5a18b197c0f83b9fb414ad3fc45cbd418ac3444608eaca1806d67dcb39af37",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_004/draft_view.png",
+        "image_sha256": "28a39acbe5d44cbbdd55ecde2fe14bd8591218fee7bc523047a0948da4066c0b",
+        "metadata_file": "plan_drafts/draft_004/draft_view.json",
+        "metadata_sha256": "ea5db24d43c22fac9bcc654b2332b4f77c912f72a6bd18a113ab486c613cee3d",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_004/plan.json",
+      "plan_sha256": "8825a9a05254b8f6017c3aefc80d3d13f12c4d5ac6d749b082410b13596544f3",
+      "revision": {
+        "file": "plan_revisions/revision_002.json",
+        "parent_draft_id": "draft_003",
+        "parent_plan_sha256": "cab45d0410dca7fcd25b7cabb75cc4a51848de9f9b5033f2561a93751f87c460",
+        "sha256": "5d066ea667695943ffde9d62718f0bfbe6368f3276259cf057a6989deeb07cc2"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "5283b439232a43bfd0b3be1951d8ae52e611d7e50d68730e977cdf80327c6d7e",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact door widths/positions for the 4 south offices and the hall's double door are visually estimated, not individually dimensioned.",
+    "F2 east/west window height family assumed identical to north/south F2 windows pending direct cross-check.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "completed": true,
+  "quality": "failed_source_partition_and_opening_fidelity",
+  "candidate": "candidate_04",
+  "source_model_sha256": "500ecb5d0b03736769d6a1019ca362759db840a2b1ef5b02c9d9c600a9e8f566",
+  "source_geometry_replay": true,
+  "physical_geometry_preserved_by_final_role_edit": true,
+  "interpretation": "Public behavior and saved results only; no hidden reasoning, GT feedback, tolerance change or new model call.",
+  "original_hosts_raw": 28,
+  "original_connections_raw": 13,
+  "host_identity_caveat": "Original point-based correspondence maps both north reference rooms to hall; raw host/connection counts do not establish correct source identity.",
+  "ambiguous_space_ids": [
+    "F2:hall"
+  ],
+  "hosts_with_independent_room_identity": 25,
+  "connections_with_independent_room_identity": 12,
+  "original_positions": 4,
+  "original_reference_openings": 29,
+  "findings": [
+    {
+      "topic": "F2 north two rooms and two doors",
+      "first_action": 67,
+      "repeated_at_action": 76,
+      "result": "merged_two_source_spaces_and_replaced_two_doors_with_one_wide_door",
+      "evidence": [
+        "plan_drafts/draft_002/plan.json",
+        "images/2f_view.png",
+        "candidate_04/source_model.json"
+      ],
+      "observation": "The first F2 declaration calls the north half one hall, rejects an unfilled line near x=718, and declares one broad door. The actual central partition is around original x=1120; two distinct door arcs flank it. The cited x=718 is not that partition. No north-partition-specific profile/crop was requested; the two broader original views still exposed it.",
+      "feedback": "Action76 checks an asserted same_space observation against the already merged source. Agreement verifies the assertion/source consistency, not the original interpretation."
+    },
+    {
+      "topic": "F2 south windows and incorrectly placed partitions",
+      "actions": [
+        69,
+        70
+      ],
+      "result": "host_error_cleared_by_shortening_two_windows_without_repairing_partition_positions",
+      "evidence": [
+        "plan_revisions/revision_002.json",
+        "plan_drafts/draft_003/opening_host_failure.png",
+        "images/2f_view.png"
+      ],
+      "changes": [
+        {
+          "id": "W_S1",
+          "before": [
+            [
+              640,
+              1071
+            ],
+            [
+              750,
+              1071
+            ]
+          ],
+          "after": [
+            [
+              630,
+              1071
+            ],
+            [
+              715,
+              1071
+            ]
+          ],
+          "declared_partitions_unchanged": true
+        },
+        {
+          "id": "W_S3",
+          "before": [
+            [
+              1360,
+              1071
+            ],
+            [
+              1470,
+              1071
+            ]
+          ],
+          "after": [
+            [
+              1360,
+              1071
+            ],
+            [
+              1440,
+              1071
+            ]
+          ],
+          "declared_partitions_unchanged": true
+        }
+      ],
+      "observation": "The error feedback carried the clean original plus declared geometry and explicitly warned against shortening only to clear a host error. The next action shortened W_S1/W_S3; no intervening original view or profile. Source generation succeeded, but original/GT width-position mismatches remain."
+    },
+    {
+      "topic": "F1 south small window",
+      "actions": [
+        53,
+        78,
+        82
+      ],
+      "result": "wrong_height_family_retained_and_confirmed",
+      "evidence": [
+        "claims/claim_0001.json",
+        "images/South_view.png",
+        "object_traces.json"
+      ],
+      "actual_z_m": [
+        1.0,
+        2.6
+      ],
+      "original_z_m": [
+        1.5,
+        2.1
+      ],
+      "observation": "Small window receives the regular family in the first floor draft; all seven F1 windows later share the North-view claim. Arithmetic and confirmation are internally consistent, but the South-view left chain describes a distinct small-window family."
+    },
+    {
+      "topic": "Counterexamples and successful actions",
+      "actions": [
+        69,
+        82,
+        85
+      ],
+      "result": "valid_repairs_and_correct_first_drafts_retained_separately",
+      "observation": "The five F2 doors were successfully moved from floor-local [0,2.1] to absolute [3,5.1]. F1 regular window and F2 east window were already correct in the selected dimensions in their first drafts; confirming them did not create that correctness. F2 floor height3.6 and total6.6 were saved correctly. Last role/note edit fills13 use records and preserves all physical geometry."
+    }
+  ],
+  "limitations": [
+    "One completed run after a prior interrupted run; not two successful repetitions or causal isolation.",
+    "Delivered image bytes, 15 window confirmations and 13 room-use records do not certify image understanding.",
+    "No new production behavior change in this run; role/API work stayed outside its40 frozen production files.",
+    "Internal door height assumptions remain allowed; opening existence, host and connection are still independently required."
+  ],
+  "evidence_sha256": {
+    "agent_receipt.json": "312b1451ef91f178319dc5139bef1d14bc66e36ff7d8162a679cc1aa3b51981c",
+    "agent_stream.jsonl.gz": "0e1bd62cd05b2faaf6bedd66d45a4f9d73875384560ec0d2cf829fa3683dd33f",
+    "postrun_audit.json": "57083e92a7a83995d96c9c16bb63564efc83517b7072137d8b9d044183db66b8",
+    "candidate_04/source_model.json": "aef5b0bab5ada298e7ed643a84af2f41e441641fdadbabfe0bf10e3dea796b29",
+    "plan_drafts/draft_002/plan.json": "c08189213e0e83a8c81dde853e5b206c1e6fb0899a1e1479a2a8dbf6c11bc146",
+    "plan_revisions/revision_002.json": "5d066ea667695943ffde9d62718f0bfbe6368f3276259cf057a6989deeb07cc2",
+    "claims/claim_0001.json": "a1a1267a65f8221d7842bbd83589272a111c2ee3147763e6c74e21841764a1c1",
+    "images/2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "images/South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4"
+  }
+}

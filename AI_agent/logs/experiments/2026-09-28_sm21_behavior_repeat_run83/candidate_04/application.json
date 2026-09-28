@@ -1,0 +1,1328 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "candidate_03",
+  "submitted_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_N1",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Two-desk layout with chairs suggests a small enclosed private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in room_N1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_N2",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Two-desk layout with chairs suggests a small enclosed private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in room_N2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_N3",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Two-desk layout with chairs suggests a small enclosed private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in room_N3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_S1",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "L-shaped furniture resembling a workstation/desk suggests an enclosed office; a small secondary exterior door does not change the use"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: L-shaped desk furniture in room_S1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_S2",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "L-shaped furniture resembling a workstation/desk suggests an enclosed office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: L-shaped desk furniture in room_S2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_S3",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Round table with 4 chairs suggests a small meeting/office use; kept consistent with adjacent enclosed offices given similar enclosure"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: round table+4 chairs in room_S3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:corridor",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation space with the building's main entrance",
+      "source_refs": [
+        "1f_view.png: central hallway between the two room rows"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:hall",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Two large round tables surrounded by many chairs indicate a meeting/conference use"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: two round conference tables with ~10 chairs each"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:corridor2",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation space",
+      "source_refs": [
+        "2f_view.png: central hallway between hall and offices"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S1",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S2",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S3",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S4",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S4"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "East F1 window height family assumed equal to other F1 windows pending direct elevation comparison.",
+      "replacement": [
+        "F1 window height family (sill 1.0m/head 2.6m absolute) confirmed via claim_0001 dimension chain from North_view.png; East facade window assumed to share this family as no separate East vertical dimension chain was transcribed."
+      ],
+      "reason": "Height confirmed by recorded claim for North/South; East remains an explicit cross-facade assumption",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "F2 east/west window height family assumed identical to north/south F2 windows pending direct cross-check.",
+      "replacement": [
+        "F2 window height family (sill 4.0m/head 5.8m absolute) confirmed via claim_0002 dimension chain from North_view.png for North/South; East/West windows assumed to share this family as no separate East/West vertical dimension chain was transcribed."
+      ],
+      "reason": "Height confirmed by recorded claim for North/South; East/West remains an explicit cross-facade assumption",
+      "source_refs": [
+        "claim_0002"
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "9585490c28d674f1b1bda2a0589aebde866e46d04569cc7fe696e5d1989e0da2",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_N1",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Two-desk layout with chairs suggests a small enclosed private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in room_N1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_N2",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Two-desk layout with chairs suggests a small enclosed private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in room_N2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_N3",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Two-desk layout with chairs suggests a small enclosed private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in room_N3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_S1",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "L-shaped furniture resembling a workstation/desk suggests an enclosed office; a small secondary exterior door does not change the use"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: L-shaped desk furniture in room_S1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_S2",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "L-shaped furniture resembling a workstation/desk suggests an enclosed office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: L-shaped desk furniture in room_S2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:room_S3",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Round table with 4 chairs suggests a small meeting/office use; kept consistent with adjacent enclosed offices given similar enclosure"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "1f_view.png: round table+4 chairs in room_S3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:corridor",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation space with the building's main entrance",
+      "source_refs": [
+        "1f_view.png: central hallway between the two room rows"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:hall",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Two large round tables surrounded by many chairs indicate a meeting/conference use"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: two round conference tables with ~10 chairs each"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:corridor2",
+      "role": "corridor",
+      "basis": "observed",
+      "assumptions": [],
+      "reason": "Central circulation space",
+      "source_refs": [
+        "2f_view.png: central hallway between hall and offices"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S1",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S1"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S2",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S2"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S3",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S3"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:office_S4",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with monitor and chair indicates a private office"
+      ],
+      "reason": "Classify by furniture",
+      "source_refs": [
+        "2f_view.png: desk+monitor+chair in office_S4"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "East F1 window height family assumed equal to other F1 windows pending direct elevation comparison.",
+      "replacement": [
+        "F1 window height family (sill 1.0m/head 2.6m absolute) confirmed via claim_0001 dimension chain from North_view.png; East facade window assumed to share this family as no separate East vertical dimension chain was transcribed."
+      ],
+      "reason": "Height confirmed by recorded claim for North/South; East remains an explicit cross-facade assumption",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "F2 east/west window height family assumed identical to north/south F2 windows pending direct cross-check.",
+      "replacement": [
+        "F2 window height family (sill 4.0m/head 5.8m absolute) confirmed via claim_0002 dimension chain from North_view.png for North/South; East/West windows assumed to share this family as no separate East/West vertical dimension chain was transcribed."
+      ],
+      "reason": "Height confirmed by recorded claim for North/South; East/West remains an explicit cross-facade assumption",
+      "source_refs": [
+        "claim_0002"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "5f76a3a089fa385a71cc2f2e3198b4c12ccdea5b823df09a8292ddeec6cf54d9",
+  "geometry_after_sha256": "6ca919992b681fb03a55ede993bb6003fd252f3c544fb7f25ef833a02fe6fc73",
+  "changes": [
+    {
+      "kind": "space",
+      "id": "F1:corridor",
+      "before": {
+        "floor": "F1",
+        "id": "F1:corridor",
+        "polygon": [
+          [
+            0.064194,
+            3.098516
+          ],
+          [
+            14.946505,
+            3.098516
+          ],
+          [
+            14.946505,
+            5.25776
+          ],
+          [
+            0.064194,
+            5.25776
+          ]
+        ],
+        "role": "corridor",
+        "x": [
+          0.064194,
+          14.946505
+        ],
+        "y": [
+          3.098516,
+          5.25776
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:corridor",
+        "polygon": [
+          [
+            0.064194,
+            3.098516
+          ],
+          [
+            14.946505,
+            3.098516
+          ],
+          [
+            14.946505,
+            5.25776
+          ],
+          [
+            0.064194,
+            5.25776
+          ]
+        ],
+        "role": "corridor",
+        "x": [
+          0.064194,
+          14.946505
+        ],
+        "y": [
+          3.098516,
+          5.25776
+        ],
+        "role_evidence": {
+          "role": "corridor",
+          "basis": "observed"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F1:room_N1",
+      "before": {
+        "floor": "F1",
+        "id": "F1:room_N1",
+        "polygon": [
+          [
+            0.064194,
+            5.25776
+          ],
+          [
+            5.007133,
+            5.25776
+          ],
+          [
+            5.007133,
+            8.0
+          ],
+          [
+            0.064194,
+            8.0
+          ]
+        ],
+        "role": "office",
+        "x": [
+          0.064194,
+          5.007133
+        ],
+        "y": [
+          5.25776,
+          8.0
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:room_N1",
+        "polygon": [
+          [
+            0.064194,
+            5.25776
+          ],
+          [
+            5.007133,
+            5.25776
+          ],
+          [
+            5.007133,
+            8.0
+          ],
+          [
+            0.064194,
+            8.0
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          0.064194,
+          5.007133
+        ],
+        "y": [
+          5.25776,
+          8.0
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F1:room_N2",
+      "before": {
+        "floor": "F1",
+        "id": "F1:room_N2",
+        "polygon": [
+          [
+            5.007133,
+            5.25776
+          ],
+          [
+            9.885877,
+            5.25776
+          ],
+          [
+            9.885877,
+            8.0
+          ],
+          [
+            5.007133,
+            8.0
+          ]
+        ],
+        "role": "office",
+        "x": [
+          5.007133,
+          9.885877
+        ],
+        "y": [
+          5.25776,
+          8.0
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:room_N2",
+        "polygon": [
+          [
+            5.007133,
+            5.25776
+          ],
+          [
+            9.885877,
+            5.25776
+          ],
+          [
+            9.885877,
+            8.0
+          ],
+          [
+            5.007133,
+            8.0
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          5.007133,
+          9.885877
+        ],
+        "y": [
+          5.25776,
+          8.0
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F1:room_N3",
+      "before": {
+        "floor": "F1",
+        "id": "F1:room_N3",
+        "polygon": [
+          [
+            9.885877,
+            5.25776
+          ],
+          [
+            14.946505,
+            5.25776
+          ],
+          [
+            14.946505,
+            8.0
+          ],
+          [
+            9.885877,
+            8.0
+          ]
+        ],
+        "role": "office",
+        "x": [
+          9.885877,
+          14.946505
+        ],
+        "y": [
+          5.25776,
+          8.0
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:room_N3",
+        "polygon": [
+          [
+            9.885877,
+            5.25776
+          ],
+          [
+            14.946505,
+            5.25776
+          ],
+          [
+            14.946505,
+            8.0
+          ],
+          [
+            9.885877,
+            8.0
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          9.885877,
+          14.946505
+        ],
+        "y": [
+          5.25776,
+          8.0
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F1:room_S1",
+      "before": {
+        "floor": "F1",
+        "id": "F1:room_S1",
+        "polygon": [
+          [
+            0.064194,
+            0.0
+          ],
+          [
+            5.007133,
+            0.0
+          ],
+          [
+            5.007133,
+            3.098516
+          ],
+          [
+            0.064194,
+            3.098516
+          ]
+        ],
+        "role": "office",
+        "x": [
+          0.064194,
+          5.007133
+        ],
+        "y": [
+          0.0,
+          3.098516
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:room_S1",
+        "polygon": [
+          [
+            0.064194,
+            0.0
+          ],
+          [
+            5.007133,
+            0.0
+          ],
+          [
+            5.007133,
+            3.098516
+          ],
+          [
+            0.064194,
+            3.098516
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          0.064194,
+          5.007133
+        ],
+        "y": [
+          0.0,
+          3.098516
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F1:room_S2",
+      "before": {
+        "floor": "F1",
+        "id": "F1:room_S2",
+        "polygon": [
+          [
+            5.007133,
+            0.0
+          ],
+          [
+            9.885877,
+            0.0
+          ],
+          [
+            9.885877,
+            3.098516
+          ],
+          [
+            5.007133,
+            3.098516
+          ]
+        ],
+        "role": "office",
+        "x": [
+          5.007133,
+          9.885877
+        ],
+        "y": [
+          0.0,
+          3.098516
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:room_S2",
+        "polygon": [
+          [
+            5.007133,
+            0.0
+          ],
+          [
+            9.885877,
+            0.0
+          ],
+          [
+            9.885877,
+            3.098516
+          ],
+          [
+            5.007133,
+            3.098516
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          5.007133,
+          9.885877
+        ],
+        "y": [
+          0.0,
+          3.098516
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F1:room_S3",
+      "before": {
+        "floor": "F1",
+        "id": "F1:room_S3",
+        "polygon": [
+          [
+            9.885877,
+            0.0
+          ],
+          [
+            14.946505,
+            0.0
+          ],
+          [
+            14.946505,
+            3.098516
+          ],
+          [
+            9.885877,
+            3.098516
+          ]
+        ],
+        "role": "office",
+        "x": [
+          9.885877,
+          14.946505
+        ],
+        "y": [
+          0.0,
+          3.098516
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "F1:room_S3",
+        "polygon": [
+          [
+            9.885877,
+            0.0
+          ],
+          [
+            14.946505,
+            0.0
+          ],
+          [
+            14.946505,
+            3.098516
+          ],
+          [
+            9.885877,
+            3.098516
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          9.885877,
+          14.946505
+        ],
+        "y": [
+          0.0,
+          3.098516
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F2:corridor2",
+      "before": {
+        "floor": "F2",
+        "id": "F2:corridor2",
+        "polygon": [
+          [
+            0.0,
+            2.890392
+          ],
+          [
+            15.0,
+            2.890392
+          ],
+          [
+            15.0,
+            5.05548
+          ],
+          [
+            0.0,
+            5.05548
+          ]
+        ],
+        "role": "corridor",
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          2.890392,
+          5.05548
+        ]
+      },
+      "after": {
+        "floor": "F2",
+        "id": "F2:corridor2",
+        "polygon": [
+          [
+            0.0,
+            2.890392
+          ],
+          [
+            15.0,
+            2.890392
+          ],
+          [
+            15.0,
+            5.05548
+          ],
+          [
+            0.0,
+            5.05548
+          ]
+        ],
+        "role": "corridor",
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          2.890392,
+          5.05548
+        ],
+        "role_evidence": {
+          "role": "corridor",
+          "basis": "observed"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F2:hall",
+      "before": {
+        "floor": "F2",
+        "id": "F2:hall",
+        "polygon": [
+          [
+            0.0,
+            5.05548
+          ],
+          [
+            15.0,
+            5.05548
+          ],
+          [
+            15.0,
+            7.967524
+          ],
+          [
+            0.0,
+            7.967524
+          ]
+        ],
+        "role": "meeting_room",
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          5.05548,
+          7.967524
+        ]
+      },
+      "after": {
+        "floor": "F2",
+        "id": "F2:hall",
+        "polygon": [
+          [
+            0.0,
+            5.05548
+          ],
+          [
+            15.0,
+            5.05548
+          ],
+          [
+            15.0,
+            7.967524
+          ],
+          [
+            0.0,
+            7.967524
+          ]
+        ],
+        "role": "conference/meeting/multipurpose",
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          5.05548,
+          7.967524
+        ],
+        "role_evidence": {
+          "role": "conference/meeting/multipurpose",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F2:office_S1",
+      "before": {
+        "floor": "F2",
+        "id": "F2:office_S1",
+        "polygon": [
+          [
+            0.0,
+            -0.043302
+          ],
+          [
+            3.246753,
+            -0.043302
+          ],
+          [
+            3.246753,
+            2.890392
+          ],
+          [
+            0.0,
+            2.890392
+          ]
+        ],
+        "role": "office",
+        "x": [
+          0.0,
+          3.246753
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ]
+      },
+      "after": {
+        "floor": "F2",
+        "id": "F2:office_S1",
+        "polygon": [
+          [
+            0.0,
+            -0.043302
+          ],
+          [
+            3.246753,
+            -0.043302
+          ],
+          [
+            3.246753,
+            2.890392
+          ],
+          [
+            0.0,
+            2.890392
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          0.0,
+          3.246753
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F2:office_S2",
+      "before": {
+        "floor": "F2",
+        "id": "F2:office_S2",
+        "polygon": [
+          [
+            3.246753,
+            -0.043302
+          ],
+          [
+            7.445887,
+            -0.043302
+          ],
+          [
+            7.445887,
+            2.890392
+          ],
+          [
+            3.246753,
+            2.890392
+          ]
+        ],
+        "role": "office",
+        "x": [
+          3.246753,
+          7.445887
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ]
+      },
+      "after": {
+        "floor": "F2",
+        "id": "F2:office_S2",
+        "polygon": [
+          [
+            3.246753,
+            -0.043302
+          ],
+          [
+            7.445887,
+            -0.043302
+          ],
+          [
+            7.445887,
+            2.890392
+          ],
+          [
+            3.246753,
+            2.890392
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          3.246753,
+          7.445887
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F2:office_S3",
+      "before": {
+        "floor": "F2",
+        "id": "F2:office_S3",
+        "polygon": [
+          [
+            7.445887,
+            -0.043302
+          ],
+          [
+            11.136364,
+            -0.043302
+          ],
+          [
+            11.136364,
+            2.890392
+          ],
+          [
+            7.445887,
+            2.890392
+          ]
+        ],
+        "role": "office",
+        "x": [
+          7.445887,
+          11.136364
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ]
+      },
+      "after": {
+        "floor": "F2",
+        "id": "F2:office_S3",
+        "polygon": [
+          [
+            7.445887,
+            -0.043302
+          ],
+          [
+            11.136364,
+            -0.043302
+          ],
+          [
+            11.136364,
+            2.890392
+          ],
+          [
+            7.445887,
+            2.890392
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          7.445887,
+          11.136364
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "F2:office_S4",
+      "before": {
+        "floor": "F2",
+        "id": "F2:office_S4",
+        "polygon": [
+          [
+            11.136364,
+            -0.043302
+          ],
+          [
+            15.0,
+            -0.043302
+          ],
+          [
+            15.0,
+            2.890392
+          ],
+          [
+            11.136364,
+            2.890392
+          ]
+        ],
+        "role": "office",
+        "x": [
+          11.136364,
+          15.0
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ]
+      },
+      "after": {
+        "floor": "F2",
+        "id": "F2:office_S4",
+        "polygon": [
+          [
+            11.136364,
+            -0.043302
+          ],
+          [
+            15.0,
+            -0.043302
+          ],
+          [
+            15.0,
+            2.890392
+          ],
+          [
+            11.136364,
+            2.890392
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          11.136364,
+          15.0
+        ],
+        "y": [
+          -0.043302,
+          2.890392
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    }
+  ],
+  "scope_check": "not_supported_for_all_operations",
+  "outside_declared_scope": null,
+  "parameters_without_claims": [],
+  "candidate": "candidate_04",
+  "source_model_sha256": "500ecb5d0b03736769d6a1019ca362759db840a2b1ef5b02c9d9c600a9e8f566",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

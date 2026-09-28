@@ -1,0 +1,191 @@
+[
+  {
+    "op": "set_space_role",
+    "space_id": "F1:room_N1",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Two-desk layout with chairs suggests a small enclosed private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "1f_view.png: desk+2 chairs in room_N1"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1:room_N2",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Two-desk layout with chairs suggests a small enclosed private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "1f_view.png: desk+2 chairs in room_N2"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1:room_N3",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Two-desk layout with chairs suggests a small enclosed private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "1f_view.png: desk+2 chairs in room_N3"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1:room_S1",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "L-shaped furniture resembling a workstation/desk suggests an enclosed office; a small secondary exterior door does not change the use"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "1f_view.png: L-shaped desk furniture in room_S1"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1:room_S2",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "L-shaped furniture resembling a workstation/desk suggests an enclosed office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "1f_view.png: L-shaped desk furniture in room_S2"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1:room_S3",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Round table with 4 chairs suggests a small meeting/office use; kept consistent with adjacent enclosed offices given similar enclosure"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "1f_view.png: round table+4 chairs in room_S3"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F1:corridor",
+    "role": "corridor",
+    "basis": "observed",
+    "assumptions": [],
+    "reason": "Central circulation space with the building's main entrance",
+    "source_refs": [
+      "1f_view.png: central hallway between the two room rows"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F2:hall",
+    "role": "conference/meeting/multipurpose",
+    "basis": "inferred",
+    "assumptions": [
+      "Two large round tables surrounded by many chairs indicate a meeting/conference use"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "2f_view.png: two round conference tables with ~10 chairs each"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F2:corridor2",
+    "role": "corridor",
+    "basis": "observed",
+    "assumptions": [],
+    "reason": "Central circulation space",
+    "source_refs": [
+      "2f_view.png: central hallway between hall and offices"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F2:office_S1",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Desk with monitor and chair indicates a private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "2f_view.png: desk+monitor+chair in office_S1"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F2:office_S2",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Desk with monitor and chair indicates a private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "2f_view.png: desk+monitor+chair in office_S2"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F2:office_S3",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Desk with monitor and chair indicates a private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "2f_view.png: desk+monitor+chair in office_S3"
+    ]
+  },
+  {
+    "op": "set_space_role",
+    "space_id": "F2:office_S4",
+    "role": "office/enclosed",
+    "basis": "inferred",
+    "assumptions": [
+      "Desk with monitor and chair indicates a private office"
+    ],
+    "reason": "Classify by furniture",
+    "source_refs": [
+      "2f_view.png: desk+monitor+chair in office_S4"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "East F1 window height family assumed equal to other F1 windows pending direct elevation comparison.",
+    "replacement": [
+      "F1 window height family (sill 1.0m/head 2.6m absolute) confirmed via claim_0001 dimension chain from North_view.png; East facade window assumed to share this family as no separate East vertical dimension chain was transcribed."
+    ],
+    "reason": "Height confirmed by recorded claim for North/South; East remains an explicit cross-facade assumption",
+    "source_refs": [
+      "claim_0001"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "unresolved",
+    "old": "F2 east/west window height family assumed identical to north/south F2 windows pending direct cross-check.",
+    "replacement": [
+      "F2 window height family (sill 4.0m/head 5.8m absolute) confirmed via claim_0002 dimension chain from North_view.png for North/South; East/West windows assumed to share this family as no separate East/West vertical dimension chain was transcribed."
+    ],
+    "reason": "Height confirmed by recorded claim for North/South; East/West remains an explicit cross-facade assumption",
+    "source_refs": [
+      "claim_0002"
+    ]
+  }
+]

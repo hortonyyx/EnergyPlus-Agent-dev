@@ -1,0 +1,141 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_east",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png left vertical dimension chain for the LOWER (F1) storey reads 400,1600,1000 mm from top to bottom, with the top of this sub-chain at the F1/F2 slab datum (world z=3.0m, i.e. F1 ceiling height 3.0m established from the F1/F2 storey split). Walking down (direction=-1) from origin 3.0m: segment0=[2.6,3.0] is the gap above the window head, segment1=[1.0,2.6] is the window opening itself (head=2.6m, sill=1.0m absolute). This chain is shared by all F1 exterior windows (North/South/East facades all show the same 400/1600/1000 breakdown for their single lower window row).",
+    "sources": [
+      {
+        "box": [
+          0.0,
+          0.0,
+          300.0,
+          600.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [
+      "East facade F1 window assumed to share this same family since only North/South chains were directly measured; East elevation was viewed but its own vertical dimension chain was not separately transcribed."
+    ],
+    "value_targets": null,
+    "values": {
+      "window_z": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "window_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "9585490c28d674f1b1bda2a0589aebde866e46d04569cc7fe696e5d1989e0da2",
+  "resolved_values": {
+    "window_z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0.0,
+        0.0,
+        300.0,
+        600.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}
