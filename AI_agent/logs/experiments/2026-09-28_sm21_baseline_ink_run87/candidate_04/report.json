@@ -1,0 +1,70 @@
+{
+  "agent_assumptions": [
+    "Interior corridor/office door heights (D1-D6) assumed 2.1m to match the two elevation-evidenced entrance doors (D7,D8); not separately shown in any elevation.",
+    "West wall vestibule/porch recess (~1m deep, corridor width) simplified to a flush exterior wall with a single wide entrance door D7 spanning the corridor width; the small projecting porch geometry itself is not modeled.",
+    "South wall small notch/chamfer near the SW entrance simplified to a flush wall with a single door D8.",
+    "All door swing/open states left unknown.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights (D1-D6) assumed 2.1m, matching the elevation-evidenced 1F entrance doors; no elevation shows these interior doors directly.",
+    "No exterior ground-level door assumed on 2F (upper storey); vertical circulation (stair) is not shown in the supplied plan/elevation views and is not modeled.",
+    "All door swing/open states left unknown.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "09f980a7043f56b627463efa0eafd345605936cd3dd43c061ebab1ef2db455cc",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "fefd3103ec6dab4746f85867c622ecac49bb74d8ffe5c4979ac2cf7275b4e3bc",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "604bd7839732178878ecc85f72a8537c7db0b42ed508469d75dc5898f03bf182"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "ac2d46d1fbbb76a85ae080a76ff7e7e71e56302d25a3a5830d1ac1b3354be335",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Vestibule/porch recess geometry on the west facade and the SW corner wall notch are simplified/not modeled as separate enclosed space; only door openings are represented.",
+    "Small furniture items (desks, chairs, L-shaped workstation) not modeled; only partitions/openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "No stair or vertical circulation between F1 and F2 is shown in the supplied drawings; none is modeled.",
+    "Furniture (conference tables/chairs, desks) not modeled; only partitions/openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

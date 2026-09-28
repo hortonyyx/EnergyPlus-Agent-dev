@@ -1,0 +1,254 @@
+{
+  "name": "1f_view.png",
+  "profile_id": "profile_009",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "axis": "y",
+  "box_original_pixels": [
+    850,
+    340,
+    950,
+    1090
+  ],
+  "rgb": [
+    140,
+    140,
+    140
+  ],
+  "tolerance": 80.0,
+  "min_fraction": 0.3,
+  "minimum_count": 30,
+  "support_length": 100,
+  "matching_pixels": 5661,
+  "candidates": [
+    {
+      "id": "C01",
+      "pixels": [
+        346,
+        368
+      ],
+      "peak": 347,
+      "max_count": 100,
+      "max_fraction": 1.0,
+      "support_intervals_at_peak": [
+        [
+          850,
+          949
+        ]
+      ]
+    },
+    {
+      "id": "C02",
+      "pixels": [
+        618,
+        618
+      ],
+      "peak": 618,
+      "max_count": 56,
+      "max_fraction": 0.56,
+      "support_intervals_at_peak": [
+        [
+          856,
+          883
+        ],
+        [
+          894,
+          921
+        ]
+      ]
+    },
+    {
+      "id": "C03",
+      "pixels": [
+        629,
+        629
+      ],
+      "peak": 629,
+      "max_count": 68,
+      "max_fraction": 0.68,
+      "support_intervals_at_peak": [
+        [
+          855,
+          922
+        ]
+      ]
+    },
+    {
+      "id": "C04",
+      "pixels": [
+        804,
+        804
+      ],
+      "peak": 804,
+      "max_count": 68,
+      "max_fraction": 0.68,
+      "support_intervals_at_peak": [
+        [
+          855,
+          922
+        ]
+      ]
+    },
+    {
+      "id": "C05",
+      "pixels": [
+        815,
+        815
+      ],
+      "peak": 815,
+      "max_count": 56,
+      "max_fraction": 0.56,
+      "support_intervals_at_peak": [
+        [
+          856,
+          883
+        ],
+        [
+          894,
+          921
+        ]
+      ]
+    },
+    {
+      "id": "C06",
+      "pixels": [
+        1065,
+        1087
+      ],
+      "peak": 1072,
+      "max_count": 95,
+      "max_fraction": 0.95,
+      "support_intervals_at_peak": [
+        [
+          855,
+          949
+        ]
+      ]
+    }
+  ],
+  "cross_axis_profile": {
+    "axis": "x",
+    "min_fraction": 0.3,
+    "minimum_count": 225,
+    "support_length": 750,
+    "runs": [
+      {
+        "pixels": [
+          883,
+          883
+        ],
+        "peak": 883,
+        "max_count": 546,
+        "max_fraction": 0.728,
+        "support_intervals_at_peak": [
+          [
+            347,
+            367
+          ],
+          [
+            369,
+            618
+          ],
+          [
+            629,
+            629
+          ],
+          [
+            804,
+            804
+          ],
+          [
+            815,
+            1087
+          ]
+        ]
+      },
+      {
+        "pixels": [
+          894,
+          894
+        ],
+        "peak": 894,
+        "max_count": 548,
+        "max_fraction": 0.730667,
+        "support_intervals_at_peak": [
+          [
+            346,
+            618
+          ],
+          [
+            629,
+            629
+          ],
+          [
+            804,
+            804
+          ],
+          [
+            815,
+            1087
+          ]
+        ]
+      }
+    ],
+    "note": "Same exact mask and fraction, measured along the other axis. Compare long traces with local junction peaks; neither is a wall label. For bindable C IDs on this axis, request a profile using this axis."
+  },
+  "crop_context": {
+    "edge_support_intervals": {
+      "left": [
+        [
+          346,
+          368
+        ]
+      ],
+      "right": [
+        [
+          346,
+          368
+        ],
+        [
+          1065,
+          1087
+        ]
+      ],
+      "top": [],
+      "bottom": []
+    },
+    "suggested_view_box": [
+      818,
+      308,
+      982,
+      1122
+    ],
+    "note": "Edge intervals are matching pixels on the crop border (right/bottom are exclusive box limits, so samples are at right-1/bottom-1). A crop edge is not an object endpoint. The suggested box is only an initial 32px context expansion; inspect further as needed to establish both endpoints and adjoining space boundaries. No continuation is inferred."
+  },
+  "profile_image": "pixel_profiles/profile_009.png",
+  "profile_record": "pixel_profiles/profile_009.json",
+  "profile_image_sha256": "7ee802a95238793eb1d663182b0e4d70ab5c49f51bef96fc1b8245e94bea1d15",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      100,
+      750
+    ],
+    "mask_panel_combined_pixels": [
+      103,
+      0,
+      203,
+      750
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 2706,
+  "returned_size": [
+    203,
+    750
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}

@@ -1,0 +1,142 @@
+{
+  "candidate": "candidate_06",
+  "source_model_sha256": "02efbd6232f50e744cec2b2c1b91d1845807311d18e090f8ae25a518befe408c",
+  "quality": "not_restored_special_window_heights_wrong",
+  "reviewer": "Development assistant; complete original South/East elevations and both original-plan overlays inspected after generation.",
+  "findings": [
+    {
+      "topic": "Initial coordinate misuse caught, wrong window family substituted",
+      "actions": [
+        84,
+        85,
+        86
+      ],
+      "evidence": "First F1 declaration uses plan Y3.4..4.61 as W7 Z and is rejected outside storey0..3. The model fixes the coordinate slot but substitutes the North ordinary-window family1.0..2.6, retaining an East-window interpretation error."
+    },
+    {
+      "topic": "Corridor false partitions actually repaired",
+      "actions": [
+        86,
+        87,
+        88,
+        89,
+        90
+      ],
+      "evidence": "First saved F1 has full-depth pA/pB, splitting the corridor and producing9spaces. Two new original pixel profiles show no wall in the corridor band; local revision replaces the full paths with office-band segments. F1 becomes7spaces, all15aperture geometries stay exact, corridor relation samples then agree with the original."
+    },
+    {
+      "topic": "New automatic feedback exposed but causal repair unproven",
+      "actions": [
+        86,
+        89,
+        92
+      ],
+      "evidence": "Three returned reports and four full-room comparison images exactly match saved files and deterministic replay. Two F1 workstation/fixture lines remain flagged before/after corridor correction; the model does not turn them into walls. F2 first declaration already contains all seven rooms and has zero strokes. No public statement identifies an interior-ink cue as the reason for a missing-wall repair."
+    },
+    {
+      "topic": "Window-family overgeneralization survives evidence confirmation",
+      "actions": [
+        96,
+        98,
+        99,
+        100,
+        101,
+        102,
+        106,
+        110,
+        111,
+        112
+      ],
+      "evidence": "claim_0001 attaches all7F1windows to one North/East strip and states the family is identical on every facade. South small-window evidence is absent from that claim, and the East crop ends above the lower sill and excludes the window rectangle. All17exterior heights become image-linked despite the two semantic errors. confirm_claims first rejects the millimetre differences, then revise_bim applies the same mistaken family."
+    },
+    {
+      "topic": "Geometry and notes preserved during final review",
+      "actions": [
+        95,
+        111,
+        113,
+        115
+      ],
+      "evidence": "Assembly replays exactly. Height application preserves all opening XY; the final note edit preserves floors/spaces/boundaries/openings/connections exactly. Interior12door heights remain explicit2.1m assumptions. No source-elevation view was requested, although automatic plan/overlay images were returned."
+    },
+    {
+      "topic": "Final narrative overstates cross-facade agreement",
+      "actions": [
+        115
+      ],
+      "evidence": "The final public answer says the elevation height chains are consistent across all four facades. Originals contradict this for the F1Southsmall and East windows. The source report remains not_evaluated; evidence linkage is not semantic confirmation."
+    }
+  ],
+  "exact_height_findings": [
+    {
+      "opening_id": "F1:W4",
+      "actual_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "original_z_m": [
+        1.5,
+        2.1
+      ],
+      "endpoint_error_m": [
+        0.492631579,
+        0.505263158
+      ],
+      "evidence": "South_view.png small window: sill1500mm, height600mm, upper900mm; the neighboring ordinary windows have a different 1000/1600/400 chain.",
+      "old_gt_height_tolerance_pass": false
+    },
+    {
+      "opening_id": "F1:W7",
+      "actual_z_m": [
+        1.007368421,
+        2.605263158
+      ],
+      "original_z_m": [
+        1.0,
+        2.8
+      ],
+      "endpoint_error_m": [
+        0.007368421000000014,
+        0.19473684199999974
+      ],
+      "evidence": "East_view.png lower window: sill1000mm, height1800mm, upper200mm; not the North facade's 1000/1600/400 family.",
+      "old_gt_height_tolerance_pass": true
+    }
+  ],
+  "returned_references_match_frozen": {
+    "reconstruction": true,
+    "plan_partition": true,
+    "plan_assembly": true,
+    "claims": true
+  },
+  "all_apertures_preserved_by_corridor_repair": true,
+  "xy_preserved_by_height_application": true,
+  "all_physical_source_fields_preserved_by_note_edit": true,
+  "raw_strict_partition_preserved": true,
+  "direction_diagnostic_needed": false,
+  "evidence_sha256": {
+    "agent_receipt.json": "a53e19d7e7c22f49ccae2b1ec91f87d4c590036856373a4bdacf2b5f7d4e8d1a",
+    "agent_stream.jsonl.gz": "bcbf3cb5c78ebf077e757fbcb9ad15e243d0ce470171197e4a501766c4ff4acf",
+    "postrun_audit.json": "817497079e1254d832df935ebf5361037e4421232d785db767e587dbb603e55d",
+    "producer_replay.json": "aaa83c76a14c70dfa7a460a97af4c606f5ce0d904aab871aae0eae1581d55b2d",
+    "ink_producer_replay.json": "850c2b10d8f0d8d9d197a7a5cf1bebaa06cd1b33d59c78fdde4097f031f55f5a",
+    "comparison_metrics.json": "6c0e66541cc1ed85ad82016f8f027bedb2edb822e991aac2495fad6ad9fc8a98",
+    "room_identity_audit.json": "11d302375081ef9f7e9179938cb5f93a9c9865a39d7dc120745b8ae6e2aa4a39",
+    "evaluation/original_openings.json": "77d6fd9df8d9a1bfdea522da27465994dc08ee3eea59d04b49a9ca1d10997ab4",
+    "evaluation/gt/candidate_06_partition.json": "7084aaa3824123b0c9161d8aa5e0a71e40a35a0f3a788cb3363ddc812d5213a3",
+    "evaluation/claim_crop_audit.json": "08f55c079167d7bb4448f1f23755ba2311110e1f7336634cd03c3c1faa663fc0",
+    "evaluation/claim_transport_audit.json": "5f2aba4489ff26392fabd6aa92ea79ff9c7a68183d04c5377b5f6b731b7b8361",
+    "candidate_06/source_model.json": "a21e06a4e5d241c3e30b92a8ddbfe89eb1c27346820f3883d7adcd827394e637",
+    "images/1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "images/2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "images/South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "images/East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+  },
+  "model_calls": 0,
+  "limits": [
+    "One changed-condition run, not stable recovery or a causal feature ablation.",
+    "No GT/old answers entered generation and no source model was repaired during review.",
+    "F1East height passes existing0.3m tolerance but still uses the wrong family.",
+    "No historical claim-preview images were returned; saved claim crops are developer review only."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "agent_assumptions": [
+    "Interior corridor/office door heights (D1-D6) assumed 2.1m to match the two elevation-evidenced entrance doors (D7,D8); not separately shown in any elevation.",
+    "West wall vestibule/porch recess (~1m deep, corridor width) simplified to a flush exterior wall with a single wide entrance door D7 spanning the corridor width; the small projecting porch geometry itself is not modeled.",
+    "South wall small notch/chamfer near the SW entrance simplified to a flush wall with a single door D8.",
+    "All door swing/open states left unknown.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 9,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5121ecdac23a4b34ce5a3a1a214a1a0b6ac49bf5c9a9ba72d5d65f0c5af580f9",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "fefd3103ec6dab4746f85867c622ecac49bb74d8ffe5c4979ac2cf7275b4e3bc",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_002/compilation.json",
+      "compilation_sha256": "06be61645d9caaf0362e7789d8def96fd50d48e6c44ce743f5b96c3e697c582e",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_002/draft_view.png",
+        "image_sha256": "4fc627701ea6fe2f57b5b6021f3f54394d0ec0ade020cc121e20fd795b35c4ba",
+        "metadata_file": "plan_drafts/draft_002/draft_view.json",
+        "metadata_sha256": "14d3161a038cba3950ef11e24db21c53d77253a313a603a30e6c80540887f2fc",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_002/plan.json",
+      "plan_sha256": "5d612f1f6469e4bc4781b74c81544c6fdad9e92eb32ed349e0f2b53468c7172a",
+      "revision": {
+        "file": "plan_revisions/revision_001.json",
+        "parent_draft_id": "draft_001",
+        "parent_plan_sha256": "a0a3720036721cf562b702eba506a2f37a504cfb30c37ea53e6f9ea677238982",
+        "sha256": "c479b46a2649a145122b9b1b01cf16ce2c2115df83ee1646879d01d5b3060269"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "7ccd1b07bb4164fd2f36af0731779765da5dbbf0135e09c6eec2a3ad6da1b2e8",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Vestibule/porch recess geometry on the west facade and the SW corner wall notch are simplified/not modeled as separate enclosed space; only door openings are represented.",
+    "Small furniture items (desks, chairs, L-shaped workstation) not modeled; only partitions/openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

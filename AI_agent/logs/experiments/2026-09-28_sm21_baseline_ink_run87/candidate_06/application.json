@@ -1,0 +1,83 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "candidate_05",
+  "submitted_operations": [
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior corridor/office door heights (D1-D6) assumed 2.1m to match the two elevation-evidenced entrance doors (D7,D8); not separately shown in any elevation.",
+      "replacement": [
+        "Interior corridor/office door heights (F1:D1-D6, F2:D1-D6) remain an explicit assumption of 2.1m, matching the elevation-evidenced exterior entrance doors (F1:D7, F1:D8) and confirmed window-head pattern; these 12 interior doors are not directly visible in any supplied elevation (interior partitions are not elevated) and remain unlinked to image height evidence in check_openings."
+      ],
+      "reason": "Clarify which specific openings remain height-unlinked after claim application on candidate_05.",
+      "source_refs": [
+        "check_openings(candidate_05, heights_only=true): F1:D1-D6 and F2:D1-D6 coverage_state=unchecked"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior door heights (D1-D6) assumed 2.1m, matching the elevation-evidenced 1F entrance doors; no elevation shows these interior doors directly.",
+      "replacement": [],
+      "reason": "Duplicate of the consolidated F1/F2 interior-door note above; removed to avoid redundant text.",
+      "source_refs": [
+        "check_openings(candidate_05, heights_only=true)"
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "185d37772f55b27c6fafa2ce6b155a50674439395f0b210f00ba85f6818a0a2e",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior corridor/office door heights (D1-D6) assumed 2.1m to match the two elevation-evidenced entrance doors (D7,D8); not separately shown in any elevation.",
+      "replacement": [
+        "Interior corridor/office door heights (F1:D1-D6, F2:D1-D6) remain an explicit assumption of 2.1m, matching the elevation-evidenced exterior entrance doors (F1:D7, F1:D8) and confirmed window-head pattern; these 12 interior doors are not directly visible in any supplied elevation (interior partitions are not elevated) and remain unlinked to image height evidence in check_openings."
+      ],
+      "reason": "Clarify which specific openings remain height-unlinked after claim application on candidate_05.",
+      "source_refs": [
+        "check_openings(candidate_05, heights_only=true): F1:D1-D6 and F2:D1-D6 coverage_state=unchecked"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior door heights (D1-D6) assumed 2.1m, matching the elevation-evidenced 1F entrance doors; no elevation shows these interior doors directly.",
+      "replacement": [],
+      "reason": "Duplicate of the consolidated F1/F2 interior-door note above; removed to avoid redundant text.",
+      "source_refs": [
+        "check_openings(candidate_05, heights_only=true)"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "0c46228e1a54f4cfa2dba0d63b0c670e74e523ed9cfddf5adecebb5a9244050e",
+  "geometry_after_sha256": "0c46228e1a54f4cfa2dba0d63b0c670e74e523ed9cfddf5adecebb5a9244050e",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_06",
+  "source_model_sha256": "02efbd6232f50e744cec2b2c1b91d1845807311d18e090f8ae25a518befe408c",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

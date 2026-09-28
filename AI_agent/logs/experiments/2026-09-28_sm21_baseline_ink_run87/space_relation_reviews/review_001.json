@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "500362db67403ebb0e4a04dfba2d8570a5b4b8e362419a42d6dfef1ddd8f9e76",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1817.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        346.0,
+        8.0
+      ],
+      [
+        1087.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corr_continuous_1",
+      "expected": "same_space",
+      "evidence": "corridor is one open passage from west entrance across the whole building; no wall visible between x=650 and x=1584 at corridor mid-height y=716",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            716.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            4.005398110661269
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_1f",
+          "interior_space_ids": [
+            "corridor_1f"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1584.0,
+            716.0
+          ],
+          "world_xy_m": [
+            12.489224137931036,
+            4.005398110661269
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_1f",
+          "interior_space_ids": [
+            "corridor_1f"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "officeA_vs_corr",
+      "expected": "separate_spaces",
+      "evidence": "office_1f_north_a is separated from corridor by the wall at y=623.5, connected only via door D1",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            480.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            6.553306342780027
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_1f_north_a",
+          "interior_space_ids": [
+            "office_1f_north_a"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            650.0,
+            716.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            4.005398110661269
+          ],
+          "status": "inside_one_space",
+          "space_id": "corridor_1f",
+          "interior_space_ids": [
+            "corridor_1f"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "D1",
+          "space_ids": [
+            "corridor_1f",
+            "office_1f_north_a"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "officeA_vs_officeB_north",
+      "expected": "separate_spaces",
+      "evidence": "pier wall at x=888.5 separates office_1f_north_a from office_1f_north_b",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            480.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            6.553306342780027
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_1f_north_a",
+          "interior_space_ids": [
+            "office_1f_north_a"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1120.0,
+            480.0
+          ],
+          "world_xy_m": [
+            7.489224137931036,
+            6.553306342780027
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_1f_north_b",
+          "interior_space_ids": [
+            "office_1f_north_b"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "south_a_vs_south_b",
+      "expected": "separate_spaces",
+      "evidence": "pier wall at x=888.5 separates office_1f_south_a from office_1f_south_b",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            948.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            1.5006747638326594
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_1f_south_a",
+          "interior_space_ids": [
+            "office_1f_south_a"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1120.0,
+            948.0
+          ],
+          "world_xy_m": [
+            7.489224137931036,
+            1.5006747638326594
+          ],
+          "status": "inside_one_space",
+          "space_id": "office_1f_south_b",
+          "interior_space_ids": [
+            "office_1f_south_b"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_02",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_002.json",
+  "calibration_sha256": "9f7cde5340e73d8c68ce36e165908b65d0ad2b1d5291f3ade7b4540974b20181",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 2168
+}

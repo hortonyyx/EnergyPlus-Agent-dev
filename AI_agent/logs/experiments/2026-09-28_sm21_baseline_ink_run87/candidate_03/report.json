@@ -1,0 +1,77 @@
+{
+  "agent_assumptions": [
+    "Interior door heights (D1-D6) assumed 2.1m, matching the elevation-evidenced 1F entrance doors; no elevation shows these interior doors directly.",
+    "No exterior ground-level door assumed on 2F (upper storey); vertical circulation (stair) is not shown in the supplied plan/elevation views and is not modeled.",
+    "All door swing/open states left unknown.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "47b6c07df544ddb5a69bfaef10982cc779f4f30f43e35b7df55b7e91c586c5c6",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "fefd3103ec6dab4746f85867c622ecac49bb74d8ffe5c4979ac2cf7275b4e3bc",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_004/compilation.json",
+      "compilation_sha256": "93ccddebedd7f1eb79fa683cc10c1872065bffb2f99e3a889ab0abe2553d0e52",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_004/draft_view.png",
+        "image_sha256": "500718add901be862f7085a2cedd46b2ce60f1fec1442d5ec7beaf7058ff958d",
+        "metadata_file": "plan_drafts/draft_004/draft_view.json",
+        "metadata_sha256": "2d581db05051030a62cc4cb18ee6a2ab5f0c47017a316de58a20bd796518c68d",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_004/plan.json",
+      "plan_sha256": "d806c99ab68ac9bc19dadea489451c6efa7cf67d63df6406dcbdae56cf6d6861"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "b0c65c8b1de993d578720981c572bd0b4f912b4d214c06425c5de02d1eca18a4",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "No stair or vertical circulation between F1 and F2 is shown in the supplied drawings; none is modeled.",
+    "Furniture (conference tables/chairs, desks) not modeled; only partitions/openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

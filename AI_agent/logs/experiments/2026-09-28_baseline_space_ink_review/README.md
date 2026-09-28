@@ -1,6 +1,6 @@
 # 旧基线加房间内部线条反馈：离线节点与单次回归提案
 
-2026-09-28，用户要求继续推进。run86唯一获批批次已结束且质量未恢复；本节点新增模型调用 **0**。主助手采用用户已授权的“从旧基线逐包加回”选项，在隔离历史树准备一个反馈包；主线已有有效能力保留。**下一次整案尚未批准，也尚未启动。**
+2026-09-28，用户要求继续推进。run86唯一获批批次已结束且质量未恢复；本节点新增模型调用 **0**。主助手采用用户已授权的“从旧基线逐包加回”选项，在隔离历史树准备一个反馈包；主线已有有效能力保留。**后续用户“启动，继续”批准的run87已完成：平面29/29位置/宿主与14连接对应，特殊窗高度仍错。下文离线状态与待决提案为启动前记录；最终结果见末节。**
 
 ## 本包解决什么
 
@@ -41,3 +41,23 @@
 若模型收到线条仍漏墙，或错把家具拆成房间，则本包未证明收益，不默认采用、不自动再抽样；先据行为与结果判断假设。若隔墙改善但高度等仍错，分别记录局部收益与整体未恢复，不能忽略旧问题。后续跨例、重复、加包或迁移均不包含在本提案。
 
 离线复核：`python AI_agent/logs/experiments/2026-09-28_baseline_space_ink_review/batch.py prepare`。真正执行需先收到用户对这一具体批次的批准，再写入绑定`frozen.json`哈希的`approval.json`并运行同脚本`run`；目录已存在即拒绝覆盖/重试。当前只有main与待决试验树，尚无run87目录。
+
+
+## 批次已完成（覆盖上方启动前待决状态）
+
+用户批准原文/冻结哈希见[approval.json](approval.json)，实际回执摘要见[execution_receipt.json](execution_receipt.json)。仅run87一次，Sonnet/medium正常结束1083.48秒、6候选，CLI估价5.2144466美元非账单，无续跑/局部模型/自动重试。完整[结果与查看](../2026-09-28_sm21_baseline_ink_run87/README.md)。
+
+14独立空间、29原图位置/宿主与14连接对应；二层墙位约2.2–5.2cm偏差仍保留严格severe原评分。南小窗被普通窗高覆盖，东窗头低约0.195m，完整质量未恢复。三次新反馈和四张图送达/精确重放，首层家具线未导致误拆；二层首稿已含全部隔墙，走廊误切靠另行像素轮廓修正，不能把平面改善归功于新反馈。没有把单次结果当稳定恢复，也没有默认接入主线。
+
+审计入口：`audit_run.py producer`用冻结旧生产器核源/装配/原图像素及新反馈；随后`audit_run.py evaluate`用原独立参考/容差评价；`behavior`读公开动作和返回，`claims`导出旧声明区域并明确旧工具无声明预览，`summarize_run.py`保存人工原图复核。现代预览审计原先因旧接口返回0图停止，已按不适用单列；参考摘要读取补齐旧指导文件中追加的claims项。没有改生产输出或评分来清除这些审计适配问题。
+
+7项定向测试沿用开发节点结果，生产包未修改，不重复全量。全部28条历史运行（含失败/中断/未知）保留在[质量报告](quality_report/README.md)。本批关闭，不启动下一批。下一离线范围收敛立面实际窗型/高度段与当前源对象的对应，完整原图与实际源立面对照应进入有效修订反馈；不简单堆提醒、不用正确连通掩盖错高，也不丢当前有效能力。
+
+试验树在核实仅有已归档补丁及两个新增模块后回收；若需离线复现，先重建同一路径，再应用已冻结变体（不能重新运行已完成的`batch.py run`）：
+
+```bash
+git worktree add --detach --no-checkout /workspaces/EnergyPlus-Agent-dev-worktrees/baseline-ink-review-20260928 468d83f7626e5af630fb3f4de47d2af904d9a834
+git -C /workspaces/EnergyPlus-Agent-dev-worktrees/baseline-ink-review-20260928 sparse-checkout set src scripts case_tests/e2e_tests/sm21_anchor/case_data
+git -C /workspaces/EnergyPlus-Agent-dev-worktrees/baseline-ink-review-20260928 read-tree -mu HEAD
+python AI_agent/logs/experiments/2026-09-28_baseline_space_ink_review/make_variant.py
+```

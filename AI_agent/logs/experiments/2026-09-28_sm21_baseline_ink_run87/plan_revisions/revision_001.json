@@ -1,0 +1,102 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "a0a3720036721cf562b702eba506a2f37a504cfb30c37ea53e6f9ea677238982",
+  "operations_json": "[{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W7\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"Corrected height: previous value mistakenly used plan Y-position instead of elevation-derived Z height. Corridor window shares the same 1F window height family (sill 1.0m, head 2.6m) evidenced by North_view.png dimension chain 400/1600/1000, applicable across the facade.\",\"source_refs\":[\"North_view.png: 400/1600/1000 dimension chain establishing 1F window sill=1.0m head=2.6m\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "openings",
+      "id": "W7",
+      "before": {
+        "id": "W7",
+        "kind": "window",
+        "p1": [
+          1817,
+          660
+        ],
+        "p2": [
+          1817,
+          772
+        ],
+        "z": [
+          3.4,
+          4.61
+        ],
+        "source_refs": [
+          "1f_view.png: east wall cyan hatch at corridor, x fixed=1817(east face), y=660-772, matches 340/1200/340 dimension"
+        ]
+      },
+      "after": {
+        "id": "W7",
+        "kind": "window",
+        "p1": [
+          1817,
+          660
+        ],
+        "p2": [
+          1817,
+          772
+        ],
+        "z": [
+          1.0,
+          2.6
+        ],
+        "source_refs": [
+          "1f_view.png: east wall cyan hatch at corridor, x fixed=1817(east face), y=660-772, matches 340/1200/340 dimension"
+        ]
+      },
+      "reason": "Corrected height: previous value mistakenly used plan Y-position instead of elevation-derived Z height. Corridor window shares the same 1F window height family (sill 1.0m, head 2.6m) evidenced by North_view.png dimension chain 400/1600/1000, applicable across the facade.",
+      "source_refs": [
+        "North_view.png: 400/1600/1000 dimension chain establishing 1F window sill=1.0m head=2.6m"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "space_seeds": [
+      "office_1f_north_a",
+      "office_1f_north_b",
+      "office_1f_north_c",
+      "corridor_1f",
+      "office_1f_south_a",
+      "office_1f_south_b",
+      "office_1f_south_c"
+    ],
+    "openings": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5",
+      "D6",
+      "D7",
+      "D8",
+      "W1",
+      "W2",
+      "W3",
+      "W4",
+      "W5",
+      "W6"
+    ],
+    "partitions": [
+      "pA",
+      "pB",
+      "pC",
+      "pD"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

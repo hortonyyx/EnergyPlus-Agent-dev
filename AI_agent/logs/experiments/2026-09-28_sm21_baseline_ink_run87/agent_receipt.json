@@ -1,0 +1,110 @@
+{
+  "requested_model": "sonnet",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1083.48,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1022015,
+    "stop_reason": "end_turn",
+    "session_id": "21d3523f-d69b-4a30-9403-02f993e5d9c9",
+    "total_cost_usd": 5.214446599999999,
+    "usage": {
+      "input_tokens": 170,
+      "cache_creation_input_tokens": 429175,
+      "cache_read_input_tokens": 13291083,
+      "output_tokens": 83919,
+      "output_tokens_details": {
+        "thinking_tokens": 54267
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 429175,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 953,
+          "cache_read_input_tokens": 425032,
+          "cache_creation_input_tokens": 4143,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4143
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 170,
+        "outputTokens": 83919,
+        "cacheReadInputTokens": 13291083,
+        "cacheCreationInputTokens": 429175,
+        "webSearchRequests": 0,
+        "costUSD": 5.214446599999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 54267,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 116,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\nI reconstructed a two-floor lightweight BIM (**candidate_06**, finished) for the office building shown in `1f_view.png` (ground floor) and `2f_view.png` (upper floor), calibrated against the four elevations.\n\n**Building layout observed:**\n- Rectangular footprint, 15.0m × 8.0m, both floors aligned in plan.\n- **1F** (z=0–3.0m): a corridor spanning the full 15m length (y≈3.0–5.0m) with 3 offices to the north and 3 to the south, each with its own door to the corridor; a west entrance (double door) and a secondary south entrance into the SW office.\n- **2F** (z=3.0–6.6m): same corridor band, with 2 large conference rooms to the north and 4 smaller offices to the south, each with its own corridor door.\n- Storey heights (3.0m / 3.6m) and all window/door heights were read directly from the North/South/East/West elevation dimension chains (800/1800/1000 and 400/1600/1000 mm splits), confirmed consistent across all four facades.\n\n**Key correction made during build:** my first attempt let the inter-office pier walls run through the corridor, splitting it into three disconnected pieces. Pixel-ink verification (zero wall support between the two corridor walls at the pier x-positions) showed the piers actually stop at the corridor walls, so I split them into single-band segments — restoring one continuous corridor, confirmed with `check_source_space_relation` samples.\n\n**Heights:** all 15 exterior windows and both ground-floor entrance doors (17 openings) are now linked to located elevation pixel evidence (`claim_status`: all `applied_current`). The 12 interior corridor↔office doors are explicit **assumptions** (2.1m, matching the evidenced entrance-door family) since no elevation shows interior partitions — flagged as `unchecked` in `check_openings`.\n\n**Explicit simplifications/unresolved items (retained in the saved notes):**\n- A small recessed west-facade vestibule/porch (~1m deep) and a minor SW-corner wall notch are simplified to flush walls with a single door each — not modeled as separate enclosed spaces.\n- No stair/vertical circulation is modeled — none is shown in the supplied plans.\n- Furniture (desks, conference tables, workstations) not modeled.\n- Plan-pixel-to-world calibration is caller-supplied (from dimension-chain tick measurements), not independently re-verified.\n- Door swing/open states are unknown throughout.\n\nThe building has 14 spaces, 84 boundaries, 29 openings, 0 unsupported/unbuilt openings, and passed source geometry self-consistency checks. Drawing fidelity itself remains `not_evaluated`, as this reflects internal consistency and located-evidence linkage, not independent certification.",
+    "ttft_ms": 2829,
+    "type": "result",
+    "duration_ms": 1078440,
+    "uuid": "7dbfa487-20f6-40c3-8a36-608b93bf0bc5",
+    "ttft_stream_ms": 2161,
+    "time_to_request_ms": 89,
+    "first_content_frame_ms": 2161,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

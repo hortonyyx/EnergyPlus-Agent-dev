@@ -1,0 +1,24 @@
+[
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Interior corridor/office door heights (D1-D6) assumed 2.1m to match the two elevation-evidenced entrance doors (D7,D8); not separately shown in any elevation.",
+    "replacement": [
+      "Interior corridor/office door heights (F1:D1-D6, F2:D1-D6) remain an explicit assumption of 2.1m, matching the elevation-evidenced exterior entrance doors (F1:D7, F1:D8) and confirmed window-head pattern; these 12 interior doors are not directly visible in any supplied elevation (interior partitions are not elevated) and remain unlinked to image height evidence in check_openings."
+    ],
+    "reason": "Clarify which specific openings remain height-unlinked after claim application on candidate_05.",
+    "source_refs": [
+      "check_openings(candidate_05, heights_only=true): F1:D1-D6 and F2:D1-D6 coverage_state=unchecked"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "Interior door heights (D1-D6) assumed 2.1m, matching the elevation-evidenced 1F entrance doors; no elevation shows these interior doors directly.",
+    "replacement": [],
+    "reason": "Duplicate of the consolidated F1/F2 interior-door note above; removed to avoid redundant text.",
+    "source_refs": [
+      "check_openings(candidate_05, heights_only=true)"
+    ]
+  }
+]

@@ -1,0 +1,142 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:W1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W4",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W5",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W6",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W7",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png vertical dimension chain (top to bottom: 800/1800/1000 for the 2F wall zone, then 400/1600/1000 for the 1F wall zone) gives 1F window head/sill. Pixel ticks measured at x~198-214: top=198(z=6.6m, roof line), 2F-window-head=244, 2F-window-sill=347, floor-division(2F level)=405(z=3.0m), 1F-window-head=428(inferred from the 400mm segment after the division; z=2.6m), 1F-window-sill=520(z=1.0m), ground=578(z=0). This one window height family (sill 1.0m/head 2.6m) is used identically on the South, East and West facades (matching East_view.png ticks 174/220/323/381 which reproduce the same 800/1800/1000 and 400/1600/1000 split), so it is applied to all 1F windows regardless of facade.",
+    "sources": [
+      {
+        "box": [
+          190.0,
+          190.0,
+          220.0,
+          590.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          190.0,
+          60.0,
+          220.0,
+          460.0
+        ],
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [
+      "Intermediate tick at pixel~428 for the 1F window-head was not directly matched by the automated colour scan (obscured by the '400' label); it is inferred from the dimension-chain arithmetic (division 405 + 400mm) and cross-checked against the East_view.png family which used the same split."
+    ],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "anchors": [
+          [
+            198,
+            6.6
+          ],
+          [
+            578,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "North_view.png",
+        "pixels": [
+          428.0,
+          520.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        6.6,
+        0.0
+      ],
+      "metres_per_pixel": -0.017368421052631578,
+      "pixels": [
+        198,
+        578,
+        428.0,
+        520.0
+      ]
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "09f980a7043f56b627463efa0eafd345605936cd3dd43c061ebab1ef2db455cc",
+  "resolved_values": {
+    "height": [
+      1.007368421,
+      2.605263158
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        190.0,
+        190.0,
+        220.0,
+        590.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    },
+    {
+      "box": [
+        190.0,
+        60.0,
+        220.0,
+        460.0
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}
