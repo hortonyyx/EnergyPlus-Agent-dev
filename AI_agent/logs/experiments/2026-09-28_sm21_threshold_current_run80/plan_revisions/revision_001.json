@@ -1,0 +1,153 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "5539e1aa000a827eb62474896116bfc163392b27378138250248441ed1f5829c",
+  "operations_json": "[\n {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"Corridor_top\",\"changes\":{\"points\":[[448,620],[889,620],[1344,620],[1793,620]]},\"reason\":\"add through-points at partition junctions to avoid polygonize dangles\",\"source_refs\":[\"1f_view.png: corridor north wall, continuous through partition junctions\"]},\n {\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"Corridor_bot\",\"changes\":{\"points\":[[448,812],[889,812],[1344,812],[1793,812]]},\"reason\":\"add through-points at partition junctions to avoid polygonize dangles\",\"source_refs\":[\"1f_view.png: corridor south wall, continuous through partition junctions\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "Corridor_top",
+      "before": {
+        "id": "Corridor_top",
+        "points": [
+          [
+            448,
+            620
+          ],
+          [
+            1793,
+            620
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: corridor north-side wall, thin double-line, centerline"
+        ]
+      },
+      "after": {
+        "id": "Corridor_top",
+        "points": [
+          [
+            448,
+            620
+          ],
+          [
+            889,
+            620
+          ],
+          [
+            1344,
+            620
+          ],
+          [
+            1793,
+            620
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: corridor north-side wall, thin double-line, centerline"
+        ]
+      },
+      "reason": "add through-points at partition junctions to avoid polygonize dangles",
+      "source_refs": [
+        "1f_view.png: corridor north wall, continuous through partition junctions"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "Corridor_bot",
+      "before": {
+        "id": "Corridor_bot",
+        "points": [
+          [
+            448,
+            812
+          ],
+          [
+            1793,
+            812
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: corridor south-side wall, thin double-line, centerline"
+        ]
+      },
+      "after": {
+        "id": "Corridor_bot",
+        "points": [
+          [
+            448,
+            812
+          ],
+          [
+            889,
+            812
+          ],
+          [
+            1344,
+            812
+          ],
+          [
+            1793,
+            812
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: corridor south-side wall, thin double-line, centerline"
+        ]
+      },
+      "reason": "add through-points at partition junctions to avoid polygonize dangles",
+      "source_refs": [
+        "1f_view.png: corridor south wall, continuous through partition junctions"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "openings": [
+      "W_N1",
+      "W_N2",
+      "W_N3",
+      "W_S1",
+      "W_S2",
+      "W_S3",
+      "D_south_entry",
+      "D_west_corridor",
+      "D_N1",
+      "D_N2",
+      "D_N3",
+      "D_S1",
+      "D_S2",
+      "D_S3"
+    ],
+    "partitions": [
+      "P1_top",
+      "P1_bot",
+      "P2_top",
+      "P2_bot"
+    ],
+    "space_seeds": [
+      "N1",
+      "N2",
+      "N3",
+      "Corridor",
+      "S1",
+      "S2",
+      "S3"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

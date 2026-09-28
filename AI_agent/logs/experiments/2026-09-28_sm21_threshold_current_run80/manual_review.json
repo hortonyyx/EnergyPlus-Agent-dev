@@ -1,0 +1,176 @@
+{
+  "candidate": "candidate_07",
+  "source_model_sha256": "3c8aa99ca33d068e1234ac065ba32a0de0621a82c255adda62a51d31af469bce",
+  "reviewer": "development assistant; original plans/elevations and final overlays viewed after generation",
+  "model_calls": 0,
+  "source_images": {
+    "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+    "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+  },
+  "findings": [
+    {
+      "code": "wrong_dimension_chain_order",
+      "claim": "claim_0001",
+      "reference_chain_top_to_bottom_mm": [
+        400,
+        1600,
+        1000
+      ],
+      "actual_chain_mm": [
+        400,
+        1000,
+        1600
+      ],
+      "reference_regular_F1_window_z_m": [
+        1.0,
+        2.6
+      ],
+      "actual_F1_window_z_m": [
+        1.6,
+        2.6
+      ],
+      "evidence": "North_view.png left F1 chain; claims/claim_0001.json transposes window height and sill segment. Arithmetic closure still equals 3000mm, so closure/confirmation does not validate segment order."
+    },
+    {
+      "code": "window_family_overgeneralized",
+      "opening_ids": [
+        "F1:W_S1",
+        "F1:W_east_corridor"
+      ],
+      "reference_z_m": [
+        [
+          1.5,
+          2.1
+        ],
+        [
+          1.0,
+          2.8
+        ]
+      ],
+      "actual_z_m": [
+        1.6,
+        2.6
+      ],
+      "evidence": "South_view.png small-window 900/600/1500 and East_view.png F1 200/1800/1000; model explicitly preserved unchecked family assumption."
+    },
+    {
+      "code": "door_endpoints_outside_original_tolerance",
+      "comparisons": [
+        {
+          "floor_id": "F2",
+          "reference_id": "door-NW",
+          "opening_id": "F2:D_T1",
+          "max_endpoint_error_m": 0.1565476320346315,
+          "perpendicular_error_m": 0.0013500000000004064,
+          "position_match": false,
+          "expected_hosts": [
+            "F2:Corridor2",
+            "F2:T1"
+          ],
+          "actual_hosts": [
+            "F2:Corridor2",
+            "F2:T1"
+          ],
+          "host_match": true,
+          "connection_match": true
+        },
+        {
+          "floor_id": "F2",
+          "reference_id": "door-S1",
+          "opening_id": "F2:D_B1",
+          "max_endpoint_error_m": 0.08896739826839806,
+          "perpendicular_error_m": 0.0013499999999999623,
+          "position_match": false,
+          "expected_hosts": [
+            "F2:B1",
+            "F2:Corridor2"
+          ],
+          "actual_hosts": [
+            "F2:B1",
+            "F2:Corridor2"
+          ],
+          "host_match": true,
+          "connection_match": true
+        },
+        {
+          "floor_id": "F2",
+          "reference_id": "door-S2",
+          "opening_id": "F2:D_B2",
+          "max_endpoint_error_m": 0.0727378874458866,
+          "perpendicular_error_m": 0.0013499999999999623,
+          "position_match": false,
+          "expected_hosts": [
+            "F2:B2",
+            "F2:Corridor2"
+          ],
+          "actual_hosts": [
+            "F2:B2",
+            "F2:Corridor2"
+          ],
+          "host_match": true,
+          "connection_match": true
+        },
+        {
+          "floor_id": "F2",
+          "reference_id": "door-S3",
+          "opening_id": "F2:D_B3",
+          "max_endpoint_error_m": 0.09437539826839725,
+          "perpendicular_error_m": 0.0013499999999999623,
+          "position_match": false,
+          "expected_hosts": [
+            "F2:B3",
+            "F2:Corridor2"
+          ],
+          "actual_hosts": [
+            "F2:B3",
+            "F2:Corridor2"
+          ],
+          "host_match": true,
+          "connection_match": true
+        },
+        {
+          "floor_id": "F2",
+          "reference_id": "door-S4",
+          "opening_id": "F2:D_B4",
+          "max_endpoint_error_m": 0.06733088744588756,
+          "perpendicular_error_m": 0.0013499999999999623,
+          "position_match": false,
+          "expected_hosts": [
+            "F2:B4",
+            "F2:Corridor2"
+          ],
+          "actual_hosts": [
+            "F2:B4",
+            "F2:Corridor2"
+          ],
+          "host_match": true,
+          "connection_match": true
+        }
+      ],
+      "interpretation": "Five F2 internal doors have endpoint errors 6.7–15.7cm; correct host/connection identity, not a missing-room finding."
+    },
+    {
+      "code": "room_use_unassigned",
+      "count": 14,
+      "evidence": "All source spaces role=unknown; no role_evidence. Final model response explicitly leaves this work for later despite available room-use guidance and remaining budget."
+    }
+  ],
+  "partition_interpretation": "14 distinct reference rooms; no split/merge findings. Strict severe only on F1 boundaries: corridor walls about 2.4/4.6cm from GT and east-side dividing wall about 9.7cm. F2 has no strict boundary findings. Raw tolerances unchanged.",
+  "autonomous_recovery": {
+    "candidate_03_openings": 26,
+    "candidate_06_openings": 29,
+    "added": [
+      "F1:W_east_corridor",
+      "F2:W_east_corridor2",
+      "F2:W_west_corridor2"
+    ],
+    "developer_geometry_instructions_during_run": false,
+    "note": "Added in revised single-floor drafts then reassembled. Original F1 south small window was already present."
+  },
+  "threshold_feedback_interpretation": "Three successful new replies concern green dimension-line bands in 1f_view.png; no gray thin-partition scan in this arm. This is real exposure but not a targeted reproduction of the run75 thin-wall failure. One additional failed/unparsed tool call is kept separately.",
+  "status": "not_accepted_as_faithful_whole_building",
+  "limit": "Developer visual review plus preserved original/GT metrics; no generator changes, no extra model calls, no acceptance or causal attribution."
+}

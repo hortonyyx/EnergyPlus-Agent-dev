@@ -1,0 +1,76 @@
+{
+  "agent_assumptions": [
+    "ceiling_height 3.0m is a placeholder pending elevation review",
+    "door/window heights [0,2.1]/[0.9,2.1] are placeholders pending elevation review",
+    "SW corner entry recess/porch simplified to a single door on the main south wall face, not modeling the small bump-out geometry",
+    "RoomD role (lounge) inferred from L-shaped sofa-like furniture, low confidence",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "z_floor=3.0 and ceiling_height=3.0 are placeholders pending elevation review",
+    "door/window heights [0,2.1]/[0.9,2.1] are placeholders pending elevation review",
+    "window x-spans merged across small internal gaps caused by furniture graphics overlapping the wall band",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "467a3349621ed67defcd6bbcab0504d5a0f4b7c3c33b00887f180f7329f5f1a8",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0006.json",
+      "parent_candidate": "candidate_05",
+      "parent_proposal_sha256": "024d08a4f02ef4591cf46a35d412da309b1cb88400bcd071b5fa48ecd56e7941"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "cf233047546ca0f91205ac86057d19d86cb61480c611a22bd823cfea224781a5",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "024d08a4f02ef4591cf46a35d412da309b1cb88400bcd071b5fa48ecd56e7941"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "eeb66c289c08f2ff73359fe47bb232b0c0b0539bc163377efe1fe13ca93769c0",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "SW porch recess exact geometry not modeled",
+    "exact door widths/jamb positions read from swing-arc touch points, approximate to nearest few pixels",
+    "interior door/window heights not yet confirmed against elevations",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "storey height / floor-to-floor elevation not yet confirmed against elevation drawings",
+    "exact door widths approximate from swing-arc touch points",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

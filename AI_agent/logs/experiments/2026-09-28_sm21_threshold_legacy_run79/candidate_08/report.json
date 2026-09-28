@@ -1,0 +1,73 @@
+{
+  "agent_assumptions": [
+    "F1 ceiling_height=3.0m confirmed by North/South elevation vertical dimension chains (400+1600+1000=3000mm)",
+    "F1 exterior window heights [1.0,2.6] and exterior door heights [0,2.1] confirmed by North/South/West elevation dimension chains (claims 0001/0003); F1 internal corridor doors keep an assumed 2.1m height (no internal door heights are shown in any elevation)",
+    "F2 z_floor=3.0 and ceiling_height=3.6 confirmed by North/South elevation vertical dimension chains and the overall 6600mm building height label",
+    "F2 exterior window heights [4.0,5.8] confirmed by North/South elevation dimension chains (claim 0002); F2 internal corridor doors keep an assumed 2.1m height above the F2 floor (no internal door heights are shown in any elevation)",
+    "SW corner entry recess/porch simplified to a single door on the main south wall face, not modeling the small bump-out geometry",
+    "RoomD role (lounge) inferred from L-shaped sofa-like furniture, low confidence",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "window x-spans merged across small internal gaps caused by furniture graphics overlapping the wall band"
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "d8f86c6b451092f72a229391ac4fd0d23616e7b257e1b840d535470aa8f29bd7",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0010.json",
+      "parent_candidate": "candidate_07",
+      "parent_proposal_sha256": "ddd74bb95cbb4354ea1a58f57452e08b4654de0781cb977a309f2a021fe6feaf"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "cf233047546ca0f91205ac86057d19d86cb61480c611a22bd823cfea224781a5",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_07",
+    "parent_proposal_sha256": "ddd74bb95cbb4354ea1a58f57452e08b4654de0781cb977a309f2a021fe6feaf"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9aae548efcf6375a531db1faf22877af8d91af662a7572e5daf1686716766972",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "F1 internal corridor doors (D_A,D_B,D_C,D_D,D_E,D_F) have no elevation evidence (they do not appear on any exterior facade) and keep an assumed 2.1m height",
+    "F2 internal corridor doors (D_M1,D_M2,D_O1..D_O4) have no elevation evidence and keep an assumed 2.1m height above their floor",
+    "SW porch recess exact geometry not modeled",
+    "exact door widths/jamb positions read from swing-arc touch points, approximate to nearest few pixels",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

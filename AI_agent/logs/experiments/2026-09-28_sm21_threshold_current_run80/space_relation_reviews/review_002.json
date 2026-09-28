@@ -1,0 +1,168 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "a452e175bade8cfd54fd8856b0112b6dbd4fd08885c9c58c561978cee81fbfc1",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        427.0,
+        0.0
+      ],
+      [
+        1814.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        331.0,
+        8.0
+      ],
+      [
+        1072.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corridor2_continuous",
+      "expected": "same_space",
+      "evidence": "2f_view.png: middle horizontal band between meeting rooms and offices is one open corridor",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.870944484498918,
+            4.016194331983805
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:Corridor2",
+          "interior_space_ids": [
+            "F2:Corridor2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            12.68565248738284,
+            4.016194331983805
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:Corridor2",
+          "interior_space_ids": [
+            "F2:Corridor2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "T1_vs_T2",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: single vertical partition wall divides the two north meeting rooms",
+      "points": [
+        {
+          "pixel": [
+            700.0,
+            470.0
+          ],
+          "world_xy_m": [
+            2.9524152847873104,
+            6.499325236167341
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:T1",
+          "interior_space_ids": [
+            "F2:T1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1450.0,
+            470.0
+          ],
+          "world_xy_m": [
+            11.063446286950253,
+            6.499325236167341
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:T2",
+          "interior_space_ids": [
+            "F2:T2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "B2_vs_B3",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: vertical partition wall divides offices B2 and B3",
+      "points": [
+        {
+          "pixel": [
+            950.0,
+            930.0
+          ],
+          "world_xy_m": [
+            5.656092285508291,
+            1.5330634278002702
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:B2",
+          "interior_space_ids": [
+            "F2:B2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1290.0,
+            930.0
+          ],
+          "world_xy_m": [
+            9.333093006488824,
+            1.5330634278002702
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:B3",
+          "interior_space_ids": [
+            "F2:B3"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_03",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "b916a35c702fcb3e720c7071339f0f166c6c338660718c5d18ab0aa598e0a601",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 1946
+}

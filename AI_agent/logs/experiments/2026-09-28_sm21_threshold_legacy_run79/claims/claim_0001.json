@@ -1,0 +1,154 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_05",
+    "objects": [
+      {
+        "id": "F1:W1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W4",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W5",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W6",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W7",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png right-side vertical dimension chain (top-to-bottom, above the F1/F2 slab line): 400mm (lintel), 1600mm (window height), 1000mm (sill to ground). F1 wall top is absolute z=3.0m (matches assembled F1 ceiling_height). direction=-1 walks downward from that top. Segment index 1 (the 1600mm span) yields the window's absolute z interval. South_view.png pixel measurement of a representative F1 window (view_0031/profile_027: wall outline y189(top,6.6m)-y569(ground,0m); window outer frame y419-511) independently gives head=(569-419)*17.368mm/px=2604mm, sill=(569-511)*17.368=1007mm, confirming the same 1000/1600 family for the south facade too. Applied to all F1 windows (north, south, east) as one consistent height family; no per-window difference was observed.",
+    "sources": [
+      {
+        "view_id": "view_0029"
+      },
+      {
+        "view_id": "view_0031"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "024d08a4f02ef4591cf46a35d412da309b1cb88400bcd071b5fa48ecd56e7941",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        180,
+        180,
+        300,
+        590
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0029",
+      "view_sha256": "d4557b3cd5d64731f7d9caf97dc63c8afca6c52dce2fa6cc908044def0c52fc9"
+    },
+    {
+      "box": [
+        600,
+        180,
+        700,
+        590
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0031",
+      "view_sha256": "81b1e604a28b90041a3737ea1e296388a2cb30e2eed40f9516d47e8c7c0feeed"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

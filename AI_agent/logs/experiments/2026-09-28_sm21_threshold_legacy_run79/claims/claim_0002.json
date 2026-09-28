@@ -1,0 +1,158 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_05",
+    "objects": [
+      {
+        "id": "F2:W_top1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_top2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b3",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_b4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_east",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_west",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png right-side vertical dimension chain (top-to-bottom, above the F1/F2 slab line): 800mm (parapet above window), 1800mm (window height), 1000mm (sill to F1/F2 slab). South_view.png shows the identical 800/1800/1000 breakdown for its top row. Absolute building top = z=6.6m (matches overall '6600' elevation label and assembled F1(3.0)+F2(3.6) heights). direction=-1 walks downward from that top; segment index 1 (the 1800mm span) yields the window's absolute z interval [4.0,5.8]. Applied uniformly to all F2 windows (north, south, east, west corridor) as one consistent height family; no per-window difference was observed in any elevation.",
+    "sources": [
+      {
+        "view_id": "view_0029"
+      },
+      {
+        "view_id": "view_0030"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          800.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 6.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 6.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 5.8,
+            "index": 0,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 6.6
+          },
+          {
+            "end_m": 4.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 5.8
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 4.0
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "024d08a4f02ef4591cf46a35d412da309b1cb88400bcd071b5fa48ecd56e7941",
+  "resolved_values": {
+    "z": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        180,
+        180,
+        300,
+        590
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0029",
+      "view_sha256": "d4557b3cd5d64731f7d9caf97dc63c8afca6c52dce2fa6cc908044def0c52fc9"
+    },
+    {
+      "box": [
+        190,
+        180,
+        300,
+        590
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0030",
+      "view_sha256": "e1adba21a5ec1120d9ec591d24aa159ff85d47839306fd9ec7777a7aaec49311"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

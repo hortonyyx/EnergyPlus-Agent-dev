@@ -1,0 +1,406 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "candidate_05",
+  "submitted_operations": [
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomA",
+      "role": "office",
+      "reason": "desk with 2 chairs, north-facing office bay",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomB",
+      "role": "office",
+      "reason": "desk with 2 chairs, north-facing office bay",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomC",
+      "role": "office",
+      "reason": "desk with 2 chairs, north-facing office bay",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:Corridor",
+      "role": "corridor",
+      "reason": "continuous circulation space linking all F1 rooms and exterior doors",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomD",
+      "role": "lounge/breakroom",
+      "reason": "L-shaped sofa-like furniture suggests informal seating/reception rather than a desk office; low confidence",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomE",
+      "role": "office",
+      "reason": "L-shaped desk with monitor/task chair, typical single-office furniture",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomF",
+      "role": "conference/meeting/multipurpose",
+      "reason": "round table with 4 chairs, small meeting/discussion room",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:MeetingRoom1",
+      "role": "conference/meeting/multipurpose",
+      "reason": "large oval table with ~10 chairs",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:MeetingRoom2",
+      "role": "conference/meeting/multipurpose",
+      "reason": "large oval table with ~10 chairs",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Corridor2F",
+      "role": "corridor",
+      "reason": "continuous circulation space linking all F2 rooms",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office1",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office2",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office3",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office4",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "ceiling_height 3.0m is a placeholder pending elevation review",
+      "replacement": [
+        "F1 ceiling_height=3.0m confirmed by North/South elevation vertical dimension chains (400+1600+1000=3000mm)"
+      ],
+      "reason": "Elevation review completed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "door/window heights [0,2.1]/[0.9,2.1] are placeholders pending elevation review",
+      "replacement": [
+        "F1 window heights [1.0,2.6] and exterior door heights [0,2.1] confirmed by North/South/West elevation dimension chains (claims 0001/0003); internal corridor-to-room door heights remain an assumed 2.1m (no internal door heights are shown in any elevation)"
+      ],
+      "reason": "Elevation review completed for exterior openings",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png",
+        "West_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "z_floor=3.0 and ceiling_height=3.0 are placeholders pending elevation review",
+      "replacement": [
+        "F2 z_floor=3.0 and ceiling_height=3.6 confirmed by North/South elevation vertical dimension chains and the overall 6600mm building height label"
+      ],
+      "reason": "Elevation review completed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "interior door/window heights not yet confirmed against elevations",
+      "replacement": [
+        "F1 exterior window/door heights confirmed against elevations; F1 internal corridor doors (D_A,D_B,D_C,D_D,D_E,D_F) have no elevation evidence (they don't appear on any exterior facade) and keep an assumed 2.1m height"
+      ],
+      "reason": "Elevation review completed for exterior openings; internal doors remain explicitly assumed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png",
+        "West_view.png",
+        "East_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "storey height / floor-to-floor elevation not yet confirmed against elevation drawings",
+      "replacement": [
+        "F2 storey height and window heights confirmed against elevations; F2 internal corridor doors (D_M1,D_M2,D_O1..D_O4) have no elevation evidence and keep an assumed 2.1m height above their floor"
+      ],
+      "reason": "Elevation review completed for exterior openings; internal doors remain explicitly assumed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png"
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "024d08a4f02ef4591cf46a35d412da309b1cb88400bcd071b5fa48ecd56e7941",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomA",
+      "role": "office",
+      "reason": "desk with 2 chairs, north-facing office bay",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomB",
+      "role": "office",
+      "reason": "desk with 2 chairs, north-facing office bay",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomC",
+      "role": "office",
+      "reason": "desk with 2 chairs, north-facing office bay",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:Corridor",
+      "role": "corridor",
+      "reason": "continuous circulation space linking all F1 rooms and exterior doors",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomD",
+      "role": "lounge/breakroom",
+      "reason": "L-shaped sofa-like furniture suggests informal seating/reception rather than a desk office; low confidence",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomE",
+      "role": "office",
+      "reason": "L-shaped desk with monitor/task chair, typical single-office furniture",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F1:RoomF",
+      "role": "conference/meeting/multipurpose",
+      "reason": "round table with 4 chairs, small meeting/discussion room",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:MeetingRoom1",
+      "role": "conference/meeting/multipurpose",
+      "reason": "large oval table with ~10 chairs",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:MeetingRoom2",
+      "role": "conference/meeting/multipurpose",
+      "reason": "large oval table with ~10 chairs",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Corridor2F",
+      "role": "corridor",
+      "reason": "continuous circulation space linking all F2 rooms",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office1",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office2",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office3",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "id": "F2:Office4",
+      "role": "office",
+      "reason": "desk, monitor, filing cabinet, single workstation",
+      "source_refs": [
+        "2f_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "ceiling_height 3.0m is a placeholder pending elevation review",
+      "replacement": [
+        "F1 ceiling_height=3.0m confirmed by North/South elevation vertical dimension chains (400+1600+1000=3000mm)"
+      ],
+      "reason": "Elevation review completed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "door/window heights [0,2.1]/[0.9,2.1] are placeholders pending elevation review",
+      "replacement": [
+        "F1 window heights [1.0,2.6] and exterior door heights [0,2.1] confirmed by North/South/West elevation dimension chains (claims 0001/0003); internal corridor-to-room door heights remain an assumed 2.1m (no internal door heights are shown in any elevation)"
+      ],
+      "reason": "Elevation review completed for exterior openings",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png",
+        "West_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "z_floor=3.0 and ceiling_height=3.0 are placeholders pending elevation review",
+      "replacement": [
+        "F2 z_floor=3.0 and ceiling_height=3.6 confirmed by North/South elevation vertical dimension chains and the overall 6600mm building height label"
+      ],
+      "reason": "Elevation review completed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "interior door/window heights not yet confirmed against elevations",
+      "replacement": [
+        "F1 exterior window/door heights confirmed against elevations; F1 internal corridor doors (D_A,D_B,D_C,D_D,D_E,D_F) have no elevation evidence (they don't appear on any exterior facade) and keep an assumed 2.1m height"
+      ],
+      "reason": "Elevation review completed for exterior openings; internal doors remain explicitly assumed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png",
+        "West_view.png",
+        "East_view.png"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "storey height / floor-to-floor elevation not yet confirmed against elevation drawings",
+      "replacement": [
+        "F2 storey height and window heights confirmed against elevations; F2 internal corridor doors (D_M1,D_M2,D_O1..D_O4) have no elevation evidence and keep an assumed 2.1m height above their floor"
+      ],
+      "reason": "Elevation review completed for exterior openings; internal doors remain explicitly assumed",
+      "source_refs": [
+        "North_view.png",
+        "South_view.png"
+      ]
+    }
+  ],
+  "error": "set_space_role: unknown fields ['id']"
+}

@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "a452e175bade8cfd54fd8856b0112b6dbd4fd08885c9c58c561978cee81fbfc1",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1817.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        346.0,
+        8.0
+      ],
+      [
+        1088.0,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "corridor_continuous",
+      "expected": "same_space",
+      "evidence": "1f_view.png: the whole middle horizontal band between the two rows of rooms is drawn as one open corridor, no partition line crosses it",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            700.0
+          ],
+          "world_xy_m": [
+            1.8857758620689653,
+            4.183288409703504
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:Corridor",
+          "interior_space_ids": [
+            "F1:Corridor"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1400.0,
+            700.0
+          ],
+          "world_xy_m": [
+            10.50646551724138,
+            4.183288409703504
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:Corridor",
+          "interior_space_ids": [
+            "F1:Corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "N1_vs_N2",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png: vertical partition wall with door swing separates the left and middle north rooms",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            480.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            6.555256064690027
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N1",
+          "interior_space_ids": [
+            "F1:N1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            480.0
+          ],
+          "world_xy_m": [
+            7.273706896551724,
+            6.555256064690027
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N2",
+          "interior_space_ids": [
+            "F1:N2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "S1_vs_corridor",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png: bottom-left room is separated from the corridor by a wall with a door aperture",
+      "points": [
+        {
+          "pixel": [
+            650.0,
+            950.0
+          ],
+          "world_xy_m": [
+            2.424568965517241,
+            1.4878706199460918
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:S1",
+          "interior_space_ids": [
+            "F1:S1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1000.0,
+            700.0
+          ],
+          "world_xy_m": [
+            6.196120689655173,
+            4.183288409703504
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:Corridor",
+          "interior_space_ids": [
+            "F1:Corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F1:D_S1",
+          "space_ids": [
+            "F1:Corridor",
+            "F1:S1"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "N3_vs_S3",
+      "expected": "separate_spaces",
+      "evidence": "1f_view.png: top-right and bottom-right rooms are separated by the corridor band between them",
+      "points": [
+        {
+          "pixel": [
+            1600.0,
+            480.0
+          ],
+          "world_xy_m": [
+            12.661637931034484,
+            6.555256064690027
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N3",
+          "interior_space_ids": [
+            "F1:N3"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1600.0,
+            950.0
+          ],
+          "world_xy_m": [
+            12.661637931034484,
+            1.4878706199460918
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:S3",
+          "interior_space_ids": [
+            "F1:S3"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_03",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_003.json",
+  "calibration_sha256": "08ce0d49ec046c7ca4128404977a9c36840517025d08ff2a21c6333c691599a9",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1948
+}

@@ -1,0 +1,84 @@
+{
+  "agent_assumptions": [
+    "Interior/exterior door heights (2.1m) assumed pending elevation confirmation.",
+    "Window sill/head heights (1.6/2.6m) taken from North_view elevation reading, not yet cross-checked against South elevation for south-side windows.",
+    "Corridor-room door opening widths (~0.9m) approximated from door-leaf pixel length, not an explicitly labeled dimension.",
+    "Small L-shaped lines in S1/S2 interpreted as furniture (corner desks), not partition walls.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 8,
+    "openings": 15,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "317917341a6581485736be1db3c07de61d8bc12a73d763eb14a374e29dc91bb0",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "fd63468d4e38920c264f964e0c1ab0f12282303420f9446bc26e39bcbaf8cab5",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_005/compilation.json",
+      "compilation_sha256": "d542d9ba14f530e15d0922d80f5ceb29d49f132962219a79df6ea04b2dc862f5",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_005/draft_view.png",
+        "image_sha256": "c2bcb9972b5e7d67f923e2d45b09b11af6563187342f9a90d65a4d2d354d31d8",
+        "metadata_file": "plan_drafts/draft_005/draft_view.json",
+        "metadata_sha256": "b9e19f27957309d751d6682d93e8e90ae27014cd45baed7bec6374fe6214d423",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_file": "plan_drafts/draft_005/plan.json",
+      "plan_sha256": "df24f1cab186d6354167bc5b6c5e7b05730e79d3cea940815a956b001398602c",
+      "revision": {
+        "file": "plan_revisions/revision_003.json",
+        "parent_draft_id": "draft_003",
+        "parent_plan_sha256": "a2e1cd5a431671a3d072f69d000a22ddfee418aebccd5ad83aa915140c07fcbf",
+        "sha256": "b19c752300c6b5014b1496129aefe2fe5fb74e1cb24b6163d0494fbc825ce192"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "0ea5ecdf5b2a2f45af4abad237d984c99e00d46d07e0f60efd8be5b668683e32",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact partition wall thickness not modeled (centerline only).",
+    "South/East/West window and door heights not yet cross-checked against South/East/West elevations.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

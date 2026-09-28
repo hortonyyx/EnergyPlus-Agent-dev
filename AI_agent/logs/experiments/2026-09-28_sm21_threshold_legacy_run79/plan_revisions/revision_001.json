@@ -1,0 +1,183 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "955d6b01c6da29ad02dfbc831157f1be4f04c0138f20c668c2e23217a5831390",
+  "operations_json": "[\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"corridor_north\",\"changes\":{\"points\":[[425,618],[1817,618]]},\"reason\":\"extend corridor wall to meet exterior footprint faces exactly, removing dangling ends\",\"source_refs\":[\"footprint outer faces x=425/1817\"]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"corridor_south\",\"changes\":{\"points\":[[425,815],[1817,815]]},\"reason\":\"extend corridor wall to meet exterior footprint faces exactly, removing dangling ends\",\"source_refs\":[\"footprint outer faces x=425/1817\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_west\",\"changes\":{\"p1\":[425,647],\"p2\":[425,786]},\"reason\":\"align door endpoints to exterior wall outer face used by footprint\",\"source_refs\":[\"footprint left face x=425\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "corridor_north",
+      "before": {
+        "id": "corridor_north",
+        "points": [
+          [
+            447,
+            618
+          ],
+          [
+            1793,
+            618
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: horizontal wall separating north rooms from corridor, pixel_profile y=618 candidate, view_0011/view_0013/view_0014/view_0015"
+        ]
+      },
+      "after": {
+        "id": "corridor_north",
+        "points": [
+          [
+            425,
+            618
+          ],
+          [
+            1817,
+            618
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: horizontal wall separating north rooms from corridor, pixel_profile y=618 candidate, view_0011/view_0013/view_0014/view_0015"
+        ]
+      },
+      "reason": "extend corridor wall to meet exterior footprint faces exactly, removing dangling ends",
+      "source_refs": [
+        "footprint outer faces x=425/1817"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "corridor_south",
+      "before": {
+        "id": "corridor_south",
+        "points": [
+          [
+            447,
+            815
+          ],
+          [
+            1793,
+            815
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: horizontal wall separating corridor from south rooms, pixel_profile y=815 candidate, view_0011/view_0020"
+        ]
+      },
+      "after": {
+        "id": "corridor_south",
+        "points": [
+          [
+            425,
+            815
+          ],
+          [
+            1817,
+            815
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: horizontal wall separating corridor from south rooms, pixel_profile y=815 candidate, view_0011/view_0020"
+        ]
+      },
+      "reason": "extend corridor wall to meet exterior footprint faces exactly, removing dangling ends",
+      "source_refs": [
+        "footprint outer faces x=425/1817"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "openings",
+      "id": "D_west",
+      "before": {
+        "id": "D_west",
+        "kind": "door",
+        "p1": [
+          447,
+          647
+        ],
+        "p2": [
+          447,
+          786
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: exterior door in west wall, corridor to outside, dimension chain 250/1500/250, view_0016"
+        ]
+      },
+      "after": {
+        "id": "D_west",
+        "kind": "door",
+        "p1": [
+          425,
+          647
+        ],
+        "p2": [
+          425,
+          786
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: exterior door in west wall, corridor to outside, dimension chain 250/1500/250, view_0016"
+        ]
+      },
+      "reason": "align door endpoints to exterior wall outer face used by footprint",
+      "source_refs": [
+        "footprint left face x=425"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "space_seeds": [
+      "RoomA",
+      "RoomB",
+      "RoomC",
+      "Corridor",
+      "RoomD",
+      "RoomE",
+      "RoomF"
+    ],
+    "openings": [
+      "D_A",
+      "D_B",
+      "D_C",
+      "D_D",
+      "D_E",
+      "D_F",
+      "D_south",
+      "W1",
+      "W2",
+      "W3",
+      "W4",
+      "W5",
+      "W6",
+      "W7"
+    ],
+    "partitions": [
+      "P1_top",
+      "P1_bot",
+      "P2_top",
+      "P2_bot"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

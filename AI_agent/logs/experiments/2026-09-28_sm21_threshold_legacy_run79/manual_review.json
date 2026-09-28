@@ -1,0 +1,194 @@
+{
+  "candidate": "candidate_08",
+  "source_model_sha256": "9aae548efcf6375a531db1faf22877af8d91af662a7572e5daf1686716766972",
+  "reviewer": "development assistant; original images and final overlays viewed after generation",
+  "model_calls": 0,
+  "source_images": {
+    "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c"
+  },
+  "findings": [
+    {
+      "code": "door_endpoints_wrong",
+      "opening_ids": [
+        "F1:D_A",
+        "F1:D_B",
+        "F1:D_C",
+        "F1:D_D",
+        "F1:D_E",
+        "F1:D_F",
+        "F1:D_south"
+      ],
+      "evidence": "evaluation/original_openings.json and original_1f_view.png",
+      "max_endpoint_error_m_range": [
+        0.2983026304816683,
+        0.6016242933141625
+      ]
+    },
+    {
+      "code": "window_family_overgeneralized",
+      "opening_id": "F1:W4",
+      "reference_z_m": [
+        1.5,
+        2.1
+      ],
+      "actual_z_m": [
+        1.0,
+        2.6
+      ],
+      "evidence": "South_view.png left F1 chain 900/600/1500 mm; claims/claim_0001.json applies the north regular-window chain to all F1 windows"
+    },
+    {
+      "code": "window_family_overgeneralized_within_existing_gt_tolerance",
+      "opening_id": "F1:W7",
+      "reference_z_m": [
+        1.0,
+        2.8
+      ],
+      "actual_z_m": [
+        1.0,
+        2.6
+      ],
+      "evidence": "East_view.png F1 chain 200/1800/1000 mm; existing GT z test is true at 0.20m delta; preserve raw score"
+    },
+    {
+      "code": "wrong_dimension_object_attribution",
+      "claim": "claim_0003",
+      "evidence": "South_view.png 900/600/1500 mm describes small-window levels, not a directly labeled door-panel split. Door height 2.1m is plausible from proportions but the claimed direct annotation is unsupported."
+    }
+  ],
+  "partition_interpretation": "14 distinct reference rooms; no split/merge findings. Strict severe boundary differences are preserved: F1 corridor walls about 6.3cm and F2 center wall about 6.5cm displaced. No new tolerance or score override.",
+  "room_use_interpretation": "Office/meeting/corridor/lounge choices plausible. Furniture-based observed labels do not establish a printed room-use label.",
+  "status": "not_accepted_as_faithful_whole_building",
+  "limit": "Developer visual review plus existing diagnostics; no generator changes, no GT fed to either arm, no new model invocation.",
+  "postassembly_source_changes": [
+    {
+      "from": "candidate_05",
+      "to": "candidate_06",
+      "changed_top_fields": [
+        "corrections",
+        "generation",
+        "source_geometry_sha256",
+        "source_model_sha256",
+        "spaces"
+      ],
+      "changed_objects": {
+        "spaces": [
+          {
+            "id": "F1:RoomA",
+            "fields": [
+              "role_evidence"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "from": "candidate_06",
+      "to": "candidate_07",
+      "changed_top_fields": [
+        "corrections",
+        "generation",
+        "source_geometry_sha256",
+        "source_model_sha256",
+        "spaces"
+      ],
+      "changed_objects": {
+        "spaces": [
+          {
+            "id": "F1:Corridor",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F1:RoomB",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F1:RoomC",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F1:RoomD",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F1:RoomE",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F1:RoomF",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:Corridor2F",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:MeetingRoom1",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:MeetingRoom2",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:Office1",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:Office2",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:Office3",
+            "fields": [
+              "role_evidence"
+            ]
+          },
+          {
+            "id": "F2:Office4",
+            "fields": [
+              "role_evidence"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "from": "candidate_07",
+      "to": "candidate_08",
+      "changed_top_fields": [
+        "assumptions",
+        "corrections",
+        "generation",
+        "source_geometry_sha256",
+        "source_model_sha256"
+      ],
+      "changed_objects": {}
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+"floor_id": "F2",
+"z_floor": 3.0,
+"ceiling_height": 3.6,
+"x_anchors": [[427,0],[1814,15]],
+"y_anchors": [[331,8],[1072,0]],
+"basis": "Calibrated from outer wall bounding box found via gray-color (140,140,140) pixel-region flood fill on 2f_view.png: outer wall faces at x=427/1814 px (0/15 m) and y=331/1072 px (8/0 m, top of image=North=y8, bottom=South=y0). Partition centerlines, window bands (cyan flood fill) and door leaf/gap extents measured the same way. Corridor wall y-positions taken at world y=5.0/3.0 m to match the 3000/2000/3000 north-south zoning read from the drawing's own dimension chain, consistent with F1.",
+"footprint_pixels": [[427,331],[1814,331],[1814,1072],[427,1072]],
+"partitions": [
+ {"id":"PT_top","points":[[1120,331],[1120,609]],"source_refs":["2f_view.png: single vertical partition between the two north meeting rooms, gray flood-fill (solid wall gap between windows) centerline"]},
+ {"id":"PB1","points":[[774,794],[774,1072]],"source_refs":["2f_view.png: vertical partition between offices B1/B2, gray flood-fill centerline"]},
+ {"id":"PB2","points":[[1120,794],[1120,1072]],"source_refs":["2f_view.png: vertical partition between offices B2/B3, gray flood-fill centerline"]},
+ {"id":"PB3","points":[[1467,794],[1467,1072]],"source_refs":["2f_view.png: vertical partition between offices B3/B4, gray flood-fill centerline"]},
+ {"id":"Corridor_top","points":[[427,609],[1120,609],[1814,609]],"source_refs":["2f_view.png: corridor north-side wall, thin double-line, at world y=5.0m matching 3000mm room-zone dimension"]},
+ {"id":"Corridor_bot","points":[[427,794],[774,794],[1120,794],[1467,794],[1814,794]],"source_refs":["2f_view.png: corridor south-side wall, thin double-line, at world y=3.0m matching mirrored zoning"]}
+],
+"openings": [
+ {"id":"W_T1","kind":"window","p1":[607,331],"p2":[940,331],"z":[4.0,5.8],"source_refs":["2f_view.png: north facade left window band, cyan flood-fill; height assumed from North_view elevation upper zone (sill 1.0m/head 2.8m above F2 floor)"]},
+ {"id":"W_T2","kind":"window","p1":[1300,331],"p2":[1634,331],"z":[4.0,5.8],"source_refs":["2f_view.png: north facade right window band; height assumed"]},
+ {"id":"W_B1","kind":"window","p1":[629,1072],"p2":[741,1072],"z":[4.0,5.8],"source_refs":["2f_view.png: south facade office B1 window band; height assumed"]},
+ {"id":"W_B2","kind":"window","p1":[807,1072],"p2":[919,1072],"z":[4.0,5.8],"source_refs":["2f_view.png: south facade office B2 window band; height assumed"]},
+ {"id":"W_B3","kind":"window","p1":[1322,1072],"p2":[1434,1072],"z":[4.0,5.8],"source_refs":["2f_view.png: south facade office B3 window band; height assumed"]},
+ {"id":"W_B4","kind":"window","p1":[1500,1072],"p2":[1612,1072],"z":[4.0,5.8],"source_refs":["2f_view.png: south facade office B4 window band; height assumed"]},
+ {"id":"D_T1","kind":"door","p1":[989,609],"p2":[1072,609],"z":[3.0,5.1],"source_refs":["2f_view.png: door leaf/hinge near top partition, room T1 side, corridor wall; height assumed"]},
+ {"id":"D_T2","kind":"door","p1":[1153,609],"p2":[1236,609],"z":[3.0,5.1],"source_refs":["2f_view.png: door leaf/hinge near top partition, room T2 side, corridor wall; height assumed"]},
+ {"id":"D_B1","kind":"door","p1":[650,794],"p2":[733,794],"z":[3.0,5.1],"source_refs":["2f_view.png: door leaf/hinge near partition PB1, office B1 side, corridor wall; height assumed"]},
+ {"id":"D_B2","kind":"door","p1":[814,794],"p2":[897,794],"z":[3.0,5.1],"source_refs":["2f_view.png: door leaf/hinge near partition PB1, office B2 side, corridor wall; height assumed"]},
+ {"id":"D_B3","kind":"door","p1":[1343,794],"p2":[1426,794],"z":[3.0,5.1],"source_refs":["2f_view.png: door leaf/hinge near partition PB3, office B3 side, corridor wall; height assumed"]},
+ {"id":"D_B4","kind":"door","p1":[1507,794],"p2":[1590,794],"z":[3.0,5.1],"source_refs":["2f_view.png: door leaf/hinge near partition PB3, office B4 side, corridor wall; height assumed"]}
+],
+"space_seeds": [
+ {"id":"T1","point":[700,470]},
+ {"id":"T2","point":[1450,470]},
+ {"id":"Corridor2","point":[1100,700]},
+ {"id":"B1","point":[600,930]},
+ {"id":"B2","point":[950,930]},
+ {"id":"B3","point":[1290,930]},
+ {"id":"B4","point":[1640,930]}
+],
+"assumptions": ["Interior door heights (2.1m clear, absolute 3.0-5.1m) assumed pending elevation confirmation.", "Window sill/head heights (absolute 4.0/5.8m = 1.0/2.8m above F2 floor) taken from North_view elevation upper-zone reading, not yet cross-checked against South/East/West elevations.", "Corridor wall y-positions (5.0/3.0m) assumed to match F1 zoning rather than independently re-measured wall-line pixels.", "Corridor-room door opening widths (~0.9m) approximated from door-leaf pixel length."],
+"unresolved": ["Exact partition wall thickness not modeled (centerline only).", "South/East/West window heights on F2 not yet cross-checked against South/East/West elevations."]
+}

@@ -1,0 +1,917 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BIM 生成后的独立参照诊断</title><style>body{font:16px system-ui;margin:30px;max-width:1200px}pre{white-space:pre-wrap;font-size:13px}figure{max-width:850px}section{margin-bottom:40px}</style><h1>BIM 生成后的独立参照诊断</h1><p>还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。</p><p>参照范围：Six original images only, no saved model/calibration/claims or local answers. GT loaded only after generation.</p><p>本页在生成结束后计算，未送回生成模型。蓝线为参照，橙线为候选。详情与限制见 <a href="summary.json">summary.json</a>。</p><section><h2>candidate_01</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_01&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;3abc72f9d4baec894abb423112781cf1a3215a27e6d48a9a736936ecf9e749cc&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 7,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 8,
+    &quot;window&quot;: 7
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 0,
+    &quot;complete_total&quot;: 0,
+    &quot;within_tol_total&quot;: 0,
+    &quot;placed_hit_total&quot;: 0,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 15,
+    &quot;extra_total&quot;: 7,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S4&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_COR&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 30.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_N1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 22.5
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_N2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 22.5
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.621583 8.610795999999999"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon><polygon points="0.3,5.363428 15.321583,5.363428 15.321583,3.236572 0.3,3.236572" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Corridor</title></polygon><polygon points="0.3,3.236572 5.296403,3.236572 5.296403,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomA</title></polygon><polygon points="5.296403,3.236572 10.303597,3.236572 10.303597,0.3 5.296403,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomB</title></polygon><polygon points="10.303597,3.236572 15.321583,3.236572 15.321583,0.3 10.303597,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomC</title></polygon><polygon points="0.3,8.310796 5.296403,8.310796 5.296403,5.363428 0.3,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomD</title></polygon><polygon points="5.296403,8.310796 10.303597,8.310796 10.303597,5.363428 5.296403,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomE</title></polygon><polygon points="10.303597,8.310796 15.321583,8.310796 15.321583,5.363428 10.303597,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomF</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 0 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.6 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon></svg></figure></section><section><h2>candidate_02</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_02&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;8b824594065da2a3cf867ac4224f1146870bcda3d44dfefa37f6188789bf25a2&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 7,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 6,
+    &quot;window&quot;: 8
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 0,
+    &quot;complete_total&quot;: 0,
+    &quot;within_tol_total&quot;: 0,
+    &quot;placed_hit_total&quot;: 0,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 15,
+    &quot;extra_total&quot;: 8,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S1&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;Office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_S1&quot;,
+        &quot;candidate_id&quot;: &quot;Office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 11.213527496454999,
+        &quot;reference_coverage_fraction&quot;: 0.9967579996848888,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9967579996848887,
+        &quot;symmetric_difference_area_m2&quot;: 0.03647250354500109,
+        &quot;boundary_hausdorff_m&quot;: 0.007648068122081662,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S2&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;Office2&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_S2&quot;,
+        &quot;candidate_id&quot;: &quot;Office2&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 11.035277223675,
+        &quot;reference_coverage_fraction&quot;: 0.9809135309933332,
+        &quot;candidate_coverage_fraction&quot;: 0.998533793472712,
+        &quot;iou&quot;: 0.9795027202665905,
+        &quot;symmetric_difference_area_m2&quot;: 0.23092652987000098,
+        &quot;boundary_hausdorff_m&quot;: 0.06515955992791868,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S3&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;Office3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_S3&quot;,
+        &quot;candidate_id&quot;: &quot;Office3&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 11.213527496454999,
+        &quot;reference_coverage_fraction&quot;: 0.9967579996848888,
+        &quot;candidate_coverage_fraction&quot;: 0.9829545633522718,
+        &quot;iou&quot;: 0.9798219705947689,
+        &quot;symmetric_difference_area_m2&quot;: 0.23092652987000165,
+        &quot;boundary_hausdorff_m&quot;: 0.06493500000000019,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S4&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;Office4&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_S4&quot;,
+        &quot;candidate_id&quot;: &quot;Office4&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 11.22973125,
+        &quot;reference_coverage_fraction&quot;: 0.9981983333333334,
+        &quot;candidate_coverage_fraction&quot;: 0.9956895933709906,
+        &quot;iou&quot;: 0.9939034111906144,
+        &quot;symmetric_difference_area_m2&quot;: 0.06888300523000263,
+        &quot;boundary_hausdorff_m&quot;: 0.010823000000000249,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_COR&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;Corridor2F&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_COR&quot;,
+        &quot;candidate_id&quot;: &quot;Corridor2F&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 29.918925000000005,
+        &quot;reference_coverage_fraction&quot;: 0.9972975000000002,
+        &quot;candidate_coverage_fraction&quot;: 0.996578435439549,
+        &quot;iou&quot;: 0.9938943725386156,
+        &quot;symmetric_difference_area_m2&quot;: 0.18379599999999696,
+        &quot;boundary_hausdorff_m&quot;: 0.01209757636884374,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_N1&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;MeetingRoom1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_N1&quot;,
+        &quot;candidate_id&quot;: &quot;MeetingRoom1&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 22.305194999999998,
+        &quot;reference_coverage_fraction&quot;: 0.991342,
+        &quot;candidate_coverage_fraction&quot;: 0.9982015734984138,
+        &quot;iou&quot;: 0.9895745527194039,
+        &quot;symmetric_difference_area_m2&quot;: 0.23499152632499803,
+        &quot;boundary_hausdorff_m&quot;: 0.06493500000000019,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_N2&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;MeetingRoom2&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2_N2&quot;,
+        &quot;candidate_id&quot;: &quot;MeetingRoom2&quot;,
+        &quot;reference_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;Floor 2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 22.5,
+        &quot;reference_coverage_fraction&quot;: 1.0,
+        &quot;candidate_coverage_fraction&quot;: 0.9882195024231375,
+        &quot;iou&quot;: 0.9882195024231375,
+        &quot;symmetric_difference_area_m2&quot;: 0.2682209719899973,
+        &quot;boundary_hausdorff_m&quot;: 0.06515955992791865,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 0.0,
+        &quot;height_delta_m&quot;: 0.6000000000000001,
+        &quot;z_top_delta_m&quot;: 0.5999999999999996
+      }
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_S1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_S2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_S3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_COR&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 30.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_N1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_N2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_N3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 0 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.6 8.6"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.610823 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon><polygon points="0.3,5.3054049999999995 15.310823000000001,5.3054049999999995 15.310823000000001,3.3054049999999995 0.3,3.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Corridor2F</title></polygon><polygon points="0.3,3.3054049999999995 7.735065,3.3054049999999995 7.735065,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 MeetingRoom1</title></polygon><polygon points="7.735065,3.3054049999999995 15.310823000000001,3.3054049999999995 15.310823000000001,0.3 7.735065,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 MeetingRoom2</title></polygon><polygon points="0.3,8.3 4.044589,8.3 4.044589,5.3054049999999995 0.3,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office1</title></polygon><polygon points="4.044589,8.3 7.735065,8.3 7.735065,5.3054049999999995 4.044589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office2</title></polygon><polygon points="7.735065,8.3 11.544589,8.3 11.544589,5.3054049999999995 7.735065,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office3</title></polygon><polygon points="11.544589,8.3 15.310823000000001,8.3 15.310823000000001,5.3054049999999995 11.544589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office4</title></polygon></svg></figure></section><section><h2>candidate_03</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_03&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;d3ae47c9cc97c405bd4f638445874d621bdc9b9158a1971f99dfd7285266c516&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 7,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 8,
+    &quot;window&quot;: 7
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 6,
+    &quot;complete_total&quot;: 5,
+    &quot;within_tol_total&quot;: 1,
+    &quot;placed_hit_total&quot;: 5,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 9,
+    &quot;extra_total&quot;: 1,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_S4&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 11.25
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_COR&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 30.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_N1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 22.5
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2_N2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;area_m2&quot;: 22.5
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.621583 8.610795999999999"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon><polygon points="0.3,5.363428 15.321583,5.363428 15.321583,3.236572 0.3,3.236572" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Corridor</title></polygon><polygon points="0.3,3.236572 5.296403,3.236572 5.296403,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomA</title></polygon><polygon points="5.296403,3.236572 10.303597,3.236572 10.303597,0.3 5.296403,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomB</title></polygon><polygon points="10.303597,3.236572 15.321583,3.236572 15.321583,0.3 10.303597,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomC</title></polygon><polygon points="0.3,8.310796 5.296403,8.310796 5.296403,5.363428 0.3,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomD</title></polygon><polygon points="5.296403,8.310796 10.303597,8.310796 10.303597,5.363428 5.296403,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomE</title></polygon><polygon points="10.303597,8.310796 15.321583,8.310796 15.321583,5.363428 10.303597,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 RoomF</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 0 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.6 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon></svg></figure></section><section><h2>candidate_04</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_04&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;0f64f4ae201731d804154d2adeaf5c0635c02f7b5cc6509ec79a74226f40a24d&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 7,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 6,
+    &quot;window&quot;: 8
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 8,
+    &quot;complete_total&quot;: 8,
+    &quot;within_tol_total&quot;: 0,
+    &quot;placed_hit_total&quot;: 8,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 7,
+    &quot;extra_total&quot;: 0,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_S1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_S2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_S3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_COR&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 30.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_N1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_N2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1_N3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;area_m2&quot;: 15.0
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 0 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.6 8.6"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.610823 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon><polygon points="0.3,5.3054049999999995 15.310823000000001,5.3054049999999995 15.310823000000001,3.3054049999999995 0.3,3.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Corridor2F</title></polygon><polygon points="0.3,3.3054049999999995 7.735065,3.3054049999999995 7.735065,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 MeetingRoom1</title></polygon><polygon points="7.735065,3.3054049999999995 15.310823000000001,3.3054049999999995 15.310823000000001,0.3 7.735065,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 MeetingRoom2</title></polygon><polygon points="0.3,8.3 4.044589,8.3 4.044589,5.3054049999999995 0.3,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office1</title></polygon><polygon points="4.044589,8.3 7.735065,8.3 7.735065,5.3054049999999995 4.044589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office2</title></polygon><polygon points="7.735065,8.3 11.544589,8.3 11.544589,5.3054049999999995 7.735065,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office3</title></polygon><polygon points="11.544589,8.3 15.310823000000001,8.3 15.310823000000001,5.3054049999999995 11.544589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 Office4</title></polygon></svg></figure></section><section><h2>candidate_05</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_05&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;8b7bb2c09e2ccdc7939baf48b90f4872283dd6356e5712d9027a538b01b79dcb&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 14,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 14,
+    &quot;window&quot;: 15
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 14,
+    &quot;complete_total&quot;: 13,
+    &quot;within_tol_total&quot;: 1,
+    &quot;placed_hit_total&quot;: 13,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 1,
+    &quot;extra_total&quot;: 1,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.621583 8.610795999999999"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon><polygon points="0.3,5.363428 15.321583,5.363428 15.321583,3.236572 0.3,3.236572" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:Corridor</title></polygon><polygon points="0.3,3.236572 5.296403,3.236572 5.296403,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomA</title></polygon><polygon points="5.296403,3.236572 10.303597,3.236572 10.303597,0.3 5.296403,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomB</title></polygon><polygon points="10.303597,3.236572 15.321583,3.236572 15.321583,0.3 10.303597,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomC</title></polygon><polygon points="0.3,8.310796 5.296403,8.310796 5.296403,5.363428 0.3,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomD</title></polygon><polygon points="5.296403,8.310796 10.303597,8.310796 10.303597,5.363428 5.296403,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomE</title></polygon><polygon points="10.303597,8.310796 15.321583,8.310796 15.321583,5.363428 10.303597,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomF</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.610823 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon><polygon points="0.3,5.3054049999999995 15.310823000000001,5.3054049999999995 15.310823000000001,3.3054049999999995 0.3,3.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Corridor2F</title></polygon><polygon points="0.3,3.3054049999999995 7.735065,3.3054049999999995 7.735065,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom1</title></polygon><polygon points="7.735065,3.3054049999999995 15.310823000000001,3.3054049999999995 15.310823000000001,0.3 7.735065,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom2</title></polygon><polygon points="0.3,8.3 4.044589,8.3 4.044589,5.3054049999999995 0.3,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office1</title></polygon><polygon points="4.044589,8.3 7.735065,8.3 7.735065,5.3054049999999995 4.044589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office2</title></polygon><polygon points="7.735065,8.3 11.544589,8.3 11.544589,5.3054049999999995 7.735065,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office3</title></polygon><polygon points="11.544589,8.3 15.310823000000001,8.3 15.310823000000001,5.3054049999999995 11.544589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office4</title></polygon></svg></figure></section><section><h2>candidate_06</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_06&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;eeb66c289c08f2ff73359fe47bb232b0c0b0539bc163377efe1fe13ca93769c0&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 14,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 14,
+    &quot;window&quot;: 15
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 14,
+    &quot;complete_total&quot;: 13,
+    &quot;within_tol_total&quot;: 1,
+    &quot;placed_hit_total&quot;: 13,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 1,
+    &quot;extra_total&quot;: 1,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.621583 8.610795999999999"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon><polygon points="0.3,5.363428 15.321583,5.363428 15.321583,3.236572 0.3,3.236572" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:Corridor</title></polygon><polygon points="0.3,3.236572 5.296403,3.236572 5.296403,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomA</title></polygon><polygon points="5.296403,3.236572 10.303597,3.236572 10.303597,0.3 5.296403,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomB</title></polygon><polygon points="10.303597,3.236572 15.321583,3.236572 15.321583,0.3 10.303597,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomC</title></polygon><polygon points="0.3,8.310796 5.296403,8.310796 5.296403,5.363428 0.3,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomD</title></polygon><polygon points="5.296403,8.310796 10.303597,8.310796 10.303597,5.363428 5.296403,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomE</title></polygon><polygon points="10.303597,8.310796 15.321583,8.310796 15.321583,5.363428 10.303597,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomF</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.610823 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon><polygon points="0.3,5.3054049999999995 15.310823000000001,5.3054049999999995 15.310823000000001,3.3054049999999995 0.3,3.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Corridor2F</title></polygon><polygon points="0.3,3.3054049999999995 7.735065,3.3054049999999995 7.735065,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom1</title></polygon><polygon points="7.735065,3.3054049999999995 15.310823000000001,3.3054049999999995 15.310823000000001,0.3 7.735065,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom2</title></polygon><polygon points="0.3,8.3 4.044589,8.3 4.044589,5.3054049999999995 0.3,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office1</title></polygon><polygon points="4.044589,8.3 7.735065,8.3 7.735065,5.3054049999999995 4.044589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office2</title></polygon><polygon points="7.735065,8.3 11.544589,8.3 11.544589,5.3054049999999995 7.735065,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office3</title></polygon><polygon points="11.544589,8.3 15.310823000000001,8.3 15.310823000000001,5.3054049999999995 11.544589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office4</title></polygon></svg></figure></section><section><h2>candidate_07</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_07&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;811e0a265f805d59b75210c39c6719ca130f49913d5f202e8c6ea1b4a7440d35&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 14,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 14,
+    &quot;window&quot;: 15
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 14,
+    &quot;complete_total&quot;: 13,
+    &quot;within_tol_total&quot;: 1,
+    &quot;placed_hit_total&quot;: 13,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 1,
+    &quot;extra_total&quot;: 1,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.621583 8.610795999999999"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon><polygon points="0.3,5.363428 15.321583,5.363428 15.321583,3.236572 0.3,3.236572" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:Corridor</title></polygon><polygon points="0.3,3.236572 5.296403,3.236572 5.296403,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomA</title></polygon><polygon points="5.296403,3.236572 10.303597,3.236572 10.303597,0.3 5.296403,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomB</title></polygon><polygon points="10.303597,3.236572 15.321583,3.236572 15.321583,0.3 10.303597,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomC</title></polygon><polygon points="0.3,8.310796 5.296403,8.310796 5.296403,5.363428 0.3,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomD</title></polygon><polygon points="5.296403,8.310796 10.303597,8.310796 10.303597,5.363428 5.296403,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomE</title></polygon><polygon points="10.303597,8.310796 15.321583,8.310796 15.321583,5.363428 10.303597,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomF</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.610823 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon><polygon points="0.3,5.3054049999999995 15.310823000000001,5.3054049999999995 15.310823000000001,3.3054049999999995 0.3,3.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Corridor2F</title></polygon><polygon points="0.3,3.3054049999999995 7.735065,3.3054049999999995 7.735065,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom1</title></polygon><polygon points="7.735065,3.3054049999999995 15.310823000000001,3.3054049999999995 15.310823000000001,0.3 7.735065,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom2</title></polygon><polygon points="0.3,8.3 4.044589,8.3 4.044589,5.3054049999999995 0.3,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office1</title></polygon><polygon points="4.044589,8.3 7.735065,8.3 7.735065,5.3054049999999995 4.044589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office2</title></polygon><polygon points="7.735065,8.3 11.544589,8.3 11.544589,5.3054049999999995 7.735065,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office3</title></polygon><polygon points="11.544589,8.3 15.310823000000001,8.3 15.310823000000001,5.3054049999999995 11.544589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office4</title></polygon></svg></figure></section><section><h2>candidate_08</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_08&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;9aae548efcf6375a531db1faf22877af8d91af662a7572e5daf1686716766972&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;reference_spaces&quot;: 14,
+  &quot;candidate_spaces&quot;: 14,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 14,
+    &quot;window&quot;: 15
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;gt_total&quot;: 15,
+    &quot;matched_total&quot;: 14,
+    &quot;complete_total&quot;: 13,
+    &quot;within_tol_total&quot;: 1,
+    &quot;placed_hit_total&quot;: 13,
+    &quot;z_drift_total&quot;: 0,
+    &quot;miss_total&quot;: 1,
+    &quot;extra_total&quot;: 1,
+    &quot;no_data_floor_facades&quot;: 0
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;Floor 1&quot;,
+      &quot;missing_length_m&quot;: 30.093711992000003,
+      &quot;extra_length_m&quot;: 29.759999988000004,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 2.956572001, 5 3), (5 3, 0.020000001 3), (10 2.956572001, 10 3), (10 3, 5 3), (14.979999999 3, 10 3), (5 5, 0.020000001 5), (10 5, 5 5), (14.979999999 5, 10 5), (5 5, 5 5.043427999), (10 5, 10 5.043427999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((4.979999999 5.063428, 0.020000001 5.063428), (9.979999999 5.063428, 5.020000001 5.063428), (14.979999999 5.063428, 10.020000001 5.063428), (0.020000001 2.936572, 4.979999999 2.936572), (5.020000001 2.936572, 9.979999999 2.936572), (10.020000001 2.936572, 14.979999999 2.936572))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;Floor 2&quot;,
+      &quot;missing_length_m&quot;: 5.919999996,
+      &quot;extra_length_m&quot;: 5.9199999960000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((7.5 0.020000001, 7.5 2.974594999), (7.5 5.014595001, 7.5 7.979999999))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((7.435065 5.020000001, 7.435065 7.979999999), (7.435065 0.020000001, 7.435065 2.979999999))&quot;
+    }
+  ]
+}</pre><figure><figcaption>Floor 1：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.621583 8.610795999999999"><polygon points="0.3,8.3 5.3,8.3 5.3,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S1</title></polygon><polygon points="5.3,8.3 10.3,8.3 10.3,5.3 5.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S2</title></polygon><polygon points="10.3,8.3 15.3,8.3 15.3,5.3 10.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_S3</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_COR</title></polygon><polygon points="0.3,3.3 5.3,3.3 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N1</title></polygon><polygon points="5.3,3.3 10.3,3.3 10.3,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N2</title></polygon><polygon points="10.3,3.3 15.3,3.3 15.3,0.3 10.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1_N3</title></polygon><polygon points="0.3,5.363428 15.321583,5.363428 15.321583,3.236572 0.3,3.236572" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:Corridor</title></polygon><polygon points="0.3,3.236572 5.296403,3.236572 5.296403,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomA</title></polygon><polygon points="5.296403,3.236572 10.303597,3.236572 10.303597,0.3 5.296403,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomB</title></polygon><polygon points="10.303597,3.236572 15.321583,3.236572 15.321583,0.3 10.303597,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomC</title></polygon><polygon points="0.3,8.310796 5.296403,8.310796 5.296403,5.363428 0.3,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomD</title></polygon><polygon points="5.296403,8.310796 10.303597,8.310796 10.303597,5.363428 5.296403,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomE</title></polygon><polygon points="10.303597,8.310796 15.321583,8.310796 15.321583,5.363428 10.303597,5.363428" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:RoomF</title></polygon></svg></figure><figure><figcaption>Floor 2：参照 7 / 候选 7 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 15.610823 8.6"><polygon points="0.3,8.3 4.05,8.3 4.05,5.3 0.3,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S1</title></polygon><polygon points="4.05,8.3 7.8,8.3 7.8,5.3 4.05,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S2</title></polygon><polygon points="7.8,8.3 11.55,8.3 11.55,5.3 7.8,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S3</title></polygon><polygon points="11.55,8.3 15.3,8.3 15.3,5.3 11.55,5.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_S4</title></polygon><polygon points="0.3,5.3 15.3,5.3 15.3,3.3 0.3,3.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_COR</title></polygon><polygon points="0.3,3.3 7.8,3.3 7.8,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N1</title></polygon><polygon points="7.8,3.3 15.3,3.3 15.3,0.3 7.8,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2_N2</title></polygon><polygon points="0.3,5.3054049999999995 15.310823000000001,5.3054049999999995 15.310823000000001,3.3054049999999995 0.3,3.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Corridor2F</title></polygon><polygon points="0.3,3.3054049999999995 7.735065,3.3054049999999995 7.735065,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom1</title></polygon><polygon points="7.735065,3.3054049999999995 15.310823000000001,3.3054049999999995 15.310823000000001,0.3 7.735065,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:MeetingRoom2</title></polygon><polygon points="0.3,8.3 4.044589,8.3 4.044589,5.3054049999999995 0.3,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office1</title></polygon><polygon points="4.044589,8.3 7.735065,8.3 7.735065,5.3054049999999995 4.044589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office2</title></polygon><polygon points="7.735065,8.3 11.544589,8.3 11.544589,5.3054049999999995 7.735065,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office3</title></polygon><polygon points="11.544589,8.3 15.310823000000001,8.3 15.310823000000001,5.3054049999999995 11.544589,5.3054049999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:Office4</title></polygon></svg></figure></section></html>
