@@ -1,0 +1,68 @@
+diff --git a/scripts/tool_scripts/run_bim_agent.py b/scripts/tool_scripts/run_bim_agent.py
+index 7572276e..49981652 100644
+--- a/scripts/tool_scripts/run_bim_agent.py
++++ b/scripts/tool_scripts/run_bim_agent.py
+@@ -1022,6 +1022,12 @@ class Toolkit:
+             result.update(plan_input=record, source_geometry_ready=False,
+                           remaining_seconds=self.remaining_seconds())
+             self.log("build_plan_bim", result)
++        if result.get("source_geometry_ready"):
++            try:
++                from scripts.tool_scripts.bim_space_ink_feedback import add_space_ink_feedback
++                add_space_ink_feedback(self, result)
++            except Exception as error:
++                result["space_ink_review"] = {"status":"unavailable", "error":str(error), "drawing_fidelity":"not_evaluated"}
+         dump(draft / "result.json", result)
+         return result
+ 
+@@ -1077,7 +1083,7 @@ class Toolkit:
+             if frame['mesh_sha256'] != self.manifest.get('mesh_input', {}).get('sha256'):
+                 raise ValueError('candidate mesh_frame must refer to the admitted original mesh')
+         index = len(list(self.run.glob("candidate_*"))) + 1
+-        if index > 6:
++        if index > self.manifest.get("max_candidates", 24):
+             return {"error": "candidate budget exhausted; report saved partial results"}
+         candidate = f"candidate_{index:02d}"
+         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
+@@ -1940,7 +1946,13 @@ def serve(run: Path, readonly=False):
+ 
+     def candidate_result(result) -> CallToolResult:
+         """Keep JSON structured output while attaching newly generated feedback views."""
++        result = {**{k:result[k] for k in ("space_ink_review",) if k in result}, **result}
+         content = []
++        for view in result.get("space_ink_views", []):
++            try:
++                content.append(Image(data=(toolkit.run / view["file"]).read_bytes(), format="png").to_image_content())
++            except Exception as error:
++                result.setdefault("space_ink_image_errors", []).append(str(error))
+         draft_view = result.get("plan_input", {}).get("draft_view")
+         if not result.get("source_geometry_ready") and draft_view:
+             try:
+@@ -2389,7 +2401,7 @@ def serve(run: Path, readonly=False):
+         @server.tool()
+         def build_bim(proposal_json: str) -> CallToolResult:
+             """Build/check/save a candidate; get_bim_reference("geometry") describes proposal JSON.
+-            Returns errors or actual geometry checks. Six immutable candidates maximum.
++            Returns errors or actual geometry checks. Up to 24 immutable candidates; the run input records its budget.
+             """
+             return candidate_result(toolkit.build(json.loads(proposal_json)))
+ 
+@@ -2480,6 +2492,7 @@ def run_experiment(args):
+         if not seed_path and not plan_recovery:
+             generation_mode = 'native_mesh_agent_experiment'
+     manifest = {"images":images,"scope":args.scope,"provider":provider,
++                             "max_candidates":24,"continuation_rounds":0,
+                              "input_mode": generation_mode,
+                              "exploratory_opus": getattr(args, "exploratory_opus", False),
+                              "source_input_mode": source_input_mode,
+@@ -2523,7 +2536,9 @@ def run_experiment(args):
+                                  "src/agent/geometry/plan_wall_support.py":digest(ROOT/"src/agent/geometry/plan_wall_support.py"),
+                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
+                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
+-                                 "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
++                                 "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py"),
++                                 "src/agent/geometry/space_ink_support.py":digest(ROOT/"src/agent/geometry/space_ink_support.py"),
++                                 "scripts/tool_scripts/bim_space_ink_feedback.py":digest(ROOT/"scripts/tool_scripts/bim_space_ink_feedback.py")},
+                              "only_input": (
+                                  "authorized original PNG images, user scope, explicitly supplied building "
+                                  "declaration, and optional saved generated proposal; no GT/evaluation"

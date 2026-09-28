@@ -1,0 +1,789 @@
+{
+  "schema_version": "plan_draft_view_v1",
+  "mode": "draft_only",
+  "draft_only": true,
+  "drawing_fidelity": "not_evaluated",
+  "source_geometry_ready": false,
+  "source_bim": false,
+  "room_status": "not_inferred_or_claimed",
+  "image": {
+    "name": "2f_view.png",
+    "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "size": [
+      2182,
+      1319
+    ]
+  },
+  "plan": {
+    "file": "plan_drafts/draft_001/plan.json",
+    "sha256": "16ec6a898b9498e3ba9119ca0a91935b1967f81369913bd3f22463a999ce078e"
+  },
+  "declaration": {
+    "floor_id": "F2",
+    "z_floor": 3.0,
+    "ceiling_height": 3.6,
+    "x_anchors": [
+      [
+        427,
+        0
+      ],
+      [
+        1814,
+        15
+      ]
+    ],
+    "y_anchors": [
+      [
+        331,
+        0
+      ],
+      [
+        1072,
+        8
+      ]
+    ],
+    "basis": "15000mm/8000mm outer footprint from dimension-line arrows in 2f_view.png; anchors at outer wall face pixel corners (matches gray wall bbox extents from pixel-color detection). Interior corridor walls at y~604px (top-row/corridor) and y~790px (corridor/bottom-row) from gray-wall pixel detection. Partitions at x~1097px (between the two large meeting rooms, matching visible double-door vestibule) and x~774px, x~1467px (bottom row dividers) from gray-wall region bboxes. Door positions read from zoomed crops of arc/jamb graphics adjacent to each partition. Window spans on north/south walls from labeled dimension chains; west/east single corridor windows from West_view.png/East_view.png 3400-4600mm span, matching corridor depth on this floor too.",
+    "footprint_pixels": [
+      [
+        427,
+        331
+      ],
+      [
+        1814,
+        331
+      ],
+      [
+        1814,
+        1072
+      ],
+      [
+        427,
+        1072
+      ]
+    ],
+    "partitions": [
+      {
+        "id": "P_top",
+        "points": [
+          [
+            1097,
+            331
+          ],
+          [
+            1097,
+            604
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png crop [950,320,1300,650]: vertical partition/vestibule wall between the two large meeting rooms, north of corridor wall"
+        ]
+      },
+      {
+        "id": "H_top_corridor",
+        "points": [
+          [
+            427,
+            604
+          ],
+          [
+            1814,
+            604
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: wall between top meeting rooms and central corridor, gray fill ~y604px"
+        ]
+      },
+      {
+        "id": "H_corridor_bottom",
+        "points": [
+          [
+            427,
+            790
+          ],
+          [
+            1814,
+            790
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: wall between central corridor and bottom offices row, gray fill ~y790px"
+        ]
+      },
+      {
+        "id": "P_bottom1",
+        "points": [
+          [
+            774,
+            790
+          ],
+          [
+            774,
+            1072
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: vertical partition between room B1 and B2, gray wall region ~x741-807px"
+        ]
+      },
+      {
+        "id": "P_bottom2",
+        "points": [
+          [
+            1467,
+            790
+          ],
+          [
+            1467,
+            1072
+          ]
+        ],
+        "source_refs": [
+          "2f_view.png: vertical partition between room B2 and B3, gray wall region ~x1434-1500px"
+        ]
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_T1",
+        "kind": "door",
+        "p1": [
+          1002,
+          604
+        ],
+        "p2": [
+          1084,
+          604
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png crop: door arc west of center partition, room T1 into corridor; height assumed standard"
+        ]
+      },
+      {
+        "id": "D_T2",
+        "kind": "door",
+        "p1": [
+          1158,
+          604
+        ],
+        "p2": [
+          1236,
+          604
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png crop: door arc east of center partition, room T2 into corridor; height assumed standard"
+        ]
+      },
+      {
+        "id": "D_B1",
+        "kind": "door",
+        "p1": [
+          650,
+          790
+        ],
+        "p2": [
+          770,
+          790
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png crop [600,760,900,900]: door arc west of partition1, room B1 into corridor; height assumed standard"
+        ]
+      },
+      {
+        "id": "D_B2w",
+        "kind": "door",
+        "p1": [
+          810,
+          790
+        ],
+        "p2": [
+          890,
+          790
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png crop [600,760,900,900]: door arc east of partition1, room B2 west door into corridor; height assumed standard"
+        ]
+      },
+      {
+        "id": "D_B2e",
+        "kind": "door",
+        "p1": [
+          1320,
+          790
+        ],
+        "p2": [
+          1400,
+          790
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png crop [1300,760,1600,900]: door arc west of partition2, room B2 east door into corridor; height assumed standard"
+        ]
+      },
+      {
+        "id": "D_B3",
+        "kind": "door",
+        "p1": [
+          1500,
+          790
+        ],
+        "p2": [
+          1580,
+          790
+        ],
+        "z": [
+          3.0,
+          5.1
+        ],
+        "source_refs": [
+          "2f_view.png crop [1300,760,1600,900]: door arc east of partition2, room B3 into corridor; height assumed standard"
+        ]
+      },
+      {
+        "id": "W_east_corridor",
+        "kind": "window",
+        "p1": [
+          1814,
+          646
+        ],
+        "p2": [
+          1814,
+          757
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "East_view.png: 2F window span 3400-4600mm on 8000mm facade chain, matching corridor depth"
+        ]
+      },
+      {
+        "id": "W_west_corridor",
+        "kind": "window",
+        "p1": [
+          427,
+          646
+        ],
+        "p2": [
+          427,
+          757
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "West_view.png: 2F window span 3400-4600mm on 8000mm facade chain, matching corridor depth"
+        ]
+      },
+      {
+        "id": "W_T1",
+        "kind": "window",
+        "p1": [
+          607,
+          331
+        ],
+        "p2": [
+          940,
+          331
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png north chain 1950-5550mm; North_view.png 2F window family"
+        ]
+      },
+      {
+        "id": "W_T2",
+        "kind": "window",
+        "p1": [
+          1290,
+          331
+        ],
+        "p2": [
+          1623,
+          331
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png north chain 9330-12930mm; North_view.png 2F window family"
+        ]
+      },
+      {
+        "id": "W_S1",
+        "kind": "window",
+        "p1": [
+          630,
+          1072
+        ],
+        "p2": [
+          741,
+          1072
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "South_view.png top chain 2190-3390mm; 2F small window pair"
+        ]
+      },
+      {
+        "id": "W_S2",
+        "kind": "window",
+        "p1": [
+          807,
+          1072
+        ],
+        "p2": [
+          918,
+          1072
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "South_view.png top chain 4110-5310mm; 2F small window pair"
+        ]
+      },
+      {
+        "id": "W_S3",
+        "kind": "window",
+        "p1": [
+          1323,
+          1072
+        ],
+        "p2": [
+          1434,
+          1072
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "South_view.png top chain 9690-10890mm; 2F small window pair"
+        ]
+      },
+      {
+        "id": "W_S4",
+        "kind": "window",
+        "p1": [
+          1501,
+          1072
+        ],
+        "p2": [
+          1612,
+          1072
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "South_view.png top chain 11610-12810mm; 2F small window pair"
+        ]
+      }
+    ],
+    "space_seeds": [
+      {
+        "id": "T1",
+        "point": [
+          650,
+          470
+        ]
+      },
+      {
+        "id": "T2",
+        "point": [
+          1450,
+          470
+        ]
+      },
+      {
+        "id": "corridor2",
+        "point": [
+          1100,
+          700
+        ]
+      },
+      {
+        "id": "B1",
+        "point": [
+          600,
+          930
+        ]
+      },
+      {
+        "id": "B2",
+        "point": [
+          1100,
+          930
+        ]
+      },
+      {
+        "id": "B3",
+        "point": [
+          1650,
+          930
+        ]
+      }
+    ],
+    "assumptions": [
+      "Interior door heights assumed 2.1m (floor+2.1) with no plan/elevation dimension for interior doors on this floor.",
+      "Partition and door jamb pixel positions read from zoomed crops and wall-color detection; sub-100mm placement uncertainty remains.",
+      "South-wall 2F window x-spans taken from South_view.png dimension chain and mapped onto plan pixel coordinates via the shared 15000mm calibration; not independently re-measured in 2f_view.png pixels."
+    ],
+    "unresolved": [
+      "Exact vertical extent/thickness of the P_top vestibule (two close parallel lines) simplified to a single centerline; possible small storage nook there not modeled.",
+      "Bottom-row window count/positions (WS1-WS4) rely on South_view.png dimension chain rather than direct 2f_view.png pixel measurement; not cross-checked against 2f_view.png window graphics pixel-by-pixel."
+    ]
+  },
+  "rendered": {
+    "footprint": [
+      {
+        "id": "footprint",
+        "declared_pixel_points": [
+          [
+            427,
+            331
+          ],
+          [
+            1814,
+            331
+          ],
+          [
+            1814,
+            1072
+          ],
+          [
+            427,
+            1072
+          ]
+        ],
+        "drawn_segment_count": 4,
+        "closure_semantics": "closed only as declared footprint-ring semantics"
+      }
+    ],
+    "partitions": [
+      {
+        "id": "P_top",
+        "declared_pixel_points": [
+          [
+            1097,
+            331
+          ],
+          [
+            1097,
+            604
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H_top_corridor",
+        "declared_pixel_points": [
+          [
+            427,
+            604
+          ],
+          [
+            1814,
+            604
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "H_corridor_bottom",
+        "declared_pixel_points": [
+          [
+            427,
+            790
+          ],
+          [
+            1814,
+            790
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "P_bottom1",
+        "declared_pixel_points": [
+          [
+            774,
+            790
+          ],
+          [
+            774,
+            1072
+          ]
+        ],
+        "drawn_segment_count": 1
+      },
+      {
+        "id": "P_bottom2",
+        "declared_pixel_points": [
+          [
+            1467,
+            790
+          ],
+          [
+            1467,
+            1072
+          ]
+        ],
+        "drawn_segment_count": 1
+      }
+    ],
+    "openings": [
+      {
+        "id": "D_T1",
+        "kind": "door",
+        "declared_p1": [
+          1002,
+          604
+        ],
+        "declared_p2": [
+          1084,
+          604
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_T2",
+        "kind": "door",
+        "declared_p1": [
+          1158,
+          604
+        ],
+        "declared_p2": [
+          1236,
+          604
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_B1",
+        "kind": "door",
+        "declared_p1": [
+          650,
+          790
+        ],
+        "declared_p2": [
+          770,
+          790
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_B2w",
+        "kind": "door",
+        "declared_p1": [
+          810,
+          790
+        ],
+        "declared_p2": [
+          890,
+          790
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_B2e",
+        "kind": "door",
+        "declared_p1": [
+          1320,
+          790
+        ],
+        "declared_p2": [
+          1400,
+          790
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "D_B3",
+        "kind": "door",
+        "declared_p1": [
+          1500,
+          790
+        ],
+        "declared_p2": [
+          1580,
+          790
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_east_corridor",
+        "kind": "window",
+        "declared_p1": [
+          1814,
+          646
+        ],
+        "declared_p2": [
+          1814,
+          757
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_west_corridor",
+        "kind": "window",
+        "declared_p1": [
+          427,
+          646
+        ],
+        "declared_p2": [
+          427,
+          757
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_T1",
+        "kind": "window",
+        "declared_p1": [
+          607,
+          331
+        ],
+        "declared_p2": [
+          940,
+          331
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_T2",
+        "kind": "window",
+        "declared_p1": [
+          1290,
+          331
+        ],
+        "declared_p2": [
+          1623,
+          331
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_S1",
+        "kind": "window",
+        "declared_p1": [
+          630,
+          1072
+        ],
+        "declared_p2": [
+          741,
+          1072
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_S2",
+        "kind": "window",
+        "declared_p1": [
+          807,
+          1072
+        ],
+        "declared_p2": [
+          918,
+          1072
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_S3",
+        "kind": "window",
+        "declared_p1": [
+          1323,
+          1072
+        ],
+        "declared_p2": [
+          1434,
+          1072
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      },
+      {
+        "id": "W_S4",
+        "kind": "window",
+        "declared_p1": [
+          1501,
+          1072
+        ],
+        "declared_p2": [
+          1612,
+          1072
+        ],
+        "drawn": true,
+        "unrenderable_count": 0
+      }
+    ]
+  },
+  "unrenderable": [],
+  "method": {
+    "coordinate_frame": "identity_original_image_pixels",
+    "original_image_box_in_preview": [
+      0,
+      0,
+      2182,
+      1319
+    ],
+    "preview_output_size": [
+      2182,
+      1343
+    ],
+    "endpoints_modified": false,
+    "endpoint_markers_centered_at_declared_points": true,
+    "partitions_extended_or_snapped": false,
+    "openings_clipped_or_hosted": false,
+    "spaces_or_rooms_derived": false
+  },
+  "scope": "Literal caller-declared pixel linework over the original image. This is neither a source BIM nor evidence that walls, openings, rooms, or drawing fidelity are valid.",
+  "preview": {
+    "image_file": "plan_drafts/draft_001/draft_view.png",
+    "image_sha256": "7ed073a19719f42f21d60e16cf182118dc5c81dbe9b5a8c3d254bdce5c6058ac"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "agent_assumptions": [
+    "Interior door heights assumed 2.1m (floor+2.1) with no plan/elevation dimension for interior doors on this floor.",
+    "Partition and door jamb pixel positions read from zoomed crops and wall-color detection; sub-100mm placement uncertainty remains.",
+    "South-wall 2F window x-spans taken from South_view.png dimension chain and mapped onto plan pixel coordinates via the shared 15000mm calibration; not independently re-measured in 2f_view.png pixels.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 42,
+    "connections": 6,
+    "openings": 14,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "422a73ebf940b8052af1f71208629b5bb8ee3382726ec1ef97fdaf498604c64b",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "896f9ed322f513e3d9eb66c4c5539e8eabe2f09b96bb408e0b025bf39414d83b",
+    "mode": "original_images_agent_experiment",
+    "plan_input": {
+      "compilation_file": "plan_drafts/draft_002/compilation.json",
+      "compilation_sha256": "7ae8760f7a40346396d4ceb4db38f75101c0309165fa3459c4085a609ec07067",
+      "draft_view": {
+        "draft_only": true,
+        "drawing_fidelity": "not_evaluated",
+        "image_file": "plan_drafts/draft_002/draft_view.png",
+        "image_sha256": "3e80e432528dd10e6a7249ea626560a8c57154a618a1ca2b05c6adab10de4c5e",
+        "metadata_file": "plan_drafts/draft_002/draft_view.json",
+        "metadata_sha256": "05791e2263e18ad31f81724639ae8a161813613cd4406309b8479d7691e44938",
+        "source_geometry_ready": false,
+        "unrenderable": [],
+        "unrenderable_count": 0
+      },
+      "image": "2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "plan_file": "plan_drafts/draft_002/plan.json",
+      "plan_sha256": "4439d5dcbb1fe7fd48c73dbb8884856e68ca337e8bc5b55507cdc6a290575836",
+      "revision": {
+        "file": "plan_revisions/revision_001.json",
+        "parent_draft_id": "draft_001",
+        "parent_plan_sha256": "16ec6a898b9498e3ba9119ca0a91935b1967f81369913bd3f22463a999ce078e",
+        "sha256": "0b8863aa87f6150e90f0564de86698cdaf7389fe175f5405243ce0412410a8be"
+      }
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "d8e8b132987e88d99dfe356eee5877357fe3b02355dd82ea65b5b240a82dd2dd",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact vertical extent/thickness of the P_top vestibule (two close parallel lines) simplified to a single centerline; possible small storage nook there not modeled.",
+    "Bottom-row window count/positions (WS1-WS4) rely on South_view.png dimension chain rather than direct 2f_view.png pixel measurement; not cross-checked against 2f_view.png window graphics pixel-by-pixel.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
