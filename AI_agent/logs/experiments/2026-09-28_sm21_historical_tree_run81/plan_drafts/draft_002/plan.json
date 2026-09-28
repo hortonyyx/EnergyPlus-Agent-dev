@@ -1,0 +1,40 @@
+{"floor_id":"F2","z_floor":3.0,"ceiling_height":3.6,
+"x_anchors":[[427.5,0.0],[1812.5,15.0]],
+"y_anchors":[[330.5,8.0],[1071.5,0.0]],
+"basis":"2f_view.png: outer wall faces calibrated to 15000x8000mm overall dimension chains (measured via gray wall pixel regions, same building footprint size as 1F); wall thickness ~240mm exterior, ~120mm interior partitions measured via view_pixel_profile",
+"footprint_pixels":[[427.5,330.5],[1812.5,330.5],[1812.5,1071.5],[427.5,1071.5]],
+"partitions":[
+{"id":"Pmid_top","points":[[1119.5,330.5],[1119.5,603]],"source_refs":["2f_view.png: vertical divider between the two meeting rooms, measured solid gray x1114-1125,y389-599 via view_pixel_profile, no door gap"]},
+{"id":"Pmid_bottom","points":[[1119.5,799],[1119.5,1071.5]],"source_refs":["2f_view.png: same partition continuing below corridor between office2/office3, measured solid y803-1068"]},
+{"id":"Poff1","points":[[773.5,799],[773.5,1071.5]],"source_refs":["2f_view.png: office partition between office1/office2 at x768-779, measured solid y803-1068"]},
+{"id":"Poff3","points":[[1466.5,799],[1466.5,1071.5]],"source_refs":["2f_view.png: office partition between office3/office4 at x1461-1472, measured solid (pattern consistent with Poff1/Pmid_bottom)"]},
+{"id":"CorridorTop","points":[[427.5,603],[1812.5,603]],"source_refs":["2f_view.png: thin corridor top wall measured at y=603 via view_pixel_profile, spans full width with 2 door gaps"]},
+{"id":"CorridorBottom","points":[[427.5,799],[1812.5,799]],"source_refs":["2f_view.png: thin corridor bottom wall measured at y=799, spans full width with 4 door gaps"]}
+],
+"openings":[
+{"id":"D2F_TL","kind":"door","p1":[1002,603],"p2":[1087,603],"z":[3.0,5.1],"source_refs":["2f_view.png: door gap x1002-1087 in corridor top wall (top-left meeting room); height assumed 2.1m above F2 floor (z_floor=3.0), no elevation evidence for interior doors"]},
+{"id":"D2F_TR","kind":"door","p1":[1151,603],"p2":[1237,603],"z":[3.0,5.1],"source_refs":["2f_view.png: door gap x1151-1237 in corridor top wall (top-right meeting room); height assumed"]},
+{"id":"D2F_O1","kind":"door","p1":[656,799],"p2":[742,799],"z":[3.0,5.1],"source_refs":["2f_view.png: door gap x656-742 in corridor bottom wall (office1); height assumed"]},
+{"id":"D2F_O2","kind":"door","p1":[806,799],"p2":[891,799],"z":[3.0,5.1],"source_refs":["2f_view.png: door gap x806-891 in corridor bottom wall (office2); height assumed"]},
+{"id":"D2F_O3","kind":"door","p1":[1349,799],"p2":[1435,799],"z":[3.0,5.1],"source_refs":["2f_view.png: door gap x1349-1435 in corridor bottom wall (office3); height assumed"]},
+{"id":"D2F_O4","kind":"door","p1":[1499,799],"p2":[1584,799],"z":[3.0,5.1],"source_refs":["2f_view.png: door gap x1499-1584 in corridor bottom wall (office4); height assumed"]},
+{"id":"W2F_West","kind":"window","p1":[427.5,647],"p2":[427.5,755],"z":[4.03,5.86],"source_refs":["2f_view.png: west exterior window at corridor level y647-755; West_view.png elevation shows matching 2F window above ground-floor door; height assumed same family as North_view-measured 2F window (sill/head 4.03/5.86m)"]},
+{"id":"W2F_East","kind":"window","p1":[1812.5,647],"p2":[1812.5,705],"z":[4.03,5.86],"source_refs":["2f_view.png: east exterior window at corridor level y647-705; height assumed same 2F family, not independently measured on East_view.png"]},
+{"id":"W2F_N1","kind":"window","p1":[607,330.5],"p2":[940,330.5],"z":[4.03,5.86],"source_refs":["2f_view.png plan position x607-940 (north wall, top-left meeting room); North_view.png elevation: 2F window outer rectangle measured y244-348px -> sill 4.03m, head 5.86m above ground"]},
+{"id":"W2F_N2","kind":"window","p1":[1300,330.5],"p2":[1633,330.5],"z":[4.03,5.86],"source_refs":["2f_view.png plan position x1300-1633 (north wall, top-right meeting room); height matches measured North_view 2F window family"]},
+{"id":"W2F_S1","kind":"window","p1":[630,1071.5],"p2":[738,1071.5],"z":[4.03,5.86],"source_refs":["2f_view.png plan position x630-738 (south wall, office1); height assumed same 2F family as measured on North_view (South not independently pixel-measured for height)"]},
+{"id":"W2F_S2","kind":"window","p1":[809,1071.5],"p2":[916,1071.5],"z":[4.03,5.86],"source_refs":["2f_view.png plan position x809-916 (south wall, office2); height assumed same 2F family"]},
+{"id":"W2F_S3","kind":"window","p1":[1323,1071.5],"p2":[1433,1071.5],"z":[4.03,5.86],"source_refs":["2f_view.png plan position x1323-1433 (south wall, office3); height assumed same 2F family"]},
+{"id":"W2F_S4","kind":"window","p1":[1500,1071.5],"p2":[1609,1071.5],"z":[4.03,5.86],"source_refs":["2f_view.png plan position x1500-1609 (south wall, office4); height assumed same 2F family"]}
+],
+"space_seeds":[
+{"id":"F2_MeetingLeft","point":[700,450],"role":"meeting"},
+{"id":"F2_MeetingRight","point":[1500,450],"role":"meeting"},
+{"id":"F2_Corridor","point":[1100,700],"role":"corridor"},
+{"id":"F2_Office1","point":[600,950],"role":"office"},
+{"id":"F2_Office2","point":[950,950],"role":"office"},
+{"id":"F2_Office3","point":[1290,950],"role":"office"},
+{"id":"F2_Office4","point":[1650,950],"role":"office"}
+],
+"assumptions":["Interior 2F door heights assumed 2.1m clear (z 3.0-5.1m), no elevation evidence for interior partitions.","South/East/West 2F window heights assumed equal to the North_view-measured 2F window family (sill 4.03m, head 5.86m); not independently pixel-measured on those elevations in this pass.","No exterior doors exist on F2 per plan and elevation evidence (West_view/East_view show only windows on F2); vertical circulation between F1 and F2 is not shown in supplied inputs and is not modeled."],
+"unresolved":["South_view.png and East_view.png 2F window heights not independently pixel-measured; using North-derived family as an explicit assumption.","No stair/vertical-circulation evidence supplied; F1 and F2 are modeled as independent stacked floors without an explicit connection."]}

@@ -1,0 +1,27 @@
+{
+  "run": "2026-09-28_sm21_threshold_legacy_run79",
+  "tool_ordinal": 97,
+  "operation": {
+    "op": "set_space_role",
+    "space_id": "F1:RoomA",
+    "role": "office",
+    "basis": "observed",
+    "reason": "desk with 2 chairs, north-facing office bay",
+    "source_refs": [
+      "1f_view.png"
+    ]
+  },
+  "before_error": "set_notes: assumptions must be a list of strings",
+  "before_reproduced": true,
+  "model_calls": 0,
+  "limit": "This failure occurred after final physical geometry was built; it explains retries, not prior geometry errors.",
+  "after_success": true,
+  "after_matches_explicit_empty_assumptions": true,
+  "actual_saved_candidate_06_proposal_exact": true,
+  "validation": {
+    "command": "python -m pytest tests/test_proposal_edits.py -q",
+    "passed": 30,
+    "model_calls": 0,
+    "scope": "Observed/unknown omitted assumptions, inferred assumptions still required, operation-specific error, existing geometry preservation checks."
+  }
+}

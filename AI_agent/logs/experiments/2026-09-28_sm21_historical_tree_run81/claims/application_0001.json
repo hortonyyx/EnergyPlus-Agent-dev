@@ -1,0 +1,1267 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "candidate_03",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "F1:W_N1",
+      "changes": {
+        "z": {
+          "claim": "claim_0001",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F1:W_N2",
+      "changes": {
+        "z": {
+          "claim": "claim_0001",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F1:W_N3",
+      "changes": {
+        "z": {
+          "claim": "claim_0001",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F2:W2F_N1",
+      "changes": {
+        "z": {
+          "claim": "claim_0002",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured 2F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0002"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F2:W2F_N2",
+      "changes": {
+        "z": {
+          "claim": "claim_0002",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured 2F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0002"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_West",
+      "changes": {
+        "z": {
+          "claim": "claim_0003",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured west entrance door head from West_view.png",
+      "source_refs": [
+        "claim_0003"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_South",
+      "changes": {
+        "z": {
+          "claim": "claim_0004",
+          "value": "z"
+        }
+      },
+      "reason": "Apply pixel-measured south entrance door head from South_view.png",
+      "source_refs": [
+        "claim_0004"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "South window heights assumed equal to measured North elevation window family (not independently pixel-measured on South_view).",
+      "replacement": [
+        "South/East window heights (W_S1-3, W_East) assumed equal to the North_view.png-measured 1F window family (head 2.653m, sill 1.023m above ground); not independently pixel-measured on South_view.png/East_view.png in this pass. North-facing windows W_N1-3 now use directly measured North_view.png pixel evidence via claim_0001.",
+        "Ground-floor exterior doors D_West and D_South now use directly measured elevation pixel evidence (claims 0003/0004: heads at 2.135m and 2.132m respectively) instead of the initial assumed values."
+      ],
+      "reason": "North window family and both exterior ground-floor doors now have direct elevation pixel measurement (claims 0001,0003,0004); remaining South/East window heights and interior door heights remain explicit assumptions.",
+      "source_refs": [
+        "claim_0001",
+        "claim_0003",
+        "claim_0004"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0001",
+    "claim_0002",
+    "claim_0003",
+    "claim_0004"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F1:W_N1"
+          ]
+        ],
+        "claim_id": "claim_0001",
+        "value_field": "z",
+        "resolved_value": [
+          1.023121387,
+          2.653179191
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            577,
+            404,
+            518.0,
+            424.0
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.017341040462427744,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 1,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F1:W_N2"
+          ]
+        ],
+        "claim_id": "claim_0001",
+        "value_field": "z",
+        "resolved_value": [
+          1.023121387,
+          2.653179191
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            577,
+            404,
+            518.0,
+            424.0
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.017341040462427744,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 2,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F1:W_N3"
+          ]
+        ],
+        "claim_id": "claim_0001",
+        "value_field": "z",
+        "resolved_value": [
+          1.023121387,
+          2.653179191
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            577,
+            404,
+            518.0,
+            424.0
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.017341040462427744,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 3,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F2:W2F_N1"
+          ]
+        ],
+        "claim_id": "claim_0002",
+        "value_field": "z",
+        "resolved_value": [
+          3.983414634,
+          5.809756098
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            404,
+            199,
+            348.0,
+            244.0
+          ],
+          "metre_anchors": [
+            3.0,
+            6.6
+          ],
+          "metres_per_pixel": -0.017560975609756096,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 4,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "F2:W2F_N2"
+          ]
+        ],
+        "claim_id": "claim_0002",
+        "value_field": "z",
+        "resolved_value": [
+          3.983414634,
+          5.809756098
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            404,
+            199,
+            348.0,
+            244.0
+          ],
+          "metre_anchors": [
+            3.0,
+            6.6
+          ],
+          "metres_per_pixel": -0.017560975609756096,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 5,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:D_West"
+          ]
+        ],
+        "claim_id": "claim_0003",
+        "value_field": "z",
+        "resolved_value": [
+          0.0,
+          2.135294118
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            559.5,
+            389.5,
+            559.5,
+            438.5
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.01764705882352941,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 6,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:D_South"
+          ]
+        ],
+        "claim_id": "claim_0004",
+        "value_field": "z",
+        "resolved_value": [
+          0.0,
+          2.131764706
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            567.5,
+            397.5,
+            567.5,
+            446.7
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.01764705882352941,
+          "measurement_bindings": [],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      }
+    ],
+    "claims": {
+      "claim_0001": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "candidate_03",
+            "objects": [
+              {
+                "id": "F1:W_N1",
+                "kind": "window"
+              },
+              {
+                "id": "F1:W_N2",
+                "kind": "window"
+              },
+              {
+                "id": "F1:W_N3",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "North_view.png 1F window outer rectangle measured directly: ground line at pixel y=577 (region-detected 1F wall band bottom), 1F/2F floor line at pixel y=404 (region-detected 1F wall band top), mapping to world z 0.0 and 3.0m respectively (matches measured 1F wall height 3000mm). Window outer rectangle vertical extent measured at pixel y=424 (head) and y=518 (sill) via view_pixel_region on cyan window frame color.",
+            "sources": [
+              {
+                "box": [
+                  400.0,
+                  240.0,
+                  650.0,
+                  530.0
+                ],
+                "image": "North_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    577,
+                    0.0
+                  ],
+                  [
+                    404,
+                    3.0
+                  ]
+                ],
+                "axis": "y",
+                "image": "North_view.png",
+                "pixels": [
+                  518.0,
+                  424.0
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                3.0
+              ],
+              "metres_per_pixel": -0.017341040462427744,
+              "pixels": [
+                577,
+                404,
+                518.0,
+                424.0
+              ]
+            }
+          },
+          "id": "claim_0001",
+          "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+          "resolved_values": {
+            "z": [
+              1.023121387,
+              2.653179191
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                400.0,
+                240.0,
+                650.0,
+                530.0
+              ],
+              "image": "North_view.png",
+              "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+              "size": [
+                1354,
+                812
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "Direct pixel measurement of 1F north window family outer frame against ground/floor-line anchors; matches assumed value used in initial build within ~30mm."
+        }
+      },
+      "claim_0002": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "candidate_03",
+            "objects": [
+              {
+                "id": "F2:W2F_N1",
+                "kind": "window"
+              },
+              {
+                "id": "F2:W2F_N2",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "North_view.png 2F window outer rectangle measured directly: 1F/2F floor line at pixel y=404 (world z=3.0m), roof/parapet line at pixel y=199 (world z=6.6m, matches measured 2F wall height 3600mm). Window outer rectangle vertical extent measured at pixel y=244 (head) and y=348 (sill) via view_pixel_region on cyan window frame color.",
+            "sources": [
+              {
+                "box": [
+                  380.0,
+                  190.0,
+                  650.0,
+                  410.0
+                ],
+                "image": "North_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    404,
+                    3.0
+                  ],
+                  [
+                    199,
+                    6.6
+                  ]
+                ],
+                "axis": "y",
+                "image": "North_view.png",
+                "pixels": [
+                  348.0,
+                  244.0
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                3.0,
+                6.6
+              ],
+              "metres_per_pixel": -0.017560975609756096,
+              "pixels": [
+                404,
+                199,
+                348.0,
+                244.0
+              ]
+            }
+          },
+          "id": "claim_0002",
+          "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+          "resolved_values": {
+            "z": [
+              3.983414634,
+              5.809756098
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                380.0,
+                190.0,
+                650.0,
+                410.0
+              ],
+              "image": "North_view.png",
+              "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+              "size": [
+                1354,
+                812
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0002",
+          "disposition": "adopted",
+          "id": "decision_0002",
+          "reason": "Direct pixel measurement of 2F north window family outer frame against floor-line/roof-line anchors."
+        }
+      },
+      "claim_0003": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "candidate_03",
+            "objects": [
+              {
+                "id": "F1:D_West",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "West_view.png ground floor double-door head measured directly: ground line at pixel y=559.5 (world z=0.0m, region-detected wall band bottom), 1F/2F floor line at pixel y=389.5 (world z=3.0m). Door head measured at pixel y=438.5 via view_pixel_region on cyan door frame color; sill at ground (pixel 559.5, z=0).",
+            "sources": [
+              {
+                "box": [
+                  360.0,
+                  380.0,
+                  840.0,
+                  565.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    559.5,
+                    0.0
+                  ],
+                  [
+                    389.5,
+                    3.0
+                  ]
+                ],
+                "axis": "y",
+                "image": "West_view.png",
+                "pixels": [
+                  559.5,
+                  438.5
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                3.0
+              ],
+              "metres_per_pixel": -0.01764705882352941,
+              "pixels": [
+                559.5,
+                389.5,
+                559.5,
+                438.5
+              ]
+            }
+          },
+          "id": "claim_0003",
+          "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+          "resolved_values": {
+            "z": [
+              0.0,
+              2.135294118
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                360.0,
+                380.0,
+                840.0,
+                565.0
+              ],
+              "image": "West_view.png",
+              "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "size": [
+                1077,
+                773
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0003",
+          "disposition": "adopted",
+          "id": "decision_0003",
+          "reason": "Direct pixel measurement of west entrance double-door head against West_view.png ground/floor-line anchors."
+        }
+      },
+      "claim_0004": {
+        "record": {
+          "claim": {
+            "basis": "pixels",
+            "candidate": "candidate_03",
+            "objects": [
+              {
+                "id": "F1:D_South",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "South_view.png ground floor single-door head measured directly: ground line at pixel y=567.5 (world z=0.0m, region-detected wall band bottom), 1F/2F floor line at pixel y=397.5 (world z=3.0m). Door head measured at pixel y=446.7 via original-image crop inspection of the cyan door frame; sill at ground (pixel 567.5, z=0).",
+            "sources": [
+              {
+                "box": [
+                  300.0,
+                  390.0,
+                  400.0,
+                  570.0
+                ],
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    567.5,
+                    0.0
+                  ],
+                  [
+                    397.5,
+                    3.0
+                  ]
+                ],
+                "axis": "y",
+                "image": "South_view.png",
+                "pixels": [
+                  567.5,
+                  446.7
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                3.0
+              ],
+              "metres_per_pixel": -0.01764705882352941,
+              "pixels": [
+                567.5,
+                397.5,
+                567.5,
+                446.7
+              ]
+            }
+          },
+          "id": "claim_0004",
+          "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+          "resolved_values": {
+            "z": [
+              0.0,
+              2.131764706
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                300.0,
+                390.0,
+                400.0,
+                570.0
+              ],
+              "image": "South_view.png",
+              "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "size": [
+                1423,
+                794
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0004",
+          "disposition": "adopted",
+          "id": "decision_0004",
+          "reason": "Direct pixel measurement of south entrance door head against South_view.png ground/floor-line anchors."
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "F1:W_N1",
+      "changes": {
+        "z": [
+          1.023121387,
+          2.653179191
+        ]
+      },
+      "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0001",
+        "claim:claim_0001:d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F1:W_N2",
+      "changes": {
+        "z": [
+          1.023121387,
+          2.653179191
+        ]
+      },
+      "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0001",
+        "claim:claim_0001:d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F1:W_N3",
+      "changes": {
+        "z": [
+          1.023121387,
+          2.653179191
+        ]
+      },
+      "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0001",
+        "claim:claim_0001:d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F2:W2F_N1",
+      "changes": {
+        "z": [
+          3.983414634,
+          5.809756098
+        ]
+      },
+      "reason": "Apply pixel-measured 2F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0002",
+        "claim:claim_0002:528cd3f9639d34c4a8559792d1a2a2ff76fbe8f02a06ae8fa8169a154307639b"
+      ]
+    },
+    {
+      "op": "update_window",
+      "id": "F2:W2F_N2",
+      "changes": {
+        "z": [
+          3.983414634,
+          5.809756098
+        ]
+      },
+      "reason": "Apply pixel-measured 2F north window head/sill from North_view.png",
+      "source_refs": [
+        "claim_0002",
+        "claim:claim_0002:528cd3f9639d34c4a8559792d1a2a2ff76fbe8f02a06ae8fa8169a154307639b"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_West",
+      "changes": {
+        "z": [
+          0.0,
+          2.135294118
+        ]
+      },
+      "reason": "Apply pixel-measured west entrance door head from West_view.png",
+      "source_refs": [
+        "claim_0003",
+        "claim:claim_0003:2c17a3e5a6bc9aaba1bb30655b3fd11412b542bdb4ca1448b8af573a0eb7fcf9"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_South",
+      "changes": {
+        "z": [
+          0.0,
+          2.131764706
+        ]
+      },
+      "reason": "Apply pixel-measured south entrance door head from South_view.png",
+      "source_refs": [
+        "claim_0004",
+        "claim:claim_0004:e4499e8f6203c3fe7092d940aca175c4322030db0598758d913ecf7fb845a275"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "South window heights assumed equal to measured North elevation window family (not independently pixel-measured on South_view).",
+      "replacement": [
+        "South/East window heights (W_S1-3, W_East) assumed equal to the North_view.png-measured 1F window family (head 2.653m, sill 1.023m above ground); not independently pixel-measured on South_view.png/East_view.png in this pass. North-facing windows W_N1-3 now use directly measured North_view.png pixel evidence via claim_0001.",
+        "Ground-floor exterior doors D_West and D_South now use directly measured elevation pixel evidence (claims 0003/0004: heads at 2.135m and 2.132m respectively) instead of the initial assumed values."
+      ],
+      "reason": "North window family and both exterior ground-floor doors now have direct elevation pixel measurement (claims 0001,0003,0004); remaining South/East window heights and interior door heights remain explicit assumptions.",
+      "source_refs": [
+        "claim_0001",
+        "claim_0003",
+        "claim_0004"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "4108ddead18d4641de01fcc069bda0563322bee5c02e48d8932c7b6892217687",
+  "geometry_after_sha256": "a78a406f483710836e45e9b3cfed83ed1e48f43d7caab3eb36e8da4025544873",
+  "changes": [
+    {
+      "kind": "opening",
+      "id": "F1:D_South",
+      "before": {
+        "id": "F1:D_South",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.555755,
+          0.0
+        ],
+        "p2": [
+          1.419065,
+          0.0
+        ],
+        "space_id": "F1:F1_BottomLeft",
+        "z": [
+          0.0,
+          2.29
+        ]
+      },
+      "after": {
+        "id": "F1:D_South",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.555755,
+          0.0
+        ],
+        "p2": [
+          1.419065,
+          0.0
+        ],
+        "space_id": "F1:F1_BottomLeft",
+        "z": [
+          0.0,
+          2.131764706
+        ]
+      }
+    },
+    {
+      "kind": "opening",
+      "id": "F1:D_West",
+      "before": {
+        "id": "F1:D_West",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          4.723347
+        ],
+        "p2": [
+          0.0,
+          3.265857
+        ],
+        "space_id": "F1:F1_Corridor",
+        "z": [
+          0.0,
+          2.3
+        ]
+      },
+      "after": {
+        "id": "F1:D_West",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          4.723347
+        ],
+        "p2": [
+          0.0,
+          3.265857
+        ],
+        "space_id": "F1:F1_Corridor",
+        "z": [
+          0.0,
+          2.135294118
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F1:W_N1",
+      "before": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_N1",
+        "kind": "window",
+        "p1": [
+          1.257194,
+          8.0
+        ],
+        "p2": [
+          3.631295,
+          8.0
+        ],
+        "room": "F1:F1_TopLeft",
+        "span": [
+          1.257194,
+          3.631295
+        ],
+        "width_m": 2.374101,
+        "z": [
+          1.04,
+          2.69
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_N1",
+        "kind": "window",
+        "p1": [
+          1.257194,
+          8.0
+        ],
+        "p2": [
+          3.631295,
+          8.0
+        ],
+        "room": "F1:F1_TopLeft",
+        "span": [
+          1.257194,
+          3.631295
+        ],
+        "width_m": 2.374101,
+        "z": [
+          1.023121387,
+          2.653179191
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F1:W_N2",
+      "before": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_N2",
+        "kind": "window",
+        "p1": [
+          6.318345,
+          8.0
+        ],
+        "p2": [
+          8.681655,
+          8.0
+        ],
+        "room": "F1:F1_TopMid",
+        "span": [
+          6.318345,
+          8.681655
+        ],
+        "width_m": 2.36331,
+        "z": [
+          1.04,
+          2.69
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_N2",
+        "kind": "window",
+        "p1": [
+          6.318345,
+          8.0
+        ],
+        "p2": [
+          8.681655,
+          8.0
+        ],
+        "room": "F1:F1_TopMid",
+        "span": [
+          6.318345,
+          8.681655
+        ],
+        "width_m": 2.36331,
+        "z": [
+          1.023121387,
+          2.653179191
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F1:W_N3",
+      "before": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_N3",
+        "kind": "window",
+        "p1": [
+          11.379496,
+          8.0
+        ],
+        "p2": [
+          13.742806,
+          8.0
+        ],
+        "room": "F1:F1_TopRight",
+        "span": [
+          11.379496,
+          13.742806
+        ],
+        "width_m": 2.36331,
+        "z": [
+          1.04,
+          2.69
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_N3",
+        "kind": "window",
+        "p1": [
+          11.379496,
+          8.0
+        ],
+        "p2": [
+          13.742806,
+          8.0
+        ],
+        "room": "F1:F1_TopRight",
+        "span": [
+          11.379496,
+          13.742806
+        ],
+        "width_m": 2.36331,
+        "z": [
+          1.023121387,
+          2.653179191
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F2:W2F_N1",
+      "before": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W2F_N1",
+        "kind": "window",
+        "p1": [
+          1.944043,
+          8.0
+        ],
+        "p2": [
+          5.550542,
+          8.0
+        ],
+        "room": "F2:F2_MeetingLeft",
+        "span": [
+          1.944043,
+          5.550542
+        ],
+        "width_m": 3.606499,
+        "z": [
+          4.03,
+          5.86
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W2F_N1",
+        "kind": "window",
+        "p1": [
+          1.944043,
+          8.0
+        ],
+        "p2": [
+          5.550542,
+          8.0
+        ],
+        "room": "F2:F2_MeetingLeft",
+        "span": [
+          1.944043,
+          5.550542
+        ],
+        "width_m": 3.606499,
+        "z": [
+          3.983414634,
+          5.809756098
+        ]
+      }
+    },
+    {
+      "kind": "window",
+      "id": "F2:W2F_N2",
+      "before": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W2F_N2",
+        "kind": "window",
+        "p1": [
+          9.449458,
+          8.0
+        ],
+        "p2": [
+          13.055957,
+          8.0
+        ],
+        "room": "F2:F2_MeetingRight",
+        "span": [
+          9.449458,
+          13.055957
+        ],
+        "width_m": 3.606499,
+        "z": [
+          4.03,
+          5.86
+        ]
+      },
+      "after": {
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:W2F_N2",
+        "kind": "window",
+        "p1": [
+          9.449458,
+          8.0
+        ],
+        "p2": [
+          13.055957,
+          8.0
+        ],
+        "room": "F2:F2_MeetingRight",
+        "span": [
+          9.449458,
+          13.055957
+        ],
+        "width_m": 3.606499,
+        "z": [
+          3.983414634,
+          5.809756098
+        ]
+      }
+    }
+  ],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_04",
+  "source_model_sha256": "e8f6e223afd78104513a1231724a300f15e0ec487f56060d96967be2cea18122",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

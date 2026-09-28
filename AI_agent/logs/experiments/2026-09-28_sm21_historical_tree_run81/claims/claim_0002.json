@@ -1,0 +1,97 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W2F_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W2F_N2",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png 2F window outer rectangle measured directly: 1F/2F floor line at pixel y=404 (world z=3.0m), roof/parapet line at pixel y=199 (world z=6.6m, matches measured 2F wall height 3600mm). Window outer rectangle vertical extent measured at pixel y=244 (head) and y=348 (sill) via view_pixel_region on cyan window frame color.",
+    "sources": [
+      {
+        "box": [
+          380.0,
+          190.0,
+          650.0,
+          410.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            404,
+            3.0
+          ],
+          [
+            199,
+            6.6
+          ]
+        ],
+        "axis": "y",
+        "image": "North_view.png",
+        "pixels": [
+          348.0,
+          244.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        3.0,
+        6.6
+      ],
+      "metres_per_pixel": -0.017560975609756096,
+      "pixels": [
+        404,
+        199,
+        348.0,
+        244.0
+      ]
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+  "resolved_values": {
+    "z": [
+      3.983414634,
+      5.809756098
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        380.0,
+        190.0,
+        650.0,
+        410.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

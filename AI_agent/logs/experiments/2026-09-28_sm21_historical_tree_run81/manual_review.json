@@ -1,0 +1,77 @@
+{
+  "candidate": "candidate_04",
+  "source_model_sha256": "e8f6e223afd78104513a1231724a300f15e0ec487f56060d96967be2cea18122",
+  "reviewer": "Development assistant; original plans, final overlays and South elevation inspected after generation.",
+  "model_calls": 0,
+  "source_images": {
+    "1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "East_view.png": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+    "North_view.png": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+    "South_view.png": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+    "West_view.png": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2"
+  },
+  "findings": [
+    {
+      "code": "window_family_overgeneralized",
+      "opening_id": "F1:W_S1",
+      "reference_z_m": [
+        1.5,
+        2.1
+      ],
+      "actual_z_m": [
+        1.04,
+        2.69
+      ],
+      "reference_chain_top_to_bottom_mm": [
+        900,
+        600,
+        1500
+      ],
+      "evidence": "South_view.png visibly distinguishes the small window. draft_001 declares North-family reuse; final revision changes only North windows and exterior doors, leaving this window unchanged."
+    },
+    {
+      "code": "partial_plan_window_span",
+      "opening_id": "F2:W2F_East",
+      "reference_original_y_pixels": [
+        645,
+        757
+      ],
+      "declared_y_pixels": [
+        647,
+        705
+      ],
+      "reference_width_m": 1.2,
+      "actual_width_m": 0.626181,
+      "max_endpoint_error_m": 0.5622204054054056,
+      "evidence": "draft_002 first declaration already truncates the opening. Final revision does not alter it. Original plan overlay and unchanged reference establish full extent."
+    },
+    {
+      "code": "remaining_minor_height_differences",
+      "evidence": "F1 east top 2.7m vs 2.8m; regular windows and exterior doors have smaller pixel-calibration offsets, all within existing GT z tolerance. These are separate from the south small-window family error."
+    },
+    {
+      "code": "review_stopped_with_unchecked_heights",
+      "image_linked_openings": 7,
+      "unchecked_openings": 22,
+      "remaining_seconds_approximately": 2010,
+      "saved_candidates": 4,
+      "candidate_cap": 6,
+      "source_elevation_calls": 0,
+      "evidence": "finish_bim preserved explicit unchecked South/East height assumptions. No timeout/quota failure; no actual source elevation rendering was requested."
+    }
+  ],
+  "partition_interpretation": "14 distinct rooms, no split/merge/overlap findings. Existing strict tolerance reports boundary deviations: F1 north corridor about 2.8cm, east divider about 6.7cm, F2 corridor boundaries about 5.8cm. These are distinguished from missing/extra physical partitions; raw severities retained.",
+  "opening_identity": {
+    "positions": 28,
+    "reference_count": 29,
+    "hosts_with_distinct_reference_room_identity": 29,
+    "connections_with_distinct_reference_room_identity": 14
+  },
+  "room_uses": "Old source has 9 office, 3 meeting, 2 corridor roles; no new structured role_evidence/catalog/public naming feature.",
+  "status": "not_accepted_as_faithful_whole_building",
+  "limits": [
+    "One fresh old-tree sample, not proof of stable old performance or a single-feature causal effect.",
+    "Source is unchanged; diagnostic observations were not sent to generation."
+  ]
+}

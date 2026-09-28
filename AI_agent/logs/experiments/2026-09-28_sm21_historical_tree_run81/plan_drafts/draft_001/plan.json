@@ -1,0 +1,41 @@
+{"floor_id":"F1","z_floor":0,"ceiling_height":3.0,
+"x_anchors":[[425.5,0.0],[1815.5,15.0]],
+"y_anchors":[[345.5,8.0],[1086.5,0.0]],
+"basis":"1f_view.png: outer wall faces calibrated to 15000x8000mm overall dimension chains (measured via gray wall pixel regions); wall thickness ~240mm exterior, ~120mm interior partitions measured by pixel_profile",
+"footprint_pixels":[[425.5,345.5],[1815.5,345.5],[1815.5,1086.5],[425.5,1086.5]],
+"partitions":[
+{"id":"P1a","points":[[888.5,345.5],[888.5,626]],"source_refs":["1f_view.png: vertical partition between top-left/top-mid rooms, measured solid gray x883-894, y347-618 via view_pixel_profile, no door gap found"]},
+{"id":"P1b","points":[[888.5,809.5],[888.5,1086.5]],"source_refs":["1f_view.png: same partition continuing below corridor, y804-1086, measured solid"]},
+{"id":"P2a","points":[[1346,345.5],[1346,626]],"source_refs":["1f_view.png: vertical partition between top-mid/top-right rooms at x=1346, measured solid y347-618"]},
+{"id":"P2b","points":[[1346,809.5],[1346,1086.5]],"source_refs":["1f_view.png: same partition below corridor y804-1086"]},
+{"id":"CorridorTop","points":[[425.5,626],[1815.5,626]],"source_refs":["1f_view.png: thin corridor top wall measured at y618-629 via view_pixel_profile, spans full building width with 3 door gaps"]},
+{"id":"CorridorBottom","points":[[425.5,809.5],[1815.5,809.5]],"source_refs":["1f_view.png: thin corridor bottom wall measured at y804-815, spans full width with 3 door gaps"]}
+],
+"openings":[
+{"id":"D_TL","kind":"door","p1":[772,626],"p2":[855,626],"z":[0,2.1],"source_refs":["1f_view.png: door gap in corridor top wall x772-855 measured via view_pixel_profile cross_axis run; height assumed standard 2.1m, no elevation evidence for interior doors"]},
+{"id":"D_TM","kind":"door","p1":[922,626],"p2":[1005,626],"z":[0,2.1],"source_refs":["1f_view.png: door gap x922-1005 in corridor top wall; height assumed"]},
+{"id":"D_TR","kind":"door","p1":[1383,626],"p2":[1469,626],"z":[0,2.1],"source_refs":["1f_view.png: door gap x1383-1469 in corridor top wall; height assumed"]},
+{"id":"D_BL","kind":"door","p1":[772,809.5],"p2":[855,809.5],"z":[0,2.1],"source_refs":["1f_view.png: door gap x772-855 in corridor bottom wall; height assumed"]},
+{"id":"D_BM","kind":"door","p1":[922,809.5],"p2":[1005,809.5],"z":[0,2.1],"source_refs":["1f_view.png: door gap x922-1005 in corridor bottom wall; height assumed"]},
+{"id":"D_BR","kind":"door","p1":[1383,809.5],"p2":[1469,809.5],"z":[0,2.1],"source_refs":["1f_view.png: door gap x1383-1469 in corridor bottom wall; height assumed"]},
+{"id":"D_West","kind":"door","p1":[425.5,649],"p2":[425.5,784],"z":[0,2.3],"source_refs":["1f_view.png: west exterior double-door gap y649-784 (~1500mm) into corridor; West_view.png elevation shows matching double-door symbol; head height measured ~2.3m from West_view ground-to-head pixel span"]},
+{"id":"D_South","kind":"door","p1":[477,1086.5],"p2":[557,1086.5],"z":[0,2.29],"source_refs":["1f_view.png: south exterior door gap x477-557 (~900mm) into bottom-left room; South_view.png elevation shows single door symbol at same facade position; head height measured via pixel region ~2.29m"]},
+{"id":"W_East","kind":"window","p1":[1815.5,661],"p2":[1815.5,772],"z":[1.0,2.7],"source_refs":["1f_view.png: east exterior window at corridor level, x1815.5,y661-772 (~1200mm); height assumed same as measured 1F north/south windows (no direct East elevation pixel measurement performed)"]},
+{"id":"W_N1","kind":"window","p1":[542,345.5],"p2":[762,345.5],"z":[1.04,2.69],"source_refs":["1f_view.png plan position x542-762; North_view.png elevation: 1F window outer rectangle measured y424-518px -> sill 1.04m, head 2.69m above ground"]},
+{"id":"W_N2","kind":"window","p1":[1011,345.5],"p2":[1230,345.5],"z":[1.04,2.69],"source_refs":["1f_view.png plan position x1011-1230; height matches measured North_view 1F window family"]},
+{"id":"W_N3","kind":"window","p1":[1480,345.5],"p2":[1699,345.5],"z":[1.04,2.69],"source_refs":["1f_view.png plan position x1480-1699; height matches measured North_view 1F window family"]},
+{"id":"W_S1","kind":"window","p1":[746,1086.5],"p2":[853,1086.5],"z":[1.04,2.69],"source_refs":["1f_view.png plan position x746-853 (south wall); height assumed same 1F window family as measured on North_view (South not directly pixel-measured for height)"]},
+{"id":"W_S2","kind":"window","p1":[1011,1086.5],"p2":[1230,1086.5],"z":[1.04,2.69],"source_refs":["1f_view.png plan position x1011-1230 (south wall); height assumed same 1F family"]},
+{"id":"W_S3","kind":"window","p1":[1478,1086.5],"p2":[1700,1086.5],"z":[1.04,2.69],"source_refs":["1f_view.png plan position x1478-1700 (south wall); height assumed same 1F family"]}
+],
+"space_seeds":[
+{"id":"F1_TopLeft","point":[650,450],"role":"office"},
+{"id":"F1_TopMid","point":[1100,450],"role":"office"},
+{"id":"F1_TopRight","point":[1550,450],"role":"office"},
+{"id":"F1_Corridor","point":[1100,715],"role":"corridor"},
+{"id":"F1_BottomLeft","point":[650,950],"role":"office"},
+{"id":"F1_BottomMid","point":[1100,950],"role":"office"},
+{"id":"F1_BottomRight","point":[1550,950],"role":"meeting"}
+],
+"assumptions":["Interior door heights (corridor doors) assumed 2.1m, no elevation evidence available for interior partitions.","East window height assumed equal to measured north/south 1F window family (no direct East elevation measurement performed in this pass).","South window heights assumed equal to measured North elevation window family (not independently pixel-measured on South_view)."],
+"unresolved":["South_view.png and East_view.png window heights not yet independently pixel-measured; using North-derived family as an explicit assumption pending cross-check.","Furniture layout not modeled; only physical partitions and openings captured."]}

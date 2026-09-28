@@ -1,0 +1,93 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:D_South",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South_view.png ground floor single-door head measured directly: ground line at pixel y=567.5 (world z=0.0m, region-detected wall band bottom), 1F/2F floor line at pixel y=397.5 (world z=3.0m). Door head measured at pixel y=446.7 via original-image crop inspection of the cyan door frame; sill at ground (pixel 567.5, z=0).",
+    "sources": [
+      {
+        "box": [
+          300.0,
+          390.0,
+          400.0,
+          570.0
+        ],
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            567.5,
+            0.0
+          ],
+          [
+            397.5,
+            3.0
+          ]
+        ],
+        "axis": "y",
+        "image": "South_view.png",
+        "pixels": [
+          567.5,
+          446.7
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        0.0,
+        3.0
+      ],
+      "metres_per_pixel": -0.01764705882352941,
+      "pixels": [
+        567.5,
+        397.5,
+        567.5,
+        446.7
+      ]
+    }
+  },
+  "id": "claim_0004",
+  "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+  "resolved_values": {
+    "z": [
+      0.0,
+      2.131764706
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        300.0,
+        390.0,
+        400.0,
+        570.0
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -1,0 +1,262 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "dc244a0b2e8470c4de95a09fd8d79bfe76e056199e9adc2ce7f25242a4dd265a",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        427.5,
+        0.0
+      ],
+      [
+        1812.5,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        330.5,
+        8.0
+      ],
+      [
+        1071.5,
+        0.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "f2_meetingleft_meetingright",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: solid vertical divider at x1114-1125 separates the two meeting rooms, no opening in that wall",
+      "points": [
+        {
+          "pixel": [
+            700.0,
+            400.0
+          ],
+          "world_xy_m": [
+            2.9512635379061365,
+            7.24966261808367
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_MeetingLeft",
+          "interior_space_ids": [
+            "F2:F2_MeetingLeft"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1500.0,
+            400.0
+          ],
+          "world_xy_m": [
+            11.615523465703971,
+            7.24966261808367
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_MeetingRight",
+          "interior_space_ids": [
+            "F2:F2_MeetingRight"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "f2_corridor_span",
+      "expected": "same_space",
+      "evidence": "2f_view.png: corridor is one continuous open strip across the full building width with no dividing wall crossing it",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            700.0
+          ],
+          "world_xy_m": [
+            0.7851985559566783,
+            4.010796221322537
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Corridor",
+          "interior_space_ids": [
+            "F2:F2_Corridor"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1700.0,
+            700.0
+          ],
+          "world_xy_m": [
+            13.781588447653428,
+            4.010796221322537
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Corridor",
+          "interior_space_ids": [
+            "F2:F2_Corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "f2_office1_office2",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: solid partition at x768-779 separates office1 and office2",
+      "points": [
+        {
+          "pixel": [
+            600.0,
+            950.0
+          ],
+          "world_xy_m": [
+            1.8682310469314078,
+            1.3117408906882595
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Office1",
+          "interior_space_ids": [
+            "F2:F2_Office1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            950.0,
+            950.0
+          ],
+          "world_xy_m": [
+            5.658844765342959,
+            1.3117408906882595
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Office2",
+          "interior_space_ids": [
+            "F2:F2_Office2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "f2_office3_office4",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: solid partition at x1461-1472 separates office3 and office4",
+      "points": [
+        {
+          "pixel": [
+            1290.0,
+            950.0
+          ],
+          "world_xy_m": [
+            9.34115523465704,
+            1.3117408906882595
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Office3",
+          "interior_space_ids": [
+            "F2:F2_Office3"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1650.0,
+            950.0
+          ],
+          "world_xy_m": [
+            13.240072202166063,
+            1.3117408906882595
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Office4",
+          "interior_space_ids": [
+            "F2:F2_Office4"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "f2_meetingleft_corridor",
+      "expected": "separate_spaces",
+      "evidence": "2f_view.png: meeting room and corridor separated by corridor top wall, connected only via door D2F_TL",
+      "points": [
+        {
+          "pixel": [
+            700.0,
+            400.0
+          ],
+          "world_xy_m": [
+            2.9512635379061365,
+            7.24966261808367
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_MeetingLeft",
+          "interior_space_ids": [
+            "F2:F2_MeetingLeft"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1100.0,
+            700.0
+          ],
+          "world_xy_m": [
+            7.283393501805053,
+            4.010796221322537
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:F2_Corridor",
+          "interior_space_ids": [
+            "F2:F2_Corridor"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F2:D2F_TL",
+          "space_ids": [
+            "F2:F2_Corridor",
+            "F2:F2_MeetingLeft"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_03",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "3023d4acd5d6df82e2a3842a2b12482e3c3315e4e89193c599066bd367876039",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 2123
+}

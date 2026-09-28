@@ -1,0 +1,122 @@
+[
+  {
+    "op": "update_window",
+    "id": "F1:W_N1",
+    "changes": {
+      "z": [
+        1.023121387,
+        2.653179191
+      ]
+    },
+    "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+    "source_refs": [
+      "claim_0001",
+      "claim:claim_0001:d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F1:W_N2",
+    "changes": {
+      "z": [
+        1.023121387,
+        2.653179191
+      ]
+    },
+    "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+    "source_refs": [
+      "claim_0001",
+      "claim:claim_0001:d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F1:W_N3",
+    "changes": {
+      "z": [
+        1.023121387,
+        2.653179191
+      ]
+    },
+    "reason": "Apply pixel-measured 1F north window head/sill from North_view.png",
+    "source_refs": [
+      "claim_0001",
+      "claim:claim_0001:d5fe2d2e68e830c61d61b54cb5e4b900fcb6c69a387827d76b1292bd89a1c6ed"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F2:W2F_N1",
+    "changes": {
+      "z": [
+        3.983414634,
+        5.809756098
+      ]
+    },
+    "reason": "Apply pixel-measured 2F north window head/sill from North_view.png",
+    "source_refs": [
+      "claim_0002",
+      "claim:claim_0002:528cd3f9639d34c4a8559792d1a2a2ff76fbe8f02a06ae8fa8169a154307639b"
+    ]
+  },
+  {
+    "op": "update_window",
+    "id": "F2:W2F_N2",
+    "changes": {
+      "z": [
+        3.983414634,
+        5.809756098
+      ]
+    },
+    "reason": "Apply pixel-measured 2F north window head/sill from North_view.png",
+    "source_refs": [
+      "claim_0002",
+      "claim:claim_0002:528cd3f9639d34c4a8559792d1a2a2ff76fbe8f02a06ae8fa8169a154307639b"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "F1:D_West",
+    "changes": {
+      "z": [
+        0.0,
+        2.135294118
+      ]
+    },
+    "reason": "Apply pixel-measured west entrance door head from West_view.png",
+    "source_refs": [
+      "claim_0003",
+      "claim:claim_0003:2c17a3e5a6bc9aaba1bb30655b3fd11412b542bdb4ca1448b8af573a0eb7fcf9"
+    ]
+  },
+  {
+    "op": "update_opening",
+    "id": "F1:D_South",
+    "changes": {
+      "z": [
+        0.0,
+        2.131764706
+      ]
+    },
+    "reason": "Apply pixel-measured south entrance door head from South_view.png",
+    "source_refs": [
+      "claim_0004",
+      "claim:claim_0004:e4499e8f6203c3fe7092d940aca175c4322030db0598758d913ecf7fb845a275"
+    ]
+  },
+  {
+    "op": "replace_note",
+    "field": "assumptions",
+    "old": "South window heights assumed equal to measured North elevation window family (not independently pixel-measured on South_view).",
+    "replacement": [
+      "South/East window heights (W_S1-3, W_East) assumed equal to the North_view.png-measured 1F window family (head 2.653m, sill 1.023m above ground); not independently pixel-measured on South_view.png/East_view.png in this pass. North-facing windows W_N1-3 now use directly measured North_view.png pixel evidence via claim_0001.",
+      "Ground-floor exterior doors D_West and D_South now use directly measured elevation pixel evidence (claims 0003/0004: heads at 2.135m and 2.132m respectively) instead of the initial assumed values."
+    ],
+    "reason": "North window family and both exterior ground-floor doors now have direct elevation pixel measurement (claims 0001,0003,0004); remaining South/East window heights and interior door heights remain explicit assumptions.",
+    "source_refs": [
+      "claim_0001",
+      "claim_0003",
+      "claim_0004"
+    ]
+  }
+]

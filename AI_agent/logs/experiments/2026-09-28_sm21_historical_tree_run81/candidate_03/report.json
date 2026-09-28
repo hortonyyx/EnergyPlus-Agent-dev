@@ -1,0 +1,69 @@
+{
+  "agent_assumptions": [
+    "Interior door heights (corridor doors) assumed 2.1m, no elevation evidence available for interior partitions.",
+    "East window height assumed equal to measured north/south 1F window family (no direct East elevation measurement performed in this pass).",
+    "South window heights assumed equal to measured North elevation window family (not independently pixel-measured on South_view).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior 2F door heights assumed 2.1m clear (z 3.0-5.1m), no elevation evidence for interior partitions.",
+    "South/East/West 2F window heights assumed equal to the North_view-measured 2F window family (sill 4.03m, head 5.86m); not independently pixel-measured on those elevations in this pass.",
+    "No exterior doors exist on F2 per plan and elevation evidence (West_view/East_view show only windows on F2); vertical circulation between F1 and F2 is not shown in supplied inputs and is not modeled.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "f1aa35d5a703e421a8b6629847d2cd4d9ec5483ac34e262d728fa2cd5dc37456",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "b2f1804e63ddb3db81b28821b586e696eb04729b42483ea96410cc54d59ef621"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "dc244a0b2e8470c4de95a09fd8d79bfe76e056199e9adc2ce7f25242a4dd265a",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "South_view.png and East_view.png window heights not yet independently pixel-measured; using North-derived family as an explicit assumption pending cross-check.",
+    "Furniture layout not modeled; only physical partitions and openings captured.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "South_view.png and East_view.png 2F window heights not independently pixel-measured; using North-derived family as an explicit assumption.",
+    "No stair/vertical-circulation evidence supplied; F1 and F2 are modeled as independent stacked floors without an explicit connection.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

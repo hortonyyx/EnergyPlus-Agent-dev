@@ -1,0 +1,101 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png 1F window outer rectangle measured directly: ground line at pixel y=577 (region-detected 1F wall band bottom), 1F/2F floor line at pixel y=404 (region-detected 1F wall band top), mapping to world z 0.0 and 3.0m respectively (matches measured 1F wall height 3000mm). Window outer rectangle vertical extent measured at pixel y=424 (head) and y=518 (sill) via view_pixel_region on cyan window frame color.",
+    "sources": [
+      {
+        "box": [
+          400.0,
+          240.0,
+          650.0,
+          530.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            577,
+            0.0
+          ],
+          [
+            404,
+            3.0
+          ]
+        ],
+        "axis": "y",
+        "image": "North_view.png",
+        "pixels": [
+          518.0,
+          424.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        0.0,
+        3.0
+      ],
+      "metres_per_pixel": -0.017341040462427744,
+      "pixels": [
+        577,
+        404,
+        518.0,
+        424.0
+      ]
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "830938a416c906245ee97268a0d9094a4cd4226c8a1e1d3db4a2843e3044ac82",
+  "resolved_values": {
+    "z": [
+      1.023121387,
+      2.653179191
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        400.0,
+        240.0,
+        650.0,
+        530.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

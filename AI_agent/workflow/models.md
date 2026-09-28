@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-28 用户直接安排的旧树复跑已完成：** run81为未改468d83f7旧生产树，实际claude-sonnet-5/medium、CLI2.1.280，990.36秒；1次Claude现有订阅主调用，0续查/局部模型/自动重试/回退，没有追加当前版调用。实际回执success；CLI估价$4.3419532非订阅账单。结果未完整恢复，不据此推断长期额度、稳定性或服务端变化。见[实际回执](../logs/experiments/2026-09-28_sm21_historical_tree_setup/execution_receipt.json)及[诊断结论](../logs/worklog/2026-09-28_reconstruction_historical_tree.md)。
+
 **09-28 明确批准的阈值反馈两次回归已结束：** run79/80均实际claude-sonnet-5、medium、各1次Claude现有订阅主调用，1443.23/1264.25秒，0续查/子调用/自动主调用重试/回退。第一组实际成功回执独立核后才启动第二组，均无429或其他终态错误；这只说明本批调用成功，不推断长期额度。CLI合计估价$10.1791822非订阅账单。几何质量仍未恢复，不自动追加。见[执行回执](../logs/experiments/2026-09-28_sm21_threshold_feedback_setup/execution_receipts.json)及[批次结论](../logs/worklog/2026-09-28_reconstruction_threshold_comparison.md)。
 
 **09-28 当前选模原则（覆盖下方09-27推荐）：** 用户认为 GPT-6 Sol/Luna 对当前目标档智力偏高，旧架构使用的是 5.4 mini；用户计划今天接入一些目标模型，尽早参与目标档测试。因此不再将 Sol/Luna 作为默认目标档或下一步必先接入的组合，也不自动改成调用旧型号。Claude 的 Sonnet / Haiku 两档只作历史参照，不代表目标架构只有两种模型等级；VLM 不预设为较低智力。按角色能力特点选模，可跨家族混用，用户可自接 API，产品不绑定型号。接入信息、能力配置及适用任务待实际提供后确认；当前未新增通道或模型调用，节点回归仍由用户拍板。
