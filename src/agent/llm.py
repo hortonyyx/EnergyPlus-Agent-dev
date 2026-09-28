@@ -39,7 +39,9 @@ def resolve_llm_config_path() -> Path:
 def load_llm_section(node_name: str | None) -> dict[str, Any]:
     """Resolve `node_name` to the right section of the active llm config.
 
-    Two layouts supported:
+    Three layouts supported:
+      - Role routes: schema_version/services/models/roles, strict named role
+        lookup, explicit default_role for unnamed callers.
       - Flat: top-level `provider`/`model_name`/... — single shared LLM (legacy).
       - Nested: top-level keys are section names (`default`, `intake`, ...);
         unknown `node_name` falls back to `default`.
@@ -51,6 +53,11 @@ def load_llm_section(node_name: str | None) -> dict[str, Any]:
     raw = OmegaConf.load(resolve_llm_config_path())
     data = OmegaConf.to_container(raw, resolve=True)
     assert isinstance(data, dict), "llm.yaml must be a mapping"
+
+    if "schema_version" in data:
+        from src.agent.model_routes import ModelRoutes
+
+        return ModelRoutes.model_validate(data).chat_config(node_name)
 
     if "provider" in data and "model_name" in data:
         return data  # flat / legacy layout
