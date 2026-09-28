@@ -1,5 +1,9 @@
 # 开发与产品运行的模型使用约定
 
+**09-28 当前选模原则（覆盖下方09-27推荐）：** 用户认为 GPT-6 Sol/Luna 对当前目标档智力偏高，旧架构使用的是 5.4 mini；用户计划今天接入一些目标模型，尽早参与目标档测试。因此不再将 Sol/Luna 作为默认目标档或下一步必先接入的组合，也不自动改成调用旧型号。Claude 的 Sonnet / Haiku 两档只作历史参照，不代表目标架构只有两种模型等级；VLM 不预设为较低智力。按角色能力特点选模，可跨家族混用，用户可自接 API，产品不绑定型号。接入信息、能力配置及适用任务待实际提供后确认；当前未新增通道或模型调用，节点回归仍由用户拍板。
+
+**09-28 GPT 账户信息纠正：** 用户明确其 GPT 为20x、没有五小时限额。本项目按该账户信息安排，不再把昨日通用额度说明套用于此账户；此为用户提供的账户事实，本轮未另作额度探测，也不外推其他账户。具体付费调用及 DeepSeek 专项许可仍按既有约定。见[本轮收工](../logs/worklog/2026-09-28_target_models_close.md)。
+
 **09-27 收工补充选模调研：** 用户要求增加 GPT、GLM、DeepSeek 的同档候选，支持泛化测试并减少 Claude 额度中断。当前代理接口可选 GPT-6 Astra/Sol/Luna、GPT-5.6 Sol/Terra；优先推荐 Sol 对应 Sonnet 工作档、Luna 对应 Haiku 局部档，属于待实测的角色近似。GLM-5.3 暂作文本主控候选，5.3-Flash 作视觉候选；DeepSeek-V4-Pro 无视觉，当前 deepseek-flash 对应 V4.1-Flash 且有视觉。BIM 入口尚未接 GPT/DeepSeek，GLM 两角色现均映射同一 Flash。型号可选、官网能力、实际可用额度与项目质量分别核验；没有新调用或路由修改，不改变模型上限、节点回归及 DeepSeek 专项许可。完整价格、来源、限制和后续建议见[同档候选调研](../logs/worklog/2026-09-27_model_equivalence_research.md)。
 
 **09-27 用途提醒四次回归尝试已结束，Claude额度受限：** 用户批准sm21/sm24各前后一次，随后指定2+2分批。run75实际claude-sonnet-5/medium，1144.37秒正常结束，CLI估算$4.8565468；run76同型号1612.58秒后429，估算$6.0323290，中断稿保留。第二批因编排未在失败回执检查后停住仍发起run77/78，6.72/6.75秒立即429，零输入/输出token、modelUsage为空、各估算$0；回执路由型号不代表有实际推理。四次总估算$10.8888758非账单。错误原文同时提monthly spend limit和session resets 6pm UTC，额度类型/恢复时间未独立核实。本轮不再调用、无重试/子调用/通道或付费回退；将来新节点范围另行拍板，不自动补跑。见[调用原件与执行失误](../logs/experiments/2026-09-27_room_use_guidance_setup/batch_result.json)及[完整收工](../logs/worklog/2026-09-27_reconstruction_use_guidance_close.md)。
