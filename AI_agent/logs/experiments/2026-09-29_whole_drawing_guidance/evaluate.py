@@ -7,9 +7,13 @@ guidance package targets: references read, time and calls before the first build
 import argparse
 from collections import Counter
 import gzip
+import hashlib
 import importlib
 import json
 from pathlib import Path
+import sys
+import time
+import traceback
 from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
@@ -56,7 +60,9 @@ def main():
                   actual_model=receipt.get("actual_model"), behaviour=behaviour(run))
     if completed:
         condition = load(run / "experiment_condition.json")
-        frozen = dict(scope=load(BASELINE / "inputs.json")["scope"], provider="claude",
+        scope = load(run / "inputs.json")["scope"]
+        assert hashlib.sha256(scope.encode()).hexdigest() == condition["scope_sha256"]
+        frozen = dict(scope=scope, provider="claude",
                       image_sha256=condition["image_sha256"], mode="whole_drawing_guidance_original_only_cold",
                       continuation_rounds=0, max_candidates=24)
         target = HERE / f"{run.name}_frozen.json"
@@ -65,8 +71,18 @@ def main():
         else:
             target.write_text(json.dumps(frozen, ensure_ascii=False, indent=1))
         base = importlib.import_module("AI_agent.logs.experiments.2026-09-27_sm21_current_tools_setup.audit_run")
-        with patch.object(base, "HERE", HERE):
-            base.audit(run)
+        started = time.time()
+        try:
+            with patch.object(base, "HERE", HERE):
+                base.audit(run)
+            result["run58_same_task_comparison"] = "written"
+        except AssertionError:
+            # Only the final same-task comparison may fail, and only because the scope differs.
+            line = traceback.extract_tb(sys.exc_info()[2])[-1].line or ""
+            if ("old_inputs['scope'] == manifest['scope']" not in line
+                    or (run / "postrun_audit.json").stat().st_mtime < started):
+                raise
+            result["run58_same_task_comparison"] = "not written: scope differs from run58 by the recorded aligned sentence"
         audit = load(run / "postrun_audit.json")
         result.update(counts=audit["counts"], strict_partition_status=audit["strict_partition_status"],
                       space_identity_findings=audit["space_identity_findings"],

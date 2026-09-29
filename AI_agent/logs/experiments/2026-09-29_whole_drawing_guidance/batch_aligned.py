@@ -20,7 +20,13 @@ HERE = Path(__file__).resolve().parent
 RUNTIME = HERE.parents[3]
 EXPERIMENTS = HERE.parent
 PREVIOUS = EXPERIMENTS / "2026-09-29_sm21_whole_drawing_run91"
-RUN = EXPERIMENTS / "2026-09-29_sm21_aligned_prompt_run92"
+RUNS = {"run92": "2026-09-29_sm21_aligned_prompt_run92",   # interrupted by 429 at 658 s
+        "run93": "2026-09-29_sm21_aligned_prompt_run93"}   # fresh restart, same conditions
+
+
+def records(run_id):
+    suffix = "" if run_id == "run92" else f"_{run_id}"
+    return HERE / f"preflight_sm21_aligned{suffix}.json", HERE / f"approval_aligned{suffix}.json"
 _SCOPE_CHANGE = json.loads((HERE / "scope_sm21_aligned.json").read_text())
 _BASE_SCOPE = json.loads((EXPERIMENTS / "2026-09-27_sm21_whole_building_repeat_claude_run58/inputs.json").read_text())["scope"]
 assert _BASE_SCOPE.count(_SCOPE_CHANGE["replaced_sentence"]["old"]) == 1
@@ -71,7 +77,7 @@ async def served(run):
             return dict(tool_names=tools, reconstruction_reference_served_exactly=True)
 
 
-def prepare():
+def prepare(run_id):
     class StoppedAtModelBoundary(Exception):
         pass
 
@@ -100,7 +106,7 @@ def prepare():
         assert changed == EXPECTED_CODE_CHANGES, changed
         exposure = asyncio.run(served(run))
         prompt_change = dict(previous=previous_request["prompt"], current=request["prompt"])
-    runner.dump(HERE / "preflight_sm21_aligned.json", dict(case="sm21", status="prepared_pending_user_decision",
+    runner.dump(records(run_id)[0], dict(case="sm21", run_id=run_id, status="prepared_pending_user_decision",
         model_calls=0, model_process_blocked=True, original_images_only=True,
         guidance_identical_to_run91=True, code_changed_from_run91=sorted(changed),
         prompt_change=prompt_change, conditions=frozen, **exposure))
@@ -108,10 +114,12 @@ def prepare():
                           scope_sha256=frozen["scope_sha256"][:12])))
 
 
-def run_one():
-    approval = load(HERE / "approval_aligned.json")
+def run_one(run_id):
+    RUN = EXPERIMENTS / RUNS[run_id]
+    preflight, approval_file = records(run_id)
+    approval = load(approval_file)
     assert approval["approved_runs"] == [RUN.name], "record the user's approval for this exact run first"
-    prepared = load(HERE / "preflight_sm21_aligned.json")["conditions"]
+    prepared = load(preflight)["conditions"]
     assert prepared == conditions(sorted(prepared["implementation_sha256"])), "prepared runtime changed"
     receipt = load(PREVIOUS / "agent_receipt.json")
     assert receipt.get("returncode") == 0 and not (receipt.get("result") or {}).get("is_error")
@@ -123,7 +131,7 @@ def run_one():
         assert len(calls) == 1 and kwargs["model"] == "sonnet" and not kwargs.get("readonly")
         manifest = load(path / "inputs.json")
         assert manifest["implementation_sha256"] == prepared["implementation_sha256"]
-        runner.dump(path / "experiment_condition.json", dict(run_id="run92_aligned", **prepared))
+        runner.dump(path / "experiment_condition.json", dict(run_id=f"{run_id}_aligned", **prepared))
         for relative in manifest["implementation_sha256"]:
             destination = path / "runtime_snapshot" / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -142,5 +150,6 @@ def run_one():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["prepare", "run"])
-    action = parser.parse_args().action
-    prepare() if action == "prepare" else run_one()
+    parser.add_argument("--run", choices=sorted(RUNS), default="run92")
+    args = parser.parse_args()
+    prepare(args.run) if args.action == "prepare" else run_one(args.run)
