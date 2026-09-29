@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-29 当前 Sonnet 路由核查：** 用户询问当前连接5还是5.5；用与BIM主入口相同的`--model sonnet --effort medium`做1次隔离、无工具的最小订阅文本探针，init、assistant model与modelUsage均为`claude-sonnet-5`，5.002秒正常完成。本机CLI为2.1.280；[官方型号配置文档](https://code.claude.com/docs/en/model-config)说明Sonnet 5.5需要2.1.284起，且该版本将Anthropic通道的sonnet别名切为5.5。本次仅核查并留档，未升级CLI或修改选模；未启动BIM回归。估价0.001018美元非账单，不代表剩余额度。见[实际回执](../logs/experiments/2026-09-29_sonnet_route_check/receipt.json)。
+
 **09-28 用户按需授权的一次保存稿修复已结束：** 用户“好继续推，Claude额度可能还够一次生成，你按需调用就行”由主助手选择run88六原图+run87原proposal复核。实际claude-sonnet-5/medium，342.12秒、1候选、1主调用；CLI显式禁review_detail，0局部模型/续跑/重试/付费回退。真实回执success/returncode0，CLI估价1.435637美元非订阅账单。小窗修对、东窗仍错，不宣称完整或稳定恢复；该次许可已用完，不自动再生成。见[执行与限制](../logs/worklog/2026-09-28_paired_elevation_review.md)。
 
 **09-28 旧基线加内部线条反馈回归完成：** 用户“启动，继续”批准的唯一run87为现有Claude订阅实际`claude-sonnet-5`/medium，1083.48秒、6候选、1主调用，无局部模型/续跑/重试/付费回退；真实回执success/returncode0。CLI估价5.2144466美元非订阅账单，不含开发用量。14独立空间、29原图位置/宿主与14连接对应，但特殊窗高度仍错，不宣称恢复；新增评价调用0，本批关闭。见[本轮交接](../logs/worklog/2026-09-28_baseline_space_ink_review.md)。
