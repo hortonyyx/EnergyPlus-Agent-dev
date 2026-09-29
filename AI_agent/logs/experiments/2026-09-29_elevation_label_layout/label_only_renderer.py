@@ -3,13 +3,10 @@ from __future__ import annotations
 
 import math
 
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw
 
 from src.agent.geometry.source_elevation_view import render_source_elevation
 from src.agent.geometry.source_image_overlay import _axis_anchors, _overlay_font
-
-
-_OPENING_COLOURS = {"window": (255, 145, 0), "door": (215, 65, 225), "open": (215, 65, 225)}
 
 
 def _opening_labels(image, openings, font):
@@ -39,7 +36,7 @@ def _opening_labels(image, openings, font):
 
     for index, row in enumerate(openings):
         left, top, right, bottom = opening_boxes[index]
-        colour = _OPENING_COLOURS[row["kind"]]
+        colour = (255, 145, 0) if row["kind"] == "window" else (0, 190, 90)
         glyph = draw.textbbox((0, 0), row["id"], font=font)
         width, height = glyph[2] - glyph[0] + 8, glyph[3] - glyph[1] + 6
         placed = None
@@ -96,7 +93,7 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
     """
     if not isinstance(basis, str) or not basis.strip():
         raise ValueError("basis must describe the observed horizontal and absolute-z references")
-    image = ImageOps.grayscale(original).convert("RGB")
+    image = original.convert("RGB").copy()
     hs, ho, horizontal = _axis_anchors(horizontal_anchors, axis="horizontal", size=image.width)
     zs, zo, vertical = _axis_anchors(z_anchors, axis="z", size=image.height)
     _, view = render_source_elevation(source, facade)
@@ -123,7 +120,7 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
         floors.append(record(row, points))
     for row in view["projected_openings"]:
         points = [project(p[axis], p[2]) for p in row["world_vertices"]]
-        colour = _OPENING_COLOURS[row["kind"]]
+        colour = (255, 145, 0) if row["kind"] == "window" else (0, 190, 90)
         draw.line(points + [points[0]], fill=colour, width=2)
         openings.append(record(row, points))
 
@@ -139,8 +136,6 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
         "horizontal_axis": view["horizontal_axis"],
         "direction": ("+" if hs > 0 else "-") + view["horizontal_axis"],
         "image_size": list(image.size),
-        "reference_background": "grayscale_copy_original_file_unchanged",
-        "opening_colours_rgb": {kind: list(colour) for kind, colour in _OPENING_COLOURS.items()},
         "anchors": {"horizontal": horizontal, "absolute_z": vertical},
         "basis": basis.strip(),
         "calibration_unverified": True,
@@ -159,7 +154,6 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
             "Horizontal values are world x/y, not distance from the facade's left edge; z is absolute, not above-floor height.",
             "Only axis-aligned drawings are supported; no rotation, perspective or automatic pixel matching.",
             "All same-facing exterior hosts are projected; recess-depth occlusion is not resolved.",
-            "The reference background is grayscale; consult the original colour drawing for colour conventions. Generated windows are orange; doors and open passages are purple.",
             "IDs use clear side regions; labels may be omitted on busy images. Leaders skip existing ink. IDs remain in the opening inventory.",
             "No source geometry is changed. Repeat with the same observed anchors after revision; do not fit anchors to generated openings.",
         ],
