@@ -42,6 +42,23 @@ def test_explicit_mixed_units_reach_numeric_saved_plan_without_scaling_pixels(tm
     assert plan_geometry_feedback(resolved, (12, 8))["footprint_span_m"][0] == 6000
 
 
+def test_mirrored_anchor_direction_is_reported_without_blocking_the_build(tmp_path):
+    usual = plan_geometry_feedback(example(), (12, 8))["axis_orientation"]
+    assert usual == dict(world_east_toward="image_right", world_north_toward="image_top")
+    run = _run_with_one_image(tmp_path)
+    flipped = example()
+    flipped["y_anchors"] = [[1, 0], [7, 4]]
+    result = Toolkit(run).build_plan("plan.png", json.dumps(flipped))
+    assert result["source_geometry_ready"]
+    orientation = result["plan_input"]["geometry_feedback"]["axis_orientation"]
+    assert orientation["world_north_toward"] == "image_bottom"
+    assert "mirrored" in orientation["check"] and "cannot reveal" in orientation["check"]
+    east_left = example()
+    east_left["x_anchors"] = [[1, 6], [11, 0]]
+    report = plan_geometry_feedback(east_left, (12, 8))["axis_orientation"]
+    assert report["world_east_toward"] == "image_left" and "mirrored" in report["check"]
+
+
 @pytest.mark.parametrize("quantity", [dict(value=1, unit="feet"), dict(value=True, unit="mm"),
     dict(value=float("nan"), unit="m"), dict(value=1, unit="mm", scale=2)])
 def test_invalid_quantity_retains_raw_draft_and_cannot_create_geometry(tmp_path, quantity):

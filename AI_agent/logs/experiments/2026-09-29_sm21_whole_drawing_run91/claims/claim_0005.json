@@ -1,0 +1,93 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:D_W_ext",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West_view.png double-leaf door drawn from ground (z=0, pixel561) up to head at pixel440; using the same 6.6m roof (pixel181) to 0m ground (pixel561) calibration, head z = 6.6-(440-181)*6.6/380 = 2.1m.",
+    "sources": [
+      {
+        "box": [
+          300.0,
+          380.0,
+          700.0,
+          600.0
+        ],
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            181,
+            6.6
+          ],
+          [
+            561,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "West_view.png",
+        "pixels": [
+          561.0,
+          440.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        6.6,
+        0.0
+      ],
+      "metres_per_pixel": -0.017368421052631578,
+      "pixels": [
+        181,
+        561,
+        561.0,
+        440.0
+      ]
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "b1cf616835d2a89914ac085806db81b24b9aa16d2e42fdf17a24b475a3bccf26",
+  "resolved_values": {
+    "z": [
+      0.0,
+      2.101578947
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        300.0,
+        380.0,
+        700.0,
+        600.0
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

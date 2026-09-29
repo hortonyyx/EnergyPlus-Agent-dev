@@ -46,6 +46,25 @@ def resolve_plan_lengths(raw: dict) -> tuple[dict, list]:
     return plan, bindings
 
 
+def axis_orientation(metres_per_pixel_x: float, metres_per_pixel_y: float) -> dict:
+    """Report which image direction the anchors make east and north.
+
+    World x is east and world y is north. Anchors that grow y toward the image
+    bottom (or x toward the image left) mirror the plan unless the drawing itself
+    is oriented that way; overlays reuse the same anchors and cannot reveal it.
+    """
+    east = "image_right" if metres_per_pixel_x > 0 else "image_left"
+    north = "image_top" if metres_per_pixel_y < 0 else "image_bottom"
+    report = dict(world_east_toward=east, world_north_toward=north)
+    mirrored = [axis for axis, usual in (("x", east == "image_right"), ("y", north == "image_top")) if not usual]
+    if mirrored:
+        report["check"] = (
+            f"These anchors put world north toward the {north.split('_')[1]} and east toward the "
+            f"{east.split('_')[1]} of the image. Unless this drawing's north arrow or labels show that "
+            "orientation, the plan is mirrored; source overlays reuse your anchors and cannot reveal it.")
+    return report
+
+
 def plan_geometry_feedback(plan: dict, image_size) -> dict:
     """Describe the effective dimensions, even when topology compilation fails."""
     sx, ix, _ = _axis_anchors(plan["x_anchors"], axis="x", size=image_size[0])
@@ -72,7 +91,8 @@ def plan_geometry_feedback(plan: dict, image_size) -> dict:
         openings.append(dict(id=row["id"], kind=row["kind"], p1_m=p1, p2_m=p2,
             width_m=math.dist(p1, p2), z_m=z, height_m=z[1] - z[0]))
     return dict(unit="m", floor_id=plan["floor_id"],
-        metres_per_pixel=dict(x=sx, y=sy), footprint_bounds_m=bounds,
+        metres_per_pixel=dict(x=sx, y=sy), axis_orientation=axis_orientation(sx, sy),
+        footprint_bounds_m=bounds,
         footprint_span_m=[b[1] - b[0] for b in bounds],
         z_floor_m=number(plan["z_floor"]), ceiling_height_m=number(plan["ceiling_height"]),
         openings=openings, drawing_fidelity="not_evaluated",

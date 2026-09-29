@@ -1,0 +1,109 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png vertical dimension chain (right side, x~255) reads top-to-bottom 800/1800/1000/400/1600/1000 from roof (z=6.6m) to ground (z=0), summing to the overall 6600mm height (3600mm 2F + 3000mm 1F). The 1F window family sits in the lower 3000mm zone: head at 428px (z=2.6m, i.e. 400mm below the 3.0m floor line) and sill at 520px (z=1.0m, 1600mm window height). These five 1F windows on the North and South walls share this same dimension family (identical 2400mm-wide window symbols in the plan).",
+    "sources": [
+      {
+        "box": [
+          190.0,
+          180.0,
+          300.0,
+          600.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            198,
+            6.6
+          ],
+          [
+            578,
+            0.0
+          ]
+        ],
+        "axis": "y",
+        "image": "North_view.png",
+        "pixels": [
+          520.0,
+          428.0
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [],
+      "method": "image_axis",
+      "metre_anchors": [
+        6.6,
+        0.0
+      ],
+      "metres_per_pixel": -0.017368421052631578,
+      "pixels": [
+        198,
+        578,
+        520.0,
+        428.0
+      ]
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "b1cf616835d2a89914ac085806db81b24b9aa16d2e42fdf17a24b475a3bccf26",
+  "resolved_values": {
+    "z": [
+      1.007368421,
+      2.605263158
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        190.0,
+        180.0,
+        300.0,
+        600.0
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

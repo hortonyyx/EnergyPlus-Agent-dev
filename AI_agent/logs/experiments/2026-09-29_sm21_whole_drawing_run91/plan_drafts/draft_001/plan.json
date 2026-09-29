@@ -1,0 +1,48 @@
+{
+"floor_id":"F1","z_floor":0,"ceiling_height":3.0,
+"x_anchors":[[425,0],[1815,15]],
+"y_anchors":[[347,0],[1086,8]],
+"basis":"Outer wall faces measured directly (gray fill pixel bounds): west outer face x=425px=0m, east outer face x=1815px=15m (matches labeled 15000mm overall). North outer face y=347px=0m, south outer face y=1086px=8m (matches labeled 8000mm overall). Interior partitions/corridor walls use their measured centerlines (treated as zero-thickness per geometry contract): vertical dividers at x=5m and x=10m (measured gaps at px883-894 and px1346-1357, centerlines confirmed ~5.00m/10.00m), horizontal corridor walls at y=3.125m and y=4.875m (from labeled internal chain 3000,250,1500,250,3000 summing to 8000mm).",
+"footprint_pixels":[[425,347],[1815,347],[1815,1086],[425,1086]],
+"partitions":[
+ {"id":"V1","points":[[888,347],[888,636]],"source_refs":["1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall"]},
+ {"id":"V2","points":[[1352,347],[1352,636]],"source_refs":["1f_view.png: vertical divider between north office bay2/bay3"]},
+ {"id":"V3","points":[[888,797],[888,1086]],"source_refs":["1f_view.png: vertical divider between south office bay1/bay2"]},
+ {"id":"V4","points":[[1352,797],[1352,1086]],"source_refs":["1f_view.png: vertical divider between south office bay2/bay3"]},
+ {"id":"H1","points":[[425,636],[1815,636]],"source_refs":["1f_view.png: north corridor wall, full width, doors declared separately"]},
+ {"id":"H2","points":[[425,797],[1815,797]],"source_refs":["1f_view.png: south corridor wall, full width, doors declared separately"]}
+],
+"openings":[
+ {"id":"W_N1","kind":"window","p1":[550,347],"p2":[762,347],"z":[1.0,2.6],"source_refs":["1f_view.png north wall bay1 window; height family from North_view.png elevation lower-zone dimension chain 400/1600/1000 -> sill1.0 head2.6"]},
+ {"id":"W_N2","kind":"window","p1":[1009,347],"p2":[1231,347],"z":[1.0,2.6],"source_refs":["1f_view.png north wall bay2 window"]},
+ {"id":"W_N3","kind":"window","p1":[1478,347],"p2":[1700,347],"z":[1.0,2.6],"source_refs":["1f_view.png north wall bay3 window"]},
+ {"id":"D_S_ext","kind":"door","p1":[475,1086],"p2":[558,1086],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png south wall entrance door width 540/900 dimension; South_view.png door head/sill 900+1200 from division -> head2.1 sill0"]},
+ {"id":"W_S_small","kind":"window","p1":[855,1086],"p2":[888,1086],"z":[1.5,2.1],"source_refs":["1f_view.png small south window (360mm) near bay1; South_view.png shows 600mm tall window between 1500-2100 head/sill exactly matching pixel span of this symbol"]},
+ {"id":"W_S2","kind":"window","p1":[1009,1086],"p2":[1231,1086],"z":[1.0,2.6],"source_refs":["1f_view.png south wall bay2 window, same family as north"]},
+ {"id":"W_S3","kind":"window","p1":[1478,1086],"p2":[1700,1086],"z":[1.0,2.6],"source_refs":["1f_view.png south wall bay3 window"]},
+ {"id":"W_E1","kind":"window","p1":[1815,661],"p2":[1815,772],"z":[1.0,2.6],"source_refs":["1f_view.png east wall window at y=3.4-4.6m; East_view.png elevation shows 1200mm window centered 3400/1200/3400; height family assumed same as other 1F windows (unverified independently for East facade)"],"assumptions":["East 1F window height assumed to match North/South 1F window family (sill1.0/head2.6); not independently confirmed from a dedicated East elevation dimension chain reading"]},
+ {"id":"D_W_ext","kind":"door","p1":[425,661],"p2":[425,772],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png west wall door opening into corridor; West_view.png elevation shows double-leaf door width 1200mm centered 3400/1200/3400, head2.1 sill0 from 900+1500+600 chain (900+600=1500... actually 3000-900=2100 head, sill0)"]},
+ {"id":"D_N1","kind":"door","p1":[796,636],"p2":[879,636],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png door arc from bay1(N) into corridor near partition1"],"assumptions":["exact door width/position approximated from visible arc/frame near x=4.0-4.9m; standard 2.1m head height assumed, not separately dimensioned"]},
+ {"id":"D_N2","kind":"door","p1":[898,636],"p2":[1000,636],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png door from bay2(N) into corridor near partition1"],"assumptions":["position approximated from visible frame near x=5.1-6.2m"]},
+ {"id":"D_N3","kind":"door","p1":[1357,636],"p2":[1441,636],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png door from bay3(N) into corridor near partition2"],"assumptions":["position approximated near x=10.06-10.96m"]},
+ {"id":"D_S1","kind":"door","p1":[796,797],"p2":[879,797],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png door from bay1(S) into corridor near partition1"],"assumptions":["position approximated, mirrored from north side pattern"]},
+ {"id":"D_S2","kind":"door","p1":[898,797],"p2":[1000,797],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png door from bay2(S) into corridor near partition1"],"assumptions":["position approximated"]},
+ {"id":"D_S3","kind":"door","p1":[1357,797],"p2":[1441,797],"z":[0,2.1],"state":"unknown","source_refs":["1f_view.png door from bay3(S) into corridor near partition2"],"assumptions":["position approximated"]}
+],
+"space_seeds":[
+ {"id":"N1","point":[610,486],"role":"office"},
+ {"id":"N2","point":[1120,486],"role":"office"},
+ {"id":"N3","point":[1583,486],"role":"office"},
+ {"id":"S1","point":[610,947],"role":"lobby"},
+ {"id":"S2","point":[1120,947],"role":"office"},
+ {"id":"S3","point":[1583,947],"role":"office"},
+ {"id":"CORR","point":[1120,716],"role":"corridor"}
+],
+"assumptions":[
+ "Interior partition/corridor wall thickness treated as zero per geometry contract; centerlines derived from measured pixel gaps and labeled dimension chains (250mm corridor walls per label; ~120mm vertical office dividers inferred from pixel measurement to make the 15000mm chain sum exactly).",
+ "Interior corridor-to-office door widths/positions are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths not individually dimensioned in the drawing.",
+ "All interior door heights (corridor-office doors) assumed standard 2.1m; not dimensioned in the drawing.",
+ "East 1F window height family assumed same as North/South 1F windows (sill1.0/head2.6m); not independently re-derived from a separate East elevation internal dimension chain."
+],
+"unresolved":["Exact interior door widths at each office-corridor junction are approximate; original arcs partially overlap adjacent partitions and were not individually pixel-measured to sub-100mm precision."]
+}

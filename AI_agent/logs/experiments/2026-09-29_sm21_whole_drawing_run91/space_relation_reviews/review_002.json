@@ -1,0 +1,168 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "729cf9e732c4a2a9f4bfc1bc7dfce755a6194356c93e309147a0d936134dc4d7",
+  "floor_id": "F2",
+  "calibration": {
+    "x_anchors": [
+      [
+        428.0,
+        0.0
+      ],
+      [
+        1812.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        331.0,
+        0.0
+      ],
+      [
+        1071.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "o1",
+      "expected": "separate_spaces",
+      "evidence": "Points straddle the central divider between the two meeting rooms MR1 and MR2.",
+      "points": [
+        {
+          "pixel": [
+            700.0,
+            450.0
+          ],
+          "world_xy_m": [
+            2.9479768786127174,
+            1.2864864864864862
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:MR1",
+          "interior_space_ids": [
+            "F2:MR1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1300.0,
+            450.0
+          ],
+          "world_xy_m": [
+            9.450867052023122,
+            1.2864864864864862
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:MR2",
+          "interior_space_ids": [
+            "F2:MR2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o2",
+      "expected": "same_space",
+      "evidence": "Both points lie inside the continuous central corridor on 2F.",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            700.0
+          ],
+          "world_xy_m": [
+            0.7803468208092488,
+            3.9891891891891897
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:CORR2",
+          "interior_space_ids": [
+            "F2:CORR2"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1700.0,
+            700.0
+          ],
+          "world_xy_m": [
+            13.78612716763006,
+            3.9891891891891897
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:CORR2",
+          "interior_space_ids": [
+            "F2:CORR2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o3",
+      "expected": "separate_spaces",
+      "evidence": "Points straddle the divider between office O1 and O2.",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            950.0
+          ],
+          "world_xy_m": [
+            0.7803468208092488,
+            6.691891891891892
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:O1",
+          "interior_space_ids": [
+            "F2:O1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            850.0,
+            950.0
+          ],
+          "world_xy_m": [
+            4.573699421965319,
+            6.691891891891892
+          ],
+          "status": "inside_one_space",
+          "space_id": "F2:O2",
+          "interior_space_ids": [
+            "F2:O2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "2f_view.png",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "calibration_file": "overlay_calibrations/calibration_004.json",
+  "calibration_sha256": "c4cfa65bd121a9e5bec4b2a4fd0390886db7e3f809d8c68feb4716660acfa9c8",
+  "review_file": "space_relation_reviews/review_002.json",
+  "remaining_seconds": 1833
+}

@@ -1,0 +1,1546 @@
+{
+  "candidate": "candidate_06",
+  "source_model_sha256": "bd62549f51fa00e031fd67a3ab8d4b32092122456b85b27be92b22f02084aad8",
+  "input_mode": "whole_drawing_guidance_original_only_cold",
+  "input_and_producer_hashes_verified": true,
+  "source_display_replay_exact": true,
+  "assemblies_replayed": [
+    {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "ec61ff48bcabe3e869bd20fa97ef82687e4d3fc4bc09ee076c1814ec1ec77c11",
+      "floors": [
+        {
+          "draft_id": "draft_001",
+          "draft_sha256": "448cb8f6b27dc3fc74a7acdd7c0d733746cd2e611a3711f7be0e3c67810fcc14",
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "floor_id": "F1",
+          "z_floor": 0
+        },
+        {
+          "draft_id": "draft_004",
+          "draft_sha256": "ba1dd0183e7b5ca5f56ceebb46ace50e8ea9b49087cc1f70c68a8b1d39eb893d",
+          "image": "2f_view.png",
+          "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+          "floor_id": "F2",
+          "z_floor": 3.0
+        }
+      ],
+      "candidate_replay_matches": [
+        "candidate_03"
+      ],
+      "unmatched_note": null
+    }
+  ],
+  "original_reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+  "invocations": 1,
+  "actual_models": [
+    "claude-sonnet-5"
+  ],
+  "elapsed_seconds": 1322.82,
+  "estimated_usd_not_bill": 5.509871199999999,
+  "counts": {
+    "floors": 2,
+    "spaces": 14,
+    "boundaries": 84,
+    "openings": 29,
+    "connections": 14
+  },
+  "kinds": {
+    "door": 14,
+    "window": 15
+  },
+  "floor_levels": [
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.0,
+      "id": "F1",
+      "name": "F1",
+      "z_floor": 0.0
+    },
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.6,
+      "id": "F2",
+      "name": "F2",
+      "z_floor": 3.0
+    }
+  ],
+  "room_use": {
+    "source_model_sha256": "bd62549f51fa00e031fd67a3ab8d4b32092122456b85b27be92b22f02084aad8",
+    "summary": {
+      "total_count": 14,
+      "recorded_count": 14,
+      "unrecorded_count": 0,
+      "observed_count": 2,
+      "inferred_count": 12,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [],
+    "unknown_ids_truncated": false,
+    "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "total_count": 29,
+    "image_linked_count": 14,
+    "non_image_linked_count": 0,
+    "unchecked_height_opening_ids": [
+      "F1:D_N1",
+      "F1:D_N2",
+      "F1:D_N3",
+      "F1:D_S1",
+      "F1:D_S2",
+      "F1:D_S3",
+      "F1:W_E1",
+      "F2:D_O1",
+      "F2:D_O2",
+      "F2:D_O3",
+      "F2:D_O4",
+      "F2:D_R1",
+      "F2:D_R2",
+      "F2:EW1",
+      "F2:WW1"
+    ]
+  },
+  "current_claim_state": {
+    "candidate": "candidate_06",
+    "claims": [
+      {
+        "id": "claim_0001",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "Crop confirms dimension chain labels 800/1800/1000/400/1600/1000 matching declared 1F window family."
+        },
+        "objects": [
+          {
+            "id": "F1:W_N1",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_N2",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_N3",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S2",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S3",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.007368421,
+            2.605263158
+          ]
+        },
+        "reason": "North_view.png vertical dimension chain (right side, x~255) reads top-to-bottom 800/1800/1000/400/1600/1000 from roof (z=6.6m) to ground (z=0), summing to the overall 6600mm height (3600mm 2F + 3000mm 1F). The 1F window family sits in the lower 3000mm zone: head at 428px (z=2.6m, i.e. 400mm below the 3.0m floor line) and sill at 520px (z=1.0m, 1600mm window height). These five 1F windows on the North and South walls share this same dimension family (identical 2400mm-wide window symbols in the plan).",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N1"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N2"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N3"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S2"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S3"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0002",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0002",
+          "disposition": "adopted",
+          "id": "decision_0002",
+          "reason": "Same crop confirms 2F window family head/sill segments."
+        },
+        "objects": [
+          {
+            "id": "F2:NW1",
+            "kind": "window"
+          },
+          {
+            "id": "F2:NW2",
+            "kind": "window"
+          },
+          {
+            "id": "F2:SW1a",
+            "kind": "window"
+          },
+          {
+            "id": "F2:SW1b",
+            "kind": "window"
+          },
+          {
+            "id": "F2:SW2a",
+            "kind": "window"
+          },
+          {
+            "id": "F2:SW2b",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            4.012105263,
+            5.801052632
+          ]
+        },
+        "reason": "Same North_view.png vertical dimension chain as the 1F window claim. The 2F (upper zone) window family sits in the upper 3600mm zone: head at 244px (z=5.8m, 800mm below the 6.6m roof line) and sill at 347px (z=4.0m, 1800mm window height). These six 2F windows (2 meeting-room windows plus 4 split office-window segments) share this identical dimension family.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:NW1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:NW1"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:NW2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:NW2"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:SW1a"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:SW1a"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:SW1b"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:SW1b"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:SW2a"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:SW2a"
+              ]
+            ]
+          },
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:SW2b"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:SW2b"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0003",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0003",
+          "disposition": "adopted",
+          "id": "decision_0003",
+          "reason": "Crop shows the door/small-window dimension chain 900/600/1500 with the small window symbol aligned to the 600 segment."
+        },
+        "objects": [
+          {
+            "id": "F1:W_S_small",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.511052632,
+            2.101578947
+          ]
+        },
+        "reason": "South_view.png door-adjacent vertical dimension chain (900/600/1500 from the 3.0m floor division down to ground) places this small window's head at 448px (z=2.1m) and sill at 482px (z=1.5m); pixel span of the drawn window symbol (448-482) matches this chain segment exactly.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S_small"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S_small"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0004",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0004",
+          "disposition": "adopted",
+          "id": "decision_0004",
+          "reason": "Crop confirms door head/ground positions."
+        },
+        "objects": [
+          {
+            "id": "F1:D_S_ext",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.0,
+            2.101578947
+          ]
+        },
+        "reason": "South_view.png shows the entrance door symbol spanning from the 3.0m floor-division chain down through 900mm (head at z=2.1m) to ground (z=0m); the door leaf's own internal glazing bar sits at the 600/1500 split within that span, confirming head=2.1m, sill(ground)=0.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "F1:D_S_ext"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "F1:D_S_ext"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0005",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0005",
+          "disposition": "adopted",
+          "id": "decision_0005",
+          "reason": "Crop confirms double-door head/ground positions."
+        },
+        "objects": [
+          {
+            "id": "F1:D_W_ext",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.0,
+            2.101578947
+          ]
+        },
+        "reason": "West_view.png double-leaf door drawn from ground (z=0, pixel561) up to head at pixel440; using the same 6.6m roof (pixel181) to 0m ground (pixel561) calibration, head z = 6.6-(440-181)*6.6/380 = 2.1m.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "application_0002",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "F1:D_W_ext"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "F1:D_W_ext"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      }
+    ],
+    "other_branch_claim_ids": [],
+    "inherited_observations": [],
+    "superseded_notes": [],
+    "drawing_fidelity": "not_evaluated",
+    "note": "Current numerical/context consistency only; neither retained nor confirmed means drawing truth."
+  },
+  "strict_partition_status": "severe",
+  "matched_spaces": 12,
+  "space_identity_findings": [
+    {
+      "code": "missing_source_space",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S2"
+      ],
+      "candidate_ids": [],
+      "message": "Reference space has no one-to-one candidate counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.25
+    },
+    {
+      "code": "missing_source_space",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S3"
+      ],
+      "candidate_ids": [],
+      "message": "Reference space has no one-to-one candidate counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.25
+    },
+    {
+      "code": "extra_source_space",
+      "severity": "severe",
+      "reference_ids": [],
+      "candidate_ids": [
+        "F2:O2"
+      ],
+      "message": "Candidate space has no one-to-one reference counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.262186670610001
+    },
+    {
+      "code": "extra_source_space",
+      "severity": "severe",
+      "reference_ids": [],
+      "candidate_ids": [
+        "F2:O3"
+      ],
+      "message": "Candidate space has no one-to-one reference counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.197275829390001
+    },
+    {
+      "code": "source_space_split",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_N1"
+      ],
+      "candidate_ids": [
+        "F2:O1",
+        "F2:O2"
+      ],
+      "message": "Multiple candidate source spaces substantially cover one reference space.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "candidate_id": "F2:O1",
+          "intersection_area_m2": 11.22973125,
+          "candidate_coverage_fraction": 1.0
+        },
+        {
+          "candidate_id": "F2:O2",
+          "intersection_area_m2": 11.22973125,
+          "candidate_coverage_fraction": 0.9971181954660104
+        }
+      ]
+    },
+    {
+      "code": "source_space_split",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_N2"
+      ],
+      "candidate_ids": [
+        "F2:O3",
+        "F2:O4"
+      ],
+      "message": "Multiple candidate source spaces substantially cover one reference space.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "candidate_id": "F2:O3",
+          "intersection_area_m2": 11.197275829390001,
+          "candidate_coverage_fraction": 1.0
+        },
+        {
+          "candidate_id": "F2:O4",
+          "intersection_area_m2": 11.22973125,
+          "candidate_coverage_fraction": 1.0
+        }
+      ]
+    },
+    {
+      "code": "source_spaces_merged",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S1",
+        "F2_S2"
+      ],
+      "candidate_ids": [
+        "F2:MR1"
+      ],
+      "message": "One candidate source space substantially covers multiple reference spaces.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "reference_id": "F2_S1",
+          "intersection_area_m2": 11.22973125,
+          "reference_coverage_fraction": 0.9981983333333334
+        },
+        {
+          "reference_id": "F2_S2",
+          "intersection_area_m2": 11.22973125,
+          "reference_coverage_fraction": 0.9981983333333334
+        }
+      ]
+    },
+    {
+      "code": "source_spaces_merged",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S3",
+        "F2_S4"
+      ],
+      "candidate_ids": [
+        "F2:MR2"
+      ],
+      "message": "One candidate source space substantially covers multiple reference spaces.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "reference_id": "F2_S3",
+          "intersection_area_m2": 11.197275829390001,
+          "reference_coverage_fraction": 0.995313407056889
+        },
+        {
+          "reference_id": "F2_S4",
+          "intersection_area_m2": 11.22973125,
+          "reference_coverage_fraction": 0.9981983333333334
+        }
+      ]
+    }
+  ],
+  "topology_findings": [
+    {
+      "code": "missing_source_space",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S2"
+      ],
+      "candidate_ids": [],
+      "message": "Reference space has no one-to-one candidate counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.25
+    },
+    {
+      "code": "missing_source_space",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S3"
+      ],
+      "candidate_ids": [],
+      "message": "Reference space has no one-to-one candidate counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.25
+    },
+    {
+      "code": "extra_source_space",
+      "severity": "severe",
+      "reference_ids": [],
+      "candidate_ids": [
+        "F2:O2"
+      ],
+      "message": "Candidate space has no one-to-one reference counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.262186670610001
+    },
+    {
+      "code": "extra_source_space",
+      "severity": "severe",
+      "reference_ids": [],
+      "candidate_ids": [
+        "F2:O3"
+      ],
+      "message": "Candidate space has no one-to-one reference counterpart.",
+      "floor_id": "Floor 2",
+      "area_m2": 11.197275829390001
+    },
+    {
+      "code": "source_space_split",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_N1"
+      ],
+      "candidate_ids": [
+        "F2:O1",
+        "F2:O2"
+      ],
+      "message": "Multiple candidate source spaces substantially cover one reference space.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "candidate_id": "F2:O1",
+          "intersection_area_m2": 11.22973125,
+          "candidate_coverage_fraction": 1.0
+        },
+        {
+          "candidate_id": "F2:O2",
+          "intersection_area_m2": 11.22973125,
+          "candidate_coverage_fraction": 0.9971181954660104
+        }
+      ]
+    },
+    {
+      "code": "source_space_split",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_N2"
+      ],
+      "candidate_ids": [
+        "F2:O3",
+        "F2:O4"
+      ],
+      "message": "Multiple candidate source spaces substantially cover one reference space.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "candidate_id": "F2:O3",
+          "intersection_area_m2": 11.197275829390001,
+          "candidate_coverage_fraction": 1.0
+        },
+        {
+          "candidate_id": "F2:O4",
+          "intersection_area_m2": 11.22973125,
+          "candidate_coverage_fraction": 1.0
+        }
+      ]
+    },
+    {
+      "code": "source_spaces_merged",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S1",
+        "F2_S2"
+      ],
+      "candidate_ids": [
+        "F2:MR1"
+      ],
+      "message": "One candidate source space substantially covers multiple reference spaces.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "reference_id": "F2_S1",
+          "intersection_area_m2": 11.22973125,
+          "reference_coverage_fraction": 0.9981983333333334
+        },
+        {
+          "reference_id": "F2_S2",
+          "intersection_area_m2": 11.22973125,
+          "reference_coverage_fraction": 0.9981983333333334
+        }
+      ]
+    },
+    {
+      "code": "source_spaces_merged",
+      "severity": "severe",
+      "reference_ids": [
+        "F2_S3",
+        "F2_S4"
+      ],
+      "candidate_ids": [
+        "F2:MR2"
+      ],
+      "message": "One candidate source space substantially covers multiple reference spaces.",
+      "floor_id": "Floor 2",
+      "overlaps": [
+        {
+          "reference_id": "F2_S3",
+          "intersection_area_m2": 11.197275829390001,
+          "reference_coverage_fraction": 0.995313407056889
+        },
+        {
+          "reference_id": "F2_S4",
+          "intersection_area_m2": 11.22973125,
+          "reference_coverage_fraction": 0.9981983333333334
+        }
+      ]
+    },
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "Floor 1",
+      "missing_length_m": 29.759999988000004,
+      "extra_length_m": 30.354207992,
+      "missing_wkt": "MULTILINESTRING ((4.976402999 3, 0.020000001 3), (9.983596999 3, 5.016403001 3), (14.979999999 3, 10.023597000999999 3), (4.976402999 5, 0.020000001 5), (9.983596999 5, 5.016403001 5), (14.979999999 5, 10.023597000999999 5))",
+      "extra_wkt": "MULTILINESTRING ((0.020000001 3.128552, 4.996403 3.128552), (4.996403 3.128552, 10.003597 3.128552), (10.003597 3.128552, 14.979999999 3.128552), (4.996403 4.871448, 0.020000001 4.871448), (10.003597 4.871448, 4.996403 4.871448), (14.979999999 4.871448, 10.003597 4.871448), (4.996403 3.020000001, 4.996403 3.128552), (10.003597 3.020000001, 10.003597 3.128552), (4.996403 4.871448, 4.996403 4.979999999), (10.003597 4.871448, 10.003597 4.979999999))"
+    },
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "Floor 2",
+      "missing_length_m": 5.909189995999999,
+      "extra_length_m": 5.919999996000001,
+      "missing_wkt": "MULTILINESTRING ((3.75 0.020000001, 3.75 2.974594999), (11.25 0.020000001, 11.25 2.974594999))",
+      "extra_wkt": "MULTILINESTRING ((3.75 5.020000001, 3.75 7.979999999), (11.25 5.020000001, 11.25 7.979999999))"
+    }
+  ],
+  "original_openings": {
+    "candidate": "candidate_06",
+    "reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+    "reference_count": 29,
+    "matched": 29,
+    "positions": 7,
+    "hosts": 21,
+    "door_connections": 10,
+    "floors": [
+      {
+        "floor_id": "F1",
+        "image": "1f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F1:S1"
+          ],
+          "NC": [
+            "F1:S2"
+          ],
+          "NE": [
+            "F1:S3"
+          ],
+          "C": [
+            "F1:CORR"
+          ],
+          "SW": [
+            "F1:N1"
+          ],
+          "SC": [
+            "F1:N2"
+          ],
+          "SE": [
+            "F1:N3"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      },
+      {
+        "floor_id": "F2",
+        "image": "2f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F2:O1"
+          ],
+          "NE": [
+            "F2:O3"
+          ],
+          "C": [
+            "F2:CORR2"
+          ],
+          "S1": [
+            "F2:MR1"
+          ],
+          "S2": [
+            "F2:MR1"
+          ],
+          "S3": [
+            "F2:MR2"
+          ],
+          "S4": [
+            "F2:MR2"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      }
+    ],
+    "comparisons": [
+      {
+        "floor_id": "F1",
+        "reference_id": "N-W",
+        "opening_id": "F1:W_S_small",
+        "max_endpoint_error_m": 3.400172974838246,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:S1"
+        ],
+        "actual_hosts": [
+          "F1:S1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-C",
+        "opening_id": "F1:W_S2",
+        "max_endpoint_error_m": 0.0062532149532703585,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:S2"
+        ],
+        "actual_hosts": [
+          "F1:S2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-E",
+        "opening_id": "F1:W_S3",
+        "max_endpoint_error_m": 0.009891634076204525,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:S3"
+        ],
+        "actual_hosts": [
+          "F1:S3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-W",
+        "opening_id": "F1:W_N1",
+        "max_endpoint_error_m": 2.1018338526240115,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:N1"
+        ],
+        "actual_hosts": [
+          "F1:N1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-C",
+        "opening_id": "F1:W_N2",
+        "max_endpoint_error_m": 0.0062532149532703585,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:N2"
+        ],
+        "actual_hosts": [
+          "F1:N2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-E",
+        "opening_id": "F1:W_N3",
+        "max_endpoint_error_m": 0.009891634076204525,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:N3"
+        ],
+        "actual_hosts": [
+          "F1:N3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "E-C",
+        "opening_id": "F1:W_E1",
+        "max_endpoint_error_m": 0.00917450472334691,
+        "perpendicular_error_m": 0.11861969805895001,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:CORR"
+        ],
+        "actual_hosts": [
+          "F1:CORR"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NW",
+        "opening_id": "F1:D_S1",
+        "max_endpoint_error_m": 0.26232916678648444,
+        "perpendicular_error_m": 0.12720247233468296,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR",
+          "F1:S1"
+        ],
+        "actual_hosts": [
+          "F1:CORR",
+          "F1:S1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NC",
+        "opening_id": "F1:D_S2",
+        "max_endpoint_error_m": 0.255136630481668,
+        "perpendicular_error_m": 0.12720247233468296,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR",
+          "F1:S2"
+        ],
+        "actual_hosts": [
+          "F1:CORR",
+          "F1:S2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NE",
+        "opening_id": "F1:D_S3",
+        "max_endpoint_error_m": 0.29471055787203504,
+        "perpendicular_error_m": 0.12720247233468296,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR",
+          "F1:S3"
+        ],
+        "actual_hosts": [
+          "F1:CORR",
+          "F1:S3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SW",
+        "opening_id": "F1:D_N1",
+        "max_endpoint_error_m": 0.26232916678648444,
+        "perpendicular_error_m": 0.13799869365722017,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR",
+          "F1:N1"
+        ],
+        "actual_hosts": [
+          "F1:CORR",
+          "F1:N1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SC",
+        "opening_id": "F1:D_N2",
+        "max_endpoint_error_m": 0.255136630481668,
+        "perpendicular_error_m": 0.13799869365722017,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR",
+          "F1:N2"
+        ],
+        "actual_hosts": [
+          "F1:CORR",
+          "F1:N2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SE",
+        "opening_id": "F1:D_N3",
+        "max_endpoint_error_m": 0.29471055787203504,
+        "perpendicular_error_m": 0.13799869365722017,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR",
+          "F1:N3"
+        ],
+        "actual_hosts": [
+          "F1:CORR",
+          "F1:N3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-W",
+        "opening_id": "F1:D_W_ext",
+        "max_endpoint_error_m": 0.16032160323886613,
+        "perpendicular_error_m": 0.1186196980589504,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:CORR"
+        ],
+        "actual_hosts": [
+          "F1:CORR"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-S",
+        "opening_id": "F1:D_S_ext",
+        "max_endpoint_error_m": 0.02053520345075488,
+        "perpendicular_error_m": 7.8812415654520915,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:N1"
+        ],
+        "actual_hosts": [
+          "F1:S1"
+        ],
+        "host_match": false,
+        "connection_match": false
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NW",
+        "opening_id": "F2:SW1b",
+        "max_endpoint_error_m": 1.801948051948052,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:O1"
+        ],
+        "actual_hosts": [
+          "F2:O2"
+        ],
+        "host_match": false,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NE",
+        "opening_id": "F2:SW2b",
+        "max_endpoint_error_m": 1.8019480519480524,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:O3"
+        ],
+        "actual_hosts": [
+          "F2:O4"
+        ],
+        "host_match": false,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S1",
+        "opening_id": "F2:SW1a",
+        "max_endpoint_error_m": 0.3625541125541125,
+        "perpendicular_error_m": 7.875675675675676,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:MR1"
+        ],
+        "actual_hosts": [
+          "F2:O1"
+        ],
+        "host_match": false,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S2",
+        "opening_id": "F2:NW1",
+        "max_endpoint_error_m": 2.1508491125541127,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:MR1"
+        ],
+        "actual_hosts": [
+          "F2:MR1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S3",
+        "opening_id": "F2:SW2a",
+        "max_endpoint_error_m": 0.36255411255411296,
+        "perpendicular_error_m": 7.875675675675676,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:MR2"
+        ],
+        "actual_hosts": [
+          "F2:O3"
+        ],
+        "host_match": false,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S4",
+        "opening_id": "F2:NW2",
+        "max_endpoint_error_m": 2.1616871125541124,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:MR2"
+        ],
+        "actual_hosts": [
+          "F2:MR2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-W",
+        "opening_id": "F2:WW1",
+        "max_endpoint_error_m": 0.010810405405405454,
+        "perpendicular_error_m": 0.11904761904761904,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:CORR2"
+        ],
+        "actual_hosts": [
+          "F2:CORR2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-E",
+        "opening_id": "F2:EW1",
+        "max_endpoint_error_m": 0.010810405405405454,
+        "perpendicular_error_m": 0.11904761904761862,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:CORR2"
+        ],
+        "actual_hosts": [
+          "F2:CORR2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NW",
+        "opening_id": "F2:D_O2",
+        "max_endpoint_error_m": 1.0856452337662343,
+        "perpendicular_error_m": 0.00540499999999966,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:CORR2",
+          "F2:O1"
+        ],
+        "actual_hosts": [
+          "F2:CORR2",
+          "F2:O2"
+        ],
+        "host_match": false,
+        "connection_match": false
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NE",
+        "opening_id": "F2:D_O3",
+        "max_endpoint_error_m": 1.0518006536796536,
+        "perpendicular_error_m": 0.00540499999999966,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:CORR2",
+          "F2:O3"
+        ],
+        "actual_hosts": [
+          "F2:CORR2",
+          "F2:O3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S1",
+        "opening_id": "F2:D_O1",
+        "max_endpoint_error_m": 1.1005803982683982,
+        "perpendicular_error_m": 2.0054049999999997,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:CORR2",
+          "F2:MR1"
+        ],
+        "actual_hosts": [
+          "F2:CORR2",
+          "F2:O1"
+        ],
+        "host_match": false,
+        "connection_match": false
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S2",
+        "opening_id": "F2:D_R1",
+        "max_endpoint_error_m": 2.4891929783549784,
+        "perpendicular_error_m": 0.005405000000000104,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:CORR2",
+          "F2:MR1"
+        ],
+        "actual_hosts": [
+          "F2:CORR2",
+          "F2:MR1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S3",
+        "opening_id": "F2:D_R2",
+        "max_endpoint_error_m": 2.4987023982683976,
+        "perpendicular_error_m": 0.005405000000000104,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:CORR2",
+          "F2:MR2"
+        ],
+        "actual_hosts": [
+          "F2:CORR2",
+          "F2:MR2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S4",
+        "opening_id": "F2:D_O4",
+        "max_endpoint_error_m": 1.0464058874458875,
+        "perpendicular_error_m": 2.0054049999999997,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:CORR2",
+          "F2:MR2"
+        ],
+        "actual_hosts": [
+          "F2:CORR2",
+          "F2:O4"
+        ],
+        "host_match": false,
+        "connection_match": false
+      }
+    ],
+    "limits": [
+      "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+      "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+      "No door height, operating state, material or vertical circulation claim."
+    ]
+  },
+  "matched_exterior": 8,
+  "exterior_parameters_match": 8,
+  "height_mismatches": [],
+  "unmatched_reference": [
+    "door_1",
+    "window_group_0_item_0",
+    "window_group_1_item_0",
+    "window_group_1_item_1",
+    "window_group_2_item_0",
+    "window_group_3_item_0",
+    "window_group_3_item_1",
+    "window_group_3_item_2",
+    "window_group_3_item_3"
+  ],
+  "unmatched_built_exterior": [
+    "F1:D_S_ext",
+    "F1:W_N1",
+    "F1:W_S_small",
+    "F2:NW1",
+    "F2:NW2",
+    "F2:SW1a",
+    "F2:SW1b",
+    "F2:SW2a",
+    "F2:SW2b"
+  ],
+  "source_assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior partition wall thickness treated as zero per the geometry contract; centerlines were derived from measured pixel gaps and labeled dimension chains (1F: 250mm labeled corridor walls; ~120mm inferred office dividers making the 15000mm chain sum exactly; 2F: clean round-number centerlines at 3.0/5.0m corridor bounds and 3.75/7.5/11.25m office dividers, matching measured pixel gaps within a few percent).",
+    "Interior corridor-to-office/meeting-room door widths and exact positions (F1:D_N1-3, D_S1-3; F2:D_R1-2, D_O1-4) are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths are not individually dimensioned in the drawing. Their head heights (2.1m above each floor) are an unobserved standard-door assumption.",
+    "East-facade window heights (F1:W_E1, F2:EW1) and the corridor's West-facade 2F window (F2:WW1) are assumed to match the North/South window family for their floor (1F sill1.0/head2.6m from claim_0001; 2F sill4.0/head5.8m from claim_0002) by symmetry of the East_view.png/West_view.png dimension pattern (3400/1200/3400), but were not independently re-derived from a dedicated East/West dimension_chain claim in this run.",
+    "South wall 2F window positions (F2:SW1a/b, SW2a/b) are taken directly from South_view.png's own upper-zone dimension chain (1950/3600/3900/3600/1950=15000mm), which places two 3600mm-wide window bands independent of the 3.75m office grid; each band was split at the office/office partition it crosses so every opening hosts on one wall segment. The correspondence between these two continuous window bands and the four individual offices behind them is a simplification, not an independently confirmed per-office window count.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping or inferred partition was applied beyond the stated calibration and centerline choices."
+  ],
+  "unresolved": [
+    "1F/2F interior door widths and exact positions at every corridor junction remain approximate (visible arc symbols only, not individually dimensioned); their 2.1m head height is an unobserved assumption, not linked to any elevation.",
+    "East-facade window heights (F1:W_E1, F2:EW1) and 2F corridor West window (F2:WW1) remain unlinked to a dedicated East/West elevation height claim in this run; they carry the North/South family value by symmetry assumption only.",
+    "The exact physical correspondence between the two large South-facade 2F window bands and the four individual south offices is unresolved; it is plausible the window mullions do not align with the interior office partitions exactly as modelled.",
+    "Calibration (pixel-to-metre anchors) for both floor plans and all four elevations is caller-supplied from measured outer wall faces and dimension-chain pixel positions; it was cross-checked against multiple independent dimension chains (footprint totals, window/door families) with consistent results within about 0.3%, but was not independently re-verified by a second reviewer.",
+    "Furniture-implied room uses (office/lobby/meeting) are inferred from plan furniture symbols, not from any text label in the drawing."
+  ],
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 7,
+    "view_image": 42,
+    "view_pixel_profile": 22,
+    "build_plan_bim": 4,
+    "revise_plan_bim": 2,
+    "assemble_plan_bim": 2,
+    "revise_bim": 3,
+    "claim_application": 4,
+    "check_source_space_relation": 2,
+    "check_openings": 1,
+    "record_claim": 5,
+    "view_claim_evidence": 5,
+    "decide_claim": 5,
+    "finish_bim": 1
+  },
+  "transported_images": 87,
+  "continuation": {
+    "max_rounds": 0,
+    "turns": [],
+    "stop_reason": "disabled",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "candidate_budget": {
+    "limit": 24,
+    "used": 6,
+    "remaining": 18
+  },
+  "limits": [
+    "One current-runtime original-only run, not a frozen repeat or causal ablation.",
+    "Image access, view binding and model stop do not certify image understanding.",
+    "Existing original/GT references remain unchanged and post-generation only.",
+    "No EnergyPlus or user acceptance; internal door heights may remain assumed."
+  ]
+}

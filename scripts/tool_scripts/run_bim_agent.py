@@ -2935,8 +2935,8 @@ def run_experiment(args):
                     "openings and connectivity with the original images. Choose substantive "
                     "discrepancies for local review or revision, while preserving reliable geometry; "
                     "do not redo a full reading." if seed_path else
-                    "Observe the real physical partitions before saving a quality-first candidate; "
-                    "inspect actual feedback and revise substantive discrepancies.")
+                    "Read the whole drawings, then save a complete draft of every floor; "
+                    "inspect its actual feedback against the originals and revise substantive discrepancies.")
     declaration_prompt = (
         " A structured user building declaration is available from inputs under "
         "building_input.declaration. Preserve each field's stated meaning. In particular, "

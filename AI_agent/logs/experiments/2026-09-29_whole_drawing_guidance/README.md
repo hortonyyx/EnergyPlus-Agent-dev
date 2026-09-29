@@ -1,8 +1,51 @@
 # 整图优先指引包：质量回退诊断与恢复方案
 
-Opus 5.5 受用户直接安排调查并解决“几轮开发后 agent 输出质量回退”。分支 `dev/opus-guidance-recovery-20260929`，基准 `6d4cbe5d`，未合入 main。本页所有结论来自已有 run 的公开请求、工具记录、回执和既有评价；本包到目前为止 **0 次工作模型调用**，下方回归方案待用户批准。
+Opus 5.5 受用户直接安排调查并解决“几轮开发后 agent 输出质量回退”。分支 `dev/opus-guidance-recovery-20260929`，基准 `6d4cbe5d`，未合入 main。诊断部分来自已有 run 的公开请求、工具记录、回执和既有评价。
 
-## 结论
+## 最新状态（09-29）
+
+- 用户批准“sm21 两次、串行”（[记录](approval.json)）。**run91 已执行**：只改系统提示与方法说明的指引包，**未恢复**行为和质量，详见下方“run91 结果”。按事先约定先停，**同条件的第二次未执行**。
+- 已离线准备第二步“用户提示也对齐”的一次运行（run92，改变了条件，需重新批准），见“对齐方案”。
+- 本包累计 1 次工作模型调用（run91），无局部模型、续跑、重试或付费回退。
+
+## run91 结果（用户批准，已执行）
+
+[运行目录](../2026-09-29_sm21_whole_drawing_run91/) · [评价](../2026-09-29_sm21_whole_drawing_run91/whole_drawing_evaluation.json) · [方向诊断](../2026-09-29_sm21_whole_drawing_run91/evaluation/orientation_diagnostic/scope.json)
+
+实际 `claude-sonnet-5` / medium，CLI 2.1.284，1322.82 秒，1 次主调用，回执正常（returncode 0、无错误）。
+
+| 项目 | 结果 |
+| --- | --- |
+| 行为 | 先读 reconstruction/plan_partition/plan_assembly，公开说明“先看全部整图”；但首稿前仍有 65 次调用（31 次裁图、22 次像素工具），首稿在第 1012 秒 |
+| 正式成绩 | 2 层、14 空间/29 门窗/14 连接；原图位置 7/29、宿主 21/29、门连接 10/14；严格分区 severe；二层 4 条拆分/合并/缺失/多余 |
+| 主要原因 | 两层都把“北外墙=0m、南外墙=8m”，即整栋南北镜像。一层南北对称只表现为位置/宿主错，二层北 2 南 4 不对称，才出现拆并 |
+| 仅翻转方向诊断 | 宿主 29/29、门连接 14/14，两层房间一一对应：隔墙像素与 run58 基本相同，房间划分本身正确。位置仍只有 10/29 |
+| 翻转之外的真实错误 | 一层 6 扇内门系统性偏 0.26–0.30m；一层南小窗偏 1.19m；二层南侧 4 门按等间距“补”出，偏约 1.1m；二层南窗照搬北窗范围再按隔墙切分，宽度错 |
+| 看图方式 | 出稿前的局部裁图多是尺寸端点和 40 像素高的细长条，看不到门弧；run58 则用 2.2–2.5 倍、包含走廊两侧门弧的方框 |
+
+判断：系统提示和方法说明被读到并部分采纳，但模型仍在执行用户提示里的两条方法性要求——入口代码追加的“Observe the real physical partitions before saving a quality-first candidate”，以及任务提示里的“scale from each plan's dimension annotations and their endpoints”。时间和注意力花在端点标定上，门窗靠规律补齐，方向还写反了。单次结果不证明稳定规律。
+
+Y 方向写反在 53 次有平面草稿的历史运行中出现 5 次（GLM run32/35/36，Sonnet run86/91），模型自查发现不了：源回叠图使用它自己的标定，反着标也完全对齐。
+
+## 对齐方案（run92，已离线准备，待用户重新批准）
+
+与 run91 相比只改三处，系统提示和方法说明保持 run91 原样：
+
+1. 入口代码对冷启动追加的句子改为“Read the whole drawings, then save a complete draft of every floor; inspect its actual feedback against the originals and revise substantive discrepancies.”（生产代码，影响之后所有冷启动）。
+2. sm21 任务提示只替换一句：“…scale from each plan's dimension annotations and their endpoints” → “Establish one common XY origin with x east and y north for all floors, scaled from each plan's overall dimension annotations.” 见 [scope_sm21_aligned.json](scope_sm21_aligned.json)。
+3. 每次提交平面返回的尺寸反馈里增加方向报告：若标定使北朝图纸下方或东朝左方，提示“平面可能被镜像，回叠无法发现，请核指北针/标注”。只提示、不拦截。对 151 份历史草稿，它恰好标出那 5 次翻转运行的 18 份草稿，其余 133 份无一误报。
+
+离线核对：BIM 相关 16 个测试文件 151 项通过（含新增方向测试）；[预检](preflight_sm21_aligned.json) 0 调用，核实系统提示与 run91 相同、代码只差上述两个文件、用户提示只差上述两句。
+
+拟运行：sm21 一次，同样 Sonnet 5 / medium / 3000 秒 / 24 候选 / 0 续查 / 禁委派；需要先写入 `approval_aligned.json` 才能启动：
+
+```bash
+python AI_agent/logs/experiments/2026-09-29_whole_drawing_guidance/batch_aligned.py run
+```
+
+判读：先看是否在大量局部量测前出完整首稿，再看质量（同上方主判据）。若仍走局部量测路线或质量未恢复，说明仅靠文字指引无法让当前模型回到旧做法，需要重新判断方向，不再同条件抽样。
+
+## 结论（诊断）
 
 回退的直接原因不是后加的几何/量测代码算错，而是 **工作模型从 09-27 凌晨起开始逐条执行我们写下的“局部量测方法”**；此前的全部好结果恰恰是在模型没有执行这套方法时取得的。
 
@@ -55,7 +98,9 @@ Opus 5.5 受用户直接安排调查并解决“几轮开发后 agent 输出质�
 
 离线检查只证明改动可执行、条件可控，**不证明模型会改变行为或质量已恢复**。
 
-## 待批准的节点回归（未执行）
+## 原定节点回归（首轮提请时的方案）
+
+执行情况：用户只批准 sm21 两次；run91 已执行（结果见上）；同条件的 run92 按事先约定未执行，改为上方对齐方案待重新批准；run93/run94 未获批准。下表保留提请时原文。
 
 | 顺序 | run | 案例 | 对照的好结果 |
 |---|---|---|---|

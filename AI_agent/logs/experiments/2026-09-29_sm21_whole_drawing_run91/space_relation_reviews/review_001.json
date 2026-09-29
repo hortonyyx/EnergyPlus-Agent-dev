@@ -1,0 +1,220 @@
+{
+  "schema_version": "source_space_relation_review_v1",
+  "source_model_sha256": "729cf9e732c4a2a9f4bfc1bc7dfce755a6194356c93e309147a0d936134dc4d7",
+  "floor_id": "F1",
+  "calibration": {
+    "x_anchors": [
+      [
+        425.0,
+        0.0
+      ],
+      [
+        1815.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        347.0,
+        0.0
+      ],
+      [
+        1086.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration_unverified": true,
+  "drawing_fidelity": "not_evaluated",
+  "coverage": "caller_selected_point_pairs_only",
+  "observations": [
+    {
+      "id": "o1",
+      "expected": "same_space",
+      "evidence": "Both points lie inside the same north-west office room N1, away from any partition line.",
+      "points": [
+        {
+          "pixel": [
+            450.0,
+            400.0
+          ],
+          "world_xy_m": [
+            0.26978417266187016,
+            0.5737483085250337
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N1",
+          "interior_space_ids": [
+            "F1:N1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            750.0,
+            550.0
+          ],
+          "world_xy_m": [
+            3.5071942446043165,
+            2.197564276048715
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N1",
+          "interior_space_ids": [
+            "F1:N1"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o2",
+      "expected": "separate_spaces",
+      "evidence": "Points straddle the vertical partition between office N1 and N2.",
+      "points": [
+        {
+          "pixel": [
+            750.0,
+            450.0
+          ],
+          "world_xy_m": [
+            3.5071942446043165,
+            1.1150202976995947
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N1",
+          "interior_space_ids": [
+            "F1:N1"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            950.0,
+            450.0
+          ],
+          "world_xy_m": [
+            5.665467625899281,
+            1.1150202976995947
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:N2",
+          "interior_space_ids": [
+            "F1:N2"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o3",
+      "expected": "same_space",
+      "evidence": "Both points lie inside the continuous central corridor, which has no vertical dividers per the original plan.",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            700.0
+          ],
+          "world_xy_m": [
+            0.8093525179856114,
+            3.821380243572396
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:CORR",
+          "interior_space_ids": [
+            "F1:CORR"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            1700.0,
+            700.0
+          ],
+          "world_xy_m": [
+            13.758992805755398,
+            3.821380243572396
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:CORR",
+          "interior_space_ids": [
+            "F1:CORR"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "same_space",
+      "direct_connections": [],
+      "consistency": "consistent_with_supplied_expectation"
+    },
+    {
+      "id": "o4",
+      "expected": "separate_spaces",
+      "evidence": "Points straddle the corridor south wall separating the corridor from room S1.",
+      "points": [
+        {
+          "pixel": [
+            500.0,
+            700.0
+          ],
+          "world_xy_m": [
+            0.8093525179856114,
+            3.821380243572396
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:CORR",
+          "interior_space_ids": [
+            "F1:CORR"
+          ],
+          "boundary_space_ids": []
+        },
+        {
+          "pixel": [
+            500.0,
+            900.0
+          ],
+          "world_xy_m": [
+            0.8093525179856114,
+            5.986468200270638
+          ],
+          "status": "inside_one_space",
+          "space_id": "F1:S1",
+          "interior_space_ids": [
+            "F1:S1"
+          ],
+          "boundary_space_ids": []
+        }
+      ],
+      "actual_relation": "separate_spaces",
+      "direct_connections": [
+        {
+          "opening_id": "F1:D_S1",
+          "space_ids": [
+            "F1:CORR",
+            "F1:S1"
+          ],
+          "kind": "door",
+          "state": "unknown"
+        }
+      ],
+      "consistency": "consistent_with_supplied_expectation"
+    }
+  ],
+  "conflict_count": 0,
+  "unassessed_count": 0,
+  "interpretation": "Different space IDs remain separate even when a door or open passage connects them. A conflict is with the supplied observation, not an automatic drawing verdict. Recheck original evidence, sample positions and calibration before editing. Consistent samples do not establish whole-floor fidelity.",
+  "candidate": "candidate_04",
+  "image": "1f_view.png",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "calibration_file": "overlay_calibrations/calibration_003.json",
+  "calibration_sha256": "30dfb4f643aaab8e562fe1aa3dcd85b35fc2d20628b26bb7990fce94826ec902",
+  "review_file": "space_relation_reviews/review_001.json",
+  "remaining_seconds": 1835
+}

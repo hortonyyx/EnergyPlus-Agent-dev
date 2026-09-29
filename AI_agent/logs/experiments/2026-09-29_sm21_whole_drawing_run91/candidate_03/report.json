@@ -1,0 +1,70 @@
+{
+  "agent_assumptions": [
+    "Interior partition/corridor wall thickness treated as zero per geometry contract; centerlines derived from measured pixel gaps and labeled dimension chains (250mm corridor walls per label; ~120mm vertical office dividers inferred from pixel measurement to make the 15000mm chain sum exactly).",
+    "Interior corridor-to-office door widths/positions are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths not individually dimensioned in the drawing.",
+    "All interior door heights (corridor-office doors) assumed standard 2.1m; not dimensioned in the drawing.",
+    "East 1F window height family assumed same as North/South 1F windows (sill1.0/head2.6m); not independently re-derived from a separate East elevation internal dimension chain.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior partition/wall thickness treated as zero per geometry contract; wall centerlines placed at clean round-number positions (7.5m single meeting-room divider; corridor 3.0-5.0m; office dividers at 3.75/7.5/11.25m) consistent with measured pixel gaps within a few percent.",
+    "South wall window positions assumed to mirror north wall windows exactly (x=1.95-5.55m and 9.45-13.05m), based on South_view.png upper-zone dimension chain (1950/3600/3900/3600/1950=15000mm) rather than assuming one window per small office; this is a simplification since the interior office grid (3.75m bays) does not align 1:1 with this 2-window facade pattern.",
+    "All interior corridor-office/meeting-room door widths and exact positions are approximated from visible arc symbols, not individually dimensioned.",
+    "Interior door head heights assumed standard 2.1m (unobserved).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "26ab8f390c858ad011af106b1022b3901a7281a9567b1ae9c738865a4679faa0",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "ef855eb82b76a98744689c75a9b6b86e553a0de35d10575ac93953d126d27365",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "ec61ff48bcabe3e869bd20fa97ef82687e4d3fc4bc09ee076c1814ec1ec77c11"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "6d587700ac61152c80bf1c6b6d040a3beddae32828d8da7364ebe89c5d978c39",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact interior door widths at each office-corridor junction are approximate; original arcs partially overlap adjacent partitions and were not individually pixel-measured to sub-100mm precision.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact correspondence between the 4 south-row offices and the 2 large south-facade windows is not fully resolved from the drawing; offices 2 and 3 may each receive only a partial share of a window rather than each office having its own dedicated window.",
+    "Interior door exact widths/positions at office/meeting-room to corridor junctions are approximate.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
