@@ -1,0 +1,74 @@
+{
+  "agent_assumptions": [
+    "Interior door heights (2.1m) assumed, not separately dimensioned on plan.",
+    "West door head height assumed equal to adjacent window head (2.6m) pending elevation confirmation.",
+    "Partition/corridor wall thickness taken as labelled 240mm/250mm even though thin-line pixel width measured smaller; centerlines used for partitions per dimension chains.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Bottom-row partition positions approximated as equal 3750mm quarter bays; the bottom dimension sub-chain was partly illegible at available resolution.",
+    "Bottom-row door positions approximated near room centers pending a clearer wall-support crop.",
+    "South-wall small window widths approximated as 1200mm centered per row pattern seen on South elevation.",
+    "Opening z heights are provisional pending elevation claim confirmation for the upper storey (z_floor=3.0, ceiling 3.6m).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 72,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 12,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "0a0044734f214e8b8d64706af36c745d54cb87fc0219fcc3f266e4eb1641041d",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0005.json",
+      "parent_candidate": "candidate_04",
+      "parent_proposal_sha256": "68d0f95314c9270e67074ed94cd1d036c73cdcd3d2ea91e8648b0b6b8fce42ec"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "10b9d9f79fea8135d917e67cae226506f5dae34f581232e718652642a1b76663",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "68d0f95314c9270e67074ed94cd1d036c73cdcd3d2ea91e8648b0b6b8fce42ec"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "0924b41897bebaaf06b567c4b2bfc47d586ec722ca5eb31b42e6269aa8d8c6d9",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact partition-to-window offset within each 5000mm bay rounded to chain values; minor (<150mm) position uncertainty from a single unlabeled ~240mm gap in the printed top dimension chain.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Bottom-row (B1-B4) partition and door exact pixel positions need a further magnified wall-support check against 2f_view.png before being treated as fully verified.",
+    "Upper-storey window/door head heights (currently 4.0-5.8/5.1 placeholders) need confirmation against North/South/East/West elevation chains for the 2F storey.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

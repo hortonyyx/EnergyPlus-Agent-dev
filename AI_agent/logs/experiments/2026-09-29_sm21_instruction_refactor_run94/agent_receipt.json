@@ -1,0 +1,110 @@
+{
+  "requested_model": "claude-sonnet-5",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1198.54,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1168709,
+    "stop_reason": "end_turn",
+    "session_id": "3f90b9f5-d4ba-45bb-8ff9-90923fa359d4",
+    "total_cost_usd": 3.9462920000000006,
+    "usage": {
+      "input_tokens": 94,
+      "cache_creation_input_tokens": 361393,
+      "cache_read_input_tokens": 7551710,
+      "output_tokens": 99019,
+      "output_tokens_details": {
+        "thinking_tokens": 76123
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 361393,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1060,
+          "cache_read_input_tokens": 356373,
+          "cache_creation_input_tokens": 5020,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 5020
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 94,
+        "outputTokens": 99019,
+        "cacheReadInputTokens": 7551710,
+        "cacheCreationInputTokens": 361393,
+        "webSearchRequests": 0,
+        "costUSD": 3.9462920000000006,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 76123,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 72,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\n**Delivered candidate: `candidate_05`**\n\nI reconstructed a two-floor lightweight BIM (15.0 × 8.0 m footprint, F1 z=0–3.0m, F2 z=3.0–6.6m) from the six supplied original images (1F plan, 2F plan, North/South/East/West elevations).\n\n**Observed directly from the drawings:**\n- Overall 15000×8000mm footprint and 240mm exterior wall on both floors (confirmed via gray-fill pixel bounding box matching the printed overall dimensions almost exactly).\n- F1: north row of 3 offices (T1–T3) each with a 2400mm window and one door to a central 1500mm corridor; a completely open south room (no dividing wall drawn, despite varied furniture — kept as one space per the \"never split a continuous space\" rule) with a 900mm south entrance door, a 1200mm and two 2400mm windows; an 1150mm corridor window on the east gable wall; and a ~1450mm double door direct from the corridor to the west gable wall (confirmed against the West elevation's ground-floor door symbol).\n- F2: 2 large conference rooms (north) with 3600mm windows and doors near the shared partition; 4 smaller offices (south) each with a door and a ~1200mm window; corridor windows on both gable ends (matching East/West elevations, which show windows — not a door — on this floor).\n- Window/door heights: recorded and adopted as **located claims** bound to the North elevation's storey dimension chains (F1 sill 1.0m/head 2.6m; F2 sill 4.0m/head 5.8m absolute) and the South elevation's distinct door+transom chain for the main entrance (0–2.4m), then applied via `revise_bim` referencing those claims — distinct from assumptions.\n\n**Explicit assumptions (kept labelled, not silently applied):**\n- Interior corridor-door heights (2.1m) — not dimensioned anywhere.\n- West double-door head height (2.6m, matched to adjacent window) — not independently confirmed from its own chain.\n- 2F bottom-row (B1–B4) partition/door positions — approximated as 4 equal 3750mm bays with centered doors; the fine sub-dimension chain there was not fully legible at available resolution.\n- Partition/corridor-wall thickness taken from the printed \"240\"/\"250\" labels rather than the thinner pixel ink actually measured.\n\n**Left unverified / not exhaustively checked:**\n- Exact ±150mm partition offsets within each 5000mm 1F bay (one small ~240mm gap in the printed chain wasn't individually re-derived).\n- Precise pixel confirmation of the F2 bottom-row wall/door positions (flagged in `unresolved`).\n- No independent second-pass fidelity check (e.g. `view_plan_wall_support`) was run given the time budget; the saved source/overlay comparisons shown during each build were used as the fidelity check instead, and all matched the original drawings well on visual inspection.\n\nThe candidate is saved and selected via `finish_bim(candidate_05)`; its notes/assumptions/unresolved lists reflect this actual state.",
+    "ttft_ms": 1775,
+    "type": "result",
+    "duration_ms": 1189989,
+    "uuid": "4d196972-6ad6-4c11-9b5f-f413034ea7c2",
+    "ttft_stream_ms": 1577,
+    "time_to_request_ms": 75,
+    "first_content_frame_ms": 1577,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

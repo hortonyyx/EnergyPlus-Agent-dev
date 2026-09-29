@@ -1,0 +1,140 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W_C1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_C2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_B1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_B2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_B3",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_B4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_East",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_West",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png left-side dimension chain for the upper-floor storey reads, floor-to-floor bottom-up: 1000 (sill above 2F floor, z=3.0 absolute), 1800 (window height), 800 (head to roof/parapet), totalling the 3600mm 2F storey height. Applied to all 2F exterior windows (conference-room windows, small office windows, and both gable corridor windows) since none shows a distinct sill/head elsewhere.",
+    "sources": [
+      {
+        "box": null,
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [
+      "F2:W_B1-4 are narrower than F2:W_C1/C2 but on the same storey wall; same sill/head assumed."
+    ],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 6.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 5.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 4.0
+          },
+          {
+            "end_m": 6.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 5.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "75ef3b03e150d630314b3e1f7ed1e3b0a27107c136f2c636daca1891fad3a8de",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}
