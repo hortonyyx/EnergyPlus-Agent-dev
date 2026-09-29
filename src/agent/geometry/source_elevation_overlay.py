@@ -10,6 +10,8 @@ from src.agent.geometry.source_image_overlay import _axis_anchors, _overlay_font
 
 
 _OPENING_COLOURS = {"window": (255, 145, 0), "door": (215, 65, 225), "open": (215, 65, 225)}
+_WALL_COLOUR = (0, 190, 255)
+_FLOOR_COLOUR = (80, 210, 70)
 
 
 def _opening_labels(image, openings, font):
@@ -115,11 +117,11 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
     walls, openings, floors = [], [], []
     for row in view["projected_exterior_walls"]:
         points = [project(p[axis], p[2]) for p in row["world_vertices"]]
-        draw.line(points + [points[0]], fill=(160, 160, 160), width=1)
+        draw.line(points + [points[0]], fill=_WALL_COLOUR, width=1)
         walls.append(record(row, points))
     for row in view["projected_floor_lines"]:
         points = [project(h, z) for h, z in row["world_vertices"]]
-        draw.line(points, fill=(180, 180, 180), width=1)
+        draw.line(points, fill=_FLOOR_COLOUR, width=1)
         floors.append(record(row, points))
     for row in view["projected_openings"]:
         points = [project(p[axis], p[2]) for p in row["world_vertices"]]
@@ -141,6 +143,18 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
         "image_size": list(image.size),
         "reference_background": "grayscale_copy_original_file_unchanged",
         "opening_colours_rgb": {kind: list(colour) for kind, colour in _OPENING_COLOURS.items()},
+        "overlay_colours_rgb": {
+            "exterior_wall_edges": list(_WALL_COLOUR),
+            "floor_lines": list(_FLOOR_COLOUR),
+            **{kind: list(colour) for kind, colour in _OPENING_COLOURS.items()},
+        },
+        "legend": {
+            "gray": "original drawing",
+            "cyan": "source exterior wall edges, including per-space wall segmentation",
+            "green": "source floor datum lines",
+            "orange": "source windows",
+            "purple": "source doors and open passages",
+        },
         "anchors": {"horizontal": horizontal, "absolute_z": vertical},
         "basis": basis.strip(),
         "calibration_unverified": True,
@@ -159,7 +173,8 @@ def render_elevation_overlay(source, original, *, facade, horizontal_anchors, z_
             "Horizontal values are world x/y, not distance from the facade's left edge; z is absolute, not above-floor height.",
             "Only axis-aligned drawings are supported; no rotation, perspective or automatic pixel matching.",
             "All same-facing exterior hosts are projected; recess-depth occlusion is not resolved.",
-            "The reference background is grayscale; consult the original colour drawing for colour conventions. Generated windows are orange; doors and open passages are purple.",
+            "The reference background is grayscale; consult the original colour drawing for colour conventions. All projected geometry is coloured: cyan wall edges, green floor datum lines, orange windows, purple doors/open passages.",
+            "Cyan wall edges include per-space segmentation; these edges do not establish visible joints in the original facade.",
             "IDs use clear side regions; labels may be omitted on busy images. Leaders skip existing ink. IDs remain in the opening inventory.",
             "No source geometry is changed. Repeat with the same observed anchors after revision; do not fit anchors to generated openings.",
         ],
