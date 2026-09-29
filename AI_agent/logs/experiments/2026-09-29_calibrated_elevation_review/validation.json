@@ -1,0 +1,20 @@
+{
+  "unique_targeted_checks_passed": 31,
+  "initial_command": "python -m pytest -n 2 tests/test_source_elevation_overlay.py tests/test_source_elevation_view.py tests/test_bim_agent_tools.py tests/test_bim_agent_glm_route.py tests/test_subscription_json.py -k 'elevation or route or subscription or claude_recovery or glm' -q",
+  "initial_result": {
+    "passed": 30,
+    "failed": 1,
+    "duration_seconds": 25.19
+  },
+  "initial_failure": "New fixture incorrectly assumed the first polygon vertex was its bottom edge. Replaced order-specific assertion with the expected complete projected x/y extents; production code unchanged.",
+  "followup_command": "python -m pytest -n 2 tests/test_source_elevation_overlay.py -q",
+  "followup_result": {
+    "passed": 6,
+    "failed": 0,
+    "duration_seconds": 6.48
+  },
+  "offline_replay": "offline_replay.json",
+  "model_calls_in_bim_preparation": 0,
+  "separate_authorized_cli_update_probe": "../2026-09-29_sonnet5_pinned_update/receipt.json",
+  "quality_recovered": false
+}

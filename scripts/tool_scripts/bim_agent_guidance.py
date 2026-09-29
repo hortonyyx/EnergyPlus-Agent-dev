@@ -189,7 +189,13 @@ not an independent observation and an image returned is not a completed review.
 Use view_elevation_candidate(candidate, facade, image=original_filename) to compare
 the complete clean original with the actual source elevation and its opening-ID
 table of absolute/above-floor heights. Choose the matching image explicitly;
-the two views are not pixel-aligned and their scales can differ. Plan views
+the two default views are not pixel-aligned and their scales can differ.
+For axis-aligned originals, the same tool accepts horizontal_anchors and z_anchors
+(two [original_pixel, world_metres] pairs each) plus their observed basis to overlay
+actual openings directly on the original. Use world x on North/South, world y on
+East/West and absolute z; keep these original references fixed after revisions.
+Inspect the opening outline and its own dimension chain where the overlay differs.
+Plan views
 cannot reveal height errors. check_openings(candidate, heights_only=true) returns height_coverage
 by floor/facade from current z claim bindings. Check each floor's own dimension
 origin; viewing a facade alone covers no opening heights. Confirm matching

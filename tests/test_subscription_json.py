@@ -49,7 +49,7 @@ def test_subscription_cli_is_isolated_tool_free_and_records_cli_usage(tmp_path: 
     call = calls[0]
     assert call["input"] == "human payload"
     assert call["command"] == [
-        "claude", "-p", "--model", "sonnet", "--tools", "",
+        "claude", "-p", "--model", "claude-sonnet-5", "--tools", "",
         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
         "--setting-sources", "", "--no-session-persistence", "--output-format",
         "json", "--system-prompt", "system secret-looking API_KEY=do-not-save",

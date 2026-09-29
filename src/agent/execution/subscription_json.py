@@ -26,6 +26,7 @@ _ALLOWED_MODELS = frozenset(
     {
         "haiku",
         "sonnet",
+        "claude-sonnet-5",
         "claude-haiku-4-5-20251001",
         "claude-sonnet-4-6",
     }
@@ -39,6 +40,11 @@ _SECRET_VALUE = re.compile(
 )
 _BEARER_VALUE = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")
 _SK_VALUE = re.compile(r"\bsk-[A-Za-z0-9_-]+")
+
+
+def subscription_model_id(model: str) -> str:
+    """Keep the recovery baseline on Sonnet 5 across Claude CLI upgrades."""
+    return "claude-sonnet-5" if model == "sonnet" else model
 
 
 def _safe_text(value: str | bytes | None) -> str:
@@ -108,7 +114,7 @@ def _command(model_name: str, system_prompt: str) -> list[str]:
         "claude",
         "-p",
         "--model",
-        model_name,
+        subscription_model_id(model_name),
         "--tools",
         "",
         "--strict-mcp-config",

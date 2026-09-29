@@ -49,3 +49,29 @@ def test_glm_and_opus_cannot_be_mixed(tmp_path):
     runner.dump(run / "inputs.json", {**manifest, "provider": "glm"})
     with pytest.raises(ValueError, match="cannot be combined"):
         runner.subscription(run, "unused", model="opus", name="agent", exploratory_opus=True)
+
+
+@pytest.mark.parametrize("used", ["claude-sonnet-5", "claude-sonnet-5-5"])
+def test_claude_recovery_pins_version_and_detects_usage_drift(tmp_path, monkeypatch, used):
+    run = _run_with_one_image(tmp_path)
+    calls = []
+
+    class OfflineProcess:
+        returncode = 0
+
+        def __init__(self, command, **kwargs):
+            calls.append(command)
+            kwargs["stdout"].write(json.dumps({"type": "system", "subtype": "init",
+                                               "model": "claude-sonnet-5"}) + "\n")
+            kwargs["stdout"].write(json.dumps({"type": "result", "is_error": False,
+                                               "modelUsage": {used: {}}}) + "\n")
+
+        def communicate(self, prompt, timeout):
+            pass
+
+    monkeypatch.setattr(runner.subprocess, "Popen", OfflineProcess)
+    receipt = runner.subscription(run, "offline only", model="sonnet", name="agent", effort="medium")
+    assert calls[0][calls[0].index("--model") + 1] == "claude-sonnet-5"
+    assert receipt["requested_role"] == "sonnet" and receipt["requested_model"] == "claude-sonnet-5"
+    assert bool(receipt.get("routing_error")) == (used != "claude-sonnet-5")
+    assert len(calls) == 1

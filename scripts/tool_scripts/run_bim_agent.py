@@ -239,8 +239,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         raise ValueError("unsupported subscription provider")
     if provider == "glm" and exploratory_opus:
         raise ValueError("GLM routing cannot be combined with exploratory Opus")
-    routed_model = "glm-5.3-flash" if provider == "glm" else model
-    from src.agent.execution.subscription_json import _isolated_env, _redact_secrets
+    from src.agent.execution.subscription_json import _isolated_env, _redact_secrets, subscription_model_id
+    routed_model = "glm-5.3-flash" if provider == "glm" else subscription_model_id(model)
     launcher = str(ROOT / "scripts/glm_code.sh") if provider == "glm" else "claude"
     command = [launcher, "-p", "--model", routed_model, "--tools", "",
                "--allowedTools", "mcp__bim__*", "--permission-mode", "dontAsk",
@@ -309,6 +309,10 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
             record["result"] = event
     if provider == "glm" and record.get("actual_model") != routed_model:
         record["routing_error"] = "GLM invocation did not confirm the requested image model"
+    if provider == "claude" and model == "sonnet":
+        used_models = record.get("result", {}).get("modelUsage", {})
+        if record.get("actual_model") != routed_model or any(used != routed_model for used in used_models):
+            record["routing_error"] = "Claude invocation did not stay on the pinned Sonnet 5 model"
     dump(log_run / f"{name}_receipt.json", record)
     return record
 
@@ -1649,7 +1653,7 @@ class Toolkit:
                 raise ValueError("view original size changed")
         return {"record": metadata, "sha256": hashlib.sha256(raw).hexdigest()}
 
-    def elevation_view(self, candidate, facade, image=""):
+    def elevation_view(self, candidate, facade, image="", horizontal_anchors=None, z_anchors=None, basis=""):
         """Pair an explicitly chosen full original with the current source elevation."""
         from mcp.server.fastmcp import Image
         from src.agent.geometry.source_elevation_view import render_source_elevation
@@ -1657,11 +1661,25 @@ class Toolkit:
         source = json.loads((path / "source_model.json").read_text())
         if image:
             self.image_path(image)  # Validate before recording a comparison.
-        pic, metadata = render_source_elevation(source, facade)
-        image_path = path / f"elevation_{facade}.png"
-        pic.save(image_path)
-        metadata.update(candidate=candidate,
-                        elevation_image=str(image_path.relative_to(self.run)),
+        calibrated = horizontal_anchors is not None or z_anchors is not None or bool(basis)
+        if calibrated:
+            if not image or horizontal_anchors is None or z_anchors is None:
+                raise ValueError("calibrated elevation requires image, horizontal_anchors, z_anchors and basis")
+            from src.agent.geometry.source_elevation_overlay import render_elevation_overlay
+            with PILImage.open(self.image_path(image)) as original:
+                pic, metadata = render_elevation_overlay(source, original, facade=facade,
+                    horizontal_anchors=horizontal_anchors, z_anchors=z_anchors, basis=basis)
+            metadata.update(candidate=candidate, image=image, image_sha256=digest(self.image_path(image)))
+            source_picture, metadata = self._save_overlay(pic, metadata)
+            image_path = self.run / metadata["overlay_image"]
+        else:
+            pic, metadata = render_source_elevation(source, facade)
+            image_path = path / f"elevation_{facade}.png"
+            pic.save(image_path)
+            data = io.BytesIO()
+            pic.save(data, "PNG")
+            source_picture = Image(data=data.getvalue(), format="png")
+        metadata.update(candidate=candidate, elevation_image=str(image_path.relative_to(self.run)),
                         elevation_image_sha256=digest(image_path))
         pictures = []
         if image:
@@ -1670,17 +1688,16 @@ class Toolkit:
             pictures.append(original)
             metadata["original_view"] = original_metadata
             metadata["comparison"] = {
-                "image_order": ["full_original", "source_elevation"],
+                "image_order": ["full_original", "calibrated_source_elevation" if calibrated else "source_elevation"],
                 "image_facade_binding": "caller_selected_not_verified",
-                "pixel_alignment": "none; the two images have independent scales and frames",
+                "pixel_alignment": ("caller-calibrated original frame; both returned images have the same scale"
+                                    if calibrated else "none; the two images have independent scales and frames"),
                 "review": "Match visible opening shapes to source IDs and their above-floor/absolute height intervals. "
                           "Use the full dimension chain and opening outline together; an ordinary-window height "
                           "does not establish other opening families. Reopen a clean crop with view_image when needed. "
                           "Revise only supported discrepancies and recheck the resulting source.",
             }
-        data = io.BytesIO()
-        pic.save(data, "PNG")
-        pictures.append(Image(data=data.getvalue(), format="png"))
+        pictures.append(source_picture)
         dump(path / f"elevation_{facade}.json", metadata)
         folder = self.run / "elevation_reviews"
         folder.mkdir(exist_ok=True)
@@ -2719,15 +2736,26 @@ def serve(run: Path, readonly=False):
             return candidate_result(toolkit.build(json.loads(proposal_json)))
 
         @server.tool()
-        def view_elevation_candidate(candidate: str, facade: str, image: str = "") -> CallToolResult:
+        def view_elevation_candidate(candidate: str, facade: str, image: str = "",
+                                     horizontal_anchors: list[list[float]] | None = None,
+                                     z_anchors: list[list[float]] | None = None,
+                                     basis: str = "") -> CallToolResult:
             """Inspect actual source wall/window/door heights across all floors.
             facade: North, South, East or West. Set image to an exact original filename
             to receive its complete clean image alongside the source elevation and an
             ID/height table (absolute z and height above each floor). You choose the
             correspondence; no image-name inference, alignment or fidelity pass.
             The returned original view_id can be cited in claims. Omit image for source only.
+            Optional calibrated overlay: provide image, horizontal_anchors and z_anchors,
+            each two [original_pixel, world_metres] pairs, plus basis describing observed
+            references. Horizontal metres are world x for North/South, world y for East/West
+            (NOT distance from the image's left edge); z is absolute source height, not
+            height above a floor. For axis-aligned drawings only. Returns clean original
+            and source overlay in the same frame. Calibration is unverified; keep these
+            original references unchanged when repeating after revision. No auto-fit/pass.
             """
-            pictures, metadata = toolkit.elevation_view(candidate, facade, image)
+            pictures, metadata = toolkit.elevation_view(candidate, facade, image,
+                                                        horizontal_anchors, z_anchors, basis)
             return CallToolResult(content=[
                 *[picture.to_image_content() for picture in pictures],
                 TextContent(type="text", text=json.dumps(metadata, ensure_ascii=False)),
@@ -2842,6 +2870,7 @@ def run_experiment(args):
                                  "src/agent/geometry/source_floor_selection.py":digest(ROOT/"src/agent/geometry/source_floor_selection.py"),
                                  "src/agent/geometry/source_space_relations.py":digest(ROOT/"src/agent/geometry/source_space_relations.py"),
                                  "src/agent/geometry/source_elevation_view.py":digest(ROOT/"src/agent/geometry/source_elevation_view.py"),
+                                 "src/agent/geometry/source_elevation_overlay.py":digest(ROOT/"src/agent/geometry/source_elevation_overlay.py"),
                                  "src/agent/geometry/source_plan_view.py":digest(ROOT/"src/agent/geometry/source_plan_view.py"),
                                  "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
                                  "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),

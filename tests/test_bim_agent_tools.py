@@ -750,6 +750,61 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
     asyncio.run(scenario())
 
 
+def test_calibrated_elevation_stdio_preserves_inputs_and_reuses_original_frame(tmp_path):
+    from PIL import ImageChops
+
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        image_path = run / "images/plan.png"
+        Image.new("RGB", (1800, 1800), "black").save(image_path)
+        manifest = json.loads((run / "inputs.json").read_text())
+        manifest["images"]["plan.png"] = {"size": [1800, 1800], "sha256": digest(image_path)}
+        (run / "inputs.json").write_text(json.dumps(manifest))
+        proposal = json.loads(_two_floor_proposal())
+        proposal["geometry"]["windows"] = [{
+            "id": "east_window", "floor": "F1", "facade": "East", "room": "right",
+            "span": [1, 2], "z": [1, 2.6], "source_refs": ["synthetic"],
+        }]
+        frame = dict(facade="East", image="plan.png", horizontal_anchors=[[100, 0], [1100, 4]],
+                     z_anchors=[[1600, 0], [100, 6]], basis="Synthetic exterior width and total height")
+        async with _server_session(run, readonly=False) as session:
+            built = _json_result(await session.call_tool("build_bim", {"proposal_json": json.dumps(proposal)}))
+            source_path = run / built["candidate"] / "source_model.json"
+            protected = {p: digest(p) for p in (source_path, image_path)}
+            first = await session.call_tool("view_elevation_candidate", {"candidate": built["candidate"], **frame})
+            metadata = _json_result(first)
+            assert [item.type for item in first.content] == ["image", "image", "text"]
+            assert metadata["horizontal_axis"] == "y" and metadata["mode"] == "source_elevation_overlay"
+            assert min(p[1] for p in metadata["projected_openings"][0]["pixel_vertices"]) == 950
+            actual = Image.open(io.BytesIO(base64.b64decode(first.content[1].data))).convert("RGB")
+            saved_path = run / metadata["elevation_image"]
+            saved_hash = digest(saved_path)
+            saved = Image.open(saved_path).convert("RGB")
+            saved.thumbnail((1600, 1600))
+            assert actual.size == (1600, 1600) and ImageChops.difference(actual, saved).getbbox() is None
+            assert metadata["original_view"]["returned_size"] == metadata["returned_size"]
+            assert all(digest(p) == h for p, h in protected.items())
+            bad = await session.call_tool("view_elevation_candidate", {
+                "candidate": built["candidate"], "facade": "East", "horizontal_anchors": [[0, 0], [1, 1]]})
+            assert "requires image" in _error_text(bad)
+            revised = _json_result(await session.call_tool("revise_bim", {
+                "candidate": built["candidate"], "operations_json": json.dumps([{
+                    "op": "update_window", "id": "east_window", "changes": {"z": [1, 2.8]},
+                    "reason": "synthetic changed head", "source_refs": ["synthetic"],
+                }])}))
+            second = _json_result(await session.call_tool("view_elevation_candidate", {
+                "candidate": revised["candidate"], **frame}))
+            assert min(p[1] for p in second["projected_openings"][0]["pixel_vertices"]) == 900
+            assert second["anchors"] == metadata["anchors"]
+            assert second["source_model_sha256"] != metadata["source_model_sha256"]
+            assert second["elevation_image"] != metadata["elevation_image"]
+            assert digest(saved_path) == saved_hash
+            assert json.loads((run / metadata["review_file"]).read_text()) == metadata
+            assert all(digest(p) == h for p, h in protected.items())
+
+    asyncio.run(scenario())
+
+
 def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)
