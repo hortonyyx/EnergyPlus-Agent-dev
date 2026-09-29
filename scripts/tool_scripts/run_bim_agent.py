@@ -33,7 +33,7 @@ from mcp.server.fastmcp import Image
 from mcp.types import CallToolResult, TextContent
 
 
-from scripts.tool_scripts.bim_agent_guidance import GUIDE, REFERENCES
+from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide
 from scripts.tool_scripts.bim_agent_inputs import freeze_building_input, freeze_plan_input
 
 
@@ -216,6 +216,12 @@ def terminate_subscription(process):
         process.wait()
 
 
+def run_guide(run: Path) -> str:
+    """System prompt matching the run's admitted input types."""
+    manifest = json.loads((run / "inputs.json").read_text())
+    return build_guide(drawings=bool(manifest.get("images")), mesh=bool(manifest.get("mesh_input")))
+
+
 def subscription(run: Path, prompt: str, *, model: str, name: str,
                  readonly: bool = False, timeout: int = 900,
                  log_run: Path | None = None, receipt_context: dict | None = None,
@@ -262,7 +268,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                                     "report unknown instead of inventing a missing segment. "
                                     "Check inputs or view_image metadata for remaining_seconds, answer early, "
                                     "and near the limit state explicit unexamined items. Do not plan the whole building."
-                                    if readonly else GUIDE)]
+                                    if readonly else run_guide(run))]
     if not readonly or model == "sonnet":
         command.extend(["--effort", effort or "medium"])
     server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run)]
@@ -2085,11 +2091,11 @@ def serve(run: Path, readonly=False):
 
     @server.tool()
     def get_bim_reference(topic: str) -> dict:
-        """Read room_types, naming, reconstruction, geometry, plan_partition, edits or opening_review.
-        Choose room_types before assigning roles; naming explains public names and CCW wall order.
-        Choose reconstruction for drawing measurements and evidence interpretation.
-        Choose geometry for a full proposal or plan_partition for pixel walls.
-        These are generic instructions, not case observations or reference answers.
+        """Topics: plan_partition, plan_assembly, geometry, parametric (build formats);
+        edits, wall_dimensions (revise_bim operations); claims; opening_review;
+        facade_correspondence; room_types (role catalog); naming (public names);
+        reconstruction (the drawing method already in the system prompt).
+        Generic formats and interfaces, not case observations or answers.
         """
         if topic not in REFERENCES:
             raise ValueError("unknown topic; choose " + ", ".join(REFERENCES))
@@ -2340,8 +2346,8 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def record_claim(claim_json: str) -> CallToolResult:
             """Record a located interpretation and computable values for an existing candidate.
-            Returns actual clean crops of up to three saved source regions. Inspect them
-            before adoption; use view_claim_evidence for remaining sources or magnification.
+            Returns actual clean crops of up to three saved source regions;
+            view_claim_evidence shows remaining sources or magnifies them.
             Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
             """
             return claim_result(toolkit.record_claim(claim_json))
@@ -2535,8 +2541,8 @@ def serve(run: Path, readonly=False):
             the observed spaces. Uses the latest registered image/floor calibration;
             first build_plan_bim or overlay_candidate if none exists. Returns actual
             space IDs and any direct door/open connection; connected does NOT mean the
-            same space. Saves a source/calibration-bound review. Never edits geometry
-            or certifies drawing truth. Recheck after revisions before finish_bim.
+            same space. Saves a source/calibration-bound review; a revised candidate
+            needs its own checks. Never edits geometry or certifies drawing truth.
             """
             return toolkit.check_space_relations(candidate, image, floor_id, observations_json)
 
@@ -2649,7 +2655,7 @@ def serve(run: Path, readonly=False):
 
         @server.tool()
         def review_detail(question: str, images: list[str], timeout_seconds: float = 120) -> dict:
-            """Ask Haiku one small visual question, e.g. count/locate doors in a region.
+            """Ask the local image model (Haiku) one small visual question in a region.
             Give image names and original crop coordinates, and describe observable
             original-image evidence rather than a candidate conclusion. The submitted
             question is not text-cleaned, so this only isolates file context. At most
@@ -2935,8 +2941,7 @@ def run_experiment(args):
                     "openings and connectivity with the original images. Choose substantive "
                     "discrepancies for local review or revision, while preserving reliable geometry; "
                     "do not redo a full reading." if seed_path else
-                    "Read the whole drawings, then save a complete draft of every floor; "
-                    "inspect its actual feedback against the originals and revise substantive discrepancies.")
+                    "No saved proposal is supplied; work from the original inputs.")
     declaration_prompt = (
         " A structured user building declaration is available from inputs under "
         "building_input.declaration. Preserve each field's stated meaning. In particular, "

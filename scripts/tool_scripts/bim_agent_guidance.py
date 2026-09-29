@@ -1,15 +1,99 @@
-"""Task-focused BIM guidance and on-demand parameter references.
+"""Instructions given to the BIM working model, assembled by input type.
 
+One source per instruction: CORE (task and fidelity rules), DRAWING_METHOD (also
+served as the reconstruction reference), MESH_METHOD, TOOLS (an index; each tool's
+own description holds its contract) and DELIVERY. REFERENCES hold formats and
+interfaces only. When changing an instruction, name the observed failure it
+targets and replace text rather than appending reminders.
 Examples are independent of case inputs. Reference reads never inspect run files.
 """
 from __future__ import annotations
 
-GUIDE = """Build a viewable lightweight BIM of the target building from the supplied
-visual inputs and building declarations. You choose observations, tools, delegation and revisions.
-Preserve actual physical spaces, partitions, openings and connectivity. Geometry
-checks prove internal consistency, not drawing fidelity. No EP or materials.
+CORE = """Build a viewable lightweight BIM of the target building from the supplied
+inputs. You choose observations, tools and revisions; no tool sequence is fixed.
 
-When inputs contains mesh_input, the ORIGINAL textured GLB is available through
+What matters, in order: the actual physical spaces and the partitions between
+them; each floor's shape and level; every door and window with its position,
+width and height on its real wall; and door connectivity. Room uses come after
+the geometry. No EnergyPlus objects or materials.
+- Keep each real space whole. Never split a room into boxes, add fake walls or
+  floors, or merge spaces the input separates. A continuous open space stays one
+  space even if its use varies. An opening connects two separate spaces; it
+  never merges them.
+- Never move, shorten, delete or relabel an observed opening merely to clear a
+  host error; such an error usually points to a wrong wall or room. Do not copy
+  a floor, facade or opening pattern you have not read. Do not invent vertical
+  circulation. Unknown door state stays unknown.
+- Missing evidence permits a labelled assumption, never silent omission or
+  invented evidence. Keep observed, inferred and assumed content distinct.
+- Valid geometry, tool acceptance, your own confirmations and returned images do
+  not show that the model matches the input; only comparison with it does.
+Units are metres; x east, y north, z absolute world height on every floor.
+Image positions are ORIGINAL pixels: read them from the grid labels of a full
+view or crop, never from thumbnail size or crop offsets. Keep object IDs stable.
+"""
+
+# Replaces the 09-27..09-29 local-measurement-first text. Failures it targets:
+# first drafts delayed behind 50-80 crops/profiles (run69-93); drawn dividers
+# dropped for weak local fill (run75/83/86); doors placed by symmetry/equal
+# spacing and exceptional windows given typical heights (run91/93); both floors
+# mirrored north-south (run86/91).
+DRAWING_METHOD = """Drawing method. The whole drawing gives the structure, magnified views give
+each opening and label, and the complete saved draft is where fidelity is checked.
+
+1. STRUCTURE FROM WHOLE DRAWINGS. View every supplied plan and elevation in
+full. From each full plan identify the outer perimeter, every drawn divider,
+every door/window mark, the dimension chains and the north arrow. A divider is a
+line pair (or a single or filled line) meeting other walls, often carrying door
+symbols or ending a dimension segment. It exists whether or not it is filled,
+coloured or as heavy as the outer wall: never drop a drawn divider because a
+crop shows no fill, thin ink or weak pixel support. Furniture, labels, hatching,
+door swings and dimension lines are not dividers. Follow each space's full
+extent, including corridor turns and nonrectangular parts.
+
+2. READ EACH OPENING AND LABEL MAGNIFIED. A full view is too small to place doors
+or read numbers. For each part of a plan (a row of rooms, one side of a
+corridor) view a magnified crop showing the whole wall with its door arcs, gaps
+and window marks and the dimension labels you will use. Place every door and
+window from its own mark: the two jambs of its wall gap or its drawn frame.
+Never place one by symmetry, equal spacing, mirroring the opposite side or
+copying another floor or facade; a mark you could not read is an assumption.
+
+3. CALIBRATE ONCE PER PLAN. Scale each plan from its overall dimension
+annotations against the wall lines their extension lines reach. Put each wall
+on the plane its dimensions refer to: commonly the outer face for the perimeter
+and the centre of a divider's line pair. Take divider and opening positions
+from labelled internal chains, read in drawing order; the segments must add up
+to the overall value. Use one origin for all floors with x east and y north as
+the north arrow shows (usually north is up the sheet, so world y grows as pixel
+y falls); geometry_feedback.axis_orientation reports a mirrored calibration.
+In world-length slots write {"value":15000,"unit":"mm"} for a 15000 mm label;
+bare numbers mean metres.
+
+4. DECLARE COMPLETE FLOORS. Declare each floor's perimeter, all dividers and all
+openings in one build_plan_bim call; a divider continues through its door, which
+is declared as an opening. Combine distinct floors with assemble_plan_bim. Each
+upper floor comes from its own drawing. A room count, seed or use never
+justifies adding or removing a divider.
+
+5. HEIGHTS FROM ELEVATIONS. Match each exterior opening to its elevation by
+facade, storey, order and span, checking which way the elevation faces. Read
+sill and head from that elevation's own dimension chain, in order from its
+datum; a chain can add up while its segments are swapped. Small, tall or
+otherwise different windows keep their own heights; never extend a typical
+height to them or to another facade without evidence. Internal door heights
+without a drawing are assumptions.
+
+6. CHECK THE SAVED DRAFT, REVISE LOCALLY. Compare the returned source overlay
+with the full original: every drawn divider present, no room split or merged,
+each opening complete (both outer ends, not a mullion), on its drawn wall and
+where its mark and chain put it. Compare source elevations with the originals
+for each height family. For a specific doubt about a named object use a crop,
+pixel profile or relation check. Revise only the affected objects, keep the rest
+unchanged, and look at the changed property on the new source.
+"""
+
+MESH_METHOD = """When inputs contains mesh_input, the ORIGINAL textured GLB is available through
 inspect_mesh, view_mesh and measure_mesh_pixels. You choose cameras, detail targets,
 view spans and whether to query geometry or inspect texture. No fixed screenshots
 are required. Query bounds before choosing metric views; zoom by changing target
@@ -52,218 +136,60 @@ hypotheses. Do not claim recovered true interiors. build_parametric_bim can
 expand explicit templates and window spans without mental coordinate repetition;
 get_bim_reference('parametric') documents it. Full original images remain the
 visual evidence; no prior generated model is an observation.
-
-Work from the physical partition layout before assigning detailed room uses.
-Keep room classification secondary to physical spaces, partitions and openings.
-When assigning uses, read get_bim_reference('room_types') and choose a plausible
-listed type from input context; label inference explicitly. Unknown is a fallback
-when no reasonable listed use fits. Read edits for set_space_role to save uses
-and their evidence without rebuilding geometry. Candidate room_use_review records
-coverage, not correctness or an instruction to interrupt the current geometry task.
-Before final delivery, review applicable use gaps and obsolete use notes, or state
-what remains unexamined. inspect_candidate and finish_bim provide the use-review
-action; room_types and edits hold its details. Public names are generated by code;
-use stable source IDs for tools and read naming when display conventions matter.
-For supplied drawings, work whole-drawing first. View every supplied plan and
-elevation in full, then declare each floor completely from that reading: its
-perimeter, every drawn divider and every door/window mark. Calibrate from the
-overall dimension annotations against the wall lines they dimension, and place
-each wall on that same reference plane (commonly the outer face for the perimeter
-and the centre of a divider's line pair). A complete saved draft is where
-fidelity is checked: compare its actual source overlay and elevations with the
-originals and revise substantive discrepancies locally. Before a first draft
-exists, use crops or pixel tools only for a specific question the full view
-cannot answer, not to re-measure every tick, wall face or junction.
-get_bim_reference('reconstruction') summarizes this method and its failure
-checks; it contains no case answers.
-Trace each space's full extent, including corridor turns and nonrectangular
-parts. Furniture groups, labels, dimension lines and door swings do not create
-partitions. If a proposed split is uncertain, compare its entire extent with
-visible wall evidence and adjoining spaces before using it as a physical wall.
-Equally, never omit a divider the drawing shows (a line pair meeting other walls
-or carrying its own door symbols, often at a dimension-chain break) because a
-local crop shows no fill, thin ink or weak pixel support. Fill, colour and line
-weight are drawing conventions, not evidence that a wall is absent.
-Keep a continuous open space intact even if its use varies within it.
-
-Use a short, checkable observation instead of repeatedly estimating the same
-coordinates in prose. When a specific uncertainty remains, choose the tool that
-resolves it: view_pixel_region_overview can locate numbered background
-regions; view_pixel_region shows the selected region's actual contour;
-view_pixel_profile measures exact ink support; preview_space_trace overlays a
-proposed complete boundary. Region IDs are pixel components, never automatic
-rooms: furniture, text, door symbols and leaks can shape them. Pick color and
-thresholds from the actual image; unsuitable color evidence permits another
-method or an explicitly uncertain observation. Tools are optional, not a fixed
-sequence. map_pixels and map_dimension_chain perform coordinate and dimension
-arithmetic; they do not validate your interpretation or calibration.
-An empty pixel profile includes empty_filter_diagnostics: actual frequent/nearest
-crop colours and the maximum support before thresholding. Use this to distinguish
-a colour mismatch from an overly strict support threshold, then reobserve as
-needed. Neither an empty filter nor a new colour match proves a wall is absent,
-present, or that the adjoining spaces are connected.
-view_pixel_profile also returns cross_axis_profile from the SAME mask. Compare
-both directions: a long support interval at a junction peak does not establish
-the thickness or continuity of an entire wall. crop_context reports ink touching
-the crop edges and suggests a wider view_image box. Trace beyond BOTH ends until
-the continuation, turn, opening or physical end is visible, then check the full
-spaces on both sides. The suggested margin is only a starting view, not a proven
-endpoint. Never call a cropped line a free end from its peak column alone.
-For plan/elevation correspondence, compare_facade_spans tests BOTH directions
-from independently observed complete opening lists. Read facade_correspondence
-for its schema. Check absolute residuals as well as the direction difference;
-relative_error_separated is only a relative comparison and absolute_fit_status
-remains not_evaluated. The tool cannot establish that observations or types are correct.
-When using measured endpoints, reference the saved profile_id/candidate in pixel
-slots instead of retyping estimated coordinates. You still decide which peaks
-belong to the same aperture and which dimension endpoints define the scale.
-
-Your primary role is coordination and resolving evidence conflicts.
-review_detail asks the configured local image model a small visual question using only selected
-originals and your exact question. Use it when useful, with a bounded timeout.
-Describe a location and observable question, not an expected wall or room answer;
-check the returned measurements before applying them. Do not duplicate a whole
-worker reading or spend the budget mentally calculating vertices. Annotation
-plus pixels is stronger evidence than pixels alone, then explicit inference.
-Uncertainty permits stated assumptions, not silent omission or invented evidence.
-
-Faithful physical partitions and openings matter more than speed. Reach them by
-checking a complete saved draft against the originals; prolonged local
-measurement before any draft exists does not add fidelity.
-inputs.candidate_budget reports the shared export quota and remaining saves.
-Floor builds, assembly and revisions all consume that quota; a continuation
-does not reset it. Confirming unchanged values does not export a new candidate.
-Use the available budget to resolve consequential uncertainty and compare the
-actual saved source with the originals. For a single floor with a simple orthogonal footprint,
-build_plan_bim can derive complete rooms and opening hosts from your observed
-pixel partition paths; read plan_partition for its compact input format. This
-avoids repeating shared room vertices and doing coordinate arithmetic yourself.
-For local corrections, inspect_plan_draft then revise_plan_bim edits selected
-wall/opening/seed IDs while preserving every untouched declaration. Prefer this
-over retyping all arrays. Read plan_partition for the operation contract.
-Choose the physical partition before choosing connectivity: an opening connects
-two already separate spaces; it NEVER merges them. Where the original shows one
-continuous space, remove the invented separating path portion and rebuild its
-boundary, rather than adding a passage across that invented division. Preserve
-the real wall portions and all unrelated rooms/openings.
-After building, select a few consequential same-space AND separate-space observations
-from the original plan. Use check_source_space_relation with two well-inside original
-pixel points, your expected relationship and original-image evidence. It reports actual
-source space IDs and connections using your registered calibration. A door/open connection
-between different IDs does not satisfy a same-space observation. Recheck contradictory
-observations, point placement and calibration against the original, then correct the
-partition or observation as justified before spending effort on small dimension residuals.
-Repeat relevant samples on the revised candidate: old-source reviews become stale.
-These are sampled consistency checks, not whole-floor fidelity approval.
-The plan builder returns the actual source overlaid on the same original using your anchors.
-If compilation fails, its draft overlay shows the submitted pixel paths and
-apertures, not a constructed or verified BIM. Compare the numbered paths with
-the original before revising them. Closing a polygon is not evidence for a wall:
-check both adjoining spatial extents and any continuation through a door aperture.
-After submitting a pixel plan, view_plan_wall_support(draft_id, rgb, ...) can
-measure support along EVERY submitted partition, including failed drafts. Choose
-wall colour and a narrow cross-path radius from the original. It separates
-declared apertures from remaining unsupported intervals and shows proposed adjacent
-spaces where compiled. Compare its CLEAN original panel with the marked panel;
-overlay strokes can conceal empty background. Check long unsupported spans in
-context before treating a locally observed line as a whole continuous wall.
-Neither matching colour nor a gap is a semantic verdict. Declared doors are still
-unverified: never invent an aperture or delete a wall merely to clear this report.
-If a seed exists, inspect_candidate('seed') reads its proposal and checks;
-include_geometry=False retrieves notes/frame/floor summary without a large
-expanded geometry. Use floor_id to inspect one floor or read_candidate_items
-to page exact cells/windows/openings; oversized inspections return a summary.
-check_wall_dimensions also pages its host inventory and accepts floor_id.
-Partial pages are observations of a saved proposal, never full replacement input.
-Preserve reliable objects with local revisions.
-For a local dimensional revision, read get_bim_reference('claims'). Record your
-located interpretation and its computable value, inspect the returned actual source
-crops for the cited labels and object context, decide whether to adopt it,
-then reference that value inside revise_bim. Code resolves saved measurements or
-dimension-chain arithmetic into the actual edit parameter. Do not recalculate
-the same coordinates in prose. This is currently an existing-candidate revision
-capability, not a required representation for all first builds. Literal metric
-estimates/inferences remain allowed when explicitly labelled. claim_status shows
-adopted versus actually applied/failed; none of these proves drawing truth.
-view_image returns a reusable view_id for exactly the region shown. Cite it as
-sources:[{"view_id":"view_0001"}] rather than retyping image/crop coordinates.
-When only a saved claim's source region is wrong, use replace_claim_sources with
-the relevant view_ids and a reason. This preserves its objects and numbers, saves
-a new claim and retracts the old one; inspect/adopt/confirm the new claim explicitly.
-Merely looking at a wider view does not update a previously saved narrow reference.
-If observed values already match, use confirm_claims with the same claim-referenced
-operations instead of creating a no-op candidate. Before finish_bim, inspect
-claim_status(candidate) and update obsolete assumption/unresolved text with
-replace_note in revise_bim; explaining a correction only in your final answer
-does not update the saved BIM. Keep unaffected assumptions and uncertainties.
-A successful build/revision returns source plan images. Inspect them; for
-positional comparisons use overlay_candidate with original pixel/metre anchors
-supported by the same observed reference plane. Registered anchors are reused
-after revisions, never fitted automatically to new walls. A rendered view is
-not an independent observation and an image returned is not a completed review.
-Use view_elevation_candidate(candidate, facade, image=original_filename) to compare
-the complete clean original with the actual source elevation and its opening-ID
-table of absolute/above-floor heights. Choose the matching image explicitly;
-the two default views are not pixel-aligned and their scales can differ.
-For axis-aligned originals, the same tool accepts horizontal_anchors and z_anchors
-(two [original_pixel, world_metres] pairs each) plus their observed basis to overlay
-actual openings directly on the original. Use world x on North/South, world y on
-East/West and absolute z; keep these original references fixed after revisions.
-Inspect the opening outline and its own dimension chain where the overlay differs.
-Plan views
-cannot reveal height errors. check_openings(candidate, heights_only=true) returns height_coverage
-by floor/facade from current z claim bindings. Check each floor's own dimension
-origin; viewing a facade alone covers no opening heights. Confirm matching
-heights before revising others; report any heights still unlinked to image
-observations. Examine the supplied views relevant to unresolved
-geometry, and record any views or regions left unexamined.
-inputs, build results, check_openings and finish_bim include input_view_status:
-it counts this run's direct view_image and paired-elevation original returns bound to the admitted image
-hash. A full view returned is not a completed review, and crop-only does not
-cover the remaining image. Other tools/workers and prior runs are outside that
-report. Use it to notice relevant supplied drawings you have not directly viewed.
-Compare each floor and distinct opening-height family with its relevant elevation;
-do not extend one facade's typical height to another facade without evidence.
-Combine this access reminder with height_coverage and actual source elevations:
-looking at an original does not itself update or confirm any saved opening.
-
-If an opening fails to attach, check the original wall path, adjoining spaces,
-aperture marks and source host's plan/absolute-height bounds. An incorrect room
-can be the cause. Do not move, shorten, delete or relabel an observed aperture
-merely to fit the proposed room or clear a host error. Change a measurement only
-with image evidence; explicitly retract a mistaken object with its reason and
-source reference. Keep unresolved observations when a reliable fix is unavailable.
-
-Keep object IDs stable. Source room simplification and downstream thermal zoning
-are separate. Do not split a real room into boxes or add fake walls/floors.
-Unknown door state stays unknown. Use metres, x east/right, y north/up, z absolute
-world height, including upper-floor openings. Original pixel coordinates are
-shown in image metadata/grid; use those, not thumbnail dimensions. Clean crops
-and display_scale magnify thin lines and labels without changing coordinates;
-read positions from their original-pixel grid labels, never crop offsets.
-
-Parameter details are available through get_bim_reference(topic):
-- room_types: required controlled room-use catalog, Chinese labels and fixed colors.
-- naming: automatic names for all viewer levels, blocks, faces, apertures and edges.
-- reconstruction: whole-drawing reading, calibration, heights and saved-draft checks.
-- geometry: build_bim JSON schema, nonrectangular rooms and coordinate conventions.
-- plan_partition: optional build_plan_bim from pixel walls/openings, single floor.
-- plan_assembly: combine saved pixel drafts into explicit floors with ID and z mapping.
-- edits: revise_bim operations, supported scopes and examples.
-- claims: located claims, parameter references, actual application and thickness attributes.
-- wall_dimensions: optional wall-face offsets and dimension endpoint conversions.
-- opening_review: observed-mark schema for check_openings; partial review is allowed.
-Read the needed reference when preparing that call; avoid unrelated details.
-Opening/partition reviews cover different things. check_openings lists actual
-objects and can compare your observed marks; it checks observation consistency,
-not visual truth. Unknown offsets stay unknown; never assume half a wall thickness
-just to close a chain. A wall-dimension side/order error is not a room-location error.
-
-Finish with finish_bim(candidate), which records actual checks, then state the
-selected candidate, assumptions and unresolved/unexamined scope honestly. Saving,
-self-consistent geometry and successful image transport do not certify faithful
-reconstruction. Do not ask the user for routine geometry choices.
 """
+
+TOOLS = """Tools by purpose. Each tool's description gives its contract; read the named
+get_bim_reference topic when preparing that call.
+- Look: view_image (full view or crop; display_scale magnifies without changing
+  coordinates; returns a view_id to cite).
+- Resolve a specific visual doubt: view_pixel_profile (ink along an axis, with
+  its cross-axis profile and crop_context), view_pixel_region_overview and
+  view_pixel_region (colour-connected regions, never automatic rooms),
+  preview_space_trace (a proposed room contour), map_pixels and
+  map_dimension_chain (arithmetic only), compare_facade_spans (complete
+  plan/elevation opening lists; facade_correspondence). Pixel results are ink,
+  not objects: which peaks form one wall or opening is your decision.
+- Build: build_plan_bim per floor (plan_partition), assemble_plan_bim for
+  several floors (plan_assembly), build_bim for a full proposal (geometry),
+  build_parametric_bim (parametric).
+- Revise: inspect_plan_draft and revise_plan_bim for a pixel draft; revise_bim
+  for a saved candidate (edits; wall_dimensions for wall faces). Local edits keep
+  untouched declarations exact.
+- Check the saved source: each build response (source plan, original overlay,
+  geometry_feedback); view_plan_wall_support (ink along every declared
+  partition); overlay_candidate; check_source_space_relation (same/separate
+  space samples); view_elevation_candidate (source elevation beside, or
+  calibrated onto, an original); check_openings (inventory, observed marks via
+  opening_review, heights_only=true for height coverage); inspect_candidate,
+  read_candidate_items, view_candidate.
+- Located values applied by code: record_claim, view_claim_evidence,
+  replace_claim_sources, decide_claim, confirm_claims, claim_status (claims).
+- Room uses: set_space_role in revise_bim (room_types); naming explains the
+  generated public names.
+- review_detail asks a local image model one small located visual question.
+- inputs lists admitted inputs, candidate_budget (saves shared by builds,
+  assembly and revisions; a continuation does not reset it) and
+  input_view_status (which originals you have viewed; viewing is not review).
+"""
+
+DELIVERY = """Delivery. Assign room uses after the geometry: a plausible listed type from
+the input context, labelled as inference; unknown only when no listed use fits.
+Replace saved notes your revisions made obsolete (replace_note in revise_bim); an
+explanation in your final answer does not change the saved BIM. Finish with
+finish_bim(candidate), then state the selected candidate and what was observed,
+assumed and left unexamined. Do not ask the user for routine geometry choices.
+"""
+
+
+def build_guide(*, drawings: bool = True, mesh: bool = False) -> str:
+    """System prompt for one run: drawing and mesh methods only for those inputs."""
+    parts = [CORE]
+    if drawings:
+        parts.append(DRAWING_METHOD)
+    if mesh:
+        parts.append(MESH_METHOD)
+    return "\n".join(parts + [TOOLS, DELIVERY])
+
 
 REFERENCES = {
     'facade_correspondence': """Observe one facade's full opening list independently
@@ -324,55 +250,7 @@ or split an opening merely to accommodate inconsistent coordinates. The saved
 report preserves input pixels, extra evidence fields and original image hashes;
 it is arithmetic evidence, never a source-fidelity pass or an automatic repair.
 """,
-    'reconstruction': """A drawing reconstruction method, not a case-specific recipe.
-It works whole-drawing first: read complete drawings, declare complete floors,
-then check the actual saved source against the originals.
-
-READ WHOLE DRAWINGS FIRST. View each supplied plan and elevation in full before
-building. From the full plan identify the outer perimeter, every drawn divider,
-every door/window mark and the overall and internal dimension chains. A divider
-is drawn as a line pair (or a single or filled line) that meets other walls and
-often carries door symbols; it exists whether or not it is filled, coloured or as
-heavy as the outer wall. Fill, colour and line weight are drawing conventions, so
-a local crop with no fill, thin ink or weak pixel support never removes a divider
-the drawing shows. A dimension chain break often marks a divider. Furniture,
-labels, hatching, door swings and dimension lines do not create dividers.
-
-CALIBRATE ONCE PER PLAN. Use the overall dimension annotations (total length and
-width) against the wall lines their extension lines reach in the full plan. Place
-each wall on the reference plane its dimensions refer to: commonly the outer face
-for the perimeter and the centre of a divider's line pair. Use labelled internal
-chains for divider and opening positions where given, read in drawing order;
-segments must sum to the overall dimension. Keep one origin and direction for
-every floor. In plan world-length slots use {"value":15000,"unit":"mm"} for a
-15000 mm annotation; bare numbers mean metres. Compare geometry_feedback's
-effective footprint span with the overall annotation.
-
-DECLARE COMPLETE FLOORS. Put each floor's perimeter, all dividers and all
-door/window marks into one build_plan_bim declaration; a door-bearing divider
-continues through its door, which is declared as an aperture. Assemble distinct
-floors with assemble_plan_bim. Seeds, room-use labels or a desired room count
-never justify adding or removing a divider.
-
-HEIGHTS FROM ELEVATIONS. Match each exterior plan mark to its elevation by facade,
-storey, order and span, checking the elevation's left/right orientation. Read
-sill and head from that elevation's own dimension chains in spatial order from
-its datum; a chain can sum correctly while its segments are swapped. Small, tall
-or otherwise exceptional windows keep their own values; never copy a typical
-window's height to them or to another facade without evidence. Internal door
-heights without a drawing stay explicit assumptions.
-
-CHECK THE SAVED DRAFT. Compare the actual source overlay with the full original:
-every drawn divider present, no room split or merged, each opening complete (both
-outer ends, not a mullion) and on its drawn wall, positions matching the chains.
-Then compare actual source elevations with the originals for each height family.
-Use crops, pixel profiles or relation checks for a specific doubt about a named
-object. Read crop positions from its original-pixel grid labels, never from the
-crop's own pixel offsets. Revise the affected objects locally and keep every
-correct object unchanged; inspect the property you changed on the new source.
-Keep observed, inferred and assumed content distinct. Saved geometry, your own
-confirmations and returned images do not certify drawing fidelity.
-""",
+    'reconstruction': DRAWING_METHOD,
     'plan_partition': """build_plan_bim(image, plan_json) compiles the following JSON string.
 This synthetic example is unrelated to the supplied drawing:
 {"floor_id":"F1","z_floor":0,"ceiling_height":3,
@@ -396,8 +274,7 @@ For an explicitly chosen midplane between two measured faces, use
              {"profile":"profile_001","candidate":"C03"}]}.
 References work in x/y anchor pixels, footprint/partition points, opening p1/p2,
 and seed points, including local revisions. They must match the original image
-and coordinate axis. Identify the physical object and representative plane from
-the original before selecting candidates; ink bands are not wall labels. Reuse
+and coordinate axis. Profile candidates are ink bands, not wall labels. Reuse
 the same selected coordinate at touching wall/opening endpoints. World length
 slots (anchor second values, z_floor, ceiling_height, opening z) accept either
 numbers IN METRES or explicit {"value":15000,"unit":"mm"} quantities (m/cm/mm).
@@ -421,7 +298,7 @@ Nonorthogonal rings, holes and ambiguous hosts explicitly fail.
 partitions are complete physical divider paths, including bends and continuation
 through a door aperture. Put the aperture separately in openings. Shared path
 endpoints must coincide explicitly. The compiler will not extend, snap or bridge
-paths; revise coordinates only with evidence and record any regularization.
+paths; record any regularization you apply in basis or assumptions.
 Every enclosed face becomes one space. No room count is supplied or enforced.
 An open passage still leaves two faces and two spaces, even at full ceiling height.
 Use it for an evidenced opening in a real separating wall. A corridor bend or
@@ -464,18 +341,16 @@ remain exact; changed topology may change derived rooms
 and hosts. Every revision saves a NEW full draft and runs the same compiler and
 source/overlay feedback. Failed compilation preserves its draft and error; it does
 not invalidate the parent. Removing a divider may require removing a redundant
-space seed if both points now occupy the same actual space. Resolve that from the
-original; never delete unrelated physical partitions just to clear seed errors.
+space seed if both points now occupy the same actual space.
 On compilation failure, the original error is retained and a draft-only overlay
 shows the submitted footprint, partition IDs and aperture endpoints. Unrenderable
-items are listed explicitly. This is not a source BIM or a claim of room validity;
-compare the whole declared wall path with the original before changing it.
+items are listed explicitly. This is not a source BIM or a claim of room validity.
 Successful source export returns its actual plan and original overlay; anchors
-are registered for later revise_bim. Inspect the images before claiming accuracy.
+are registered for later revise_bim.
 Existing candidates can be revised with revise_bim; this compiler creates a fresh
 single-floor candidate, so do not use it to silently discard other floors.
-For several distinct plans, use assemble_plan_bim after reviewing each draft;
-read plan_assembly. It retains each plan and places it at an explicit base level.
+For several distinct plans use assemble_plan_bim (plan_assembly); it retains each
+plan and places it at an explicit base level.
 """,
     'plan_assembly': """Combine distinct saved pixel-plan drafts into one building:
 assemble_plan_bim(floors_json) takes a JSON list of 2–32 explicit items:
@@ -488,22 +363,18 @@ also admitted as draft_id=resume. Every listed draft is recompiled against its
 bound original image. IDs become floor_id:original_id, including opening hosts.
 XY, partitions, aperture dimensions and ceiling_height stay unchanged. Only
 floor base and every absolute opening z move by the same declared difference.
-Establish a common XY origin and direction from each plan's evidence BEFORE
-assembly; this tool does not align plans. Distinct upstairs partitions/openings
-must come from that floor's own drawing, not an unexamined downstairs copy.
+This tool does not align plans: every draft must already use the common XY
+origin and direction.
 To change a layer's height first use revise_plan_bim set ceiling_height; opening
 z pairs must still fit and need separate, justified edits if they change. An
 upper draft can already use its final absolute z, or use local z with base zero;
 never add the floor base twice. Heights/evidence are caller declarations, not
-verified image truth. Use elevation annotations, original crops and measurement
-tools to match floor identity and opening height families, then inspect actual
-source elevations and plan overlays. Report any unobserved internal door height
-as an explicit assumption. Assembly does not infer stairs, merge vertical spaces,
+verified image truth. Assembly does not infer stairs, merge vertical spaces,
 or create vertical connections. For genuinely continuous spaces use the shared
 geometry representation explicitly instead of stacking rooms with false slabs.
 Include ALL intended floors when reassembling revised drafts. New assembly
-rebuilds from those drafts and does not carry later candidate-only edits. Treat
-each assembly as a new candidate; recheck the final source, not old sample results.
+rebuilds from those drafts and does not carry later candidate-only edits. Each
+assembly is a new candidate; reviews of earlier candidates do not carry over.
 """,
     'geometry': """Geometry adapter input is a JSON string containing:
 {"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],
@@ -656,8 +527,8 @@ with the moved wall. Reflection with such evidence requires a full revised propo
 inspecting ALL openings of that kind on that floor; use partial for a local check.
 One mark represents one aperture/connection, not a crop with several doors.
 Door swings, dimension ticks and window marks are different evidence. A note
-saying one door does not remove a second modeled door. After changing a candidate,
-review its changed openings again. Delivery retains current/old/unreviewed scopes;
+saying one door does not remove a second modeled door. A review binds the reviewed
+source; changed openings are unreviewed on the new candidate. Delivery retains current/old/unreviewed scopes;
 prose cannot override those records. Do not fabricate marks to pass a checklist.
 
 check_openings review_json example (unrelated to supplied drawings):
@@ -776,9 +647,9 @@ that view's original image hash and exact region; grid/scale are presentation on
 Do not combine view_id with image or box. IDs are local to this run, and an image
 return is not evidence that you understood it.
 record_claim returns clean crops for the first three saved source regions, plus
-unpreviewed_source_indices. Inspect the actual crops before adoption: the numbers,
-dimension endpoints and enough object context must be inside the referenced region.
-A broader region is fine; a window-only box does not locate a chain outside it.
+unpreviewed_source_indices. A claim is located only if its numbers, dimension
+endpoints and enough object context lie inside the referenced region. A broader
+region is fine; a window-only box does not locate a chain outside it.
 Use view_claim_evidence(claim_id, source_index, display_scale=1..8) to inspect any
 saved source or enlarge small labels. Indices are zero-based. Fractional boxes are
 enclosed in whole pixels; metadata shows both the claimed and rendered boxes.
@@ -869,13 +740,11 @@ Height review: check_openings(candidate, heights_only=true) and finish_bim expos
 from actual openings, grouped by floor and facade. A retained adopted z binding
 with located image evidence counts as linked image observation, not certified
 image truth. A rendered/viewed elevation or a span-only review covers no heights.
-Use absolute z with each floor origin explained in a dimension_chain; do not
-reuse ground-floor heights upstairs. Confirm matching windows BEFORE revising
-others against the same candidate. Then apply different heights with references.
-Read every scoped floor separately; report unlinked/deferred/internal heights
-as unchecked, and inference/declared heights separately. Empty facade scopes do
-not prove the drawing has no opening. Do not claim the whole building verified
-when only some openings have corresponding height observations.
+Height values are absolute z; explain each floor's origin in the dimension_chain.
+Because confirmations bind the exact parent, confirm matching windows on a
+candidate before revising others on it. Coverage reports unlinked, deferred and
+internal heights as unchecked and inference/declared heights separately. Empty
+facade scopes do not prove the drawing has no opening.
 
 To supersede obsolete text, include a local note replacement in revise_bim:
 {"op":"replace_note", "field":"assumptions", "old":"Exact existing note",
