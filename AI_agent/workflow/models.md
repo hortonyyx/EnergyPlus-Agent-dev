@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-29 深夜 Opus 重构节点回归已结束：** 用户“先发一次”只批准run94（sm21，重构第一版指令）；实际`claude-sonnet-5`/medium、CLI 2.1.284，1198.54秒、1主调用，回执正常，无局部模型/续跑/自动重试/付费回退；CLI估价3.95美元，非订阅账单。原提请的run95–97未获批、未运行。开发侧为Opus 5.5本会话：重构实现与run94评价在较低推理档，整体复查在max。见[交接](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)。
+
 **09-29 晚 Opus 调查中的批准回归已结束：** 用户批准sm21两次串行后，run91（仅系统提示/方法参考改动）执行，同条件第二次按事先约定未跑；用户随后批准对齐方案run92，658秒遇429（monthly spend limit/session reset 13:10 UTC）中断；用户同意重开，1次极小文本探针OK后run93正常完成。均实际`claude-sonnet-5`/medium、CLI 2.1.284、各1主调用，无局部模型/续跑/自动重试/付费回退；开发侧为Opus 5.5本会话。CLI估价run91 5.51、run92 1.67、run93 3.52、探针0.001美元，非订阅账单。本轮授权已用完，sm24/sm25未获批。见[交接](../logs/worklog/2026-09-29_opus_regression_diagnosis_close.md)。
 
 **09-29 显示包唯一批准回归结束：** 用户“启动”批准run90；实际`claude-sonnet-5`/medium、CLI2.1.284，505.09秒、1主调用，0修订候选，主动交付原seed；returncode0且型号无漂移，无局部模型/续跑/重试/付费回退。CLI估价1.8101924美元非账单，本批授权已用完。新显示实际采用但东窗仍低约19.5cm，质量未恢复，继续固定Sonnet5。见[完整结果](../logs/experiments/2026-09-29_sm21_elevation_label_recovery_run90/README.md)。
