@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-29 晚 Opus 调查中的批准回归已结束：** 用户批准sm21两次串行后，run91（仅系统提示/方法参考改动）执行，同条件第二次按事先约定未跑；用户随后批准对齐方案run92，658秒遇429（monthly spend limit/session reset 13:10 UTC）中断；用户同意重开，1次极小文本探针OK后run93正常完成。均实际`claude-sonnet-5`/medium、CLI 2.1.284、各1主调用，无局部模型/续跑/自动重试/付费回退；开发侧为Opus 5.5本会话。CLI估价run91 5.51、run92 1.67、run93 3.52、探针0.001美元，非订阅账单。本轮授权已用完，sm24/sm25未获批。见[交接](../logs/worklog/2026-09-29_opus_regression_diagnosis_close.md)。
+
 **09-29 显示包唯一批准回归结束：** 用户“启动”批准run90；实际`claude-sonnet-5`/medium、CLI2.1.284，505.09秒、1主调用，0修订候选，主动交付原seed；returncode0且型号无漂移，无局部模型/续跑/重试/付费回退。CLI估价1.8101924美元非账单，本批授权已用完。新显示实际采用但东窗仍低约19.5cm，质量未恢复，继续固定Sonnet5。见[完整结果](../logs/experiments/2026-09-29_sm21_elevation_label_recovery_run90/README.md)。
 
 **09-29 唯一批准保存稿回归已结束：** 用户“发”批准run89，实际固定`claude-sonnet-5`/medium、CLI2.1.284，704.67秒、1主调用/1候选；真实回执success/returncode0，0局部模型/续跑/重试/API回退。CLI估价2.3220344美元非账单；本批授权用完。东窗仍错高0.2m，完整质量未恢复，后续继续固定Sonnet5，恢复后再考虑是否切换。见[完整结果](../logs/experiments/2026-09-29_sm21_calibrated_elevation_recovery_run89/README.md)。
