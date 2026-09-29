@@ -1,0 +1,1248 @@
+{
+  "candidate": "candidate_04",
+  "source_model_sha256": "9e980d64ba1f8c8bc9495b75a0903bdd24adca464829728cbc74934989e7e84d",
+  "input_mode": "whole_drawing_guidance_original_only_cold",
+  "input_and_producer_hashes_verified": true,
+  "source_display_replay_exact": true,
+  "assemblies_replayed": [
+    {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "a7dfb09089e767e12ede5cfed72345168158c0f3bb68bc4d13e0fcf54cc61b94",
+      "floors": [
+        {
+          "draft_id": "draft_001",
+          "draft_sha256": "ac6005c81707c9241ce67c6fd295a44e9844b44115ad54125048c00b2fd82c23",
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "floor_id": "F1",
+          "z_floor": 0
+        },
+        {
+          "draft_id": "draft_002",
+          "draft_sha256": "51dc37c195e26b8fc320dbe2d8d0416629e76c578d0ab764de9b6b1c222ee288",
+          "image": "2f_view.png",
+          "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+          "floor_id": "F2",
+          "z_floor": 0
+        }
+      ],
+      "candidate_replay_matches": [
+        "candidate_03"
+      ],
+      "unmatched_note": null
+    },
+    {
+      "file": "plan_assemblies/assembly_002.json",
+      "sha256": "dd489d41108844d525d96868cdabfdc87bf547dae9ff0f66fe395d10734ee3d8",
+      "floors": [
+        {
+          "draft_id": "draft_001",
+          "draft_sha256": "ac6005c81707c9241ce67c6fd295a44e9844b44115ad54125048c00b2fd82c23",
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "floor_id": "F1",
+          "z_floor": 0
+        },
+        {
+          "draft_id": "draft_002",
+          "draft_sha256": "51dc37c195e26b8fc320dbe2d8d0416629e76c578d0ab764de9b6b1c222ee288",
+          "image": "2f_view.png",
+          "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+          "floor_id": "F2",
+          "z_floor": 3.0
+        }
+      ],
+      "candidate_replay_matches": [
+        "candidate_04"
+      ],
+      "unmatched_note": null
+    }
+  ],
+  "original_reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+  "invocations": 1,
+  "actual_models": [
+    "claude-sonnet-5"
+  ],
+  "elapsed_seconds": 1016.62,
+  "estimated_usd_not_bill": 3.5170464000000004,
+  "counts": {
+    "floors": 2,
+    "spaces": 14,
+    "boundaries": 84,
+    "openings": 29,
+    "connections": 14
+  },
+  "kinds": {
+    "door": 14,
+    "window": 15
+  },
+  "floor_levels": [
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.0,
+      "id": "F1",
+      "name": "F1",
+      "z_floor": 0.0
+    },
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.6,
+      "id": "F2",
+      "name": "F2",
+      "z_floor": 3.0
+    }
+  ],
+  "room_use": {
+    "source_model_sha256": "9e980d64ba1f8c8bc9495b75a0903bdd24adca464829728cbc74934989e7e84d",
+    "summary": {
+      "total_count": 14,
+      "recorded_count": 0,
+      "unrecorded_count": 14,
+      "observed_count": 0,
+      "inferred_count": 0,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [
+      "F1:F1_corridor",
+      "F1:F1_dining_S3",
+      "F1:F1_lounge_S2",
+      "F1:F1_office_N1",
+      "F1:F1_office_N2",
+      "F1:F1_office_N3",
+      "F1:F1_room_S1",
+      "F2:F2_corridor",
+      "F2:F2_meeting_N1",
+      "F2:F2_meeting_N2",
+      "F2:F2_office_S1",
+      "F2:F2_office_S2",
+      "F2:F2_office_S3",
+      "F2:F2_office_S4"
+    ],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [
+      "F1:F1_room_S1"
+    ],
+    "unknown_ids_truncated": false,
+    "next_action": "Read room_types and edits, inspect original room interiors, then use revise_bim/set_space_role to choose a plausible use, including a reasonable inference from building context. Prefer a broad listed type over unknown; avoid spending excessive effort distinguishing similar plausible uses. Read remaining cells with read_candidate_items; preserve physical partitions.",
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "total_count": 29,
+    "image_linked_count": 15,
+    "non_image_linked_count": 0,
+    "unchecked_height_opening_ids": [
+      "F1:D_NL",
+      "F1:D_NM",
+      "F1:D_NR",
+      "F1:D_SL",
+      "F1:D_SM",
+      "F1:D_SR",
+      "F1:D_S_ext",
+      "F1:D_W1",
+      "F2:D_N1",
+      "F2:D_N2",
+      "F2:D_S1",
+      "F2:D_S2",
+      "F2:D_S3",
+      "F2:D_S4"
+    ]
+  },
+  "current_claim_state": {
+    "candidate": "candidate_04",
+    "claims": [
+      {
+        "id": "claim_0001",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "Matches North_view.png dimension chain and equals the already-declared 1F window z values."
+        },
+        "objects": [
+          {
+            "id": "F1:W_N1",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_N2",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_N3",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S1",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S2",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S3",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_E1",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "reason": "North_view.png vertical dimension chain (left side, building top to ground) reads 800/1800/1000 for the upper(2F) band and 400/1600/1000 for the lower(1F) band, summing to 3600 and 3000 matching the elevation's own 3600/3000 split (total 6600). Absolute building top z=6.6m (1F ceiling_height 3.0 + F2 ceiling_height 3.6). Walking down from the F2 floor level z=3.0: header 400mm, window 1600mm, sill 1000mm to ground z=0. This gives the 1F window family sill=1.0m/head=2.6m above ground, applied uniformly to all 1F windows including the East corridor window (East_view.png shows the same 800/1800/1000 and lower-band split at the same scale, confirming the family is shared across facades for this simple two-band elevation).",
+        "unresolved": [
+          "East facade's own dimension chain was not separately transcribed; assumed to share the North/South window family."
+        ],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_E1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_E1"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0002",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0002",
+          "disposition": "adopted",
+          "id": "decision_0002",
+          "reason": "Matches North_view.png dimension chain and equals the already-declared 2F window z values."
+        },
+        "objects": [
+          {
+            "id": "F2:W_N1",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_N2",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S1",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S2",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S3",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S4",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_E1",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_W1",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            4.0,
+            5.8
+          ]
+        },
+        "reason": "North_view.png vertical dimension chain (left side): from the building top (absolute z=6.6m) downward, 800mm header / 1800mm window / 1000mm to the F2 floor line (z=3.0m), matching the elevation's own 3600mm upper-band total. This gives the 2F window family sill=4.0m/head=5.8m above ground, applied uniformly to all 2F windows including East/West corridor windows (East_view.png/West_view.png show the same overall 3600/3000 two-band split at matching scale).",
+        "unresolved": [
+          "East/West facade's own dimension chains were not separately transcribed; assumed to share the North/South window family."
+        ],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_N1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_N1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_N2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_N2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S4"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S4"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_E1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_E1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_W1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_W1"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      }
+    ],
+    "other_branch_claim_ids": [],
+    "inherited_observations": [],
+    "superseded_notes": [],
+    "drawing_fidelity": "not_evaluated",
+    "note": "Current numerical/context consistency only; neither retained nor confirmed means drawing truth."
+  },
+  "strict_partition_status": "minor",
+  "matched_spaces": 14,
+  "space_identity_findings": [],
+  "topology_findings": [],
+  "original_openings": {
+    "candidate": "candidate_04",
+    "reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+    "reference_count": 29,
+    "matched": 29,
+    "positions": 18,
+    "hosts": 29,
+    "door_connections": 14,
+    "floors": [
+      {
+        "floor_id": "F1",
+        "image": "1f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F1:F1_office_N1"
+          ],
+          "NC": [
+            "F1:F1_office_N2"
+          ],
+          "NE": [
+            "F1:F1_office_N3"
+          ],
+          "C": [
+            "F1:F1_corridor"
+          ],
+          "SW": [
+            "F1:F1_room_S1"
+          ],
+          "SC": [
+            "F1:F1_lounge_S2"
+          ],
+          "SE": [
+            "F1:F1_dining_S3"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      },
+      {
+        "floor_id": "F2",
+        "image": "2f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F2:F2_meeting_N1"
+          ],
+          "NE": [
+            "F2:F2_meeting_N2"
+          ],
+          "C": [
+            "F2:F2_corridor"
+          ],
+          "S1": [
+            "F2:F2_office_S1"
+          ],
+          "S2": [
+            "F2:F2_office_S2"
+          ],
+          "S3": [
+            "F2:F2_office_S3"
+          ],
+          "S4": [
+            "F2:F2_office_S4"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      }
+    ],
+    "comparisons": [
+      {
+        "floor_id": "F1",
+        "reference_id": "N-W",
+        "opening_id": "F1:W_N1",
+        "max_endpoint_error_m": 0.006302974838245934,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_office_N1"
+        ],
+        "actual_hosts": [
+          "F1:F1_office_N1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-C",
+        "opening_id": "F1:W_N2",
+        "max_endpoint_error_m": 0.011849214953270959,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_office_N2"
+        ],
+        "actual_hosts": [
+          "F1:F1_office_N2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-E",
+        "opening_id": "F1:W_N3",
+        "max_endpoint_error_m": 0.008473795830337139,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_office_N3"
+        ],
+        "actual_hosts": [
+          "F1:F1_office_N3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-W",
+        "opening_id": "F1:W_S1",
+        "max_endpoint_error_m": 0.012359852624011847,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_room_S1"
+        ],
+        "actual_hosts": [
+          "F1:F1_room_S1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-C",
+        "opening_id": "F1:W_S2",
+        "max_endpoint_error_m": 0.011849214953270959,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_lounge_S2"
+        ],
+        "actual_hosts": [
+          "F1:F1_lounge_S2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-E",
+        "opening_id": "F1:W_S3",
+        "max_endpoint_error_m": 0.015225634076204031,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_dining_S3"
+        ],
+        "actual_hosts": [
+          "F1:F1_dining_S3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "E-C",
+        "opening_id": "F1:W_E1",
+        "max_endpoint_error_m": 0.004583716599189991,
+        "perpendicular_error_m": 0.11861969805895001,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_corridor"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NW",
+        "opening_id": "F1:D_NL",
+        "max_endpoint_error_m": 0.13159729331416248,
+        "perpendicular_error_m": 0.004044527665317155,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_office_N1"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_office_N1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NC",
+        "opening_id": "F1:D_NM",
+        "max_endpoint_error_m": 0.3858692207045289,
+        "perpendicular_error_m": 0.004044527665317155,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_office_N2"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_office_N2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NE",
+        "opening_id": "F1:D_NR",
+        "max_endpoint_error_m": 0.34868255787203495,
+        "perpendicular_error_m": 0.004044527665317155,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_office_N3"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_office_N3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SW",
+        "opening_id": "F1:D_SL",
+        "max_endpoint_error_m": 0.13159729331416248,
+        "perpendicular_error_m": 0.006751693657220059,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_room_S1"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_room_S1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SC",
+        "opening_id": "F1:D_SM",
+        "max_endpoint_error_m": 0.3858692207045289,
+        "perpendicular_error_m": 0.006751693657220059,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_lounge_S2"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_lounge_S2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SE",
+        "opening_id": "F1:D_SR",
+        "max_endpoint_error_m": 0.34868255787203495,
+        "perpendicular_error_m": 0.006751693657220059,
+        "position_match": false,
+        "expected_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_dining_S3"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor",
+          "F1:F1_dining_S3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-W",
+        "opening_id": "F1:D_W1",
+        "max_endpoint_error_m": 0.017198603238866017,
+        "perpendicular_error_m": 0.1186196980589504,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_corridor"
+        ],
+        "actual_hosts": [
+          "F1:F1_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-S",
+        "opening_id": "F1:D_S_ext",
+        "max_endpoint_error_m": 0.02670420345075475,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:F1_room_S1"
+        ],
+        "actual_hosts": [
+          "F1:F1_room_S1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NW",
+        "opening_id": "F2:W_N1",
+        "max_endpoint_error_m": 5.194805186015117e-08,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_meeting_N1"
+        ],
+        "actual_hosts": [
+          "F2:F2_meeting_N1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NE",
+        "opening_id": "F2:W_N2",
+        "max_endpoint_error_m": 0.010822948051947279,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_meeting_N2"
+        ],
+        "actual_hosts": [
+          "F2:F2_meeting_N2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S1",
+        "opening_id": "F2:W_S1",
+        "max_endpoint_error_m": 1.861471861097641e-07,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_office_S1"
+        ],
+        "actual_hosts": [
+          "F2:F2_office_S1"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S2",
+        "opening_id": "F2:W_S2",
+        "max_endpoint_error_m": 0.010822813852814583,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_office_S2"
+        ],
+        "actual_hosts": [
+          "F2:F2_office_S2"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S3",
+        "opening_id": "F2:W_S3",
+        "max_endpoint_error_m": 0.010822813852813695,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_office_S3"
+        ],
+        "actual_hosts": [
+          "F2:F2_office_S3"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S4",
+        "opening_id": "F2:W_S4",
+        "max_endpoint_error_m": 1.8614718655385332e-07,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_office_S4"
+        ],
+        "actual_hosts": [
+          "F2:F2_office_S4"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-W",
+        "opening_id": "F2:W_W1",
+        "max_endpoint_error_m": 0.10202240540540553,
+        "perpendicular_error_m": 0.11904761904761904,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:F2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-E",
+        "opening_id": "F2:W_E1",
+        "max_endpoint_error_m": 0.006231594594594547,
+        "perpendicular_error_m": 0.11904761904761862,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NW",
+        "opening_id": "F2:D_N1",
+        "max_endpoint_error_m": 0.03246763203463132,
+        "perpendicular_error_m": 0.0013529999999999376,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_meeting_N1"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_meeting_N1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NE",
+        "opening_id": "F2:D_N2",
+        "max_endpoint_error_m": 0.054112653679653455,
+        "perpendicular_error_m": 0.0013529999999999376,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_meeting_N2"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_meeting_N2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S1",
+        "opening_id": "F2:D_S1",
+        "max_endpoint_error_m": 0.3571425108225106,
+        "perpendicular_error_m": 0.0013529999999999376,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S1"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S1"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S2",
+        "opening_id": "F2:D_S2",
+        "max_endpoint_error_m": 2.489177887445887,
+        "perpendicular_error_m": 0.0013529999999999376,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S2"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S2"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S3",
+        "opening_id": "F2:D_S3",
+        "max_endpoint_error_m": 2.500000398268398,
+        "perpendicular_error_m": 0.0013529999999999376,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S3"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S3"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S4",
+        "opening_id": "F2:D_S4",
+        "max_endpoint_error_m": 0.36796502164502165,
+        "perpendicular_error_m": 0.0013529999999999376,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S4"
+        ],
+        "actual_hosts": [
+          "F2:F2_corridor",
+          "F2:F2_office_S4"
+        ],
+        "host_match": true,
+        "connection_match": true
+      }
+    ],
+    "limits": [
+      "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+      "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+      "No door height, operating state, material or vertical circulation claim."
+    ]
+  },
+  "matched_exterior": 17,
+  "exterior_parameters_match": 16,
+  "height_mismatches": [
+    {
+      "reference_id": "window_group_2_item_0",
+      "opening_id": "F1:W_S1",
+      "floor": "Floor 1",
+      "kind": "window",
+      "facade": "South",
+      "reference_along_m": [
+        3.44,
+        4.64
+      ],
+      "candidate_along_m": [
+        3.438395,
+        4.641834
+      ],
+      "reference_z_m": [
+        1.5,
+        2.1
+      ],
+      "candidate_z_m": [
+        1.0,
+        2.6
+      ],
+      "max_along_endpoint_delta_m": 0.0018340000000005574,
+      "width_delta_m": 0.003439000000000636,
+      "z_endpoint_delta_m": [
+        0.5,
+        0.5
+      ],
+      "along_within_judge_tolerance": true,
+      "width_within_judge_tolerance": true,
+      "z_within_judge_tolerance": false,
+      "host_zone_match": null
+    }
+  ],
+  "unmatched_reference": [],
+  "unmatched_built_exterior": [],
+  "source_assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior corridor door widths/positions approximated (~900mm) from swing-arc pixel evidence; exact jamb pixels not individually re-measured.",
+    "Interior door heights (all corridor doors, west entrance, south exterior door) assumed 2.1m; no elevation dimension found for these.",
+    "South small window (W_S1) assumed same 1.0/2.6 sill/head family as other 1F windows.",
+    "Corridor walls modelled as zero-thickness centerlines at y=3.0/5.0, absorbing the drawn 250mm wall thickness on each side into the corridor space rather than the flanking rooms.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior corridor door widths/positions approximated (~900mm) from swing-arc pixel evidence, mirrored where the far side was not individually re-measured.",
+    "Interior door heights assumed 2.1m leaf (z 3.0-5.1 absolute); no elevation dimension found for these.",
+    "Corridor walls modelled as zero-thickness centerlines at y=3.0/5.0 (world), absorbing drawn wall thickness into the corridor space, consistent with F1.",
+    "West 2F window and East 1F/2F window heights assumed to follow the same North/South-derived sill1.0/head1.8(2F) or sill1.0/head1.6(1F) family; no explicit East/West elevation height dimension chain was separately transcribed.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Exact south room1 furniture (L-shaped counter + small square) not identified as a specific fixture; role left as unknown.",
+    "Precise interior door leaf widths not individually verified against arc endpoints for every door.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact south-office door leaf widths not individually re-measured for every door; positions approximated from visible arc clusters and mirrored symmetry.",
+    "Whether the single x=7.5m partition load-bears through both floors and the ground was not verified beyond plan evidence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 5,
+    "view_image": 22,
+    "pixel_profile": 23,
+    "map_pixels": 5,
+    "build_plan_bim": 2,
+    "assemble_plan_bim": 4,
+    "check_openings": 1,
+    "check_source_space_relation": 1,
+    "record_claim": 2,
+    "view_claim_evidence": 2,
+    "decide_claim": 2,
+    "confirm_claims": 1,
+    "finish_bim": 1
+  },
+  "transported_images": 34,
+  "continuation": {
+    "max_rounds": 0,
+    "turns": [],
+    "stop_reason": "disabled",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "candidate_budget": {
+    "limit": 24,
+    "used": 4,
+    "remaining": 20
+  },
+  "limits": [
+    "One current-runtime original-only run, not a frozen repeat or causal ablation.",
+    "Image access, view binding and model stop do not certify image understanding.",
+    "Existing original/GT references remain unchanged and post-generation only.",
+    "No EnergyPlus or user acceptance; internal door heights may remain assumed."
+  ]
+}

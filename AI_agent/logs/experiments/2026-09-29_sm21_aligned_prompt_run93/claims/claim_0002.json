@@ -1,0 +1,141 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F2:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_S1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_S3",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_S4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_E1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_W1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png vertical dimension chain (left side): from the building top (absolute z=6.6m) downward, 800mm header / 1800mm window / 1000mm to the F2 floor line (z=3.0m), matching the elevation's own 3600mm upper-band total. This gives the 2F window family sill=4.0m/head=5.8m above ground, applied uniformly to all 2F windows including East/West corridor windows (East_view.png/West_view.png show the same overall 3600/3000 two-band split at matching scale).",
+    "sources": [
+      {
+        "view_id": "view_0007"
+      }
+    ],
+    "unresolved": [
+      "East/West facade's own dimension chains were not separately transcribed; assumed to share the North/South window family."
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          800.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 6.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 6.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 5.8,
+            "index": 0,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 6.6
+          },
+          {
+            "end_m": 4.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 5.8
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 4.0
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "5aa5815a0dec3cdf53bb0c38c7ebb4efb2cd5842b3cfbc271637f875411aa607",
+  "resolved_values": {
+    "z": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        300,
+        600
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0007",
+      "view_sha256": "28d10d508cc23bdee3f88dbeb5211b1d2339f29a74878214b7073ebc8797dd6a"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

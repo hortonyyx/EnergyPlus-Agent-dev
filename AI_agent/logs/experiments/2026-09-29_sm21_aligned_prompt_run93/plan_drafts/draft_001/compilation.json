@@ -1,0 +1,1220 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "1f_view.png",
+  "image_size": [
+    2133,
+    1345
+  ],
+  "floor_id": "F1",
+  "basis": "1f_view.png: overall 15000x8000 dimension chain to outer wall faces (west x=419px->0m, east x=1815px->15m; north y=346px->8m, south y=1088px->0m). Interior partitions at plan gray wall centerlines. Corridor walls simplified to centerlines at y=5.0 and y=3.0 (office/south-room depths of 3000mm each per dimensioned chain 3000+250+1500+250+3000=8000; corridor absorbs both 250mm wall thicknesses as a simplification since this tool does not model wall thickness separately).",
+  "space_count": 7,
+  "space_mapping": [
+    {
+      "space_id": "F1_office_N1",
+      "role": "office/enclosed",
+      "pixel_polygon": [
+        [
+          419.0,
+          346.0
+        ],
+        [
+          884.0,
+          346.0
+        ],
+        [
+          884.0,
+          624.0
+        ],
+        [
+          419.0,
+          624.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          5.002695
+        ],
+        [
+          4.996418,
+          5.002695
+        ],
+        [
+          4.996418,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.996418
+        ],
+        "y": [
+          5.002695,
+          8.0
+        ]
+      },
+      "partition_ids": [
+        "Cn",
+        "P1n"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid full-height gray partition at plan x~5.0m between north offices 1 and 2, confirmed by pixel wall support scan",
+        "1f_view.png: corridor north wall (thin double line) separating north offices from central corridor, per 3000/250/1500/250/3000 y-dimension chain"
+      ],
+      "seed": {
+        "id": "F1_office_N1",
+        "point_pixel": [
+          650.0,
+          485.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "F1_office_N2",
+      "role": "office/enclosed",
+      "pixel_polygon": [
+        [
+          884.0,
+          346.0
+        ],
+        [
+          1350.0,
+          346.0
+        ],
+        [
+          1350.0,
+          624.0
+        ],
+        [
+          884.0,
+          624.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.996418,
+          5.002695
+        ],
+        [
+          10.003582,
+          5.002695
+        ],
+        [
+          10.003582,
+          8.0
+        ],
+        [
+          4.996418,
+          8.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.996418,
+          10.003582
+        ],
+        "y": [
+          5.002695,
+          8.0
+        ]
+      },
+      "partition_ids": [
+        "Cn",
+        "P1n",
+        "P2n"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid full-height gray partition at plan x~5.0m between north offices 1 and 2, confirmed by pixel wall support scan",
+        "1f_view.png: solid full-height gray partition at plan x~10.0m between north offices 2 and 3",
+        "1f_view.png: corridor north wall (thin double line) separating north offices from central corridor, per 3000/250/1500/250/3000 y-dimension chain"
+      ],
+      "seed": {
+        "id": "F1_office_N2",
+        "point_pixel": [
+          1117.0,
+          485.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "F1_office_N3",
+      "role": "office/enclosed",
+      "pixel_polygon": [
+        [
+          1350.0,
+          346.0
+        ],
+        [
+          1815.0,
+          346.0
+        ],
+        [
+          1815.0,
+          624.0
+        ],
+        [
+          1350.0,
+          624.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          10.003582,
+          5.002695
+        ],
+        [
+          15.0,
+          5.002695
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          10.003582,
+          8.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          10.003582,
+          15.0
+        ],
+        "y": [
+          5.002695,
+          8.0
+        ]
+      },
+      "partition_ids": [
+        "Cn",
+        "P2n"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: solid full-height gray partition at plan x~10.0m between north offices 2 and 3",
+        "1f_view.png: corridor north wall (thin double line) separating north offices from central corridor, per 3000/250/1500/250/3000 y-dimension chain"
+      ],
+      "seed": {
+        "id": "F1_office_N3",
+        "point_pixel": [
+          1580.0,
+          485.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "F1_corridor",
+      "role": "corridor",
+      "pixel_polygon": [
+        [
+          419.0,
+          624.0
+        ],
+        [
+          1815.0,
+          624.0
+        ],
+        [
+          1815.0,
+          810.0
+        ],
+        [
+          419.0,
+          810.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          2.997305
+        ],
+        [
+          15.0,
+          2.997305
+        ],
+        [
+          15.0,
+          5.002695
+        ],
+        [
+          0.0,
+          5.002695
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          2.997305,
+          5.002695
+        ]
+      },
+      "partition_ids": [
+        "Cn",
+        "Cs"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: corridor north wall (thin double line) separating north offices from central corridor, per 3000/250/1500/250/3000 y-dimension chain",
+        "1f_view.png: corridor south wall separating central corridor from south rooms"
+      ],
+      "seed": {
+        "id": "F1_corridor",
+        "point_pixel": [
+          1100.0,
+          717.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "F1_room_S1",
+      "role": "unknown",
+      "pixel_polygon": [
+        [
+          419.0,
+          810.0
+        ],
+        [
+          884.0,
+          810.0
+        ],
+        [
+          884.0,
+          1088.0
+        ],
+        [
+          419.0,
+          1088.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4.996418,
+          0.0
+        ],
+        [
+          4.996418,
+          2.997305
+        ],
+        [
+          0.0,
+          2.997305
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.996418
+        ],
+        "y": [
+          0.0,
+          2.997305
+        ]
+      },
+      "partition_ids": [
+        "Cs",
+        "P1s"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: same partition continues in south band between south rooms 1 and 2",
+        "1f_view.png: corridor south wall separating central corridor from south rooms"
+      ],
+      "seed": {
+        "id": "F1_room_S1",
+        "point_pixel": [
+          650.0,
+          949.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "F1_lounge_S2",
+      "role": "lounge/breakroom",
+      "pixel_polygon": [
+        [
+          884.0,
+          810.0
+        ],
+        [
+          1350.0,
+          810.0
+        ],
+        [
+          1350.0,
+          1088.0
+        ],
+        [
+          884.0,
+          1088.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.996418,
+          0.0
+        ],
+        [
+          10.003582,
+          0.0
+        ],
+        [
+          10.003582,
+          2.997305
+        ],
+        [
+          4.996418,
+          2.997305
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.996418,
+          10.003582
+        ],
+        "y": [
+          0.0,
+          2.997305
+        ]
+      },
+      "partition_ids": [
+        "Cs",
+        "P1s",
+        "P2s"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: same partition continues in south band between south rooms 1 and 2",
+        "1f_view.png: same partition continues in south band between south rooms 2 and 3",
+        "1f_view.png: corridor south wall separating central corridor from south rooms"
+      ],
+      "seed": {
+        "id": "F1_lounge_S2",
+        "point_pixel": [
+          1117.0,
+          949.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "F1_dining_S3",
+      "role": "dining",
+      "pixel_polygon": [
+        [
+          1350.0,
+          810.0
+        ],
+        [
+          1815.0,
+          810.0
+        ],
+        [
+          1815.0,
+          1088.0
+        ],
+        [
+          1350.0,
+          1088.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          10.003582,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          2.997305
+        ],
+        [
+          10.003582,
+          2.997305
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          10.003582,
+          15.0
+        ],
+        "y": [
+          0.0,
+          2.997305
+        ]
+      },
+      "partition_ids": [
+        "Cs",
+        "P2s"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: same partition continues in south band between south rooms 2 and 3",
+        "1f_view.png: corridor south wall separating central corridor from south rooms"
+      ],
+      "seed": {
+        "id": "F1_dining_S3",
+        "point_pixel": [
+          1580.0,
+          949.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "P1n",
+      "pixel_points": [
+        [
+          884.0,
+          346.0
+        ],
+        [
+          884.0,
+          624.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.996418,
+          8.0
+        ],
+        [
+          4.996418,
+          5.002695
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: solid full-height gray partition at plan x~5.0m between north offices 1 and 2, confirmed by pixel wall support scan"
+      ]
+    },
+    {
+      "partition_id": "P1s",
+      "pixel_points": [
+        [
+          884.0,
+          810.0
+        ],
+        [
+          884.0,
+          1088.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.996418,
+          2.997305
+        ],
+        [
+          4.996418,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: same partition continues in south band between south rooms 1 and 2"
+      ]
+    },
+    {
+      "partition_id": "P2n",
+      "pixel_points": [
+        [
+          1350.0,
+          346.0
+        ],
+        [
+          1350.0,
+          624.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          10.003582,
+          8.0
+        ],
+        [
+          10.003582,
+          5.002695
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: solid full-height gray partition at plan x~10.0m between north offices 2 and 3"
+      ]
+    },
+    {
+      "partition_id": "P2s",
+      "pixel_points": [
+        [
+          1350.0,
+          810.0
+        ],
+        [
+          1350.0,
+          1088.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          10.003582,
+          2.997305
+        ],
+        [
+          10.003582,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: same partition continues in south band between south rooms 2 and 3"
+      ]
+    },
+    {
+      "partition_id": "Cn",
+      "pixel_points": [
+        [
+          419.0,
+          624.0
+        ],
+        [
+          1815.0,
+          624.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          5.002695
+        ],
+        [
+          15.0,
+          5.002695
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: corridor north wall (thin double line) separating north offices from central corridor, per 3000/250/1500/250/3000 y-dimension chain"
+      ]
+    },
+    {
+      "partition_id": "Cs",
+      "pixel_points": [
+        [
+          419.0,
+          810.0
+        ],
+        [
+          1815.0,
+          810.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          2.997305
+        ],
+        [
+          15.0,
+          2.997305
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: corridor south wall separating central corridor from south rooms"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "W_N1",
+      "kind": "window",
+      "space_ids": [
+        "F1_office_N1"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        535.0,
+        346.0
+      ],
+      "p2_pixel": [
+        758.0,
+        346.0
+      ],
+      "p1_world_m": [
+        1.246418,
+        8.0
+      ],
+      "p2_world_m": [
+        3.64255,
+        8.0
+      ],
+      "width_m": 2.396132,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "North_view.png: 1F window family sill1.0/head2.6 above floor; plan x-span from North_view cyan opening run mapped via 15m dimension chain"
+      ]
+    },
+    {
+      "opening_id": "W_N2",
+      "kind": "window",
+      "space_ids": [
+        "F1_office_N2"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        1006.0,
+        346.0
+      ],
+      "p2_pixel": [
+        1229.0,
+        346.0
+      ],
+      "p1_world_m": [
+        6.307307,
+        8.0
+      ],
+      "p2_world_m": [
+        8.703438,
+        8.0
+      ],
+      "width_m": 2.396131,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "North_view.png/1f_view.png window 2 of north wall"
+      ]
+    },
+    {
+      "opening_id": "W_N3",
+      "kind": "window",
+      "space_ids": [
+        "F1_office_N3"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        1476.0,
+        346.0
+      ],
+      "p2_pixel": [
+        1699.0,
+        346.0
+      ],
+      "p1_world_m": [
+        11.35745,
+        8.0
+      ],
+      "p2_world_m": [
+        13.753582,
+        8.0
+      ],
+      "width_m": 2.396132,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "North_view.png/1f_view.png window 3 of north wall"
+      ]
+    },
+    {
+      "opening_id": "D_S_ext",
+      "kind": "door",
+      "space_ids": [
+        "F1_room_S1"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        469.0,
+        1088.0
+      ],
+      "p2_pixel": [
+        552.0,
+        1088.0
+      ],
+      "p1_world_m": [
+        0.537249,
+        0.0
+      ],
+      "p2_world_m": [
+        1.429083,
+        0.0
+      ],
+      "width_m": 0.891834,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: SW corner exterior door, offset540/width900 dimension chain; South_view.png shows matching door mark; height assumed standard 2.1m (no elevation height dimension found)"
+      ]
+    },
+    {
+      "opening_id": "W_S1",
+      "kind": "window",
+      "space_ids": [
+        "F1_room_S1"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        739.0,
+        1088.0
+      ],
+      "p2_pixel": [
+        851.0,
+        1088.0
+      ],
+      "p1_world_m": [
+        3.438395,
+        0.0
+      ],
+      "p2_world_m": [
+        4.641834,
+        0.0
+      ],
+      "width_m": 1.203439,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "South_view.png: small south window near room1, mapped via South elevation's own 15m chain"
+      ]
+    },
+    {
+      "opening_id": "W_S2",
+      "kind": "window",
+      "space_ids": [
+        "F1_lounge_S2"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        1005.0,
+        1088.0
+      ],
+      "p2_pixel": [
+        1229.0,
+        1088.0
+      ],
+      "p1_world_m": [
+        6.296562,
+        0.0
+      ],
+      "p2_world_m": [
+        8.703438,
+        0.0
+      ],
+      "width_m": 2.406876,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "South_view.png: south window 2"
+      ]
+    },
+    {
+      "opening_id": "W_S3",
+      "kind": "window",
+      "space_ids": [
+        "F1_dining_S3"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        1477.0,
+        1088.0
+      ],
+      "p2_pixel": [
+        1700.0,
+        1088.0
+      ],
+      "p1_world_m": [
+        11.368195,
+        0.0
+      ],
+      "p2_world_m": [
+        13.764327,
+        0.0
+      ],
+      "width_m": 2.396132,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "South_view.png: south window 3"
+      ]
+    },
+    {
+      "opening_id": "W_E1",
+      "kind": "window",
+      "space_ids": [
+        "F1_corridor"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        1815.0,
+        774.0
+      ],
+      "p2_pixel": [
+        1815.0,
+        661.0
+      ],
+      "p1_world_m": [
+        15.0,
+        3.385445
+      ],
+      "p2_world_m": [
+        15.0,
+        4.603774
+      ],
+      "width_m": 1.218329,
+      "z_absolute_m": [
+        1.0,
+        2.6
+      ],
+      "source_refs": [
+        "East_view.png: single east corridor window, both floors; position mapped via East elevation's own 8m chain to plan y"
+      ]
+    },
+    {
+      "opening_id": "D_W1",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        419.0,
+        786.0
+      ],
+      "p2_pixel": [
+        419.0,
+        648.0
+      ],
+      "p1_world_m": [
+        0.0,
+        3.256065
+      ],
+      "p2_world_m": [
+        0.0,
+        4.743935
+      ],
+      "width_m": 1.48787,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "West_view.png: main entrance double door on 1F leading into corridor; height assumed standard 2.1m (no elevation height dimension found)"
+      ]
+    },
+    {
+      "opening_id": "D_NL",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor",
+        "F1_office_N1"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        755.0,
+        624.0
+      ],
+      "p2_pixel": [
+        845.0,
+        624.0
+      ],
+      "p1_world_m": [
+        3.610315,
+        5.002695
+      ],
+      "p2_world_m": [
+        4.577364,
+        5.002695
+      ],
+      "width_m": 0.967049,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door swing arc from north office1 into corridor; width approximated ~900mm from arc position; height assumed (no elevation coverage for interior doors)"
+      ]
+    },
+    {
+      "opening_id": "D_NM",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor",
+        "F1_office_N2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        947.0,
+        624.0
+      ],
+      "p2_pixel": [
+        1038.0,
+        624.0
+      ],
+      "p1_world_m": [
+        5.673352,
+        5.002695
+      ],
+      "p2_world_m": [
+        6.651146,
+        5.002695
+      ],
+      "width_m": 0.977794,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door swing arc from north office2 into corridor; width/position approximated; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D_NR",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor",
+        "F1_office_N3"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1350.0,
+        624.0
+      ],
+      "p2_pixel": [
+        1440.0,
+        624.0
+      ],
+      "p1_world_m": [
+        10.003582,
+        5.002695
+      ],
+      "p2_world_m": [
+        10.97063,
+        5.002695
+      ],
+      "width_m": 0.967048,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door swing arc from north office3 into corridor near partition2; width/position approximated; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D_SL",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor",
+        "F1_room_S1"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        755.0,
+        810.0
+      ],
+      "p2_pixel": [
+        845.0,
+        810.0
+      ],
+      "p1_world_m": [
+        3.610315,
+        2.997305
+      ],
+      "p2_world_m": [
+        4.577364,
+        2.997305
+      ],
+      "width_m": 0.967049,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door swing arc from south room1 into corridor, mirrored to north pattern; width/position approximated; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D_SM",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor",
+        "F1_lounge_S2"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        947.0,
+        810.0
+      ],
+      "p2_pixel": [
+        1038.0,
+        810.0
+      ],
+      "p1_world_m": [
+        5.673352,
+        2.997305
+      ],
+      "p2_world_m": [
+        6.651146,
+        2.997305
+      ],
+      "width_m": 0.977794,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door swing arc from south room2 into corridor; width/position approximated; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D_SR",
+      "kind": "door",
+      "space_ids": [
+        "F1_corridor",
+        "F1_dining_S3"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        1350.0,
+        810.0
+      ],
+      "p2_pixel": [
+        1440.0,
+        810.0
+      ],
+      "p1_world_m": [
+        10.003582,
+        2.997305
+      ],
+      "p2_world_m": [
+        10.97063,
+        2.997305
+      ],
+      "width_m": 0.967048,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door swing arc from south room3 into corridor near partition2; width/position approximated; height assumed"
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        419.0,
+        346.0
+      ],
+      [
+        1815.0,
+        346.0
+      ],
+      [
+        1815.0,
+        1088.0
+      ],
+      [
+        419.0,
+        1088.0
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        15.0,
+        0.0
+      ],
+      [
+        15.0,
+        8.0
+      ],
+      [
+        0.0,
+        8.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        419.0,
+        0.0
+      ],
+      [
+        1815.0,
+        15.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        346.0,
+        8.0
+      ],
+      [
+        1088.0,
+        0.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.010744985673352435,
+      "y": -0.01078167115902965
+    },
+    "basis": "1f_view.png: overall 15000x8000 dimension chain to outer wall faces (west x=419px->0m, east x=1815px->15m; north y=346px->8m, south y=1088px->0m). Interior partitions at plan gray wall centerlines. Corridor walls simplified to centerlines at y=5.0 and y=3.0 (office/south-room depths of 3000mm each per dimensioned chain 3000+250+1500+250+3000=8000; corridor absorbs both 250mm wall thicknesses as a simplification since this tool does not model wall thickness separately).",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}
