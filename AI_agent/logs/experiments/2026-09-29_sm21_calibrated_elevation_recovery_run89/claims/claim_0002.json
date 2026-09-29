@@ -1,0 +1,174 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F2:W1",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W2",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W3",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W4",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W5",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W6",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W7",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W8",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North elevation (matched on South/East/West) shows, above the F1/F2 floor line, a vertical dimension chain of 800/1800/1000 mm reading top-to-bottom from the roof/wall-top (absolute z=6.6m) down to the floor line. The middle 1800mm segment is the typical F2 window (conference rooms, offices, corridor east/west windows). Segment index 1 of a chain starting at origin 6.6m walking down (direction -1) gives absolute z=[4.0,5.8]m, matching the built [4.012,5.801].",
+    "sources": [
+      {
+        "view_id": "view_0003"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": {
+      "height": [
+        {
+          "id": "F2:W1",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W2",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W3",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W4",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W5",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W6",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W7",
+          "kind": "window"
+        },
+        {
+          "id": "F2:W8",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          800.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 6.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 6.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 5.8,
+            "index": 0,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 6.6
+          },
+          {
+            "end_m": 4.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 5.8
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 4.0
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "7292a1c51b7624fdd765fc7f8268d40723cc73a2ba39d11b27fdecdc6cd707d6",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0003",
+      "view_sha256": "52c7d713d8db7cc0fa9822f85297e002da73be545b8fd30b7986df58355e6017"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

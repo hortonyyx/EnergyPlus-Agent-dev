@@ -1,0 +1,118 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "seed",
+    "objects": [
+      {
+        "id": "F1:W4",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South elevation shows, below the F1/F2 floor line, a vertical dimension chain of 900/600/1500 mm (top-to-bottom from floor line z=3.0m to ground) specifically over the small window next to the south entrance door (office_1f_south_a). Segment index 1 (the 600mm window) of a chain starting at origin 3.0m walking down (direction -1) gives absolute z=[1.5,2.1]m, matching the built [1.509,2.098].",
+    "sources": [
+      {
+        "view_id": "view_0004"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": {
+      "height": [
+        {
+          "id": "F1:W4",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          900.0,
+          600.0,
+          1500.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.1,
+            "index": 0,
+            "length_m": 0.9,
+            "span_m": [
+              2.1,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.5,
+            "index": 1,
+            "length_m": 0.6,
+            "span_m": [
+              1.5,
+              2.1
+            ],
+            "start_m": 2.1
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.5,
+            "span_m": [
+              0.0,
+              1.5
+            ],
+            "start_m": 1.5
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "7292a1c51b7624fdd765fc7f8268d40723cc73a2ba39d11b27fdecdc6cd707d6",
+  "resolved_values": {
+    "height": [
+      1.5,
+      2.1
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0004",
+      "view_sha256": "1ba738023e446a7499d2a7935140224113992891136862d3716778f2800f21e2"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

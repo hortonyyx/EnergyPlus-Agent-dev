@@ -8,7 +8,7 @@ CLI按用户要求更新至2.1.284；BIM订阅入口及JSON订阅入口将Sonnet
 
 开发者从原图整栋宽/总高端点作标定，独立检查实际投影：[东侧叠图](offline_replay/image_overlays/overlay_003.png)中F1:W7窗顶低11.000009像素；正确F2:W7差约0，南F1:W4差0.191像素，见[南侧叠图](offline_replay/image_overlays/overlay_004.png)。原图、旧稿与离线seed字节未被查看过程改写。开发者标定值/错误位置只留离线检查，未放进拟议工作模型输入；不是自主恢复证明。
 
-## 已准备的一次节点回归，尚未批准或执行
+## 一次节点回归，09-29用户“发”批准后已启动
 
 - sm21六原PNG与run88/candidate_01原proposal，当前main工具；不导入旧claim、具体错误/目标数值、开发标定或GT。
 - 单`claude-sonnet-5` / medium，3000秒、24候选，1主调用；CLI禁review_detail，0续跑/自动重试/局部模型/付费回退。
@@ -16,4 +16,10 @@ CLI按用户要求更新至2.1.284；BIM订阅入口及JSON订阅入口将Sonnet
 - 检查实际自主标定/对应/修订行为、全部原图门窗及高度、房间/隔墙/宿主/连接保持、源重放与可查看交付。未采用叠图、未改错或旧宽容差通过都不自动算恢复。
 - [冻结条件](frozen.json)绑定43实现/执行文件、CLI版本、原图/原proposal、提示和本脚本；[预检](preflight.json)通过真实MCP并在订阅进程边界截断，0 BIM模型调用。
 
-待用户明确批准后，保存批准原话及本冻结文件摘要到approval.json，再执行`PYTHONPATH=. python AI_agent/logs/experiments/2026-09-29_calibrated_elevation_review/batch.py run`。输出为独立run89，已有目录拒绝覆盖/重试；模型真实回执异常即保存结束，不启动下一批。
+用户批准原话及本冻结文件摘要已保存到[approval.json](approval.json)，本次已执行`PYTHONPATH=. python AI_agent/logs/experiments/2026-09-29_calibrated_elevation_review/batch.py run`。输出为独立run89，已有目录拒绝覆盖/重试；模型真实回执异常即保存结束，不启动下一批。
+
+## 最终结果：批次已结束，质量未恢复
+
+用户“发”批准的唯一run89正常完成704.67秒，实际Sonnet5/medium、1主调用/1候选。5次标定叠图与26次原图返回均精确送达；模型仍以North整图普通窗链解释East窗，15窗改整值后东窗顶仍低0.2m。其他空间/墙/门/连接与29开口XY/宿主保持。原图29位置/29宿主/14连接对应，旧容差17/17及15高度绑定不能代替正确；无新冷启动/稳定结论。见[完整结果](../2026-09-29_sm21_calibrated_elevation_recovery_run89/README.md)、[实际回执](execution_receipt.json)和[30条保留历史记录](quality_report/README.md)。
+
+真实回执、43快照、源重放、图像/声明传输、独立原图/房间身份与双层离线浏览器完成；7工具错误和5历史中断原样保留。无额外模型调用或下一批批准，继续固定Sonnet5。下一项离线研究对象与图面引用的对应以及修订后仍可见的残差，不把已查看/已claim-linked当成验收，也不再单靠增加通用查看提醒推进。
