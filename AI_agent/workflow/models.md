@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-29 显示包唯一批准回归结束：** 用户“启动”批准run90；实际`claude-sonnet-5`/medium、CLI2.1.284，505.09秒、1主调用，0修订候选，主动交付原seed；returncode0且型号无漂移，无局部模型/续跑/重试/付费回退。CLI估价1.8101924美元非账单，本批授权已用完。新显示实际采用但东窗仍低约19.5cm，质量未恢复，继续固定Sonnet5。见[完整结果](../logs/experiments/2026-09-29_sm21_elevation_label_recovery_run90/README.md)。
+
 **09-29 唯一批准保存稿回归已结束：** 用户“发”批准run89，实际固定`claude-sonnet-5`/medium、CLI2.1.284，704.67秒、1主调用/1候选；真实回执success/returncode0，0局部模型/续跑/重试/API回退。CLI估价2.3220344美元非账单；本批授权用完。东窗仍错高0.2m，完整质量未恢复，后续继续固定Sonnet5，恢复后再考虑是否切换。见[完整结果](../logs/experiments/2026-09-29_sm21_calibrated_elevation_recovery_run89/README.md)。
 
 **09-29 最新选模安排：** 用户要求“先更新一下，然后继续先用Sonnet5推进，恢复后再考虑切不切”。Claude Code已由2.1.280更新到2.1.284，项目订阅Sonnet角色显式固定`claude-sonnet-5`；更新后1次最小订阅探针实际modelUsage仍为该型号，4.688秒正常完成。当前先恢复质量，恢复后再评估是否切换工作模型，不自动采用Sonnet5.5；此前因额度提出的非Claude迁移仍作为后续候选方向。见[更新实测](../logs/experiments/2026-09-29_sonnet5_pinned_update/receipt.json)。
