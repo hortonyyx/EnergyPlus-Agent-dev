@@ -16,7 +16,8 @@ def test_system_prompt_carries_only_the_methods_for_the_declared_inputs():
     photos = build_guide(images="photos")
     assert PHOTOS in photos and DRAWING_METHOD not in photos
     mixed = build_guide(images="unknown", mesh=True)
-    assert all(text in mixed for text in (IMAGE_KINDS, DRAWING_METHOD, MESH_VIEWS, MESH_METHOD))
+    assert all(text in mixed for text in (IMAGE_KINDS, DRAWING_METHOD, MESH_VIEWS, PHOTOS, MESH_METHOD))
+    assert "none that is not drawn" in DRAWING_METHOD and "not drawn" not in CORE
     mesh = build_guide(mesh=True)
     assert MESH_METHOD in mesh and DRAWING_METHOD not in mesh and MESH_VIEWS not in mesh
     assert all(build_guide(images=kind).endswith(TOOLS + "\n" + DELIVERY)

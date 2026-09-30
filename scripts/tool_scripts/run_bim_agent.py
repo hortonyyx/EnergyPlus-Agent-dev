@@ -2151,8 +2151,8 @@ def serve(run: Path, readonly=False):
                    display_scale: float = 1.0):
         """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
         Returned images are at most 1600 px on their long side; grid labels keep original
-        coordinates. display_scale enlarges up to that limit, so a box under ~500 px
-        can be shown 3x or more; coordinates stay original pixels.
+        coordinates. display_scale enlarges up to that limit, so a box whose longest side
+        is under ~500 px can be shown 3x or more; coordinates stay original pixels.
         Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.
         Returned view_id can be used directly in claim sources or replace_claim_sources;
         do not copy crop coordinates again when citing exactly this view.
@@ -2342,10 +2342,17 @@ def serve(run: Path, readonly=False):
     if not readonly:
         @server.tool()
         def inspect_plan_draft(draft_id: str) -> dict:
-            """Read a saved draft_NNN or resume declaration and its immutable hash.
-            Use the returned hash with revise_plan_bim for local edits.
+            """Read a saved draft_NNN or resume declaration, its immutable hash and every
+            drawing_differences item recorded for that draft. Use the returned hash with
+            revise_plan_bim for local edits.
             """
-            return toolkit.inspect_plan(draft_id)
+            saved = toolkit.inspect_plan(draft_id)
+            report = toolkit.run / "plan_drafts" / str(draft_id) / "drawing_differences.json"
+            if draft_id != "resume" and report.is_file():
+                data = json.loads(report.read_text())
+                if data.get("plan_sha256") == saved["plan_sha256"]:
+                    saved["drawing_differences"] = data
+            return saved
 
         @server.tool()
         def revise_plan_bim(draft_id: str, expected_plan_sha256: str, operations_json: str) -> CallToolResult:
@@ -2690,7 +2697,8 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def revise_bim(candidate: str, operations_json: str) -> CallToolResult:
             """Apply local edits/reflection with code and save a new checked BIM.
-            See get_bim_reference("edits") for operations. Prior candidates stay unchanged.
+            See get_bim_reference("edits") for operations whose format the system prompt
+            does not give. Prior candidates stay unchanged.
             Opening changes/removals and shared-wall moves require a reason and source_refs.
             set_space_role assigns catalog use and its evidence, preserving geometry.
             """

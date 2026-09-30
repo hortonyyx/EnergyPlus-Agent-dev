@@ -14,7 +14,7 @@
   },
   "prompt": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment constraints: work directly with the deterministic and visual tools, without review_detail or other delegation.\nBudget: 3000 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
   "instruction_volume": {
-    "system_prompt": 8892,
+    "system_prompt": 9179,
     "user_prompt": 1360,
     "references_needed": {
       "plan_partition": 7377,
@@ -22,11 +22,11 @@
       "claims": 10590,
       "room_types": 2947
     },
-    "tool_descriptions_dedented": 14350,
-    "tool_descriptions_as_sent": 16473,
+    "tool_descriptions_dedented": 14473,
+    "tool_descriptions_as_sent": 16620,
     "total_needed": {
-      "dedented": 47241,
-      "as_sent": 49364
+      "dedented": 47651,
+      "as_sent": 49798
     },
     "good_baseline": {
       "run": "run58",
@@ -41,14 +41,14 @@
     "scope_sha256": "10da85b0889fab7c1c8379a5bc792fe35a6c1f290b26e971007451ae9341207e",
     "implementation_sha256": {
       "scripts/tool_scripts/bim_agent_continuation.py": "c8bbdd9b79137e783b2a762a36a5764610190e9e1ff880cc7bc943ded964c402",
-      "scripts/tool_scripts/bim_agent_guidance.py": "bfdd363c4af8a91bc4d19af1e60a878535502569b8a10d436e4d79e0614ba9d3",
+      "scripts/tool_scripts/bim_agent_guidance.py": "39677ea52a4ad2dfbd3aedc8fb3516b9412d73e538ded6f2a9efd038a366c556",
       "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
       "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
       "scripts/tool_scripts/render_geometry_viewer.py": "4a48953cf090a570ff3b200cb8185a0680989c61fdfb0b2adb00e268bf3d2147",
-      "scripts/tool_scripts/run_bim_agent.py": "96a8c983313082d36a7449060f0acdf0839fad1b67b418384a40ce3f88f0312e",
+      "scripts/tool_scripts/run_bim_agent.py": "c6f219e34540c75504edf518ca3b2e3b01b927303087ae114f8b5d638287020b",
       "src/agent/correction/schema.py": "d17b3c37b1afa6216787db802c2de4a06b736613db7cd142d9c3342d79b19446",
       "src/agent/data/room_types.json": "06137438aa8cee4e7a008a54dc07a468bee280e50e3a2f65aed5af7321125ee5",
-      "src/agent/execution/bim_claim_facts.py": "bb4cd468d42466886eb1be49111818f6f19f7411bd4aa27d05ce07b8d96022dd",
+      "src/agent/execution/bim_claim_facts.py": "8390e75ae95020208c7d0d264d01cb83dfcd3fbe753a62988904936fdc547626",
       "src/agent/execution/bim_claim_state.py": "9b5bc96dd67257cf7e3e899b1ae2e010d7cd789461f07fe947c8b38102f70299",
       "src/agent/execution/bim_claims.py": "8938c5be592ce5d5ec924859b56dd528bfac8043beb2fa2f929370f992e86def",
       "src/agent/execution/bim_height_coverage.py": "64c51ad76a4a368887aebc2792f9e76b1d06ddaeb86fe0341232ed759ffea2b5",
@@ -65,7 +65,7 @@
       "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4",
       "src/agent/geometry/plan_assembly.py": "d46c27628f390ac4fa54f0311972b60591af40d963b94a2c1288ece910408048",
       "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
-      "src/agent/geometry/plan_drawing_differences.py": "2d21f589cd7f08295a5cde1b54188d67b7564e403e1387dc91408a0262f5a0d1",
+      "src/agent/geometry/plan_drawing_differences.py": "e228d783e489edccb7de36a58b4f37619711a22e3a269d264672e9308f8aeafe",
       "src/agent/geometry/plan_feedback.py": "d07012f40f7cf6cb9cb54ae41b3dd5674298ae9870b3f0bc41a6c1feec17957d",
       "src/agent/geometry/plan_partition.py": "6dc64a1301b9f050b8f3cc30849a27aa88159bc6768dfbf65ba5782651d689d3",
       "src/agent/geometry/plan_revision.py": "9ec61ac7afbd8216da1ab218ec2366fb2063c4796e176824c934e43c1660d40d",
@@ -85,10 +85,10 @@
       "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
       "src/agent/roles.py": "0de7de005ee53764a309b30163c9a1dea729e01e0d6a2727e65062208159e0f3"
     },
-    "guide_sha256": "3016d2b07e08a1dbaefbbaf53c6912228c9291448f3919bcaccd787ff81186e0",
+    "guide_sha256": "9ca4fdcda8b446a58fd97466f4849628a54e6a2966b4db480407bb7131516b34",
     "references_sha256": {
       "facade_correspondence": "cce1a6fad94bf32ed715d3bb301be5246c43a7b3c4fb3f26ea25d16344848a55",
-      "reconstruction": "b038b0a05ebefe26fe25c1561fedf67cab7db036b198fc747116f2649e375c71",
+      "reconstruction": "1f21cc11d8fb78c43750b2f96c7fc4ee7f76fdea6f5422c139e88131336578d7",
       "plan_partition": "f1251e23b3251b6ff639ce520aaa1ab89f09ab02f40b6081a601921150002080",
       "plan_assembly": "947b2c893857ec39421d922f2c686ca66a03f68ab531bbd7aad6771a5fc1eb63",
       "geometry": "0dbeca6713898c8df70754557bc0baaf505a29c2876e3315892913b9388f63de",
@@ -100,7 +100,7 @@
       "room_types": "893eb02ef58d29946ad3af8906d6da3edaabe2f1f289597f60e3b9140c9f477d",
       "naming": "05a79a326e75902c87c7dea097a01e611012768bb1323613f23b336e7ae94ede"
     },
-    "batch_script_sha256": "975b32afa5221b157ba4a26d0ac69ddf13545028004bde66f01dd5eaf962a419",
+    "batch_script_sha256": "250d3953e2975657b0520e1ab909e2f431e40477e53695e8091f9ad77c4b6711",
     "provider": "claude",
     "role": "sonnet",
     "effort": "medium",
@@ -151,6 +151,6 @@
     "view_plan_wall_support",
     "view_space_trace"
   ],
-  "tool_description_chars": 16473,
-  "tool_description_chars_dedented": 14350
+  "tool_description_chars": 16620,
+  "tool_description_chars_dedented": 14473
 }

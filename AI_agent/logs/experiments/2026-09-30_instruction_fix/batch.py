@@ -166,7 +166,8 @@ def run_one(run_id):
         receipt = load(EXPERIMENTS / PLAN[earlier][1] / "agent_receipt.json")
         assert receipt.get("returncode") == 0 and not (receipt.get("result") or {}).get("is_error"), \
             f"{earlier} did not end normally; stop the batch"
-    prepared = load(HERE / f"preflight_{run_id}.json")["conditions"]
+    preflight = load(HERE / f"preflight_{run_id}.json")
+    prepared = preflight["conditions"]
     assert prepared == conditions(case, sorted(prepared["implementation_sha256"])), "prepared runtime changed"
     assert not RUN.exists(), "do not overwrite or retry an experiment"
     original, calls = runner.subscription, []
@@ -176,6 +177,8 @@ def run_one(run_id):
         assert len(calls) == 1 and kwargs["model"] == "sonnet" and not kwargs.get("readonly")
         manifest = load(path / "inputs.json")
         assert manifest["implementation_sha256"] == prepared["implementation_sha256"]
+        assert {k: v["sha256"] for k, v in manifest["images"].items()} == preflight["image_sha256"], \
+            "original images differ from the prepared run"
         runner.dump(path / "experiment_condition.json", dict(run_id=run_id, **prepared))
         for relative in manifest["implementation_sha256"]:
             destination = path / "runtime_snapshot" / relative
@@ -187,9 +190,12 @@ def run_one(run_id):
         runner.run_experiment(arguments(case, RUN))
     assert len(calls) == 1
     receipt = load(RUN / "agent_receipt.json")
+    ended_normally = receipt.get("returncode") == 0 and not (receipt.get("result") or {}).get("is_error")
     print(json.dumps(dict(run=RUN.name, returncode=receipt.get("returncode"),
         elapsed_seconds=receipt.get("elapsed_seconds"), actual_model=receipt.get("actual_model"),
-        is_error=(receipt.get("result") or {}).get("is_error"))))
+        is_error=(receipt.get("result") or {}).get("is_error"), ended_normally=ended_normally)))
+    if not ended_normally:
+        sys.exit(f"{run_id} did not end normally; read its receipt and stop the batch")
 
 
 if __name__ == "__main__":

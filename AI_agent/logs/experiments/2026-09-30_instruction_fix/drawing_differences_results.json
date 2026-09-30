@@ -6,9 +6,29 @@
    "sm21": 64,
    "sm25": 23
   },
-  "labels": {
+  "not_checked": [
+   {
+    "run": "2026-09-27_sm21_guidance_ablation_run72",
+    "draft": "draft_002",
+    "reason": "calibration gives an implausible footprint of 1.5e+04 x 8e+03 m; check the scale and units first",
+    "labels": 12
+   },
+   {
+    "run": "2026-09-27_sm21_guidance_ablation_run72",
+    "draft": "draft_003",
+    "reason": "calibration gives an implausible footprint of 1.5e+04 x 8e+03 m; check the scale and units first",
+    "labels": 12
+   },
+   {
+    "run": "2026-09-28_sm21_method_control_run85",
+    "draft": "draft_001",
+    "reason": "calibration gives an implausible footprint of 1.5e+04 x 8e+03 m; check the scale and units first",
+    "labels": 12
+   }
+  ],
+  "object_labels_in_checked_drafts": {
    "declared_door_without_reference": {
-    "total": 43,
+    "total": 25,
     "detected": 14
    },
    "declared_space_without_reference": {
@@ -20,8 +40,8 @@
     "detected": 5
    },
    "door_missing_or_misplaced": {
-    "total": 59,
-    "detected": 31
+    "total": 41,
+    "detected": 18
    },
    "door_offset": {
     "total": 141,
@@ -29,19 +49,14 @@
    },
    "missing_divider": {
     "total": 31,
-    "detected": 28
+    "detected": 15
    }
   },
-  "items": {
+  "object_items": {
    "declared_divider_with_little_ink": {
     "total": 10,
-    "explained_by_label": 4,
-    "unexplained": 6
-   },
-   "no_dividers_declared": {
-    "total": 1,
-    "explained_by_label": 1,
-    "unexplained": 0
+    "explained_by_label": 0,
+    "unexplained": 10
    },
    "opening_offset_from_gap": {
     "total": 127,
@@ -64,16 +79,392 @@
     "unexplained": 12
    }
   },
-  "clean_drafts": 43,
+  "floor_level_observations": [
+   {
+    "run": "2026-09-26_sm25_multifloor_claude_run50",
+    "draft": "draft_001",
+    "ink_lines": 15,
+    "missing_divider_labels": 13
+   }
+  ],
+  "clean_checked_drafts": 43,
   "clean_drafts_with_items": 0,
-  "items_on_clean_drafts": 0
+  "items_on_clean_drafts": 0,
+  "next_draft_outcomes": {
+   "fixed, report gone": 4,
+   "not fixed": 41
+  }
  },
+ "next_draft_pairs": [
+  {
+   "run": "2026-09-23_sm24_self_review_glm_run36",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "missing_divider",
+   "key": "('EN', 'EC')",
+   "outcome": "fixed, report gone"
+  },
+  {
+   "run": "2026-09-23_sm24_self_review_glm_run36",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "door_offset",
+   "key": "door-N-C",
+   "outcome": "fixed, report gone"
+  },
+  {
+   "run": "2026-09-23_sm24_wall_context_recovery_glm_run35",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "missing_divider",
+   "key": "('EN', 'EC')",
+   "outcome": "fixed, report gone"
+  },
+  {
+   "run": "2026-09-23_sm24_wall_context_recovery_glm_run35",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "door_offset",
+   "key": "door-N-C",
+   "outcome": "fixed, report gone"
+  },
+  {
+   "run": "2026-09-24_sm24_path_support_glm_run38",
+   "before": "draft_001",
+   "after": "draft_002",
+   "label": "door_offset",
+   "key": "door-N-C",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "before": "draft_004",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "before": "draft_004",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "before": "draft_004",
+   "after": "draft_005",
+   "label": "door_missing_or_misplaced",
+   "key": "door-S3",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "before": "draft_004",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-S4",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "door_offset",
+   "key": "door-NC",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "door_offset",
+   "key": "door-SW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "door_offset",
+   "key": "door-SC",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_004",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "before": "draft_004",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_after_run76",
+   "before": "draft_005",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_after_run76",
+   "before": "draft_005",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-S1",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_after_run76",
+   "before": "draft_005",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-S4",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "missing_divider",
+   "key": "('NW', 'NC')",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "missing_divider",
+   "key": "('NC', 'NE')",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "missing_divider",
+   "key": "('SW', 'SC')",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "before": "draft_001",
+   "after": "draft_003",
+   "label": "missing_divider",
+   "key": "('SC', 'SE')",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "before": "draft_005",
+   "after": "draft_007",
+   "label": "door_missing_or_misplaced",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "before": "draft_005",
+   "after": "draft_007",
+   "label": "door_missing_or_misplaced",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-NC",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-SW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-SC",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_002",
+   "after": "draft_004",
+   "label": "door_offset",
+   "key": "door-SE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_003",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_003",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_003",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-S1",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_003",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-S2",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_003",
+   "after": "draft_005",
+   "label": "door_offset",
+   "key": "door-S3",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "before": "draft_003",
+   "after": "draft_005",
+   "label": "door_misplaced",
+   "key": "door-S4",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_current_run80",
+   "before": "draft_004",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "before": "draft_003",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-NW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "before": "draft_003",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-NC",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "before": "draft_003",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-NE",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "before": "draft_003",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-SW",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "before": "draft_003",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-SC",
+   "outcome": "not fixed"
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "before": "draft_003",
+   "after": "draft_006",
+   "label": "door_offset",
+   "key": "door-SE",
+   "outcome": "not fixed"
+  }
+ ],
  "drafts": [
   {
    "run": "2026-09-20_sm24_host_recovery_run02",
    "draft": "draft_002",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -167,16 +558,19 @@
       430,
       433
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-20_sm24_method_transfer_run01",
    "draft": "draft_005",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -270,16 +664,19 @@
       430,
       433
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-20_sm24_opening_heights_run04",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -343,16 +740,19 @@
       430,
       433
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-20_sm24_southeast_recovery_run03",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -416,16 +816,19 @@
       430,
       433
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-21_sm24_autonomous_recovery_run06",
    "draft": "draft_004",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -519,32 +922,41 @@
       430,
       433
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-22_sm21_glm_independent_generation_run23",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-22_sm21_glm_independent_generation_run23",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-22_sm24_glm_independent_generation_run14",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -595,7 +1007,7 @@
       429,
       907
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -619,7 +1031,7 @@
       488,
       898
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -643,7 +1055,7 @@
       488,
       725
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -686,24 +1098,30 @@
       488,
       390
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-23_sm21_cold_plan_glm_run31",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-23_sm24_cold_plan_glm_run32",
    "draft": "draft_004",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -767,7 +1185,7 @@
       642,
       396
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -791,7 +1209,7 @@
       487,
       780
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -815,8 +1233,8 @@
       489,
       908
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
-     "explained_by_label": true
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
+     "explained_by_label": false
     },
     {
      "type": "opening_offset_from_gap",
@@ -858,16 +1276,19 @@
       489,
       328
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-23_sm24_self_review_glm_run36",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -931,7 +1352,7 @@
       642,
       396
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -955,7 +1376,7 @@
       487,
       780
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -979,8 +1400,8 @@
       489,
       908
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
-     "explained_by_label": true
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
+     "explained_by_label": false
     },
     {
      "type": "opening_offset_from_gap",
@@ -1022,24 +1443,30 @@
       489,
       328
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-23_sm24_self_review_glm_run36",
    "draft": "draft_003",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-23_sm24_wall_context_recovery_glm_run35",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -1103,7 +1530,7 @@
       642,
       396
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -1127,7 +1554,7 @@
       487,
       780
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -1151,8 +1578,8 @@
       489,
       908
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
-     "explained_by_label": true
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
+     "explained_by_label": false
     },
     {
      "type": "opening_offset_from_gap",
@@ -1194,24 +1621,30 @@
       489,
       328
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-23_sm24_wall_context_recovery_glm_run35",
    "draft": "draft_003",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm24_cold_context_glm_run37",
    "draft": "draft_002",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1262,7 +1695,7 @@
       489,
       725
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -1305,24 +1738,30 @@
       486,
       328
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm24_cold_support_glm_run39",
    "draft": "draft_003",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm24_path_support_glm_run38",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1373,7 +1812,7 @@
       489,
       725
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -1416,16 +1855,19 @@
       486,
       328
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm24_path_support_glm_run38",
    "draft": "draft_002",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -1489,24 +1931,30 @@
       486,
       328
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm24_repeat_support_glm_run40",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm25_cold_support_glm_run42",
    "draft": "draft_004",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1537,16 +1985,19 @@
       826,
       995
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm25_continuous_space_glm_run44",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1566,13 +2017,16 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm25_continuous_space_glm_run44",
    "draft": "draft_003",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1592,13 +2046,16 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm25_local_plan_glm_run43",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1629,16 +2086,19 @@
       826,
       995
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm25_local_plan_glm_run43",
    "draft": "draft_003",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1658,37 +2118,49 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-24_sm25_partition_feedback_glm_run45",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-25_sm25_relation_cold_claude_run48",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-25_sm25_relation_repeat_claude_run49",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-25_sm25_space_relation_claude_run47",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1708,21 +2180,27 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-25_sm25_space_relation_claude_run47",
    "draft": "draft_002",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-25_sm25_space_relation_glm_run46",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -1742,45 +2220,60 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm21_whole_building_claude_run57",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm21_whole_building_claude_run57",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm24_whole_building_claude_run55",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm24_whole_building_repeat_claude_run56",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_cold_claude_run53",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -1803,37 +2296,49 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_cold_claude_run53",
    "draft": "draft_002",
    "case": "sm25",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_cold_claude_run53",
    "draft": "draft_003",
    "case": "sm25",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_repeat_claude_run54",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_repeat_claude_run54",
    "draft": "draft_002",
    "case": "sm25",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -1856,21 +2361,27 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_repeat_claude_run54",
    "draft": "draft_003",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_height_repeat_claude_run54",
    "draft": "draft_004",
    "case": "sm25",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -1893,13 +2404,16 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_multifloor_claude_run50",
    "draft": "draft_001",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -1918,7 +2432,7 @@
        404.25
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -1937,7 +2451,7 @@
        404.25
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -1956,7 +2470,7 @@
        449.25
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -1975,7 +2489,7 @@
        541.75
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -1994,7 +2508,7 @@
        634.0
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2013,7 +2527,7 @@
        677.5
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2032,7 +2546,7 @@
        726.5
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2051,7 +2565,7 @@
        772.75
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2070,7 +2584,7 @@
        819.0
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2089,7 +2603,7 @@
        868.0
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2108,7 +2622,7 @@
        914.25
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2127,7 +2641,7 @@
        1141.25
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "missing_divider",
@@ -2146,7 +2660,7 @@
        1141.25
       ]
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2157,7 +2671,7 @@
       460,
       496
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2168,7 +2682,7 @@
       530,
       566
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2179,7 +2693,7 @@
       350,
       385
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2190,7 +2704,7 @@
       420,
       456
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2201,7 +2715,7 @@
       535,
       570
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2212,7 +2726,7 @@
       605,
       641
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2223,7 +2737,7 @@
       719,
       755
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2234,7 +2748,7 @@
       790,
       826
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2245,7 +2759,7 @@
       882,
       918
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2256,7 +2770,7 @@
       719,
       755
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2267,7 +2781,7 @@
       790,
       825
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2278,7 +2792,7 @@
       793,
       866
      ],
-     "detected": true
+     "detected": false
     },
     {
      "type": "door_missing_or_misplaced",
@@ -2289,27 +2803,16 @@
       900,
       973
      ],
-     "detected": true
+     "detected": false
     }
    ],
-   "items": [
+   "items": [],
+   "floor_level": [
     {
      "type": "no_dividers_declared",
-     "drawn_wall_lines": 33,
+     "scope": "floor",
+     "ink_lines": 15,
      "longest": [
-      {
-       "axis": "horizontal",
-       "y_px": 1053,
-       "x_px": [
-        973,
-        1247
-       ],
-       "y_m": 3.94,
-       "x_m": [
-        14.94,
-        20.87
-       ]
-      },
       {
        "axis": "horizontal",
        "y_px": 1053,
@@ -2321,19 +2824,6 @@
        "x_m": [
         5.23,
         11.03
-       ]
-      },
-      {
-       "axis": "horizontal",
-       "y_px": 492,
-       "x_px": [
-        566,
-        739
-       ],
-       "y_m": 16.08,
-       "x_m": [
-        6.14,
-        9.88
        ]
       },
       {
@@ -2361,6 +2851,32 @@
         16.13,
         19.78
        ]
+      },
+      {
+       "axis": "vertical",
+       "x_px": 741,
+       "y_px": [
+        321,
+        490
+       ],
+       "x_m": 9.93,
+       "y_m": [
+        16.13,
+        19.78
+       ]
+      },
+      {
+       "axis": "vertical",
+       "x_px": 883,
+       "y_px": [
+        1055,
+        1224
+       ],
+       "x_m": 13.0,
+       "y_m": [
+        0.24,
+        3.9
+       ]
       }
      ],
      "look_box": [
@@ -2369,8 +2885,7 @@
       1758,
       1496
      ],
-     "check": "No interior divider is declared, but the drawing has several double-line or banded wall lines inside the footprint.",
-     "explained_by_label": true
+     "check": "No interior divider is declared, while 15 double or banded ink lines of 2 m or more inside the outline reach the outer walls."
     }
    ]
   },
@@ -2379,38 +2894,52 @@
    "draft": "draft_002",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_multifloor_claude_run50",
    "draft": "draft_004",
    "case": "sm25",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_multifloor_cold_claude_run51",
    "draft": "draft_002",
    "case": "sm25",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-26_sm25_multifloor_cold_claude_run51",
    "draft": "draft_003",
    "case": "sm25",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_current_tools_claude_run69",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -2574,7 +3103,7 @@
       957,
       710
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -2617,7 +3146,7 @@
       1082,
       710
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -2660,7 +3189,7 @@
       1544,
       710
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -2703,7 +3232,7 @@
       957,
       873
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -2746,7 +3275,7 @@
       1082,
       873
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -2789,16 +3318,19 @@
       1544,
       873
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_current_tools_claude_run69",
    "draft": "draft_003",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -2955,7 +3487,7 @@
       1889,
       428
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -2979,7 +3511,7 @@
       849,
       883
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -3003,7 +3535,7 @@
       1195,
       883
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -3027,7 +3559,7 @@
       1547,
       883
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -3051,7 +3583,7 @@
       1890,
       645
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
      "explained_by_label": false
     },
     {
@@ -3075,16 +3607,19 @@
       1890,
       814
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
      "explained_by_label": false
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_current_tools_claude_run69",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -3192,7 +3727,7 @@
       1255,
       848
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -3216,7 +3751,7 @@
       1507,
       848
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -3259,7 +3794,7 @@
       1189,
       698
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -3302,7 +3837,7 @@
       1312,
       698
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -3345,16 +3880,19 @@
       1674,
       848
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_current_tools_claude_run69",
    "draft": "draft_005",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -3462,7 +4000,7 @@
       1255,
       848
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -3486,7 +4024,7 @@
       1507,
       848
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -3529,7 +4067,7 @@
       1189,
       698
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -3572,7 +4110,7 @@
       1312,
       698
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -3615,16 +4153,19 @@
       1674,
       848
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_guidance_ablation_run72",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "not_checked",
+   "reason": "calibration gives an implausible footprint of 1.5e+04 x 8e+03 m; check the scale and units first",
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -3759,13 +4300,16 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_guidance_ablation_run72",
    "draft": "draft_003",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "not_checked",
+   "reason": "calibration gives an implausible footprint of 1.5e+04 x 8e+03 m; check the scale and units first",
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -3900,29 +4444,38 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_guidance_control_run71",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_guidance_control_run71",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_current_run74",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -4067,7 +4620,7 @@
       1428,
       1164
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -4091,7 +4644,7 @@
       1428,
       695
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -4115,7 +4668,7 @@
       1468,
       694
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
      "explained_by_label": false
     },
     {
@@ -4139,7 +4692,7 @@
       1468,
       1164
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
      "explained_by_label": false
     },
     {
@@ -4182,7 +4735,7 @@
       959,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4225,7 +4778,7 @@
       1080,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4268,7 +4821,7 @@
       1566,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4311,7 +4864,7 @@
       959,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4354,7 +4907,7 @@
       1080,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4397,16 +4950,19 @@
       1566,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_current_run74",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -4551,7 +5107,7 @@
       1194,
       1146
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -4575,7 +5131,7 @@
       1151,
       953
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -4618,7 +5174,7 @@
       1194,
       679
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4661,7 +5217,7 @@
       1308,
       679
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4704,7 +5260,7 @@
       848,
       879
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4747,7 +5303,7 @@
       962,
       879
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4790,7 +5346,7 @@
       1531,
       879
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -4833,16 +5389,19 @@
       1655,
       879
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_legacy_run73",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -4966,7 +5525,7 @@
       961,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5009,7 +5568,7 @@
       1080,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5052,7 +5611,7 @@
       961,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5095,16 +5654,19 @@
       1080,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_legacy_run73",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -5188,7 +5750,7 @@
       1195,
       672
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5231,16 +5793,19 @@
       1311,
       672
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_legacy_run73",
    "draft": "draft_003",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -5364,7 +5929,7 @@
       961,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5407,7 +5972,7 @@
       1080,
       694
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5450,7 +6015,7 @@
       961,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5493,16 +6058,19 @@
       1080,
       880
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_legacy_run73",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -5586,7 +6154,7 @@
       1195,
       672
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5629,16 +6197,19 @@
       1311,
       672
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_profile_legacy_run73",
    "draft": "draft_005",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -5722,7 +6293,7 @@
       1195,
       672
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5765,24 +6336,30 @@
       1311,
       672
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_after_run76",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_after_run76",
    "draft": "draft_005",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -5926,7 +6503,7 @@
       1308,
       689
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -5969,7 +6546,7 @@
       819,
       861
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -6012,16 +6589,19 @@
       1655,
       861
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_after_run76",
    "draft": "draft_006",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -6165,7 +6745,7 @@
       1308,
       689
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -6208,7 +6788,7 @@
       819,
       861
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -6251,16 +6831,19 @@
       1655,
       861
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_before_run75",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -6361,7 +6944,7 @@
       963,
       694
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -6385,7 +6968,7 @@
       1427,
       694
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -6409,7 +6992,7 @@
       963,
       1161
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -6433,24 +7016,30 @@
       1427,
       1161
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_before_run75",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_before_run75",
    "draft": "draft_003",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -6551,7 +7140,7 @@
       963,
       694
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -6575,7 +7164,7 @@
       1427,
       694
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -6599,7 +7188,7 @@
       963,
       1161
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -6623,48 +7212,63 @@
       1427,
       1161
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_use_guidance_before_run75",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm24_room_types_claude_run59",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm24_room_types_cold_claude_run61",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -6728,16 +7332,19 @@
       433,
       665
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": false
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-27_sm24_room_types_feedback_claude_run62",
    "draft": "draft_001",
    "case": "sm24",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -6881,7 +7488,7 @@
       432,
       479
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -6924,7 +7531,7 @@
       488,
       393
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -6967,16 +7574,19 @@
       488,
       443
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_baseline_ink_run87",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "declared_space_without_reference",
@@ -7013,7 +7623,7 @@
       963,
       888
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     },
     {
@@ -7037,48 +7647,63 @@
       1427,
       888
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": false
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_baseline_ink_run87",
    "draft": "draft_003",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_baseline_ink_run87",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_cold_run82",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_cold_run82",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_cold_run82",
    "draft": "draft_005",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -7125,7 +7750,7 @@
       1159,
       702
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -7149,24 +7774,30 @@
       1308,
       702
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_cold_run82",
    "draft": "draft_006",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_cold_run82",
    "draft": "draft_007",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -7213,7 +7844,7 @@
       1159,
       702
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -7237,16 +7868,19 @@
       1308,
       702
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_repeat_run83",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -7360,7 +7994,7 @@
       1295,
       675
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -7385,7 +8019,7 @@
       1745,
       675
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -7410,7 +8044,7 @@
       1295,
       875
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -7435,7 +8069,7 @@
       1745,
       875
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -7459,7 +8093,7 @@
       1079,
       675
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -7483,7 +8117,7 @@
       1079,
       875
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -7507,7 +8141,7 @@
       1542,
       675
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -7531,16 +8165,19 @@
       1542,
       875
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_behavior_repeat_run83",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -7695,7 +8332,7 @@
       848,
       1145
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -7719,7 +8356,7 @@
       1194,
       677
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -7743,8 +8380,8 @@
       801,
       1145
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
-     "explained_by_label": true
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
+     "explained_by_label": false
     },
     {
      "type": "opening_offset_from_gap",
@@ -7786,7 +8423,7 @@
       1339,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -7829,7 +8466,7 @@
       1339,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -7872,7 +8509,7 @@
       813,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -7915,7 +8552,7 @@
       994,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -7958,7 +8595,7 @@
       1506,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8001,16 +8638,19 @@
       1709,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_dimension_first_run84",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -8174,7 +8814,7 @@
       959,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8217,7 +8857,7 @@
       1140,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8260,7 +8900,7 @@
       1542,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8303,7 +8943,7 @@
       959,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8346,7 +8986,7 @@
       1140,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8389,16 +9029,19 @@
       1545,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_dimension_first_run84",
    "draft": "draft_003",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -8543,7 +9186,7 @@
       1655,
       868
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -8586,7 +9229,7 @@
       1186,
       683
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8629,7 +9272,7 @@
       1311,
       683
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8672,7 +9315,7 @@
       825,
       868
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8715,7 +9358,7 @@
       962,
       868
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8758,16 +9401,19 @@
       1525,
       868
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_dimension_first_run84",
    "draft": "draft_004",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -8931,7 +9577,7 @@
       959,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -8974,7 +9620,7 @@
       1140,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9017,7 +9663,7 @@
       1542,
       674
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9060,7 +9706,7 @@
       959,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9103,7 +9749,7 @@
       1140,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9146,16 +9792,19 @@
       1545,
       874
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_dimension_first_run84",
    "draft": "draft_005",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -9300,7 +9949,7 @@
       1655,
       868
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -9343,7 +9992,7 @@
       1186,
       683
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9386,7 +10035,7 @@
       1311,
       683
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9429,7 +10078,7 @@
       825,
       868
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9472,7 +10121,7 @@
       962,
       868
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9515,16 +10164,19 @@
       1525,
       868
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_evidence_feedback_run86",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -9629,7 +10281,7 @@
       1427,
       694
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -9653,7 +10305,7 @@
       1427,
       1162
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": false
     },
     {
@@ -9677,7 +10329,7 @@
       1538,
       702
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
      "explained_by_label": false
     },
     {
@@ -9701,16 +10353,19 @@
       1538,
       1162
      ],
-     "check": "Most of this declared divider, outside its declared openings, has no drawn wall near it.",
+     "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines.",
      "explained_by_label": false
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_evidence_feedback_run86",
    "draft": "draft_003",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -9793,13 +10448,16 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_evidence_feedback_run86",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -9883,7 +10541,7 @@
       1194,
       1146
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -9926,7 +10584,7 @@
       844,
       865
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -9969,32 +10627,41 @@
       1506,
       865
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_historical_tree_run81",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_historical_tree_run81",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_method_control_run85",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "not_checked",
+   "reason": "calibration gives an implausible footprint of 1.5e+04 x 8e+03 m; check the scale and units first",
    "labels": [
     {
      "type": "door_missing_or_misplaced",
@@ -10129,21 +10796,27 @@
      "detected": false
     }
    ],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_current_run80",
    "draft": "draft_003",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_current_run80",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -10207,24 +10880,30 @@
       1159,
       684
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_current_run80",
    "draft": "draft_005",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_current_run80",
    "draft": "draft_006",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -10288,16 +10967,19 @@
       1159,
       684
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_legacy_run79",
    "draft": "draft_003",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -10461,7 +11143,7 @@
       930,
       693
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10504,7 +11186,7 @@
       1105,
       693
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10547,7 +11229,7 @@
       1542,
       693
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10590,7 +11272,7 @@
       930,
       890
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10633,7 +11315,7 @@
       1105,
       890
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10676,24 +11358,30 @@
       1542,
       890
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_legacy_run79",
    "draft": "draft_005",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_legacy_run79",
    "draft": "draft_006",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -10857,7 +11545,7 @@
       930,
       693
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10900,7 +11588,7 @@
       1105,
       693
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10943,7 +11631,7 @@
       1542,
       693
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -10986,7 +11674,7 @@
       930,
       890
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11029,7 +11717,7 @@
       1105,
       890
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11072,32 +11760,41 @@
       1542,
       890
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-28_sm21_threshold_legacy_run79",
    "draft": "draft_007",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_aligned_prompt_run92",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [],
-   "items": []
+   "items": [],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_aligned_prompt_run93",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -11261,7 +11958,7 @@
       929,
       699
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11304,7 +12001,7 @@
       1113,
       699
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11347,7 +12044,7 @@
       1542,
       699
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11390,7 +12087,7 @@
       929,
       885
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11433,7 +12130,7 @@
       1113,
       885
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11476,16 +12173,19 @@
       1542,
       885
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_aligned_prompt_run93",
    "draft": "draft_002",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -11595,7 +12295,7 @@
       1189,
       867
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -11620,7 +12320,7 @@
       1277,
       867
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -11644,7 +12344,7 @@
       962,
       867
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -11668,7 +12368,7 @@
       1506,
       867
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -11711,7 +12411,7 @@
       843,
       867
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -11754,16 +12454,19 @@
       1655,
       867
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_instruction_refactor_run94",
    "draft": "draft_002",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "missing_divider",
@@ -11906,7 +12609,7 @@
       963,
       1163
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -11930,7 +12633,7 @@
       1427,
       1163
      ],
-     "check": "A drawn double line or band reaching walls at both ends that no declared divider follows.",
+     "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it.",
      "explained_by_label": true
     },
     {
@@ -11973,7 +12676,7 @@
       959,
       711
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12016,7 +12719,7 @@
       1085,
       711
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12059,7 +12762,7 @@
       929,
       873
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12102,16 +12805,19 @@
       1566,
       873
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_instruction_refactor_run94",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_misplaced",
@@ -12261,7 +12967,7 @@
       1084,
       702
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -12286,7 +12992,7 @@
       1122,
       851
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -12311,7 +13017,7 @@
       1818,
       851
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -12335,7 +13041,7 @@
       1159,
       702
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -12359,7 +13065,7 @@
       962,
       851
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -12383,7 +13089,7 @@
       1655,
       851
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -12426,7 +13132,7 @@
       1344,
       702
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12469,7 +13175,7 @@
       813,
       851
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12512,16 +13218,19 @@
       1506,
       851
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_whole_drawing_run91",
    "draft": "draft_001",
    "case": "sm21",
    "image": "1f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -12685,7 +13394,7 @@
       954,
       710
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12728,7 +13437,7 @@
       1079,
       710
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12771,7 +13480,7 @@
       1542,
       710
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12814,7 +13523,7 @@
       954,
       871
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12857,7 +13566,7 @@
       1079,
       871
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -12900,16 +13609,19 @@
       1542,
       871
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   },
   {
    "run": "2026-09-29_sm21_whole_drawing_run91",
    "draft": "draft_004",
    "case": "sm21",
    "image": "2f_view.png",
+   "status": "reported",
+   "reason": null,
    "labels": [
     {
      "type": "door_offset",
@@ -13063,7 +13775,7 @@
       714,
       869
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -13088,7 +13800,7 @@
       1060,
       869
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -13113,7 +13825,7 @@
       1406,
       869
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -13138,7 +13850,7 @@
       1753,
       869
      ],
-     "check": "This declared opening lies where the divider's drawn wall is continuous.",
+     "check": "Ink along this declared divider is continuous across the declared opening.",
      "explained_by_label": true
     },
     {
@@ -13162,7 +13874,7 @@
       813,
       869
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -13186,7 +13898,7 @@
       962,
       869
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -13210,7 +13922,7 @@
       1506,
       869
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -13234,7 +13946,7 @@
       1655,
       869
      ],
-     "check": "A stretch of this divider without drawn wall that no declared opening occupies.",
+     "check": "A stretch of this declared divider without ink that no declared opening occupies.",
      "explained_by_label": true
     },
     {
@@ -13277,7 +13989,7 @@
       1195,
       683
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     },
     {
@@ -13320,10 +14032,11 @@
       1308,
       683
      ],
-     "check": "The declared opening's ends differ from the ends of the wall gap it overlaps.",
+     "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps.",
      "explained_by_label": true
     }
-   ]
+   ],
+   "floor_level": []
   }
  ]
 }

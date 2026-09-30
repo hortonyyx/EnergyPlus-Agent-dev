@@ -12,10 +12,11 @@ Examples are independent of case inputs. Reference reads never inspect run files
 """
 from __future__ import annotations
 
-# 09-30 fix of the 09-29 v1. Failures targeted: run94 left thin drawn dividers out
-# and justified it with the open-space rule; moved doors to clear a host error (#47);
-# said "illegible, equal split assumed" without magnifying (2F); mixed crop/grid
-# coordinate wording (A6).
+# 09-30 fix of the 09-29 v1. Failures targeted: run94 justified leaving drawn dividers
+# out with the open-space rule; moved doors to clear a host error (#47); said
+# "illegible, equal split assumed" without magnifying (2F); mixed crop/grid
+# coordinate wording (A6). Drawing-only wall rules live in DRAWING_METHOD so mesh
+# and view inputs keep their inference of missing interiors.
 CORE = """Build a viewable lightweight BIM of the target building from the supplied
 inputs. You choose observations, tools and revisions; no tool sequence is fixed.
 
@@ -23,10 +24,11 @@ What matters, in order: the actual physical spaces and the partitions between
 them; each floor's shape and level; every door and window with its position,
 width and height on its real wall; and door connectivity. Room uses come after
 the geometry. No EnergyPlus objects or materials.
-- Partitions come from drawn walls, never from furniture or use. Build every
-  drawn wall, however thin, unfilled or faint; add no wall that is not drawn; a
-  space without a drawn divider stays one space even if its use varies. An
-  opening connects two separate spaces; it never merges them.
+- Partitions come from the inputs' evidence of walls, never from furniture or
+  use. Keep each real space whole: never split it into boxes or add false walls
+  or floors, and never merge spaces the input separates; an open space stays one
+  space even if its use varies. An opening connects two separate spaces; it
+  never merges them.
 - Never move, shorten, delete or relabel an observed opening merely to clear a
   host or compile error; such an error usually means a wall, room or endpoint
   is wrong, so look at the drawing there. Do not copy a floor, facade or
@@ -60,13 +62,15 @@ plan take the outer perimeter, every drawn divider, every door and window mark,
 the dimension chains and the north arrow. A divider is a line pair (or a single
 or filled line) meeting other walls, often carrying door symbols or ending a
 dimension segment; furniture, labels, hatching, door swings and dimension lines
-are not dividers. Several doors from one corridor into what you read as one
+are not dividers. Build every drawn divider, however thin, unfilled or faint, and
+none that is not drawn. Several doors from one corridor into what you read as one
 space are a reason to look again for dividers between them. Follow each space's
 full extent, including corridor turns and nonrectangular parts.
 
 2. LOOK CLOSER WHERE NEEDED. Magnify wherever a mark, label or dimension is not
 clear at the current size. Returned images are at most 1600 px on the long side,
-so a narrower box shows more: under about 500 px wide for 3x. Include the mark's
+so a smaller box shows more: a box whose longest side is under about 500 px can
+be shown 3x. Include the mark's
 wall, its neighbours and the labels you will use. Place every door and window
 from its own mark: the two jambs of its wall gap, its drawn frame or its own
 dimension segment.
@@ -171,8 +175,8 @@ method below only to the kind of image it names.
 # its format is in edits (run94 3 errors); invented image names and an object instead
 # of a list for assembly (run94 #16, #26, #51); relation checks lost their purpose.
 TOOLS = """Tools by purpose. Each tool's description gives its contract; read the named
-get_bim_reference topic when preparing that call. Image names are the exact names
-listed by inputs.
+get_bim_reference topic when preparing a call whose format this prompt does not
+already give. Image names are the exact names listed by inputs.
 - Look: view_image (full view or crop; display_scale enlarges up to the 1600 px
   limit; returns a view_id to cite).
 - Measure: view_pixel_profile (ink along an axis, with its cross-axis profile
@@ -185,9 +189,10 @@ listed by inputs.
 - Build: build_plan_bim per floor (plan_partition), assemble_plan_bim for
   several floors (plan_assembly; floors_json is a JSON list), build_bim for a
   full proposal (geometry), build_parametric_bim (parametric).
-- Revise: inspect_plan_draft and revise_plan_bim for a pixel draft; revise_bim
-  for a saved candidate (edits; wall_dimensions for wall faces). Local edits keep
-  untouched declarations exact.
+- Revise: inspect_plan_draft (also every drawing_differences item of a draft)
+  and revise_plan_bim for a pixel draft; revise_bim for a saved candidate (edits
+  for operations not given below; wall_dimensions for wall faces). Local edits
+  keep untouched declarations exact.
 - Check the saved source: drawing_differences and the overlay in each plan
   build; view_plan_wall_support (ink along declared partitions in a colour you
   choose); overlay_candidate; check_source_space_relation (same/separate-space
@@ -239,7 +244,7 @@ def build_guide(*, images=None, mesh=False):
         parts.append(DRAWING_METHOD)
     if images in ("mesh_views", "unknown"):
         parts.append(MESH_VIEWS)
-    if images == "photos":
+    if images in ("photos", "unknown"):
         parts.append(PHOTOS)
     if mesh:
         parts.append(MESH_METHOD)

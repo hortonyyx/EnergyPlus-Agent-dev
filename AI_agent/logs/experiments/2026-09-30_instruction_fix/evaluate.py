@@ -71,23 +71,48 @@ def difference_trace(run):
     by_image = {}
     for row in drafts:
         by_image.setdefault(row["image"], []).append(row)
+    near = lambda a, b: (a["type"] == b["type"] and a.get("axis") == b.get("axis")
+                         and all(abs(u - v) <= 12 for u, v in zip(_coords(a), _coords(b))))
     for rows in by_image.values():
         for row, following in zip(rows, rows[1:]):
             row["next_draft"] = following["draft"]
-            row["next_total"] = following["total"]
+            for item in row["items"]:
+                item["still_reported_in_next_draft"] = any(near(item, other) for other in following["items"])
     return drafts
 
 
-def spaces_one_to_one(original):
+def _coords(item):
+    """Pixel position of an item for matching it across drafts (not identity)."""
+    place = item.get("declared") or item
+    values = [place.get("x_px"), place.get("y_px")]
+    return [v for pair in values for v in (pair if isinstance(pair, list) else [pair]) if v is not None]
+
+
+EXPECTED_FLOORS = ("F1", "F2")
+
+
+def spaces_one_to_one(original, source):
+    """Every reference seed in exactly one candidate space, each candidate space holding
+    exactly one seed, on every expected floor of a completed original-image audit."""
+    if original.get("status") == "not_run" or not original.get("floors"):
+        return dict(pass_=False, findings=[dict(issue="original-image audit not run", detail=original.get("reason"))])
     findings = []
-    for floor in original.get("floors", []):
-        mapping = floor.get("space_identity_by_interior_point", {})
+    floors = {floor["floor_id"]: floor.get("space_identity_by_interior_point", {}) for floor in original["floors"]}
+    for floor_id in EXPECTED_FLOORS:
+        if floor_id not in floors:
+            findings.append(dict(floor=floor_id, issue="floor missing from the audit"))
+            continue
+        mapping = floors[floor_id]
         holders = Counter(ids[0] for ids in mapping.values() if len(ids) == 1)
         for seed, ids in mapping.items():
             if len(ids) != 1:
-                findings.append(dict(floor=floor["floor_id"], seed=seed, candidate_spaces=ids, issue="not exactly one space"))
+                findings.append(dict(floor=floor_id, seed=seed, candidate_spaces=ids, issue="not exactly one space"))
             elif holders[ids[0]] > 1:
-                findings.append(dict(floor=floor["floor_id"], seed=seed, candidate_space=ids[0], issue="shared with another reference room"))
+                findings.append(dict(floor=floor_id, seed=seed, candidate_space=ids[0],
+                                     issue="shared with another reference room"))
+        for space in source["spaces"]:
+            if space.get("floor_id") == floor_id and space["id"] not in holders:
+                findings.append(dict(floor=floor_id, candidate_space=space["id"], issue="no reference room"))
     return dict(pass_=not findings, findings=findings)
 
 
@@ -100,7 +125,10 @@ def strict_heights(run):
                          facade=row["facade"], kind=row["kind"], reference_z_m=row["reference_z_m"],
                          candidate_z_m=row["candidate_z_m"], z_delta_m=delta,
                          within_strict=max(delta) <= STRICT_HEIGHT_M))
-    return dict(tolerance_m=STRICT_HEIGHT_M, matched=len(rows), within=sum(r["within_strict"] for r in rows),
+    within = sum(r["within_strict"] for r in rows)
+    return dict(tolerance_m=STRICT_HEIGHT_M, matched=len(rows), within=within,
+                pass_=(within == len(rows) and not diagnostic["unmatched_reference"]
+                       and not diagnostic["unmatched_built_exterior"]),
                 mismatches=[r for r in rows if not r["within_strict"]],
                 unmatched_reference=diagnostic["unmatched_reference"],
                 unmatched_built_exterior=diagnostic["unmatched_built_exterior"], all=rows)
@@ -143,7 +171,8 @@ def main():
         audit = load(run / "postrun_audit.json")
         result.update(counts=audit["counts"], strict_partition_status=audit["strict_partition_status"],
                       space_identity_findings=audit["space_identity_findings"],
-                      spaces_one_to_one=spaces_one_to_one(audit["original_openings"]),
+                      spaces_one_to_one=spaces_one_to_one(audit["original_openings"], load(
+                          run / audit["candidate"] / "source_model.json")),
                       original_openings=audit["original_openings"],
                       exterior_matched=audit["matched_exterior"],
                       exterior_parameters_match_old_tolerance=audit["exterior_parameters_match"],

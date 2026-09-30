@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw
 
 SCHEMA = "drawing_differences_v1"
 MIN_LINE_M = 1.2        # shortest straight ink run treated as wall-like
+ALERT_LINE_M = 2.0      # lines counted for the floor-level "no dividers declared" observation
 FILLED_MIN_M = 0.05     # a solid band at least this wide is wall-like on its own
 PAIR_M = (0.05, 0.45)   # two parallel lines this far apart form a double-line wall
 END_TOUCH_M = 0.30      # a wall-like line must reach other walls at both ends
@@ -217,15 +218,26 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
         for centre, lo, hi, thickness in _wall_like(_strokes(mask, orient, px(MIN_LINE_M, along)), mpp_cross):
             candidates.append(dict(orient=orient, at=centre, lo=lo, hi=hi, thickness_m=round(thickness, 2)))
     if not dividers:
-        free = [c for c in candidates if not any(
-            p == c["orient"] and abs(a - c["at"]) < px(PERIMETER_M, "x" if p == "v" else "y")
-            and _overlap(c["lo"], c["hi"], l, h) > 0.5 * (c["hi"] - c["lo"]) for p, a, l, h in perimeter)]
-        if len(free) >= 3:
-            free.sort(key=lambda c: c["lo"] - c["hi"])
-            items.append(dict(type="no_dividers_declared", drawn_wall_lines=len(free),
-                              longest=[where(c["orient"], c["at"], c["lo"], c["hi"]) for c in free[:5]],
+        # A floor-level observation, not an object item: free-standing furniture cannot
+        # reach the outer walls, and room walls are longer than most furniture edges.
+        reaching = []
+        for c in candidates:
+            along = mpp_y if c["orient"] == "v" else mpp_x
+            ends = ([(c["at"], c["lo"]), (c["at"], c["hi"])] if c["orient"] == "v"
+                    else [(c["lo"], c["at"]), (c["hi"], c["at"])])
+            if ((c["hi"] - c["lo"]) * along >= ALERT_LINE_M
+                    and any(_touches(point, c["orient"], perimeter, tolerance) for point in ends)
+                    and not any(p == c["orient"] and abs(a - c["at"]) < px(PERIMETER_M, "x" if p == "v" else "y")
+                                and _overlap(c["lo"], c["hi"], l, h) > 0.5 * (c["hi"] - c["lo"])
+                                for p, a, l, h in perimeter)):
+                reaching.append(c)
+        if len(reaching) >= 3:
+            reaching.sort(key=lambda c: c["lo"] - c["hi"])
+            items.append(dict(type="no_dividers_declared", scope="floor", ink_lines=len(reaching),
+                              longest=[where(c["orient"], c["at"], c["lo"], c["hi"]) for c in reaching[:5]],
                               look_box=[0, 0, width, height],
-                              check="No interior divider is declared, but the drawing has several double-line or banded wall lines inside the footprint."))
+                              check=(f"No interior divider is declared, while {len(reaching)} double or banded ink "
+                                     f"lines of {ALERT_LINE_M:g} m or more inside the outline reach the outer walls.")))
     # Each reported line meets walls at both ends and at least one end is a declared wall
     # or the perimeter, so furniture outlines cannot support each other.
     accepted, support = [], list(declared_walls)
@@ -254,7 +266,7 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
         items.append(dict(type="undeclared_wall_line", **where(o, at, lo, hi),
                           length_m=round((hi - lo) * (mpp_y if o == "v" else mpp_x), 2),
                           drawn_thickness_m=candidate["thickness_m"], look_box=look_box(o, at, lo, hi),
-                          check="A drawn double line or band reaching walls at both ends that no declared divider follows."))
+                          check="A double or banded ink line meeting walls at both ends; no declared divider lies along it."))
 
     # 2. Declared dividers: ink on their drawn faces, and gaps against declared openings.
     for divider_id, orient, at, lo, hi in dividers:
@@ -274,7 +286,7 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
             items.append(dict(type="declared_divider_with_little_ink", divider=divider_id,
                               **where(orient, at, lo, hi), ink_fraction=round(float(flags[free].mean()), 2),
                               look_box=look_box(orient, at, lo, hi),
-                              check="Most of this declared divider, outside its declared openings, has no drawn wall near it."))
+                              check="Outside its declared openings, most of this declared divider has no ink along its sampled lines."))
             continue
         raw = _runs(~flags)
         gaps = []
@@ -293,7 +305,7 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                                   **where(orient, at, gap_lo, gap_hi),
                                   gap_m=round((gap_hi - gap_lo + 1) * along_mpp, 2),
                                   look_box=look_box(orient, at, gap_lo, gap_hi),
-                                  check="A stretch of this divider without drawn wall that no declared opening occupies."))
+                                  check="A stretch of this declared divider without ink that no declared opening occupies."))
                 continue
             for oid, kind, l, h in overlapping:
                 matched.add(oid)
@@ -302,7 +314,7 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                     items.append(dict(type="opening_offset_from_gap", opening=oid, divider=divider_id,
                                       declared=where(orient, at, l, h), gap=where(orient, at, gap_lo, gap_hi),
                                       end_offsets_m=offsets, look_box=look_box(orient, at, min(l, gap_lo), max(h, gap_hi)),
-                                      check="The declared opening's ends differ from the ends of the wall gap it overlaps."))
+                                      check="The declared opening's ends differ from the ends of the inkless stretch it overlaps."))
         for oid, kind, l, h in hosted:
             if oid in matched or kind == "window":
                 continue
@@ -311,7 +323,7 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                 items.append(dict(type="opening_on_continuous_ink", opening=oid, divider=divider_id,
                                   **where(orient, at, l, h), ink_fraction=round(float(span.mean()), 2),
                                   look_box=look_box(orient, at, l, h),
-                                  check="This declared opening lies where the divider's drawn wall is continuous."))
+                                  check="Ink along this declared divider is continuous across the declared opening."))
 
     rank = {name: index for index, name in enumerate(ORDER)}
     items.sort(key=lambda row: (rank[row["type"]], -row.get("length_m", row.get("gap_m", 0))))
@@ -325,4 +337,5 @@ def compact_differences(report, *, limit=MAX_ITEMS):
         return {k: report[k] for k in ("status", "reason", "meaning", "scope") if k in report}
     return dict(status="reported", total=report["total"], counts=report["counts"],
                 items=report["items"][:limit], truncated=report["total"] > limit,
-                meaning=report["meaning"], scope=report["scope"])
+                meaning=report["meaning"], scope=report["scope"],
+                full_list="inspect_plan_draft(draft_id) returns every item of that draft")

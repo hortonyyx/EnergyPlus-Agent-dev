@@ -7,12 +7,15 @@ PLAN = {"floor_id": "F1", "x_anchors": [[50, 0], [550, 5]], "y_anchors": [[350, 
         "footprint_pixels": [[50, 50], [550, 50], [550, 350], [50, 350]], "partitions": [], "openings": []}
 
 
-def drawing(*, divider_gap=None, arcs=False, furniture=False, extra_dividers=()):
+def drawing(*, divider_gap=None, arcs=False, furniture=False, extra_dividers=(), dividers=(296, 304), tables=()):
     image = Image.new("RGB", (600, 400), "black")
     draw = ImageDraw.Draw(image)
     draw.rectangle([50, 50, 550, 350], fill=(128, 128, 128))
     draw.rectangle([70, 70, 530, 330], fill="black")
-    for x in (296, 304, *extra_dividers):
+    for x0, y0, x1, y1 in tables:  # free-standing double-outlined furniture
+        draw.rectangle([x0, y0, x1, y1], outline="white")
+        draw.rectangle([x0 + 6, y0 + 6, x1 - 6, y1 - 6], outline="white")
+    for x in (*dividers, *extra_dividers):
         if divider_gap:
             draw.line([(x, 70), (x, divider_gap[0])], fill="white")
             draw.line([(x, divider_gap[1]), (x, 330)], fill="white")
@@ -86,7 +89,14 @@ def test_declared_divider_where_nothing_is_drawn():
 
 def test_no_declared_dividers_with_several_drawn_walls_gives_one_alert():
     report = drawing_differences(drawing(extra_dividers=(150, 158, 420, 428)), plan())
-    assert kinds(report)[0] == "no_dividers_declared" and report["items"][0]["drawn_wall_lines"] >= 3
+    assert kinds(report)[0] == "no_dividers_declared" and report["items"][0]["ink_lines"] >= 3
+    assert report["items"][0]["scope"] == "floor"
+
+
+def test_open_room_with_free_standing_double_line_furniture_gives_no_items():
+    tables = [(100, 120, 300, 200), (320, 120, 500, 200), (150, 230, 450, 300)]
+    report = drawing_differences(drawing(dividers=(), tables=tables), plan())
+    assert kinds(report) == []
 
 
 def test_implausible_scale_is_not_checked_and_says_why():
@@ -98,4 +108,4 @@ def test_compact_form_keeps_counts_and_marks_truncation():
     report = drawing_differences(drawing(extra_dividers=(150, 158, 420, 428)), plan())
     short = compact_differences(report, limit=1)
     assert short["total"] == report["total"] and len(short["items"]) == 1
-    assert short["truncated"] is (report["total"] > 1) and short["meaning"]
+    assert short["truncated"] is (report["total"] > 1) and short["meaning"] and "inspect_plan_draft" in short["full_list"]

@@ -18,7 +18,7 @@ from pathlib import Path
 import sys
 
 from PIL import Image
-from shapely.geometry import Point, Polygon
+from shapely.geometry import LineString, Point, Polygon
 
 HERE = Path(__file__).resolve().parent
 EXPERIMENTS = HERE.parent
@@ -143,45 +143,48 @@ def separates(item, entry, mpp):
             and all(lo - margin[0] <= x <= hi + margin[0] for x in (ax, bx)))
 
 
-def span_of(item):
-    return item["y_px"] if item["axis"] == "vertical" else item["x_px"]
+def line_of(item):
+    """(orient, cross coordinate, along span) of an object-level item's own line."""
+    if item["axis"] == "vertical":
+        return "v", item["x_px"], item["y_px"]
+    return "h", item["y_px"], item["x_px"]
 
 
-def matches(item, entry, mpp):
+def same_wall(item, entry, mpp):
+    """The item lies on the wall of the door label: same orientation, cross position
+    within CROSS_MATCH_M, and more than half of the shorter span shared."""
+    orient, cross, (lo, hi) = line_of(item)
+    if orient != entry["orient"]:
+        return False
+    across = mpp[0] if orient == "v" else mpp[1]
+    label_cross = entry.get("reference_cross", entry.get("cross"))
+    rlo, rhi = entry.get("reference_span") or entry["declared_span"]
+    return (abs(cross - label_cross) * across <= CROSS_MATCH_M
+            and max(0, min(hi, rhi) - max(lo, rlo)) > 0.5 * min(hi - lo, rhi - rlo))
+
+
+def matches(item, entry, mpp, polygons):
+    """Object-level items only; floor-level observations are counted separately."""
     kind, label_type = item["type"], entry["type"]
     if kind == "undeclared_wall_line":
         return label_type == "missing_divider" and separates(item, entry, mpp)
     if kind in ("opening_on_continuous_ink", "opening_offset_from_gap"):
         return entry.get("declared_opening") == item["opening"]
     if kind == "wall_gap_without_opening":
-        if not label_type.startswith("door_"):
-            return False
-        lo, hi = span_of(item)
-        rlo, rhi = entry["reference_span"]
-        orient = "v" if item["axis"] == "vertical" else "h"
-        return orient == entry["orient"] and max(0, min(hi, rhi) - max(lo, rlo)) > 0.5 * min(hi - lo, rhi - rlo)
-    if kind == "no_dividers_declared":
-        return label_type in ("missing_divider", "door_missing_or_misplaced")
+        return label_type.startswith("door_") and same_wall(item, entry, mpp)
     if kind == "declared_divider_with_little_ink":
-        return label_type in ("declared_space_without_reference", "missing_divider")
+        if label_type == "missing_divider":
+            return separates(item, entry, mpp)
+        if label_type == "declared_space_without_reference":
+            orient, cross, (lo, hi) = line_of(item)
+            line = LineString([(cross, lo), (cross, hi)] if orient == "v" else [(lo, cross), (hi, cross)])
+            return polygons[entry["space_id"]].exterior.distance(line) <= 5
     return False
 
 
-def run_label(out):
-    refs = references()
-    rows = []
-    for run, draft in drafts():
-        record = load(draft / "input.json")
-        reference = refs.get(record["image_sha256"])
-        if reference is None:
-            continue
-        rows.append(label(run, draft, reference))
-    Path(out).write_text(json.dumps(dict(
-        method=__doc__.strip().splitlines()[0], references={k: str(v.relative_to(ROOT)) for k, v in REFERENCES.items()},
-        door_offset_m=DOOR_OFFSET_M, cross_match_m=CROSS_MATCH_M, drafts=rows), ensure_ascii=False, indent=1))
-    counts = Counter(entry["type"] for row in rows for entry in row["labels"])
-    print(json.dumps(dict(drafts=len(rows), labels=dict(counts),
-                          clean_drafts=sum(not row["labels"] for row in rows)), indent=1))
+def pair_key(entry):
+    return (entry["type"], tuple(entry.get("seeds", [])) or entry.get("reference_door")
+            or entry.get("declared_opening") or entry.get("space_id"))
 
 
 def run_check(labels_path, out):
@@ -193,31 +196,66 @@ def run_check(labels_path, out):
         draft = run / "plan_drafts" / row["draft"]
         assert hashlib.sha256((draft / "plan.json").read_bytes()).hexdigest() == row["plan_sha256"]
         plan = load(draft / "plan.json")
+        polygons = {r["space_id"]: Polygon(r["pixel_polygon"]) for r in load(draft / "compilation.json")["space_mapping"]}
         with Image.open(run / "images" / row["image"]) as image:
             report = drawing_differences(image, plan)
-        items = report["items"]
-        detected = [any(matches(item, entry, row["mpp"]) for item in items) for entry in row["labels"]]
-        explained = [any(matches(item, entry, row["mpp"]) for entry in row["labels"]) for item in items]
+        objects = [item for item in report["items"] if item.get("scope") != "floor"]
+        floor_level = [item for item in report["items"] if item.get("scope") == "floor"]
+        detected = [any(matches(item, entry, row["mpp"], polygons) for item in objects) for entry in row["labels"]]
+        explained = [any(matches(item, entry, row["mpp"], polygons) for entry in row["labels"]) for item in objects]
         results.append(dict(run=row["run"], draft=row["draft"], case=row["case"], image=row["image"],
+                            status=report["status"], reason=report.get("reason"),
                             labels=[dict(**entry, detected=hit) for entry, hit in zip(row["labels"], detected)],
-                            items=[dict(**item, explained_by_label=hit) for item, hit in zip(items, explained)]))
+                            items=[dict(**item, explained_by_label=hit) for item, hit in zip(objects, explained)],
+                            floor_level=floor_level))
+    checked = [r for r in results if r["status"] == "reported"]
     label_totals = defaultdict(lambda: [0, 0])
     item_totals = defaultdict(lambda: [0, 0])
-    for result in results:
+    for result in checked:
         for entry in result["labels"]:
             label_totals[entry["type"]][0] += 1
             label_totals[entry["type"]][1] += entry["detected"]
         for item in result["items"]:
             item_totals[item["type"]][0] += 1
             item_totals[item["type"]][1] += item["explained_by_label"]
-    clean = [r for r in results if not r["labels"]]
+    pairs = []
+    by_image = defaultdict(list)
+    for result in checked:
+        by_image[(result["run"], result["image"])].append(result)
+    mpps = {(r["run"], r["draft"]): r["mpp"] for r in frozen["drafts"]}
+    for (run_name, _), rows in by_image.items():
+        rows.sort(key=lambda r: r["draft"])
+        for before, after in zip(rows, rows[1:]):
+            later = {pair_key(entry) for entry in after["labels"]}
+            polygons = {r["space_id"]: Polygon(r["pixel_polygon"]) for r in
+                        load(EXPERIMENTS / run_name / "plan_drafts" / after["draft"] / "compilation.json")["space_mapping"]}
+            for entry in before["labels"]:
+                if not entry["detected"] or entry["type"] not in ("missing_divider", "door_misplaced",
+                                                                  "door_missing_or_misplaced", "door_offset"):
+                    continue
+                if pair_key(entry) in later:
+                    outcome = "not fixed"
+                else:
+                    still = any(matches(item, entry, mpps[(run_name, after["draft"])], polygons) for item in after["items"])
+                    outcome = "fixed, report still matches" if still else "fixed, report gone"
+                pairs.append(dict(run=run_name, before=before["draft"], after=after["draft"],
+                                  label=entry["type"], key=str(pair_key(entry)[1]), outcome=outcome))
+    clean = [r for r in checked if not r["labels"]]
     summary = dict(
         drafts=len(results), drafts_by_case=dict(Counter(r["case"] for r in results)),
-        labels={k: dict(total=v[0], detected=v[1]) for k, v in sorted(label_totals.items())},
-        items={k: dict(total=v[0], explained_by_label=v[1], unexplained=v[0] - v[1]) for k, v in sorted(item_totals.items())},
-        clean_drafts=len(clean), clean_drafts_with_items=sum(bool(r["items"]) for r in clean),
-        items_on_clean_drafts=sum(len(r["items"]) for r in clean))
-    Path(out).write_text(json.dumps(dict(summary=summary, drafts=results), ensure_ascii=False, indent=1))
+        not_checked=[dict(run=r["run"], draft=r["draft"], reason=r["reason"],
+                          labels=len(r["labels"])) for r in results if r["status"] != "reported"],
+        object_labels_in_checked_drafts={k: dict(total=v[0], detected=v[1]) for k, v in sorted(label_totals.items())},
+        object_items={k: dict(total=v[0], explained_by_label=v[1], unexplained=v[0] - v[1])
+                      for k, v in sorted(item_totals.items())},
+        floor_level_observations=[dict(run=r["run"], draft=r["draft"], ink_lines=item["ink_lines"],
+                                       missing_divider_labels=sum(e["type"] == "missing_divider" for e in r["labels"]))
+                                  for r in results for item in r["floor_level"]],
+        clean_checked_drafts=len(clean), clean_drafts_with_items=sum(bool(r["items"] or r["floor_level"]) for r in clean),
+        items_on_clean_drafts=sum(len(r["items"]) + len(r["floor_level"]) for r in clean),
+        next_draft_outcomes=dict(Counter(p["outcome"] for p in pairs)))
+    Path(out).write_text(json.dumps(dict(summary=summary, next_draft_pairs=pairs, drafts=results),
+                                    ensure_ascii=False, indent=1))
     print(json.dumps(summary, indent=1))
 
 
