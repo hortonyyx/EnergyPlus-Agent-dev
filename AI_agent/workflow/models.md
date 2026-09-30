@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-30 Opus 共同复查与修复包回归已结束：** 用户批准后只执行 run98（sm21）：实际`claude-sonnet-5`/medium、CLI 2.1.284，1124.6秒、1主调用，回执正常，无局部模型/续查/自动重试/付费回退/DeepSeek；CLI估价6.78美元（非账单；116轮，缓存读取约1,844万token，高于run94的755万）。B、C段未放行。开发侧：Opus 5.5本会话max；Astra经`codex exec`（codex-cli 0.153.4、现有ChatGPT订阅）以`gpt-6-astra`、`model_reasoning_effort=max`只读参与独立审查、两轮讨论和两次实现复核，未用自动派子代理的ultra。容器内Codex默认bwrap沙箱无法创建命名空间，首次启动未读到内容已作废，改用Landlock只读（`--enable use_legacy_landlock`，先实测可读、写被拒）。五次有效调用输入约1,083万token（其中缓存约1,028万）、输出约9.7万，无子代理、无写入。见[交接](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)。
+
 **09-29 深夜 Opus 重构节点回归已结束：** 用户“先发一次”只批准run94（sm21，重构第一版指令）；实际`claude-sonnet-5`/medium、CLI 2.1.284，1198.54秒、1主调用，回执正常，无局部模型/续跑/自动重试/付费回退；CLI估价3.95美元，非订阅账单。原提请的run95–97未获批、未运行。开发侧为Opus 5.5本会话：重构实现与run94评价在较低推理档，整体复查在max。见[交接](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)。
 
 **09-29 晚 Opus 调查中的批准回归已结束：** 用户批准sm21两次串行后，run91（仅系统提示/方法参考改动）执行，同条件第二次按事先约定未跑；用户随后批准对齐方案run92，658秒遇429（monthly spend limit/session reset 13:10 UTC）中断；用户同意重开，1次极小文本探针OK后run93正常完成。均实际`claude-sonnet-5`/medium、CLI 2.1.284、各1主调用，无局部模型/续跑/自动重试/付费回退；开发侧为Opus 5.5本会话。CLI估价run91 5.51、run92 1.67、run93 3.52、探针0.001美元，非订阅账单。本轮授权已用完，sm24/sm25未获批。见[交接](../logs/worklog/2026-09-29_opus_regression_diagnosis_close.md)。
