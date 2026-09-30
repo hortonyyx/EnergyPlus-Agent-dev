@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Agent 工具</title>
+<style>
+:root{--ink:#16343a;--muted:#61777b;--green:#147460;--line:#dce6e5}
+*{box-sizing:border-box}body{margin:0;background:#f5f8f7;color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+main{max-width:1220px;padding:30px 34px 40px;margin:auto}.tools-head{display:flex;justify-content:space-between;align-items:baseline;gap:15px;margin-bottom:20px}.tools-head h1{margin:0;font-size:28px;line-height:1.3}.tools-head>span{font-size:12px;color:var(--muted)}
+.tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}.tool-card{border:1px solid var(--line);border-radius:13px;background:white;overflow:hidden}.card-title{display:flex;gap:11px;align-items:center;min-height:94px;padding:17px 16px}.tool-icon{width:37px;height:37px;display:grid;place-items:center;background:#eaf6ef;color:var(--green);border-radius:10px;flex-shrink:0}.tool-icon svg{width:23px;height:23px}.tool-info{min-width:0}.tool-heading{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;line-height:1.5}.tool-heading small{font-size:10px;font-weight:500;border:1px solid #dce3e7;border-radius:4px;padding:0 4px;color:var(--muted);white-space:nowrap}.tool-caption{font-size:11px;color:var(--muted);display:block;line-height:1.6;margin-top:4px}
+.blue .tool-icon{background:#ebf2fc;color:#487fb3}.orange .tool-icon{background:#fff3e6;color:#b27a34}.purple .tool-icon{background:#f0edfa;color:#8770ad}
+.tool-names{border-top:1px solid #edf0ee;margin:0 17px 9px;padding-top:4px}.tool-names>div{padding:9px 0;border-bottom:1px solid #edf1ef;display:flex;flex-direction:column;gap:2px}.tool-names>div:last-child{border:0}.tool-names span{font-size:12px;color:#46645f}.tool-names code{font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#276b5b;overflow-wrap:anywhere}
+@media(max-width:960px){main{padding:25px 22px}.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){main{padding:23px 17px}.tools-head h1{font-size:25px}.tool-grid{grid-template-columns:1fr;gap:14px}.tool-names code{font-size:12px}.tool-names span{font-size:13px}.tool-caption{font-size:12px}}
+@media print{@page{size:A4 portrait;margin:12mm}body{background:white}main{padding:0;max-width:none}.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tool-card{break-inside:avoid}.tool-icon{-webkit-print-color-adjust:exact;print-color-adjust:exact}.card-title{min-height:75px;padding:12px}.tool-heading{font-size:13px}.tool-caption{font-size:10px}.tool-names{margin:0 12px 6px}.tool-names>div{padding:6px 0}.tool-names code{font-size:10px}.tool-names span{font-size:11px}}
+</style>
+</head>
+<body>
+<main>
+<section class="tools" aria-labelledby="tools-title">
+ <div class="tools-head"><h1 id="tools-title">Agent 工具</h1><span>6 类 · 46 个接口</span></div>
+ <div class="tool-grid"><article class="tool-card green">
+<div class="card-title"><span class="tool-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="tool-info"><span class="tool-heading">看图与量测</span><span class="tool-caption">裁图放大 · 区域定位 · 尺寸换算</span></span></div>
+<div class="tool-names"><div data-tool="view_image"><span>看图与局部放大</span><code>view_image</code></div><div data-tool="view_pixel_region_overview"><span>连通区域总览</span><code>view_pixel_region_overview</code></div><div data-tool="view_pixel_region"><span>提取局部区域</span><code>view_pixel_region</code></div><div data-tool="preview_space_trace"><span>预览空间轮廓</span><code>preview_space_trace</code></div><div data-tool="view_space_trace"><span>查看轮廓记录</span><code>view_space_trace</code></div><div data-tool="select_space_trace"><span>选定轮廓观察</span><code>select_space_trace</code></div><div data-tool="pixel_profile"><span>像素剖面量测</span><code>pixel_profile</code></div><div data-tool="view_pixel_profile"><span>可视化剖面量测</span><code>view_pixel_profile</code></div><div data-tool="map_pixels"><span>像素坐标换算</span><code>map_pixels</code></div><div data-tool="map_dimension_chain"><span>尺寸链计算</span><code>map_dimension_chain</code></div><div data-tool="compare_facade_spans"><span>平立面跨度比较</span><code>compare_facade_spans</code></div><div data-tool="check_wall_dimensions"><span>墙面尺寸换算</span><code>check_wall_dimensions</code></div></div>
+</article>
+<article class="tool-card blue">
+<div class="card-title"><span class="tool-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5v9l-9 5-9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v9M7.5 5.5l9 5"/></svg></span><span class="tool-info"><span class="tool-heading">建模与修改</span><span class="tool-caption">生成房间 · 装配楼层 · 局部修改</span></span></div>
+<div class="tool-names"><div data-tool="build_plan_bim"><span>单层平面建模</span><code>build_plan_bim</code></div><div data-tool="assemble_plan_bim"><span>多层装配</span><code>assemble_plan_bim</code></div><div data-tool="build_bim"><span>完整方案建模</span><code>build_bim</code></div><div data-tool="build_parametric_bim"><span>参数化建模</span><code>build_parametric_bim</code></div><div data-tool="inspect_plan_draft"><span>读取平面草稿</span><code>inspect_plan_draft</code></div><div data-tool="revise_plan_bim"><span>修改平面声明</span><code>revise_plan_bim</code></div><div data-tool="inspect_parametric_plan"><span>读取参数方案</span><code>inspect_parametric_plan</code></div><div data-tool="inspect_candidate"><span>检查候选内容</span><code>inspect_candidate</code></div><div data-tool="read_candidate_items"><span>分页读取对象</span><code>read_candidate_items</code></div><div data-tool="revise_bim"><span>修改源模型候选</span><code>revise_bim</code></div></div>
+</article>
+<article class="tool-card orange">
+<div class="card-title"><span class="tool-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m7 12 3 3 7-7"/></svg></span><span class="tool-info"><span class="tool-heading">检查与回叠</span><span class="tool-caption">对照原图 · 核查墙窗 · 检查连接</span></span></div>
+<div class="tool-names"><div data-tool="view_candidate"><span>查看源平面</span><code>view_candidate</code></div><div data-tool="overlay_candidate"><span>平面回叠</span><code>overlay_candidate</code></div><div data-tool="view_elevation_candidate"><span>立面对照与回叠</span><code>view_elevation_candidate</code></div><div data-tool="view_plan_wall_support"><span>核对整段墙线</span><code>view_plan_wall_support</code></div><div data-tool="check_source_space_relation"><span>核对空间关系</span><code>check_source_space_relation</code></div><div data-tool="check_openings"><span>核对门窗开口</span><code>check_openings</code></div></div>
+</article>
+<article class="tool-card purple">
+<div class="card-title"><span class="tool-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="tool-info"><span class="tool-heading">证据与任务</span><span class="tool-caption">记录依据 · 保存状态 · 选择交付</span></span></div>
+<div class="tool-names"><div data-tool="inputs"><span>读取输入</span><code>inputs</code></div><div data-tool="get_bim_reference"><span>读取操作参考</span><code>get_bim_reference</code></div><div data-tool="record_work_review"><span>记录续查决定</span><code>record_work_review</code></div><div data-tool="finish_bim"><span>选择交付候选</span><code>finish_bim</code></div><div data-tool="record_claim"><span>记录有出处的判断</span><code>record_claim</code></div><div data-tool="view_claim_evidence"><span>查看引用证据</span><code>view_claim_evidence</code></div><div data-tool="replace_claim_sources"><span>替换引用范围</span><code>replace_claim_sources</code></div><div data-tool="decide_claim"><span>选择采纳状态</span><code>decide_claim</code></div><div data-tool="claim_status"><span>读取证据状态</span><code>claim_status</code></div><div data-tool="confirm_claims"><span>确认已有参数</span><code>confirm_claims</code></div></div>
+</article>
+<article class="tool-card blue">
+<div class="card-title"><span class="tool-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 10 6v8l-10 6-10-6V8Z"/><path d="m12 2 4 10-4 10-4-10ZM2 8l14 4 6-4M2 16l6-4 14 4"/></svg></span><span class="tool-info"><span class="tool-heading">三维体量<small>有 GLB 时</small></span><span class="tool-caption">查看贴图模型 · 量测表面 · 坐标对齐</span></span></div>
+<div class="tool-names"><div data-tool="inspect_mesh"><span>查询网格范围</span><code>inspect_mesh</code></div><div data-tool="inspect_mesh_directions"><span>查询表面方向</span><code>inspect_mesh_directions</code></div><div data-tool="view_mesh"><span>按需渲染体量</span><code>view_mesh</code></div><div data-tool="measure_mesh_pixels"><span>量测可见表面</span><code>measure_mesh_pixels</code></div><div data-tool="view_mesh_observation"><span>重看三维观察</span><code>view_mesh_observation</code></div><div data-tool="set_candidate_mesh_frame"><span>设置坐标对应</span><code>set_candidate_mesh_frame</code></div><div data-tool="overlay_mesh_candidate"><span>体量与 BIM 回叠</span><code>overlay_mesh_candidate</code></div></div>
+</article>
+<article class="tool-card purple">
+<div class="card-title"><span class="tool-icon"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="13" rx="4"/><path d="M12 3v3M9 14h.01M15 14h.01M1 11v4M23 11v4"/></svg></span><span class="tool-info"><span class="tool-heading">局部模型<small>可选</small></span><span class="tool-caption">把一个局部看图问题交给辅助模型</span></span></div>
+<div class="tool-names"><div data-tool="review_detail"><span>局部视觉问答</span><code>review_detail</code></div></div>
+</article></div>
+</section>
+</main>
+</body>
+</html>

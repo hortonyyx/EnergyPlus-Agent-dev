@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**09-30 GLM Flash 独立试跑已结束：** 用户要求先试一次、不替代主开发；同 run98 条件的 sm21 原图冷启动实际 `glm-5.3-flash`/medium，2019.72 秒，1 主调用、0 委派/续查/重开/回退。14 房间、29 宿主、14 门连接对应，位置 27/29、高度 17/17；本次比 Sonnet 慢约 1.80 倍，主线仍固定 Sonnet5。CLI modelUsage 输入 470941、缓存读取 4961536、输出 96179，两次自动压缩共 198.642 秒；CLI 估价 USD 4.7996512 且 `costBasis=unknown`，非账单，不推算真实省费。无活动模型，原 Sonnet B/C 段未放行。[完整试跑与续接](../logs/worklog/2026-09-30_glm_flash_trial.md)。
+
 **09-30 Opus 共同复查与修复包回归已结束：** 用户批准后只执行 run98（sm21）：实际`claude-sonnet-5`/medium、CLI 2.1.284，1124.6秒、1主调用，回执正常，无局部模型/续查/自动重试/付费回退/DeepSeek；CLI估价6.78美元（非账单；116轮，缓存读取约1,844万token，高于run94的755万）。B、C段未放行。开发侧：Opus 5.5本会话max；Astra经`codex exec`（codex-cli 0.153.4、现有ChatGPT订阅）以`gpt-6-astra`、`model_reasoning_effort=max`只读参与独立审查、两轮讨论和两次实现复核，未用自动派子代理的ultra。容器内Codex默认bwrap沙箱无法创建命名空间，首次启动未读到内容已作废，改用Landlock只读（`--enable use_legacy_landlock`，先实测可读、写被拒）。五次有效调用输入约1,083万token（其中缓存约1,028万）、输出约9.7万，无子代理、无写入。见[交接](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)。
 
 **09-29 深夜 Opus 重构节点回归已结束：** 用户“先发一次”只批准run94（sm21，重构第一版指令）；实际`claude-sonnet-5`/medium、CLI 2.1.284，1198.54秒、1主调用，回执正常，无局部模型/续跑/自动重试/付费回退；CLI估价3.95美元，非订阅账单。原提请的run95–97未获批、未运行。开发侧为Opus 5.5本会话：重构实现与run94评价在较低推理档，整体复查在max。见[交接](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)。
