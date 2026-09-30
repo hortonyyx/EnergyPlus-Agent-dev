@@ -1,0 +1,220 @@
+{
+  "baseline": {
+    "run": "2026-09-30_sm21_instruction_fix_run98",
+    "completed": true,
+    "model": "claude-sonnet-5",
+    "elapsed_seconds": 1124.6,
+    "counts": {
+      "floors": 2,
+      "spaces": 14,
+      "boundaries": 84,
+      "openings": 29,
+      "connections": 14
+    },
+    "spaces_one_to_one": true,
+    "opening_positions": 29,
+    "opening_hosts": 29,
+    "opening_reference_count": 29,
+    "door_connections": 14,
+    "strict_heights_within": 16,
+    "strict_heights_matched": 17,
+    "strict_partition_status": "severe",
+    "behaviour": {
+      "references_read": [
+        "plan_partition",
+        "reconstruction",
+        "edits",
+        "room_types",
+        "claims"
+      ],
+      "first_build_seconds": 572,
+      "tool_calls_before_first_build": 41,
+      "full_views_before_first_build": 6,
+      "crops_before_first_build": 21,
+      "pixel_tools_before_first_build": 11,
+      "crop_magnification_actual": [
+        1.1,
+        1.14,
+        1.14,
+        1.14,
+        1.5,
+        1.5,
+        1.5,
+        2.0,
+        2.0,
+        2.0,
+        2.5,
+        2.96,
+        2.96,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        6.0,
+        6.0
+      ],
+      "capped_crops": 3,
+      "last_tool_seconds": 1103,
+      "tool_calls_total": 141,
+      "api_calls": 76,
+      "actions": {
+        "inputs": 1,
+        "view_image": 65,
+        "get_bim_reference": 5,
+        "view_pixel_profile": 22,
+        "build_plan_bim": 4,
+        "revise_plan_bim": 2,
+        "assemble_plan_bim": 2,
+        "view_elevation_candidate": 6,
+        "claim_application": 6,
+        "read_candidate_items": 2,
+        "inspect_candidate": 1,
+        "revise_bim": 3,
+        "finish_bim": 2,
+        "record_claim": 5,
+        "view_claim_evidence": 9,
+        "decide_claim": 5,
+        "confirm_claims": 1
+      }
+    }
+  },
+  "current": {
+    "run": "2026-09-30_sm21_instruction_fix_glm_trial01",
+    "completed": true,
+    "model": "glm-5.3-flash",
+    "elapsed_seconds": 2019.72,
+    "counts": {
+      "floors": 2,
+      "spaces": 14,
+      "boundaries": 84,
+      "openings": 29,
+      "connections": 14
+    },
+    "spaces_one_to_one": true,
+    "opening_positions": 27,
+    "opening_hosts": 29,
+    "opening_reference_count": 29,
+    "door_connections": 14,
+    "strict_heights_within": 17,
+    "strict_heights_matched": 17,
+    "strict_partition_status": "severe",
+    "behaviour": {
+      "references_read": [
+        "plan_partition",
+        "claims",
+        "room_types"
+      ],
+      "first_build_seconds": 1043,
+      "tool_calls_before_first_build": 48,
+      "full_views_before_first_build": 6,
+      "crops_before_first_build": 9,
+      "pixel_tools_before_first_build": 31,
+      "crop_magnification_actual": [
+        1.1,
+        1.1,
+        1.45,
+        1.5,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.9
+      ],
+      "capped_crops": 0,
+      "last_tool_seconds": 1983,
+      "tool_calls_total": 130,
+      "api_calls": 58,
+      "actions": {
+        "inputs": 1,
+        "view_image": 32,
+        "get_bim_reference": 3,
+        "pixel_profile": 31,
+        "build_plan_bim": 3,
+        "revise_plan_bim": 2,
+        "assemble_plan_bim": 2,
+        "view_pixel_profile": 4,
+        "record_claim": 10,
+        "view_claim_evidence": 12,
+        "decide_claim": 10,
+        "confirm_claims": 1,
+        "claim_application": 11,
+        "inspect_candidate": 1,
+        "revise_bim": 5,
+        "check_openings": 1,
+        "finish_bim": 1
+      }
+    }
+  },
+  "transport": {
+    "baseline": {
+      "assistant_response_model_labels": [
+        "claude-sonnet-5"
+      ],
+      "automatic_compactions": [],
+      "automatic_compaction_seconds": 0.0,
+      "tool_result_errors": {
+        "mcp__bim__view_pixel_profile": 2,
+        "mcp__bim__view_image": 1,
+        "mcp__bim__revise_bim": 3
+      }
+    },
+    "current": {
+      "assistant_response_model_labels": [
+        "glm-5.3-flash"
+      ],
+      "automatic_compactions": [
+        {
+          "trigger": "auto",
+          "pre_tokens": 182039,
+          "post_tokens": 17742,
+          "duration_ms": 94661
+        },
+        {
+          "trigger": "auto",
+          "pre_tokens": 174349,
+          "post_tokens": 29440,
+          "duration_ms": 103981
+        }
+      ],
+      "automatic_compaction_seconds": 198.642,
+      "tool_result_errors": {
+        "mcp__bim__pixel_profile": 2,
+        "mcp__bim__revise_plan_bim": 1,
+        "mcp__bim__confirm_claims": 1,
+        "mcp__bim__revise_bim": 6
+      }
+    }
+  },
+  "same_prompt_system_images_and_runtime": true,
+  "changed": "Provider and requested model only; separate subscription service/session.",
+  "limits": [
+    "One trial is not stability evidence or a causal estimate of model quality.",
+    "No production model/default change; main Sonnet recovery remains separate."
+  ]
+}

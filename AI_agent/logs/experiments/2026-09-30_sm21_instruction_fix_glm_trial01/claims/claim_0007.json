@@ -1,0 +1,143 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:D_S_entrance",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South entrance door height measured on South_view.png. Grey building outline runs: ground line at pixel y=569 and 1F storey line at y=396 (profile_003 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_001): top run C01 peak y=448, bottom run C06 peak y=569. image_axis maps y=569 to z=0 and y=396 to z=3.0; the two door pixels return the ordered interval z=[0,2.098], i.e. the drawn 2100 door head. Matches the declared z=[0,2.1].",
+    "sources": [
+      {
+        "box": null,
+        "image": "South_view.png"
+      }
+    ],
+    "unresolved": [
+      "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "anchors": [
+          [
+            569,
+            0
+          ],
+          [
+            396,
+            3.0
+          ]
+        ],
+        "axis": "y",
+        "image": "South_view.png",
+        "pixels": [
+          {
+            "at": "peak",
+            "candidate": "C06",
+            "profile": "profile_001"
+          },
+          {
+            "at": "peak",
+            "candidate": "C01",
+            "profile": "profile_001"
+          }
+        ],
+        "reduction": null,
+        "type": "image_axis"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "axis": "y",
+      "calibration": "caller_interpreted_not_verified",
+      "measurement_bindings": [
+        {
+          "axis": "y",
+          "candidate": {
+            "id": "C06",
+            "peak": 569,
+            "pixels": [
+              569,
+              569
+            ],
+            "selected_at": "peak"
+          },
+          "image": "South_view.png",
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "profile_sha256": "9d2e6dc56460c2ea3cbdab07e087ec513d6207bdfb48ea2868b9d3e56261cbf5",
+          "reference": {
+            "at": "peak",
+            "candidate": "C06",
+            "profile": "profile_001"
+          },
+          "resolved_pixel": 569,
+          "slot": "pixels[2]"
+        },
+        {
+          "axis": "y",
+          "candidate": {
+            "id": "C01",
+            "peak": 448,
+            "pixels": [
+              448,
+              450
+            ],
+            "selected_at": "peak"
+          },
+          "image": "South_view.png",
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "profile_sha256": "9d2e6dc56460c2ea3cbdab07e087ec513d6207bdfb48ea2868b9d3e56261cbf5",
+          "reference": {
+            "at": "peak",
+            "candidate": "C01",
+            "profile": "profile_001"
+          },
+          "resolved_pixel": 448,
+          "slot": "pixels[3]"
+        }
+      ],
+      "method": "image_axis",
+      "metre_anchors": [
+        0.0,
+        3.0
+      ],
+      "metres_per_pixel": -0.017341040462427744,
+      "pixels": [
+        569,
+        396,
+        569,
+        448
+      ]
+    }
+  },
+  "id": "claim_0007",
+  "parent_proposal_sha256": "259e8e3bb98bfa59cb1f883aa691f5c9b5684d295f8a56abf06cf33dc203b50a",
+  "resolved_values": {
+    "z": [
+      0.0,
+      2.098265896
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

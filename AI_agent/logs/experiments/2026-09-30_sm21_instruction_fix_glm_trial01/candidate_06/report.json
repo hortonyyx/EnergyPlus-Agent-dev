@@ -1,0 +1,73 @@
+{
+  "agent_assumptions": [
+    "North = up on the plan sheets (no printed north arrow seen); world y grows north from the south outer face.",
+    "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1 and F2). The two entrance doors and all 15 exterior windows have observed heights: window sill/head applied from confirmed dimension-chain claims claim_0001-claim_0006, and entrance door heads z=[0,2.098] applied from claims claim_0009 (South_view.png frame) and claim_0010 (West_view.png frame).",
+    "Interior partitions declared on the midplane of their drawn line pairs (drawn ~120 mm thick); corridor walls placed at drawn centre lines y=5000/3000 although the west chain annotates the corridor zone as 250+1500+250.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.",
+    "Second floor occupies z 3000-6600 per the elevation storey chains (3000 + 3600).",
+    "Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.",
+    "Interior partitions declared on the midplane of their drawn line pairs.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "05d81ab1ff3703156998a02375082d5d77de3596da3c258e387201f89f09863e",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0007.json",
+      "parent_candidate": "candidate_05",
+      "parent_proposal_sha256": "1d17aae36bf8cc78622adb39af81327c6f2c517e0bed1b878bbe82917827efd9"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "412378f8d7da73dfb230a62acc806061774630fa8b7efe9abfbeee927e85ae53",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "1d17aae36bf8cc78622adb39af81327c6f2c517e0bed1b878bbe82917827efd9"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "89f9e00462c72ba22e419fdb396b1cf7ca1699efad7e673aa09e3565f3a884f0",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "West elevation draws the west entrance door 1200 wide at 3400-4600 while the 1F plan chain gives 1500 at 3250-4750; the plan chain was adopted and the discrepancy is recorded.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "2F divider between bottom rooms C and D read at pixels about 1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its position carries about 110 mm uncertainty. The compiled draft shows no drawing_differences there.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
