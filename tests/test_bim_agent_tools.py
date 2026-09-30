@@ -452,6 +452,7 @@ def test_view_image_opt_in_display_scale_preserves_original_pixels_and_caps_outp
             assert scaled_meta["display_scale_actual"] == [4.0, 4.0]
             assert scaled_meta["box_original_pixels"] == [1, 1, 3, 3]
             assert scaled_meta["original_pixels_per_returned_pixel"] == [0.25, 0.25]
+            assert "magnification_note" not in scaled_meta
 
         large = Image.new("RGB", (400, 100), "white")
         large_path = run / "images" / "large.png"
@@ -465,6 +466,7 @@ def test_view_image_opt_in_display_scale_preserves_original_pixels_and_caps_outp
             capped_meta = json.loads(capped.content[1].text)
             assert capped_meta["returned_size"] == [1600, 400]
             assert capped_meta["display_scale_actual"] == [4.0, 4.0]
+            assert "enlarged only 4.00x" in capped_meta["magnification_note"]
         assert digest(pattern_path) == before
 
     asyncio.run(scenario())

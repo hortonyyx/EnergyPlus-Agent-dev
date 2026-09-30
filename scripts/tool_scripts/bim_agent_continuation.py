@@ -10,6 +10,8 @@ import json
 import time
 from pathlib import Path
 
+from scripts.tool_scripts.bim_agent_guidance import FINISHING
+
 
 def _read(path):
     return json.loads(path.read_text())
@@ -110,16 +112,8 @@ def run_continuations(toolkit, initial_record, *, max_rounds, invoke, compact):
             "concrete next_action, and EXECUTE that action with tools in this turn. A plan or a "
             "list of limitations alone does not execute it. Preserve reliable geometry and evidence; "
             "use local edits or confirmations when suitable. finish_bim selects the resulting candidate. "
-            "Accuracy is the priority, not an early reply. Reduce a large remaining task to ONE "
-            "useful local check that fits the actual remaining time. Before stopping with unfinished "
-            "in-scope work, inspect the relevant original or tool reference and test whether a bounded "
-            "action is feasible. Distinguish missing external input from work you have not attempted. "
-            "A global calibration is not a prerequisite for every independent check: for example, "
-            "located elevation annotations can support a dimension_chain/literal height claim and "
-            "confirm_claims, and use evidence can be edited without changing metric geometry. Read "
-            "the applicable reference rather than assuming an unavailable capability. Explain any "
-            "actual dependency/blocker using the evidence or failed attempt; anticipated large effort "
-            "alone is not a reason to skip all smaller feasible actions. "
+            + FINISHING + " Reduce a large remaining task to ONE useful local check that fits the "
+            "actual remaining time. "
             "If there is no useful feasible in-scope action, record decision=stop with a specific "
             "reason and finish honestly. Explained unknowns, absent input and out-of-scope work can "
             "justify stopping; missing fields do not require fabricated certainty or meaningless edits. "

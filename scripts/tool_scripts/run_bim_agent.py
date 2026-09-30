@@ -217,9 +217,11 @@ def terminate_subscription(process):
 
 
 def run_guide(run: Path) -> str:
-    """System prompt matching the run's admitted input types."""
+    """System prompt matching the run's admitted inputs and declared image kind."""
     manifest = json.loads((run / "inputs.json").read_text())
-    return build_guide(drawings=bool(manifest.get("images")), mesh=bool(manifest.get("mesh_input")))
+    mesh = bool(manifest.get("mesh_input"))
+    kind = manifest.get("image_kind") or (("unknown" if mesh else "drawings") if manifest.get("images") else None)
+    return build_guide(images=kind, mesh=mesh)
 
 
 def subscription(run: Path, prompt: str, *, model: str, name: str,
@@ -1075,6 +1077,21 @@ class Toolkit:
         except (ValueError, TypeError, KeyError, IndexError) as error:
             record["geometry_feedback"] = dict(status="unavailable", reason=str(error))
 
+        # Report-only comparison of the original's ink with this declaration, also for
+        # drafts that fail to compile (run75/83/86/94 left drawn dividers out; run91/93/94
+        # placed doors on solid wall).
+        try:
+            from src.agent.geometry.plan_drawing_differences import compact_differences, drawing_differences
+            with PILImage.open(image_path) as original:
+                differences = drawing_differences(original, plan, image_name=image,
+                    image_sha256=record["image_sha256"], plan_sha256=record["plan_sha256"])
+            differences_path = draft / "drawing_differences.json"
+            dump(differences_path, differences)
+            difference_reply = dict(file=str(differences_path.relative_to(self.run)),
+                sha256=digest(differences_path), **compact_differences(differences))
+        except (ValueError, TypeError, KeyError, IndexError) as error:
+            difference_reply = dict(status="unavailable", reason=str(error))
+
         try:
             with PILImage.open(image_path) as original:
                 preview, preview_metadata = render_plan_draft(
@@ -1137,8 +1154,8 @@ class Toolkit:
                 except Exception as feedback_error:
                     record.setdefault("host_failure_view_errors", []).append(str(feedback_error))
                 dump(draft / "input.json", record)
-            result = {"status": "error", "error": str(error), "plan_input": record,
-                      "remaining_seconds": self.remaining_seconds(),
+            result = {"status": "error", "error": str(error), "drawing_differences": difference_reply,
+                      "plan_input": record, "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
@@ -1153,6 +1170,7 @@ class Toolkit:
             result.update(plan_input=record, source_geometry_ready=False,
                           remaining_seconds=self.remaining_seconds())
             self.log("build_plan_bim", result)
+        result["drawing_differences"] = difference_reply
         dump(draft / "result.json", result)
         return result
 
@@ -1194,6 +1212,16 @@ class Toolkit:
         binding = {"file": str(path.relative_to(self.run)), "sha256": digest(path)}
         result = self.build(proposal, action="assemble_plan_bim", plan_assembly=binding,
                             assembly_calibrations=calibrations)
+        # Assembly keeps each draft's XY, so each draft's saved comparison still applies.
+        from src.agent.geometry.plan_drawing_differences import compact_differences
+        differences = {}
+        for row in bindings:
+            saved = self.run / "plan_drafts" / row["draft_id"] / "drawing_differences.json"
+            if saved.is_file():
+                differences[row["floor_id"]] = dict(draft_id=row["draft_id"],
+                    **compact_differences(json.loads(saved.read_text())))
+        if differences:
+            result["drawing_differences"] = differences
         self.log("assemble_plan_bim", {"assembly": binding, "candidate": result.get("candidate"),
                                       "error": result.get("error")})
         return result
@@ -1760,7 +1788,14 @@ class Toolkit:
                     "original_pixels_per_returned_pixel": [
                         (region[2] - region[0]) / pic.width,
                         (region[3] - region[1]) / pic.height],
-                    "coordinate_note": "Original pixel = crop origin + returned pixel * scale. Use ORIGINAL pixels for the next crop or measurement."}
+                    "coordinate_note": ("Grid labels show ORIGINAL pixels. Original pixel = crop origin + returned "
+                                        "pixel * original_pixels_per_returned_pixel. Use ORIGINAL pixels for the next "
+                                        "crop or measurement.")}
+        if display_scale > 1 and min(actual_scale) < display_scale - 0.05:
+            # run94 asked 1.5-2x for 1100-1500 px strips and got 1.08-1.43x without noticing.
+            metadata["magnification_note"] = (
+                f"Returned images are at most 1600 px on their long side, so this {crop_size[0]}x{crop_size[1]} px "
+                f"box was enlarged only {min(actual_scale):.2f}x; choose a smaller box to magnify more.")
         metadata["remaining_seconds"] = self.remaining_seconds()
         # Small immutable view records let callers reuse the actual returned region.
         # Exclusive creation also keeps simultaneous readers from overwriting it.
@@ -2115,8 +2150,9 @@ def serve(run: Path, readonly=False):
     def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True,
                    display_scale: float = 1.0):
         """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
-        Full views fit 1600 px; grid labels keep original coordinates after scaling.
-        Use display_scale=4 for small text or thin lines; coordinates stay original pixels.
+        Returned images are at most 1600 px on their long side; grid labels keep original
+        coordinates. display_scale enlarges up to that limit, so a box under ~500 px
+        can be shown 3x or more; coordinates stay original pixels.
         Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.
         Returned view_id can be used directly in claim sources or replace_claim_sources;
         do not copy crop coordinates again when citing exactly this view.
@@ -2233,8 +2269,8 @@ def serve(run: Path, readonly=False):
 
     def candidate_result(result) -> CallToolResult:
         """Keep JSON structured output while attaching newly generated feedback views."""
-        # Put actionable dimensions/edits ahead of the large existing inventories.
-        result = {**{k: result[k] for k in ("plan_revision", "plan_input") if k in result}, **result}
+        # Put drawing differences, then actionable dimensions/edits, ahead of the large inventories.
+        result = {**{k: result[k] for k in ("drawing_differences", "plan_revision", "plan_input") if k in result}, **result}
         content = []
         draft_view = result.get("plan_input", {}).get("draft_view")
         if not result.get("source_geometry_ready") and draft_view:
@@ -2340,6 +2376,13 @@ def serve(run: Path, readonly=False):
                 previews.append(result.structuredContent)
             reply = {**row, "evidence_previews": previews,
                      "unpreviewed_source_indices": list(range(3, len(row["sources"])))}
+            # run94 claim_0001 applied a 3.6 m chain to 3 m storey windows on three facades
+            # and two widths; show those facts beside the claim without judging them.
+            try:
+                from src.agent.execution.bim_claim_facts import claim_facts
+                reply = {"facts": claim_facts(row, toolkit.claims().candidate(row["claim"]["candidate"])[0]), **reply}
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                reply["facts"] = {"status": "unavailable", "reason": str(error)}
             content.append(TextContent(type="text", text=json.dumps(reply)))
             return CallToolResult(content=content, structuredContent=reply)
 
@@ -2675,8 +2718,10 @@ def serve(run: Path, readonly=False):
             Read get_bim_reference('plan_partition') for the JSON contract. Code
             closes faces and finds opening hosts; it never fills wall-path gaps,
             invents partitions or trims openings. Returns actual source plan and
-            original overlay images. Simple orthogonal outer footprint without
-            holes, including concave outlines; orthogonal interior partitions.
+            original overlay images, and drawing_differences: places where the
+            original's ink and your declaration disagree, to check in the original.
+            Simple orthogonal outer footprint without holes, including concave
+            outlines; orthogonal interior partitions.
             A draft with known omissions needs explicit
             unresolved notes. Each source export uses the shared candidate budget.
             """
@@ -2685,7 +2730,7 @@ def serve(run: Path, readonly=False):
         @server.tool()
         def assemble_plan_bim(floors_json: str) -> CallToolResult:
             """Assemble 2–32 saved pixel plans without rewriting their rooms or openings.
-            Read get_bim_reference('plan_assembly'). Each explicit item contains draft_id,
+            Read get_bim_reference('plan_assembly'). floors_json is a JSON list; each item contains draft_id,
             expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,
             namespaces IDs and translates all opening z values by the floor-base change.
             No height scaling, plan alignment, floor copying or inferred vertical connection.
@@ -2836,7 +2881,9 @@ def run_experiment(args):
             source_input_mode += '_with_building_declaration'
         if not seed_path and not plan_recovery:
             generation_mode = 'native_mesh_agent_experiment'
-    manifest = {"images":images,"scope":args.scope,"provider":provider,
+    image_kind = (getattr(args, "image_kind", None) or ("unknown" if mesh_path is not None else "drawings")
+                  if images else None)
+    manifest = {"images":images,"image_kind":image_kind,"scope":args.scope,"provider":provider,
                              "max_candidates":max_candidates,
                              "continuation_rounds": continuation_rounds,
                              "input_mode": generation_mode,
@@ -2889,6 +2936,8 @@ def run_experiment(args):
                                  "src/agent/geometry/plan_assembly.py":digest(ROOT/"src/agent/geometry/plan_assembly.py"),
                                  "src/agent/geometry/plan_revision.py":digest(ROOT/"src/agent/geometry/plan_revision.py"),
                                  "src/agent/geometry/plan_wall_support.py":digest(ROOT/"src/agent/geometry/plan_wall_support.py"),
+                                 "src/agent/geometry/plan_drawing_differences.py":digest(ROOT/"src/agent/geometry/plan_drawing_differences.py"),
+                                 "src/agent/execution/bim_claim_facts.py":digest(ROOT/"src/agent/execution/bim_claim_facts.py"),
                                  "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
                                  "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
                                  "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
@@ -3026,6 +3075,8 @@ def main():
     run=commands.add_parser("run")
     run.add_argument("--images",type=Path,help="Optional original PNG image directory")
     run.add_argument("--mesh",type=Path,help="Original self-contained GLB; observed on demand by the agent")
+    run.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"),
+                     help="What the PNG images are; default drawings without --mesh, unknown with it")
     run.add_argument("--building-input", type=Path,
                      help="Explicit user building declaration JSON; omitted runs remain PNG-only")
     run.add_argument("--out",type=Path,required=True)
