@@ -1,0 +1,110 @@
+{
+  "requested_model": "claude-sonnet-5",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1124.6,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1100565,
+    "stop_reason": "end_turn",
+    "session_id": "d3447598-2c01-4c85-8bcd-872075f09e54",
+    "total_cost_usd": 6.781904399999998,
+    "usage": {
+      "input_tokens": 152,
+      "cache_creation_input_tokens": 513825,
+      "cache_read_input_tokens": 18441852,
+      "output_tokens": 103793,
+      "output_tokens_details": {
+        "thinking_tokens": 69076
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 513825,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1073,
+          "cache_read_input_tokens": 508744,
+          "cache_creation_input_tokens": 5081,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 5081
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 152,
+        "outputTokens": 103793,
+        "cacheReadInputTokens": 18441852,
+        "cacheCreationInputTokens": 513825,
+        "webSearchRequests": 0,
+        "costUSD": 6.781904399999998,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 69076,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 116,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "All 17 exterior openings now show `image_linked_count` coverage (all exterior facades fully checked), and the remaining 12 unchecked openings are exactly the interior doors, correctly left as explicit assumptions. The candidate is delivered.\n\n## Summary\n\n**Delivered candidate: `candidate_06`**\n\n**Building:** Two-floor 15.0m × 8.0m rectangular building, 240mm exterior walls, z=0 (1F) to z=6.6m (roof), floor split at z=3.0m.\n\n**Observed (from `1f_view.png`, `2f_view.png` plan drawings, calibrated via each drawing's own 15000/8000mm dimension chains and outer wall faces):**\n- 1F: 3 offices + corridor + WC + storage room + meeting room (7 spaces), with all walls, doors and windows traced from measured wall-band pixel profiles and dimension labels; 0 drawing_differences reported.\n- 2F: 2 large meeting rooms + corridor + 4 offices (7 spaces); 0 drawing_differences reported.\n- 29 openings total (15 windows + 14 doors incl. 2 exterior doors), all positioned from measured wall gaps/dimension labels.\n\n**Observed and applied as located claims (from calibrated North/South/East/West elevation overlays, confirmed against candidate_06):**\n- F1 office/store/meeting windows: z=[1.0, 2.6] (1.6m, from 400/1600/1000 chain)\n- F1 room_wc window: z=[1.5, 2.4] (0.9m, from 600/900/1500 chain)\n- F1 corridor east window: z=[1.0, 2.8] (1.8m, from 200/1800/1000 chain)\n- All 8 F2 exterior windows: z=[4.0, 5.8] (1.8m, uniform 800/1800/1000 chain on all 4 facades)\n- F1 exterior doors (west, south): z=[0, 2.1], confirmed by pixel-matching the drawn frame on two elevations\n- All 17 exterior openings now show `image_linked_count` coverage in `height_coverage`.\n\n**Assumed (explicit, stated in saved notes):**\n- Interior door heights (12 doors) = 2.1m — no drawing dimensions them.\n- Floor heights (1F=3.0m, 2F=3.6m) from the elevation's overall 3000/3600mm split, cross-checked against calibrated pixel positions.\n\n**Left unresolved (stated in saved notes):**\n- Calibration was self-derived from each drawing's own dimension chains (cross-checked plan vs. elevation, agreement <1%) but not independently third-party verified.\n- Assignment of the WC-window and corridor-window dimension chains to their specific openings is a positional judgment call, not an explicitly labelled pairing.\n\n**Room roles:** all 14 spaces assigned (12 observed from furniture icons, 2 inferred: room_store, room_wc).\n\nNot further examined: no additional plan-partition ambiguities remained (drawing_differences = 0 on both floors); budget and time were sufficient to complete calibration, geometry, and height claims for the whole building within the 3000s budget.",
+    "ttft_ms": 1485,
+    "type": "result",
+    "duration_ms": 1116146,
+    "uuid": "b01ce8ed-2741-4a72-b78c-ef2d979936f1",
+    "ttft_stream_ms": 829,
+    "time_to_request_ms": 75,
+    "first_content_frame_ms": 829,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

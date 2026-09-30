@@ -1,0 +1,146 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_06",
+    "objects": [
+      {
+        "id": "F1:EXT-N-WIN1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:EXT-N-WIN2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:EXT-N-WIN3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:EXT-S-WIN2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:EXT-S-WIN3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png and South_view.png (right-side chain) both show, below the F2 floor line (world z=3.0m, the drawing's 3600/3000 split), a vertical dimension chain 400/1600/1000 reading downward: 400mm from the F2 floor line to the window head, 1600mm window height, 1000mm from window sill to the ground (z=0). This is the shared family for the three F1 office windows (north wall) and the room_store/room_meeting windows (south wall), all drawn the same size. Segment index 1 (the 1600mm span) gives the window's absolute z interval directly: [1.0, 2.6].",
+    "sources": [
+      {
+        "view_id": "view_0046"
+      },
+      {
+        "view_id": "view_0042"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "b0d463447d14f73fc582c83994c53f476178d13a4d7c2e7467e22f6424f0c8f9",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0046",
+      "view_sha256": "cb316d48756413f8a885c7f607cf4b75d80d4041d0a44edb71dc6ead026374ef"
+    },
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0042",
+      "view_sha256": "0fceb3111afe59f075c8b7754619b572ccabc9d5d6294000425859fbf464e52c"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

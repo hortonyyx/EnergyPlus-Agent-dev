@@ -1,0 +1,63 @@
+{
+  "id": "application_0005",
+  "parent_candidate": "candidate_04",
+  "submitted_operations": [
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "Floor-to-floor heights: 1F ceiling_height=3.0m, 2F z_floor=3.0m/ceiling_height=3.6m, taken from the North/South elevation overall 6600mm dimension chain (3000mm lower band + 3600mm upper band), confirmed by calibrated elevation overlays (roof/ground/floor-line pixel positions matched the chain to within rounding).",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+        "Interior door heights (all F1 D-N/D-S and F2 D-N/D-S doors) are assumed 2.1m: no plan or elevation drawing dimensions an interior door height."
+      ],
+      "unresolved": [
+        "Pixel-to-world calibration for each plan/elevation image was supplied by the agent from the drawings' own dimension chains and outer wall faces; it was cross-checked between plan and elevation (independent chains agree to within ~1%) but not independently verified by a third source.",
+        "F1:EXT-S-WIN1 (room_wc) and F1 corridor E/W windows use dimension chains adjacent to, but not unambiguously labelled as, those specific openings; assignment is by position and is the most consistent reading found, but remains a judgment call rather than a directly labelled chain."
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "27d66dc0623992a18fa2284f58e5186d3dfa768b981985e3160fa170b2e52bfa",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "Floor-to-floor heights: 1F ceiling_height=3.0m, 2F z_floor=3.0m/ceiling_height=3.6m, taken from the North/South elevation overall 6600mm dimension chain (3000mm lower band + 3600mm upper band), confirmed by calibrated elevation overlays (roof/ground/floor-line pixel positions matched the chain to within rounding).",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+        "Interior door heights (all F1 D-N/D-S and F2 D-N/D-S doors) are assumed 2.1m: no plan or elevation drawing dimensions an interior door height."
+      ],
+      "unresolved": [
+        "Pixel-to-world calibration for each plan/elevation image was supplied by the agent from the drawings' own dimension chains and outer wall faces; it was cross-checked between plan and elevation (independent chains agree to within ~1%) but not independently verified by a third source.",
+        "F1:EXT-S-WIN1 (room_wc) and F1 corridor E/W windows use dimension chains adjacent to, but not unambiguously labelled as, those specific openings; assignment is by position and is the most consistent reading found, but remains a judgment call rather than a directly labelled chain."
+      ]
+    }
+  ],
+  "geometry_before_sha256": "3d6596a56de19d8076a3b95942a619b6a33dfb8c4f503628d420a0be9e60c1c1",
+  "geometry_after_sha256": "3d6596a56de19d8076a3b95942a619b6a33dfb8c4f503628d420a0be9e60c1c1",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_05",
+  "source_model_sha256": "7c31739a0cd40e48f71da90321d31e2a0895e4ece57c2e3ebda6a5970f9eb4a0",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

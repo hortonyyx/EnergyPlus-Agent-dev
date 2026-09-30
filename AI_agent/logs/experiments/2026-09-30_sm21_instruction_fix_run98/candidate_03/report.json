@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Floor-to-floor ceiling height 3.0m for 1F taken from the lower band of North/South elevation dimension chains (3000mm), pending confirmation.",
+    "All opening heights are provisional pending elevation-based claims (step 6).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "z_floor=3.0m and ceiling_height=3.6m for 2F taken from North/South elevation dimension chains (lower band 3000mm = 1F, upper band 3600mm = 2F), pending elevation-claim confirmation.",
+    "All opening heights are provisional pending elevation-based claims (step 6).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "afdfb2ceffb5495e0e7b466754dbc01cbb9bf2b642c4c59de029532d4765b83e",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "a86448b266cde12e3991aec0aefe38d33c11813e5ecb9e379252cd43b0c47a3f",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "93dc7b51f99d0a453c716f90c1206c4474b8d9ebda570e427e7b458b02f819c3"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "1e3222f6dbd4e5b0bc541d5e71d24bbc0482c978b5261a96e90438ecd830c678",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Interior door heights unconfirmed by any drawing.",
+    "Window sill/head heights are provisional; to be set from North/South/East/West elevation dimension chains.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Interior door heights unconfirmed by any drawing.",
+    "Window sill/head heights are provisional; to be set from North/South/East/West elevation dimension chains.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

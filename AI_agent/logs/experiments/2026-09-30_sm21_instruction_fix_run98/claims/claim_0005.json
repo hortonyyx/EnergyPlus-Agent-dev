@@ -1,0 +1,89 @@
+{
+  "claim": {
+    "basis": "pixels",
+    "candidate": "candidate_06",
+    "objects": [
+      {
+        "id": "F1:EXT-W-DOOR",
+        "kind": "opening"
+      },
+      {
+        "id": "F1:EXT-S-DOOR",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West_view.png and South_view.png both draw this door's frame reaching from the ground line up to a head clearly below the F2 floor line, with no separate dimensioned chain (the nearby 600/900/1500 chain on South_view.png was assigned to the adjacent small window, not this door). Measuring the calibrated overlay pixel position of the drawn door frame against the roof/ground z-anchors on both elevations places the head at z=2.1m (sill at ground, z=0), i.e. a standard 2.1m door height; the declared z=[0,2.1] matches the drawn frame extent on both elevations to within the pixel-measurement tolerance (~0.02m).",
+    "sources": [
+      {
+        "view_id": "view_0051"
+      },
+      {
+        "view_id": "view_0042"
+      }
+    ],
+    "unresolved": [
+      "No printed dimension labels the door height directly; the value rests on matching the drawn frame's pixel extent against the calibrated roof/ground/floor-line anchors, not a labelled chain."
+    ],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "type": "literal",
+        "unit": "m",
+        "value": [
+          0.0,
+          2.1
+        ]
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "basis": "pixels",
+      "method": "explicit_metric_value"
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "b0d463447d14f73fc582c83994c53f476178d13a4d7c2e7467e22f6424f0c8f9",
+  "resolved_values": {
+    "height": [
+      0.0,
+      2.1
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1077,
+        773
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ],
+      "view_id": "view_0051",
+      "view_sha256": "36eead9e47a91dd9fe6fadaaf29a692cab33c448dbdc2539506c44290a4f7e85"
+    },
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0042",
+      "view_sha256": "0fceb3111afe59f075c8b7754619b572ccabc9d5d6294000425859fbf464e52c"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

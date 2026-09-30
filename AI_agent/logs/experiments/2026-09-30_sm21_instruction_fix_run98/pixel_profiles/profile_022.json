@@ -1,0 +1,209 @@
+{
+  "name": "2f_view.png",
+  "profile_id": "profile_022",
+  "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+  "axis": "y",
+  "box_original_pixels": [
+    400,
+    590,
+    440,
+    800
+  ],
+  "rgb": [
+    0,
+    255,
+    255
+  ],
+  "tolerance": 80.0,
+  "min_fraction": 0.1,
+  "minimum_count": 4,
+  "support_length": 40,
+  "matching_pixels": 113,
+  "candidates": [],
+  "threshold_excluded_support": {
+    "coordinate_count": 111,
+    "matching_pixels": 113,
+    "minimum_count": 4,
+    "support_length": 40,
+    "intervals": [
+      {
+        "pixels": [
+          646,
+          756
+        ],
+        "min_count": 1,
+        "max_count": 2
+      }
+    ],
+    "note": "These coordinates contain matching ink but are below min_fraction; they are not empty background. Intervals use inclusive original pixels. Counts do not prove the same stroke continues between rows/columns. Compare the clean crop and cross-axis support, or choose a narrower crop or lower threshold after inspecting the original. No wall, opening or candidate is inferred; existing candidate IDs are unchanged."
+  },
+  "cross_axis_profile": {
+    "axis": "x",
+    "min_fraction": 0.1,
+    "minimum_count": 21,
+    "support_length": 210,
+    "runs": [
+      {
+        "pixels": [
+          427,
+          427
+        ],
+        "peak": 427,
+        "max_count": 109,
+        "max_fraction": 0.519048,
+        "support_intervals_at_peak": [
+          [
+            647,
+            755
+          ]
+        ]
+      }
+    ],
+    "threshold_excluded_support": {
+      "coordinate_count": 2,
+      "matching_pixels": 4,
+      "minimum_count": 21,
+      "support_length": 210,
+      "intervals": [
+        {
+          "pixels": [
+            434,
+            435
+          ],
+          "min_count": 2,
+          "max_count": 2
+        }
+      ],
+      "note": "These coordinates contain matching ink but are below min_fraction; they are not empty background. Intervals use inclusive original pixels. Counts do not prove the same stroke continues between rows/columns. Compare the clean crop and cross-axis support, or choose a narrower crop or lower threshold after inspecting the original. No wall, opening or candidate is inferred; existing candidate IDs are unchanged."
+    },
+    "note": "Same exact mask and fraction, measured along the other axis. Compare long traces with local junction peaks; neither is a wall label. For bindable C IDs on this axis, request a profile using this axis."
+  },
+  "crop_context": {
+    "edge_support_intervals": {
+      "left": [],
+      "right": [],
+      "top": [],
+      "bottom": []
+    },
+    "suggested_view_box": [
+      368,
+      558,
+      472,
+      832
+    ],
+    "note": "Edge intervals are matching pixels on the crop border (right/bottom are exclusive box limits, so samples are at right-1/bottom-1). A crop edge is not an object endpoint. The suggested box is only an initial 32px context expansion; inspect further as needed to establish both endpoints and adjoining space boundaries. No continuation is inferred."
+  },
+  "profile_image": "pixel_profiles/profile_022.png",
+  "profile_record": "pixel_profiles/profile_022.json",
+  "profile_image_sha256": "30c566f016790112aa91cb8180be31edc484b5b3489654c01761ae8244702aaa",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      40,
+      210
+    ],
+    "mask_panel_combined_pixels": [
+      43,
+      0,
+      83,
+      210
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 2336,
+  "empty_filter_diagnostics": {
+    "reason": "matching_pixels_below_support_threshold",
+    "nearest_observed_color": {
+      "rgb": [
+        0,
+        224,
+        224
+      ],
+      "distance": 43.84062,
+      "pixel_count": 109
+    },
+    "frequent_observed_colors": [
+      {
+        "rgb": [
+          0,
+          0,
+          0
+        ],
+        "pixel_count": 6441
+      },
+      {
+        "rgb": [
+          128,
+          128,
+          128
+        ],
+        "pixel_count": 1067
+      },
+      {
+        "rgb": [
+          0,
+          15,
+          15
+        ],
+        "pixel_count": 111
+      },
+      {
+        "rgb": [
+          0,
+          31,
+          31
+        ],
+        "pixel_count": 109
+      },
+      {
+        "rgb": [
+          0,
+          125,
+          125
+        ],
+        "pixel_count": 109
+      },
+      {
+        "rgb": [
+          0,
+          147,
+          147
+        ],
+        "pixel_count": 109
+      },
+      {
+        "rgb": [
+          0,
+          224,
+          224
+        ],
+        "pixel_count": 109
+      },
+      {
+        "rgb": [
+          136,
+          136,
+          136
+        ],
+        "pixel_count": 95
+      }
+    ],
+    "total_crop_pixels": 8400,
+    "maximum_support_count": 2,
+    "maximum_support_fraction": 0.05,
+    "minimum_count": 4,
+    "interpretation": "These are exact crop colours and filter support, not object labels. Reinspect the original and choose a suitable RGB/axis/threshold if needed. An empty filter does not establish a missing wall or an open connection."
+  },
+  "returned_size": [
+    83,
+    210
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}
