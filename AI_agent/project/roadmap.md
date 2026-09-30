@@ -1,6 +1,6 @@
 # 路线与当前任务
 
-**09-30 Astra 续接：GLM Flash 独立试跑已完成，主开发保持单 Sonnet 质量恢复。** 与 run98 同原图、任务、系统指引、44 文件和预算，GLM 正常完成 2019.72 秒：14 房间一一对应，门窗位置 27/29、宿主 29/29、连接 14/14，高度 17/17；二层北侧两门随墙偏约 7 cm。比 Sonnet 高度多对一项、位置少过两项、耗时约 1.80 倍，不更换默认模型。另已离线补 sm24/sm25 换例评价，四份历史结果回放及 32 项反例检查通过。无活动模型，原 Sonnet B/C 段未放行。**当前入口：** [试跑结果与主线续接](../logs/worklog/2026-09-30_glm_flash_trial.md)。
+**09-30 本会话已收工（Astra）：工具目录、GLM Flash 独立试跑与换例评价准备完成，主开发保持单 Sonnet 质量恢复。** 与 run98 同原图、任务、系统指引、44 文件和预算，GLM 正常完成 2019.72 秒：14 房间一一对应，门窗位置 27/29、宿主 29/29、连接 14/14，高度 17/17；二层北侧两门随墙偏约 7 cm。比 Sonnet 高度多对一项、位置少过两项、耗时约 1.80 倍，不更换默认模型。另已离线补 sm24/sm25 换例评价，四份历史结果回放及 32 项反例检查通过。无活动模型，原 Sonnet B/C 段未放行。**当前入口：** [本会话完整收工与下一入口](../logs/worklog/2026-09-30_glm_flash_trial.md)。
 
 **09-30 已收工（Opus 5.5，用户直接安排）：共同复查、修复包与 run98，平面回到好结果水平，高度差一处，B 段待用户决定。** Opus 与 Astra（均 max）独立审查重构第一版后讨论定稿；用户“都批准，先做到跑sm21一次”。分支`dev/opus-guidance-recovery-20260929`（未合入main）实现修复包：图纸做法去掉逐排放大前置、各层先出可检查草稿、交付前处理可解决待核项；建模返回只报告的`drawing_differences`（原图墨线与声明差异，108份历史草稿冻结参照验证），claim返回只读高度事实，看图说明放大上限，`image_kind`输入类型判断；Astra第一次复核挡下6项后修正放行。run98（sm21，`claude-sonnet-5`/medium，1124.6秒，1调用）：房间一一对应，原图位置/宿主/连接29/29/14（同run57/58），外墙高度逐个16/17（卫生间小窗顶读错），走廊墙偏4–7cm致严格分区severe；差异报告0条，首稿本就正确，质量提升不归功于检查；首稿572秒，行为上局部量测与输出量仍远多于好结果、高度改为后补。下一项：B段（sm21重复、sm24、sm25）待用户决定，开跑前先离线补sm24/sm25评价；效率项后置。**当前交接：** [共同复查、修复包、run98与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)。
 
@@ -244,7 +244,7 @@
 
 ## 当前交接
 
-当前入口：[09-30 Astra 续接、GLM Flash 独立试跑与主线评价准备](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
+当前入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
 
 **最新交接：[09-28 Opus独立调查、窄修复与下一验证](../logs/worklog/2026-09-28_opus_investigation_and_quality_next.md)。** 调查和局部实现已完成，暂保留当前底座；两次单Sonnet方法参考对照已准备但未获批/执行，不宣称恢复。先读该交接和冻结方案，用户批准后只跑指定B/A两次。分工/API接入继续后置。前置实现见[量测采用](../logs/worklog/2026-09-28_plan_measurement_binding.md)，对象追踪及718坐标解释更正见[原因梳理](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
 
