@@ -104,3 +104,11 @@
 5. 接口报错从 0 增至 6。
 
 判断：平面（房间、隔墙、门窗位置、宿主、连接）回到 run57/58 水平；高度差一处；首稿仍晚于好结果时期。仅一次运行，不证明稳定。按批准的分阶段方案，下一段 B（sm21 重复、sm24、sm25 各一次）等用户看过本结果再定。
+
+## Astra 续接：换例评价入口（09-30，离线）
+
+新增 `evaluate_cross_case.py`，待 run100–103 获批并生成结束后调用；复用 sm24 整栋审计、sm25 整栋审计及全部 61 门窗原图参照，增加房间双向一一对应、全部外部门窗高度端点 ≤5 cm 且无未配对/未分类项的检查。房间身份按实际楼层映射，不要求模型使用固定楼层 ID；未跑审计或缺楼层不会通过。
+
+`python AI_agent/logs/experiments/2026-09-30_instruction_fix/evaluate_cross_case.py history` 只读回放 run55/56、run53/54 的已有结果，在本目录保存 `cross_case_historical_checks.json`，不覆盖历史评价：四例房间均一一对应；sm24 高度各 14/14，sm25 各 34/34；原图位置原样保留为 20/21、21/21、61/61、53/61。`validate_cross_case.py` 用保存结果注入并房、缺空间/楼层/参照、重复楼层、6 cm 高度错误、未知高度及未分类外开口等反例，32 项检查通过。0 模型调用；新 run 的整套审计路径仍待真实新结果验证。
+
+运行用法：`python AI_agent/logs/experiments/2026-09-30_instruction_fix/evaluate_cross_case.py run100`（其他换例运行同理）。sm21 仍用原 `evaluate.py`。未改生产文件、冻结预检、原回归批准范围或默认模型。用户另行要求的一次 [GLM Flash 试跑](../2026-09-30_glm_flash_trial/README.md) 单独记录。
