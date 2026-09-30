@@ -187,6 +187,23 @@ def pair_key(entry):
             or entry.get("declared_opening") or entry.get("space_id"))
 
 
+def run_label(out):
+    refs = references()
+    rows = []
+    for run, draft in drafts():
+        record = load(draft / "input.json")
+        reference = refs.get(record["image_sha256"])
+        if reference is None:
+            continue
+        rows.append(label(run, draft, reference))
+    Path(out).write_text(json.dumps(dict(
+        method=__doc__.strip().splitlines()[0], references={k: str(v.relative_to(ROOT)) for k, v in REFERENCES.items()},
+        door_offset_m=DOOR_OFFSET_M, cross_match_m=CROSS_MATCH_M, drafts=rows), ensure_ascii=False, indent=1))
+    counts = Counter(entry["type"] for row in rows for entry in row["labels"])
+    print(json.dumps(dict(drafts=len(rows), labels=dict(counts),
+                          clean_drafts=sum(not row["labels"] for row in rows)), indent=1))
+
+
 def run_check(labels_path, out):
     from src.agent.geometry.plan_drawing_differences import drawing_differences
     frozen = load(labels_path)
