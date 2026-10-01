@@ -198,8 +198,9 @@ def main() -> None:
         result["status"] = "partial"
         result["finding"] = (
             "The source F3 geometry at z=6.70 is selectable and sectionable, but the "
-            f"floor menu labels it {f3_mapping['label']}; earlier duplicate-z entries "
-            "create empty/misleading floor choices."
+            f"public floor menu labels it {f3_mapping['label']}. The viewer renumbers "
+            "distinct source floor groups by z/id, so same-z annex and continuous-core "
+            "groups occupy earlier public floor numbers."
         )
     result["whole_building"] = full_state
     result["source_f3_floor_mapping"] = f3_mapping
