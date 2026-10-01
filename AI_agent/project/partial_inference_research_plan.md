@@ -1,5 +1,9 @@
 # 部分推理建模研究计划
 
+**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；框架实现与模型验证尚未完成。多种推断同样合理时倾向简单方案，具体范围后续明确。
+
+**09-30 Astra直接接手，以用户指定的演示版继续：** 用户进一步明确汇报演示版目前最好，要求在其基础上共同调试。已打开[内部空间推理演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)，源为revision_02/inferred（165空间体/322窗组/173门），覆盖助手此前选择09-16为起点的判断；09-16及Claude 09-25/26成果保留作参考。先由Astra与用户共同调整到认可验收，再结合Claude实现及Astra实际实现过程搭建初步工作框架，开发模型验证成功后交工作模型测试并推进。已按首次意见另存[09-30修订01](../logs/experiments/2026-09-30_voimatalo_user_revision/README.md)（267空间/334窗组/284门），20项源检查通过，待用户验收。原则为合理建筑尺度、标准层主要一窗一房、共用房间类型与命名、缺图处补实并推断窗、前厅两层、交通空间可用及屋顶附属用途。见[接手记录](../logs/worklog/2026-09-30_partial_inference_takeover.md)。历史成果和失败均保留。
+
 **09-26 补全候选已集成、待用户验收：** Opus通过Claude Code从原扫描补出连续内院塔体和7层门连接，并补6扇推断窗；最终81空间/306窗/95门。09-25原80空间、300窗、88门的几何与宿主保留，楼层轮廓仅添加塔体范围。塔体完整深度/高度及电梯用途仍是假设，墙面扫描缺失不能充当无窗实测。18组技术检查、源重放、原内容保留、逐层经连续核心连通和离线查看通过。Astra已修正未经验证的绝热/负荷断言和过强证据措辞，几何保持；不计工作模型成功，用户验收前不迁移。入口[原扫描/上一版/新版对照](../logs/experiments/2026-09-26_voimatalo_opus_completion/result_02/index.html)，[统一交接](../logs/worklog/2026-09-26_dual_manager_multifloor_completion.md)。
 
 **09-25 新开发候选待验收：** Opus 5.5经实际Claude Code工作包生成80空间/300窗/88门候选，增加连续走廊、交通/服务组织、8组量测漏窗及5组推断窗/4外门；287旧窗和2外门几何保留。技术及离线查看通过，内部真实分隔、合并粒度、部分院面/突出体补全仍未确认，不计工作模型成功。Astra统一合入与交接；先由用户看新方案，认可后再迁移。[查看与证据](../logs/experiments/2026-09-25_voimatalo_opus_development/README.md)。下方09-16退回理由仍是验收依据，不再把旧candidate_04称当前新候选。
@@ -104,6 +108,6 @@
 
 ## 下一次执行入口与暂不定的内容
 
-先修[09-16待验收草稿](../logs/experiments/2026-09-16_voimatalo_completion/result_04/index.html)的内部组织与缺失补全，让开发模型达到用户要求并验收成功，再提炼工作模型说明和做建模迁移。原观察、已有有效局部工具及失败保留，不把候选的几何检查或窗数当成用户验收。
+09-30用户指定的演示版已由Astra迭代为10-01修订02，用户确认达到精细档；[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)固定基准。下一步按[初步框架实施起点](../design/partial_inference_framework_start.md)推进。参考[Claude 09-25实现](../logs/experiments/2026-09-25_voimatalo_opus_development/README.md)、[09-26补全](../logs/experiments/2026-09-26_voimatalo_opus_completion/README.md)及Astra实际观察、量测、判断和返工过程，搭建初步工作框架；由开发模型验证框架成功后，再交工作模型测试并继续开发。演示版曾用裁剪前父瓦片局部上下文补全，后续框架验证须如实记录输入条件。新修订另存候选，不覆盖原始输入和旧结果，不回退公共代码。
 
 后续再详细设计：复杂度是离散档还是连续控制、默认简化程度、具体合并依据及例外、局部覆盖配置、交互问题的排序与候选展示、各类输入的判定方式。当前确认的是方向和研究路径，不把办公楼举例固化为产品合同。

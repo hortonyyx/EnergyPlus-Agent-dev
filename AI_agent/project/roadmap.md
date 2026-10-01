@@ -1,5 +1,9 @@
 # 路线与当前任务
 
+**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；框架实现与模型验证尚未完成。多种推断同样合理时倾向简单方案，具体范围后续明确。
+
+**09-30 当前会话转入部分推理建模，由 Astra 直接接手，以用户选定的汇报演示版继续。** 用户明确演示版目前最好，已在浏览器打开[内部空间推理演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)，源为同目录revision_02/inferred（165空间体/322窗组/173门）。先与用户共同调到可验收，再结合Claude实现和Astra实际开发过程搭初步工作框架，经开发模型验证成功后交工作模型测试。09-16及09-25/26候选保留作参考；已按首次意见另存[09-30修订01](../logs/experiments/2026-09-30_voimatalo_user_revision/README.md)（267空间/334窗组/284门），20项源检查通过，待用户验收。原还原分支及B/C回归状态保留。见[本次接手与推进顺序](../logs/worklog/2026-09-30_partial_inference_takeover.md)。
+
 **09-30 本会话已收工（Astra）：工具目录、GLM Flash 独立试跑与换例评价准备完成，主开发保持单 Sonnet 质量恢复。** 与 run98 同原图、任务、系统指引、44 文件和预算，GLM 正常完成 2019.72 秒：14 房间一一对应，门窗位置 27/29、宿主 29/29、连接 14/14，高度 17/17；二层北侧两门随墙偏约 7 cm。比 Sonnet 高度多对一项、位置少过两项、耗时约 1.80 倍，不更换默认模型。另已离线补 sm24/sm25 换例评价，四份历史结果回放及 32 项反例检查通过。无活动模型，原 Sonnet B/C 段未放行。**当前入口：** [本会话完整收工与下一入口](../logs/worklog/2026-09-30_glm_flash_trial.md)。
 
 **09-30 已收工（Opus 5.5，用户直接安排）：共同复查、修复包与 run98，平面回到好结果水平，高度差一处，B 段待用户决定。** Opus 与 Astra（均 max）独立审查重构第一版后讨论定稿；用户“都批准，先做到跑sm21一次”。分支`dev/opus-guidance-recovery-20260929`（未合入main）实现修复包：图纸做法去掉逐排放大前置、各层先出可检查草稿、交付前处理可解决待核项；建模返回只报告的`drawing_differences`（原图墨线与声明差异，108份历史草稿冻结参照验证），claim返回只读高度事实，看图说明放大上限，`image_kind`输入类型判断；Astra第一次复核挡下6项后修正放行。run98（sm21，`claude-sonnet-5`/medium，1124.6秒，1调用）：房间一一对应，原图位置/宿主/连接29/29/14（同run57/58），外墙高度逐个16/17（卫生间小窗顶读错），走廊墙偏4–7cm致严格分区severe；差异报告0条，首稿本就正确，质量提升不归功于检查；首稿572秒，行为上局部量测与输出量仍远多于好结果、高度改为后补。下一项：B段（sm21重复、sm24、sm25）待用户决定，开跑前先离线补sm24/sm25评价；效率项后置。**当前交接：** [共同复查、修复包、run98与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)。
@@ -244,7 +248,9 @@
 
 ## 当前交接
 
-当前入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
+当前部分推理入口：[09-30 Astra接手与用户共同调试](../logs/worklog/2026-09-30_partial_inference_takeover.md)。以用户选定的[汇报演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)继续，当前[修订02精细档已验收](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)，下一步按[框架起点](../design/partial_inference_framework_start.md)实施，再由开发模型验证、工作模型测试。
+
+还原建模保留入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
 
 **最新交接：[09-28 Opus独立调查、窄修复与下一验证](../logs/worklog/2026-09-28_opus_investigation_and_quality_next.md)。** 调查和局部实现已完成，暂保留当前底座；两次单Sonnet方法参考对照已准备但未获批/执行，不宣称恢复。先读该交接和冻结方案，用户批准后只跑指定B/A两次。分工/API接入继续后置。前置实现见[量测采用](../logs/worklog/2026-09-28_plan_measurement_binding.md)，对象追踪及718坐标解释更正见[原因梳理](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
 
@@ -424,7 +430,7 @@
 | 当前研发分工 | 下一步与状态 |
 |---|---|
 | 还原建模（本轮 Astra 独立负责） | 三例完整基线保留；09-28阈值反馈两次对照已完成，空间/宿主/连接正确，位置22/29与24/29，窗高/新组用途仍失败；新增反馈3次送达但未复现细墙情境。下一项离线核尺寸段/窗框/源开口对应，不自动追加回归 |
-| 部分推理建模（本轮未推进，保留此前集成结果） | Voimatalo 09-26/candidate_02新增连续内院塔体、7层连接及6推断窗，81空间/306窗/95门；技术检查通过并合入，完整体量/用途与内部组织仍待用户验收后才迁移。香港2例待用途/关键立面复核 |
+| 部分推理建模（09-30由Astra直接接手） | 用户已于10-01确认修订02达到精细档：267空间/334窗/284门，验收记录固定基准。当前转入结合Claude与Astra实际过程提炼初步框架，开发模型验证成功后交工作模型测试；框架尚未验证，香港2例仍待用途/关键立面复核 |
 | 完全推理建模 | 纳入共同分类与底座考虑，具体研究尚未展开 |
 
 **此前澄清：[09-10 单体 BIM 复杂度与后端独立，含实际分隔补充](../logs/worklog/2026-09-10_source_complexity_clarification.md)。** 只做单体；源分块以实体隔墙为依据，最细也不凭空拆开敞空间。用户选择的是源简化/合并程度，后端热区处理独立；低档无需先完整推理再合并。

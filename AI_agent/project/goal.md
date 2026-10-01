@@ -26,6 +26,10 @@
 
 ## 当前优先级（09-14 收工确认）
 
+**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；框架实现与模型验证尚未完成。多种推断同样合理时倾向简单方案，具体范围后续明确。
+
+**09-30 部分推理接手：** 用户指定 Astra 直接接手，并进一步明确汇报演示版是目前最好的版本，要求以它为基础继续。已打开演示版内部空间推理方案（165空间体/322窗组/173门），先与用户共同调试至认可验收，再结合 Claude 实现与 Astra 实际开发过程搭建初步工作框架；框架经开发模型验证成功后，才交工作模型测试并继续开发。09-16及09-25/26候选保留作参考；已按首次意见另存[09-30修订01](../logs/experiments/2026-09-30_voimatalo_user_revision/README.md)（267空间/334窗组/284门），20项源检查通过，待用户验收。见[接手记录](../logs/worklog/2026-09-30_partial_inference_takeover.md)。下方还原建模状态保留，当前会话按本项推进。
+
 **09-30 当前入口：** Opus 与 Astra 共同复查后，用户批准修复包与分阶段回归；分支实现后唯一执行的 run98 在 sm21 上恢复房间一一对应与原图门窗位置 29/29，外墙高度 16/17，行为上仍比好结果时期局部量测多、高度后补、费用高。只有一次，不证明稳定；B 段（sm21 重复、sm24、sm25）待用户决定，开跑前先离线补两例评价。见[交接](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)。
 
 **09-29 晚 当前入口：** 回退主因已查明为工作模型开始逐条执行指令层中以前被跳过的局部量测/先观察后保存等要求，不是几何代码算错。用户决定不回旧树逐包加回，下一轮按好结果做法整体重构写给模型的指令/流程层，工具与几何内核保留，重构后再提请跨例回归。见[交接](../logs/worklog/2026-09-29_opus_regression_diagnosis_close.md)与[决策](decisions.md)。

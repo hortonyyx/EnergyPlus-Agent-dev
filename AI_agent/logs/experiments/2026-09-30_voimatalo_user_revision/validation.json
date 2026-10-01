@@ -1,0 +1,436 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "saved_source_digest",
+      "pass_check": true,
+      "detail": "3324da373f73a9b8ec9428c6ec1ee35672e73039482cbc16c41d9dd6dc62dcc1"
+    },
+    {
+      "name": "kernel_geometry_and_opening_hosts",
+      "pass_check": true,
+      "detail": {
+        "findings": [],
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "status": "pass"
+      }
+    },
+    {
+      "name": "display_uses_same_source",
+      "pass_check": true,
+      "detail": "All displayed volumes map to the saved source; no viewer-only rooms."
+    },
+    {
+      "name": "canonical_roles_and_names",
+      "pass_check": true,
+      "detail": {
+        "lobby": 2,
+        "stairwell": 5,
+        "retail": 1,
+        "office/enclosed": 228,
+        "corridor": 6,
+        "conference/meeting/multipurpose": 6,
+        "restroom": 6,
+        "electrical/mechanical": 8,
+        "attic": 1,
+        "plenum": 2,
+        "shaft": 2
+      }
+    },
+    {
+      "name": "inferred_room_roles_explicit",
+      "pass_check": true,
+      "detail": "Geometry does not turn a plausible function into observed room-use evidence."
+    },
+    {
+      "name": "all_spaces_simple_nonempty",
+      "pass_check": true,
+      "detail": 267
+    },
+    {
+      "name": "complete_floor_coverage",
+      "pass_check": true,
+      "detail": [
+        {
+          "floor": "F1",
+          "difference_m2": 0.0,
+          "overlap_m2": -2.2737367544323206e-13
+        },
+        {
+          "floor": "F2",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "F3",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "F4",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "F5",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "F6",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "F7",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "F8",
+          "difference_m2": 0.0,
+          "overlap_m2": -2.2737367544323206e-13
+        },
+        {
+          "floor": "CORE_S",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "CORE_E",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "TOWER_STAIR",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "TOWER_LIFT",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "ANNEX_F1",
+          "difference_m2": 0.0,
+          "overlap_m2": -5.684341886080802e-14
+        },
+        {
+          "floor": "ANNEX_F2",
+          "difference_m2": 0.0,
+          "overlap_m2": -5.684341886080802e-14
+        },
+        {
+          "floor": "ANNEX_STAIR",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "ROOF_low",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "ROOF_N_base",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "ROOF_N_cap",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "ROOF_S",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        },
+        {
+          "floor": "ROOF_stack",
+          "difference_m2": 0.0,
+          "overlap_m2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "no_3d_space_overlap",
+      "pass_check": true,
+      "detail": []
+    },
+    {
+      "name": "all_322_baseline_windows_retained",
+      "pass_check": true,
+      "detail": {
+        "baseline": 322,
+        "retained": 322,
+        "new": [
+          "ANNEX_south_L1_1",
+          "ANNEX_south_L1_2",
+          "ANNEX_south_L1_3",
+          "ANNEX_south_L2_1",
+          "ANNEX_south_L2_2",
+          "ANNEX_south_L2_3",
+          "F2_court_short_completion",
+          "F3_court_short_completion",
+          "F4_court_short_completion",
+          "F5_court_short_completion",
+          "F6_court_short_completion",
+          "F7_court_short_completion"
+        ]
+      }
+    },
+    {
+      "name": "completion_windows_are_identified",
+      "pass_check": true,
+      "detail": {
+        "count": 12,
+        "provenance": "generation.provenance.opening_mapping; opening_mapping.json"
+      }
+    },
+    {
+      "name": "one_window_per_regular_office_with_bounded_exceptions",
+      "pass_check": true,
+      "detail": {
+        "single_window_offices": 216,
+        "total_offices": 228,
+        "exceptions": [
+          {
+            "space_id": "F2_E_09",
+            "windows": [
+              "F2_court_long_11",
+              "F2_court_long_12"
+            ],
+            "reason": "Partially visible final court-long group would make a room below 2.5 m wide; combine with previous bay."
+          },
+          {
+            "space_id": "F2_N_01",
+            "windows": [
+              "F2_west_01",
+              "F2_west_02",
+              "F2_north_10"
+            ],
+            "reason": "Corner room has one north bay and two west groups along its deeper side."
+          },
+          {
+            "space_id": "F3_E_09",
+            "windows": [
+              "F3_court_long_11",
+              "F3_court_long_12"
+            ],
+            "reason": "Partially visible final court-long group would make a room below 2.5 m wide; combine with previous bay."
+          },
+          {
+            "space_id": "F3_N_01",
+            "windows": [
+              "F3_west_01",
+              "F3_west_02",
+              "F3_north_10"
+            ],
+            "reason": "Corner room has one north bay and two west groups along its deeper side."
+          },
+          {
+            "space_id": "F4_E_09",
+            "windows": [
+              "F4_court_long_11",
+              "F4_court_long_12"
+            ],
+            "reason": "Partially visible final court-long group would make a room below 2.5 m wide; combine with previous bay."
+          },
+          {
+            "space_id": "F4_N_01",
+            "windows": [
+              "F4_west_01",
+              "F4_west_02",
+              "F4_north_10"
+            ],
+            "reason": "Corner room has one north bay and two west groups along its deeper side."
+          },
+          {
+            "space_id": "F5_E_09",
+            "windows": [
+              "F5_court_long_11",
+              "F5_court_long_12"
+            ],
+            "reason": "Partially visible final court-long group would make a room below 2.5 m wide; combine with previous bay."
+          },
+          {
+            "space_id": "F5_N_01",
+            "windows": [
+              "F5_west_01",
+              "F5_west_02",
+              "F5_north_10"
+            ],
+            "reason": "Corner room has one north bay and two west groups along its deeper side."
+          },
+          {
+            "space_id": "F6_E_09",
+            "windows": [
+              "F6_court_long_11",
+              "F6_court_long_12"
+            ],
+            "reason": "Partially visible final court-long group would make a room below 2.5 m wide; combine with previous bay."
+          },
+          {
+            "space_id": "F6_N_01",
+            "windows": [
+              "F6_west_01",
+              "F6_west_02",
+              "F6_north_10"
+            ],
+            "reason": "Corner room has one north bay and two west groups along its deeper side."
+          },
+          {
+            "space_id": "F7_E_09",
+            "windows": [
+              "F7_court_long_11",
+              "F7_court_long_12"
+            ],
+            "reason": "Partially visible final court-long group would make a room below 2.5 m wide; combine with previous bay."
+          },
+          {
+            "space_id": "F7_N_01",
+            "windows": [
+              "F7_west_01",
+              "F7_west_02",
+              "F7_north_10"
+            ],
+            "reason": "Corner room has one north bay and two west groups along its deeper side."
+          }
+        ],
+        "meeting_rooms": "Six southern rooms retain two narrow glazing groups each; not regular office bays."
+      }
+    },
+    {
+      "name": "office_dimensions",
+      "pass_check": true,
+      "detail": {
+        "minimum_width_m": 2.65,
+        "minimum_area_m2": 15.37,
+        "maximum_area_m2": 31.93
+      }
+    },
+    {
+      "name": "50mm_architectural_grid",
+      "pass_check": true,
+      "detail": "Measured aperture spans moved at most 25 mm per endpoint; dimensions retain architectural modules."
+    },
+    {
+      "name": "window_sill_and_height",
+      "pass_check": true,
+      "detail": {
+        "standard_sill_height_m": [
+          1.2,
+          1.6
+        ],
+        "above_annex_roof_sill_height_m": [
+          1.6,
+          1.2
+        ],
+        "annex_roof_clearance_m": 0.3
+      }
+    },
+    {
+      "name": "annex_two_storeys",
+      "pass_check": true,
+      "detail": "Real intermediate floor at z=3.3 m; separate continuous annex stair and two window rows."
+    },
+    {
+      "name": "roof_use_is_ancillary",
+      "pass_check": true,
+      "detail": {
+        "F8_attic": "attic",
+        "F8_stair_S": "stairwell",
+        "ROOF_N_base": "electrical/mechanical",
+        "ROOF_N_cap": "plenum",
+        "ROOF_S": "electrical/mechanical",
+        "ROOF_low": "plenum",
+        "ROOF_stack": "shaft"
+      }
+    },
+    {
+      "name": "occupied_spaces_connected_to_ground_entry",
+      "pass_check": true,
+      "detail": {
+        "unreachable": [],
+        "roof_exception": "Roof-envelope subvolumes are unoccupied mass decomposition; physical maintenance access remains unresolved."
+      }
+    },
+    {
+      "name": "stair_usable_rectangles",
+      "pass_check": true,
+      "detail": {
+        "CORE_S": {
+          "clear_rectangle_m": [
+            3.0,
+            5.2
+          ],
+          "fit_assumption": "Two 1.2 m flights, 0.2 m central gap, 1.2 m landings. A 3.2 m rise can use 20 × 0.16 m risers with 0.28 m goings (about 4.92 m length). Tall ground floor requires intermediate flights; treads are not source geometry."
+        },
+        "CORE_E": {
+          "clear_rectangle_m": [
+            3.9,
+            6.8
+          ],
+          "fit_assumption": "Two 1.2 m flights, 0.2 m central gap, 1.2 m landings. A 3.2 m rise can use 20 × 0.16 m risers with 0.28 m goings (about 4.92 m length). Tall ground floor requires intermediate flights; treads are not source geometry."
+        },
+        "TOWER_STAIR": {
+          "clear_rectangle_m": [
+            2.8,
+            6.7
+          ],
+          "fit_assumption": "Two 1.2 m flights, 0.2 m central gap, 1.2 m landings. A 3.2 m rise can use 20 × 0.16 m risers with 0.28 m goings (about 4.92 m length). Tall ground floor requires intermediate flights; treads are not source geometry."
+        },
+        "ANNEX_STAIR": {
+          "clear_rectangle_m": [
+            2.6,
+            5.8
+          ],
+          "fit_assumption": "Two 1.2 m flights, 0.2 m central gap, 1.2 m landings. A 3.2 m rise can use 20 × 0.16 m risers with 0.28 m goings (about 4.92 m length). Tall ground floor requires intermediate flights; treads are not source geometry."
+        }
+      }
+    },
+    {
+      "name": "lift_is_separate_and_connected_at_every_main_level",
+      "pass_check": true,
+      "detail": {
+        "shaft_plan_m": [
+          2.2,
+          2.4
+        ],
+        "height_m": 27.6,
+        "equipment_dimensions": "Not specified."
+      }
+    },
+    {
+      "name": "continuous_cores_have_no_fake_storey_slabs",
+      "pass_check": true,
+      "detail": {
+        "continuous_core_horizontal_boundaries": 8,
+        "open_or_unknown_wall_regions": 0,
+        "open_horizontal_seams": 10
+      }
+    }
+  ],
+  "source_model_sha256": "3324da373f73a9b8ec9428c6ec1ee35672e73039482cbc16c41d9dd6dc62dcc1",
+  "counts": {
+    "spaces": 267,
+    "windows": 334,
+    "doors": 284
+  },
+  "not_evaluated": [
+    "Human acceptance",
+    "True interior or hidden-window recovery",
+    "Building-code compliance",
+    "Detailed stair/MEP construction",
+    "Developer-framework or working-model run",
+    "EnergyPlus simulation"
+  ]
+}
