@@ -562,6 +562,10 @@ an empty list; inferred still requires an explicit nonempty assumption. source_r
 must locate the evidence or explain its insufficiency. A later assignment replaces the active role_evidence and keeps
 the old value in the edit history. Normal export updates public names and colors.
 It does not establish drawing truth. Reconcile obsolete global notes explicitly.
+remove_opening removes exactly one declared aperture by ID from windows or openings,
+including a window that failed to build; its prior record remains in the edit audit.
+Withdraw an inferred opening only with a reason; a host failure alone does not disprove
+an observed opening. Normal rebuilding updates the saved unbuilt records.
 add_opening preserves all existing objects; it supports doors/open apertures and
 requires a new ID. World z is absolute, including on upper floors. Normal source
 validation rejects wrong/ambiguous hosts, overlaps or out-of-floor heights.
@@ -760,11 +764,13 @@ by orientation, thermal convenience or rectangular decomposition.
 
 Facade windows constrain room depth, bay rhythm and where partitions can meet the
 exterior. Partition ends must respect observed apertures and intervening wall strips;
-never clip, merge or swallow a window to make a room fit. Window rhythm is one clue,
-not a universal rule that every window group creates one room. Balance it with room
-use, plausible depth and width, circulation, corner conditions and explicit input.
-Preserve exceptional windows rather than forcing every storey or facade into one
-template.
+never clip, merge or swallow a window to make a room fit. For fine detail and a plausible
+repeated enclosed-office layout, start from a room per structural bay/window group
+when width and depth are usable. Larger multi-bay rooms need a use or spatial reason;
+merging plausible separate rooms to reduce object count is a simplification to declare.
+A window group is an aperture, not each pane. Visible open space, room use, circulation,
+corner conditions and explicit user information can support a different layout.
+Preserve exceptional windows rather than forcing every storey or facade into one template.
 
 Assign common room types from get_bim_reference('room_types') using building context,
 furniture or circulation where available. Prefer a plausible common type over
@@ -776,7 +782,8 @@ mark uncertain roof use as inferred or unresolved.
 
 Vertical circulation and service cores may be continuous spaces through several
 storeys when that interpretation fits the evidence. Model the continuous volume and
-its actual contacts; surrounding floor layouts exclude its footprint. Do not clone
+its actual contacts; surrounding room polygons exclude its footprint, while each
+served storey includes it through explicit spanning_space_ids membership. Do not clone
 the core per storey or insert fake intermediate slabs simply to fit a repeated-floor
 template. Conversely, do not invent a continuous void when separate rooms or real
 floors are supported.
@@ -793,8 +800,8 @@ evidence remain architectural inferences.
 ASSEMBLY AND REVISION. build_parametric_bim can expand explicit storey/space
 templates and aperture spans; read get_bim_reference('parametric') for its contract.
 Repetition is a declared hypothesis, not evidence, and exceptions stay explicit.
-A continuous core can be a separate tall instance while repeated surrounding floors
-exclude it. build_bim remains available for geometry that does not fit the compact
+A continuous core can be a separate tall instance referenced by the served storeys
+through spanning_space_ids. build_bim remains available for geometry that does not fit the compact
 template. Keep source references and stable IDs on observed and inferred objects.
 When feedback exposes a host, boundary or interpretation error, revise that object
 or its local declarations and preserve reliable geometry, openings and evidence.
@@ -844,11 +851,13 @@ doors INSTANCE:door:DOOR. Only provide listed fields; no hidden variables/expres
 Spaces use EITHER rect:[xmin,ymin,xmax,ymax] OR polygon:[[x,y],...], with id,
 role, source_refs and optional assumptions. Footprints and spaces are single
 orthogonal rings; clockwise input is normalized without coordinate movement.
-Code derives bounds but never splits spaces. Spaces must cover the declared
-instance footprint exactly, without overlap. Different instances may have
-independent footprints, setbacks, heights and base levels. A continuous vertical
-core can be its own tall instance; surrounding floor polygons must exclude its
-footprint. Never insert fake intermediate slabs to simplify a core. Holes within
+Code derives bounds but never splits spaces. Local spaces plus explicitly declared
+spanning members must cover the instance footprint exactly, without overlap. An
+instance may set spanning_space_ids:["CORE:core"] using final global expanded IDs.
+These spaces must cover that entire storey height; they are referenced, never cloned.
+Keep the core inside the overall storey footprint and outside its local room polygons.
+Different instances may have independent footprints, setbacks, heights and base levels.
+Never insert fake intermediate slabs to simplify a core. Holes within
 one space ring are unsupported: do not split a continuous open room just to fit.
 For windows declare facade, plane, spans, relative z, id and source_refs; optional
 assumptions. The code resolves each whole span to exactly ONE outward room edge
