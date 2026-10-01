@@ -1,0 +1,73 @@
+[
+  {
+    "statement": "The target is an L-shaped main office mass in a +15 degree yaw frame, with a lower rectangular wing inside the court; representative exterior planes are x about -14, 0.8, 13.2 and 19 m, y about -33.5, -21.5, 9.5 and 26.5 m.",
+    "basis": "observed",
+    "reason": "Original aligned mesh top view and sampled XYZ constrain these planes; regularized to representative wall planes.",
+    "source_refs": [
+      "mesh_007 original aligned top; measure1_reply.json sampled roof XYZ",
+      "mesh_008 through mesh_011 original aligned side views"
+    ]
+  },
+  {
+    "statement": "Eight 3.35 m main storeys and two 3.35 m courtyard-wing storeys approximate the visible facade bands and a main parapet near 26.8 m.",
+    "basis": "inferred",
+    "reason": "Repeated facade bands and measured wall/roof heights support this as a plausible storey rhythm, though hidden base geometry makes exact floor heights uncertain.",
+    "source_refs": [
+      "mesh_008 through mesh_011 facade views",
+      "measure1_reply.json facade z samples"
+    ],
+    "missing_information": [
+      "Original floor slabs and dimensioned elevations are not supplied"
+    ]
+  },
+  {
+    "statement": "A continuous long corridor with a north-arm branch, 23 main-floor spaces, two continuous stair cores, one lift shaft, a low-wing corridor and a southwest stair continuation into the roof provide a plausible office circulation scheme.",
+    "basis": "inferred",
+    "reason": "Exterior bay rhythm constrains practical room widths, while internal walls and doors remain architectural hypotheses; the roof stair and inter-attic doors make roof ancillary space reachable.",
+    "source_refs": [
+      "mesh_007 building footprint",
+      "mesh_012 and mesh_013 facade bay rhythm",
+      "candidate_11 roof plan source images in build4_reply.json"
+    ],
+    "missing_information": [
+      "Original interior plans, sections and entrance schedule are not supplied"
+    ]
+  },
+  {
+    "statement": "Curved roofs are simplified as three roof-attic blocks, two mechanical housings and a chimney; the housings and chimney follow measured original roof patches, and attic doors connect the stair and adjoining roof spaces.",
+    "basis": "simplified",
+    "reason": "Orthogonal source geometry cannot express the curved sheet-metal profiles, but preserves the observed massing and roof ancillary spaces.",
+    "source_refs": [
+      "mesh_007 original roof view and candidate_11 saved-source overlay final_check_reply.json",
+      "measure_roof_reply.json roof and chimney XYZ samples"
+    ],
+    "missing_information": [
+      "Original roof sections and true mechanical-room functions are not supplied"
+    ]
+  },
+  {
+    "statement": "Facade openings are regularized into modules. North and courtyard facades use approximately two windows per observed bay in the close mesh views; all interior doors and room uses remain inferred.",
+    "basis": "simplified",
+    "reason": "Original mesh_012 and mesh_013 show the repeated opening rhythm more clearly than the initial distant views; exact jambs, door leaves and room function remain unavailable.",
+    "source_refs": [
+      "mesh_012/mesh_013 close original facades",
+      "candidate_11 saved-source overlay final_check_reply.json",
+      "parent_top.png and parent_courtyard.png raw context"
+    ],
+    "missing_information": [
+      "Door and window schedule, interior doors and exact opening heights are not supplied"
+    ]
+  },
+  {
+    "statement": "The flat-roof courtyard wing is modeled as two occupied levels with four large rooms and a corridor per level, joining the main hall via an inferred transverse passage.",
+    "basis": "inferred",
+    "reason": "The observed wing roof near z6.7 m and the low facade support two levels; room divisions and connections are uncertain.",
+    "source_refs": [
+      "mesh_007 low roof",
+      "mesh_008 and mesh_013 low facade"
+    ],
+    "missing_information": [
+      "Original low-wing interior plans and door schedule are not supplied"
+    ]
+  }
+]

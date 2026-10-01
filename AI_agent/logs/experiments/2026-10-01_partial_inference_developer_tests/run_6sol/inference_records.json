@@ -1,0 +1,59 @@
+[
+  {
+    "statement": "The target is an L-shaped main office mass in a +15 degree yaw frame, with a lower rectangular wing inside the court; representative exterior planes are x about -14, 0.8, 13.2 and 19 m, y about -33.5, -21.5, 9.5 and 26.5 m.",
+    "basis": "observed",
+    "reason": "Original aligned mesh top view and sampled XYZ constrain these planes; regularized to representative wall planes.",
+    "source_refs": [
+      "mesh_007 original aligned top; measure1_reply.json sampled roof XYZ",
+      "mesh_008 through mesh_011 original aligned side views"
+    ]
+  },
+  {
+    "statement": "Eight 3.35 m main storeys and two 3.35 m courtyard-wing storeys approximate the visible facade bands and a main parapet near 26.8 m.",
+    "basis": "inferred",
+    "reason": "Repeated facade bands and measured wall/roof heights support this as a plausible storey rhythm, though hidden base geometry makes exact floor heights uncertain.",
+    "source_refs": [
+      "mesh_008 through mesh_011 facade views",
+      "measure1_reply.json facade z samples"
+    ],
+    "missing_information": [
+      "Original floor slabs and dimensioned elevations are not supplied"
+    ]
+  },
+  {
+    "statement": "A continuous long corridor with a transverse north-arm branch, 23 main-floor spaces, two continuous stair cores, one continuous lift shaft and a corridor in the low wing provide a plausible office circulation scheme.",
+    "basis": "inferred",
+    "reason": "Exterior bay rhythm and office use constrain practical room widths, while all internal walls and doors remain architectural hypotheses.",
+    "source_refs": [
+      "mesh_007 building footprint",
+      "mesh_008 through mesh_011 repeated window bays"
+    ],
+    "missing_information": [
+      "Original interior plans, sections and entrance schedule are not supplied"
+    ]
+  },
+  {
+    "statement": "Curved roofs are simplified as three roof-attic blocks, two mechanical housings and a chimney; the two housings and chimney were positioned against measured visible roof patches.",
+    "basis": "simplified",
+    "reason": "Orthogonal source geometry cannot express the curved sheet-metal profiles, but preserves the observed massing and roof ancillary spaces.",
+    "source_refs": [
+      "mesh_007 original roof view and overlay2_reply.json saved-source overlay",
+      "measure_roof_reply.json roof and chimney XYZ samples"
+    ],
+    "missing_information": [
+      "Original roof sections and true mechanical-room functions are not supplied"
+    ]
+  },
+  {
+    "statement": "Facade openings are regularized into plausible modules, while room divisions, most doorways, lobby and service uses are inferred.",
+    "basis": "simplified",
+    "reason": "Noisy texture and mesh gaps constrain a repeated window rhythm but not exact jambs, door leaves or room function.",
+    "source_refs": [
+      "mesh_008 through mesh_011 facade views and candidate_05 saved-source overlays",
+      "parent_top.png and parent_courtyard.png raw context"
+    ],
+    "missing_information": [
+      "Door and window schedule, interior doors and exact opening heights are not supplied"
+    ]
+  }
+]

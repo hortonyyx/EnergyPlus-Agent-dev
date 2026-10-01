@@ -1,0 +1,76 @@
+{
+  "agent_assumptions": [
+    "Yaw +15 degrees aligns the dominant original-mesh wall traces with the BIM axes; source registration uses zero translation.",
+    "Eight main office storeys at 3.35 m and two lower-wing storeys are inferred from approximately repeated facade bands and ~27 m parapet.",
+    "The detailed interior circulation, enclosed rooms, doors, shafts and their uses are architectural inference; no interiors are supplied.",
+    "Curved metal roofs are represented by two flat-topped attic volumes plus two roof mechanical volumes in this orthogonal source schema.",
+    "Window module dimensions are regularized from repeated but noisy texture marks."
+  ],
+  "counts": {
+    "boundaries": 1238,
+    "connections": 213,
+    "openings": 511,
+    "spaces": 201,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "reason": "Dominant original vertical wall-plane traces rotate to 90/180 degrees, and top-view sampled roof/wall footprint agrees in this frame",
+    "source_refs": [
+      "directions_001 and yaw-15 directions_002",
+      "mesh_007 top view and measure1_reply.json sampled XYZ",
+      "mesh_008 through mesh_011 orthogonal exterior views"
+    ],
+    "translation_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "yaw_degrees": 15.0
+  },
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "94037adb372ebe3f239cc1c436a792faedbad818327331fa53f3587ff0256b0b",
+  "provenance": {
+    "generator": "external_development_agent subscription tool loop",
+    "input_manifest_sha256": "298463ac9e1dd9decf702c109d0b1feccff7eac2d0020e5e5e42067acc2b2005",
+    "mode": "native_mesh_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "2b7d6245939287a0663511c23783d617efaf9cf074dd95723425212bd2574c84"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9c5ad83eeeef3c49fa86ab0293e2f981aea0435830384852b5b2c59755ee2c17",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "True internal partition, stair, lift, service and entry positions remain unverified by original interior evidence.",
+    "Exact roof curvature, dormer geometry and parapet profiles are unsupported by the orthogonal source representation.",
+    "Some outer mesh surfaces are missing, noisy or occluded; exact opening counts and jambs on these facades remain uncertain."
+  ]
+}
