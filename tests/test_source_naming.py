@@ -69,9 +69,9 @@ def test_room_use_feedback_distinguishes_explained_unknown_and_missing_records()
 def test_room_wall_window_shared_door_names():
     s = source()
     n = s["public_names"]
-    assert n["floors"] == {"ground-original": "F1"}
-    assert n["spaces"]["west"] == "Z01_F1_Conference_Meeting_Multipurpose_W"
-    assert n["spaces"]["east"] == "Z02_F1_Office_E"
+    assert n["floors"] == {"ground-original": "ground-original"}
+    assert n["spaces"]["west"] == "Z01_ground-original_Conference_Meeting_Multipurpose_W"
+    assert n["spaces"]["east"] == "Z02_ground-original_Office_E"
     walls = {n["boundaries"][b["id"]]: b for b in s["boundaries"] if b["space_id"] == "west"}
     for name, axis, value in [("Z01_W1", 1, 0), ("Z01_W2", 0, 4), ("Z01_W3", 1, 8), ("Z01_W4", 0, 0)]:
         assert all(v[axis] == value for v in walls[name]["vertices"])
@@ -121,9 +121,29 @@ def test_reversed_floors_use_global_bbox_and_floor_identity():
     s["spaces"].append({**s["spaces"][0], "id": "upper-room", "floor_id": "upper",
                         "polygon": upper["footprint"], "z_floor": 3})
     n = build_public_names(s)
-    assert n["floors"]["upper"] == "F2"
+    assert n["floors"]["upper"] == "upper"
     assert n["spaces"]["upper-room"].endswith("_W")  # whole building, not its own center
-    assert "_F2_" in n["spaces"]["upper-room"]
+    assert "_upper_" in n["spaces"]["upper-room"]
+
+
+def test_floor_names_preserve_declared_groups_at_shared_heights():
+    s = source()
+    base = s["floors"][0]
+    s["floors"] = [
+        {**base, "id": "ANNEX", "name": "Annex", "z_floor": 0},
+        {**base, "id": "F1", "name": "F1", "z_floor": 0},
+        {**base, "id": "CORE", "name": "Core", "z_floor": 0},
+        {**base, "id": "F2", "name": "F2", "z_floor": 3},
+        {**base, "id": "F3", "name": "F3", "z_floor": 6},
+        {**base, "id": "EMPTY", "name": "", "z_floor": 9},
+    ]
+    s["spaces"] = []
+    s["boundaries"] = []
+    s["openings"] = []
+    s["opening_hosts"] = {}
+    names = build_public_names(s)["floors"]
+    assert names == {"ANNEX": "Annex", "F1": "F1", "CORE": "Core",
+                     "F2": "F2", "F3": "F3", "EMPTY": "EMPTY"}
 
 
 def test_export_rejects_invented_roles_preserves_input_and_uses_unknown(tmp_path):
@@ -144,11 +164,13 @@ def test_export_rejects_invented_roles_preserves_input_and_uses_unknown(tmp_path
 
 def test_view_names_cover_objects_fragments_regions_and_edges_without_mutation():
     d = source_view_geometry(source())
+    d["source_model"]["public_names"]["floors"]["ground-original"] = "stale-F99"
     b = d["surfaces"][0]
     d["enclosure_regions"] = [{"boundary_id": b["name"], "space_id": b["zone"], "condition": "unknown", "verts": b["verts"]}]
     before = copy.deepcopy(d)
     n = viewer_names(d, d["display_surface_parts"])
     assert d == before
+    assert n["floors"] == [{"id": "ground-original", "name": "ground-original", "z_floor": 0.0}]
     objects = d["surfaces"] + d["windows"] + d["openings"]
     assert set(n["objects"]) == {x["name"] for x in objects}
     assert len(set(n["objects"].values())) == len(objects)
