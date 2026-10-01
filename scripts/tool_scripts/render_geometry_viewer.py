@@ -389,7 +389,8 @@ _APP_JS = r"""
   const _ray=new THREE.Raycaster();
   function occluded(w){ const from=camera.position; const dir=w.clone().sub(from); const dist=dir.length()||1e-6;
     _ray.set(from, dir.divideScalar(dist)); _ray.near=0; _ray.far=dist-radius*0.01;   // only faces strictly IN FRONT of w
-    return _ray.intersectObjects(surfMeshes.filter(m=>m.visible), false).length>0; }
+    return _ray.intersectObjects(surfMeshes.filter(m=>m.visible), false)
+      .some(h=>activePlanes().every(p=>p.distanceToPoint(h.point)>=-0.0001)); }
   function seeThrough(){ return parseFloat($('opacity').value) < 1; }   // transparent → allowed to reach behind
   function snapPick(cx, cy){ const r=renderer.domElement.getBoundingClientRect(); const thru=seeThrough();
     let best=null, bd=24*24;
@@ -434,7 +435,8 @@ _APP_JS = r"""
   function pick(ev){ const r=renderer.domElement.getBoundingClientRect();
     const mouse=new THREE.Vector2(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
     raycaster.setFromCamera(mouse,camera);
-    const hits=raycaster.intersectObjects(allPickables().filter(m=>m.visible),false); return hits.length?hits[0]:null; }
+    const hits=raycaster.intersectObjects(allPickables().filter(m=>m.visible),false)
+      .filter(h=>activePlanes().every(p=>p.distanceToPoint(h.point)>=-0.0001)); return hits.length?hits[0]:null; }
   // structured selection readout: a titled block of label→value rows (one per line)
   function kv(pairs){ return pairs.filter(p=>p[1]!=null && p[1]!=='').map(p=>row(p[0], esc(p[1]))).join(''); }
   function evidenceText(items){ return (items||[]).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('; '); }

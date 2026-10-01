@@ -1,6 +1,8 @@
 # 路线与当前任务
 
-**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；框架实现与模型验证尚未完成。多种推断同样合理时倾向简单方案，具体范围后续明确。
+**10-01 当前推进：部分推理初步框架已接通，按用户指定启动6.1 Sol／6 Sol开发测试，各独立一次。** 77项相关离线检查和公共查看器剖切点选通过，验收基准保持；原始单体GLB与4张明确列出的原始补充图、公共工具／任务／指引一致，结果待评价。工作模型及还原B/C批次未启动。**当前交接：** [本轮实施与双模型测试](../logs/worklog/2026-10-01_partial_inference_framework.md)。
+
+**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；首包公共支持已实现，模型验证见顶部当前进度。多种推断同样合理时倾向简单方案，具体范围后续明确。
 
 **09-30 当前会话转入部分推理建模，由 Astra 直接接手，以用户选定的汇报演示版继续。** 用户明确演示版目前最好，已在浏览器打开[内部空间推理演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)，源为同目录revision_02/inferred（165空间体/322窗组/173门）。先与用户共同调到可验收，再结合Claude实现和Astra实际开发过程搭初步工作框架，经开发模型验证成功后交工作模型测试。09-16及09-25/26候选保留作参考；已按首次意见另存[09-30修订01](../logs/experiments/2026-09-30_voimatalo_user_revision/README.md)（267空间/334窗组/284门），20项源检查通过，待用户验收。原还原分支及B/C回归状态保留。见[本次接手与推进顺序](../logs/worklog/2026-09-30_partial_inference_takeover.md)。
 
