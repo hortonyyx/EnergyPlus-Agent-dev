@@ -1,0 +1,110 @@
+{
+  "requested_model": "claude-sonnet-5",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1095.6,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1082001,
+    "stop_reason": "end_turn",
+    "session_id": "c41ee36d-31e0-43d7-ac66-355582d79814",
+    "total_cost_usd": 3.058585200000001,
+    "usage": {
+      "input_tokens": 88,
+      "cache_creation_input_tokens": 287202,
+      "cache_read_input_tokens": 4824156,
+      "output_tokens": 94477,
+      "output_tokens_details": {
+        "thinking_tokens": 74854
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 287202,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1074,
+          "cache_read_input_tokens": 282984,
+          "cache_creation_input_tokens": 4218,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4218
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 88,
+        "outputTokens": 94477,
+        "cacheReadInputTokens": 4824156,
+        "cacheCreationInputTokens": 287202,
+        "webSearchRequests": 0,
+        "costUSD": 3.058585200000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 74854,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 76,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\n**Delivered candidate: `candidate_03`** (single-floor building, floor_id `F1`, 7 spaces, 21 openings, 46 boundaries).\n\n**Inputs used:** `1f_view.png` (plan) plus `North_view.png`, `South_view.png`, `East_view.png`, `West_view.png` (elevations). No building declaration or GT was supplied, per scope.\n\n**What was observed:**\n- Footprint 10 m × 20 m, outer wall faces calibrated to the plan's overall dimension chains; wall thickness 240 mm labeled throughout.\n- 7 real spaces traced from drawn dividers: `L1_reception` (full-width entry/living room), three west-side cells split by two previously-undeclared solid walls found via `drawing_differences` (`WestRoomA`, `WestRoomB`, `WestRoomC`), a small `NE_small_room`, a `MidEastRoom`, and a stepped `SE_room`.\n- 10 doors and 11 windows, each placed from its own plan dimension chain/arc, and 10 doors' connectivity all cross-checked against the compiler's ink-gap analysis (`drawing_differences`) until two successive drafts returned **0** differences.\n- Exterior opening heights were read from each facade elevation's own dimension chain (door family 1900/2400/200 mm; small window family 1700/1800/1000 mm; large-window family 1100/2400/1000 mm, all against a 4500 mm total building height) and saved as 8 located claims (`claim_0001`–`claim_0008`), adopted and confirmed on the candidate — verified still `confirmed_unchanged` on `candidate_03` via `claim_status`.\n- Room roles assigned from furniture evidence (`inferred` basis): lobby, two enclosed offices, a conference/meeting room (oval table), storage (credenza-only room), another conference/meeting room (two round tables), and a third enclosed office.\n\n**What was assumed (kept distinct in the saved notes):**\n- North is up (no north arrow drawn).\n- 7 interior doors have no elevation evidence; height assumed 2.1 m.\n- East-wall small windows `EW1`/`EW2` height assumed by analogy to the matching west/south small-window family — East_view.png's own chain only dimensions its door and large window, not these squares.\n- Door swing direction not modeled.\n\n**Left unresolved / unverified (stated in the candidate's notes):**\n- A small square mark on `East_view.png` before its door (within the 5700 mm segment) has no matching plan window (that wall is drawn solid) — left unassigned.\n- Calibration cross-axis check flagged a 1.38% x/y px-per-metre disagreement and small residuals (~0.11 m/10 m in x, ~0.055 m/20 m in y); within ordinary tolerance for this drawing but not re-measured at the extension-line ticks.\n- `check_openings` height coverage: all North/South/West openings and the East door+large window are image-evidence-linked; `EW1`/`EW2` and the 7 interior doors remain explicitly unchecked/assumed, as reported.\n\nFinished with `finish_bim(\"candidate_03\")`.",
+    "ttft_ms": 2520,
+    "type": "result",
+    "duration_ms": 1088164,
+    "uuid": "8723de69-44f0-44f0-b84f-b2368375c533",
+    "ttft_stream_ms": 1523,
+    "time_to_request_ms": 74,
+    "first_content_frame_ms": 1523,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

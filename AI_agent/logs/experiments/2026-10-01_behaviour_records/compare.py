@@ -16,6 +16,7 @@ RUNS = [
     ("run94", "2026-09-29_sm21_instruction_refactor_run94", "退步期", "三间合一 / 13 / 29 / 14 / 9/13+4未配 / severe", "instruction_fix README 表"),
     ("run98", "2026-09-30_sm21_instruction_fix_run98", "修复包", "通过 / 29 / 29 / 14 / 16/17 / severe", "run98 fix_evaluation.json"),
     ("run99", "2026-09-30_sm21_instruction_fix_run99", "修复包", "通过 / 28 / 29 / 14 / 9/17 / severe", "run99 fix_evaluation.json"),
+    ("run100", "2026-09-30_sm24_instruction_fix_run100", "修复包 sm24", "走廊并入东侧会议室 / 14/21 / 18 / 7 / 14/14 / severe", "run100 cross_case_evaluation.json"),
     ("GLM", "2026-09-30_sm21_instruction_fix_glm_trial01", "修复包(GLM)", "通过 / 27 / 29 / 14 / 17/17 / severe", "glm_flash_trial README"),
     ("run55", "2026-09-26_sm24_whole_building_claude_run55", "好结果 sm24", "通过 / 20/21 / 21 / 10 / 14/14 / severe", "cross_case_historical_checks.json"),
     ("run56", "2026-09-26_sm24_whole_building_repeat_claude_run56", "好结果 sm24", "通过 / 21/21 / 21 / 10 / 14/14 / severe", "cross_case_historical_checks.json"),

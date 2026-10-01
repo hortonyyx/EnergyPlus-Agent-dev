@@ -1,0 +1,69 @@
+{
+  "agent_assumptions": [
+    "North assumed up (no north arrow observed on plan).",
+    "Interior door heights (Dtop, DoorA, DoorB, DoorC, DoorD) assumed 2.1m; no interior elevation was supplied for these.",
+    "Door leaf/swing direction not modeled; only jamb-to-jamb opening width used.",
+    "EW1 and EW2 (east-wall small windows, L1 and NE_small_room) use the same 1.0-2.8m height as the matching west/south small windows by analogy; East_view.png's own dimension chain only labels the door and the large window, not these small squares, so this height is an assumption, not a direct East_view reading.",
+    "A small square mark on East_view.png near the left (south) end of its 5700mm wall segment, before the door, was not matched to any plan opening: the plan's corresponding south-east room east wall is drawn solid with no window ink. Left unassigned/unresolved.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 46,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 7,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f865ca6220c35d3ac968766cd4df28b3dbce274300d92c46f56a5fd2671fa181",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0002.json",
+      "parent_candidate": "candidate_02",
+      "parent_proposal_sha256": "5a4fa37dadf67d51ca4a8ce7221a086e9f7fee621f941382f03b43d12543deb2"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "aa60733047485ae612c1490caad847fc9c82a01c0345b53f1d2d8f6e20dfe8c1",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "5a4fa37dadf67d51ca4a8ce7221a086e9f7fee621f941382f03b43d12543deb2"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "6d7cac9b85cede7dbd014f6133a30a05a415d05f35567d248839b95c65c1ba36",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "NE small room connectivity was corrected using measured ink gaps on P2 and P3 (drawing_differences): it connects to L1 via Dtop and to MidEastRoom via DoorE; no direct opening to the west rooms was found in the ink.",
+    "Elevation small square on East_view.png near its left (south) end, inside the 5700mm wall segment, not matched to any plan opening.",
+    "Calibration cross-axis check reports x=36.5 px/m vs y=36 px/m (1.38% deviation) and small residuals (~0.11m over 10m in x, ~0.055m over 20m in y) against the supplied anchors. This is within ordinary drawing/rounding tolerance for this plan but was not re-measured at the extension-line ticks; absolute positions may carry up to ~1-2% error."
+  ]
+}

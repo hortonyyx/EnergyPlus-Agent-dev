@@ -1,0 +1,110 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_02",
+    "objects": [
+      {
+        "id": "EDoor1",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East_view.png shows the 1600mm double door with an adjacent height dimension chain 1900/2400/200. Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[0.2,2.6].",
+    "sources": [
+      {
+        "box": null,
+        "image": "East_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          1900.0,
+          2400.0,
+          200.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 0.2,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.2
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0007",
+  "parent_proposal_sha256": "5a4fa37dadf67d51ca4a8ce7221a086e9f7fee621f941382f03b43d12543deb2",
+  "resolved_values": {
+    "height": [
+      0.2,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}
