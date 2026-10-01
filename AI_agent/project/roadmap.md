@@ -254,7 +254,7 @@
 
 当前部分推理入口：[09-30 Astra接手与用户共同调试](../logs/worklog/2026-09-30_partial_inference_takeover.md)。以用户选定的[汇报演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)继续，当前[修订02精细档已验收](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)，下一步按[框架起点](../design/partial_inference_framework_start.md)实施，再由开发模型验证、工作模型测试。
 
-还原建模当前入口：[10-01 B 段、行为记录、开发模型亲做三例与讨论要点](../logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md)（汇总网页源文件同目录 `2026-10-01_opus_reconstruction_summary.html`）。此前入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
+还原建模当前入口：[10-01 B 段、行为记录、开发模型亲做三例与讨论要点](../logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md)（汇总网页为同目录本地文件 `2026-10-01_opus_reconstruction_summary.html`）。此前入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
 
 **最新交接：[09-28 Opus独立调查、窄修复与下一验证](../logs/worklog/2026-09-28_opus_investigation_and_quality_next.md)。** 调查和局部实现已完成，暂保留当前底座；两次单Sonnet方法参考对照已准备但未获批/执行，不宣称恢复。先读该交接和冻结方案，用户批准后只跑指定B/A两次。分工/API接入继续后置。前置实现见[量测采用](../logs/worklog/2026-09-28_plan_measurement_binding.md)，对象追踪及718坐标解释更正见[原因梳理](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
 

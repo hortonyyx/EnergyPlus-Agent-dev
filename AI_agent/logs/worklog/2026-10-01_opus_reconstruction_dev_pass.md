@@ -47,7 +47,7 @@
 
 用户：“可以，你可以输出一个汇总网页，然后这轮收工，明早我新开一轮来看+讨论”。
 
-- 汇总网页：<https://claude.ai/artifact/M4xihGcuwcqdrERZa4rof4>（私有，仅用户可见）；源文件同目录 `2026-10-01_opus_reconstruction_summary.html`。内容与本记录一致，另含 sm21 历次思考量柱状图（只含正常结束、单次调用的原图冷启动）。
+- 汇总网页：本地文件 `AI_agent/logs/worklog/2026-10-01_opus_reconstruction_summary.html`（独立页面，浏览器直接打开）。内容与本记录一致，另含 sm21 历次思考量柱状图（只含正常结束、单次调用的原图冷启动）。本次另发布过一份 claude.ai 私有副本；用户随后要求之后都只输出本地 HTML（见[工作方式](../../workflow/development.md#文档怎样维护)），以本地文件为准。
 - 提交：main `990288db`（完整记录规则）、`00d77266`（交接与路线），本收工补充单独提交；分支 `dev/opus-guidance-recovery-20260929` 至 `887e888a`（审批、run99、行为记录、run100）；分支 `dev/opus-recon-dev-20261001` `4db92a2c`（三例开发）。均已推送。
 - 验证：评价复用既有审计（run99 `evaluate.py` 楼层对号修正后历次结论复核不变；run100 `evaluate_cross_case.py` 首次在新结果上跑通；开发三例用 `evaluate_dev.py` 复用同一审计的几何部分）；行为记录脚本对 12 次运行生成成功。未跑 pytest：本轮未改生产代码。
 - 无活动模型或后台进程；B 段 run99/run100 已执行，run101 撤下，C 段未放行。
