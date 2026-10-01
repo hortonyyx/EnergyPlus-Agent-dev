@@ -9,8 +9,7 @@
  "run_now": [
   "run98",
   "run99",
-  "run100",
-  "run101"
+  "run100"
  ],
  "later": "Phases B and C wait until the user has seen run98 (user: 先做到跑sm21一次).",
  "channel": "claude-sonnet-5 / medium through the existing Claude subscription; no paid API, no DeepSeek, no delegation, 0 continuations",
@@ -27,6 +26,11 @@
   "spacing": "after each run ends and its receipt is read, wait two hours before starting the next run in a separate step",
   "stop_rule": "stop the batch if a receipt does not end normally (returncode, is_error, timeout, routing or model mismatch) or shows a usage/429 limit; no automatic retry; quality shortfalls are recorded, not grounds to skip the remaining approved runs",
   "after": "when all three are done and evaluated, report and wait for the user; do not merge the fix package into main yet",
-  "phase_c": "run102/run103 not approved"
+  "phase_c": "run102/run103 not approved",
+  "amended": {
+   "date": "2026-10-01",
+   "user_message": "那我认为这样来吧，先还是继续把sm24跑了，然后你来做三个案例，做完之后明早一起汇总给我，我们讨论一下看要不直接改工作模型吧，免得因为模型自身问题导致我们一直反复",
+   "effect": "run100 (sm24) still runs at the planned time; run101 (sm25) is withdrawn from run_now and not executed; afterwards the developer (Opus 5.5) reconstructs sm21/sm24/sm25 with the same tools and reports with run99/run100 the next morning"
+  }
  }
 }
