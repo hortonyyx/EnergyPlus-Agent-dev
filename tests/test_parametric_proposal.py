@@ -5,6 +5,7 @@ import json
 import pytest
 
 from src.agent.geometry.parametric_proposal import expand_parametric_proposal
+from src.agent.geometry.source_plan_view import render_source_plan
 from src.agent.execution.source_proposal import export_source_proposal
 
 
@@ -39,6 +40,7 @@ def test_l_shaped_repeated_floors_export_and_reload_without_false_floor_coverage
     assert report['counts']['openings']==6
     source=json.loads((tmp_path/'a/source_model.json').read_text())
     assert all(f['footprint']==original['templates']['typical']['footprint'] for f in source['floors'])
+    assert all('spanning_space_ids' not in floor for floor in proposal['geometry']['floors'])
     second=export_source_proposal(json.loads((tmp_path/'a/proposal.json').read_text()),tmp_path/'b')
     assert second['source_model_sha256']==report['source_model_sha256']
 
@@ -80,3 +82,64 @@ def test_unknown_row_fields_and_nonfinite_coordinates_are_rejected():
     value['instances'][0]['z']=float('nan')
     with pytest.raises(ValueError):
         expand_parametric_proposal(value)
+
+
+def continuous_core_plan():
+    return {
+        'templates': {
+            'core': {
+                'footprint': [[0,0],[2,0],[2,4],[0,4]],
+                'spaces': [{'id':'core','role':'stairwell','rect':[0,0,2,4],
+                            'source_refs':['synthetic continuous core']}],
+            },
+            'storey': {
+                'footprint': [[0,0],[6,0],[6,4],[0,4]],
+                'spaces': [{'id':'room','role':'office','rect':[2,0,6,4],
+                            'source_refs':['synthetic local room']}],
+            },
+        },
+        'instances': [
+            {'id':'CORE','template':'core','z':0,'height':6},
+            {'id':'F1','template':'storey','z':0,'height':3,
+             'spanning_space_ids':['CORE:core']},
+            {'id':'F2','template':'storey','z':3,'height':3,
+             'spanning_space_ids':['CORE:core']},
+        ],
+        'assumptions':['Synthetic continuous-space test'], 'unresolved':[],
+    }
+
+
+def test_instances_retain_explicit_global_spanning_space_membership_in_source_plan(tmp_path):
+    proposal = expand_parametric_proposal(continuous_core_plan())
+    floors = {floor['name']: floor for floor in proposal['geometry']['floors']}
+    assert floors['F1']['spanning_space_ids'] == ['CORE:core']
+    assert floors['F2']['spanning_space_ids'] == ['CORE:core']
+    assert 'spanning_space_ids' not in floors['CORE']
+
+    report = export_source_proposal(proposal, tmp_path/'continuous')
+    assert report['source_geometry_ready'], report
+    assert report['counts']['spaces'] == 3
+    source = json.loads((tmp_path/'continuous/source_model.json').read_text())
+    assert next(floor for floor in source['floors'] if floor['id'] == 'F2')[
+        'spanning_space_ids'] == ['CORE:core']
+    _, metadata = render_source_plan(source, 'F2')
+    assert set(metadata['space_ids']) == {'F2:room', 'CORE:core'}
+
+
+@pytest.mark.parametrize(('change', 'message'), [
+    ('unknown', 'unknown spanning space CORE:missing'),
+    ('noncovering', 'does not cover the whole storey height'),
+    ('duplicate', 'duplicate spanning space references'),
+])
+def test_invalid_spanning_core_references_are_rejected_by_source_validation(tmp_path, change, message):
+    value = continuous_core_plan()
+    if change == 'unknown':
+        value['instances'][1]['spanning_space_ids'] = ['CORE:missing']
+    elif change == 'noncovering':
+        value['instances'][0]['height'] = 4
+    else:
+        value['instances'][1]['spanning_space_ids'] = ['CORE:core', 'CORE:core']
+    proposal = expand_parametric_proposal(value)
+    report = export_source_proposal(proposal, tmp_path/change)
+    assert not report['source_geometry_ready']
+    assert message in report['error']
