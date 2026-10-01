@@ -637,6 +637,9 @@ class Toolkit:
                     expected.add((name.removeprefix("update_"), operation["id"]))
                 elif name == "add_opening":
                     expected.add(("opening", operation["opening"]["id"]))
+                elif name == "remove_opening":
+                    expected.update((kind, operation["id"]) for kind in ("window", "opening")
+                                    if (kind, operation["id"]) in old_objects)
                 elif name == "move_shared_wall":
                     expected.update(("space", identity) for identity in operation["space_ids"])
                 elif name == "reshape_spaces":
