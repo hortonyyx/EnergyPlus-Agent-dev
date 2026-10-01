@@ -1,6 +1,6 @@
 # 部分推理建模研究计划
 
-**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；框架实现与模型验证尚未完成。多种推断同样合理时倾向简单方案，具体范围后续明确。
+**10-01 部分推理精细档已通过用户验收：** 用户确认[修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定267空间/334窗/284门的实际源及查看产物，[已验收入口](../logs/experiments/2026-10-01_voimatalo_door_revision/result_02/accepted.html)更新可见状态。当前转入[初步框架实施](../design/partial_inference_framework_start.md)：结合Claude实现和Astra实际返工提炼工作支持，开发模型验证成功后再测试工作模型；首包已实现，用户指定的6.1 Sol／6 Sol各一次验证已完成：两组源几何通过，精细档仍部分达到。工具缺口已离线修复，尚待新节点复测，见[本轮结果](../logs/experiments/2026-10-01_partial_inference_developer_tests/README.md)。多种推断同样合理时倾向简单方案，具体范围后续明确。
 
 **09-30 Astra直接接手，以用户指定的演示版继续：** 用户进一步明确汇报演示版目前最好，要求在其基础上共同调试。已打开[内部空间推理演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)，源为revision_02/inferred（165空间体/322窗组/173门），覆盖助手此前选择09-16为起点的判断；09-16及Claude 09-25/26成果保留作参考。先由Astra与用户共同调整到认可验收，再结合Claude实现及Astra实际实现过程搭建初步工作框架，开发模型验证成功后交工作模型测试并推进。已按首次意见另存[09-30修订01](../logs/experiments/2026-09-30_voimatalo_user_revision/README.md)（267空间/334窗组/284门），20项源检查通过，待用户验收。原则为合理建筑尺度、标准层主要一窗一房、共用房间类型与命名、缺图处补实并推断窗、前厅两层、交通空间可用及屋顶附属用途。见[接手记录](../logs/worklog/2026-09-30_partial_inference_takeover.md)。历史成果和失败均保留。
 
@@ -100,14 +100,14 @@
 | 共同能力 | 共用总 Agent 的工具调用方式、源 BIM、几何内核、来源/假设、查看与评价基础；按实际缺口小步集成 |
 | 完全推理建模 | 保留同一底座和输入扩展方向，具体研究计划后续单独展开 |
 
-可复用的实际入口是 [总 Agent 实验](../../scripts/tool_scripts/run_bim_agent.py)、[直接方案导出](../../src/agent/execution/source_proposal.py)、[共同源内核](../../src/agent/geometry/source_bim.py) 与 [查看器](../../scripts/tool_scripts/render_geometry_viewer.py)。现有 Agent 主要面向二维原图，尚无通用贴图网格观察和部分图纸融合入口；直接方案导出也有单外环、正交等限制。复用这些代码不等于新任务已跑通，具体能力见 [模型](../design/model.md) 和 [系统设计](../design/architecture.md)。
+可复用的实际入口是 [总 Agent 实验](../../scripts/tool_scripts/run_bim_agent.py)、[直接方案导出](../../src/agent/execution/source_proposal.py)、[共同源内核](../../src/agent/geometry/source_bim.py) 与 [查看器](../../scripts/tool_scripts/render_geometry_viewer.py)。现有 Agent 已具备原网格观察、显式坐标框架、回叠、部分推理记录与源审计；尚未验证各类部分图纸融合。直接方案导出仍有单外环、正交等限制。复用这些代码不等于新任务已跑通，具体能力见 [模型](../design/model.md) 和 [系统设计](../design/architecture.md)。
 
 09-25 用户明确最终开发一个 Agent，允许按上述研发分工并行，由 Codex 主助手管理 Claude 的开发范围、共享接口与合并时机，并统一项目文档、交接和每轮收工。各助手使用明确范围的短期工作树，源 schema/内核改动成小提交及时集成到同一 main，不复制三套管线，不建长期分叉。各实验独立 run，保留原始输入和旧结果，按共同改动影响复用或补相关检查；具体规则见[工作方式](../workflow/development.md#统一统筹与开发协作09-25确认)。
 
-产品运行从首批实验纳入目标档能力，Sonnet 级为上限；开发与调用授权见 [模型与费用](../workflow/models.md)。额度不可用时先做选材、几何准备和离线工具工作；不探测或自动切到未获本批许可的 DeepSeek，不因等待模型而把计划写成已完成实验。
+产品运行按最新目标档与任务质量／成本要求选择，主力朝可本地部署的27B级发展，Flash档以Sonnet作参照；旧Sonnet硬上限已由09-28约定覆盖，开发与调用授权见 [模型与费用](../workflow/models.md)。额度不可用时先做选材、几何准备和离线工具工作；不探测或自动切到未获本批许可的 DeepSeek，不因等待模型而把计划写成已完成实验。
 
 ## 下一次执行入口与暂不定的内容
 
-09-30用户指定的演示版已由Astra迭代为10-01修订02，用户确认达到精细档；[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)固定基准。下一步按[初步框架实施起点](../design/partial_inference_framework_start.md)推进。参考[Claude 09-25实现](../logs/experiments/2026-09-25_voimatalo_opus_development/README.md)、[09-26补全](../logs/experiments/2026-09-26_voimatalo_opus_completion/README.md)及Astra实际观察、量测、判断和返工过程，搭建初步工作框架；由开发模型验证框架成功后，再交工作模型测试并继续开发。演示版曾用裁剪前父瓦片局部上下文补全，后续框架验证须如实记录输入条件。新修订另存候选，不覆盖原始输入和旧结果，不回退公共代码。
+09-30用户指定的演示版已由Astra迭代为10-01修订02，用户确认达到精细档；[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)固定基准。已按[初步框架实施起点](../design/partial_inference_framework_start.md)实现首包，并完成指定双开发模型各一次验证；精细档仍部分达到。下一步是修复后同条件各复测一次，待用户决定。以下保留提炼依据。参考[Claude 09-25实现](../logs/experiments/2026-09-25_voimatalo_opus_development/README.md)、[09-26补全](../logs/experiments/2026-09-26_voimatalo_opus_completion/README.md)及Astra实际观察、量测、判断和返工过程，搭建初步工作框架；由开发模型验证框架成功后，再交工作模型测试并继续开发。演示版曾用裁剪前父瓦片局部上下文补全，后续框架验证须如实记录输入条件。新修订另存候选，不覆盖原始输入和旧结果，不回退公共代码。
 
 后续再详细设计：复杂度是离散档还是连续控制、默认简化程度、具体合并依据及例外、局部覆盖配置、交互问题的排序与候选展示、各类输入的判定方式。当前确认的是方向和研究路径，不把办公楼举例固化为产品合同。

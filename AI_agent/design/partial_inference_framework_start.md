@@ -1,6 +1,6 @@
 # 部分推理初步工作框架：精细档验收后的实现起点
 
-10-01 用户确认 Voimatalo [修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定源、提案、查看页面和验证产物。本文保存初步设计与实施入口。**首包公共支持已实现并通过离线检查；10-01按用户指定，6.1 Sol与6 Sol正在独立验证，尚无建筑质量通过结论。** 具体见[实现与试验](../logs/experiments/2026-10-01_partial_inference_framework_setup/README.md)。
+10-01 用户确认 Voimatalo [修订02](../logs/experiments/2026-10-01_voimatalo_door_revision/README.md)“作为精细版档位已经达标了”。[验收记录](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)绑定源、提案、查看页面和验证产物。本文保存初步设计与实施入口。**首包公共支持已实现并通过离线检查；10-01按用户指定完成6.1 Sol与6 Sol各一次独立验证；源几何通过，但用户精细档仍部分达到。根据真实失败补充的通用工具已离线验证，尚未再次实跑。** 具体见[实现与试验](../logs/experiments/2026-10-01_partial_inference_framework_setup/README.md)。
 
 先完成已有约定：将 Claude 的观察／方案装配与 Astra 的实际建模返工提炼成同一个 Agent 可用的工作支持；开发模型通过该框架成功后，再交工作模型测试。以建筑效果、可靠信息保持和推断合理性衡量，既有验收源只作评价参照。
 
@@ -43,4 +43,4 @@
 
 验收源、案例装配器、方案坐标和已量测窗表只在评价侧；不能把答案重放称为模型通过框架重新成功。开发者历史经验和独立运行条件分别记录。开发模型的实际动作、工具回执、失败、返工、源与查看产物均留存，评价合理组织与效果，不要求复现相同空间数。
 
-开发模型阶段通过后再准备工作模型测试，并按项目现有节点回归约定落实具体范围。10-01已按用户指定启动6.1 Sol与6 Sol各一次开发模型验证；模型结果尚未评价，未启动工作模型阶段。
+开发模型阶段通过后再准备工作模型测试，并按项目现有节点回归约定落实具体范围。10-01已完成6.1 Sol与6 Sol各一次开发模型验证，精细档均部分达到；[结果与后续修复](../logs/experiments/2026-10-01_partial_inference_developer_tests/README.md)已归档，未启动工作模型阶段。下一节点拟保持两型号和原始输入，各复测一次，按项目约定待用户决定。

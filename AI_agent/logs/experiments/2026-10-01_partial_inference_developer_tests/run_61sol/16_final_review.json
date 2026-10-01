@@ -1,0 +1,180 @@
+[
+  {
+    "tool": "inspect_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "include_geometry": false
+    }
+  },
+  {
+    "tool": "audit_inference_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "previous_candidate": "candidate_02"
+    }
+  },
+  {
+    "tool": "claim_status",
+    "arguments": {
+      "candidate": "candidate_04"
+    }
+  },
+  {
+    "tool": "check_openings",
+    "arguments": {
+      "candidate": "candidate_04",
+      "heights_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_004",
+      "floor_id": "F2",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_004",
+      "floor_id": "F3",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_004",
+      "floor_id": "F4",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_004",
+      "floor_id": "F5",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_004",
+      "floor_id": "F6",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_004",
+      "floor_id": "F7",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_010",
+      "floor_id": "ROOF_ATTIC",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_003",
+      "floor_id": "ROOF_PLANT_N",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "overlay_mesh_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "observation": "mesh_003",
+      "floor_id": "ROOF_LOWER_N",
+      "exterior_only": true
+    }
+  },
+  {
+    "tool": "view_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "floor_id": "ROOF_PLANT_N"
+    }
+  },
+  {
+    "tool": "view_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "floor_id": "ROOF_LOWER_N"
+    }
+  },
+  {
+    "tool": "view_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "floor_id": "ROOF_ATTIC"
+    }
+  },
+  {
+    "tool": "view_elevation_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "facade": "East"
+    }
+  },
+  {
+    "tool": "view_elevation_candidate",
+    "arguments": {
+      "candidate": "candidate_04",
+      "facade": "North"
+    }
+  },
+  {
+    "tool": "record_inference",
+    "arguments": {
+      "candidate": "candidate_04",
+      "declaration_json": "{\"statement\": \"The saved source completes the long and north transverse office wings and lower annex in a fixed yaw15 frame; measured native-mesh footprint remnants support the representative wall planes.\", \"basis\": \"simplified\", \"reason\": \"Original massing and pixel-hit coordinates are retained while small roughness is regularized into an orthogonal BIM. This is not a surveyed as-built footprint.\", \"source_refs\": [\"mesh_003\", \"mesh_004\", \"mesh_005\", \"mesh_012\", \"06_observe_record\", \"07_roof_west_measure\"], \"missing_information\": [\"Surveyed wall axes and thickness\"], \"object_refs\": [{\"kind\": \"floor\", \"id\": \"F1\"}, {\"kind\": \"floor\", \"id\": \"F7\"}, {\"kind\": \"floor\", \"id\": \"A1\"}, {\"kind\": \"floor\", \"id\": \"A2\"}]}"
+    }
+  },
+  {
+    "tool": "record_inference",
+    "arguments": {
+      "candidate": "candidate_04",
+      "declaration_json": "{\"statement\": \"The selected physical interior has continuous main and annex halls, enclosed perimeter rooms, larger continuous team offices, restrooms and support rooms. All interior partitions and uses are inferred.\", \"basis\": \"inferred\", \"reason\": \"The floor plans are useful plausible office layouts at the requested fine space detail, with partitions between declared facade apertures and connections on actual shared walls. No true interior reconstruction is claimed.\", \"source_refs\": [\"inference_004\", \"mesh_009\", \"mesh_010\", \"mesh_011\"], \"missing_information\": [\"All original interior plans, furniture and partition evidence\"], \"object_refs\": [{\"kind\": \"space\", \"id\": \"F1_HALL\"}, {\"kind\": \"space\", \"id\": \"F1_LOBBY\"}, {\"kind\": \"space\", \"id\": \"F3_HALL\"}, {\"kind\": \"space\", \"id\": \"F3_N_TEAM\"}, {\"kind\": \"space\", \"id\": \"F3_W07A\"}, {\"kind\": \"space\", \"id\": \"F3_W07B\"}, {\"kind\": \"space\", \"id\": \"A1_HALL\"}, {\"kind\": \"space\", \"id\": \"A2_OPEN_OFFICE\"}, {\"kind\": \"space\", \"id\": \"R_OFFICE_W2\"}]}"
+    }
+  },
+  {
+    "tool": "record_inference",
+    "arguments": {
+      "candidate": "candidate_04",
+      "declaration_json": "{\"statement\": \"Three continuous stairwells and two continuous service/lift shafts serve the main office levels, annex and roof spaces without duplicated core rooms or intermediate source slabs.\", \"basis\": \"inferred\", \"reason\": \"Sparse core glazing, end towers and roof caps constrain their placement; internally plausible room sizes and landing doors are inferred. Stair flights and lift car/landing solids are absent.\", \"source_refs\": [\"inference_005\", \"mesh_003\", \"mesh_004\", \"view_0003\", \"view_0004\"], \"missing_information\": [\"Actual stair flights and lift arrangement\"], \"object_refs\": [{\"kind\": \"space\", \"id\": \"CS_STAIR\"}, {\"kind\": \"space\", \"id\": \"CS_LIFT\"}, {\"kind\": \"space\", \"id\": \"CN_STAIR\"}, {\"kind\": \"space\", \"id\": \"CN_LIFT\"}, {\"kind\": \"space\", \"id\": \"A_STAIR\"}]}"
+    }
+  },
+  {
+    "tool": "record_inference",
+    "arguments": {
+      "candidate": "candidate_04",
+      "declaration_json": "{\"statement\": \"The north roof is interpreted as a lower continuous attic at25.3..28.2 and a raised plant room at28.2..30.7; the northwest attic is one continuous L-shaped source space.\", \"basis\": \"inferred\", \"reason\": \"Selected original top pixels distinguish the lower strip near28.2 from the raised copper mass near30.7, and the source overlay now preserves that step. The interior plant deck is a hypothesis, not an observed slab.\", \"source_refs\": [\"mesh_003\", \"12_height_review\", \"07_roof_west_measure\"], \"missing_information\": [\"Internal roof deck and actual equipment spaces\"], \"object_refs\": [{\"kind\": \"space\", \"id\": \"N_ROOF_ATTIC\"}, {\"kind\": \"space\", \"id\": \"N_PLANT\"}, {\"kind\": \"space\", \"id\": \"N_PLANT_STORE\"}, {\"kind\": \"space\", \"id\": \"R_OFFICE_W2\"}, {\"kind\": \"space\", \"id\": \"S_MACHINE\"}]}"
+    }
+  },
+  {
+    "tool": "record_inference",
+    "arguments": {
+      "candidate": "candidate_04",
+      "declaration_json": "{\"statement\": \"The four visible elongated annex skylights, curved and pitched roof surfaces, facade relief and detailed mullions are not geometrically represented.\", \"basis\": \"simplified\", \"reason\": \"The common source kernel supports orthogonal room volumes and wall-hosted openings. Omitting horizontal roof apertures is a material delivery limitation, retained explicitly rather than claimed complete.\", \"source_refs\": [\"mesh_003\", \"view_0001\", \"view_0002\"], \"missing_information\": [\"Supported native roof-aperture and sloped-surface representation\"], \"object_refs\": [{\"kind\": \"floor\", \"id\": \"A2\"}, {\"kind\": \"floor\", \"id\": \"ROOF_ATTIC\"}, {\"kind\": \"floor\", \"id\": \"ROOF_PLANT_N\"}]}"
+    }
+  }
+]

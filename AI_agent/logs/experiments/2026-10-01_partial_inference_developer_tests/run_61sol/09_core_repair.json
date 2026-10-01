@@ -1,0 +1,22 @@
+[
+  {
+    "tool": "inspect_candidate",
+    "arguments": {
+      "candidate": "candidate_01",
+      "include_geometry": false
+    }
+  },
+  {
+    "tool": "audit_inference_candidate",
+    "arguments": {
+      "candidate": "candidate_01"
+    }
+  },
+  {
+    "tool": "revise_bim",
+    "arguments": {
+      "candidate": "candidate_01",
+      "operations_json": "[{\"op\": \"remove_opening\", \"id\": \"F1_NCORE_S_01\", \"reason\": \"Retract an inferred ground core window: the original attached annex occupies the opposite side of this wall at z0..7, and the actual source correctly reports no exterior host. No observed ground aperture is being deleted.\", \"source_refs\": [\"mesh_003: attached low annex touches transverse/core frontage\", \"mesh_010: lower annex in front of main block\", \"candidate_01 source.opening_unbuilt diagnostic\"]}, {\"op\": \"remove_opening\", \"id\": \"F1_NCORE_S_02\", \"reason\": \"Retract an inferred ground core window: the original attached annex occupies the opposite side of this wall at z0..7, and the actual source correctly reports no exterior host. No observed ground aperture is being deleted.\", \"source_refs\": [\"mesh_003: attached low annex touches transverse/core frontage\", \"mesh_010: lower annex in front of main block\", \"candidate_01 source.opening_unbuilt diagnostic\"]}]"
+    }
+  }
+]

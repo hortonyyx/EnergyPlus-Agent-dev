@@ -1,12 +1,12 @@
 {
-  "status": "developer_tests_running",
+  "status": "completed_partial_fine_detail_not_reproduced",
   "user_authorization": "好的，继续推进；一会儿开发模型测试用6.1sol和6sol",
   "models": [
     {
       "run": "run_61sol",
       "model": "gpt-6.1-sol",
       "effort": "max",
-      "status": "running",
+      "status": "completed",
       "prompt_sha256": "17bb2104ca501a05d06b2d949ccbf40f5ad26ac6de90112003df9aa678ae3c89",
       "task_sha256": "47544bca5418b869e0290269da3dc12cd7c438bc6a160d2e6c46bb2d19252fc8",
       "guide_sha256": "cd600b98e056a779091e9e1734773b80e2acb7dd363008c8e46c809b3f176efd",
@@ -14,13 +14,19 @@
       "preparation_sha256": "eb6aa663e1d2af9c8eb65aad81f339c06a491e211b8fb6a48a70da5bccb5b6c6",
       "start_utc": "2026-10-01T10:08:35.835622+00:00",
       "active_inputs_sha256": "0dccfc5462e65ee449aba6a34efcae2c765fbbbd318f00eb3207592f87f9a959",
-      "agent_task": "/root/developer_test_61sol"
+      "agent_task": "/root/developer_test_61sol",
+      "selected_candidate": "candidate_04",
+      "source_validation": "pass",
+      "source_model_sha256": "109a83c7eae69bae5514513ccce8b643439e9cdb2f9c378f82380cfac1c58f12",
+      "architectural_evaluation": "partial_framework_success_below_accepted_fine_detail",
+      "elapsed_seconds_to_final_tool": 3471.89,
+      "integrity": "pass"
     },
     {
       "run": "run_6sol",
       "model": "gpt-6-sol",
       "effort": "max",
-      "status": "running",
+      "status": "completed",
       "prompt_sha256": "9ecc8450fe4901355bf74168d80251e6fdddcb0b0468894408febf42e869a9f0",
       "task_sha256": "47544bca5418b869e0290269da3dc12cd7c438bc6a160d2e6c46bb2d19252fc8",
       "guide_sha256": "cd600b98e056a779091e9e1734773b80e2acb7dd363008c8e46c809b3f176efd",
@@ -28,7 +34,13 @@
       "preparation_sha256": "b204d53a10e006c00d5051d846eb82c325c3ee4b3fee0d4712400f0e1eb04a43",
       "start_utc": "2026-10-01T10:08:36.152549+00:00",
       "active_inputs_sha256": "298463ac9e1dd9decf702c109d0b1feccff7eac2d0020e5e5e42067acc2b2005",
-      "agent_task": "/root/developer_test_6sol"
+      "agent_task": "/root/developer_test_6sol",
+      "selected_candidate": "candidate_11",
+      "source_validation": "pass",
+      "architectural_evaluation": "partial_framework_success_below_accepted_fine_detail",
+      "elapsed_seconds_to_final_tool": 1449.7,
+      "source_model_sha256": "dbc2e954f2f2704ecb9d2b86ec3e0f9c000e3de5bfbaf39e59da28e01a2f3ed8",
+      "integrity": "pass"
     }
   ],
   "max_seconds_each": 3600,
@@ -436,5 +448,7 @@
     "paid API",
     "DeepSeek",
     "automatic retries/fallback"
-  ]
+  ],
+  "working_model_tests_started": false,
+  "post_freeze_fixes": "post_run_fixes.md; offline verified, not included in either tested runtime"
 }

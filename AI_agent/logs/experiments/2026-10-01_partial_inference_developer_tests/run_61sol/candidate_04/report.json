@@ -1,0 +1,2290 @@
+{
+  "agent_assumptions": [
+    "Exterior massing is constrained by admitted mesh_003 through mesh_012 and metric mesh pixel hits. The 15-degree local yaw is fixed, with zero translation; axes are local building axes, not surveyed geographic bearings.",
+    "All interior partitions, use assignments and door leaf positions are architectural inferences. A saved role_evidence record is supplied for every physical source space; the true interior has not been recovered.",
+    "The main building has one tall ground storey z0..6.4 and six 3.15m office storeys z6.4..25.3, inferred from six regular facade rows over a tall glass band. No unobserved mezzanine is inserted.",
+    "Continuous stairwell/shaft source spaces span the levels without cloned rooms or intermediate floor slabs. Stair flights, landings, lift machinery and door leaves are beyond this lightweight volume model.",
+    "Window frames with two closely spaced panes are represented by one grouped aperture. Structural bay wall strips are retained; pane mullions and decorative facade fins are omitted.",
+    "The courtyard annex is two 3.5m storeys with an inferred independent stair. Its upper open office is a single continuous room; the main/annex ground passage is inferred.",
+    "Roof mansards and curved copper plant caps are deliberately simplified as setback orthogonal spaces with flat caps: occupied roof offices, attic storage, mechanical plant and core continuations are distinct.",
+    "Missing southern end, some core glazing, ground entrances, western attic openings and shadowed lower transverse openings are explicitly inferred; door state is unknown. Geometry consistency is not original-image fidelity or code compliance.",
+    "The northwest roof strip seen at approximately z28.0..28.2 is retained in one continuous L-shaped attic room with the long wing, with an inferred service door to the plant room. Its flat cap is simplified to z28.9.",
+    "Two initially inferred ground northern-core windows were explicitly retracted because the attached annex makes this wall internal; all upper core glazing is retained.",
+    "North roof source review separates a continuous attic at z25.3..28.2 from a raised plant room at z28.2..30.7, with its north wall regularized near y21.2. The plant deck and room uses are inferred; the measured stepped roof profile is observed.",
+    "claim_0001 applies selected metric native-mesh interpretations to 60 courtyard windows and eight individually sized dormers. These are non-image inference bindings in the current claim interface, with raw mesh observations saved. Other facade and door heights remain separately inferred."
+  ],
+  "counts": {
+    "boundaries": 1210,
+    "connections": 218,
+    "openings": 639,
+    "spaces": 193,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "reason": "Bounded original long-wall direction evidence near 90 degrees at yaw15, confirmed by the complete asymmetric footprint and distinct transverse wing. Representative wall planes are regularized around measured surface hits.",
+    "source_refs": [
+      "directions_001",
+      "directions_002",
+      "mesh_003",
+      "mesh_004",
+      "mesh_005",
+      "06_observe_record: metric hits"
+    ],
+    "translation_m": [
+      0,
+      0,
+      0
+    ],
+    "yaw_degrees": 15
+  },
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "e6df34c5b793e1efbbca020d8f35be0b795d945b5794d4f546ae478197b4d948",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_01"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 1,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_02"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 2,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_03"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 3,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_04"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 4,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_05"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 5,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_06"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 6,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_07"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 7,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_08"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 8,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_09"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 9,
+          "parameter": "z",
+          "resolved_value": [
+            7.0,
+            8.85
+          ],
+          "targets": [
+            [
+              "window",
+              "F2_EAST_10"
+            ]
+          ],
+          "value_field": "F2_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 10,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_01"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 11,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_02"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 12,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_03"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 13,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_04"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 14,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_05"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 15,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_06"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 16,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_07"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 17,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_08"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 18,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_09"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 19,
+          "parameter": "z",
+          "resolved_value": [
+            10.0,
+            11.95
+          ],
+          "targets": [
+            [
+              "window",
+              "F3_EAST_10"
+            ]
+          ],
+          "value_field": "F3_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 20,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_01"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 21,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_02"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 22,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_03"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 23,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_04"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 24,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_05"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 25,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_06"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 26,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_07"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 27,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_08"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 28,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_09"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 29,
+          "parameter": "z",
+          "resolved_value": [
+            13.15,
+            15.1
+          ],
+          "targets": [
+            [
+              "window",
+              "F4_EAST_10"
+            ]
+          ],
+          "value_field": "F4_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 30,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_01"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 31,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_02"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 32,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_03"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 33,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_04"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 34,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_05"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 35,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_06"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 36,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_07"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 37,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_08"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 38,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_09"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 39,
+          "parameter": "z",
+          "resolved_value": [
+            16.25,
+            18.2
+          ],
+          "targets": [
+            [
+              "window",
+              "F5_EAST_10"
+            ]
+          ],
+          "value_field": "F5_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 40,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_01"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 41,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_02"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 42,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_03"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 43,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_04"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 44,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_05"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 45,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_06"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 46,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_07"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 47,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_08"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 48,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_09"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 49,
+          "parameter": "z",
+          "resolved_value": [
+            19.4,
+            21.4
+          ],
+          "targets": [
+            [
+              "window",
+              "F6_EAST_10"
+            ]
+          ],
+          "value_field": "F6_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 50,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_01"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 51,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_02"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 52,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_03"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 53,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_04"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 54,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_05"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 55,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_06"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 56,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_07"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 57,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_08"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 58,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_09"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 59,
+          "parameter": "z",
+          "resolved_value": [
+            22.65,
+            24.65
+          ],
+          "targets": [
+            [
+              "window",
+              "F7_EAST_10"
+            ]
+          ],
+          "value_field": "F7_courtyard_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 60,
+          "parameter": "z",
+          "resolved_value": [
+            26.05,
+            27.45
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_01"
+            ]
+          ],
+          "value_field": "roof_01_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 61,
+          "parameter": "z",
+          "resolved_value": [
+            26.05,
+            27.45
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_02"
+            ]
+          ],
+          "value_field": "roof_02_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 62,
+          "parameter": "z",
+          "resolved_value": [
+            26.0,
+            27.6
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_03"
+            ]
+          ],
+          "value_field": "roof_03_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 63,
+          "parameter": "z",
+          "resolved_value": [
+            26.0,
+            27.5
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_04"
+            ]
+          ],
+          "value_field": "roof_04_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 64,
+          "parameter": "z",
+          "resolved_value": [
+            26.0,
+            27.5
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_05"
+            ]
+          ],
+          "value_field": "roof_05_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 65,
+          "parameter": "z",
+          "resolved_value": [
+            26.0,
+            27.4
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_06"
+            ]
+          ],
+          "value_field": "roof_06_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 66,
+          "parameter": "z",
+          "resolved_value": [
+            26.0,
+            27.5
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_07"
+            ]
+          ],
+          "value_field": "roof_07_z"
+        },
+        {
+          "claim_id": "claim_0001",
+          "computation": {
+            "basis": "inference",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 67,
+          "parameter": "z",
+          "resolved_value": [
+            25.95,
+            27.35
+          ],
+          "targets": [
+            [
+              "window",
+              "R_E_DORMERS_08"
+            ]
+          ],
+          "value_field": "roof_08_z"
+        }
+      ],
+      "claims": {
+        "claim_0001": {
+          "decision": {
+            "claim_id": "claim_0001",
+            "disposition": "adopted",
+            "id": "decision_0001",
+            "reason": "The raw metric hits and actual source overlays support these floor-specific regularized heights and smaller individual roof apertures. F2 sill remains inferred because of annex occlusion; no drawing-based claim is made."
+          },
+          "record": {
+            "claim": {
+              "basis": "inference",
+              "candidate": "candidate_03",
+              "objects": [
+                {
+                  "id": "F2_EAST_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_08",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_09",
+                  "kind": "window"
+                },
+                {
+                  "id": "F2_EAST_10",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_08",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_09",
+                  "kind": "window"
+                },
+                {
+                  "id": "F3_EAST_10",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_08",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_09",
+                  "kind": "window"
+                },
+                {
+                  "id": "F4_EAST_10",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_08",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_09",
+                  "kind": "window"
+                },
+                {
+                  "id": "F5_EAST_10",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_08",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_09",
+                  "kind": "window"
+                },
+                {
+                  "id": "F6_EAST_10",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_08",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_09",
+                  "kind": "window"
+                },
+                {
+                  "id": "F7_EAST_10",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_01",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_02",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_03",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_04",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_05",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_06",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_07",
+                  "kind": "window"
+                },
+                {
+                  "id": "R_E_DORMERS_08",
+                  "kind": "window"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "Absolute Z-up metres in the saved 15-degree mesh frame. Courtyard values regularize the original mesh_010 window-edge selections recorded by measure_mesh_pixels in 06_observe_record: F7 selected rows221/280, F6 rows318/378, F5 rows414/473, F4 rows507/565, F3 rows602/660, F2 headrow695. F2 sill remains inferred at7.0 because the annex occludes it. Each named value belongs only to that floor. Roof values individually regularize the eight selected dormer top/bottom pairs saved in12_height_review, with heads near27.32..27.62 and sills25.92..26.08. Sources is empty because this claim interface admits original image views but has no native saved-mesh observation source type; do not mistake these literal semantic interpretations of mesh pixels for drawing-dimension evidence.",
+              "sources": [],
+              "unresolved": [
+                "Original texture aperture edges are approximate and the mesh is noisy. Window heights on other facades, core glazing and inferred doors are outside this claim.",
+                "Native mesh observation evidence is referenced in reason and remains saved, but the current claim interface classifies this as non-image inference."
+              ],
+              "value_targets": {
+                "F2_courtyard_z": [
+                  {
+                    "id": "F2_EAST_01",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_02",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_03",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_04",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_05",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_06",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_07",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_08",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_09",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F2_EAST_10",
+                    "kind": "window"
+                  }
+                ],
+                "F3_courtyard_z": [
+                  {
+                    "id": "F3_EAST_01",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_02",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_03",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_04",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_05",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_06",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_07",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_08",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_09",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F3_EAST_10",
+                    "kind": "window"
+                  }
+                ],
+                "F4_courtyard_z": [
+                  {
+                    "id": "F4_EAST_01",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_02",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_03",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_04",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_05",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_06",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_07",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_08",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_09",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F4_EAST_10",
+                    "kind": "window"
+                  }
+                ],
+                "F5_courtyard_z": [
+                  {
+                    "id": "F5_EAST_01",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_02",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_03",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_04",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_05",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_06",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_07",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_08",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_09",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F5_EAST_10",
+                    "kind": "window"
+                  }
+                ],
+                "F6_courtyard_z": [
+                  {
+                    "id": "F6_EAST_01",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_02",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_03",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_04",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_05",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_06",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_07",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_08",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_09",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F6_EAST_10",
+                    "kind": "window"
+                  }
+                ],
+                "F7_courtyard_z": [
+                  {
+                    "id": "F7_EAST_01",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_02",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_03",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_04",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_05",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_06",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_07",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_08",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_09",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "F7_EAST_10",
+                    "kind": "window"
+                  }
+                ],
+                "roof_01_z": [
+                  {
+                    "id": "R_E_DORMERS_01",
+                    "kind": "window"
+                  }
+                ],
+                "roof_02_z": [
+                  {
+                    "id": "R_E_DORMERS_02",
+                    "kind": "window"
+                  }
+                ],
+                "roof_03_z": [
+                  {
+                    "id": "R_E_DORMERS_03",
+                    "kind": "window"
+                  }
+                ],
+                "roof_04_z": [
+                  {
+                    "id": "R_E_DORMERS_04",
+                    "kind": "window"
+                  }
+                ],
+                "roof_05_z": [
+                  {
+                    "id": "R_E_DORMERS_05",
+                    "kind": "window"
+                  }
+                ],
+                "roof_06_z": [
+                  {
+                    "id": "R_E_DORMERS_06",
+                    "kind": "window"
+                  }
+                ],
+                "roof_07_z": [
+                  {
+                    "id": "R_E_DORMERS_07",
+                    "kind": "window"
+                  }
+                ],
+                "roof_08_z": [
+                  {
+                    "id": "R_E_DORMERS_08",
+                    "kind": "window"
+                  }
+                ]
+              },
+              "values": {
+                "F2_courtyard_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    7.0,
+                    8.85
+                  ]
+                },
+                "F3_courtyard_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    10.0,
+                    11.95
+                  ]
+                },
+                "F4_courtyard_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    13.15,
+                    15.1
+                  ]
+                },
+                "F5_courtyard_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    16.25,
+                    18.2
+                  ]
+                },
+                "F6_courtyard_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    19.4,
+                    21.4
+                  ]
+                },
+                "F7_courtyard_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    22.65,
+                    24.65
+                  ]
+                },
+                "roof_01_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.05,
+                    27.45
+                  ]
+                },
+                "roof_02_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.05,
+                    27.45
+                  ]
+                },
+                "roof_03_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.0,
+                    27.6
+                  ]
+                },
+                "roof_04_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.0,
+                    27.5
+                  ]
+                },
+                "roof_05_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.0,
+                    27.5
+                  ]
+                },
+                "roof_06_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.0,
+                    27.4
+                  ]
+                },
+                "roof_07_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    26.0,
+                    27.5
+                  ]
+                },
+                "roof_08_z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    25.95,
+                    27.35
+                  ]
+                }
+              }
+            },
+            "computations": {
+              "F2_courtyard_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "F3_courtyard_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "F4_courtyard_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "F5_courtyard_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "F6_courtyard_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "F7_courtyard_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_01_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_02_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_03_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_04_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_05_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_06_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_07_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              },
+              "roof_08_z": {
+                "basis": "inference",
+                "method": "explicit_metric_value"
+              }
+            },
+            "id": "claim_0001",
+            "parent_proposal_sha256": "03fd2d527ca98f52860a82283e4025d0c01720beb27a0f8154ea6c99bef969f6",
+            "resolved_values": {
+              "F2_courtyard_z": [
+                7.0,
+                8.85
+              ],
+              "F3_courtyard_z": [
+                10.0,
+                11.95
+              ],
+              "F4_courtyard_z": [
+                13.15,
+                15.1
+              ],
+              "F5_courtyard_z": [
+                16.25,
+                18.2
+              ],
+              "F6_courtyard_z": [
+                19.4,
+                21.4
+              ],
+              "F7_courtyard_z": [
+                22.65,
+                24.65
+              ],
+              "roof_01_z": [
+                26.05,
+                27.45
+              ],
+              "roof_02_z": [
+                26.05,
+                27.45
+              ],
+              "roof_03_z": [
+                26.0,
+                27.6
+              ],
+              "roof_04_z": [
+                26.0,
+                27.5
+              ],
+              "roof_05_z": [
+                26.0,
+                27.5
+              ],
+              "roof_06_z": [
+                26.0,
+                27.4
+              ],
+              "roof_07_z": [
+                26.0,
+                27.5
+              ],
+              "roof_08_z": [
+                25.95,
+                27.35
+              ]
+            },
+            "sources": [],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0002.json",
+      "parent_candidate": "candidate_03",
+      "parent_proposal_sha256": "03fd2d527ca98f52860a82283e4025d0c01720beb27a0f8154ea6c99bef969f6"
+    },
+    "generator": "external_development_agent subscription tool loop",
+    "input_manifest_sha256": "0dccfc5462e65ee449aba6a34efcae2c765fbbbd318f00eb3207592f87f9a959",
+    "mode": "native_mesh_agent_experiment",
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "03fd2d527ca98f52860a82283e4025d0c01720beb27a0f8154ea6c99bef969f6"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "109a83c7eae69bae5514513ccce8b643439e9cdb2f9c378f82380cfac1c58f12",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "No interior plans, floor slab survey, structural information or actual stair/landing geometry were supplied. Repeated upper interior layout is only one plausible office interpretation.",
+    "The original mesh is incomplete around the ground perimeter and end faces; the partly occluded eastern corner aperture and several shadowed facade dimensions are regularized rather than precisely recovered.",
+    "Observed four elongated annex roof skylights are not represented as horizontal apertures because this common source kernel supports wall-hosted openings; their roof locations remain visible in mesh_003 and view_0001.",
+    "Pitched/curved roof surfaces, parapet relief, cornices, wall thickness, furniture, balconies and decorative mullions are omitted or represented by the orthogonal envelope. Roof/service use boundaries are inferred.",
+    "The exact function of the highest south roof cap (lift ventilation or chimney) is uncertain; it is represented as a continuous service shaft. Native z0 is used as ground datum, although noise and street grade vary.",
+    "Stairwell source volumes provide storey connectivity and plausible clear room dimensions but do not demonstrate travel-distance, fire separation, accessibility or stair code compliance.",
+    "The northern plant deck z28.2 is an architectural interpretation of the stepped exterior roof, not an observed interior slab. Copper slopes/curves are still approximated by orthogonal source spaces."
+  ]
+}
