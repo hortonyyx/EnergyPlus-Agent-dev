@@ -1,0 +1,650 @@
+{
+  "turns": [
+    {
+      "turn": "agent",
+      "tools": {
+        "mcp__bim__inputs": 1,
+        "mcp__bim__view_image": 23,
+        "mcp__bim__get_bim_reference": 3,
+        "mcp__bim__view_pixel_region_overview": 2,
+        "mcp__bim__view_pixel_profile": 25,
+        "mcp__bim__build_plan_bim": 2,
+        "mcp__bim__assemble_plan_bim": 1,
+        "mcp__bim__revise_bim": 5,
+        "mcp__bim__check_openings": 1,
+        "mcp__bim__record_claim": 5,
+        "mcp__bim__decide_claim": 3,
+        "mcp__bim__confirm_claims": 1,
+        "mcp__bim__inspect_candidate": 1,
+        "mcp__bim__claim_status": 1,
+        "mcp__bim__finish_bim": 1
+      },
+      "errors": [
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "text": "Error executing tool view_pixel_profile: choose an exact image name from input inventory"
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "text": "Error executing tool view_pixel_profile: choose an exact image name from input inventory"
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "text": "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, room role 'office_open_plan' is not in the room_types catalog; read get_bim_reference('room_types') and choose a listed code, prefer a plausible inferred use over unknown. Do not suffix types with '_inferred'. [type=value_error, input_value={'role': 'office_open_pla... open-plan office bay']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "text": "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, inferred room role requires an explicit assumption [type=value_error, input_value={'role': 'corridor', 'bas...rs'], 'assumptions': []}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+        },
+        {
+          "tool": "mcp__bim__record_claim",
+          "text": "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"1F:W_N1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"1F:W_N1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+        },
+        {
+          "tool": "mcp__bim__record_claim",
+          "text": "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"2F:WN1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"2F:WN1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "text": "Error executing tool revise_bim: replace_note: old must exactly match one current note"
+        }
+      ],
+      "images": [
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1600,
+            1009
+          ],
+          "bytes": 121252
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1600,
+            967
+          ],
+          "bytes": 155581
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1354,
+            812
+          ],
+          "bytes": 58103
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1423,
+            794
+          ],
+          "bytes": 70635
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            945,
+            741
+          ],
+          "bytes": 40778
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1077,
+            773
+          ],
+          "bytes": 40727
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1200,
+            1600
+          ],
+          "bytes": 43870
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            900,
+            1290
+          ],
+          "bytes": 33184
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1250,
+            1500
+          ],
+          "bytes": 44741
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            560,
+            880
+          ],
+          "bytes": 3865
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            560,
+            880
+          ],
+          "bytes": 8421
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            750,
+            1500
+          ],
+          "bytes": 31425
+        },
+        {
+          "tool": "mcp__bim__view_pixel_region_overview",
+          "size": [
+            1600,
+            502
+          ],
+          "bytes": 80263
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1595,
+            847
+          ],
+          "bytes": 62045
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1280,
+            1200
+          ],
+          "bytes": 17967
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            403,
+            10
+          ],
+          "bytes": 577
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            403,
+            10
+          ],
+          "bytes": 152
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            403,
+            10
+          ],
+          "bytes": 125
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            403,
+            10
+          ],
+          "bytes": 155
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            880,
+            1160
+          ],
+          "bytes": 13075
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            23,
+            290
+          ],
+          "bytes": 1123
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 1535
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 1527
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 895
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 989
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            15,
+            742
+          ],
+          "bytes": 1351
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            15,
+            742
+          ],
+          "bytes": 803
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1000,
+            1080
+          ],
+          "bytes": 14465
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1530,
+            272
+          ],
+          "bytes": 17719
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1530,
+            306
+          ],
+          "bytes": 6519
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            5
+          ],
+          "bytes": 2360
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            5
+          ],
+          "bytes": 286
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 1253
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 888
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            940,
+            1010
+          ],
+          "bytes": 27474
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            500,
+            1100
+          ],
+          "bytes": 10423
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            500,
+            1100
+          ],
+          "bytes": 8489
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            1240,
+            400
+          ],
+          "bytes": 11756
+        },
+        {
+          "tool": "mcp__bim__view_image",
+          "size": [
+            750,
+            1290
+          ],
+          "bytes": 25569
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            43,
+            230
+          ],
+          "bytes": 1247
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            43,
+            230
+          ],
+          "bytes": 1614
+        },
+        {
+          "tool": "mcp__bim__build_plan_bim",
+          "size": [
+            1600,
+            1009
+          ],
+          "bytes": 109962
+        },
+        {
+          "tool": "mcp__bim__build_plan_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 13642
+        },
+        {
+          "tool": "mcp__bim__view_pixel_region_overview",
+          "size": [
+            1600,
+            481
+          ],
+          "bytes": 96937
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 1307
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 2136
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 949
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            1600,
+            4
+          ],
+          "bytes": 1627
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            23,
+            741
+          ],
+          "bytes": 1306
+        },
+        {
+          "tool": "mcp__bim__view_pixel_profile",
+          "size": [
+            23,
+            741
+          ],
+          "bytes": 1267
+        },
+        {
+          "tool": "mcp__bim__build_plan_bim",
+          "size": [
+            1600,
+            967
+          ],
+          "bytes": 145071
+        },
+        {
+          "tool": "mcp__bim__build_plan_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 14192
+        },
+        {
+          "tool": "mcp__bim__assemble_plan_bim",
+          "size": [
+            1600,
+            1009
+          ],
+          "bytes": 109962
+        },
+        {
+          "tool": "mcp__bim__assemble_plan_bim",
+          "size": [
+            1600,
+            967
+          ],
+          "bytes": 145071
+        },
+        {
+          "tool": "mcp__bim__assemble_plan_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 13892
+        },
+        {
+          "tool": "mcp__bim__assemble_plan_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 14524
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1600,
+            1009
+          ],
+          "bytes": 109962
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1600,
+            967
+          ],
+          "bytes": 145071
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 13892
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 14524
+        },
+        {
+          "tool": "mcp__bim__record_claim",
+          "size": [
+            450,
+            600
+          ],
+          "bytes": 21258
+        },
+        {
+          "tool": "mcp__bim__record_claim",
+          "size": [
+            300,
+            430
+          ],
+          "bytes": 16938
+        },
+        {
+          "tool": "mcp__bim__record_claim",
+          "size": [
+            300,
+            430
+          ],
+          "bytes": 16938
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1600,
+            1009
+          ],
+          "bytes": 109962
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1600,
+            967
+          ],
+          "bytes": 145071
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 13892
+        },
+        {
+          "tool": "mcp__bim__revise_bim",
+          "size": [
+            1080,
+            800
+          ],
+          "bytes": 14524
+        }
+      ],
+      "image_count": 67,
+      "all_images_decode": true,
+      "finishes": [
+        {
+          "tool": "mcp__bim__finish_bim",
+          "characters": 12080,
+          "candidate": "candidate_05",
+          "detached_output_notice": false,
+          "room_use_review": {
+            "source_model_sha256": "28f206314758b9c99a747972776f6af48e6fb18504e88acba22289d3540aeebf",
+            "summary": {
+              "total_count": 14,
+              "recorded_count": 14,
+              "unrecorded_count": 0,
+              "observed_count": 0,
+              "inferred_count": 14,
+              "unknown_count": 0
+            },
+            "unrecorded_space_ids": [],
+            "unrecorded_ids_truncated": false,
+            "unknown_space_ids": [],
+            "unknown_ids_truncated": false,
+            "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+            "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+            "drawing_fidelity": "not_evaluated",
+            "delivery_blocked": false
+          },
+          "height_summary": {
+            "total_count": 29,
+            "image_linked_count": 16,
+            "non_image_linked_count": 0,
+            "unchecked_height_opening_ids": [
+              "1F:D1",
+              "1F:D2",
+              "1F:D3",
+              "1F:D4",
+              "1F:D5",
+              "1F:D6",
+              "1F:D_ext_W",
+              "2F:D1",
+              "2F:D2",
+              "2F:D3",
+              "2F:D4",
+              "2F:D5",
+              "2F:D6"
+            ]
+          }
+        }
+      ],
+      "decisions": [],
+      "archive": "agent_stream.jsonl.gz",
+      "original_bytes": 7856235,
+      "gzip_bytes": 4470682,
+      "original_sha256": "b154d5a662ae8241662ea5b6215afcc635b46ded5dce9038c70beee2b5a4180e",
+      "gzip_sha256": "45817f5397e66d4e89db408c9d27fe4d797955658d20f250fb515b28eab43fc1",
+      "lossless_verified": true
+    }
+  ],
+  "image_count": 67,
+  "note": "Actual CLI replies, not just server logs. Transport/coverage is not semantic acceptance."
+}

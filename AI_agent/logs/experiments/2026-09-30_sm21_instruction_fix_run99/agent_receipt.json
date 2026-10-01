@@ -1,0 +1,110 @@
+{
+  "requested_model": "claude-sonnet-5",
+  "requested_role": "sonnet",
+  "provider": "claude",
+  "channel": "claude subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1081.42,
+  "actual_model": "claude-sonnet-5",
+  "result": {
+    "duration_api_ms": 1049676,
+    "stop_reason": "end_turn",
+    "session_id": "dbabff66-d3eb-46d6-ae23-1173fd9484e6",
+    "total_cost_usd": 4.173101,
+    "usage": {
+      "input_tokens": 106,
+      "cache_creation_input_tokens": 378364,
+      "cache_read_input_tokens": 8943715,
+      "output_tokens": 87069,
+      "output_tokens_details": {
+        "thinking_tokens": 61430
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 378364,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 980,
+          "cache_read_input_tokens": 373387,
+          "cache_creation_input_tokens": 4977,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4977
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 106,
+        "outputTokens": 87069,
+        "cacheReadInputTokens": 8943715,
+        "cacheCreationInputTokens": 378364,
+        "webSearchRequests": 0,
+        "costUSD": 4.173101,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 61430,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 76,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "## Summary\n\n**Delivered candidate: `candidate_05`**\n\n### Building reconstructed\nA two-story rectangular building, 15.0 m (E-W) × 8.0 m (N-S), with a central corridor on each floor:\n- **1F** (z=0 to 3.0m): 3 north-facing office rooms, central corridor, lobby/reception (with the main south entrance door), 1 office, 1 meeting room — 7 spaces, 15 openings.\n- **2F** (z=3.0 to 6.6m): 2 meeting rooms, central corridor, 4 offices — 7 spaces, 14 openings.\n- 0 `drawing_differences` reported on either floor's plan build (compiled cleanly against the ink in `1f_view.png`/`2f_view.png`).\n\n### Observed (from originals)\n- All wall/partition/door/window positions were measured directly via `view_pixel_profile`/`pixel_region_overview` on wall-gray and opening-cyan ink in `1f_view.png` and `2f_view.png`, cross-checked against the dimension-chain text.\n- Every exterior window (both floors, all four façades) and the dimensioned South entrance door height are **claim-confirmed** (`claim_0001`–`claim_0003`, all `confirmed_unchanged`) from the `East_view.png`/`South_view.png` dimension chains (sill 1.0 m/head 2.8 m on 1F; sill 4.0 m/head 5.8 m on 2F; South door 0–2.4 m).\n- Room uses assigned from furniture (`office`, `conference/meeting/multipurpose`, `corridor`, `lobby`), all marked `basis:\"inferred\"` with stated reasons.\n\n### Assumed (explicit, in saved notes)\n- Interior corridor↔room door heights (12 doors, both floors): 2.1 m — no drawing dimensions them.\n- West exterior double-door head height: 2.4 m, by analogy to the dimensioned South door — West_view's own chain only gives an undivided 3000 mm span.\n- 2F `ceiling_height` set to 3.6 m from the elevation's floor-to-roof chain (no 3rd floor exists).\n\n### Left unresolved / unverified\n- Pixel-to-world calibration (two anchors per axis) was caller-supplied and not independently re-verified against a third dimension.\n- A few very small gray fragments near door/partition junctions in the pixel-region overview were visually cross-checked but not separately modeled (already captured by the declared partitions/openings).\n- Some duplicate/redundant assumption-note strings from the two independent per-floor builds could not be deduplicated via `replace_note` (tool requires an unambiguous single match); this is cosmetic only and does not affect geometry or height coverage.\n- Space-relation same/separate-space spot checks and facade-by-facade opening review were not separately run (plan compilation already reported zero discrepancies).",
+    "ttft_ms": 1881,
+    "type": "result",
+    "duration_ms": 1072963,
+    "uuid": "f6b47998-9978-4fc3-bde4-d342974ee292",
+    "ttft_stream_ms": 1710,
+    "time_to_request_ms": 89,
+    "first_content_frame_ms": 1710,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

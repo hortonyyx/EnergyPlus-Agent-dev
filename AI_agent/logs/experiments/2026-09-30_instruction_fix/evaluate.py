@@ -88,7 +88,9 @@ def _coords(item):
     return [v for pair in values for v in (pair if isinstance(pair, list) else [pair]) if v is not None]
 
 
-EXPECTED_FLOORS = ("F1", "F2")
+# The original audit pairs candidate floors with the 1F/2F plans by z order, whatever
+# the model named them (run99 used 1F/2F, earlier runs F1/F2); check the same floors.
+EXPECTED_FLOOR_COUNT = 2
 
 
 def spaces_one_to_one(original, source):
@@ -98,7 +100,10 @@ def spaces_one_to_one(original, source):
         return dict(pass_=False, findings=[dict(issue="original-image audit not run", detail=original.get("reason"))])
     findings = []
     floors = {floor["floor_id"]: floor.get("space_identity_by_interior_point", {}) for floor in original["floors"]}
-    for floor_id in EXPECTED_FLOORS:
+    expected = [floor["id"] for floor in sorted(source["floors"], key=lambda floor: floor["z_floor"])]
+    if len(expected) != EXPECTED_FLOOR_COUNT:
+        findings.append(dict(issue="floor count mismatch", expected=EXPECTED_FLOOR_COUNT, source=len(expected)))
+    for floor_id in expected:
         if floor_id not in floors:
             findings.append(dict(floor=floor_id, issue="floor missing from the audit"))
             continue
