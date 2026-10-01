@@ -188,10 +188,20 @@ def _segment(vertices) -> tuple[list[float], list[float]] | None:
                key=lambda pair: math.dist(*pair))
 
 
+def _vertical_extent(vertices) -> tuple[float, float] | None:
+    rows = vertices if isinstance(vertices, list) else []
+    zs = [float(vertex[2]) for vertex in rows if isinstance(vertex, list) and len(vertex) >= 3
+          and isinstance(vertex[2], (int, float)) and math.isfinite(vertex[2])]
+    return (min(zs), max(zs)) if zs else None
+
+
 def _door_fact(opening: dict, boundaries: dict, connections: dict) -> dict:
     result = {key: opening.get(key) for key in
               ("id", "host_boundary_id", "space_ids", "exterior", "connectivity")}
     aperture = _segment(opening.get("vertices"))
+    vertical = _vertical_extent(opening.get("vertices", []))
+    if vertical is not None:
+        result.update(bottom_z_m=vertical[0], top_z_m=vertical[1], height_m=vertical[1] - vertical[0])
     host = _segment(boundaries.get(opening.get("host_boundary_id"), {}).get("vertices"))
     if aperture is None or host is None:
         return {**result, "geometry_status": "missing_representative_segment",
@@ -213,6 +223,31 @@ def _door_fact(opening: dict, boundaries: dict, connections: dict) -> dict:
             "host_end_clearance_m": [low, length - high],
             "endpoint_perpendicular_offset_m": offsets,
             "connection_records": connections.get(opening["id"], [])}
+
+
+def _window_fact(opening: dict, spaces: dict) -> dict:
+    result = {key: opening.get(key) for key in ("id", "host_boundary_id", "space_ids")}
+    segment = _segment(opening.get("vertices"))
+    vertical = _vertical_extent(opening.get("vertices", []))
+    if segment is not None:
+        result["width_m"] = math.dist(*segment)
+    if vertical is not None:
+        result.update(bottom_z_m=vertical[0], top_z_m=vertical[1], height_m=vertical[1] - vertical[0])
+    sills = []
+    for space_id in opening.get("space_ids", []):
+        space = spaces.get(space_id)
+        z_floor = space.get("z_floor") if space else None
+        row = {"space_id": space_id, "source_space_z_floor_m": z_floor,
+               "reference": "source_space_base_not_assumed_storey"}
+        if vertical is not None and isinstance(z_floor, (int, float)) and math.isfinite(z_floor):
+            row["sill_above_source_space_base_m"] = vertical[0] - z_floor
+        else:
+            row["sill_above_source_space_base_m"] = None
+            row["status"] = "missing_source_space_or_vertical_coordinate"
+        sills.append(row)
+    result["sills_by_source_space"] = sills
+    result["measurement_basis"] = "saved opening vertices and each referenced source space z_floor"
+    return result
 
 
 def _entities(source: dict) -> dict[str, dict]:
@@ -253,11 +288,13 @@ def audit_inference_candidate(toolkit, candidate: str,
             heights.append(space["height"])
         roles[str(space.get("role"))].append(space["id"])
         floors[str(space.get("floor_id"))].append(space["id"])
-    windows = [row for row in openings if row.get("kind") == "window"]
+    window_openings = [row for row in openings if row.get("kind") == "window"]
     window_counts = Counter({space["id"]: 0 for space in spaces})
-    for window in windows:
+    for window in window_openings:
         for space_id in window.get("space_ids", []):
             window_counts[space_id] += 1
+    space_by_id = {row["id"]: row for row in spaces}
+    windows = [_window_fact(row, space_by_id) for row in window_openings]
     declared_floors = {str(row["id"]): row for row in source.get("floors", [])}
     floor_ids = sorted(set(floors) | set(declared_floors))
     membership = [{"floor_id": floor_id, "space_ids": sorted(floors[floor_id]),
@@ -284,7 +321,7 @@ def audit_inference_candidate(toolkit, candidate: str,
                        for role, ids in sorted(roles.items())},
         "window_counts": {"by_space": dict(sorted(window_counts.items())),
                           "distribution": dict(sorted(Counter(window_counts.values()).items()))},
-        "floor_membership": membership, "doors": doors,
+        "windows": windows, "floor_membership": membership, "doors": doors,
     }
     if previous_candidate is not None:
         previous, _, _ = _source(toolkit, previous_candidate)
@@ -305,12 +342,22 @@ def audit_inference_candidate(toolkit, candidate: str,
         "space_dimension_ranges": audit["space_dimension_ranges"],
         "room_role_counts": {role: row["count"] for role, row in audit["room_roles"].items()},
         "window_count_distribution": audit["window_counts"]["distribution"],
+        "window_dimension_ranges": {
+            "width_m": _range([row["width_m"] for row in windows if "width_m" in row]),
+            "height_m": _range([row["height_m"] for row in windows if "height_m" in row]),
+            "sill_above_source_space_base_m": _range([
+                sill["sill_above_source_space_base_m"] for row in windows
+                for sill in row["sills_by_source_space"]
+                if sill["sill_above_source_space_base_m"] is not None]),
+            "sill_reference": "each referenced source space z_floor; not an assumed storey datum",
+        },
         "floor_membership_counts": [{"floor_id": row["floor_id"],
                                      "space_count": len(row["space_ids"]),
                                      "declared_spanning_space_count": len(row["declared_spanning_space_ids"])}
                                     for row in membership],
         "door_summary": {"count": len(doors), "measured_count": len(measured_doors),
                          "width_m": _range([row["width_m"] for row in measured_doors]),
+                         "height_m": _range([row["height_m"] for row in doors if "height_m" in row]),
                          "host_end_clearance_m": _range([clearance for row in measured_doors
                                                           for clearance in row["host_end_clearance_m"]]),
                          "connectivity": dict(sorted(Counter(str(row.get("connectivity"))

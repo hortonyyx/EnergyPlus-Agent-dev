@@ -21,11 +21,11 @@ def _rehash(source):
 def _source(version=1):
     spaces = [
         {"id": "A", "floor_id": "F1", "polygon": [[0, 0], [4, 0], [4, 3], [0, 3]],
-         "height": 3, "role": "office"},
+         "z_floor": 0, "height": 3, "role": "office"},
         {"id": "B", "floor_id": "F1", "polygon": [[4, 0], [6, 0], [6, 3], [4, 3]],
-         "height": 3, "role": "corridor"},
+         "z_floor": 0, "height": 3, "role": "corridor"},
         {"id": "U", "floor_id": "F2", "polygon": [[0, 0], [5, 0], [5, 2], [0, 2]],
-         "height": 4, "role": "office"},
+         "z_floor": 3, "height": 4, "role": "office"},
     ]
     boundaries = [
         {"id": "bA", "space_id": "A", "geometry_type": "wall",
@@ -47,12 +47,12 @@ def _source(version=1):
          "vertices": [[2.5, 0, 1], [3, 0, 1], [3, 0, 2], [2.5, 0, 2]]},
         {"id": "wU", "kind": "window", "host_boundary_id": "bU", "space_ids": ["U"],
          "exterior": True, "connectivity": "unknown",
-         "vertices": [[1, 0, 4], [2, 0, 4], [2, 0, 5], [1, 0, 5]]},
+         "vertices": [[1, 0, 4.2], [2, 0, 4.2], [2, 0, 5.7], [1, 0, 5.7]]},
     ]
     if version == 2:
         spaces[0] = {**spaces[0], "role": "meeting"}
         spaces[1] = {"id": "C", "floor_id": "F1", "polygon": [[4, 0], [7, 0], [7, 3], [4, 3]],
-                     "height": 3, "role": "corridor"}
+                     "z_floor": 0, "height": 3, "role": "corridor"}
         boundaries[1] = {"id": "bC", "space_id": "C", "geometry_type": "wall",
                          "vertices": [[4, 0, 0], [7, 0, 0], [7, 0, 3], [4, 0, 3]]}
         openings[0] = {**openings[0], "space_ids": ["A", "C"],
@@ -158,14 +158,26 @@ def test_audit_reports_saved_dimensions_membership_doors_and_exact_entity_diff(t
         "bbox_x_span_m": {"min": 2, "max": 5}, "bbox_y_span_m": {"min": 2, "max": 3},
         "height_m": {"min": 3, "max": 4}, "footprint_area_m2": {"min": 6, "max": 12}}
     assert summary["window_count_distribution"] == {0: 1, 1: 1, 2: 1}
+    assert summary["window_dimension_ranges"] == {
+        "width_m": {"min": 0.5, "max": 1.0}, "height_m": {"min": 1.0, "max": 1.5},
+        "sill_above_source_space_base_m": {"min": 1.0, "max": pytest.approx(1.2)},
+        "sill_reference": "each referenced source space z_floor; not an assumed storey datum"}
     assert summary["floor_membership_counts"] == [
         {"floor_id": "F1", "space_count": 2, "declared_spanning_space_count": 0},
         {"floor_id": "F2", "space_count": 1, "declared_spanning_space_count": 1}]
     assert summary["door_summary"]["width_m"] == {"min": 1.0, "max": 1.0}
+    assert summary["door_summary"]["height_m"] == {"min": 2.0, "max": 2.0}
     assert summary["door_summary"]["host_end_clearance_m"] == {"min": 1.0, "max": 2.0}
     audit = json.loads((run / summary["audit_file"]).read_text())
     assert audit["room_roles"]["office"]["space_ids"] == ["A", "U"]
     assert audit["window_counts"]["by_space"] == {"A": 2, "B": 0, "U": 1}
+    upper_window = next(row for row in audit["windows"] if row["id"] == "wU")
+    assert upper_window["width_m"] == 1
+    assert upper_window["height_m"] == pytest.approx(1.5)
+    assert upper_window["sills_by_source_space"] == [{
+        "space_id": "U", "source_space_z_floor_m": 3,
+        "reference": "source_space_base_not_assumed_storey",
+        "sill_above_source_space_base_m": pytest.approx(1.2)}]
     assert audit["floor_membership"][1]["space_ids"] == ["U"]
     door = audit["doors"][0]
     assert door["width_m"] == 1
