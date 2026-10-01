@@ -38,7 +38,7 @@ def _source(version=1):
     openings = [
         {"id": "d1", "kind": "door", "host_boundary_id": "bA", "space_ids": ["A", "B"],
          "exterior": False, "connectivity": "unknown",
-         "vertices": [[1, 0, 0], [2, 0, 0], [2, 0, 2], [1, 0, 2]]},
+         "vertices": [[1.5, 0, 0], [2.5, 0, 0], [2.5, 0, 2], [1.5, 0, 2]]},
         {"id": "w1", "kind": "window", "host_boundary_id": "bA", "space_ids": ["A"],
          "exterior": True, "connectivity": "unknown",
          "vertices": [[0.2, 0, 1], [0.8, 0, 1], [0.8, 0, 2], [0.2, 0, 2]]},
@@ -167,7 +167,13 @@ def test_audit_reports_saved_dimensions_membership_doors_and_exact_entity_diff(t
         {"floor_id": "F2", "space_count": 1, "declared_spanning_space_count": 1}]
     assert summary["door_summary"]["width_m"] == {"min": 1.0, "max": 1.0}
     assert summary["door_summary"]["height_m"] == {"min": 2.0, "max": 2.0}
-    assert summary["door_summary"]["host_end_clearance_m"] == {"min": 1.0, "max": 2.0}
+    assert summary["door_summary"]["host_end_clearance_m"] == {"min": 1.5, "max": 1.5}
+    assert summary["door_summary"]["midpoint_measured_count"] == 1
+    assert summary["door_summary"]["exactly_centered_count"] == 1
+    assert summary["door_summary"]["exactly_centered_id_sample"] == ["d1"]
+    assert summary["door_summary"]["exactly_centered_sample_truncated"] is False
+    assert summary["door_summary"]["exactly_centered_numerical_tolerance_m"] == 1e-6
+    assert "not an architectural acceptance threshold" in summary["door_summary"]["midpoint_interpretation"]
     audit = json.loads((run / summary["audit_file"]).read_text())
     assert audit["room_roles"]["office"]["space_ids"] == ["A", "U"]
     assert audit["window_counts"]["by_space"] == {"A": 2, "B": 0, "U": 1}
@@ -181,7 +187,11 @@ def test_audit_reports_saved_dimensions_membership_doors_and_exact_entity_diff(t
     assert audit["floor_membership"][1]["space_ids"] == ["U"]
     door = audit["doors"][0]
     assert door["width_m"] == 1
-    assert door["host_end_clearance_m"] == [1, 2]
+    assert door["host_end_clearance_m"] == [1.5, 1.5]
+    assert door["midpoint_along_host_from_start_m"] == 2
+    assert door["normalized_midpoint_position_from_host_start"] == .5
+    assert door["midpoint_distance_from_host_midpoint_m"] == 0
+    assert door["exactly_centered_numerically"] is True
     assert door["endpoint_perpendicular_offset_m"] == [0, 0]
     assert door["connection_records"][0]["space_ids"] == ["A", "B"]
     compared = inference.audit_inference_candidate(toolkit, "candidate_02", "candidate_01")
@@ -197,6 +207,28 @@ def test_audit_reports_saved_dimensions_membership_doors_and_exact_entity_diff(t
     assert entities["openings"] == {"preserved_ids": [], "changed_ids": ["d1"],
                                      "added_ids": ["d2"], "removed_ids": []}
     assert "code compliance" in audit["scope"] and "acceptance" in audit["scope"]
+
+
+def test_door_midpoint_facts_are_descriptive_and_host_direction_independent():
+    opening = {"id": "center", "host_boundary_id": "forward", "space_ids": ["A"],
+               "exterior": True, "connectivity": "unknown",
+               "vertices": [[1.5, 0, 0], [2.5, 0, 0], [2.5, 0, 2], [1.5, 0, 2]]}
+    boundaries = {
+        "forward": {"vertices": [[0, 0, 0], [4, 0, 0], [4, 0, 3], [0, 0, 3]]},
+        "reverse": {"vertices": [[4, 0, 0], [0, 0, 0], [0, 0, 3], [4, 0, 3]]},
+    }
+    forward = inference._door_fact(opening, boundaries, {})
+    reverse = inference._door_fact({**opening, "host_boundary_id": "reverse"}, boundaries, {})
+    assert forward["exactly_centered_numerically"] is True
+    assert reverse["exactly_centered_numerically"] is True
+    assert forward["normalized_midpoint_position_from_host_start"] == .5
+    assert reverse["normalized_midpoint_position_from_host_start"] == .5
+
+    offset = inference._door_fact({**opening, "id": "offset", "host_boundary_id": "reverse",
+        "vertices": [[.5, 0, 0], [1.5, 0, 0], [1.5, 0, 2], [.5, 0, 2]]}, boundaries, {})
+    assert offset["normalized_midpoint_position_from_host_start"] == .75
+    assert offset["midpoint_distance_from_host_midpoint_m"] == 1
+    assert offset["exactly_centered_numerically"] is False
 
 
 def test_registers_only_for_writable_runs(tmp_path):

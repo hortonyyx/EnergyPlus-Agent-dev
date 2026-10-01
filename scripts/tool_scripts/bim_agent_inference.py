@@ -13,6 +13,7 @@ _OBJECT_KINDS = {"space", "boundary", "opening", "floor"}
 _DECLARATION_FIELDS = {
     "statement", "basis", "reason", "source_refs", "object_refs", "missing_information",
 }
+_CENTERED_TOLERANCE_M = 1e-6
 _SCOPE = (
     "Deterministic facts from the saved source_model.json only. This does not establish "
     "architectural truth, drawing fidelity, code compliance, geometry acceptance, or "
@@ -217,10 +218,16 @@ def _door_fact(opening: dict, boundaries: dict, connections: dict) -> dict:
     offsets = [abs((point[0] - h0[0]) * unit[1] - (point[1] - h0[1]) * unit[0])
                for point in (a, b)]
     low, high = sorted(projections)
+    midpoint = (low + high) / 2
+    midpoint_distance = abs(midpoint - length / 2)
     return {**result, "geometry_status": "measured_from_saved_vertices",
             "width_m": math.dist(a, b), "endpoints_xy": [a, b],
             "host_representative_segment_xy": [h0, h1], "host_length_m": length,
             "host_end_clearance_m": [low, length - high],
+            "midpoint_along_host_from_start_m": midpoint,
+            "normalized_midpoint_position_from_host_start": midpoint / length,
+            "midpoint_distance_from_host_midpoint_m": midpoint_distance,
+            "exactly_centered_numerically": midpoint_distance <= _CENTERED_TOLERANCE_M,
             "endpoint_perpendicular_offset_m": offsets,
             "connection_records": connections.get(opening["id"], [])}
 
@@ -308,6 +315,7 @@ def audit_inference_candidate(toolkit, candidate: str,
     doors = [_door_fact(row, by_boundary, connection_rows)
              for row in openings if row.get("kind") == "door"]
     measured_doors = [row for row in doors if row["geometry_status"] == "measured_from_saved_vertices"]
+    centered_doors = [row for row in measured_doors if row["exactly_centered_numerically"]]
     counts = {"spaces": len(spaces), "boundaries": len(boundaries), "openings": len(openings),
               "windows": len(windows), "doors": len(doors),
               "other_openings": len(openings) - len(windows) - len(doors)}
@@ -322,6 +330,11 @@ def audit_inference_candidate(toolkit, candidate: str,
         "window_counts": {"by_space": dict(sorted(window_counts.items())),
                           "distribution": dict(sorted(Counter(window_counts.values()).items()))},
         "windows": windows, "floor_membership": membership, "doors": doors,
+        "door_midpoint_check": {
+            "numerical_tolerance_m": _CENTERED_TOLERANCE_M,
+            "definition": "Opening endpoint projections have a midpoint within tolerance of the host representative segment midpoint.",
+            "interpretation": "Coordinate symmetry only; not a door-placement, usability, code-compliance, or acceptance criterion and no edit is applied.",
+        },
     }
     if previous_candidate is not None:
         previous, _, _ = _source(toolkit, previous_candidate)
@@ -360,6 +373,16 @@ def audit_inference_candidate(toolkit, candidate: str,
                          "height_m": _range([row["height_m"] for row in doors if "height_m" in row]),
                          "host_end_clearance_m": _range([clearance for row in measured_doors
                                                           for clearance in row["host_end_clearance_m"]]),
+                         "midpoint_distance_from_host_midpoint_m": _range([
+                             row["midpoint_distance_from_host_midpoint_m"] for row in measured_doors]),
+                         "normalized_midpoint_position_from_host_start": _range([
+                             row["normalized_midpoint_position_from_host_start"] for row in measured_doors]),
+                         "midpoint_measured_count": len(measured_doors),
+                         "exactly_centered_count": len(centered_doors),
+                         "exactly_centered_id_sample": sorted(row["id"] for row in centered_doors)[:6],
+                         "exactly_centered_sample_truncated": len(centered_doors) > 6,
+                         "exactly_centered_numerical_tolerance_m": _CENTERED_TOLERANCE_M,
+                         "midpoint_interpretation": "Numerical coordinate symmetry only; not an architectural acceptance threshold or automatic edit.",
                          "connectivity": dict(sorted(Counter(str(row.get("connectivity"))
                                                              for row in doors).items()))},
         "comparison_counts": diff_counts,
